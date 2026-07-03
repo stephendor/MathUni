@@ -212,6 +212,25 @@ Folders of record:
 - `D:\OneDrive - The Open University\Currently Reading`
 - `D:\OneDrive - The Open University\Tripos Papers`
 
+### Core Texts drop folder (agreed 2026-07-03)
+
+Stephen holds all core texts on disc (including Axler, Munkres, and further
+TDA texts incl. Ghrist) even where not in the folders above. Rather than
+auditing everything, the core texts get copied into one dedicated folder:
+
+```
+D:\OneDrive - The Open University\NexusCollege Core Texts\
+├── pdf\    # canonical PDFs (fallback / figures / page-number citations)
+└── md\     # Stephen's PDF→Markdown conversions, same basename as the PDF
+```
+
+**Ingestion rule:** `/ingest`, lesson generation, and card generation always
+prefer the `md\` version when present and fall back to the PDF only when the
+markdown is missing or a conversion artefact is suspected (garbled maths,
+missing diagrams). Citations still reference PDF page numbers where possible.
+No acquisitions required; Hatcher and Oudot are free downloads if not already
+held.
+
 ## 9. Build order (each phase ends usable)
 
 1. **Phase 0** — Repo scaffold, MISSION.md, NOTES.md, syllabus DAG
