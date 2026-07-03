@@ -1,4 +1,7 @@
 import copy
+import subprocess
+import sys
+
 from scripts.validate_syllabus import validate
 
 VALID = {
@@ -44,3 +47,21 @@ def test_missing_hook_fails():
     doc = copy.deepcopy(VALID)
     del doc["units"][0]["hook"]
     assert any("hook" in e for e in validate(doc))
+
+def test_duplicate_with_conflicting_prereqs_reports_duplicate_not_crash():
+    doc = copy.deepcopy(VALID)
+    conflicting = dict(doc["units"][0])
+    conflicting["prereqs"] = ["la-02"]
+    doc["units"].append(conflicting)
+    errors = validate(doc)
+    assert any("duplicate" in e for e in errors)
+
+def test_cli_missing_file_clean_error():
+    result = subprocess.run(
+        [sys.executable, "scripts/validate_syllabus.py", "nonexistent.yaml"],
+        capture_output=True, text=True,
+    )
+    assert result.returncode == 1
+    assert result.stdout.startswith("ERROR:") or result.stderr.startswith("ERROR:")
+    combined = result.stdout + result.stderr
+    assert "Traceback" not in combined

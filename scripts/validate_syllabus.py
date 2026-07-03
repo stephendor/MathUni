@@ -42,18 +42,28 @@ def validate(doc):
             if p not in unit_ids:
                 errors.append(f"unit {u['id']}: unknown prereq {p}")
 
-    try:
-        ts = TopologicalSorter(
-            {u["id"]: set(u.get("prereqs", [])) & unit_ids
-             for u in doc.get("units", [])})
-        ts.prepare()
-    except CycleError as e:
-        errors.append(f"prerequisite cycle detected: {e.args[1]}")
+    # Skip cycle detection when duplicate unit ids were found: the dict
+    # comprehension below would let one duplicate's prereqs silently
+    # overwrite another's, corrupting the graph. Duplicates are already
+    # reported as errors above, so there's nothing useful to add here.
+    if not any("duplicate unit id" in e for e in errors):
+        try:
+            ts = TopologicalSorter(
+                {u["id"]: set(u.get("prereqs", [])) & unit_ids
+                 for u in doc.get("units", [])})
+            ts.prepare()
+        except CycleError as e:
+            errors.append(f"prerequisite cycle detected: {e.args[1]}")
     return errors
 
 
 def main(path="curriculum/syllabus.yaml"):
-    errors = validate(load_syllabus(path))
+    try:
+        doc = load_syllabus(path)
+    except (FileNotFoundError, yaml.YAMLError) as e:
+        print(f"ERROR: {e}")
+        sys.exit(1)
+    errors = validate(doc)
     for e in errors:
         print(f"ERROR: {e}")
     if errors:
