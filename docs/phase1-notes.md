@@ -16,7 +16,7 @@
    contributor/agent touches the repo (current files are uniformly CRLF —
    harmless, but mixed-EOL diffs would appear if autocrlf settings differ).
 
-4. Open user-side items: correct YouTube links for Axler's LADR course and
-   the Cummings Proofs companion (currently duplicates of the Francis Su
-   link — flagged in resources/RESOURCES.md); optional cleanup of stray
+4. Open user-side items: correct YouTube link for Francis Su's Real
+   Analysis lectures (Axler and Cummings links resolved 2026-07-04 —
+   flagged in resources/RESOURCES.md); optional cleanup of stray
    build/ + checks.json in Core Texts pdf\ folder.

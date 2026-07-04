@@ -20,11 +20,11 @@ Abbott-level material; use for alternative explanations and extra problems).
 
 | Module | Series | Link | Notes |
 |---|---|---|---|
-| la | Axler's own LADR lectures | ⚠ NEEDS CORRECT LINK (duplicate of Su link supplied 2026-07-04) | Pair with LADR chapters |
-| an | Francis Su, Real Analysis | https://www.youtube.com/watch?v=lkx2BJcnyxk&list=PLGAnmvB9m7zOBVCZBUUmSinFV0wEir2Vw | Uses Rudin; regarded as exceptional. Map lectures to Abbott units where topics align |
+| la | Axler's own LADR lectures | https://www.youtube.com/playlist?list=PLGAnmvB9m7zOBVCZBUUmSinFV0wEir2Vw | Pair with LADR chapters |
+| an | Francis Su, Real Analysis | ⚠ NEEDS CORRECT LINK (URL originally supplied turned out to be Axler's playlist) | Uses Rudin; regarded as exceptional. Map lectures to Abbott units where topics align |
 | an | Chris Staecker, Real Analysis | https://www.youtube.com/playlist?list=PLqObMWX4M-If-BQGaUP3eJhqbygoNy_kN | Follows Abbott — primary video strand for an units |
 | an | Marc Renault, Real Analysis | https://www.youtube.com/playlist?list=PLysi2xmniDSzz6xT7IzOifpoexeKccThh | Follows Abbott; extra notes+exercises in docx within Core Texts md folder |
-| pw | Cummings Proofs companion series | ⚠ NEEDS CORRECT LINK (duplicate of Su link supplied 2026-07-04) | Pair with Proofs chapters |
+| pw | Cummings Proofs companion series | https://www.youtube.com/playlist?list=PLcO7tC6LDUstySkU-c_UuuKtQtwtGrTQB | Pair with Proofs chapters |
 | gt | Macauley, Visual Group Theory | https://www.youtube.com/playlist?list=PLwV-9DG53NDwl5uExD8m9FY16QX2fV4qh | Primary visual strand (Carter-based) |
 | gt | Borcherds, Group Theory | https://www.youtube.com/playlist?list=PL8yHsr3EFj51pjBvvCPipgAT3SYpIiIsJ | Depth/enrichment layer |
 | rm (S2) | Borcherds, Rings and Modules | https://www.youtube.com/playlist?list=PL8yHsr3EFj52XDLrmvrFDgwcf6XOm2TEE | Priority for Semester 2 — modules strand |
