@@ -27,8 +27,8 @@ series and uniform convergence into an-14's metric-space bridge).
 **Teaching notes:**
 - Treat an-14 (metric spaces) as the module's destination, not an afterthought
   — every earlier unit should be narrated as "this, but for R" in advance.
-- Pair an-04 (epsilon-delta craft, via pw-04) explicitly with the adversarial
-  framing already used in Proof Workshop.
+- Pair the epsilon-delta content (an-03 onward, formalised with pw-04)
+  explicitly with the adversarial framing already used in Proof Workshop.
 - Uniform convergence (an-13) deserves extra worked counterexamples; it is
   the most common exam-level failure point before stability-theorem readiness.
 
