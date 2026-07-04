@@ -8,8 +8,9 @@ Semester 3.
 (prefer `md\`, cite PDF pages).
 **Support:** Oxford M1 Linear Algebra I/II notes.
 
-**Units (in DAG order):** la-01 … la-15 (see syllabus.yaml; two tracks after
-la-08: operators la-11→la-12, geometry la-13→la-14, converging at la-15).
+**Units (in DAG order):** la-01 … la-15 (see syllabus.yaml; two tracks:
+operators la-11→la-12 branching after la-08, geometry la-13→la-14 branching
+after la-04, converging at la-15).
 
 **Teaching notes:**
 - Axler is determinant-free by design; keep it that way until the module end.
