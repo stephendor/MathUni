@@ -21,7 +21,7 @@ Abbott-level material; use for alternative explanations and extra problems).
 | Module | Series | Link | Notes |
 |---|---|---|---|
 | la | Axler's own LADR lectures | https://www.youtube.com/playlist?list=PLGAnmvB9m7zOBVCZBUUmSinFV0wEir2Vw | Pair with LADR chapters |
-| an | Francis Su, Real Analysis | ⚠ NEEDS CORRECT LINK (URL originally supplied turned out to be Axler's playlist) | Uses Rudin; regarded as exceptional. Map lectures to Abbott units where topics align |
+| an | Francis Su, Real Analysis | https://www.youtube.com/playlist?list=PL0E754696F72137EC | Verified 2026-07-04. Uses Rudin; regarded as exceptional. Map lectures to Abbott units where topics align |
 | an | Chris Staecker, Real Analysis | https://www.youtube.com/playlist?list=PLqObMWX4M-If-BQGaUP3eJhqbygoNy_kN | Follows Abbott — primary video strand for an units |
 | an | Marc Renault, Real Analysis | https://www.youtube.com/playlist?list=PLysi2xmniDSzz6xT7IzOifpoexeKccThh | Follows Abbott; extra notes+exercises in docx within Core Texts md folder |
 | pw | Cummings Proofs companion series | https://www.youtube.com/playlist?list=PLcO7tC6LDUstySkU-c_UuuKtQtwtGrTQB | Pair with Proofs chapters |
