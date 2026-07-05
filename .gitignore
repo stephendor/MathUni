@@ -3,3 +3,7 @@ __pycache__/
 .pytest_cache/
 state/sessions/*.tmp
 *.tmp
+
+
+#Ignore insiders AI rules
+.github\instructions\codacy.instructions.md
