@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-01 — Reals, completeness, sup and inf</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Reals, completeness, sup and inf <span class="cite">(an-01)</span></h1>
+
+<div class="hook">
+√2 punched a hole in the rationals; completeness is the patch.
+<p>Around 500 BC, someone in Pythagoras' school proved that the diagonal of a unit square has no rational length — no fraction, however finely tuned, squares to exactly 2. Legend says the discoverer was drowned for it. The reason the murder (apocryphal or not) makes sense is that the result was genuinely wounding: the Pythagoreans had built a whole cosmology on the idea that any two lengths share a common rational measure. The diagonal of a square broke that promise using nothing but the Pythagorean theorem itself — their own tool, turned against them.</p>
+<p>You can approximate √2 with rationals as closely as you like — 1.4, 1.41, 1.414, 1.4142, each squaring a little nearer to 2 — and the approximations never stop getting better. But there is nowhere on the rational number line where √2 actually <em>sits</em>. It is a hole. This lesson is about the axiom that patches every hole like it at once, and the two numbers — supremum and infimum — that axiom hands you as tools.</p>
+</div>
+
+<p class="mission">Why this matters for the mission: Persistence values are reals; inf/sup define birth and death.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The √2 wound, and why ℚ leaks</h2>
+
+<p>Abbott opens his book the same way — by handing us Hardy's opinion that this theorem belongs among the handful of truly beautiful results in mathematics, "simple both in idea and execution," yet unfaded by two thousand years. <span class="cite">— Abbott §1.1, p. 1</span> Here is the proof, in the classic contradiction shape.</p>
+
+<div class="theorem">
+<p><strong>Theorem 1.1.1.</strong> <em>There is no rational number whose square is 2.</em> <span class="cite">— Abbott §1.1, p. 2</span></p>
+</div>
+
+<p><strong>Proof sketch.</strong> Suppose, for contradiction, that <var>p</var>/<var>q</var> is a fraction in lowest terms with (<var>p</var>/<var>q</var>)² = 2. Then <var>p</var>² = 2<var>q</var>², so <var>p</var>² is even, so <var>p</var> itself is even — write <var>p</var> = 2<var>r</var>. Substituting gives 2<var>r</var>² = <var>q</var>², so <var>q</var>² is even too, so <var>q</var> is even. But then <var>p</var> and <var>q</var> are both even, contradicting "lowest terms." No such fraction exists. ∎</p>
+
+<p>Abbott's point is not just that this theorem is true — it's what the theorem <em>costs</em>. Before this discovery, it was taken for granted that any two line segments share a common rational sub-unit: that the length of one is always a rational multiple of the other. Looking at the diagonal of a unit square, that assumption collapses. Because the Pythagoreans equated "number" with "rational number", they were forced into an uncomfortable conclusion: number is a strictly weaker notion than length. <span class="cite">— Abbott §1.1, p. 3</span></p>
+
+<p>There are two ways to respond to a crack like this. The Greeks essentially abandoned arithmetic in favour of geometry — length became primary, number secondary. Abbott (and this course) takes the opposite route: <em>fix the number system instead</em>. Watch the chain of forced extensions:</p>
+
+<ul>
+<li>ℕ = {1, 2, 3, …} — closed under addition, but no zero, no negatives.</li>
+<li>ℤ = {…, −1, 0, 1, …} — add the additive identity and inverses, so subtraction works.</li>
+<li>ℚ = {<var>p</var>/<var>q</var> : <var>p</var>, <var>q</var> ∈ ℤ, <var>q</var> ≠ 0} — add multiplicative inverses, so division works.</li>
+</ul>
+
+<p>At each stage the motive is the same: some operation was missing, so the number system grew to supply it. ℚ is a genuine <strong>field</strong> — addition and multiplication are commutative, associative, distributive, with identities and inverses throughout — and it comes with a natural order, densely packed: between any two rationals <var>r</var> &lt; <var>s</var> sits another rational, (<var>r</var>+<var>s</var>)/2. <span class="cite">— Abbott §1.1, pp. 3–4</span></p>
+
+<p>Densely packed is not the same as <em>complete</em>. Theorem 1.1.1 already told us √2 isn't in ℚ. But the failure is worse than "square roots sometimes don't exist" — it's structural. You can approximate √2 with rationals to any precision you like (1.414² = 1.999396, and adding decimal places closes the gap further), yet however far you push it, there is no rational number that <em>is</em> the limit of that approximation. Abbott's own words for it:</p>
+
+<div class="theorem">
+<p>"Even so, we are now well aware that there is a 'hole' in the rational number line where √2 ought to be." <span class="cite">— Abbott §1.1, p. 4</span></p>
+</div>
+
+<p>And there isn't just one hole — √3, √5, and infinitely many others puncture ℚ the same way. The real numbers ℝ are defined, informally for now, as ℚ with every one of these holes filled: wherever a gap sits, a new irrational number is inserted into the existing order. <span class="cite">— Abbott §1.1, p. 4</span> Segment 2 makes "filled" precise.</p>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Adapt the √2 proof to show √3 is irrational. Where exactly does the argument use the number 2 (rather than 3), and does the same trick work verbatim, or does a small modification bite you? (Compare against what happens if you try the same proof on √4 — why must it fail there?) <span class="cite">— cf. Abbott §1.1, Exercise 1.2.1</span>
+</div>
+
+<h3>The number line, closing in</h3>
+<p>Here is the approximation process made visible: nested rational guesses squeezing toward √2 from both sides, the gap between them shrinking but never quite vanishing into a rational number.</p>
+<canvas id="sqrt2canvas" width="640" height="160" role="img" aria-label="Number line animating nested rational approximations 1, 1.4, 1.41, 1.414 closing in on the square root of 2"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('sqrt2canvas'), ctx=cv.getContext('2d');
+const approx=[1,1.4,1.41,1.414,1.4142,1.41421,1.414213];
+const target=Math.sqrt(2);
+const x0=40,x1=600,y0=100;
+function toX(v){return x0+(v-1)/(1.6-1)*(x1-x0);}
+let step=0,t=0;
+function draw(){
+ctx.clearRect(0,0,cv.width,cv.height);
+ctx.strokeStyle='#2a333d';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y0);ctx.stroke();
+for(let v=1;v<=1.6;v+=0.1){
+ctx.beginPath();ctx.moveTo(toX(v),y0-6);ctx.lineTo(toX(v),y0+6);ctx.stroke();
+}
+ctx.fillStyle='#9aa5b1';ctx.font='12px Segoe UI';
+ctx.fillText('1',toX(1)-4,y0+22);ctx.fillText('1.6',toX(1.6)-8,y0+22);
+ctx.strokeStyle='#e06c75';ctx.beginPath();ctx.moveTo(toX(target),y0-14);ctx.lineTo(toX(target),y0+14);ctx.stroke();
+ctx.fillStyle='#e06c75';ctx.fillText('√2 (hole)',toX(target)-24,y0-18);
+const n=Math.min(step,approx.length-1);
+const val=approx[n];
+const px=toX(val);
+ctx.fillStyle='#8ab4f8';
+ctx.beginPath();ctx.arc(px,y0,6,0,7);ctx.fill();
+ctx.fillStyle='#e8e8e8';ctx.font='14px Segoe UI';
+ctx.fillText(val.toString(),px-16,y0-24);
+ctx.fillStyle='#4caf82';ctx.font='12px Segoe UI';
+ctx.fillText('rational approximation '+(n+1)+' of '+approx.length,20,20);
+}
+function tick(){t++;if(t%40===0 && step<approx.length-1){step++;} draw(); requestAnimationFrame(tick);}
+draw();
+setInterval(function(){step=(step+1)%approx.length;draw();},900);
+})();
+</script>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why can't the Pythagorean-style rational-approximation game ever land exactly on √2?</p>
+<button onclick="check(this,false)">Because rationals are not dense in ℝ</button>
+<button onclick="check(this,true)" data-ok>Because √2 is irrational, so no fraction p/q equals it exactly, however good the approximation</button>
+<button onclick="check(this,false)">Because decimal expansions must terminate</button>
+<button onclick="check(this,false)">Because √2 is undefined until Chapter 8</button>
+<div class="explain">Rationals actually are dense in ℝ (that's Segment 2's Theorem 1.4.3) — density is not the issue. The issue is Theorem 1.1.1: no rational number, however you write it, squares to exactly 2. Density gets you arbitrarily close; it never gets you there.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> What exactly did the Pythagoreans lose when √2 turned out to be irrational?</p>
+<button onclick="check(this,false)">The ability to do arithmetic on natural numbers</button>
+<button onclick="check(this,true)" data-ok>Their assumption that every length is a rational multiple of every other length</button>
+<button onclick="check(this,false)">The existence of the diagonal itself</button>
+<div class="explain">The diagonal of a unit square undeniably exists and has a definite length — the crisis was purely conceptual: rational number turned out to be strictly weaker than geometric length, shattering the assumed correspondence between the two. (Abbott §1.1, p. 3)</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The Axiom of Completeness, and computing sup / inf</h2>
+
+<p>Here, finally, is the assumption that plugs every hole in ℚ at once. Abbott calls it "the final, and most distinctive" assumption about the reals, and is deliberately fussy about its wording:</p>
+
+<div class="theorem">
+<p><strong>Axiom of Completeness.</strong> <em>Every nonempty set of real numbers that is bounded above has a least upper bound.</em> <span class="cite">— Abbott §1.3, p. 14</span></p>
+</div>
+
+<p>Unpacking "least upper bound" needs two definitions, stated with a fussiness that will pay off the moment you try to use them in a proof.</p>
+
+<div class="definition">
+<p><strong>Definition 1.3.1.</strong> A set <var>A</var> ⊆ ℝ is <em>bounded above</em> if there exists <var>b</var> ∈ ℝ with <var>a</var> ≤ <var>b</var> for all <var>a</var> ∈ <var>A</var>; <var>b</var> is called an <em>upper bound</em> for <var>A</var>. <em>Bounded below</em> and <em>lower bound</em> are defined the same way, flipped. <span class="cite">— Abbott §1.3, p. 14</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 1.3.2.</strong> A real number <var>s</var> is the <em>least upper bound</em>, or <strong>supremum</strong> (written sup <var>A</var>), for a set <var>A</var> ⊆ ℝ if: (i) <var>s</var> is an upper bound for <var>A</var>, and (ii) if <var>b</var> is any upper bound for <var>A</var>, then <var>s</var> ≤ <var>b</var>. The <strong>infimum</strong> (inf <var>A</var>) is defined the same way for lower bounds. <span class="cite">— Abbott §1.3, p. 14</span></p>
+</div>
+
+<p>Both parts of the definition matter, and proofs about sup routinely use both — part (i) to say "sup <var>A</var> doesn't undershoot", part (ii) to say "nothing smaller works as an upper bound." A quick but important warning: sup <var>A</var> need not be an element of <var>A</var> at all. Compare (0, 2), which has sup 2 but no maximum (2 ∉ (0,2)), against [0, 2], which has sup 2 <em>and</em> max 2. <span class="cite">— Abbott §1.3, Example 1.3.5, p. 15</span> Supremum can exist without being a maximum; when a maximum does exist, though, it is automatically the supremum.</p>
+
+<p>Time to compute some. Here's a fully worked example before the fade.</p>
+
+<div class="worked">
+<strong>Worked example — Example 1.3.3 (fully worked).</strong> Let <var>A</var> = {1/<var>n</var> : <var>n</var> ∈ ℕ} = {1, 1/2, 1/3, …}. Show sup <var>A</var> = 1.
+<p><strong>Proof.</strong> We check both parts of Definition 1.3.2.</p>
+<p>(i) <var>s</var> = 1 is an upper bound: for every <var>n</var> ∈ ℕ, 1/<var>n</var> ≤ 1, since <var>n</var> ≥ 1.</p>
+<p>(ii) <var>s</var> = 1 is the <em>least</em> upper bound: let <var>b</var> be any upper bound for <var>A</var>. Since 1 ∈ <var>A</var> (take <var>n</var> = 1) and <var>b</var> is an upper bound, we must have 1 ≤ <var>b</var>. This is exactly what (ii) demands.</p>
+<p>Both parts hold, so sup <var>A</var> = 1. ∎ (Note: 1 ∈ <var>A</var>, so 1 is actually the <em>maximum</em> here too — but inf <var>A</var> = 0, and 0 ∉ <var>A</var>, so the infimum is a genuine non-member; proving that rigorously needs a tool — the Archimedean Property — that comes later in the chapter.)</p>
+<p class="cite">— Abbott §1.3, Example 1.3.3, p. 15</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — inspired by Abbott's Example 1.3.6 (your turn to fill the gaps).</strong> Let <var>B</var> = {<var>r</var> ∈ ℚ : <var>r</var>² &lt; 3}. Working <em>only within ℚ</em> (pretend for the moment ℝ doesn't exist), show that <var>B</var> is bounded above but has <span class="gap">⟨your step: state, in one sentence, what goes wrong when you search for the least rational upper bound⟩</span>.
+<p><strong>Proof sketch.</strong> <var>B</var> is bounded above: <var>b</var> = 2 works, since if <var>r</var> &gt; 2 then <var>r</var>² &gt; 4 &gt; 3, so <var>r</var> ∉ <var>B</var>. But 2 is far from the <em>least</em> rational upper bound — <span class="gap">⟨your step: name a smaller rational upper bound than 2, and justify briefly why it still bounds B⟩</span>, e.g. try <var>b</var> = 7/4 = 1.75 and check 1.75² against 3.</p>
+<p>Whatever rational upper bound you find, a little decimal digging (recall √3 ≈ 1.732…) always turns up <span class="gap">⟨your step: describe, in words, what you can always do to any proposed rational upper bound of B⟩</span>. So within ℚ alone, no least upper bound exists — the search never terminates. In ℝ, by the Axiom of Completeness, α = sup <var>B</var> exists outright, and (by the same style of argument Abbott uses for √2 in Theorem 1.4.5) one can show <span class="gap">⟨your step: what must α² equal, given how B was defined?⟩</span>, forcing α = √3 — irrational, hence never a legal candidate while we pretended to live only in ℚ.</p>
+<p class="cite">— adapted from Abbott §1.3, Example 1.3.6, p. 17, and §1.4, Theorem 1.4.5, pp. 21–22</p>
+</div>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Compute, without a full formal proof (informal justification is fine), sup and inf of <var>C</var> = {<var>n</var>/(<var>n</var>+1) : <var>n</var> ∈ ℕ} = {1/2, 2/3, 3/4, …}. Which of the two — sup or inf — is actually attained as a maximum or minimum of the set, and which is only a limiting value the set never reaches? <span class="cite">— cf. Abbott §1.3, Exercise 1.3.6</span>
+</div>
+
+<p>One more worked idea worth having in your pocket: the Axiom of Completeness doesn't just sit there as an abstract guarantee — it's the engine behind concrete existence proofs. Abbott uses exactly this axiom to prove a real number α with α² = 2 actually exists (set <var>T</var> = {<var>t</var> ∈ ℝ : <var>t</var>² &lt; 2}, let α = sup <var>T</var>, then rule out α² &lt; 2 and α² &gt; 2 in turn, using both halves of the sup definition each time). <span class="cite">— Abbott §1.4, Theorem 1.4.5, pp. 21–22</span> That's the wound from Segment 1, formally stitched shut.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> For <var>A</var> = {1/<var>n</var> : <var>n</var> ∈ ℕ}, why is checking "1 ≤ <var>b</var> for any upper bound <var>b</var>" enough to prove sup <var>A</var> = 1, without checking every other candidate upper bound individually?</p>
+<button onclick="check(this,false)">Because 1 is the largest number in ℝ</button>
+<button onclick="check(this,true)" data-ok>Because 1 ∈ A, so any upper bound of A is automatically forced to be ≥ 1 — that's exactly condition (ii)</button>
+<button onclick="check(this,false)">Because A is a finite set</button>
+<div class="explain">When the proposed supremum is itself a member of the set, condition (ii) collapses to a one-line argument: any upper bound must dominate every element of A, including this one. That shortcut disappears the moment your candidate sup is not in the set (as with inf A = 0 here).</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The Axiom of Completeness explicitly asserts the existence of least upper bounds for sets bounded above. Why doesn't it need to separately assert the existence of greatest lower bounds for sets bounded below?</p>
+<button onclick="check(this,false)">Because greatest lower bounds don't always exist</button>
+<button onclick="check(this,true)" data-ok>Because inf A can be recovered as −sup(−A), so the existence of infima follows from the axiom rather than needing separate assumption</button>
+<button onclick="check(this,false)">Because bounded-below sets are always finite</button>
+<div class="explain">Abbott notes this explicitly (§1.3, p. 16, and Exercise 1.3.3): given A bounded below, the set of its lower bounds is bounded above, and its supremum turns out to equal inf A. One axiom, both directions, for free.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> True or false: if a nonempty set A ⊆ ℝ is bounded above, then sup A must be an element of A.</p>
+<button onclick="check(this,false)">True — supremum always belongs to its set</button>
+<button onclick="check(this,true)" data-ok>False — e.g. sup(0,2) = 2, but 2 ∉ (0,2)</button>
+<div class="explain">This is precisely the distinction between supremum and maximum. A maximum must belong to the set by definition; a supremum need not. When it does belong, it's also the maximum — but that's a bonus, not a requirement. (Abbott §1.3, Definition 1.3.4 and Example 1.3.5, p. 15)</div>
+</div>
+
+</div>
+
+<footer>Sources: Abbott, <em>Understanding Analysis</em> — §1.1 "Discussion: The Irrationality of √2" (Theorem 1.1.1), pp. 1–4; §1.3 "The Axiom of Completeness" (Axiom of Completeness, Definitions 1.3.1–1.3.2, Examples 1.3.3, 1.3.5, 1.3.6, Definition 1.3.4), pp. 14–17; §1.4 "Consequences of Completeness" (Theorem 1.4.5, existence of √2 as sup T), pp. 18–22.
+<br>Deferred to an-02: cardinality, countability, Cantor's diagonal argument (Abbott §1.5–1.6).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
