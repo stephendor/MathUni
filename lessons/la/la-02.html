@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-02 — Subspaces, sums, direct sums</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Subspaces, sums, direct sums <span class="cite">(la-02)</span></h1>
+
+<div class="hook">
+When does a plane plus a line fill space? Direct sums as jigsaw pieces.
+<p>Take the <var>xy</var>-plane sitting inside <strong>R</strong>³, and the <var>z</var>-axis, a line through the origin poking straight through it. Add every point of the plane to every point of the line — all possible sums — and you get the whole of <strong>R</strong>³ back. Every point in space is <em>some</em> plane-point plus <em>some</em> line-point, and — this is the part that makes it a genuine jigsaw rather than a sloppy overlap — there is exactly <em>one</em> way to split any given point into its plane-piece and its line-piece. No ambiguity, no double-counting.</p>
+<p>Contrast that with three flat pieces glued clumsily: if any two of your "puzzle pieces" already overlap in more than just the corner point, the decomposition stops being unique, and the jigsaw metaphor breaks. This lesson makes that difference precise. First we pin down exactly which subsets of a vector space deserve to be called <strong>subspaces</strong> — the legitimate jigsaw pieces — and then we pin down exactly when gluing them back together, via a <strong>sum</strong>, gives a <strong>direct sum</strong>: a reconstruction with no seams doubled and nothing wasted.</p>
+</div>
+
+<p class="mission">Why this matters for the mission: Cycles and boundaries sit inside chains as subspaces.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Subspaces: legitimate pieces of a vector space</h2>
+
+<p>Recall from la-01 that a vector space is a set with an addition and scalar multiplication satisfying Definition 1.19's eight properties. A <strong>subspace</strong> asks: what if a subset of an existing vector space is, on its own, <em>also</em> a vector space, using the same operations inherited from the bigger space?</p>
+
+<div class="definition">
+<p><strong>Definition 1.32.</strong> A subset <var>U</var> of <var>V</var> is called a <strong>subspace</strong> of <var>V</var> if <var>U</var> is also a vector space (using the same addition and scalar multiplication as on <var>V</var>). <span class="cite">— Axler §1.C, Definition 1.32, p. 18</span></p>
+</div>
+
+<p>Checking all eight vector-space axioms every time would be tedious — and unnecessary, because a subset of <var>V</var> already inherits commutativity, associativity, and the distributive laws for free (they hold on all of <var>V</var>, so they certainly hold on any subset). What can actually fail are just three things: does the subset contain the zero vector, is it closed under addition, and is it closed under scalar multiplication? That collapses the check to a three-item test.</p>
+
+<div class="theorem">
+<p><strong>Theorem 1.34 (subspace test).</strong> A subset <var>U</var> of <var>V</var> is a subspace of <var>V</var> if and only if <var>U</var> satisfies: <strong>additive identity</strong> 0 ∈ <var>U</var>; <strong>closed under addition</strong> <var>u</var>, <var>w</var> ∈ <var>U</var> implies <var>u</var> + <var>w</var> ∈ <var>U</var>; <strong>closed under scalar multiplication</strong> <var>a</var> ∈ <strong>F</strong> and <var>u</var> ∈ <var>U</var> implies <var>au</var> ∈ <var>U</var>. <span class="cite">— Axler §1.C, Theorem 1.34, pp. 18–19</span></p>
+</div>
+
+<p>Axler flags a subtlety worth holding onto: the additive-identity condition could technically be replaced by "<var>U</var> is nonempty", since a nonempty <var>U</var> closed under scaling automatically contains 0 (take any <var>u</var> ∈ <var>U</var> and multiply by the scalar 0). <span class="cite">— Axler §1.C, p. 18</span> But in practice, checking 0 ∈ <var>U</var> directly is almost always the fastest move, and it's usually the first thing that fails — so it earns its place as the first checklist item, not an afterthought.</p>
+
+<h3>The classic traps: examples and non-examples</h3>
+<p>The subspace test is easy to state and easy to misapply. The traps below are exactly the ones Cummings-style faded proofs are built to catch — read the non-examples as carefully as the examples.</p>
+
+<div class="worked">
+<strong>Worked example — a genuine subspace (fully worked).</strong> Show that <var>U</var> = {(<var>x</var>₁, <var>x</var>₂, 0) : <var>x</var>₁, <var>x</var>₂ ∈ <strong>F</strong>} is a subspace of <strong>F</strong>³.
+<p><strong>Proof.</strong> <em>Additive identity:</em> 0 = (0, 0, 0) has third coordinate 0, so 0 ∈ <var>U</var>. <em>Closed under addition:</em> if <var>u</var> = (<var>a</var>₁, <var>a</var>₂, 0) and <var>w</var> = (<var>b</var>₁, <var>b</var>₂, 0) are both in <var>U</var>, then <var>u</var> + <var>w</var> = (<var>a</var>₁ + <var>b</var>₁, <var>a</var>₂ + <var>b</var>₂, 0), which still has third coordinate 0, so <var>u</var> + <var>w</var> ∈ <var>U</var>. <em>Closed under scalar multiplication:</em> if λ ∈ <strong>F</strong> and <var>u</var> = (<var>a</var>₁, <var>a</var>₂, 0) ∈ <var>U</var>, then λ<var>u</var> = (λ<var>a</var>₁, λ<var>a</var>₂, 0), still third coordinate 0, so λ<var>u</var> ∈ <var>U</var>. All three conditions of Theorem 1.34 hold, so <var>U</var> is a subspace of <strong>F</strong>³. ∎</p>
+<p class="cite">— Axler §1.C, Example 1.33, p. 18</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — the classic offset trap (your turn to fill the gaps).</strong> Fix <var>b</var> ∈ <strong>F</strong>. Show that <var>W</var> = {(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃, <var>x</var>₄) ∈ <strong>F</strong>⁴ : <var>x</var>₃ = 5<var>x</var>₄ + <var>b</var>} is a subspace of <strong>F</strong>⁴ if and only if <var>b</var> = 0.
+<p><strong>Proof (the "if <var>b</var> = 0" direction).</strong> Suppose <var>b</var> = 0, so <var>W</var> = {(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃, <var>x</var>₄) : <var>x</var>₃ = 5<var>x</var>₄}. <em>Additive identity:</em> for 0 = (0,0,0,0), check 0 = 5·0, so <span class="gap">⟨your step: state the conclusion for this condition⟩</span>. <em>Closed under addition:</em> if (<var>a</var>₁,<var>a</var>₂,<var>a</var>₃,<var>a</var>₄) and (<var>c</var>₁,<var>c</var>₂,<var>c</var>₃,<var>c</var>₄) both satisfy the defining equation, so <var>a</var>₃ = 5<var>a</var>₄ and <var>c</var>₃ = 5<var>c</var>₄, then adding these two equations gives <span class="gap">⟨your step: write the equation the sum's third and fourth coordinates satisfy⟩</span>, so the sum lies in <var>W</var> too. <em>Closed under scalar multiplication:</em> similarly, scaling <var>a</var>₃ = 5<var>a</var>₄ by λ gives <span class="gap">⟨your step: write the scaled equation⟩</span>, so λ(<var>a</var>₁,<var>a</var>₂,<var>a</var>₃,<var>a</var>₄) ∈ <var>W</var>.</p>
+<p><strong>Proof (the "only if" direction — why b ≠ 0 fails).</strong> Suppose <var>b</var> ≠ 0. Then 0 = (0,0,0,0) would need to satisfy 0 = 5·0 + <var>b</var>, i.e. <span class="gap">⟨your step: what does this force b to equal, and why does that contradict b ≠ 0?⟩</span>. So the additive identity condition fails, and by Theorem 1.34, <var>W</var> is not a subspace when <var>b</var> ≠ 0. ∎</p>
+<p class="cite">— Axler §1.C, Example 1.35(a), p. 19</p>
+</div>
+
+<p>That offset trap is the single most common mistake: a set defined by a <em>linear but inhomogeneous</em> equation (one with a leftover constant, like "= <var>b</var>" instead of "= 0") almost never contains the zero vector unless the constant happens to be zero. Spot the "+<var>b</var>" or "= 4" in a defining equation, and check 0 first — it usually fails instantly.</p>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Decide, for each subset of <strong>F</strong>³ below, whether it is a subspace — and if not, say which of the three conditions in Theorem 1.34 fails: (a) {(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃) : <var>x</var>₁ + 2<var>x</var>₂ + 3<var>x</var>₃ = 0}; (b) {(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃) : <var>x</var>₁ + 2<var>x</var>₂ + 3<var>x</var>₃ = 4}; (c) {(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃) : <var>x</var>₁<var>x</var>₂<var>x</var>₃ = 0}. (Hint: (c) is a trap of a different flavour — the zero vector survives, but one of the closure conditions doesn't. Try adding (1,0,0) and (0,1,0), both individually satisfying the equation.) <span class="cite">— cf. Axler §1.C, Exercise 1, p. 24</span>
+</div>
+
+<p>Two more useful facts to hold onto before moving on: {0} alone is always a subspace (the smallest one), and <var>V</var> itself is always a subspace of <var>V</var> (the largest one). The empty set, meanwhile, is <em>never</em> a subspace of anything — a subspace must be a vector space, and every vector space contains at least one element, its additive identity. <span class="cite">— Axler §1.C, p. 19</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A subset <var>U</var> of <var>V</var> contains 0, and is closed under addition, but is <em>not</em> closed under scalar multiplication. Is <var>U</var> a subspace of <var>V</var>?</p>
+<button onclick="check(this,false)">Yes — containing 0 and closure under addition are the only requirements</button>
+<button onclick="check(this,true)" data-ok>No — Theorem 1.34 requires all three conditions</button>
+<button onclick="check(this,false)">Yes, provided U is nonempty</button>
+<div class="explain">Theorem 1.34 is an "if and only if" over all three conditions together. Failing closure under scalar multiplication alone is enough to disqualify U as a subspace, no matter how the other two conditions fare.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> {(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃) ∈ <strong>F</strong>³ : <var>x</var>₁ + 2<var>x</var>₂ + 3<var>x</var>₃ = 4} fails to be a subspace of <strong>F</strong>³ because…</p>
+<button onclick="check(this,true)" data-ok>the zero vector (0,0,0) does not satisfy the defining equation</button>
+<button onclick="check(this,false)">it is not closed under addition</button>
+<button onclick="check(this,false)">it is not closed under scalar multiplication</button>
+<div class="explain">0 + 2·0 + 3·0 = 0 ≠ 4, so 0 ∉ the set — the additive-identity condition of Theorem 1.34 already fails, exactly the offset trap of Example 1.35(a) with b = 4 ≠ 0.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which of these is always true for any vector space <var>V</var>?</p>
+<button onclick="check(this,false)">The empty set is a subspace of V</button>
+<button onclick="check(this,true)" data-ok>{0} and V are both subspaces of V</button>
+<button onclick="check(this,false)">Every subset of V containing 0 is a subspace</button>
+<div class="explain">{0} is the smallest subspace and V is the largest — both always satisfy Theorem 1.34 trivially. The empty set fails because it doesn't even contain 0. And plenty of subsets contain 0 but fail closure (see the plane-minus-axes counterexamples in Axler's exercises).</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Sums and direct sums: the jigsaw made precise</h2>
+
+<p>Subspaces are the pieces. Now we glue them back together. The <strong>sum</strong> of subspaces is the set of all ways of adding one element from each piece:</p>
+
+<div class="definition">
+<p><strong>Definition 1.36.</strong> Suppose <var>U</var>₁, …, <var>U</var><sub><var>m</var></sub> are subsets of <var>V</var>. The <strong>sum</strong> of <var>U</var>₁, …, <var>U</var><sub><var>m</var></sub>, denoted <var>U</var>₁ + ⋯ + <var>U</var><sub><var>m</var></sub>, is <var>U</var>₁ + ⋯ + <var>U</var><sub><var>m</var></sub> = {<var>u</var>₁ + ⋯ + <var>u</var><sub><var>m</var></sub> : <var>u</var>₁ ∈ <var>U</var>₁, …, <var>u</var><sub><var>m</var></sub> ∈ <var>U</var><sub><var>m</var></sub>}. <span class="cite">— Axler §1.C, Definition 1.36, p. 20</span></p>
+</div>
+
+<p>Sums of subspaces play the role for vector spaces that unions play for sets: the sum <var>U</var>₁ + ⋯ + <var>U</var><sub><var>m</var></sub> is provably the <em>smallest</em> subspace of <var>V</var> containing all of <var>U</var>₁, …, <var>U</var><sub><var>m</var></sub>. <span class="cite">— Axler §1.C, Theorem 1.39, pp. 20–21</span> Axler notes why we bother with sums rather than plain unions at all: "the union of subspaces is rarely a subspace" — union alone doesn't stay closed under addition, so sum is the operation that actually produces another vector space. <span class="cite">— Axler §1.C, p. 20</span></p>
+
+<p>But a sum can be generous to the point of redundancy — the same vector might be reachable as <var>u</var>₁ + ⋯ + <var>u</var><sub><var>m</var></sub> in more than one way. When it can't — when every vector in the sum has exactly one such decomposition — the sum earns a special name and a special symbol.</p>
+
+<div class="definition">
+<p><strong>Definition 1.40.</strong> Suppose <var>U</var>₁, …, <var>U</var><sub><var>m</var></sub> are subspaces of <var>V</var>. The sum <var>U</var>₁ + ⋯ + <var>U</var><sub><var>m</var></sub> is called a <strong>direct sum</strong> if each element of <var>U</var>₁ + ⋯ + <var>U</var><sub><var>m</var></sub> can be written in only one way as a sum <var>u</var>₁ + ⋯ + <var>u</var><sub><var>m</var></sub>, where each <var>u</var><sub><var>j</var></sub> ∈ <var>U</var><sub><var>j</var></sub>. When it is, we write <var>U</var>₁ ⊕ ⋯ ⊕ <var>U</var><sub><var>m</var></sub>. <span class="cite">— Axler §1.C, Definition 1.40, p. 21</span></p>
+</div>
+
+<p>The ⊕ symbol — a plus sign wrapped in a circle — is a deliberate visual reminder that something extra beyond a mere sum is being promised: uniqueness of decomposition. <span class="cite">— Axler §1.C, p. 22</span> This is precisely the jigsaw property from the hook: <strong>R</strong>³ = (<var>xy</var>-plane) ⊕ (<var>z</var>-axis) because every point splits into a plane-part and an axis-part in exactly one way.</p>
+
+<h3>Canvas: the jigsaw made visual</h3>
+<p>A rotating wireframe of the <var>xy</var>-plane (blue mesh) and the <var>z</var>-axis (amber line) inside a projected <strong>R</strong>³. Together they sweep out all of space — and any point you'd mark decomposes into exactly one plane-point plus one axis-point.</p>
+<canvas id="jc" width="440" height="340"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('jc'),ctx=cv.getContext('2d'),cx=220,cy=180,scale=70;
+let t=0;
+function project(p,ang){
+  const cA=Math.cos(ang),sA=Math.sin(ang);
+  const x=p[0]*cA - p[2]*sA, z=p[0]*sA + p[2]*cA, y=p[1];
+  const persp=1/(2.6+z*0.3);
+  return [cx+x*scale*persp, cy-y*scale*persp*0.85];
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const ang=t;
+  ctx.strokeStyle='#8ab4f8';ctx.lineWidth=1;
+  for(let i=-2;i<=2;i++){
+    ctx.beginPath();
+    let p0=project([-2,0,i],ang),p1=project([2,0,i],ang);
+    ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+    ctx.beginPath();
+    p0=project([i,0,-2],ang);p1=project([i,0,2],ang);
+    ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+  }
+  ctx.strokeStyle='#d8a657';ctx.lineWidth=3;
+  ctx.beginPath();
+  let a0=project([0,-2.2,0],ang),a1=project([0,2.2,0],ang);
+  ctx.moveTo(a0[0],a0[1]);ctx.lineTo(a1[0],a1[1]);ctx.stroke();
+  ctx.fillStyle='#4caf82';
+  const o=project([0,0,0],ang);
+  ctx.beginPath();ctx.arc(o[0],o[1],4,0,7);ctx.fill();
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('R³ = (xy-plane) ⊕ (z-axis)',cx,320);
+  ctx.textAlign='left';
+  t+=0.012;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="worked">
+<strong>Worked example — a genuine direct sum (fully worked).</strong> Let <var>U</var> = {(<var>x</var>, <var>y</var>, 0) ∈ <strong>F</strong>³ : <var>x</var>, <var>y</var> ∈ <strong>F</strong>} and <var>W</var> = {(0, 0, <var>z</var>) ∈ <strong>F</strong>³ : <var>z</var> ∈ <strong>F</strong>}. Show <strong>F</strong>³ = <var>U</var> ⊕ <var>W</var>.
+<p><strong>Proof.</strong> <em>Sum equals F³:</em> any (<var>x</var>,<var>y</var>,<var>z</var>) ∈ <strong>F</strong>³ can be written (<var>x</var>,<var>y</var>,<var>z</var>) = (<var>x</var>,<var>y</var>,0) + (0,0,<var>z</var>), with the first summand in <var>U</var> and the second in <var>W</var>. So <var>U</var> + <var>W</var> = <strong>F</strong>³. <em>Directness:</em> by Theorem 1.44 it suffices to show 0 decomposes uniquely. Suppose 0 = <var>u</var> + <var>w</var> with <var>u</var> = (<var>a</var>,<var>b</var>,0) ∈ <var>U</var> and <var>w</var> = (0,0,<var>c</var>) ∈ <var>W</var>. Then (<var>a</var>,<var>b</var>,<var>c</var>) = (0,0,0), forcing <var>a</var> = <var>b</var> = <var>c</var> = 0, so <var>u</var> = <var>w</var> = 0 — the only decomposition of 0 is the trivial one. Hence <strong>F</strong>³ = <var>U</var> ⊕ <var>W</var>. ∎</p>
+<p class="cite">— Axler §1.C, Example 1.41, p. 21</p>
+</div>
+
+<p>Checking directness via "0 decomposes uniquely" rather than checking every single vector is not a shortcut we invented for the example above — it's a theorem, and it's the tool that makes direct-sum verification tractable in general:</p>
+
+<div class="theorem">
+<p><strong>Theorem 1.44.</strong> Suppose <var>U</var>₁, …, <var>U</var><sub><var>m</var></sub> are subspaces of <var>V</var>. Then <var>U</var>₁ + ⋯ + <var>U</var><sub><var>m</var></sub> is a direct sum if and only if the only way to write 0 as <var>u</var>₁ + ⋯ + <var>u</var><sub><var>m</var></sub>, each <var>u</var><sub><var>j</var></sub> ∈ <var>U</var><sub><var>j</var></sub>, is by taking every <var>u</var><sub><var>j</var></sub> = 0. <span class="cite">— Axler §1.C, Theorem 1.44, pp. 22–23</span></p>
+</div>
+
+<p>For exactly two subspaces this collapses further, to a test about intersection:</p>
+
+<div class="theorem">
+<p><strong>Theorem 1.45.</strong> Suppose <var>U</var> and <var>W</var> are subspaces of <var>V</var>. Then <var>U</var> + <var>W</var> is a direct sum if and only if <var>U</var> ∩ <var>W</var> = {0}. <span class="cite">— Axler §1.C, Theorem 1.45, p. 23</span></p>
+</div>
+
+<p>Now the faded non-example — the case where the jigsaw pieces overlap and the sum, though it fills the space, is not direct. This is the exact classic trap: a sum that <em>looks</em> like a direct sum because it reconstructs the whole space, but fails uniqueness.</p>
+
+<div class="worked fade">
+<strong>Faded example — a sum that is not direct (your turn to fill the gaps).</strong> Let <var>U</var>₁ = {(<var>x</var>,<var>y</var>,0)}, <var>U</var>₂ = {(0,0,<var>z</var>)}, <var>U</var>₃ = {(0,<var>y</var>,<var>y</var>)} (all inside <strong>F</strong>³, coordinates ranging over <strong>F</strong>). Show <var>U</var>₁ + <var>U</var>₂ + <var>U</var>₃ = <strong>F</strong>³ but the sum is <em>not</em> direct.
+<p><strong>Solution.</strong> <em>The sum is all of F³:</em> any (<var>x</var>,<var>y</var>,<var>z</var>) = (<var>x</var>,<var>y</var>,0) + (0,0,<var>z</var>) + (0,0,0), with the pieces in <var>U</var>₁, <var>U</var>₂, <var>U</var>₃ respectively. <em>Not direct:</em> by Theorem 1.44 it suffices to exhibit <em>two different</em> ways to write 0 as <var>u</var>₁ + <var>u</var>₂ + <var>u</var>₃. One way is the trivial (0,0,0)+(0,0,0)+(0,0,0). For the other, try <var>u</var>₃ = (0,1,1) ∈ <var>U</var>₃. Then <var>u</var>₁ must supply <span class="gap">⟨your step: what vector in U₁ cancels the y-coordinate contributed by u₃, and what must its own z-coordinate be?⟩</span>, and <var>u</var>₂ must supply <span class="gap">⟨your step: what vector in U₂ cancels the remaining z-coordinate?⟩</span>. Check: <var>u</var>₁ + <var>u</var>₂ + <var>u</var>₃ = <span class="gap">⟨your step: add the three vectors and confirm the total is (0,0,0)⟩</span>. Since 0 has two distinct decompositions — the trivial one and this one — Theorem 1.44 says the sum is not direct, even though it equals all of <strong>F</strong>³. ∎</p>
+<p class="cite">— Axler §1.C, Example 1.43, pp. 21–22</p>
+</div>
+
+<p>The lesson embedded in that non-example: filling the whole space is <em>necessary</em> but nowhere near <em>sufficient</em> for a direct sum. Axler adds a sharper warning for three or more subspaces — pairwise intersections all equalling {0} is not enough either (exactly the <var>U</var>₁, <var>U</var>₂, <var>U</var>₃ above have <var>U</var>ᵢ ∩ <var>U</var>ⱼ = {0} for every pair, and yet the triple sum still isn't direct). Theorem 1.45's clean intersection test is a genuine special privilege of the two-subspace case, not a general pattern. <span class="cite">— Axler §1.C, p. 24</span></p>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Let <var>U</var> = {(<var>x</var>,<var>x</var>,<var>y</var>,<var>y</var>) ∈ <strong>F</strong>⁴ : <var>x</var>,<var>y</var> ∈ <strong>F</strong>}. Find a subspace <var>W</var> of <strong>F</strong>⁴ such that <strong>F</strong>⁴ = <var>U</var> ⊕ <var>W</var>. (Hint: <var>U</var> ties coordinates 1–2 together and coordinates 3–4 together; you need a <var>W</var> that supplies exactly the "independent wiggle room" U's constraints remove, and check U ∩ W = {0} via Theorem 1.45.) <span class="cite">— cf. Axler §1.C, Exercise 20, p. 26</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Subspaces <var>U</var> and <var>W</var> of <var>V</var> satisfy <var>U</var> ∩ <var>W</var> = {0}. What can you conclude?</p>
+<button onclick="check(this,true)" data-ok>U + W is a direct sum (Theorem 1.45)</button>
+<button onclick="check(this,false)">U + W = V necessarily</button>
+<button onclick="check(this,false)">U and W must be disjoint</button>
+<div class="explain">Theorem 1.45 says exactly this for two subspaces: the intersection being {0} is equivalent to directness. It says nothing about whether the sum fills all of V — that's a separate question. And two subspaces can never be fully disjoint since both always contain 0.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> To check whether U₁ + U₂ + U₃ (three subspaces) is a direct sum, which is the correct tool?</p>
+<button onclick="check(this,false)">Check that Uᵢ ∩ Uⱼ = {0} for every pair i ≠ j</button>
+<button onclick="check(this,true)" data-ok>Check that the only way to write 0 = u₁+u₂+u₃ is with every uⱼ = 0 (Theorem 1.44)</button>
+<button onclick="check(this,false)">Check that U₁ + U₂ + U₃ = V</button>
+<div class="explain">Axler's Example 1.43 is the cautionary tale here: three subspaces can be pairwise-{0}-intersecting and still fail to form a direct sum. Theorem 1.45's pairwise test is only valid for exactly two subspaces; for three or more, Theorem 1.44's "0 decomposes uniquely" test is the one that actually works.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> In Example 1.43, U₁+U₂+U₃ = F³ but the sum is not direct. What does this demonstrate?</p>
+<button onclick="check(this,false)">That sums of subspaces are never direct</button>
+<button onclick="check(this,true)" data-ok>That filling the whole space is necessary but not sufficient for directness</button>
+<button onclick="check(this,false)">That F³ cannot be written as a direct sum of three subspaces</button>
+<div class="explain">The whole point of the jigsaw metaphor: reconstructing the full space is easy to arrange, but directness additionally demands that the reconstruction be unique. F³ = U₁ ⊕ U₂ ⊕ U₃ can be achieved with a better choice of pieces (e.g. Example 1.42's coordinate-slot subspaces) — it's this particular triple that fails.</div>
+</div>
+
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §1.C "Subspaces" (Definition 1.32 subspace, Example 1.33, Theorem 1.34 subspace test, Example 1.35 examples/non-examples), pp. 18–19; "Sums of Subspaces" (Definition 1.36 sum, Examples 1.37–1.38, Theorem 1.39 sum is smallest containing subspace), pp. 20–21; "Direct Sums" (Definition 1.40 direct sum, Example 1.41 F³ = U⊕W, Example 1.42, Example 1.43 non-example, Theorem 1.44 condition via 0, Theorem 1.45 two-subspace intersection test), pp. 21–24.
+<br>Builds on la-01: the vector space axioms (Axler §1.A–1.B).
+<br>Deferred to la-03: span and linear independence (Axler §2.A).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
