@@ -43,3 +43,12 @@ Fallback: MIT OCW for any gap.
   (note `_def`/`_eg`/`_thm`/`_thm_proof` pre-split PDFs — primary SRS corpus)
 - `D:\OneDrive - The Open University\Currently Reading`
 - `D:\OneDrive - The Open University\Tripos Papers`
+
+## Resource resolution rule (Phase 1)
+
+`syllabus.yaml` resource strings resolve via `bookmap.json`: the longest slug
+that is a prefix of the string names the book; the remainder is the section
+reference (e.g. "Axler 1A-1B" → bookmap["Axler"], sections 1A-1B). Non-book
+resources (video playlists, folder names like "Oxford M1 Groups") are not in
+bookmap and resolve via the tables above. Lesson generators quote from `md`,
+cite pages via `pages\` filenames, and fall back to `pdf` on conversion damage.
