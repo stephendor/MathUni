@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pw-02 — Induction, strong induction, well-ordering</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;cursor:pointer}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.hint{color:var(--dim);font-size:.9rem;text-align:center;margin-top:-.6rem}
+</style></head><body>
+<p class="cite">Proof Workshop · Nexus College</p>
+<h1>Induction, strong induction, well-ordering <span class="cite">(pw-02)</span></h1>
+
+<div class="hook">
+Dominoes, but the row is infinite and you get to shove the first one.
+<p>Line up dominoes so that every domino, when it falls, knocks over the next one. Push the first domino, and — this is the whole idea — you never have to touch another one. Domino 2 falls because domino 1 hit it. Domino 3 falls because domino 2 hit it. Domino 4, domino 5, domino 4,001,997 — all of them fall, forever, from a single push, because the "knocks over the next one" property never runs out.</p>
+<p>Cummings' book gives you this picture right at the top of its induction chapter, and it earns its keep: it's not just a metaphor, it's a template you can read a formal induction proof through. Two things to establish — <em>the first domino falls</em>, and <em>each fallen domino knocks over the next</em> — and an infinite chain of results falls out for free.</p>
+</div>
+
+<p class="mission">Why this matters for the mission: Simplicial complex arguments induct on dimension constantly.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Induction mechanics: one push, infinitely many falls</h2>
+
+<p>Cummings sets up the pattern with a genuinely pretty observation. Add up the first few odd numbers:</p>
+<p style="text-align:center">1 = 1², &emsp; 1+3 = 4 = 2², &emsp; 1+3+5 = 9 = 3², &emsp; 1+3+5+7 = 16 = 4²</p>
+<p>It sure looks like the sum of the first <var>n</var> odd numbers is always <var>n</var>². But "looks like, for the numbers we happened to check" is not a proof — there are infinitely many <var>n</var> left untested. Induction is the tool that closes that gap in one stroke.</p>
+
+<div class="theorem">
+<p><strong>Principle 4.1 (Induction).</strong> <em>Consider a sequence of mathematical statements S₁, S₂, S₃, … Suppose S₁ is true, and suppose, for each k ∈ ℕ, if S<sub>k</sub> is true then S<sub>k+1</sub> is true. Then S<sub>n</sub> is true for every n ∈ ℕ.</em> <span class="cite">— Cummings §4.1, Principle 4.1, p. 108</span></p>
+</div>
+
+<p>Map this straight onto the dominoes: "S₁ is true" is the first domino falling. "If S<sub>k</sub> is true then S<sub>k+1</sub> is true" is domino <var>k</var> knocking over domino <var>k</var>+1 — for <em>every</em> <var>k</var>, simultaneously, as a single universal guarantee rather than a case-by-case check. Cummings is upfront that this Principle, like the pigeonhole principle, is accepted without proof — it's one of the load-bearing axioms about ℕ itself. <span class="cite">— Cummings §4.1, footnote 2, p. 108</span></p>
+
+<p>Every induction proof you write should carry four visible labels — Cummings insists on this structure, and the closing sentence is not decoration:</p>
+
+<div class="definition">
+<p><strong>Base Case.</strong> Show S₁ directly. <strong>Inductive Hypothesis.</strong> Assume S<sub>k</sub> is true for some fixed but arbitrary <var>k</var>. <strong>Induction Step.</strong> Prove S<sub>k</sub> ⟹ S<sub>k+1</sub>. <strong>Conclusion.</strong> "Therefore, by induction, S<sub>n</sub> holds for all n ∈ ℕ." <span class="cite">— Cummings §4.1, p. 108</span></p>
+</div>
+
+<p>That last sentence is not a formality you can skip. Cummings is blunt: "For induction... it really is required. You can prove that the first domino will fall, and you can prove that each domino... will knock over the next domino, but why does this mean they all fall? Because induction says so!" <span class="cite">— Cummings §4.2, p. 115</span> Until you write it, you've shown two separate facts, not the infinite chain between them.</p>
+
+<div class="worked">
+<strong>Worked example — Proposition 4.2 (fully worked).</strong> For any <var>n</var> ∈ ℕ, 1 + 2 + 3 + ⋯ + <var>n</var> = <var>n</var>(<var>n</var>+1)/2.
+<p><strong>Proof.</strong> We proceed by induction.</p>
+<p><strong>Base Case.</strong> <var>n</var> = 1: the left side is 1, the right side is 1(1+1)/2 = 1. Equal, as desired.</p>
+<p><strong>Inductive Hypothesis.</strong> Let <var>k</var> ∈ ℕ, and assume 1 + 2 + ⋯ + <var>k</var> = <var>k</var>(<var>k</var>+1)/2.</p>
+<p><strong>Induction Step.</strong> We show 1 + 2 + ⋯ + (<var>k</var>+1) = (<var>k</var>+1)(<var>k</var>+2)/2. Split off the last term:</p>
+<p>&emsp;1 + 2 + ⋯ + <var>k</var> + (<var>k</var>+1) = [<var>k</var>(<var>k</var>+1)/2] + (<var>k</var>+1) &emsp;(by the inductive hypothesis)</p>
+<p>&emsp;= (<var>k</var>²+<var>k</var>)/2 + (2<var>k</var>+2)/2 = (<var>k</var>²+3<var>k</var>+2)/2 = (<var>k</var>+1)(<var>k</var>+2)/2, as desired.</p>
+<p><strong>Conclusion.</strong> Therefore, by induction, 1 + 2 + ⋯ + <var>n</var> = <var>n</var>(<var>n</var>+1)/2 for all <var>n</var> ∈ ℕ. ∎</p>
+<p class="cite">— Cummings §4.2, Proposition 4.2, pp. 110–112</p>
+</div>
+
+<p>Notice exactly where the inductive hypothesis got used: the sum "1 + 2 + ⋯ + <var>k</var>" was <em>assumed already known</em>, and the whole proof is just tacking on one more term and doing algebra. Cummings' own framing: if you know 1+2+⋯+60 = 1830, you don't recompute from scratch to get 1+2+⋯+61 — you just add 61. That's the inductive hypothesis earning its keep, every time. <span class="cite">— Cummings §4.2, p. 111</span></p>
+
+<div class="worked fade">
+<strong>Faded example — Proposition 4.3, second proof by induction (your turn to fill the gaps).</strong> Let <var>S<sub>n</sub></var> = 1 + 2 + ⋯ + <var>n</var>. Show <var>S<sub>n</sub></var> + <var>S<sub>n+1</sub></var> = (<var>n</var>+1)² for all <var>n</var> ∈ ℕ.
+<p><strong>Proof.</strong> We proceed by induction.</p>
+<p><strong>Base Case.</strong> <var>n</var> = 1: <var>S</var>₁ + <var>S</var>₂ = 1 + 3 = 4 = (1+1)², as desired.</p>
+<p><strong>Inductive Hypothesis.</strong> Let <var>k</var> ∈ ℕ, and assume <span class="gap">⟨your step: write the inductive hypothesis for n = k, using Sk and Sk+1⟩</span>.</p>
+<p><strong>Induction Step.</strong> We aim to show <var>S<sub>k+1</sub></var> + <var>S<sub>k+2</sub></var> = (<var>k</var>+2)². Using the fact that <var>S<sub>k+1</sub></var> = <var>S<sub>k</sub></var> + (<var>k</var>+1) and <var>S<sub>k+2</sub></var> = <var>S<sub>k+1</sub></var> + (<var>k</var>+2), we can write</p>
+<p>&emsp;<var>S<sub>k+1</sub></var> + <var>S<sub>k+2</sub></var> = (<var>S<sub>k</sub></var> + (<var>k</var>+1)) + (<var>S<sub>k+1</sub></var> + (<var>k</var>+2)) = <span class="gap">⟨your step: regroup so that Sk + Sk+1 appears as a single block⟩</span> + 2<var>k</var> + 3.</p>
+<p>By the inductive hypothesis, that block equals <span class="gap">⟨your step: substitute using the inductive hypothesis⟩</span>. So the expression becomes (<var>k</var>+1)² + 2<var>k</var> + 3 = <var>k</var>² + 4<var>k</var> + 4 = <span class="gap">⟨your step: factor this into the desired closed form⟩</span>, as desired.</p>
+<p><strong>Conclusion.</strong> <span class="gap">⟨your step: write the required closing sentence — which word is non-negotiable, per the note above?⟩</span></p>
+<p class="cite">— Cummings §4.2, Proposition 4.3, pp. 113–115</p>
+</div>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Use induction to prove that for all <var>n</var> ∈ ℕ₀ = {0, 1, 2, …}, 1 + 2 + 4 + 8 + ⋯ + 2<var>ⁿ</var> = 2<var>ⁿ⁺¹</var> − 1. (Base case is <var>n</var> = 0: check 1 = 2¹ − 1. For the induction step, add 2<var>ᵏ⁺¹</var> to both sides of the inductive hypothesis and simplify.) <span class="cite">— cf. Cummings §4.5, Lemma 4.13, pp. 135–136</span>
+</div>
+
+<h3>Push the first domino</h3>
+<p>Click the leftmost domino below to start the cascade — watch the "any fallen domino knocks over the next" rule play out one tile at a time.</p>
+<canvas id="dominoCanvas" width="640" height="180" role="img" aria-label="Clickable cascade of ten dominoes; clicking the first domino topples them all in sequence"></canvas>
+<p class="hint">Click the first (leftmost) domino to push it.</p>
+<script>
+(function(){
+const cv=document.getElementById('dominoCanvas'), ctx=cv.getContext('2d');
+const N=10, w=44, gap=20, startX=30, baseY=150, h=100;
+let fallen=new Array(N).fill(false);
+let angle=new Array(N).fill(0);
+let running=false;
+function domX(i){return startX+i*(w+gap);}
+function draw(){
+ctx.clearRect(0,0,cv.width,cv.height);
+ctx.strokeStyle='#2a333d';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(10,baseY);ctx.lineTo(630,baseY);ctx.stroke();
+for(let i=0;i<N;i++){
+const x=domX(i);
+ctx.save();
+ctx.translate(x,baseY);
+ctx.rotate(angle[i]);
+ctx.fillStyle= fallen[i] ? '#4caf82' : '#8ab4f8';
+ctx.fillRect(0,-h,w,h);
+ctx.strokeStyle='#0c1013';ctx.lineWidth=2;
+ctx.strokeRect(0,-h,w,h);
+ctx.restore();
+}
+ctx.fillStyle='#9aa5b1';ctx.font='12px Segoe UI';
+ctx.fillText(fallen[0] ? 'cascading…' : 'click domino 1 to push it',20,20);
+}
+function stepFall(i){
+if(i>=N || fallen[i]) return;
+fallen[i]=true;
+let a=0;
+const iv=setInterval(function(){
+a+=0.12;
+angle[i]=Math.min(a,Math.PI/2*0.62);
+draw();
+if(a>=Math.PI/2*0.62){
+clearInterval(iv);
+setTimeout(function(){stepFall(i+1);},110);
+}
+},16);
+}
+cv.addEventListener('click',function(e){
+if(running) return;
+const rect=cv.getBoundingClientRect();
+const mx=(e.clientX-rect.left)*(cv.width/rect.width);
+const my=(e.clientY-rect.top)*(cv.height/rect.height);
+if(mx>=domX(0) && mx<=domX(0)+w && my>=baseY-h && my<=baseY){
+running=true;
+stepFall(0);
+}
+});
+draw();
+})();
+</script>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In an induction proof, the Inductive Hypothesis assumes S<sub>k</sub> for "some fixed k". Why is it valid to also conclude the result for every n ∈ ℕ, if k was just one fixed value?</p>
+<button onclick="check(this,false)">Because k secretly ranges over all natural numbers at once</button>
+<button onclick="check(this,true)" data-ok>Because k was arbitrary as well as fixed — proving Sk ⟹ Sk+1 for one unspecified k proves it for every k, and combined with the base case that's enough to reach every n by repeated application</button>
+<button onclick="check(this,false)">Because the base case alone already covers all n</button>
+<div class="explain">This is the "fixed but arbitrary" idea Cummings flags explicitly (§4.2, footnote 4, p. 111): k is a single value, but since nothing about the proof depended on which value, the implication Sk ⟹ Sk+1 holds for every k. Chain that with S1 true, and every Sn follows — domino 1 falls, and "any domino falls the next" is now guaranteed for all of them.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does Cummings insist the phrase "therefore, by induction..." must appear at the end of every induction proof, rather than being optional?</p>
+<button onclick="check(this,false)">It's a stylistic convention with no logical content</button>
+<button onclick="check(this,true)" data-ok>Because proving the base case and the k-to-k+1 step are two separate finite facts — only explicitly invoking induction licenses the leap to "true for all n"</button>
+<div class="explain">Cummings' own words: you can prove domino 1 falls, and prove each domino knocks over the next, "but why does this mean they all fall? Because induction says so!" (§4.2, p. 115). Without stating the principle, the proof has demonstrated two true facts but never actually asserted the universal conclusion they license.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Strong induction, and well-ordering: the same guarantee, seen twice</h2>
+
+<p>Sometimes knowing domino <var>k</var> fell isn't enough to guarantee domino <var>k</var>+1 falls — you need to know that <em>all</em> of dominoes 1 through <var>k</var> have fallen, not just the <var>k</var>-th. Cummings' example: breaking apart an (<var>m</var>×<var>n</var>)-square chocolate bar into <var>k</var>+1 pieces typically produces two <em>smaller</em> bars, neither of which has exactly <var>k</var> squares — so regular induction, which only lets you assume the immediately preceding case, has nothing to grab onto. <span class="cite">— Cummings §4.3, p. 129</span></p>
+
+<div class="theorem">
+<p><strong>Principle 4.7 (Strong Induction).</strong> <em>Consider a sequence of mathematical statements S₁, S₂, S₃, … Suppose S₁ is true, and suppose, for any k ∈ ℕ, if S₁, S₂, …, S<sub>k</sub> are all true, then S<sub>k+1</sub> is true. Then S<sub>n</sub> is true for every n ∈ ℕ.</em> <span class="cite">— Cummings §4.3, Principle 4.7, p. 125</span></p>
+</div>
+
+<p>Same domino picture, sharper tool: "by the time you're about to knock over domino 100, you already know dominoes 1 through 99 have <em>all</em> fallen, not just domino 99." <span class="cite">— Cummings §4.3, p. 124</span> Regular induction only lets you lean on the very last domino; strong induction lets you lean on the entire fallen pile behind it.</p>
+
+<div class="worked">
+<strong>Worked example — Fundamental Theorem of Arithmetic (fully worked, strong induction).</strong> Every integer <var>n</var> ≥ 2 is prime or a product of primes.
+<p><strong>Proof.</strong> We proceed by strong induction.</p>
+<p><strong>Base Case.</strong> <var>n</var> = 2 is prime, so the claim holds immediately.</p>
+<p><strong>Inductive Hypothesis.</strong> Let <var>k</var> ≥ 2, and assume every integer 2, 3, …, <var>k</var> is prime or a product of primes.</p>
+<p><strong>Induction Step.</strong> Consider <var>k</var>+1. Being an integer larger than 1, it is prime or composite. If prime, we are done immediately. If composite, write <var>k</var>+1 = <var>st</var> with 1 &lt; <var>s</var>, <var>t</var> &lt; <var>k</var>+1 — so both <var>s</var> and <var>t</var> lie in the range 2, …, <var>k</var> covered by the inductive hypothesis. Hence each of <var>s</var> and <var>t</var> is prime or a product of primes; concatenating their factorisations gives a prime factorisation of <var>k</var>+1 = <var>st</var>.</p>
+<p><strong>Conclusion.</strong> Therefore, by strong induction, every integer <var>n</var> ≥ 2 is prime or a product of primes. ∎</p>
+<p class="cite">— Cummings §4.3, Theorem 4.8, pp. 126–127</p>
+</div>
+
+<p>Cummings is explicit about <em>why</em> regular induction stalls here: knowing that <var>k</var> is prime or a product of primes tells you almost nothing useful about <var>k</var>+1 — the two numbers share no obvious factorisation link. <span class="cite">— Cummings §4.3, p. 126</span> But <var>s</var> and <var>t</var>, the two pieces <var>k</var>+1 splits into, are both smaller than <var>k</var>+1 — so strong induction's "reach back to any earlier case" is exactly what's needed, precisely because you don't know in advance <em>which</em> earlier case will turn out to matter.</p>
+
+<h3>Well-ordering: where the guarantee actually comes from</h3>
+<p>Here's a question worth asking honestly: why does induction work at all? Why should proving "domino 1 falls" and "each domino knocks over the next" actually force <em>every</em> domino down, rather than, say, dominoes eventually petering out at some enormous but finite point? The answer traces back to a structural fact about ℕ itself.</p>
+
+<div class="theorem">
+<p><strong>Well-ordering principle.</strong> <em>Every non-empty set of natural numbers contains a smallest element.</em> <span class="cite">— Cummings, footnote on the "minimal counterexample" technique, §7, p. 233 (Cummings does not box this as a numbered Principle inside Chapter 4 itself — he invokes it there only in passing, as the fact licensing "there must be a smallest uninteresting/failing case")</span></p>
+</div>
+
+<p>This sounds almost too obvious to be worth stating — of course a set of natural numbers has a smallest element, ℕ starts at 1 (or 0) and climbs. But the honest reason it deserves its own name is that it's <em>false</em> for other number systems you already know: the set of positive rationals has no smallest element (halve any candidate and you get a smaller one still positive), and neither does the set of all integers (there's no smallest integer, full stop). Well-ordering is a genuine structural fact about ℕ specifically, not a free property of "numbers" in general.</p>
+
+<p>Here is the honest sketch — not hand-waved, but a sketch, since a fully airtight equivalence proof is more machinery than this lesson needs — of why induction, strong induction, and well-ordering all certify exactly the same thing:</p>
+
+<div class="heuristic">
+<strong>Why they're three views of one fact.</strong>
+<p><strong>Well-ordering ⟹ induction.</strong> Suppose S₁ holds and S<sub>k</sub> ⟹ S<sub>k+1</sub> for every k, but some S<sub>n</sub> fails. Let <var>F</var> = {<var>n</var> ∈ ℕ : S<sub>n</sub> is false} — assumed non-empty. By well-ordering, <var>F</var> has a smallest element <var>m</var>. Since S₁ is true, <var>m</var> ≠ 1, so <var>m</var> − 1 ∈ ℕ and (by minimality of <var>m</var>) S<sub>m−1</sub> is true. But then the inductive step forces S<sub>m</sub> true — contradicting <var>m</var> ∈ <var>F</var>. So <var>F</var> is empty: induction holds.</p>
+<p><strong>Induction ⟹ strong induction.</strong> Given the strong-induction hypotheses, define T<sub>n</sub> to mean "S₁, S₂, …, S<sub>n</sub> are all true." Then T₁ is exactly S₁, and T<sub>k</sub> ⟹ T<sub>k+1</sub> follows directly from the strong inductive step. Ordinary induction on the T<sub>n</sub> now delivers T<sub>n</sub> for all <var>n</var> — and T<sub>n</sub> includes S<sub>n</sub> as one of its conjuncts.</p>
+<p><strong>Strong induction ⟹ well-ordering.</strong> Suppose some non-empty <var>F</var> ⊆ ℕ has no smallest element. Let S<sub>n</sub> be the statement "<var>n</var> ∉ <var>F</var>." S₁ holds (else 1 would be F's smallest element). If S₁, …, S<sub>k</sub> all hold, then none of 1, …, <var>k</var> is in <var>F</var>; were <var>k</var>+1 ∈ <var>F</var>, it would automatically be <var>F</var>'s smallest element (nothing smaller qualifies), contradiction — so S<sub>k+1</sub> holds too. By strong induction every S<sub>n</sub> holds, i.e. <var>F</var> is empty — contradicting non-emptiness. So every non-empty F has a smallest element.</p>
+<p>The three chase each other in a circle — each implies the next — so all three are logically equivalent ways of expressing the same underlying fact about how ℕ is built.</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — a strong-induction proof with two base cases (your turn to fill the gaps).</strong> Every integer <var>n</var> ≥ 11 can be written as 2<var>a</var> + 5<var>b</var> for some <var>a</var>, <var>b</var> ∈ ℕ.
+<p><strong>Proof.</strong> We proceed by strong induction.</p>
+<p><strong>Base Cases.</strong> The induction step below will reach back <em>two</em> steps, so we need two base cases: <var>n</var> = 11 = 2·3 + 5·1, and <var>n</var> = 12 = <span class="gap">⟨your step: find a, b ∈ N with 2a + 5b = 12⟩</span>.</p>
+<p><strong>Inductive Hypothesis.</strong> Assume for some <var>k</var> ≥ 12 that the result holds for every <var>n</var> = 11, 12, …, <var>k</var>.</p>
+<p><strong>Induction Step.</strong> We show the result for <var>k</var>+1. By the inductive hypothesis applied to <var>k</var>−1 (which is ≥ 11, hence covered), write <var>k</var>−1 = 2<var>a</var> + 5<var>b</var> for some <var>a</var>, <var>b</var> ∈ ℕ. Adding 2 to both sides: <var>k</var>+1 = <span class="gap">⟨your step: rewrite 2a + 5b + 2 in the form 2(something) + 5b⟩</span>, and since <span class="gap">⟨your step: confirm the new coefficient of 2 is still a natural number⟩</span>, this is a valid representation of k+1.</p>
+<p><strong>Conclusion.</strong> <span class="gap">⟨your step: write the closing sentence⟩</span></p>
+<p class="cite">— Cummings §4.3, Proposition 4.10, pp. 131–133</p>
+</div>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Use the well-ordering principle directly (not induction) to prove: there is no smallest positive rational number. (Hint: suppose for contradiction such a smallest positive rational <var>q</var> exists, then exhibit a smaller positive rational — this is a contradiction proof leaning on well-ordering's failure for ℚ, the exact contrast this lesson opened with.)
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why did the Fundamental Theorem of Arithmetic proof need strong induction rather than regular induction?</p>
+<button onclick="check(this,false)">Because the base case was harder to establish</button>
+<button onclick="check(this,true)" data-ok>Because knowing k is prime or a product of primes says almost nothing about k+1 directly — but k+1's factors s and t are both smaller than k+1, so you need access to whichever earlier case s and t happen to land on, not just case k</button>
+<button onclick="check(this,false)">Because the statement involves multiplication instead of addition</button>
+<div class="explain">Cummings names this exact failure mode (§4.3, p. 126): regular induction's k-to-k+1 link only helps when k+1's truth follows from k's truth specifically. Here it follows from two possibly much smaller numbers s and t, so the proof needs "any prior case might be the one I need," which is strong induction's signature move.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why is well-ordering true for ℕ but false for the set of positive rationals?</p>
+<button onclick="check(this,false)">Well-ordering is actually true for both sets</button>
+<button onclick="check(this,true)" data-ok>Because for any candidate "smallest" positive rational you name, halving it produces a strictly smaller positive rational — a process with no floor, unlike N where 1 is a genuine floor</button>
+<button onclick="check(this,false)">Because ℕ is a finite set</button>
+<div class="explain">This is exactly the density property that made Q "leak" back in an-01: between any positive rational and 0 sits another positive rational (e.g. half of it), so no positive rational can be the smallest. N has no such halving trick available inside itself — 1 really is a floor, which is precisely why well-ordering holds there and nowhere near it in Q.</div>
+</div>
+
+</div>
+
+<footer>Sources: Cummings, <em>Proofs: A Long-Form Mathematics Textbook</em> — Chapter 4 "Induction," §4.1 "Dominoes, Ladders and Chips" (Principle 4.1), pp. 107–109; §4.2 "Examples" (Proposition 4.2, Proposition 4.3), pp. 109–115; §4.3 "Strong Induction" (Principle 4.7, Theorem 4.8 — Fundamental Theorem of Arithmetic, Proposition 4.10 — two base cases), pp. 124–133; §4.5 "Bonus Examples" (Lemma 4.13), pp. 135–136; well-ordering principle referenced at §7 "Contradiction," p. 233 (footnote on minimal-counterexample proofs — not boxed as a numbered principle in Chapter 4; the equivalence sketch on this page is standard textbook material assembled for this lesson, not a verbatim Cummings proof).
+<br>Builds on pw-01: direct proof, contrapositive, contradiction.
+<br>Deferred to pw-03: sets, functions, images/preimages (Cummings ch. 3, 8).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
