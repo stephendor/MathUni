@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-01 — Vector spaces</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Vector spaces <span class="cite">(la-01)</span></h1>
+
+<div class="hook">
+Polynomials, sequences, and functions are all secretly the same thing.
+<p>Here is a small conjuring trick. Take a polynomial like 3<var>x</var>² − <var>x</var> + 5, a sequence like (1, −1, 2, 0, 0, …), and a wobbling function <var>f</var>(<var>t</var>) = sin <var>t</var>. On the surface these look like three different species of mathematical object — one lives in algebra, one in number theory, one in analysis. But strip away the costumes and each is doing exactly the same two things: you can add two of them to get another of the same kind, and you can scale one of them by a number to get another of the same kind. Nothing else about "what they are" matters for this trick to work.</p>
+<p>That is the entire idea of a <strong>vector space</strong>, and it is one of the most quietly radical ideas in undergraduate mathematics: forget what the objects <em>are</em>, and axiomatise only what you can <em>do</em> to them. Once you see it, arrows in the plane, lists of numbers, infinite sequences, and functions on an interval all become residents of the same house.</p>
+</div>
+
+<p class="mission">Why this matters for the mission: Homology groups over a field are vector spaces — this is their home.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Warm-up geometry: **R**<sup><var>n</var></sup> and **C**<sup><var>n</var></sup></h2>
+
+<p>Before the abstract definition, Axler builds the familiar cases first — the plane and ordinary space — then generalises. We follow the same path, lightly, because the abstraction in Segment 2 will feel inevitable rather than arbitrary once you've seen where it comes from.</p>
+
+<h3>Lists, and the letter **F**</h3>
+<p>A <strong>list</strong> of length <var>n</var> is an ordered collection (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>), and two lists are equal exactly when they have the same length and the same entries in the same order — order and repetition matter, unlike in a set.</p>
+
+<div class="definition">
+<p><strong>Definition 1.8.</strong> Suppose <var>n</var> is a nonnegative integer. A <em>list</em> of <em>length</em> <var>n</var> is an ordered collection of <var>n</var> elements separated by commas and surrounded by parentheses: (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>). Two lists are equal if and only if they have the same length and the same elements in the same order. <span class="cite">— Axler §1.A, Definition 1.8, p. 5</span></p>
+</div>
+
+<p>Axler adopts a standing convention that saves a great deal of repetition: throughout the book, the letter <strong>F</strong> stands for either <strong>R</strong> or <strong>C</strong>. Any theorem proved "for <strong>F</strong>" is automatically proved twice — once for the reals, once for the complex numbers — for free.</p>
+
+<div class="definition">
+<p><strong>Notation 1.6.</strong> Throughout this book, <strong>F</strong> stands for either <strong>R</strong> or <strong>C</strong>. <span class="cite">— Axler §1.A, Notation 1.6, p. 4</span></p>
+</div>
+
+<p><strong>R</strong> and <strong>C</strong> are the two running examples of a <em>field</em> — a set with two operations, addition and multiplication, satisfying the familiar commutative, associative, identity, inverse, and distributive laws. Axler is explicit that most of the theory in Chapters 1–3 works unchanged for any field, but the book only ever needs these two, so we won't chase the general definition further here — just enough field intuition to know that "**F**" is a placeholder you can always instantiate.</p>
+
+<div class="definition">
+<p>"A <strong>field</strong> is a set containing at least two distinct elements called 0 and 1, along with operations of addition and multiplication satisfying all the [usual arithmetic] properties." <span class="cite">— Axler §1.A, "Digression on Fields", p. 10</span></p>
+</div>
+
+<h3>**F**<sup><var>n</var></sup>: lists that add and scale</h3>
+<p>Fix a positive integer <var>n</var>. Generalising the plane <strong>R</strong>² and space <strong>R</strong>³, we get:</p>
+
+<div class="definition">
+<p><strong>Definition 1.10.</strong> <strong>F</strong><var>ⁿ</var> is the set of all lists of length <var>n</var> of elements of <strong>F</strong>: <strong>F</strong><var>ⁿ</var> = {(<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) : <var>x</var><sub><var>j</var></sub> ∈ <strong>F</strong> for <var>j</var> = 1, …, <var>n</var>}. <span class="cite">— Axler §1.A, Definition 1.10, p. 5</span></p>
+</div>
+
+<p>Two operations make <strong>F</strong><var>ⁿ</var> come alive. <strong>Addition</strong> adds corresponding coordinates; <strong>scalar multiplication</strong> multiplies every coordinate by the same number:</p>
+
+<div class="definition">
+<p><strong>Definitions 1.12, 1.17.</strong> (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) + (<var>y</var>₁, …, <var>y</var><sub><var>n</var></sub>) = (<var>x</var>₁ + <var>y</var>₁, …, <var>x</var><sub><var>n</var></sub> + <var>y</var><sub><var>n</var></sub>). For λ ∈ <strong>F</strong>: λ(<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) = (λ<var>x</var>₁, …, λ<var>x</var><sub><var>n</var></sub>). <span class="cite">— Axler §1.A, Definitions 1.12 and 1.17, pp. 6, 10</span></p>
+</div>
+
+<p>Geometrically, in <strong>R</strong>²: adding <var>x</var> + <var>y</var> means sliding the arrow <var>y</var> so its tail sits at the head of <var>x</var>; the sum is the arrow from the origin to <var>y</var>'s new head. Scaling λ<var>x</var> stretches or shrinks the arrow by a factor of λ (and flips its direction if λ is negative). These two pictures — the parallelogram of addition, the stretching ray of scaling — are the entire geometric content of everything that follows. Once <var>n</var> ≥ 4 you lose the picture, Axler notes wryly, but not the algebra: "even if <var>n</var> is large, we can perform algebraic manipulations in <strong>F</strong><var>ⁿ</var> as easily as in <strong>R</strong>² or <strong>R</strong>³." <span class="cite">— Axler §1.A, p. 6</span></p>
+
+<h3>Canvas: addition and scaling in the plane</h3>
+<p>Watch the two operations directly: <var>x</var> (blue) and <var>y</var> (amber) are fixed vectors; the slider scales <var>y</var> by λ before it's placed tail-to-head onto <var>x</var> to form the sum (green, dashed parallelogram guide).</p>
+<canvas id="vc" width="440" height="320"></canvas>
+<p style="text-align:center"><label>λ = <input type="range" id="lam" min="-2" max="2" step="0.1" value="1"><span id="lamval">1.0</span></label></p>
+<script>
+(function(){
+const cv=document.getElementById('vc'),ctx=cv.getContext('2d'),ox=220,oy=200,s=30;
+const x=[3,2],y=[1,-1.5];
+function toPx(p){return [ox+p[0]*s, oy-p[1]*s];}
+function arrow(from,to,color){
+  const [x0,y0]=toPx(from),[x1,y1]=toPx(to);
+  ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.2;
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.stroke();
+  const ang=Math.atan2(y1-y0,x1-x0);
+  ctx.beginPath();ctx.moveTo(x1,y1);
+  ctx.lineTo(x1-9*Math.cos(ang-0.4),y1-9*Math.sin(ang-0.4));
+  ctx.lineTo(x1-9*Math.cos(ang+0.4),y1-9*Math.sin(ang+0.4));
+  ctx.closePath();ctx.fill();
+}
+function draw(){
+  const lam=parseFloat(document.getElementById('lam').value);
+  document.getElementById('lamval').textContent=lam.toFixed(1);
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#2a333d';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(cv.width,oy);ctx.moveTo(ox,0);ctx.lineTo(ox,cv.height);ctx.stroke();
+  const ly=[lam*y[0],lam*y[1]];
+  const sum=[x[0]+ly[0],x[1]+ly[1]];
+  ctx.setLineDash([4,4]);ctx.strokeStyle='#3a4550';
+  const [x0,y0]=toPx(x),[s0,s1]=toPx(sum);
+  ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(s0,s1);ctx.stroke();
+  ctx.setLineDash([]);
+  arrow([0,0],x,'#8ab4f8');
+  arrow([0,0],ly,'#d8a657');
+  arrow([0,0],sum,'#4caf82');
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';
+  ctx.fillText('x',x0+4,y0-4);
+  ctx.fillText('λy',s0>x0?x0-24:x0+4, y0+16*Math.sign(lam||1));
+  ctx.fillText('x+λy',s0+4,s1-4);
+}
+document.getElementById('lam').addEventListener('input',draw);
+draw();
+})();
+</script>
+
+<div class="worked">
+<strong>Worked example — commutativity of addition in F<var>ⁿ</var> (fully worked).</strong> Show that <var>x</var> + <var>y</var> = <var>y</var> + <var>x</var> for all <var>x</var>, <var>y</var> ∈ <strong>F</strong><var>ⁿ</var>.
+<p><strong>Proof.</strong> Suppose <var>x</var> = (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) and <var>y</var> = (<var>y</var>₁, …, <var>y</var><sub><var>n</var></sub>). Then</p>
+<p>&emsp;<var>x</var> + <var>y</var> = (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) + (<var>y</var>₁, …, <var>y</var><sub><var>n</var></sub>) = (<var>x</var>₁ + <var>y</var>₁, …, <var>x</var><sub><var>n</var></sub> + <var>y</var><sub><var>n</var></sub>) = (<var>y</var>₁ + <var>x</var>₁, …, <var>y</var><sub><var>n</var></sub> + <var>x</var><sub><var>n</var></sub>) = <var>y</var> + <var>x</var>,</p>
+<p>where the second and fourth equalities hold by the definition of addition in <strong>F</strong><var>ⁿ</var>, and the third equality holds because addition of numbers in <strong>F</strong> is already commutative. ∎</p>
+<p class="cite">— Axler §1.A, Theorem 1.13, p. 6</p>
+</div>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Find <var>x</var> ∈ <strong>R</strong>⁴ such that (4, −3, 1, 7) + 2<var>x</var> = (5, 9, −6, 8). (Isolate <var>x</var> the same way you would in ordinary algebra — coordinate by coordinate.) <span class="cite">— Axler §1.A, Exercise 10, p. 11</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> The lists (2, 5) and (5, 2) are…</p>
+<button onclick="check(this,false)">equal, since {2,5} = {5,2} as sets</button>
+<button onclick="check(this,true)" data-ok>not equal, since order matters in a list</button>
+<button onclick="check(this,false)">not comparable — lists can't be compared</button>
+<div class="explain">Definition 1.8 is explicit: two lists are equal only if they have the same elements in the <em>same order</em>. Sets forget order; lists remember it. This is exactly why (2,5) ≠ (5,2) as elements of F², even though {2,5} = {5,2} as sets.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does Axler introduce the symbol <strong>F</strong> rather than always writing <strong>R</strong> or <strong>C</strong>?</p>
+<button onclick="check(this,false)">Because <strong>F</strong> denotes a third, different number system</button>
+<button onclick="check(this,true)" data-ok>So a single proof "for F" automatically covers both R and C</button>
+<button onclick="check(this,false)">Because complex numbers cannot be added</button>
+<div class="explain">Notation 1.6 fixes F to mean "either R or C throughout this book". Proving a theorem for F proves it twice for free — once with F replaced by R, once with F replaced by C — without duplicating the argument.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The definition, and the zoo it unlocks</h2>
+
+<p>Everything about <strong>F</strong><var>ⁿ</var> that we used above — commutativity, associativity, an additive identity, additive inverses, scaling behaving sensibly, distributive laws linking the two operations — can be listed as a checklist and imposed on <em>any</em> set, whether or not its elements look anything like lists of numbers. That checklist is the definition of a vector space.</p>
+
+<div class="definition">
+<p><strong>Definition 1.19.</strong> A <strong>vector space</strong> is a set <var>V</var> along with an addition on <var>V</var> and a scalar multiplication on <var>V</var> such that the following properties hold: <strong>commutativity</strong> <var>u</var> + <var>v</var> = <var>v</var> + <var>u</var> for all <var>u</var>, <var>v</var> ∈ <var>V</var>; <strong>associativity</strong> (<var>u</var> + <var>v</var>) + <var>w</var> = <var>u</var> + (<var>v</var> + <var>w</var>) and (<var>ab</var>)<var>v</var> = <var>a</var>(<var>bv</var>) for all <var>u</var>, <var>v</var>, <var>w</var> ∈ <var>V</var> and <var>a</var>, <var>b</var> ∈ <strong>F</strong>; <strong>additive identity</strong> there exists 0 ∈ <var>V</var> such that <var>v</var> + 0 = <var>v</var> for all <var>v</var> ∈ <var>V</var>; <strong>additive inverse</strong> for every <var>v</var> ∈ <var>V</var> there exists <var>w</var> ∈ <var>V</var> with <var>v</var> + <var>w</var> = 0; <strong>multiplicative identity</strong> 1<var>v</var> = <var>v</var> for all <var>v</var> ∈ <var>V</var>; <strong>distributive properties</strong> <var>a</var>(<var>u</var> + <var>v</var>) = <var>au</var> + <var>av</var> and (<var>a</var> + <var>b</var>)<var>v</var> = <var>av</var> + <var>bv</var> for all <var>a</var>, <var>b</var> ∈ <strong>F</strong> and <var>u</var>, <var>v</var> ∈ <var>V</var>. <span class="cite">— Axler §1.B, Definition 1.19, pp. 12–13</span></p>
+</div>
+
+<p>Notice what is <em>not</em> in this list: nothing about what the elements of <var>V</var> "are". Elements of a vector space are called <strong>vectors</strong> or <strong>points</strong>, purely by convention — the definition never asks them to be arrows, tuples, or anything geometric. <span class="cite">— Axler §1.B, Definition 1.20, p. 13</span> A vector space over <strong>R</strong> is called a <em>real</em> vector space; over <strong>C</strong>, a <em>complex</em> vector space. <span class="cite">— Axler §1.B, Definition 1.21, p. 13</span></p>
+
+<h3>The zoo</h3>
+<p>This is where the hook's conjuring trick gets cashed in. <strong>F</strong><var>ⁿ</var> is a vector space over <strong>F</strong>, unsurprisingly — it motivated the definition. But so are these:</p>
+
+<div class="definition">
+<p><strong>Example 1.22 — F<sup>∞</sup>.</strong> The set of <em>all</em> infinite sequences of elements of <strong>F</strong>: <strong>F</strong><sup>∞</sup> = {(<var>x</var>₁, <var>x</var>₂, …) : <var>x</var><sub><var>j</var></sub> ∈ <strong>F</strong> for <var>j</var> = 1, 2, …}, with addition and scalar multiplication defined coordinatewise exactly as for <strong>F</strong><var>ⁿ</var>. This is a vector space over <strong>F</strong>; its additive identity is the all-zero sequence. <span class="cite">— Axler §1.B, Example 1.22, p. 13</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Notation and Example 1.23–1.24 — F<sup><var>S</var></sup>.</strong> If <var>S</var> is a set, <strong>F</strong><sup><var>S</var></sup> denotes the set of <em>all functions</em> from <var>S</var> to <strong>F</strong>. Addition is defined pointwise, (<var>f</var> + <var>g</var>)(<var>x</var>) = <var>f</var>(<var>x</var>) + <var>g</var>(<var>x</var>), and scalar multiplication pointwise, (λ<var>f</var>)(<var>x</var>) = λ<var>f</var>(<var>x</var>), for all <var>x</var> ∈ <var>S</var>. If <var>S</var> is nonempty, <strong>F</strong><sup><var>S</var></sup> is a vector space over <strong>F</strong>; its additive identity is the zero function, and the additive inverse of <var>f</var> is (−<var>f</var>)(<var>x</var>) = −<var>f</var>(<var>x</var>). <span class="cite">— Axler §1.B, Notation 1.23 and Example 1.24, pp. 13–14</span></p>
+</div>
+
+<p>Here is the punchline the hook promised. A list of length <var>n</var> is secretly a function from {1, 2, …, <var>n</var>} to <strong>F</strong> — the <var>j</var>th coordinate is just "the value at input <var>j</var>". A sequence is secretly a function from the positive integers to <strong>F</strong>. So <strong>F</strong><var>ⁿ</var> = <strong>F</strong><sup>{1,…,<var>n</var>}</sup> and <strong>F</strong><sup>∞</sup> = <strong>F</strong><sup>{1,2,…}</sup> are both <em>special cases</em> of <strong>F</strong><sup><var>S</var></sup>, not separate ideas. <span class="cite">— Axler §1.B, p. 14</span> Polynomials, sequences, continuous functions on an interval — every one of them is some flavour of "function from a set into <strong>F</strong>", and the vector space structure doesn't care which flavour you picked.</p>
+
+<p>Even the smallest possible vector space fits the definition: the one-point set {0}, with the only addition and scaling that could exist on it. <span class="cite">— Axler §1.B, p. 13</span></p>
+
+<h3>Three free consequences</h3>
+<p>Once a set satisfies Definition 1.19, several facts follow immediately from the axioms alone — no extra structure needed. Two are proved fully below; the third is yours to finish.</p>
+
+<div class="worked">
+<strong>Worked example — uniqueness of the additive identity (fully worked).</strong> A vector space has a unique additive identity.
+<p><strong>Proof.</strong> Suppose 0 and 0′ are both additive identities for a vector space <var>V</var>. Then</p>
+<p>&emsp;0′ = 0′ + 0 = 0 + 0′ = 0,</p>
+<p>where the first equality holds because 0 is an additive identity, the second is commutativity, and the third holds because 0′ is an additive identity. Thus 0′ = 0, so <var>V</var> has only one additive identity. ∎</p>
+<p class="cite">— Axler §1.B, Theorem 1.25, p. 15</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — the number 0 times a vector (your turn to fill the gaps).</strong> Show that 0<var>v</var> = 0 for every <var>v</var> ∈ <var>V</var> (the 0 on the left is the scalar; the 0 on the right is the vector).
+<p><strong>Proof.</strong> For <var>v</var> ∈ <var>V</var>, we have</p>
+<p>&emsp;0<var>v</var> = (0 + 0)<var>v</var> = <span class="gap">⟨your step: which distributive law from Definition 1.19 turns (0+0)v into a sum of two terms?⟩</span>.</p>
+<p>Adding <span class="gap">⟨your step: name the vector you must add to both sides to cancel one copy of 0v⟩</span> to both sides of the equation above gives 0 = 0<var>v</var>, as desired. ∎</p>
+<p class="cite">— Axler §1.B, Theorem 1.29, p. 16</p>
+</div>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Prove that (−1)<var>v</var> = −<var>v</var> for every <var>v</var> ∈ <var>V</var>. (Hint: show <var>v</var> + (−1)<var>v</var> = 0 using 1<var>v</var> = <var>v</var>, the distributive property (1 + (−1))<var>v</var>, and the fact 0<var>v</var> = 0 you just proved — then invoke uniqueness of the additive inverse.) <span class="cite">— cf. Axler §1.B, Theorem 1.31, p. 17</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which of these is <em>not</em> required by Definition 1.19?</p>
+<button onclick="check(this,false)">Every vector has an additive inverse</button>
+<button onclick="check(this,false)">1<var>v</var> = <var>v</var> for all <var>v</var></button>
+<button onclick="check(this,true)" data-ok>Every vector space must consist of lists of numbers</button>
+<div class="explain">The definition says nothing about what the elements of V "are" — only how addition and scalar multiplication must behave. That's precisely why function spaces, sequence spaces, and one-point sets all qualify.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> A list of length <var>n</var>, viewed inside the F<sup><var>S</var></sup> framework, is best understood as…</p>
+<button onclick="check(this,false)">a subset of {1, …, n}</button>
+<button onclick="check(this,true)" data-ok>a function from {1, …, n} to F</button>
+<button onclick="check(this,false)">a scalar in F</button>
+<div class="explain">The jth coordinate of a list is just "the value at input j" — so Fⁿ is exactly F^{1,…,n}, a special case of F^S with S = {1,…,n}. Sequences are the same idea with S = the positive integers.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> True or false: {0} (the one-element set) is a vector space.</p>
+<button onclick="check(this,true)" data-ok>True</button>
+<button onclick="check(this,false)">False — a vector space needs at least two elements</button>
+<div class="explain">Axler notes this explicitly: the simplest vector space contains only one point. With the only possible addition (0+0=0) and scalar multiplication (λ·0=0), every axiom in Definition 1.19 holds trivially.</div>
+</div>
+
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §1.A "R<sup>n</sup> and C<sup>n</sup>" (Notation 1.6 F, Definition 1.8 list, Definition 1.10 F<sup>n</sup>, Definitions 1.12/1.17 addition and scalar multiplication, Theorem 1.13, "Digression on Fields"), pp. 4–11; §1.B "Definition of Vector Space" (Definition 1.19 vector space, Definitions 1.20–1.21, Example 1.22 F<sup>∞</sup>, Notation 1.23 and Example 1.24 F<sup>S</sup>, Theorem 1.25 unique additive identity, Theorem 1.29 0v = 0, Theorem 1.31 (−1)v = −v), pp. 12–17.
+<br>Deferred to la-02: subspaces, sums of subspaces, and direct sums (Axler §1.C).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
