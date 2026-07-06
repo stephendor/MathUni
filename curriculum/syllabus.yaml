@@ -90,14 +90,14 @@ units:
     module: pw
     title: "Direct proof, contrapositive, contradiction"
     prereqs: []
-    resources: ["Cummings ch. 4-6"]
+    resources: ["Cummings ch. 2, 6-7"]
     hook: "Three ways to corner a truth — and how mathematicians pick locks."
     mission_link: "Every TDA paper you'll verify is built from these moves."
   - id: pw-02
     module: pw
     title: "Induction, strong induction, well-ordering"
     prereqs: ["pw-01"]
-    resources: ["Cummings ch. 7"]
+    resources: ["Cummings ch. 4"]
     hook: "Dominoes, but the row is infinite and you get to shove the first one."
     mission_link: "Simplicial complex arguments induct on dimension constantly."
   - id: pw-03
@@ -111,7 +111,7 @@ units:
     module: pw
     title: "Epsilon-delta craft"
     prereqs: ["pw-03", "an-03"]
-    resources: ["Cummings ch. 10", "Abbott 2.2"]
+    resources: ["Cummings Real Analysis ch. 1-2", "Abbott 2.2"]
     hook: "The adversarial game: they pick epsilon, you must always win."
     mission_link: "Stability of persistence diagrams is an epsilon statement."
   - id: pw-05
