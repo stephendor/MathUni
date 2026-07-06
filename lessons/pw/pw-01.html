@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pw-01 — Direct proof, contrapositive, contradiction</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+svg text{font-family:Segoe UI,system-ui,sans-serif}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+</style></head><body>
+<p class="cite">Proof Workshop · Nexus College</p>
+<h1>Direct proof, contrapositive, contradiction <span class="cite">(pw-01)</span></h1>
+
+<div class="hook">
+Three ways to corner a truth — and how mathematicians pick locks.
+<p>Picture a locked room holding a theorem. Three burglars, three methods. The first walks straight in the front door: assume the hypothesis, follow the corridor of definitions and algebra, arrive at the conclusion. The second refuses the front door — instead, they start from "the conclusion is false" and work <em>backwards</em> until they've shown the hypothesis must be false too, which (by a sleight of logic) proves the same thing. The third is the strangest of all: they break in, plant a small bomb of absurdity somewhere inside — a false statement, guaranteed by their own assumptions — and let the explosion prove the room was locked the way they said all along.</p>
+<p>Same theorem, same room, three different lock-picks. The rest of this lesson is about learning which pick fits which lock — and, for one theorem, watching all three keys jam in different ways before one turns.</p>
+</div>
+
+<p class="mission">Why this matters for the mission: Every TDA paper you'll verify is built from these moves.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Direct proof: walking in the front door</h2>
+
+<p>A <strong>direct proof</strong> of "if <var>P</var>, then <var>Q</var>" does exactly what it sounds like: assume <var>P</var> is true, then chain definitions, algebra and prior results until <var>Q</var> falls out the other end. Cummings gives the shape of it plainly:</p>
+
+<div class="theorem">
+<p>"A direct proof is a way to prove a '<var>P</var> ⇒ <var>Q</var>' proposition by starting with <var>P</var> and working your way to <var>Q</var>." <span class="cite">— Cummings §2 ("The Structure of Direct Proofs"), p. 41</span></p>
+</div>
+
+<p>The definitions doing the heavy lifting throughout this lesson are these — memorise them cold, because every proof below leans on them:</p>
+
+<div class="definition">
+<p><strong>Definition 2.2.</strong> An integer <var>n</var> is <strong>even</strong> if <var>n</var> = 2<var>k</var> for some integer <var>k</var>; <var>n</var> is <strong>odd</strong> if <var>n</var> = 2<var>k</var> + 1 for some integer <var>k</var>. <span class="cite">— Cummings §2.1, p. 37</span></p>
+</div>
+
+<h3>Case study: "if <var>n</var>² is even, then <var>n</var> is even"</h3>
+<p>Let's throw the direct approach at this one and watch where it strains. Assume <var>n</var>² is even, so <var>n</var>² = 2<var>k</var> for some integer <var>k</var>. Now what? You want to conclude something about <var>n</var> itself — but the definition of even only unlocks facts about <em>squares</em>, and there's no clean algebraic move that peels a square root off "2<var>k</var>" and hands you "<var>n</var> = 2<var>j</var>" for some integer <var>j</var>. You can wave your hands ("well, <var>n</var> = √(2<var>k</var>)…") but that's not integer algebra, it's a stall. This is the tell-tale sign a direct proof is fighting you: the hypothesis talks about <var>n</var>², the conclusion wants <var>n</var>, and direct proof has no way to "un-square" cleanly. Hold that thought — Segment 2 cracks it wide open with a different key.</p>
+
+<p>Direct proof <em>does</em> shine when the algebra runs the same direction as the implication. Here are two fully worked warm-ups before the fade.</p>
+
+<div class="worked">
+<strong>Worked example — Proposition 2.4 (fully worked).</strong> The sum of two even integers is even.
+<p><strong>Proof.</strong> Assume <var>n</var> and <var>m</var> are even integers. By Definition 2.2, <var>n</var> = 2<var>a</var> and <var>m</var> = 2<var>b</var> for some integers <var>a</var>, <var>b</var>. Then</p>
+<p>&emsp;<var>n</var> + <var>m</var> = 2<var>a</var> + 2<var>b</var> = 2(<var>a</var> + <var>b</var>).</p>
+<p>Since <var>a</var> + <var>b</var> is an integer, we've written <var>n</var> + <var>m</var> = 2<var>k</var> with <var>k</var> = <var>a</var> + <var>b</var> an integer. Therefore, by Definition 2.2, <var>n</var> + <var>m</var> is even. ∎</p>
+<p class="cite">— Cummings §2.1, Proposition 2.4, pp. 38</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Proposition 2.6 (your turn to fill the gaps).</strong> If <var>n</var> is an odd integer, then <var>n</var>² is an odd integer.
+<p><strong>Proof.</strong> Assume <var>n</var> is an odd integer. By Definition 2.2, this means <span class="gap">⟨your step: write n in the form the definition demands⟩</span> for some integer <var>a</var>. Then</p>
+<p>&emsp;<var>n</var>² = (2<var>a</var> + 1)² = 4<var>a</var>² + 4<var>a</var> + 1 = <span class="gap">⟨your step: factor out a 2, leaving a "+1" exposed⟩</span>.</p>
+<p>And since <span class="gap">⟨your step: name the integer inside the parentheses and justify it's an integer, citing Fact 2.1⟩</span>, we have shown <var>n</var>² = 2<var>k</var> + 1 where <var>k</var> is an integer. Therefore, by Definition 2.2, <span class="gap">⟨your step: state the conclusion⟩</span>. ∎</p>
+<p class="cite">— Cummings §2.1, Proposition 2.6, pp. 38–39</p>
+</div>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Prove: if <var>n</var> is odd, then <var>n</var>² + <var>n</var> is even. (Hint: write <var>n</var> = 2<var>a</var> + 1 and do the algebra — Definition 2.2 is the only tool you need. This mirrors Cummings' Proposition 2.7-style case work, but here one case is enough since you're told <var>n</var> is odd.) <span class="cite">— cf. Cummings §2.2, Exercise 2.1, p. 43</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A direct proof of "<var>P</var> ⇒ <var>Q</var>" begins by assuming…</p>
+<button onclick="check(this,false)">Q, and derives P</button>
+<button onclick="check(this,true)" data-ok>P, and derives Q</button>
+<button onclick="check(this,false)">¬Q, and derives ¬P</button>
+<button onclick="check(this,false)">P ∧ ¬Q, and derives a contradiction</button>
+<div class="explain">Direct proof runs the implication forwards: assume the hypothesis <var>P</var>, unfold definitions and algebra, land on the conclusion <var>Q</var>. The other three options describe contrapositive and contradiction — different doors into the same room.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which proof technique is this skeleton using? <em>"Assume n is an integer. Then n is either even or odd. Case 1: n even… [algebra] …conclusion holds. Case 2: n odd… [algebra] …conclusion holds. Therefore the conclusion holds for all n."</em></p>
+<button onclick="check(this,true)" data-ok>Direct proof (by cases)</button>
+<button onclick="check(this,false)">Contrapositive</button>
+<button onclick="check(this,false)">Contradiction</button>
+<div class="explain">No assumption is being negated and no absurdity is being chased — this is still a direct march from hypothesis to conclusion, just split into exhaustive cases (Cummings §2.2, Proposition 2.7). Proof by cases is a direct-proof variant, not a fourth technique.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Contrapositive and contradiction: two other keys</h2>
+
+<p>Recall the snag from Segment 1: "<var>n</var>² even ⇒ <var>n</var> even" resisted a direct attack because the algebra only wants to run one way. Contrapositive fixes this by trading the implication for its logical twin:</p>
+
+<div class="theorem">
+<p><strong>Theorem 5.14.</strong> An implication is logically equivalent to its contrapositive: (<var>P</var> ⇒ <var>Q</var>) ⇔ (¬<var>Q</var> ⇒ ¬<var>P</var>). <span class="cite">— Cummings §5, Theorem 5.14, p. 198</span></p>
+</div>
+
+<p>Watch what this buys us. The contrapositive of "<var>n</var>² even ⇒ <var>n</var> even" is "<var>n</var> not even ⇒ <var>n</var>² not even" — and since <var>n</var> is a natural number, "not even" just means "odd". So we need only prove: <strong>if <var>n</var> is odd, then <var>n</var>² is odd</strong> — which is exactly Proposition 2.6, the proof you filled in above! The direction of the algebra now matches the direction of the implication perfectly.</p>
+
+<div class="worked">
+<strong>Worked example — Proposition 6.2, cracked cleanly.</strong> Suppose <var>n</var> ∈ ℕ. If <var>n</var>² is odd, then <var>n</var> is odd.
+<p><strong>Proof.</strong> We will use the contrapositive. Assume <var>n</var> is not odd, i.e. <var>n</var> is even, so <var>n</var> = 2<var>a</var> for some integer <var>a</var>. Then</p>
+<p>&emsp;<var>n</var>² = (2<var>a</var>)² = 4<var>a</var>² = 2(2<var>a</var>²).</p>
+<p>Since 2<var>a</var>² is an integer, <var>n</var>² is even by Definition 2.2 — that is, <var>n</var>² is not odd. We have shown ¬<var>Q</var> ⇒ ¬<var>P</var>; thus by the contrapositive, <var>P</var> ⇒ <var>Q</var>. ∎</p>
+<p class="cite">— Cummings §6.2, Proposition 6.2, pp. 201–202</p>
+</div>
+
+<p>Notice the closing sentence is not optional. Cummings is blunt about this: a contrapositive proof, taken at face value, proves a <em>different</em> statement than the one you were asked for — you must explicitly invoke the contrapositive at the end to connect the two. <span class="cite">— Cummings §6.2, footnote 6, p. 203</span></p>
+
+<h3>Contradiction: the show-piece</h3>
+<p>The third key doesn't flip the implication — it assumes the whole thing fails (<var>P</var> true, <var>Q</var> false simultaneously) and hunts for an absurdity, a statement that is unconditionally false. Since correct logic can never turn a true assumption into a false one, finding that absurdity proves the assumption itself was rotten.</p>
+
+<div class="theorem">
+<p>"If your assumptions imply something false, then something you assumed had to be false as well." <span class="cite">— Cummings §7, p. 215</span></p>
+</div>
+
+<p>The classic demonstration — the second most famous proof in mathematics, per Cummings, after Euclid's infinitude of primes — is Hippasus' proof that √2 is irrational. Legend has it his fellow Pythagoreans drowned him for it. <span class="cite">— Cummings §7.3, p. 225</span> Here it is, faded for you to complete the second half.</p>
+
+<div class="worked fade">
+<strong>Faded example — Theorem 7.6.</strong> The number √2 is irrational.
+<p><strong>Proof.</strong> Assume for a contradiction that √2 <em>is</em> rational. Then √2 = <var>p</var>/<var>q</var> for some non-zero integers <var>p</var>, <var>q</var>, written in lowest terms (no common divisors). Then √2·<var>q</var> = <var>p</var>, and squaring both sides,</p>
+<p>&emsp;2<var>q</var>² = <var>p</var>².</p>
+<p>Since <var>q</var>² is an integer, this means 2 | <var>p</var>², and hence <span class="gap">⟨your step: what does 2 | p² tell you about p itself, and by which earlier lemma?⟩</span>. So <var>p</var> = 2<var>k</var> for some integer <var>k</var>. Substituting back:</p>
+<p>&emsp;2<var>q</var>² = (2<var>k</var>)² = 4<var>k</var>², &nbsp;so&nbsp; <var>q</var>² = <span class="gap">⟨your step: finish the algebra⟩</span>.</p>
+<p>Therefore 2 | <var>q</var>², and hence <span class="gap">⟨your step: same lemma as before, applied to q this time⟩</span>. But this is a contradiction: <span class="gap">⟨your step: name the exact absurdity — what did we assume about p and q that this now violates?⟩</span>. Therefore √2 cannot be rational, meaning it is irrational. ∎</p>
+<p class="cite">— Cummings §7.3, Theorem 7.6, pp. 225–226</p>
+</div>
+
+<h3>Three doors, same room</h3>
+<p>Here is the whole lesson in one picture: three different logical paths, all converging on the same theorem.</p>
+<svg viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three proof shapes converging on the same theorem">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8ab4f8"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="700" height="340" fill="none"/>
+
+  <!-- room / theorem -->
+  <rect x="560" y="140" width="120" height="60" rx="10" fill="#1a2027" stroke="#4caf82" stroke-width="2"/>
+  <text x="620" y="165" fill="#e8e8e8" font-size="14" text-anchor="middle">Theorem</text>
+  <text x="620" y="182" fill="#9aa5b1" font-size="12" text-anchor="middle">P ⇒ Q</text>
+
+  <!-- door 1: direct -->
+  <rect x="20" y="30" width="120" height="46" rx="8" fill="#151b21" stroke="#8ab4f8" stroke-width="2"/>
+  <text x="80" y="58" fill="#e8e8e8" font-size="13" text-anchor="middle">Assume P</text>
+  <line x1="140" y1="53" x2="540" y2="150" stroke="#8ab4f8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="330" y="90" fill="#8ab4f8" font-size="13" text-anchor="middle">direct: P → … → Q</text>
+
+  <!-- door 2: contrapositive -->
+  <rect x="20" y="147" width="120" height="46" rx="8" fill="#151b21" stroke="#8ab4f8" stroke-width="2"/>
+  <text x="80" y="170" fill="#e8e8e8" font-size="13" text-anchor="middle">Assume ¬Q</text>
+  <text x="80" y="185" fill="#9aa5b1" font-size="11" text-anchor="middle">(door reversed)</text>
+  <line x1="140" y1="170" x2="560" y2="170" stroke="#8ab4f8" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="350" y="163" fill="#8ab4f8" font-size="13" text-anchor="middle">contrapositive: ¬Q → … → ¬P</text>
+
+  <!-- door 3: contradiction -->
+  <rect x="20" y="264" width="120" height="46" rx="8" fill="#151b21" stroke="#e06c75" stroke-width="2"/>
+  <text x="80" y="287" fill="#e8e8e8" font-size="13" text-anchor="middle">Assume P ∧ ¬Q</text>
+  <text x="80" y="302" fill="#9aa5b1" font-size="11" text-anchor="middle">(plant a bomb)</text>
+  <line x1="140" y1="287" x2="540" y2="185" stroke="#e06c75" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="330" y="255" fill="#e06c75" font-size="13" text-anchor="middle">find ⊥ (absurdity) → P ⇒ Q</text>
+
+  <text x="350" y="20" fill="#9aa5b1" font-size="12" text-anchor="middle">Three shapes, one destination — pick the lock that fits the door in front of you.</text>
+</svg>
+
+<div class="heuristic">
+<strong>When to use which — a rough compass.</strong>
+<ul>
+<li><strong>Direct</strong> when the hypothesis and conclusion talk about the same kind of object, and algebra can run straight from one to the other (sums, products of evens/odds).</li>
+<li><strong>Contrapositive</strong> when the conclusion is awkward to attack directly but negating it hands you something concrete to assume — especially when <var>P</var> and <var>Q</var> get "flipped" in a useful order (as with <var>n</var>² ⇒ <var>n</var>), or when the conclusion is itself a negative statement ("<var>n</var> is not…").</li>
+<li><strong>Contradiction</strong> when the conclusion asserts something <em>cannot</em> exist or <em>cannot</em> happen (no largest integer, no smallest positive rational, √2 irrational) — assuming it exists usually hands you a concrete object to abuse until it breaks.</li>
+</ul>
+<p class="cite">— synthesised from Cummings §6.2, pp. 202–203 and §7, pp. 213–215</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which technique fits best: "Prove there is no largest even integer"?</p>
+<button onclick="check(this,false)">Direct proof</button>
+<button onclick="check(this,false)">Contrapositive</button>
+<button onclick="check(this,true)" data-ok>Contradiction</button>
+<div class="explain">The claim asserts non-existence ("there is no…"), the classic contradiction trigger: assume a largest even integer N exists, then N + 2 is a larger even integer — absurd. Same shape as Cummings' "no largest natural number", Proposition 7.1.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> To prove "if 3<var>n</var> + 5 is even, then <var>n</var> is odd", Cummings' Proposition 6.3 assumes <em>n is not odd</em> and derives <em>3n + 5 is not even</em>. Which technique is this?</p>
+<button onclick="check(this,false)">Direct proof</button>
+<button onclick="check(this,true)" data-ok>Contrapositive</button>
+<button onclick="check(this,false)">Contradiction</button>
+<div class="explain">Assuming ¬Q and deriving ¬P, then invoking the contrapositive at the end, is precisely the contrapositive shape — not contradiction, which would assume P ∧ ¬Q together and chase an absurdity rather than cleanly deriving ¬P. (Cummings §6.2, Proposition 6.3 part 2, p. 202)</div>
+</div>
+
+</div>
+
+<footer>Sources: Cummings, <em>Proofs: A Long-Form Mathematics Textbook</em> — §2.1 "Working From Definitions" (Definition 2.2, Proposition 2.4), p. 37–38; §2.1 (Proposition 2.6), pp. 38–39; §2.2 "Proofs by Cases" (Proposition 2.7), pp. 41–43; §5 (Theorem 5.14, the contrapositive equivalence), p. 198; §6.2 "Proofs Using the Contrapositive" (Proposition 6.2, Proposition 6.3), pp. 201–203; §7 "Contradiction" (general form, Proposition 7.1), pp. 213–216; §7.3 "The Most Famous Proof in History" (Theorem 7.6, √2 irrational), pp. 225–226.
+<br>Deferred to pw-02: induction, strong induction, well-ordering (Cummings ch. 4).
+<br>Deferred to pw-03: sets, functions, images/preimages (Cummings ch. 3, 8).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
