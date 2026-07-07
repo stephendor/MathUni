@@ -14,9 +14,9 @@ Work from the repo root (verify cwd = MathUni). All state writes atomic
    today's date, resume it at the recorded step instead of building a new day.
 3. **Build the day** (write plan to state/sessions/YYYY-MM-DD.md before
    starting):
-   - Warm-up (~10 min): 3-5 quick recall questions from `in-progress`/
-     recently touched units (improvise from lesson self-check topics until
-     the Phase 2 SRS exists — note "SRS pending Phase 2" in the log).
+   - Warm-up (~10 min): run the /review skill (srs/scheduler.py due). If
+     fewer than 5 cards are due, top up with quickfire questions improvised
+     from in-progress units. Quickfire pace — learner-confirmed effective.
    - Lecture 1 and Lecture 2: pick two units, DIFFERENT modules, status
      `unlocked` first, else `in-progress`. Respect DAG order. Offer Stephen
      the choice when >2 candidates (ADHD: choice within structure).
