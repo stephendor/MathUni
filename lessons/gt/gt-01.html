@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>gt-01 — Symmetry: groups before the definition</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+.rulebox{background:var(--panel);border-radius:10px;padding:.9rem 1.2rem;margin:.8rem 0;border-left:4px solid #d8a657}
+</style></head><body>
+<p class="cite">Group Theory · Nexus College</p>
+<h1>Symmetry: groups before the definition <span class="cite">(gt-01)</span></h1>
+
+<div class="hook">
+A rectangle, a light switch, and a dance move walk into a bar — same group.
+<p>The rectangle only knows two tricks: flip it over left-to-right, or flip it over top-to-bottom. The light switches on your wall only know one trick each: on or off. A dancer marking a spin only knows how to turn a quarter, a half, three-quarters, or come back to facing front. None of these three things looks remotely like the others — paper, electricity, a body in motion. And yet, if you write down <em>how many ways each one can end up arranged</em>, and <em>what happens when you do one move after another</em>, you get exactly the same pattern, three times over. That repeated pattern has a name. It's called a group, and by the end of this lesson you will have found one with your own hands before anybody hands you a definition for it.</p>
+<p>We are going to resist the urge to define anything up front. Instead — like every mathematician before the definition existed — we will play with a rectangle until the rules reveal themselves.</p>
+</div>
+
+<p class="mission">Why this matters for the mission: Groups measure symmetry; homology groups measure holes. Same idiom.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Symmetries as actions: the rectangle's four moves</h2>
+
+<p>Take a rectangle — an ordinary sheet of paper works — and number its four corners 1, 2, 3, 4 going clockwise from the top left. This is Carter's "not-so-famous toy": a puzzle much like Rubik's Cube, but built from a single sheet of paper. <span class="cite">— Carter §2.2, p. 14</span></p>
+
+<p>The rectangle puzzle has exactly two legal moves: flip it over <strong>horizontally</strong> (as if turning a page, left edge sweeping over to the right) and flip it over <strong>vertically</strong> (as if turning it top-to-bottom). Carter is careful to note that "horizontal" and "vertical" here describe the motion of your hands, not an axis of rotation. <span class="cite">— Carter §2.2, p. 14, and n. 2</span></p>
+
+<p>Watch what these two moves do to the corner labels. Click the buttons below the canvas and track where each numbered corner travels.</p>
+
+<canvas id="rectCanvas" width="420" height="300" aria-label="Animated rectangle showing its four symmetries"></canvas>
+<div class="controls">
+<button onclick="rectAction('h')">Flip horizontal</button>
+<button onclick="rectAction('v')">Flip vertical</button>
+<button onclick="rectAction('r')">Rotate 180°</button>
+<button onclick="rectAction('e')">Reset (identity)</button>
+</div>
+
+<p>You should notice something important happening on that fourth button. "Reset" is not cheating — Carter insists you are never allowed to just pick the rectangle up and set it down solved; every move must be a genuine flip. But there <em>is</em> a genuine flip that leaves every corner exactly where it started: do nothing at all. This "do-nothing" move counts as a legitimate action in its own right, on exactly the same footing as the two flips. Hold onto that thought; Segment 2 promotes it to a named citizen of the group.</p>
+
+<p>Notice also that "Rotate 180°" is not one of the two generators — you cannot spin the rectangle like that with a single flip. But it turns out to be reachable by <em>combining</em> the two flips: flip horizontal, then flip vertical, and you land in exactly the same corner-arrangement as a half-turn. Try it — flip horizontal, then flip vertical, and compare against the "Rotate 180°" button. Same destination, two different routes. This is the seed of Carter's Rule 1.8: <em>any sequence of consecutive actions is also an action</em>, whether or not it was on the original list. <span class="cite">— Carter §1.4, Rule 1.8, p. 6</span></p>
+
+<h3>Four moves, four configurations — no more, no fewer</h3>
+<p>Carter's method for studying an object's symmetry is always the same: start solved, apply each generator, see where you land, and keep going until every question "where does this move take me from here?" has an answer. Applied to the rectangle, this exploration terminates after exactly <strong>four</strong> configurations: solved, horizontal-flipped, vertical-flipped, and both (the half-turn). <span class="cite">— Carter §2.3, pp. 15–18</span> Carter draws this exploration as a map — he calls it a <em>Cayley diagram</em> — with nodes for configurations and arrows for moves. <span class="cite">— Carter §2.4, p. 18</span></p>
+
+<p>Here is the remarkable part. Take two light switches on a wall, side by side, and allow yourself two actions: flip switch 1, flip switch 2. Map out the four configurations (off-off, on-off, off-on, on-on) exactly the way we mapped the rectangle. Carter shows the resulting map has <em>exactly the same shape</em> as the rectangle's — same four nodes, same connecting pattern, just relabelled. <span class="cite">— Carter §2.5, pp. 19–20</span> Two utterly different physical situations — folded paper and household wiring — turn out to be the same mathematical object wearing different clothes. Carter names this shared structure the <strong>Klein 4-group</strong>. <span class="cite">— Carter §2.5, p. 20</span></p>
+
+<p>The dance-move version from the hook works the same way: a quarter-turn, a half-turn, a three-quarter-turn and standing still, with "turn again" as the only action. That one has a different map (it's a loop of four, not the rectangle's cross-shape) — a preview that not all groups of size 4 look alike, a question gt-03 picks up with Cayley diagrams properly.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> How many distinct configurations does the rectangle puzzle have in total, once you count every combination of flips reachable from the solved state?</p>
+<button onclick="check(this,false)">2 — one per generator</button>
+<button onclick="check(this,true)" data-ok>4 — solved, horizontal, vertical, and both together</button>
+<button onclick="check(this,false)">Infinitely many, since you can keep flipping forever</button>
+<button onclick="check(this,false)">8 — 4 corners × 2 flips</button>
+<div class="explain">Flipping twice in either direction returns you to a state you've already visited (a flip undoes itself), and combining both flips lands you on a fourth, genuinely new configuration. Beyond that, nothing new appears — Carter's exploration closes after exactly four nodes (§2.3, pp. 15–18).</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why do the rectangle and the two-light-switch puzzle count as "the same group", even though one is paper and the other is electricity?</p>
+<button onclick="check(this,false)">They don't — they only look similar by coincidence</button>
+<button onclick="check(this,true)" data-ok>Their maps of configurations-and-moves have identical structure, just different labels</button>
+<button onclick="check(this,false)">Because both have exactly four corners</button>
+<button onclick="check(this,false)">Because both involve flipping something</button>
+<div class="explain">Carter's point in §2.5 (pp. 19–20) is precisely this: what matters to group theory is the pattern of how actions combine, not the physical material carrying them out. Strip away the rectangle-ness or the switch-ness and the same abstract skeleton — the Klein 4-group — is left underneath.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The rules of the game, discovered informally</h2>
+
+<p>Rubik's Cube and the rectangle puzzle look nothing alike, but Carter shows they share four family resemblances — and it is exactly these four resemblances, not cubes or rectangles specifically, that group theory studies. <span class="cite">— Carter §1.3–1.4, pp. 4–7</span></p>
+
+<div class="rulebox">
+<strong>Rule 1.5 — a fixed list of moves.</strong> There is a predefined list of actions that never changes. <span class="cite">— Carter §1.4, p. 6</span>
+<p>For the rectangle: horizontal flip and vertical flip, and nothing else is ever added to the list mid-game.</p>
+</div>
+
+<div class="rulebox">
+<strong>Rule 1.6 — every move undoes itself (or something does).</strong> Every action is reversible. <span class="cite">— Carter §1.4, p. 6</span>
+<p>Flip the rectangle horizontally, regret it, flip it horizontally again — you're back where you started. Every move on the rectangle happens to undo <em>itself</em>, which is a special (if convenient) case of reversibility.</p>
+</div>
+
+<div class="rulebox">
+<strong>Rule 1.7 — no randomness.</strong> Every action is deterministic. <span class="cite">— Carter §1.4, p. 6</span>
+<p>A horizontal flip always sends corner 1 to the same place. There is no dice roll involved.</p>
+</div>
+
+<div class="rulebox">
+<strong>Rule 1.8 — combinations count as moves too.</strong> Any sequence of consecutive actions is also an action. <span class="cite">— Carter §1.4, p. 6</span>
+<p>This is exactly the fact you exercised above: flip-horizontal-then-flip-vertical is not on the original list of two generators, yet it is a perfectly good move of the puzzle — the same move as "rotate 180°."</p>
+</div>
+
+<p>Carter bundles these four rules into an unofficial working definition: <strong>a group is a system of actions satisfying Rules 1.5 through 1.8.</strong> <span class="cite">— Carter, Definition 1.9, p. 7</span> Notice this definition is entirely about <em>actions and how they combine</em> — no mention yet of sets, elements, or the word "axiom" in its formal sense. Carter uses "rule" rather than "axiom" deliberately, to keep the discussion informal until later chapters. <span class="cite">— Carter §1.4, p. 6</span></p>
+
+<h3>Two rules we haven't named yet — you already found them</h3>
+<p>Look back at your own play with the rectangle. Every time you performed a flip and then reset with the "identity" button, you were relying on two facts that Rule 1.8 quietly guarantees but doesn't spell out by name:</p>
+
+<div class="worked">
+<strong>Discovered fact 1 — a "do-nothing" move exists.</strong>
+<p>Among the four rectangle configurations, exactly one of them — the solved state — has the property that applying it changes nothing. Carter treats "do nothing" as a legitimate action (it trivially satisfies Rules 1.5–1.8: it's on no list explicitly, but Rule 1.8 lets us treat "flip horizontal, then flip horizontal again" as one combined action, and that combined action changes nothing). This "changes-nothing" action is what later chapters will call the group's <strong>identity</strong>. It is the mathematical cousin of adding 0, or multiplying by 1.</p>
+</div>
+
+<div class="worked fade">
+<strong>Discovered fact 2 — every move has an "undo" (your turn to check it).</strong>
+<p>For each of the rectangle's four configurations, there is another move — possibly the same one — that brings you straight back to solved. Fill in the undo-move for each case:</p>
+<p>&emsp;Horizontal flip, undone by: <span class="gap">⟨your answer⟩</span></p>
+<p>&emsp;Vertical flip, undone by: <span class="gap">⟨your answer⟩</span></p>
+<p>&emsp;180° rotation (horizontal-then-vertical), undone by: <span class="gap">⟨your answer: which single combination reverses it?⟩</span></p>
+<p>This "undo move" is what later chapters will call an <strong>inverse</strong>. Notice that in this particular group every move is its own undo — that will not be true of every group you meet (gt-03's Cayley diagrams will show groups where undoing takes a different move entirely).</p>
+</div>
+
+<div class="you-try">
+<strong>You try (solo).</strong> The three-wall art-rearranging puzzle: three walls, one picture each, and two allowed actions — swap the left and centre pictures, or swap the centre and right pictures. (a) List all the arrangements reachable from the start. (b) Check Rules 1.5–1.8 against this puzzle. (c) Does "swap left/centre" undo itself? Does combining "swap left/centre" then "swap centre/right" undo itself, or does undoing it require a different combination? <span class="cite">— cf. Carter Exercise 1.4, p. 7</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which of Carter's four rules is being demonstrated when we say "flip-horizontal-then-flip-vertical" counts as a legitimate move of the rectangle puzzle, even though it wasn't on the original list of two generators?</p>
+<button onclick="check(this,false)">Rule 1.5 (fixed list)</button>
+<button onclick="check(this,false)">Rule 1.6 (reversibility)</button>
+<button onclick="check(this,false)">Rule 1.7 (deterministic)</button>
+<button onclick="check(this,true)" data-ok>Rule 1.8 (combinations are also actions)</button>
+<div class="explain">Rule 1.8 says any sequence of consecutive actions is itself an action, even if it never appeared on the original short list of generators (Carter §1.4, p. 6). The generators are a starting point for building the whole group, not a ceiling on it.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In the rectangle group, what plays the role that "0" plays in ordinary addition?</p>
+<button onclick="check(this,false)">The horizontal flip</button>
+<button onclick="check(this,false)">The vertical flip</button>
+<button onclick="check(this,true)" data-ok>The solved (do-nothing) configuration</button>
+<button onclick="check(this,false)">There is no such role in a group of actions</button>
+<div class="explain">Just as adding 0 leaves a number unchanged, applying the "do-nothing" action leaves every configuration unchanged. This role — an action that changes nothing — is exactly what gt-02 will formalise as the group's identity element.</div>
+</div>
+
+</div>
+
+<footer>Sources: Carter, <em>Visual Group Theory</em> — Ch. 1 "What is a Group?" §1.2–1.4 (Observations 1.1–1.4, Rules 1.5–1.8, Definition 1.9), pp. 4–7; Ch. 2 "What Do Groups Look Like?" §2.2 "A Not-So-Famous Toy" (the rectangle puzzle), pp. 14–15; §2.3 "Mapping a Group" (exploring the rectangle's four configurations), pp. 15–18; §2.4 "Cayley Diagrams", p. 18; §2.5 "A Touch More Abstract" (the light-switch group and the Klein 4-group), pp. 19–20.
+<br>Also see: Matthew Macauley, Visual Group Theory lecture series, Lecture 1 (introduction to groups as symmetries) — Clemson University, freely available on YouTube.
+<br>Deferred to gt-02: the formal axioms (closure, associativity, identity, inverses stated as a definition on a set with a binary operation), proofs of uniqueness, order of an element.
+<br>Deferred to gt-03: Cayley diagrams drawn properly, generators, groups where the map is not the rectangle's cross-shape.
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+(function(){
+const cv=document.getElementById('rectCanvas'),ctx=cv.getContext('2d');
+const W=420,H=300,cx=W/2,cy=H/2,rw=180,rh=110;
+// base corner positions relative to centre: 1=top-left,2=top-right,3=bottom-right,4=bottom-left
+const base=[{x:-rw/2,y:-rh/2},{x:rw/2,y:-rh/2},{x:rw/2,y:rh/2},{x:-rw/2,y:rh/2}];
+let labels=[1,2,3,4]; // labels[i] = which original corner currently sits at base position i
+let animT=0,animFrom=null,animTo=null,animKind=null;
+
+function applyPerm(perm){ // perm maps position index -> new position index occupant comes from
+  const next=[0,0,0,0];
+  for(let i=0;i<4;i++) next[i]=labels[perm[i]];
+  labels=next;
+}
+// horizontal flip: left<->right swap => position0<->1, position3<->2
+const PERM_H=[1,0,3,2];
+// vertical flip: top<->bottom swap => position0<->3, position1<->2
+const PERM_V=[3,2,1,0];
+// 180 rotation: position0<->2, position1<->3
+const PERM_R=[2,3,0,1];
+
+function draw(t){
+  ctx.clearRect(0,0,W,H);
+  ctx.save();
+  ctx.translate(cx,cy);
+  let scaleX=1,scaleY=1,rot=0;
+  if(animKind==='h'){ scaleX=Math.cos(Math.PI*t); }
+  else if(animKind==='v'){ scaleY=Math.cos(Math.PI*t); }
+  else if(animKind==='r'){ rot=Math.PI*t; }
+  ctx.rotate(rot);
+  ctx.scale(scaleX,scaleY);
+  ctx.fillStyle='#1a2027';
+  ctx.strokeStyle='#8ab4f8';
+  ctx.lineWidth=3;
+  ctx.beginPath();
+  ctx.rect(-rw/2,-rh/2,rw,rh);
+  ctx.fill();ctx.stroke();
+  ctx.restore();
+
+  // draw corner labels at their (static) screen positions -- interpolate label positions during animation
+  ctx.font='bold 20px Segoe UI, sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  for(let i=0;i<4;i++){
+    let p=base[i];
+    let sx=p.x,sy=p.y;
+    if(animKind==='h'){ sx=p.x*Math.cos(Math.PI*t); }
+    else if(animKind==='v'){ sy=p.y*Math.cos(Math.PI*t); }
+    else if(animKind==='r'){
+      const ang=Math.PI*t;
+      const rx=p.x*Math.cos(ang)-p.y*Math.sin(ang);
+      const ry=p.x*Math.sin(ang)+p.y*Math.cos(ang);
+      sx=rx;sy=ry;
+    }
+    ctx.fillStyle='#e8e8e8';
+    ctx.fillText(String(labels[i]),cx+sx,cy+sy);
+  }
+}
+
+function animate(kind,perm){
+  animKind=kind;animT=0;
+  const start=performance.now();
+  const dur=500;
+  function step(now){
+    animT=Math.min(1,(now-start)/dur);
+    draw(animT);
+    if(animT<1){ requestAnimationFrame(step); }
+    else { applyPerm(perm); animKind=null; draw(0); }
+  }
+  requestAnimationFrame(step);
+}
+
+window.rectAction=function(kind){
+  if(kind==='e'){ labels=[1,2,3,4]; draw(0); return; }
+  if(kind==='h') animate('h',PERM_H);
+  else if(kind==='v') animate('v',PERM_V);
+  else if(kind==='r') animate('r',PERM_R);
+};
+
+draw(0);
+})();
+</script></body></html>
