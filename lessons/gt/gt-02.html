@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>gt-02 — Groups: definition and first properties</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.matchbox{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.matchbox .col h4{margin:.2rem 0;font-family:Segoe UI,sans-serif;color:var(--acc);font-size:.9rem}
+.matchbox .col p{margin:.3rem 0;font-size:.95rem}
+svg text{font-family:Segoe UI,system-ui,sans-serif}
+</style></head><body>
+<p class="cite">Group Theory · Nexus College</p>
+<h1>Groups: definition and first properties <span class="cite">(gt-02)</span></h1>
+
+<div class="hook">
+Four axioms that generate a universe.
+<p>Four short lines — a closure clause you don't even need to say out loud, one about grouping, one demanding a do-nothing element exists, one demanding every move has an undo — and from those four lines mathematicians have derived everything from the impossibility of trisecting an angle with a straightedge to the periodic table's structure to why a Rubik's Cube always has a solution. You met three of those four ideas already in gt-01, discovered by playing with a rectangle. Today they get names, symbols, and — for the first time — a proof standing behind them instead of a demonstration with paper.</p>
+</div>
+
+<p class="mission">Why this matters for the mission: H1 is a group before it's anything else.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The formal definition, matched against what you already found</h2>
+
+<p>Aluffi's official definition trades "actions on a rectangle" for "a set with an operation" — the same content, now stripped of any particular physical costume:</p>
+
+<div class="definition">
+<p><strong>Definition 11.1.</strong> A 'group' (<var>G</var>, ·) consists of a set <var>G</var> along with a binary operation · on <var>G</var> such that</p>
+<p>(i) ∀ <var>g</var>,<var>h</var>,<var>k</var> ∈ <var>G</var>: (<var>g</var>·<var>h</var>)·<var>k</var> = <var>g</var>·(<var>h</var>·<var>k</var>) &nbsp;[associativity]</p>
+<p>(ii) ∃ <var>e</var><sub>G</sub> ∈ <var>G</var> ∀ <var>g</var> ∈ <var>G</var>: <var>g</var>·<var>e</var><sub>G</sub> = <var>e</var><sub>G</sub>·<var>g</var> = <var>g</var> &nbsp;[identity]</p>
+<p>(iii) ∀ <var>g</var> ∈ <var>G</var> ∃ <var>h</var> ∈ <var>G</var>: <var>g</var>·<var>h</var> = <var>h</var>·<var>g</var> = <var>e</var><sub>G</sub> &nbsp;[inverse]</p>
+<span class="cite">— Aluffi, <em>Underground</em>, Definition 11.1, pp. 229–230</span>
+</div>
+
+<p>Notice what is quietly built into this definition before the numbered list even starts: writing "<var>g</var>·<var>h</var>" as an element of <var>G</var> already presumes <em>closure</em> — the result of combining two elements of <var>G</var> is itself required to lie in <var>G</var>. Aluffi folds closure into the phrase "a binary operation on <var>G</var>" rather than listing it as a fourth numbered axiom. <span class="cite">— Aluffi, Definition 11.1, p. 229</span> This is exactly Carter's Rule 1.8 in disguise: "any sequence of consecutive actions is also an action" is precisely the demand that combining moves never escapes the group.</p>
+
+<p>Lay the two treatments side by side and the translation is almost mechanical:</p>
+
+<div class="matchbox">
+<div class="col"><h4>gt-01 (Carter, informal)</h4>
+<p><strong>Rule 1.8</strong> — combinations of actions are also actions</p>
+<p><strong>Rule 1.6</strong> — every action is reversible</p>
+<p>The "do-nothing" action you found by resetting the rectangle</p>
+<p>The "undo" move for each flip</p>
+<p>(implicit: chaining three flips gives the same result grouped either way)</p>
+</div>
+<div class="col"><h4>gt-02 (Aluffi, formal)</h4>
+<p>Closure — built into "operation on <var>G</var>"</p>
+<p>Axiom (iii) — inverses</p>
+<p>Axiom (ii) — the identity element <var>e</var><sub>G</sub></p>
+<p>The element <var>h</var> = <var>g</var><sup>−1</sup> guaranteed by axiom (iii)</p>
+<p>Axiom (i) — associativity</p>
+</div>
+</div>
+
+<p>One genuinely new idea appears here that gt-01 never had to name: <strong>associativity</strong>, axiom (i). Carter's rectangle never forced you to notice it, because every rectangle move happened to commute with every other, and there were only four configurations to juggle — parenthesising three flips in a row never seemed to matter. But associativity is doing real work in the background: it is what guarantees that "flip horizontal, then (flip vertical, then rotate)" and "(flip horizontal, then flip vertical), then rotate" are the same instruction, so that a "sequence of moves" is unambiguous without you having to specify where the invisible brackets go.</p>
+
+<h3>First examples: numbers, clocks, rectangles</h3>
+<p>Three examples, escalating in abstraction, all satisfying Definition 11.1:</p>
+
+<div class="worked">
+<strong>Example A — (ℤ, +).</strong> The integers under ordinary addition. Associativity: (<var>a</var>+<var>b</var>)+<var>c</var> = <var>a</var>+(<var>b</var>+<var>c</var>) is ordinary arithmetic. Identity: <var>e</var> = 0, since <var>a</var>+0 = 0+<var>a</var> = <var>a</var>. Inverse of <var>a</var>: the element −<var>a</var>, since <var>a</var>+(−<var>a</var>) = 0. All three axioms hold, so (ℤ, +) is a group — in fact Aluffi notes it is <em>commutative</em> (<var>a</var>+<var>b</var> = <var>b</var>+<var>a</var> always), which earns it the extra name <strong>abelian</strong>. <span class="cite">— Aluffi, §11.1, p. 231</span></p>
+</div>
+
+<div class="worked">
+<strong>Example B — (ℤ/<var>n</var>ℤ, +).</strong> The integers mod <var>n</var>, where [<var>a</var>]<sub><var>n</var></sub> + [<var>b</var>]<sub><var>n</var></sub> := [<var>a</var>+<var>b</var>]<sub><var>n</var></sub>. <span class="cite">— Aluffi, Definition 2.10, p. 26</span> This is a group for every <var>n</var> ≥ 0: identity [0]<sub><var>n</var></sub>, inverse of [<var>a</var>]<sub><var>n</var></sub> is [−<var>a</var>]<sub><var>n</var></sub>, and associativity is inherited from ℤ because the operation was <em>defined</em> in terms of ordinary addition (Aluffi's Claim 2.12 confirms the operation doesn't even depend on which representative of the class you pick — a subtlety worth taking seriously, since not every naive attempt at defining arithmetic on equivalence classes survives it; Aluffi's Example 2.11 shows one that doesn't). <span class="cite">— Aluffi, Claim 2.12 and Example 2.11, pp. 26–27</span> ℤ/4ℤ, with elements {[0],[1],[2],[3]}, is our running example for Segment 2.</p>
+</div>
+
+<div class="worked">
+<strong>Example C — the rectangle's symmetries.</strong> gt-01's four rectangle configurations, with "do one flip then another" as the operation. You already verified informally that this satisfies Carter's Rules 1.5–1.8; under Aluffi's Definition 11.1 the identity is the solved state, and every element is its own inverse (flip-then-flip-again undoes itself). This group has a name too: it is (abstractly) the <strong>Klein four-group</strong>, usually written <var>V</var> or <var>V</var><sub>4</sub>. Segment 2's self-check compares it directly against ℤ/4ℤ.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In Definition 11.1, which single word or phrase is doing the job that Carter's Rule 1.8 ("any sequence of consecutive actions is also an action") did informally in gt-01?</p>
+<button onclick="check(this,false)">Axiom (i), associativity</button>
+<button onclick="check(this,false)">Axiom (iii), the existence of inverses</button>
+<button onclick="check(this,true)" data-ok>"a binary operation on G" — i.e. closure</button>
+<button onclick="check(this,false)">The uniqueness of e_G</button>
+<div class="explain">Saying · is "a binary operation on G" already means g·h always lands back inside G for every g, h in G — this is closure, Carter's Rule 1.8 in symbolic form (Aluffi, Definition 11.1, p. 229).</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which of gt-01's four informal rules has no numbered counterpart in Definition 11.1 at all, because gt-01's example was too simple to expose it?</p>
+<button onclick="check(this,false)">Rule 1.5 (fixed list of actions)</button>
+<button onclick="check(this,false)">Rule 1.6 (reversibility)</button>
+<button onclick="check(this,true)" data-ok>None — but associativity (axiom i) is new machinery gt-01 never had to name</button>
+<button onclick="check(this,false)">Rule 1.7 (deterministic)</button>
+<div class="explain">Every one of Carter's rules maps onto some part of Definition 11.1 (Rule 1.5 corresponds to "a set G", Rule 1.6 to inverses, Rule 1.7 is just what it means for · to be a function, Rule 1.8 to closure) — but the formal definition additionally demands associativity by name, a fact the four-element rectangle group was too small and too well-behaved to force into view.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Uniqueness of identity and inverses; the order of an element</h2>
+
+<p>Definition 11.1 only demands that <em>some</em> identity and <em>some</em> inverse exist. It is worth asking: could a group secretly have two different identity elements, or could one element have two genuinely different inverses? Aluffi disposes of both worries immediately after the definition, calling them "basic but useful observations." <span class="cite">— Aluffi, §11.1, p. 230</span></p>
+
+<div class="worked">
+<strong>Theorem (uniqueness of the identity) — fully worked.</strong> If <var>e</var><sub>1</sub> and <var>e</var><sub>2</sub> both satisfy axiom (ii) for the same group <var>G</var>, then <var>e</var><sub>1</sub> = <var>e</var><sub>2</sub>.
+<p><strong>Proof.</strong> Since <var>e</var><sub>1</sub> satisfies axiom (ii), it acts as an identity when combined with <em>any</em> element of <var>G</var> — in particular when combined with <var>e</var><sub>2</sub>:</p>
+<p>&emsp;<var>e</var><sub>1</sub>·<var>e</var><sub>2</sub> = <var>e</var><sub>2</sub> &emsp;(taking <var>g</var> = <var>e</var><sub>2</sub> in axiom (ii) for <var>e</var><sub>1</sub>).</p>
+<p>But equally, since <var>e</var><sub>2</sub> satisfies axiom (ii), it acts as an identity when combined with <var>e</var><sub>1</sub>:</p>
+<p>&emsp;<var>e</var><sub>1</sub>·<var>e</var><sub>2</sub> = <var>e</var><sub>1</sub> &emsp;(taking <var>g</var> = <var>e</var><sub>1</sub> in axiom (ii) for <var>e</var><sub>2</sub>).</p>
+<p>The left-hand sides of both displayed equations are the same expression, <var>e</var><sub>1</sub>·<var>e</var><sub>2</sub>, so the right-hand sides must be equal too: <var>e</var><sub>1</sub> = <var>e</var><sub>2</sub>. ∎</p>
+<p class="cite">— cf. Aluffi, §11.1, p. 230 (stated as a bullet observation; proof expanded here in full)</p>
+</div>
+
+<p>This is why we are entitled to speak of <em>the</em> identity of a group, write it as <var>e</var> (dropping the subscript), and — as Aluffi remarks — sometimes even write it as 1, though <var>e</var> is the more common convention. <span class="cite">— Aluffi, §11.1, p. 230</span></p>
+
+<div class="worked fade">
+<strong>Theorem (uniqueness of inverses) — your turn to fill the gaps.</strong> If <var>h</var><sub>1</sub> and <var>h</var><sub>2</sub> both satisfy axiom (iii) for the same element <var>g</var> ∈ <var>G</var> (that is, both are inverses of <var>g</var>), then <var>h</var><sub>1</sub> = <var>h</var><sub>2</sub>.
+<p><strong>Proof.</strong> Consider the element <var>h</var><sub>1</sub>·<var>g</var>·<var>h</var><sub>2</sub>, and bracket it two different ways.</p>
+<p>Bracketing on the left: (<var>h</var><sub>1</sub>·<var>g</var>)·<var>h</var><sub>2</sub> = <span class="gap">⟨your step: what does axiom (iii) say h₁·g equals?⟩</span> · <var>h</var><sub>2</sub> = <span class="gap">⟨your step: simplify using axiom (ii)⟩</span>.</p>
+<p>Bracketing on the right: <var>h</var><sub>1</sub>·(<var>g</var>·<var>h</var><sub>2</sub>) = <var>h</var><sub>1</sub>· <span class="gap">⟨your step: what does axiom (iii) say g·h₂ equals?⟩</span> = <span class="gap">⟨your step: simplify using axiom (ii)⟩</span>.</p>
+<p>These two bracketings compute the <em>same</em> element of <var>G</var>, by <span class="gap">⟨your step: name the axiom that lets you re-bracket freely⟩</span>. Therefore the two simplified results must be equal: <span class="gap">⟨your step: state the conclusion, h₁ = h₂⟩</span>. ∎</p>
+<p class="cite">— cf. Aluffi, §11.1, p. 230 (stated as a bullet observation; faded proof here follows the standard "sandwich" strategy)</p>
+</div>
+
+<p>Because the inverse of <var>g</var> is unique, we are entitled to give it a single name, <var>g</var><sup>−1</sup>, and it follows immediately that (<var>g</var><sup>−1</sup>)<sup>−1</sup> = <var>g</var> — undoing the undo gets you back to where you started. <span class="cite">— Aluffi, §11.1, p. 230</span> Aluffi also records that <em>cancellation</em> holds in any group: if <var>g</var><sub>1</sub><var>h</var> = <var>g</var><sub>2</sub><var>h</var>, multiplying both sides on the right by <var>h</var><sup>−1</sup> gives <var>g</var><sub>1</sub> = <var>g</var><sub>2</sub>. <span class="cite">— Aluffi, §11.1, p. 230</span></p>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Using only axioms (i)–(iii) and the two uniqueness results above, show that if <var>g</var>·<var>g</var> = <var>g</var> for some element <var>g</var> of a group <var>G</var>, then <var>g</var> must be the identity <var>e</var>. (Hint: combine both sides with <var>g</var><sup>−1</sup> and simplify using associativity.) <span class="cite">— cf. Aluffi §11.1, Exercise 11.1, p. 230</span></p>
+</div>
+
+<h3>The order of an element</h3>
+<p>Every element <var>g</var> of a group generates its own miniature cyclic group, ⟨<var>g</var>⟩ = {<var>g</var><sup><var>i</var></sup> : <var>i</var> ∈ ℤ}, consisting of all its powers. <span class="cite">— Aluffi, §11.1, p. 233 (Remark 11.12)</span> How large that miniature group is has a name:</p>
+
+<div class="definition">
+<p><strong>Definition 10.12.</strong> Let <var>G</var> be a group, and let <var>g</var> ∈ <var>G</var>. The 'order' of <var>g</var>, denoted |<var>g</var>|, is the order (cardinality) of the cyclic group ⟨<var>g</var>⟩ ⊆ <var>G</var> generated by <var>g</var>. <span class="cite">— Aluffi, Definition 10.12, p. 261</span></p>
+</div>
+
+<p>In ℤ/4ℤ: the element [1]<sub>4</sub> generates the whole group ([1],[2]=[1]+[1],[3],[0]), so |[1]<sub>4</sub>| = 4. But [2]<sub>4</sub> generates only {[2],[0]} — adding [2] to itself gives [0] — so |[2]<sub>4</sub>| = 2. In the rectangle's Klein four-group, every non-identity element (horizontal flip, vertical flip, the 180° rotation) has order exactly 2, since each is its own inverse: doing it twice returns you to the identity, and no smaller repetition does. This numerical fingerprint — one element of order 4 versus every non-identity element of order 2 — is exactly what distinguishes the two groups below, even though both have four elements.</p>
+
+<h3>Spot the difference: ℤ/4ℤ vs the Klein four-group</h3>
+<p>Both groups below have exactly four elements and an identity. Compare their Cayley tables (multiplication/addition tables) carefully.</p>
+
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cayley tables for Z mod 4 and the Klein four-group, side by side">
+  <text x="175" y="24" fill="#8ab4f8" font-size="15" text-anchor="middle" font-weight="bold">(ℤ/4ℤ, +)</text>
+  <text x="525" y="24" fill="#8ab4f8" font-size="15" text-anchor="middle" font-weight="bold">Klein four-group V₄</text>
+
+  <!-- Z/4Z table: 5x5 grid, cell size 48, origin (55,40). Cell centres at 55+48*(i+0.5). -->
+  <g font-size="16" text-anchor="middle">
+    <rect x="55" y="40" width="240" height="240" fill="none" stroke="#2a333d"/>
+    <line x1="103" y1="40" x2="103" y2="280" stroke="#2a333d"/>
+    <line x1="151" y1="40" x2="151" y2="280" stroke="#2a333d"/>
+    <line x1="199" y1="40" x2="199" y2="280" stroke="#2a333d"/>
+    <line x1="247" y1="40" x2="247" y2="280" stroke="#2a333d"/>
+    <line x1="55" y1="88" x2="295" y2="88" stroke="#2a333d"/>
+    <line x1="55" y1="136" x2="295" y2="136" stroke="#2a333d"/>
+    <line x1="55" y1="184" x2="295" y2="184" stroke="#2a333d"/>
+    <line x1="55" y1="232" x2="295" y2="232" stroke="#2a333d"/>
+    <!-- corner -->
+    <text x="79" y="70" fill="#9aa5b1">+</text>
+    <!-- col headers: centres 127,175,223,271 ; y=70 -->
+    <text x="127" y="70" fill="#e8e8e8">0</text>
+    <text x="175" y="70" fill="#e8e8e8">1</text>
+    <text x="223" y="70" fill="#e8e8e8">2</text>
+    <text x="271" y="70" fill="#e8e8e8">3</text>
+    <!-- row headers: centres y=118,166,214,262 ; x=79 -->
+    <text x="79" y="118" fill="#e8e8e8">0</text>
+    <text x="79" y="166" fill="#e8e8e8">1</text>
+    <text x="79" y="214" fill="#e8e8e8">2</text>
+    <text x="79" y="262" fill="#e8e8e8">3</text>
+    <!-- row 0: 0 1 2 3 -->
+    <text x="127" y="118" fill="#4caf82">0</text><text x="175" y="118" fill="#e8e8e8">1</text><text x="223" y="118" fill="#e8e8e8">2</text><text x="271" y="118" fill="#e8e8e8">3</text>
+    <!-- row 1: 1 2 3 0 -->
+    <text x="127" y="166" fill="#e8e8e8">1</text><text x="175" y="166" fill="#e8e8e8">2</text><text x="223" y="166" fill="#e8e8e8">3</text><text x="271" y="166" fill="#4caf82">0</text>
+    <!-- row 2: 2 3 0 1 -->
+    <text x="127" y="214" fill="#e8e8e8">2</text><text x="175" y="214" fill="#e8e8e8">3</text><text x="223" y="214" fill="#4caf82">0</text><text x="271" y="214" fill="#e8e8e8">1</text>
+    <!-- row 3: 3 0 1 2 -->
+    <text x="127" y="262" fill="#e8e8e8">3</text><text x="175" y="262" fill="#4caf82">0</text><text x="223" y="262" fill="#e8e8e8">1</text><text x="271" y="262" fill="#e8e8e8">2</text>
+  </g>
+
+  <!-- Klein four table: e,a,b,c where a=h-flip,b=v-flip,c=rotation. Same grid, origin (405,40). -->
+  <g font-size="16" text-anchor="middle">
+    <rect x="405" y="40" width="240" height="240" fill="none" stroke="#2a333d"/>
+    <line x1="453" y1="40" x2="453" y2="280" stroke="#2a333d"/>
+    <line x1="501" y1="40" x2="501" y2="280" stroke="#2a333d"/>
+    <line x1="549" y1="40" x2="549" y2="280" stroke="#2a333d"/>
+    <line x1="597" y1="40" x2="597" y2="280" stroke="#2a333d"/>
+    <line x1="405" y1="88" x2="645" y2="88" stroke="#2a333d"/>
+    <line x1="405" y1="136" x2="645" y2="136" stroke="#2a333d"/>
+    <line x1="405" y1="184" x2="645" y2="184" stroke="#2a333d"/>
+    <line x1="405" y1="232" x2="645" y2="232" stroke="#2a333d"/>
+    <text x="429" y="70" fill="#9aa5b1">·</text>
+    <!-- col headers: centres 477,525,573,621 -->
+    <text x="477" y="70" fill="#e8e8e8">e</text>
+    <text x="525" y="70" fill="#e8e8e8">a</text>
+    <text x="573" y="70" fill="#e8e8e8">b</text>
+    <text x="621" y="70" fill="#e8e8e8">c</text>
+    <!-- row headers -->
+    <text x="429" y="118" fill="#e8e8e8">e</text>
+    <text x="429" y="166" fill="#e8e8e8">a</text>
+    <text x="429" y="214" fill="#e8e8e8">b</text>
+    <text x="429" y="262" fill="#e8e8e8">c</text>
+    <!-- row e: e a b c -->
+    <text x="477" y="118" fill="#4caf82">e</text><text x="525" y="118" fill="#e8e8e8">a</text><text x="573" y="118" fill="#e8e8e8">b</text><text x="621" y="118" fill="#e8e8e8">c</text>
+    <!-- row a: a e c b -->
+    <text x="477" y="166" fill="#e8e8e8">a</text><text x="525" y="166" fill="#4caf82">e</text><text x="573" y="166" fill="#e8e8e8">c</text><text x="621" y="166" fill="#e8e8e8">b</text>
+    <!-- row b: b c e a -->
+    <text x="477" y="214" fill="#e8e8e8">b</text><text x="525" y="214" fill="#e8e8e8">c</text><text x="573" y="214" fill="#4caf82">e</text><text x="621" y="214" fill="#e8e8e8">a</text>
+    <!-- row c: c b a e -->
+    <text x="477" y="262" fill="#e8e8e8">c</text><text x="525" y="262" fill="#e8e8e8">b</text><text x="573" y="262" fill="#e8e8e8">a</text><text x="621" y="262" fill="#4caf82">e</text>
+  </g>
+
+  <text x="350" y="308" fill="#9aa5b1" font-size="12" text-anchor="middle">Green cells mark where the operation returns the identity — the diagonal pattern is the tell.</text>
+</svg>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Look at the two Cayley tables above. What is the key structural difference between them, expressed in terms of orders of elements?</p>
+<button onclick="check(this,false)">ℤ/4ℤ has an identity and V₄ doesn't</button>
+<button onclick="check(this,true)" data-ok>ℤ/4ℤ has an element of order 4 (e.g. [1]); every non-identity element of V₄ has order 2</button>
+<button onclick="check(this,false)">V₄ is not a group because it isn't commutative</button>
+<button onclick="check(this,false)">They have a different number of elements</button>
+<div class="explain">Both tables show the identity down the diagonal marked in green, but in different patterns: in ℤ/4ℤ the green cell for [1]+[1]+[1]+[1] only reappears after four steps ([1] has order 4), while in V₄ every non-identity element squares directly to e (order 2 each). Same size, different internal "clockwork" — the tables are not relabellings of each other.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which axiom of Definition 11.1 is responsible for every row and every column of a Cayley table containing each group element exactly once (so no repeats within a row)?</p>
+<button onclick="check(this,false)">Axiom (i), associativity</button>
+<button onclick="check(this,false)">Axiom (ii), the identity</button>
+<button onclick="check(this,true)" data-ok>Axiom (iii), the existence (and uniqueness) of inverses</button>
+<button onclick="check(this,false)">None — it's a coincidence for these two examples</button>
+<div class="explain">If some element x appeared twice in row g (say g·h₁ = g·h₂ = x with h₁ ≠ h₂), multiplying both sides on the left by g⁻¹ — which axiom (iii) guarantees exists — forces h₁ = h₂, a contradiction. This "no repeats" property (sometimes called the Latin square property) is a direct consequence of invertibility, not a special feature of these two groups.</div>
+</div>
+
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — Ch. 11 "Groups—Preliminaries", §11.1 "Groups and their Category" (Definition 11.1, the group axioms; uniqueness of identity and inverses; cancellation; power notation), pp. 229–231; Definition 11.11/Remark 11.12 (subgroups generated by an element), p. 233; Ch. 10 "Cyclic Groups and the Structure of Finite Abelian Groups", Definition 10.12 (order of an element), p. 261. Chapter 2 "Modular Arithmetic", Definition 2.10 (operations on ℤ/nℤ), p. 26, Claim 2.12 and Example 2.11 (well-definedness), pp. 26–27, and the (ℤ/4ℤ, +) Cayley table, p. 28.
+<br>Also drawing on gt-01 (Carter, <em>Visual Group Theory</em>, Ch. 1–2) for the informally discovered rules matched against Definition 11.1, and for the Klein four-group first encountered as the rectangle's symmetry group.
+<br>Deferred to gt-03: Cayley diagrams as graphs, generators and relations, groups whose Cayley diagrams are not the rectangle's cross-shape.
+<br>Deferred to gt-04: subgroups and cyclic groups proper, ⟨g⟩ studied systematically.
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
