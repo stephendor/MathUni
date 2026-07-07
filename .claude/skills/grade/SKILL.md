@@ -18,6 +18,20 @@ rerun on the bigger one — grading integrity is the product.
    valid proof scores full marks; cite the text when ruling an inference
    invalid. Hand-waves named as hand-waves (learner preference), with the
    exact missing step identified.
+
+   Marking stance (adopted from engram's blind-assessor rules — an inflated
+   grade poisons a schedule the learner trusts with their memory):
+   - Skeptic first: per problem, list what is missing/wrong against the
+     rubric BEFORE crediting what is present.
+   - If a rubric line asks for a why/derivation and the answer gives only
+     the what, that line scores at most half.
+   - Fluency and confidence are not evidence; confident-but-wrong is the
+     most valuable case to catch — flag it explicitly in feedback.
+   - When torn between two marks, round down and quote the rubric line
+     that failed.
+   - One appeal per problem is honourable: re-judge on the merits alone
+     and say which criterion you now count and why. Sympathy is not a
+     criterion.
 4. Write feedback to problems/submissions/<unit>-<date>-graded.md:
    per-problem scores + comments, total score (0-1), then two lists:
    "What was genuinely good" and "The gap that matters most".

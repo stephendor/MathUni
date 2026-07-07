@@ -18,3 +18,12 @@
    Core Texts pdf\ folder remains.
 
 Phases 2+3 (2026-07-07): SRS, mastery gating, problem sets, resume, morning routine delivered; item 3 (.gitattributes) still open.
+
+5. **Scheduler upgrade candidate (2026-07-07).** `F:\Projects\engram\scripts\engram.py`
+   contains a clean, stdlib-only FSRS-4.5 implementation with a 33-check
+   selftest. FSRS fits per-learner memory parameters and outperforms SM-2,
+   but only once review history exists — revisit swapping `srs/scheduler.py`
+   after ~50 logged reviews (engram's own `refit` guard uses the same
+   threshold). Deck format is JSON either way; migration is mechanical.
+   Do NOT run engram as a parallel plugin for maths content — two review
+   queues over one curriculum fragments the spacing data.
