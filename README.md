@@ -17,6 +17,10 @@ Claude Code. Spec: [docs/specs/2026-07-03-nexus-college-design.md](docs/specs/20
 - `/today` — run a study day (warm-up → two lectures → problems)
 - `/lecture <unit>` — one lesson (generates it if missing)
 - `/status` — dashboard: kanban, streaks, unlocked units
+- `/review` — spaced-repetition retrieval session from the SRS deck
+- `/grade <unit>` — rigorous rubric grading; passes the 80% gate to unlock the DAG
+- `/resume` — cold-restart from disk state after any interruption
+- `/morning` — pre-build the day + hook notification (scheduled, or manual)
 Lessons live in `lessons/`, open in any browser, work offline.
 
 ## Rules

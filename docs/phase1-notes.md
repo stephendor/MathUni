@@ -16,3 +16,5 @@
 4. Open user-side items: all video links now resolved and verified
    (2026-07-04); optional cleanup of stray build/ + checks.json in
    Core Texts pdf\ folder remains.
+
+Phases 2+3 (2026-07-07): SRS, mastery gating, problem sets, resume, morning routine delivered; item 3 (.gitattributes) still open.
