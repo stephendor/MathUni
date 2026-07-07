@@ -341,7 +341,7 @@ units:
     module: gt
     title: "Groups: definition and first properties"
     prereqs: ["gt-01", "pw-01"]
-    resources: ["Aluffi Underground ch. 1", "Oxford M1 Groups"]
+    resources: ["Aluffi Underground ch. 11", "Oxford M1 Groups"]
     hook: "Four axioms that generate a universe."
     mission_link: "H1 is a group before it's anything else."
   - id: gt-03
@@ -355,62 +355,62 @@ units:
     module: gt
     title: "Subgroups and cyclic groups"
     prereqs: ["gt-02"]
-    resources: ["Aluffi Underground ch. 2"]
+    resources: ["Aluffi Underground ch. 10-11"]
     hook: "The clock arithmetic hiding inside every group."
     mission_link: "Torsion in homology = cyclic subgroups making themselves felt."
   - id: gt-05
     module: gt
     title: "Homomorphisms and isomorphisms"
     prereqs: ["gt-04"]
-    resources: ["Aluffi Underground ch. 4", "Macauley VGT"]
+    resources: ["Aluffi Underground ch. 11", "Macauley VGT"]
     hook: "Structure-preserving maps: the only arrows that matter."
     mission_link: "Induced maps on homology are homomorphisms — functoriality's atoms."
   - id: gt-06
     module: gt
     title: "Cosets and Lagrange's theorem"
     prereqs: ["gt-04"]
-    resources: ["Aluffi Underground ch. 3"]
+    resources: ["Aluffi Underground ch. 12"]
     hook: "Tile a group by copies of a subgroup; count the tiles."
     mission_link: "Cosets are the elements of every quotient you'll ever take."
   - id: gt-07
     module: gt
     title: "Normal subgroups and quotient groups"
     prereqs: ["gt-05", "gt-06"]
-    resources: ["Aluffi Underground ch. 5"]
+    resources: ["Aluffi Underground ch. 11-12"]
     hook: "When does collapsing a subgroup leave a group behind? (Compare la-09.)"
     mission_link: "Homology IS a quotient group. This is the single most mission-critical unit."
   - id: gt-08
     module: gt
     title: "The isomorphism theorems"
     prereqs: ["gt-07"]
-    resources: ["Aluffi Underground ch. 5"]
+    resources: ["Aluffi Underground ch. 11-12"]
     hook: "Three theorems, one picture: the lattice folds."
     mission_link: "Used silently in every homology computation you'll do."
   - id: gt-09
     module: gt
     title: "Group actions"
     prereqs: ["gt-05"]
-    resources: ["Aluffi Underground ch. 6", "Oxford M1 Groups and Group Actions"]
+    resources: ["Aluffi Underground ch. 12", "Oxford M1 Groups and Group Actions"]
     hook: "Groups don't just exist — they DO things to spaces."
     mission_link: "Covering space theory (Semester 3) is group actions on topology."
   - id: gt-10
     module: gt
     title: "Orbit-stabiliser and counting"
     prereqs: ["gt-09"]
-    resources: ["Aluffi Underground ch. 6"]
+    resources: ["Aluffi Underground ch. 12"]
     hook: "How many truly different necklaces? Burnside knows."
     mission_link: "Orbit decompositions mirror how covering spaces partition fibres."
   - id: gt-11
     module: gt
     title: "Symmetric and alternating groups"
     prereqs: ["gt-06"]
-    resources: ["Aluffi Underground ch. 7"]
+    resources: ["Aluffi Underground ch. 11"]
     hook: "Every group hides inside a shuffle."
     mission_link: "Simplicial orientation signs are alternating-group bookkeeping."
   - id: gt-12
     module: gt
     title: "Direct products and small-group classification"
     prereqs: ["gt-08", "gt-11"]
-    resources: ["Aluffi Underground ch. 8", "Carter"]
+    resources: ["Aluffi Underground ch. 10, 12", "Carter"]
     hook: "Build a periodic table of every group up to order 15."
     mission_link: "Homology outputs decompose as direct sums — reading them needs this."

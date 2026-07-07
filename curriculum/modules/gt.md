@@ -44,3 +44,9 @@ feed the module's close).
   closed under the operation).
 - "Isomorphic = equal" (treating an isomorphism as identifying literal
   elements rather than preserving structure).
+
+**Text-structure note (2026-07-06):** *Underground* is ring-first — its group
+theory lives in ch. 10–12 (abelian groups, preliminaries, finite groups),
+not ch. 1–8. Syllabus refs remapped accordingly; Carter and the Oxford M1
+notes carry the narrative arc where Aluffi's compressed treatment moves fast.
+His ch. 1–9 (rings, modules) becomes the rm module's core in Semester 2.
