@@ -1,6 +1,6 @@
 {
-  "current": 0,
-  "best": 0,
-  "study_days": [],
+  "current": 2,
+  "best": 2,
+  "study_days": ["2026-07-07", "2026-07-08"],
   "seeded": "2026-07-04"
 }

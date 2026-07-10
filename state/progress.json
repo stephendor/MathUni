@@ -1,6 +1,7 @@
 {
   "pw-01": {
-    "status": "in-progress"
+    "status": "in-progress",
+    "last_studied": "2026-07-07"
   },
   "pw-02": {
     "status": "locked"
@@ -15,7 +16,8 @@
     "status": "locked"
   },
   "la-01": {
-    "status": "unlocked"
+    "status": "in-progress",
+    "last_studied": "2026-07-07"
   },
   "la-02": {
     "status": "locked"
@@ -60,7 +62,8 @@
     "status": "locked"
   },
   "an-01": {
-    "status": "unlocked"
+    "status": "in-progress",
+    "last_studied": "2026-07-08"
   },
   "an-02": {
     "status": "locked"
@@ -102,7 +105,8 @@
     "status": "locked"
   },
   "gt-01": {
-    "status": "unlocked"
+    "status": "in-progress",
+    "last_studied": "2026-07-08"
   },
   "gt-02": {
     "status": "locked"

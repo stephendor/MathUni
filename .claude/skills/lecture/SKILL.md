@@ -10,8 +10,11 @@ description: Open or generate the interactive lesson for a syllabus unit. Use fo
    state/progress.json: if any prereq is `locked`/`unlocked` (i.e. not yet
    studied), warn and offer it instead — never hard-block (ADHD: gentle).
 4. **Serve or generate**:
-   - If lessons/<module>/<unit>.html exists: open it
-     (`start lessons\<module>\<unit>.html` via cmd) and run the live layer.
+   - If lessons/<module>/<unit>.html exists: open it via PowerShell
+     `Start-Process` with the **absolute** path, e.g.
+     `Start-Process "C:\Users\steph\MathUni\lessons\<module>\<unit>.html"`
+     (relative paths via `cmd /c start` from the bash shell are unreliable —
+     use the absolute-path PowerShell form every time), and run the live layer.
    - If missing: generate it FIRST, following curriculum/LESSON-GUIDE.md
      exactly (template lessons/_template.html; sources via
      resources/bookmap.json — read the md, cite pages), commit it, then open.

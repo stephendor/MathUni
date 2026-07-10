@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python scripts/*)",
+      "Bash(python srs/*)",
+      "Read", "Write", "Edit"
+    ]
+  }
+}
