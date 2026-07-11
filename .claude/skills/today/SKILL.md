@@ -20,8 +20,13 @@ Work from the repo root (verify cwd = MathUni). All state writes atomic
    - Lecture 1 and Lecture 2: pick two units, DIFFERENT modules, status
      `unlocked` first, else `in-progress`. Respect DAG order. Offer Stephen
      the choice when >2 candidates (ADHD: choice within structure).
-   - Problem segment (~25 min): 2-3 problems from the current units'
-     primary-text exercises (resolve via resources/bookmap.json), worked
+   - Problem segment (~25 min): candidates are every unit with status
+     `unlocked` or `in-progress` in state/progress.json that has a
+     problems/sets/<unit>.md — not only today's two lecture units.
+     Prioritize units not yet mastered (mastery.json score < 0.8, or no
+     entry at all) over units already passed. If more than one candidate
+     qualifies, offer Stephen the choice (ADHD: choice within structure) —
+     don't silently pick. Work 2-3 problems from the chosen unit's set,
      interactively with the hint ladder: nudge → strategy → partial → worked.
 4. **Run each lecture** by following .claude/skills/lecture/SKILL.md for
    that unit (including its state updates).
