@@ -56,8 +56,9 @@ HTML file at `lessons/<module>/<unit>.html`, built from `lessons/_template.html`
 
 ## Checklist before committing a lesson
 hook-first ✓ · prediction gate ✓ · mission strip ✓ · 2-3 timeboxed
-segments ✓ · break card ✓ · faded examples ✓ · ≥4 self-checks with
-explanations ✓ · visual ✓ · blank-page ending ✓ ·
+segments ✓ · break card ✓ · faded examples ✓ · intermediate lemmas
+stated ✓ · ≥4 self-checks with explanations ✓ · guided proof block ✓ ·
+visual ✓ · blank-page ending ✓ ·
 citations with pages ✓ · self-contained (zero external requests) ✓ ·
 `python scripts/check_lesson_coverage.py <problem-set-path> <lesson-html-path>`
 reports no missing theorem/definition references ✓ ·
