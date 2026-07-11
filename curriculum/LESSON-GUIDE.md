@@ -15,19 +15,32 @@ HTML file at `lessons/<module>/<unit>.html`, built from `lessons/_template.html`
    segments insert `<div class="break">☕ Break — stand up, 5 minutes.</div>`.
 4. **Faded worked examples** within segments: first example fully worked
    (`.worked`), second partially completed (`.worked.fade`, gaps marked
-   "⟨your step⟩"), then a `.you-try` block the learner does solo.
-5. **Self-checks**: 2–3 per segment (`.selfcheck` with 3-4 answer buttons,
+   "⟨your step⟩"), then a `.you-try` block the learner does solo. Every
+   technique the unit's `problems/sets/<unit>.md` uses must be demonstrated
+   by at least one worked or faded example — read the problem set before
+   drafting examples, not after.
+5. **Intermediate lemmas.** Any lemma-style fact the unit's problem set
+   relies on that isn't a named theorem in the primary text (e.g. "a·0=0"
+   as a sub-step, not itself Axler's Theorem 1.29) must be explicitly
+   stated and proved in the lesson body — never left for the learner to
+   invent cold during grading.
+6. **Self-checks**: 2–3 per segment (`.selfcheck` with 3-4 answer buttons,
    `onclick="check(this,true|false)"`, `data-ok` on the correct one, plus a
    `.explain` div giving WHY). Instant feedback, no page reload.
-6. **Visual element**: at least one per lesson — a `<canvas>` with a short
+7. **Guided proof.** At least one point per lesson, after the self-checks
+   and distinct from them: a free-response prompt where the learner writes
+   a short proof inline, followed by a revealed model answer for
+   self-comparison. Not multiple choice — this is deliberate proof-writing
+   practice, not recognition.
+8. **Visual element**: at least one per lesson — a `<canvas>` with a short
    inline JS animation/diagram (≤60 lines) OR an inline SVG diagram where
    animation adds nothing. Geometry over decoration.
-7. **Blank-page ending**: just before the footer, a short block asking the
+9. **Blank-page ending**: just before the footer, a short block asking the
    learner to close their eyes / look away and reconstruct the lesson's
    argument skeleton from nothing (the 2-3 load-bearing claims and why each
    forces the next), with a collapsed `<details>` reveal to check against.
    Free reconstruction beats re-reading; this is the lesson's exit ritual.
-8. **Footer citations**: every definition/theorem cites book + section +
+10. **Footer citations**: every definition/theorem cites book + section +
    PDF page(s), e.g. `Axler §1A, pp. 2–5`. Resolve paths via
    resources/bookmap.json; verify quotes against the book's markdown.md.
 
@@ -46,4 +59,6 @@ hook-first ✓ · prediction gate ✓ · mission strip ✓ · 2-3 timeboxed
 segments ✓ · break card ✓ · faded examples ✓ · ≥4 self-checks with
 explanations ✓ · visual ✓ · blank-page ending ✓ ·
 citations with pages ✓ · self-contained (zero external requests) ✓ ·
+`python scripts/check_lesson_coverage.py <problem-set-path> <lesson-html-path>`
+reports no missing theorem/definition references ✓ ·
 `python -c "from html.parser import HTMLParser; HTMLParser().feed(open(PATH,encoding='utf-8').read())"` runs clean ✓
