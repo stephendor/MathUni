@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pw-03 — Sets, functions, images and preimages, done rigorously</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.guided{background:#1a2027;border:1px solid #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details summary{cursor:pointer;color:var(--acc)}
+.svgwrap{background:#0c1013;border-radius:10px;padding:.6rem;margin:1rem 0}
+svg text{font-family:Georgia,serif}
+</style></head><body>
+<p class="cite">Proofs &amp; Writing · Nexus College</p>
+<h1>Sets, functions, images and preimages, done rigorously <span class="cite">(pw-03)</span></h1>
+
+<div class="hook">
+<p>Here is a fact that catches nearly everyone the first time they meet it: if <var>f</var> is a function and <var>A</var>, <var>B</var> are subsets of its domain, you would expect <var>f(A ∩ B)</var> to equal <var>f(A) ∩ f(B)</var> — after all, <var>f</var> just relabels elements, so surely intersecting first or relabelling first shouldn't matter. It does. Take <var>f</var>: ℝ → ℝ, <var>f(x) = x²</var>, with <var>A = [−2, 0]</var> and <var>B = [0, 2]</var>. Then <var>A ∩ B = {0}</var>, so <var>f(A ∩ B) = {0}</var> — a single point. But <var>f(A) = [0, 4]</var> and <var>f(B) = [0, 4]</var> too, so <var>f(A) ∩ f(B) = [0, 4]</var> — an entire interval. The two sides aren't even close. Somewhere between "intersect the inputs" and "intersect the outputs", information got lost — and pinning down exactly what got lost, and why the same trick <em>doesn't</em> lose anything when you go the other way (preimages, not images), is the whole of today's lesson.</p>
+<p><strong>Before you read on, commit to an answer:</strong> is <var>f(A ∩ B) ⊆ f(A) ∩ f(B)</var> always true, always false, or sometimes true and sometimes false? Hold that answer in your head — segment 1 proves it.</p>
+</div>
+
+<p class="mission">Why this matters for the mission: continuity in topology is defined entirely via preimages — not images. By the end of today you'll see in your bones why that's the only sane choice.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Images of unions and intersections</h2>
+
+<p>Fix a function <var>f : A → B</var>. For a subset <var>X ⊆ A</var>, the <em>image</em> of <var>X</var> collects every output you can reach by feeding in something from <var>X</var>:</p>
+
+<div class="definition">
+<p><strong>Definition (Image).</strong> Let <var>f : A → B</var> and <var>X ⊆ A</var>. The image of <var>X</var> is</p>
+<p style="text-align:center">f(X) = { y ∈ B : y = f(x) for some x ∈ X }.</p>
+<p class="cite">Cummings, <em>Proofs</em>, Ch. 8 "Functions", p. 280.</p>
+</div>
+
+<p>The hook already showed <var>f(A ∩ B)</var> can be a strict subset of <var>f(A) ∩ f(B)</var>. What's still true is the inclusion — and that's worth nailing down as a lemma, because the problem sets for this unit will lean on it.</p>
+
+<div class="theorem">
+<p><strong>Lemma 1 (Images and intersections).</strong> For any <var>f : A → B</var> and <var>C, D ⊆ A</var>,</p>
+<p style="text-align:center">f(C ∩ D) ⊆ f(C) ∩ f(D).</p>
+<p><strong>Proof.</strong> Let <var>y ∈ f(C ∩ D)</var>. By definition of image, <var>y = f(x)</var> for some <var>x ∈ C ∩ D</var>. Since <var>x ∈ C ∩ D</var>, we have <var>x ∈ C</var>, so <var>y = f(x) ∈ f(C)</var>. Likewise <var>x ∈ D</var>, so <var>y ∈ f(D)</var>. Hence <var>y ∈ f(C) ∩ f(D)</var>. As <var>y</var> was arbitrary, <var>f(C ∩ D) ⊆ f(C) ∩ f(D)</var>. ∎</p>
+</div>
+
+<p>Notice exactly where the proof stalls if you try to run it backwards. Given <var>y ∈ f(C) ∩ f(D)</var>, you know <var>y = f(x₁)</var> for some <var>x₁ ∈ C</var> <em>and</em> <var>y = f(x₂)</var> for some <var>x₂ ∈ D</var> — but nothing forces <var>x₁</var> and <var>x₂</var> to be the <em>same</em> point. In the hook's example, <var>y = 4 ∈ f(A) ∩ f(B)</var> comes from <var>x₁ = −2 ∈ A</var> and <var>x₂ = 2 ∈ B</var> — two different preimages, neither of which lies in <var>A ∩ B = {0}</var>. That mismatch is the entire mechanism behind the failure of equality.</p>
+
+<div class="worked">
+<p><strong>Worked example.</strong> Let <var>f : ℤ → ℤ</var>, <var>f(n) = n²</var>, <var>C = {−3, −2, −1}</var>, <var>D = {1, 2, 3}</var>.</p>
+<p><var>C ∩ D = ∅</var>, so <var>f(C ∩ D) = f(∅) = ∅</var>.</p>
+<p><var>f(C) = {9, 4, 1}</var>, <var>f(D) = {1, 4, 9}</var>, so <var>f(C) ∩ f(D) = {1, 4, 9}</var>.</p>
+<p>Indeed <var>∅ ⊆ {1,4,9}</var> (Lemma 1 holds) and the inclusion is strict — a clean second illustration that equality is the exception, not the rule.</p>
+</div>
+
+<p>The union case is different in kind — and this is the fact worth remembering, because it tells you unions are "safe" under images in a way intersections are not.</p>
+
+<div class="theorem">
+<p><strong>Lemma 2 (Images and unions).</strong> For any <var>f : A → B</var> and <var>C, D ⊆ A</var>,</p>
+<p style="text-align:center">f(C ∪ D) = f(C) ∪ f(D).</p>
+<p><strong>Proof.</strong> (⊆) Let <var>y ∈ f(C ∪ D)</var>. Then <var>y = f(x)</var> for some <var>x ∈ C ∪ D</var>, so <var>x ∈ C</var> or <var>x ∈ D</var>. If <var>x ∈ C</var> then <var>y ∈ f(C)</var>; if <var>x ∈ D</var> then <var>y ∈ f(D)</var>. Either way <var>y ∈ f(C) ∪ f(D)</var>.</p>
+<p>(⊇) Let <var>y ∈ f(C) ∪ f(D)</var>. Then <var>y ∈ f(C)</var> or <var>y ∈ f(D)</var>. Say <var>y ∈ f(C)</var>: then <var>y = f(x)</var> for some <var>x ∈ C ⊆ C ∪ D</var>, so <var>y ∈ f(C ∪ D)</var>. The case <var>y ∈ f(D)</var> is identical. Combining both directions, <var>f(C ∪ D) = f(C) ∪ f(D)</var>. ∎</p>
+</div>
+
+<p>Why does union survive but intersection doesn't? Existential quantifiers ("some <var>x</var>") play nicely with "or" — an <var>x</var> witnessing membership in <var>C</var> or <var>D</var> is still just one <var>x</var> — but they don't play nicely with "and", because "and" over the image side needs a <em>single shared</em> witness, and images only ever promise you <em>separate</em> witnesses. Keep that asymmetry in your head; it resurfaces in a moment as the entire reason preimages behave better.</p>
+
+<div class="worked fade">
+<p><strong>Faded example.</strong> Let <var>f : ℝ → ℝ</var>, <var>f(x) = x²</var>, <var>C = [1, 3]</var>, <var>D = [−2, −1]</var>.</p>
+<p><var>C ∪ D = [−2,−1] ∪ [1,3]</var>. Applying <var>f</var> pointwise: ⟨your step — compute f(C∪D) directly⟩.</p>
+<p><var>f(C) = [1, 9]</var> and <var>f(D) = ⟨your step⟩</var>, so <var>f(C) ∪ f(D) = ⟨your step⟩</var>.</p>
+<p>Check the two answers agree, as Lemma 2 guarantees they must.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Let <var>f : ℤ → ℤ</var>, <var>f(n) = |n|</var>, <var>C = {−5,−4,−3}</var>, <var>D = {3,4,5}</var>. Compute <var>f(C ∩ D)</var> and <var>f(C) ∩ f(D)</var> separately, and confirm Lemma 1's inclusion (strict or not?).</p>
+</div>
+
+<div class="selfcheck">
+<p>Is <var>f(A ∩ B) ⊆ f(A) ∩ f(B)</var> a theorem for <em>every</em> function <var>f</var> and every <var>A, B</var>?</p>
+<button onclick="check(this,true)" data-ok>Yes, always</button>
+<button onclick="check(this,false)">No, it needs f injective</button>
+<button onclick="check(this,false)">No, it needs f surjective</button>
+<div class="explain">Lemma 1's proof used nothing about <var>f</var> beyond the definition of image — no injectivity, no surjectivity. The inclusion is unconditional; it's the reverse inclusion (equality) that needs an extra hypothesis, which segment 3 pins down exactly.</div>
+</div>
+
+<div class="selfcheck">
+<p>Which best explains why <var>f(C ∪ D) = f(C) ∪ f(D)</var> but <var>f(C ∩ D)</var> can be a strict subset of <var>f(C) ∩ f(D)</var>?</p>
+<button onclick="check(this,false)">Unions are always bigger sets than intersections</button>
+<button onclick="check(this,true)" data-ok>An element of f(C)∪f(D) needs only one witness in C or D; an element of f(C)∩f(D) needs two witnesses that need not coincide</button>
+<button onclick="check(this,false)">f(C∩D) is undefined when C∩D = ∅</button>
+<div class="explain">Size isn't the mechanism — the mechanism is witnesses. "Or" is satisfied by a single x; "and" on the output side can be satisfied by two different x's, one in C and one in D, neither of which need lie in C∩D.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~20 min</span>
+<h2>Preimages: the cleaner half of the story</h2>
+
+<p>Now run the machinery backwards. Instead of pushing a subset of the domain forward, pull a subset of the codomain back.</p>
+
+<div class="definition">
+<p><strong>Definition (Preimage / inverse image).</strong> Let <var>f : A → B</var> and <var>Y ⊆ B</var>. The inverse image of <var>Y</var> is</p>
+<p style="text-align:center">f⁻¹(Y) = { x ∈ A : f(x) ∈ Y }.</p>
+<p class="cite">Cummings, <em>Proofs</em>, Ch. 8 "Functions", p. 280. (This uses the symbol f⁻¹ purely as notation for a set-building operation — it exists whether or not f itself is invertible.)</p>
+</div>
+
+<p>That last parenthetical matters: <var>f⁻¹(Y)</var> is defined for <em>any</em> function <var>f</var>, invertible or not. It just names "everything that lands in <var>Y</var>". And because membership in <var>f⁻¹(Y)</var> is phrased as a condition on a <em>single</em> point <var>x</var> (namely "<var>f(x) ∈ Y</var>"), rather than as an existential search for some witness, preimages inherit set-operation laws perfectly — no witness-mismatch problem at all.</p>
+
+<div class="theorem">
+<p><strong>Lemma 3 (Preimages commute with ∩, ∪, and complement).</strong> Let <var>f : A → B</var> and <var>E, F ⊆ B</var>. Then</p>
+<p style="text-align:center">(i) f⁻¹(E ∩ F) = f⁻¹(E) ∩ f⁻¹(F) &nbsp;&nbsp; (ii) f⁻¹(E ∪ F) = f⁻¹(E) ∪ f⁻¹(F) &nbsp;&nbsp; (iii) f⁻¹(Eᶜ) = (f⁻¹(E))ᶜ</p>
+<p><strong>Proof of (i).</strong> For any <var>x ∈ A</var>:</p>
+<p style="text-align:center">x ∈ f⁻¹(E ∩ F) &nbsp;⟺&nbsp; f(x) ∈ E ∩ F &nbsp;⟺&nbsp; f(x) ∈ E and f(x) ∈ F &nbsp;⟺&nbsp; x ∈ f⁻¹(E) and x ∈ f⁻¹(F) &nbsp;⟺&nbsp; x ∈ f⁻¹(E) ∩ f⁻¹(F).</p>
+<p>Every step is a biconditional (⟺), not just an inclusion, so the two sets have exactly the same elements. ∎</p>
+</div>
+
+<p>Compare that to Lemma 1's proof: there we only ever got a one-way implication ("<var>y ∈ f(C∩D) ⟹ y ∈ f(C)∩f(D)</var>"), because the definition of image involves an existential ("<em>some</em> x"). The preimage definition involves no existential at all — it's a direct test on <var>x</var> — so "and" on the <var>Y</var>-side converts losslessly into "and" on the <var>x</var>-side. That's the precise sense in which preimages are the "cleaner" operation the hook promised, and exactly why continuity in topology (mission link) is phrased with preimages: you get honest equalities to build a theory on, not one-way inclusions you have to patch with extra hypotheses.</p>
+
+<div class="worked fade">
+<p><strong>Faded example — proof of (ii).</strong> For any <var>x ∈ A</var>:</p>
+<p>x ∈ f⁻¹(E ∪ F) &nbsp;⟺&nbsp; f(x) ∈ E ∪ F &nbsp;⟺&nbsp; ⟨your step — unpack "f(x) ∈ E ∪ F" using the definition of union⟩ &nbsp;⟺&nbsp; x ∈ f⁻¹(E) or x ∈ f⁻¹(F) &nbsp;⟺&nbsp; ⟨your step — name the final set⟩.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Prove part (iii): <var>f⁻¹(Eᶜ) = (f⁻¹(E))ᶜ</var>, where complements are taken in <var>B</var> and <var>A</var> respectively. (Hint: run the same biconditional chain, unpacking "<var>f(x) ∉ E</var>" at the middle step.)</p>
+</div>
+
+<div class="worked">
+<p><strong>Worked example (concrete check).</strong> Let <var>f : ℝ → ℝ</var>, <var>f(x) = x²</var>, <var>E = [1, 4]</var>, <var>F = [4, 9]</var>.</p>
+<p><var>E ∩ F = {4}</var>, so <var>f⁻¹(E ∩ F) = f⁻¹({4}) = {−2, 2}</var>.</p>
+<p><var>f⁻¹(E) = [−2,−1] ∪ [1,2]</var>, <var>f⁻¹(F) = [−3,−2] ∪ [2,3]</var>. Their intersection is <var>{−2} ∪ {2} = {−2, 2}</var> — exactly matching <var>f⁻¹(E∩F)</var>, as Lemma 3(i) guarantees, no strictness anywhere.</p>
+</div>
+
+<div class="selfcheck">
+<p>Why does Lemma 3(i) give an equality (⟺ throughout) while Lemma 1 only gave an inclusion?</p>
+<button onclick="check(this,true)" data-ok>Preimage membership is a direct test on a single x; image membership involves an existential "some x", which "and" can't distribute over safely</button>
+<button onclick="check(this,false)">Because preimages are only defined for bijections</button>
+<button onclick="check(this,false)">Because ∩ is commutative but ∪ isn't</button>
+<div class="explain">The definition f⁻¹(Y) = {x : f(x) ∈ Y} tests each x directly against a condition, so logical connectives (and/or/not) on the Y-side translate word-for-word to the x-side. Images instead package an existential quantifier, which only distributes cleanly over "or", not "and".</div>
+</div>
+
+<div class="selfcheck">
+<p><var>f : ℝ → ℝ</var>, <var>f(x)=x²</var>. Is <var>f⁻¹((−∞,0))</var> equal to <var>∅</var>?</p>
+<button onclick="check(this,true)" data-ok>Yes — no real x has x² &lt; 0</button>
+<button onclick="check(this,false)">No — it's all of ℝ</button>
+<button onclick="check(this,false)">No — it's {0}</button>
+<div class="explain">f⁻¹(Y) = {x : f(x) ∈ Y}. Since x² is never negative, no x satisfies f(x) ∈ (−∞,0), so the preimage is the empty set — a perfectly legal, well-defined answer.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Injective and surjective, seen through images and preimages</h2>
+
+<p>Recall the two definitions this unit's arrows-and-dots pictures were building towards.</p>
+
+<div class="definition">
+<p><strong>Definition 8.3 (Injective).</strong> f : A → B is injective if f(a₁) = f(a₂) implies a₁ = a₂.<br>
+<strong>Definition 8.5 (Surjective).</strong> f : A → B is surjective if for every b ∈ B there exists a ∈ A with f(a) = b.<br>
+<strong>Definition 8.7 (Bijective).</strong> f is bijective if it is both.</p>
+<p class="cite">Cummings, <em>Proofs</em>, Ch. 8 "Functions", pp. 252–253.</p>
+</div>
+
+<p>Segment 1 left a loose thread: Lemma 1 only gave <var>f(C∩D) ⊆ f(C)∩f(D)</var>. The missing reverse inclusion turns out to be <em>exactly</em> injectivity — not an approximation of it, the precise characterisation.</p>
+
+<div class="theorem">
+<p><strong>Lemma 4 (Injectivity closes the intersection gap).</strong> If <var>f : A → B</var> is injective, then for all <var>C, D ⊆ A</var>, <var>f(C ∩ D) = f(C) ∩ f(D)</var>.</p>
+<p><strong>Proof.</strong> By Lemma 1, <var>f(C∩D) ⊆ f(C)∩f(D)</var> always holds, so it suffices to prove the reverse inclusion. Let <var>y ∈ f(C) ∩ f(D)</var>. Then <var>y ∈ f(C)</var>, so <var>y = f(x₁)</var> for some <var>x₁ ∈ C</var>; and <var>y ∈ f(D)</var>, so <var>y = f(x₂)</var> for some <var>x₂ ∈ D</var>. Now <var>f(x₁) = y = f(x₂)</var>, and since <var>f</var> is injective, <var>x₁ = x₂</var>. Call this common point <var>x</var>: then <var>x ∈ C</var> and <var>x ∈ D</var>, so <var>x ∈ C ∩ D</var>, and <var>y = f(x) ∈ f(C ∩ D)</var>. Hence <var>f(C) ∩ f(D) ⊆ f(C ∩ D)</var>, and combined with Lemma 1, equality follows. ∎</p>
+</div>
+
+<p>This is precisely the missing ingredient from the hook: <var>x²</var> failed because it isn't injective on <var>[−2,2]</var> — the two witnesses <var>x₁=−2</var>, <var>x₂=2</var> genuinely differ, and injectivity is exactly the hypothesis that rules that out.</p>
+
+<p>A second characterisation runs through preimages rather than images, and it's the one the guided proof below asks you to establish yourself.</p>
+
+<div class="theorem">
+<p><strong>Lemma 5 (Surjectivity and preimages).</strong> f : A → B is surjective if and only if <var>f(f⁻¹(Y)) = Y</var> for every <var>Y ⊆ B</var>.</p>
+<p><strong>Proof sketch.</strong> The inclusion <var>f(f⁻¹(Y)) ⊆ Y</var> holds unconditionally: any element of <var>f(f⁻¹(Y))</var> is <var>f(x)</var> for some <var>x</var> with <var>f(x) ∈ Y</var>, so it lies in <var>Y</var>. The reverse inclusion <var>Y ⊆ f(f⁻¹(Y))</var> asks: for every <var>y ∈ Y</var>, is there some <var>x</var> with <var>f(x) = y</var>? That is exactly the surjectivity condition applied to the point <var>y</var>. So the reverse inclusion holds for every <var>Y</var> precisely when <var>f</var> is surjective. ∎ (Compare Cummings Exercise 8.30(c)–(d), which frames these as two separate conjectures — the lesson here is that combining "always true" with "true iff surjective" is what produces the full iff.)</p>
+</div>
+
+<div class="selfcheck">
+<p><var>f : ℤ → ℤ</var>, <var>f(n) = 2n</var>. Is <var>f(f⁻¹({4,5,6})) = {4,5,6}</var>?</p>
+<button onclick="check(this,true)" data-ok>No — it equals {4,6}, since 5 has no preimage</button>
+<button onclick="check(this,false)">Yes, by Lemma 5</button>
+<button onclick="check(this,false)">No — it equals {2,3}</button>
+<div class="explain">f is not surjective (odd numbers are never hit), so Lemma 5's equality can fail. Concretely f⁻¹({4,5,6}) = {2,3} and f({2,3}) = {4,6} ≠ {4,5,6} — the missing 5 is exactly the non-surjectivity showing up.</div>
+</div>
+
+<div class="selfcheck">
+<p>Let f : A → B be injective and C, D ⊆ A with C ∩ D = ∅. What can you say about f(C) and f(D)?</p>
+<button onclick="check(this,true)" data-ok>f(C) ∩ f(D) = ∅ too</button>
+<button onclick="check(this,false)">Nothing — they could still overlap</button>
+<button onclick="check(this,false)">f(C) = f(D)</button>
+<div class="explain">By Lemma 4, injectivity gives f(C∩D) = f(C)∩f(D). Since C∩D = ∅, f(C∩D) = f(∅) = ∅, so f(C)∩f(D) = ∅ as well. Without injectivity this can fail — that's exactly the hook's counterexample.</div>
+</div>
+
+<div class="guided">
+<p><strong>Guided proof.</strong> Prove: <var>f : A → B</var> is injective if and only if <var>X = f⁻¹(f(X))</var> for every <var>X ⊆ A</var>.</p>
+<p>(Hint: split into the inclusion that's <em>always</em> true, and the inclusion that needs injectivity — the same strategy Lemma 4 and Lemma 5 both used.)</p>
+<textarea placeholder="Write your proof here before revealing the model answer..."></textarea>
+<details>
+<summary>Reveal model answer</summary>
+<p><strong>(⊆, always true).</strong> Let <var>x ∈ X</var>. Then <var>f(x) ∈ f(X)</var> by definition of image, so <var>x ∈ f⁻¹(f(X))</var> by definition of preimage. This holds for any f, injective or not: <var>X ⊆ f⁻¹(f(X))</var> always.</p>
+<p><strong>(⟸ f injective ⟹ f⁻¹(f(X)) ⊆ X).</strong> Suppose f is injective and let <var>a ∈ f⁻¹(f(X))</var>. Then <var>f(a) ∈ f(X)</var>, so <var>f(a) = f(x)</var> for some <var>x ∈ X</var>. By injectivity, <var>a = x</var>, so <var>a ∈ X</var>. Hence <var>f⁻¹(f(X)) ⊆ X</var>, and combined with the always-true inclusion, <var>X = f⁻¹(f(X))</var>.</p>
+<p><strong>(⟹ the equality forces injectivity).</strong> Suppose <var>X = f⁻¹(f(X))</var> holds for every <var>X ⊆ A</var>. Suppose <var>f(a₁) = f(a₂)</var>; we must show <var>a₁ = a₂</var>. Let <var>X = {a₁}</var>. Then <var>f(X) = {f(a₁)}</var>, and by hypothesis <var>f⁻¹(f(X)) = X = {a₁}</var>. But <var>f(a₂) = f(a₁) ∈ f(X)</var>, so <var>a₂ ∈ f⁻¹(f(X)) = {a₁}</var>, forcing <var>a₂ = a₁</var>. Hence f is injective. ∎</p>
+</details>
+</div>
+</div>
+
+<h2>A picture worth the thousand words</h2>
+<p>The diagram below fixes the hook's example: A = [−2,0], B=[0,2] inside the domain of f(x)=x², with C=A, D=B playing the role of "images clash but preimages don't". Follow the arrows: two distinct domain points (−2 and 2) both land on the same output (4), which is exactly the witness-mismatch that broke Lemma 1's converse.</p>
+<div class="svgwrap">
+<svg viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg">
+<style>
+.lbl{fill:#e8e8e8;font-size:15px}.dim{fill:#9aa5b1;font-size:12px}
+.setA{fill:#8ab4f822;stroke:#8ab4f8;stroke-width:2}.setB{fill:#d8a65722;stroke:#d8a657;stroke-width:2}
+.pt{fill:#e8e8e8}.arrow{stroke:#4caf82;stroke-width:2;marker-end:url(#arrowhead)}
+.arrowbad{stroke:#e06c75;stroke-width:2;marker-end:url(#arrowheadbad)}
+</style>
+<defs>
+<marker id="arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#4caf82"/></marker>
+<marker id="arrowheadbad" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#e06c75"/></marker>
+</defs>
+<text x="30" y="24" class="lbl">Domain A = [−2, 0] ∪ [0, 2]</text>
+<ellipse class="setA" cx="90" cy="150" rx="70" ry="100"/>
+<text x="55" y="60" class="dim">C = [−2,0]</text>
+<ellipse class="setA" cx="150" cy="150" rx="70" ry="100"/>
+<text x="130" y="270" class="dim">D = [0,2]</text>
+<circle class="pt" cx="70" cy="90" r="4"/><text x="45" y="80" class="dim">−2</text>
+<circle class="pt" cx="120" cy="150" r="5"/><text x="95" y="170" class="dim">0</text>
+<circle class="pt" cx="170" cy="90" r="4"/><text x="180" y="80" class="dim">2</text>
+<text x="420" y="24" class="lbl">Codomain / image side</text>
+<ellipse class="setB" cx="480" cy="150" rx="110" ry="110"/>
+<text x="400" y="270" class="dim">f(C) ∩ f(D) = [0,4]</text>
+<circle class="pt" cx="480" cy="90" r="5"/><text x="495" y="85" class="dim">4</text>
+<circle class="pt" cx="480" cy="150" r="5"/><text x="495" y="150" class="dim">0 = f(C∩D)</text>
+<path class="arrow" d="M124,150 L470,150"/>
+<path class="arrowbad" d="M70,90 L474,90"/>
+<path class="arrowbad" d="M170,90 L474,94"/>
+<text x="330" y="105" class="dim">−2 and 2 both → 4 (mismatched witnesses)</text>
+</svg>
+</div>
+
+<h2>Before you look away</h2>
+<p>Close your eyes, or look at the ceiling, and rebuild the argument skeleton of this lesson from nothing — just the shape, not every symbol:</p>
+<ol>
+<li>What does the hook's counterexample show, and what's the one-sentence reason it happens (witnesses)?</li>
+<li>Which of ∪ and ∩ survives images unchanged, and which needs an extra hypothesis to survive — and what is that hypothesis?</li>
+<li>Why do preimages commute with ∩, ∪, and complement with no extra hypothesis at all?</li>
+<li>State, without peeking, the two "iff" characterisations linking injective/surjective to images and preimages.</li>
+</ol>
+<details>
+<summary>Reveal the skeleton to check against</summary>
+<p>(1) f(C∩D) can be a strict subset of f(C)∩f(D) because an element of f(C)∩f(D) may come from two <em>different</em> points, one in C and one in D, that don't have to lie in C∩D. (2) Union survives (f(C∪D)=f(C)∪f(D)) because "or" distributes cleanly over an existential witness; intersection needs f injective to force the two witnesses to coincide (Lemma 4). (3) Preimage membership is a direct pointwise test ("f(x)∈Y"), not an existential search, so logical connectives on the Y-side translate word-for-word to the x-side — no witness-matching problem ever arises (Lemma 3). (4) f injective ⟺ X=f⁻¹(f(X)) for every X⊆A (Lemma 4/guided proof); f surjective ⟺ Y=f(f⁻¹(Y)) for every Y⊆B (Lemma 5).</p>
+</details>
+
+<footer>Sources: Cummings, <em>Proofs: A Long-Form Mathematics Textbook</em> — Ch. 3 "Sets" §3.4 Set Operations, Definition 3.8 (union/intersection) p. 82, Definition 3.9 (complement) p. 84; Ch. 8 "Functions" §8.2, Definition 8.3 (injective) p. 252, Definition 8.5 (surjective) / Definition 8.7 (bijective) p. 253, image/inverse-image definitions and Exercises 8.28–8.30 (images/preimages under ∩, ∪, and the injective/surjective characterisations) pp. 280–281. Schumacher was named as a secondary source in the unit brief but has no entry in resources/bookmap.json, so this lesson draws solely on Cummings.</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
