@@ -9,7 +9,12 @@ REF_PATTERN = re.compile(r"(Theorem|Definition|Lemma|Corollary)\s+\d+[A-Za-z]?(?
 
 def find_missing_refs(problem_set_text, lesson_html_text):
     refs = sorted({m.group(0) for m in REF_PATTERN.finditer(problem_set_text)})
-    return [r for r in refs if r not in lesson_html_text]
+    missing = []
+    for r in refs:
+        boundary_pattern = re.compile(re.escape(r) + r"(?!\d)(?!\.\d)")
+        if not boundary_pattern.search(lesson_html_text):
+            missing.append(r)
+    return missing
 
 
 def main():

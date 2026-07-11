@@ -29,3 +29,9 @@ def test_duplicate_refs_in_problem_set_reported_once():
     problem_set = "Theorem 1.29 and again Theorem 1.29."
     lesson = "<p>nothing</p>"
     assert find_missing_refs(problem_set, lesson) == ["Theorem 1.29"]
+
+
+def test_ref_not_falsely_covered_by_longer_numbered_ref():
+    problem_set = "Use Theorem 1.2 to finish the proof."
+    lesson = "<p>Theorem 1.29 states something unrelated.</p>"
+    assert find_missing_refs(problem_set, lesson) == ["Theorem 1.2"]
