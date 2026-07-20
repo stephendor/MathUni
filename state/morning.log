@@ -1,2 +1,5 @@
 API Error: 404 {"type":"error","error":{"type":"not_found_error","message":"model: claude-sonnet-4-20250514"},"request_id":"req_011Ccqw7MDGgpHt3qgyFwHGR"}
 API Error: 404 {"type":"error","error":{"type":"not_found_error","message":"model: claude-sonnet-4-20250514"},"request_id":"req_011Ccspv7rrKAGQUa8ML913X"}
+API Error: 404 {"type":"error","error":{"type":"not_found_error","message":"model: claude-sonnet-4-20250514"},"request_id":"req_011CcyWLvxXRmgrdkD4Ayfei"}
+API Error: 404 {"type":"error","error":{"type":"not_found_error","message":"model: claude-sonnet-4-20250514"},"request_id":"req_011Cd1QAdDTUiRyuKBxrueWc"}
+API Error: 404 {"type":"error","error":{"type":"not_found_error","message":"model: claude-sonnet-4-20250514"},"request_id":"req_011Cd5BmeNdrCJrLZgtGHjWi"}

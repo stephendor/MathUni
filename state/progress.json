@@ -62,14 +62,14 @@
     "status": "locked"
   },
   "an-01": {
-    "status": "in-progress",
+    "status": "mastered",
     "last_studied": "2026-07-08"
   },
   "an-02": {
-    "status": "locked"
+    "status": "in-progress"
   },
   "an-03": {
-    "status": "locked"
+    "status": "unlocked"
   },
   "an-04": {
     "status": "locked"
