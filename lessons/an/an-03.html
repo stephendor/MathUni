@@ -22,6 +22,10 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 .break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
 .gap{color:var(--acc);font-style:italic}
 .math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
 .guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
 textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
 details.model-answer{margin-top:.8rem;color:var(--dim)}
@@ -81,7 +85,7 @@ Make "gets close to" bulletproof against every adversary.
 </div>
 
 <h3>Interactive Visual: The &epsilon;-<var>N</var> Target Band</h3>
-<p>Below, watch the sequence <var>a<sub>n</sub></var> = (3<var>n</var>+1)/(2<var>n</var>+5) approach its limit <var>L</var> = 1.5 = 3/2. The green band shows <var>V</var><sub>&epsilon;</sub>(1.5) for &epsilon; = 0.15. Notice how terms bounce inside and stay inside after the cutoff threshold <var>N</var>.</p>
+<p>Below, watch the sequence <var>a<sub>n</sub></var> = <span class="frac"><span class="num">3<var>n</var>+1</span><span class="den">2<var>n</var>+5</span></span> approach its limit <var>L</var> = 1.5 = <span class="frac"><span class="num">3</span><span class="den">2</span></span>. The green band shows <var>V</var><sub>&epsilon;</sub>(1.5) for &epsilon; = 0.15. Notice how terms bounce inside and stay inside after the cutoff threshold <var>N</var>.</p>
 
 <canvas id="limitCanvas" width="640" height="200" role="img" aria-label="Plot of sequence points approaching limit 1.5 with an epsilon neighborhood band"></canvas>
 <script>
@@ -143,30 +147,30 @@ draw();
 <h3>Worked Example 1: Formal &epsilon;-<var>N</var> Proof</h3>
 
 <div class="worked">
-<p><strong>Example.</strong> Prove using Definition 2.2.3 that lim <sup>(3<var>n</var>+1)</sup>/<sub>(2<var>n</var>+5)</sub> = <sup>3</sup>/<sub>2</sub>. <span class="cite">— Abbott §2.2, p. 41</span></p>
+<p><strong>Example.</strong> Prove using Definition 2.2.3 that lim <span class="frac"><span class="num">3<var>n</var>+1</span><span class="den">2<var>n</var>+5</span></span> = <span class="frac"><span class="num">3</span><span class="den">2</span></span>. <span class="cite">— Abbott §2.2, p. 41</span></p>
 <p><strong>Scratchwork (done before writing proof):</strong> We want |<var>a<sub>n</sub></var> − <var>L</var>| &lt; &epsilon;, i.e.,</p>
 <div class="math-block">
-  |<var>a<sub>n</sub></var> − <var>L</var>| = | <sup>(3<var>n</var>+1)</sup>/<sub>(2<var>n</var>+5)</sub> − <sup>3</sup>/<sub>2</sub> | = | <sup>(6<var>n</var>+2 − 6<var>n</var> − 15)</sup>/<sub>(4<var>n</var>+10)</sub> | = <sup>13</sup>/<sub>(4<var>n</var>+10)</sub> &lt; &epsilon;.
+  |<var>a<sub>n</sub></var> − <var>L</var>| = | <span class="frac"><span class="num">3<var>n</var>+1</span><span class="den">2<var>n</var>+5</span></span> − <span class="frac"><span class="num">3</span><span class="den">2</span></span> | = | <span class="frac"><span class="num">6<var>n</var>+2 − 6<var>n</var> − 15</span><span class="den">4<var>n</var>+10</span></span> | = <span class="frac"><span class="num">13</span><span class="den">4<var>n</var>+10</span></span> &lt; &epsilon;.
 </div>
-<p>Since 4<var>n</var>+10 &gt; 4<var>n</var>, we have <sup>13</sup>/<sub>(4<var>n</var>+10)</sub> &lt; <sup>13</sup>/<sub>4<var>n</var></sub>. Setting <sup>13</sup>/<sub>4<var>n</var></sub> &lt; &epsilon; gives <var>n</var> &gt; <sup>13</sup>/<sub>4&epsilon;</sub>.</p>
+<p>Since 4<var>n</var>+10 &gt; 4<var>n</var>, we have <span class="frac"><span class="num">13</span><span class="den">4<var>n</var>+10</span></span> &lt; <span class="frac"><span class="num">13</span><span class="den">4<var>n</var></span></span>. Setting <span class="frac"><span class="num">13</span><span class="den">4<var>n</var></span></span> &lt; &epsilon; gives <var>n</var> &gt; <span class="frac"><span class="num">13</span><span class="den">4&epsilon;</span></span>.</p>
 
-<p><strong>Formal Proof:</strong> Let &epsilon; &gt; 0 be arbitrary. Choose <var>N</var> ∈ ℕ such that <var>N</var> &gt; <sup>13</sup>/<sub>4&epsilon;</sub>.<br>
-Let <var>n</var> ≥ <var>N</var>. Then <var>n</var> &gt; <sup>13</sup>/<sub>4&epsilon;</sub> ⇒ <sup>13</sup>/<sub>4<var>n</var></sub> &lt; &epsilon;.<br>
-Thus, | <sup>(3<var>n</var>+1)</sup>/<sub>(2<var>n</var>+5)</sub> − <sup>3</sup>/<sub>2</sub> | = <sup>13</sup>/<sub>(4<var>n</var>+10)</sub> &lt; <sup>13</sup>/<sub>4<var>n</var></sub> &lt; &epsilon;.<br>
-By Definition 2.2.3, lim <sup>(3<var>n</var>+1)</sup>/<sub>(2<var>n</var>+5)</sub> = <sup>3</sup>/<sub>2</sub>. ∎</p>
+<p><strong>Formal Proof:</strong> Let &epsilon; &gt; 0 be arbitrary. Choose <var>N</var> ∈ ℕ such that <var>N</var> &gt; <span class="frac"><span class="num">13</span><span class="den">4&epsilon;</span></span>.<br>
+Let <var>n</var> ≥ <var>N</var>. Then <var>n</var> &gt; <span class="frac"><span class="num">13</span><span class="den">4&epsilon;</span></span> ⇒ <span class="frac"><span class="num">13</span><span class="den">4<var>n</var></span></span> &lt; &epsilon;.<br>
+Thus, | <span class="frac"><span class="num">3<var>n</var>+1</span><span class="den">2<var>n</var>+5</span></span> − <span class="frac"><span class="num">3</span><span class="den">2</span></span> | = <span class="frac"><span class="num">13</span><span class="den">4<var>n</var>+10</span></span> &lt; <span class="frac"><span class="num">13</span><span class="den">4<var>n</var></span></span> &lt; &epsilon;.<br>
+By Definition 2.2.3, lim <span class="frac"><span class="num">3<var>n</var>+1</span><span class="den">2<var>n</var>+5</span></span> = <span class="frac"><span class="num">3</span><span class="den">2</span></span>. ∎</p>
 </div>
 
 <div class="worked fade">
-<p><strong>Worked Example 2 (Faded).</strong> Prove lim <sup>1</sup>/<sub>√<var>n</var></sub> = 0. <span class="cite">— Abbott §2.2, Example 2.2.5, p. 40</span></p>
-<p><strong>Proof:</strong> Let &epsilon; &gt; 0 be arbitrary. We need | <sup>1</sup>/<sub>√<var>n</var></sub> − 0 | = <sup>1</sup>/<sub>√<var>n</var></sub> &lt; &epsilon;, which is equivalent to <var>n</var> &gt; <sup>1</sup>/<sub>&epsilon;²</sub>.<br>
+<p><strong>Worked Example 2 (Faded).</strong> Prove lim <span class="frac"><span class="num">1</span><span class="den">√<var>n</var></span></span> = 0. <span class="cite">— Abbott §2.2, Example 2.2.5, p. 40</span></p>
+<p><strong>Proof:</strong> Let &epsilon; &gt; 0 be arbitrary. We need | <span class="frac"><span class="num">1</span><span class="den">√<var>n</var></span></span> − 0 | = <span class="frac"><span class="num">1</span><span class="den">√<var>n</var></span></span> &lt; &epsilon;, which is equivalent to <var>n</var> &gt; <span class="frac"><span class="num">1</span><span class="den">&epsilon;²</span></span>.<br>
 Choose <var>N</var> ∈ ℕ satisfying <var>N</var> &gt; <span class="gap">⟨your step: expression in &epsilon;⟩</span>.<br>
-Then for any <var>n</var> ≥ <var>N</var>, we have <var>n</var> &gt; <sup>1</sup>/<sub>&epsilon;²</sub> ⇒ <sup>1</sup>/<sub>√<var>n</var></sub> &lt; &epsilon;, so | <sup>1</sup>/<sub>√<var>n</var></sub> − 0 | &lt; &epsilon;. ∎</p>
-<p class="cite">Gap solution: <var>N</var> &gt; 1/&epsilon;².</p>
+Then for any <var>n</var> ≥ <var>N</var>, we have <var>n</var> &gt; <span class="frac"><span class="num">1</span><span class="den">&epsilon;²</span></span> ⇒ <span class="frac"><span class="num">1</span><span class="den">√<var>n</var></span></span> &lt; &epsilon;, so | <span class="frac"><span class="num">1</span><span class="den">√<var>n</var></span></span> − 0 | &lt; &epsilon;. ∎</p>
+<p class="cite">Gap solution: <var>N</var> &gt; <span class="frac"><span class="num">1</span><span class="den">&epsilon;²</span></span>.</p>
 </div>
 
 <div class="you-try">
-<p><strong>You Try (Solo):</strong> Write a formal &epsilon;-<var>N</var> proof for lim <sup>2</sup>/<sub>√(n+3)</sub> = 0. <span class="cite">— Abbott §2.2, Exercise 2.2.1(c)</span></p>
-<p><em>Hint:</em> Simplify | <sup>2</sup>/<sub>√(n+3)</sub> − 0 | = <sup>2</sup>/<sub>√(n+3)</sub> &lt; <sup>2</sup>/<sub>√n</sub>. Solve <sup>2</sup>/<sub>√n</sub> &lt; &epsilon; to pick <var>N</var>.</p>
+<p><strong>You Try (Solo):</strong> Write a formal &epsilon;-<var>N</var> proof for lim <span class="frac"><span class="num">2</span><span class="den">√(<var>n</var>+3)</span></span> = 0. <span class="cite">— Abbott §2.2, Exercise 2.2.1(c)</span></p>
+<p><em>Hint:</em> Simplify | <span class="frac"><span class="num">2</span><span class="den">√(<var>n</var>+3)</span></span> − 0 | = <span class="frac"><span class="num">2</span><span class="den">√(<var>n</var>+3)</span></span> &lt; <span class="frac"><span class="num">2</span><span class="den">√<var>n</var></span></span>. Solve <span class="frac"><span class="num">2</span><span class="den">√<var>n</var></span></span> &lt; &epsilon; to pick <var>N</var>.</p>
 </div>
 
 <div class="selfcheck">
@@ -231,9 +235,9 @@ Then for any <var>n</var> ≥ <var>N</var>, we have <var>n</var> &gt; <sup>1</su
 </ol>
 </div>
 
-<p><strong>Proof of (ii) Sum Rule:</strong> Let &epsilon; &gt; 0. Since (<var>a<sub>n</sub></var>) → <var>a</var>, choose <var>N</var>₁ so <var>n</var> ≥ <var>N</var>₁ ⇒ |<var>a<sub>n</sub></var> − <var>a</var>| &lt; &epsilon;/2. Since (<var>b<sub>n</sub></var>) → <var>b</var>, choose <var>N</var>₂ so <var>n</var> ≥ <var>N</var>₂ ⇒ |<var>b<sub>n</sub></var> − <var>b</var>| &lt; &epsilon;/2. Set <var>N</var> = max{<var>N</var>₁, <var>N</var>₂}. For any <var>n</var> ≥ <var>N</var>, applying Lemma 2.3.B yields:</p>
+<p><strong>Proof of (ii) Sum Rule:</strong> Let &epsilon; &gt; 0. Since (<var>a<sub>n</sub></var>) → <var>a</var>, choose <var>N</var>₁ so <var>n</var> ≥ <var>N</var>₁ ⇒ |<var>a<sub>n</sub></var> − <var>a</var>| &lt; <span class="frac"><span class="num">&epsilon;</span><span class="den">2</span></span>. Since (<var>b<sub>n</sub></var>) → <var>b</var>, choose <var>N</var>₂ so <var>n</var> ≥ <var>N</var>₂ ⇒ |<var>b<sub>n</sub></var> − <var>b</var>| &lt; <span class="frac"><span class="num">&epsilon;</span><span class="den">2</span></span>. Set <var>N</var> = max{<var>N</var>₁, <var>N</var>₂}. For any <var>n</var> ≥ <var>N</var>, applying Lemma 2.3.B yields:</p>
 <div class="math-block">
-  |(<var>a<sub>n</sub></var> + <var>b<sub>n</sub></var>) − (<var>a</var> + <var>b</var>)| ≤ |<var>a<sub>n</sub></var> − <var>a</var>| + |<var>b<sub>n</sub></var> − <var>b</var>| &lt; <sup>&epsilon;</sup>/<sub>2</sub> + <sup>&epsilon;</sup>/<sub>2</sub> = &epsilon;. ∎
+  |(<var>a<sub>n</sub></var> + <var>b<sub>n</sub></var>) − (<var>a</var> + <var>b</var>)| ≤ |<var>a<sub>n</sub></var> − <var>a</var>| + |<var>b<sub>n</sub></var> − <var>b</var>| &lt; <span class="frac"><span class="num">&epsilon;</span><span class="den">2</span></span> + <span class="frac"><span class="num">&epsilon;</span><span class="den">2</span></span> = &epsilon;. ∎
 </div>
 
 <div class="theorem">
@@ -260,7 +264,7 @@ Then for any <var>n</var> ≥ <var>N</var>, we have <var>n</var> &gt; <sup>1</su
 <button onclick="check(this,false)">Yes, strict inequalities are always preserved under limits</button>
 <button onclick="check(this,true)" data-ok>No! Strict inequalities can become weak inequalities in the limit (e.g., a_n = 1/n > 0, but lim 1/n = 0)</button>
 <button onclick="check(this,false)">No, the limit becomes negative</button>
-<div class="explain">Consider <var>a<sub>n</sub></var> = 1/<var>n</var>. Every term is strictly positive (1/<var>n</var> &gt; 0), but lim (1/<var>n</var>) = 0, which is not strictly positive. Order limit theorems preserve non-strict inequalities (≥), not strict ones (&gt;).</div>
+<div class="explain">Consider <var>a<sub>n</sub></var> = <span class="frac"><span class="num">1</span><span class="den"><var>n</var></span></span>. Every term is strictly positive (<span class="frac"><span class="num">1</span><span class="den"><var>n</var></span></span> &gt; 0), but lim (<span class="frac"><span class="num">1</span><span class="den"><var>n</var></span></span>) = 0, which is not strictly positive. Order limit theorems preserve non-strict inequalities (≥), not strict ones (&gt;).</div>
 </div>
 
 <div class="guided-proof">
@@ -281,7 +285,7 @@ Then for any <var>n</var> ≥ <var>N</var>, we have <var>n</var> &gt; <sup>1</su
 <ol>
 <li>The formal &epsilon;-<var>N</var> definition of convergence (Definition 2.2.3) and its topological neighborhood rephrasing (Definition 2.2.3B).</li>
 <li>Why every convergent sequence is bounded (Theorem 2.3.2) using &epsilon; = 1 and <var>M</var> = max{|<var>a</var>₁|,…,|<var>a</var><sub><var>N</var>−1</sub>|, |<var>L</var>|+1}.</li>
-<li>How the Algebraic Limit Theorem (Theorem 2.3.3) uses &epsilon;/2 splitting and triangle inequality (Lemma 2.3.B) to prove sum and product rules.</li>
+<li>How the Algebraic Limit Theorem (Theorem 2.3.3) uses <span class="frac"><span class="num">&epsilon;</span><span class="den">2</span></span> splitting and triangle inequality (Lemma 2.3.B) to prove sum and product rules.</li>
 <li>How the Order Limit Theorem (Theorem 2.3.4) proves non-negativity of limits via contradiction using &epsilon;₀ = −<var>a</var>.</li>
 </ol>
 <details>
