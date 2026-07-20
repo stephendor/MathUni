@@ -21,6 +21,7 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 .cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
 .break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
 .gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
 .guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
 textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
 details.model-answer{margin-top:.8rem;color:var(--dim)}
@@ -33,14 +34,14 @@ details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
 <div class="hook">
 Make "gets close to" bulletproof against every adversary.
 <p>When calculus was first invented by Newton and Leibniz, people talked informally about quantities "getting infinitely close" to a limit. But in 1734, Bishop Berkeley famously mocked these vague notions as "the ghosts of departed quantities." For over a century, calculus worked in practice, but lacked rigorous foundations whenever subtle infinite operations clashed.</p>
-<p>The solution — constructed by Augustin-Louis Cauchy and Karl Weierstrass — was to replace hand-waving with a game against an adversary. You claim a sequence approaches a limit $L$. The adversary challenges you with a challenge tolerance $\epsilon > 0$, no matter how tiny. Your job is to produce a threshold index $N$ after which <em>every single term</em> in the sequence sits within distance $\epsilon$ of $L$. If you can win for <em>any</em> $\epsilon > 0$, the limit is proven.</p>
+<p>The solution — constructed by Augustin-Louis Cauchy and Karl Weierstrass — was to replace hand-waving with a game against an adversary. You claim a sequence approaches a limit <var>L</var>. The adversary challenges you with a challenge tolerance &epsilon; &gt; 0, no matter how tiny. Your job is to produce a threshold index <var>N</var> after which <em>every single term</em> in the sequence sits within distance &epsilon; of <var>L</var>. If you can win for <em>any</em> &epsilon; &gt; 0, the limit is proven.</p>
 
 <div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
-<p><strong>Prediction Gate:</strong> Consider the sequence $a_n = (-1)^n$. An adversary challenges you with $\epsilon = 0.5$, asking if the sequence stays within $0.5$ of $L=0$ after some threshold $N$. What happens?</p>
+<p><strong>Prediction Gate:</strong> Consider the sequence <var>a<sub>n</sub></var> = (−1)<sup><var>n</var></sup>. An adversary challenges you with &epsilon; = 0.5, asking if the sequence stays within 0.5 of <var>L</var> = 0 after some threshold <var>N</var>. What happens?</p>
 <button onclick="check(this,false)">You can pick N = 1, because 1 and -1 average to 0</button>
-<button onclick="check(this,true)" data-ok>You lose: every term has distance |(-1)^n - 0| = 1 > 0.5, so no index N ever works</button>
+<button onclick="check(this,true)" data-ok>You lose: every term has distance |(-1)ⁿ - 0| = 1 > 0.5, so no index N ever works</button>
 <button onclick="check(this,false)">You win for all even N, but lose for odd N</button>
-<div class="explain">Correct! Distance $|(-1)^n - 0| = 1$ is always strictly greater than $\epsilon = 0.5$. The terms never enter the $\epsilon$-neighborhood $V_{0.5}(0)$, so no threshold $N$ exists.</div>
+<div class="explain">Correct! Distance |(−1)<sup><var>n</var></sup> − 0| = 1 is always strictly greater than &epsilon; = 0.5. The terms never enter the &epsilon;-neighborhood <var>V</var><sub>0.5</sub>(0), so no threshold <var>N</var> exists.</div>
 </div>
 </div>
 
@@ -48,39 +49,39 @@ Make "gets close to" bulletproof against every adversary.
 
 <div class="segment">
 <span class="timebox">Segment 1 · ~25 min</span>
-<h2>The $\epsilon$-$N$ Adversarial Game and Topological Neighborhoods</h2>
+<h2>The &epsilon;-<var>N</var> Adversarial Game and Topological Neighborhoods</h2>
 
 <p>We begin by formalising what a sequence actually is in standard mathematical language.</p>
 
 <div class="definition">
-<p><strong>Definition 2.2.1.</strong> A <em>sequence</em> is a function whose domain is $\mathbb{N}$. <span class="cite">— Abbott §2.2, p. 38</span></p>
+<p><strong>Definition 2.2.1.</strong> A <em>sequence</em> is a function whose domain is ℕ. <span class="cite">— Abbott §2.2, p. 38</span></p>
 </div>
 
-<p>Given a function $f : \mathbb{N} \to \mathbb{R}$, we write $a_n = f(n)$ for the $n$-th term. We denote the infinite sequence by $(a_n)_{n=1}^\infty$ or simply $(a_n)$. What happens at the start of a sequence (the first 10, or 10,000 terms) does not affect convergence; analysis is entirely concerned with the infinite "tail" of the sequence.</p>
+<p>Given a function <var>f</var> : ℕ → ℝ, we write <var>a<sub>n</sub></var> = <var>f</var>(<var>n</var>) for the <var>n</var>-th term. We denote the infinite sequence by (<var>a<sub>n</sub></var>)<sub><var>n</var>=1</sub><sup>∞</sup> or simply (<var>a<sub>n</sub></var>). What happens at the start of a sequence (the first 10, or 10,000 terms) does not affect convergence; analysis is entirely concerned with the infinite "tail" of the sequence.</p>
 
 <div class="definition">
-<p><strong>Definition 2.2.3 (Convergence of a Sequence).</strong> A sequence $(a_n)$ <em>converges</em> to a real number $a$ if, for every positive number $\epsilon > 0$, there exists a natural number $N \in \mathbb{N}$ such that whenever $n \geq N$ it follows that $|a_n - a| < \epsilon$. <span class="cite">— Abbott §2.2, p. 39</span></p>
-<p>We write $\lim a_n = a$ or $(a_n) \to a$.</p>
+<p><strong>Definition 2.2.3 (Convergence of a Sequence).</strong> A sequence (<var>a<sub>n</sub></var>) <em>converges</em> to a real number <var>a</var> if, for every positive number &epsilon; &gt; 0, there exists a natural number <var>N</var> ∈ ℕ such that whenever <var>n</var> ≥ <var>N</var> it follows that |<var>a<sub>n</sub></var> − <var>a</var>| &lt; &epsilon;. <span class="cite">— Abbott §2.2, p. 39</span></p>
+<p>We write lim <var>a<sub>n</sub></var> = <var>a</var> or (<var>a<sub>n</sub></var>) → <var>a</var>.</p>
 </div>
 
-<p>To understand the geometry behind $|a_n - a| < \epsilon$, we define an open interval around $a$ of radius $\epsilon$:</p>
+<p>To understand the geometry behind |<var>a<sub>n</sub></var> − <var>a</var>| &lt; &epsilon;, we define an open interval around <var>a</var> of radius &epsilon;:</p>
 
 <div class="definition">
-<p><strong>Definition 2.2.4.</strong> Given $a \in \mathbb{R}$ and $\epsilon > 0$, the set $V_\epsilon(a) = \{x \in \mathbb{R} : |x - a| < \epsilon\} = (a - \epsilon, a + \epsilon)$ is called the <em>$\epsilon$-neighborhood</em> of $a$. <span class="cite">— Abbott §2.2, p. 39</span></p>
+<p><strong>Definition 2.2.4.</strong> Given <var>a</var> ∈ ℝ and &epsilon; &gt; 0, the set <var>V<sub>&epsilon;</sub></var>(<var>a</var>) = {<var>x</var> ∈ ℝ : |<var>x</var> − <var>a</var>| &lt; &epsilon;} = (<var>a</var> − &epsilon;, <var>a</var> + &epsilon;) is called the <em>&epsilon;-neighborhood</em> of <var>a</var>. <span class="cite">— Abbott §2.2, p. 39</span></p>
 </div>
 
 <p>This allows us to restate convergence in purely topological terms — a bridge directly to metric spaces and point-set topology:</p>
 
 <div class="definition">
-<p><strong>Definition 2.2.3B (Convergence of a Sequence: Topological Version).</strong> A sequence $(a_n)$ <em>converges</em> to $a$ if, given any $\epsilon$-neighborhood $V_\epsilon(a)$, there exists a point in the sequence after which all terms are in $V_\epsilon(a)$. In other words, every $\epsilon$-neighborhood contains all but a finite number of terms of $(a_n)$. <span class="cite">— Abbott §2.2, p. 39</span></p>
+<p><strong>Definition 2.2.3B (Convergence of a Sequence: Topological Version).</strong> A sequence (<var>a<sub>n</sub></var>) <em>converges</em> to <var>a</var> if, given any &epsilon;-neighborhood <var>V<sub>&epsilon;</sub></var>(<var>a</var>), there exists a point in the sequence after which all terms are in <var>V<sub>&epsilon;</sub></var>(<var>a</var>). In other words, every &epsilon;-neighborhood contains all but a finite number of terms of (<var>a<sub>n</sub></var>). <span class="cite">— Abbott §2.2, p. 39</span></p>
 </div>
 
 <div class="definition">
 <p><strong>Definition 2.2.8.</strong> A sequence that does not converge to any real number is said to <em>diverge</em>. <span class="cite">— Abbott §2.2, p. 43</span></p>
 </div>
 
-<h3>Interactive Visual: The $\epsilon$-$N$ Target Band</h3>
-<p>Below, watch the sequence $a_n = \frac{3n+1}{2n+5}$ approach its limit $L = 1.5 = 3/2$. The green band shows $V_\epsilon(1.5)$ for $\epsilon = 0.15$. Notice how terms bounce inside and stay inside after the cutoff threshold $N$.</p>
+<h3>Interactive Visual: The &epsilon;-<var>N</var> Target Band</h3>
+<p>Below, watch the sequence <var>a<sub>n</sub></var> = (3<var>n</var>+1)/(2<var>n</var>+5) approach its limit <var>L</var> = 1.5 = 3/2. The green band shows <var>V</var><sub>&epsilon;</sub>(1.5) for &epsilon; = 0.15. Notice how terms bounce inside and stay inside after the cutoff threshold <var>N</var>.</p>
 
 <canvas id="limitCanvas" width="640" height="200" role="img" aria-label="Plot of sequence points approaching limit 1.5 with an epsilon neighborhood band"></canvas>
 <script>
@@ -139,47 +140,49 @@ draw();
 })();
 </script>
 
-<h3>Worked Example 1: Formal $\epsilon$-$N$ Proof</h3>
+<h3>Worked Example 1: Formal &epsilon;-<var>N</var> Proof</h3>
 
 <div class="worked">
-<p><strong>Example.</strong> Prove using Definition 2.2.3 that $\lim_{n\to\infty} \frac{3n+1}{2n+5} = \frac{3}{2}$. <span class="cite">— Abbott §2.2, p. 41</span></p>
-<p><strong>Scratchwork (done before writing proof):</strong> We want $|a_n - L| < \epsilon$, i.e.,</p>
-$$\left|\frac{3n+1}{2n+5} - \frac{3}{2}\right| = \left|\frac{2(3n+1) - 3(2n+5)}{2(2n+5)}\right| = \left|\frac{-13}{4n+10}\right| = \frac{13}{4n+10} < \epsilon.$$
-<p>Since $4n+10 > 4n$, we have $\frac{13}{4n+10} < \frac{13}{4n}$. Setting $\frac{13}{4n} < \epsilon$ gives $n > \frac{13}{4\epsilon}$.</p>
+<p><strong>Example.</strong> Prove using Definition 2.2.3 that lim <sup>(3<var>n</var>+1)</sup>/<sub>(2<var>n</var>+5)</sub> = <sup>3</sup>/<sub>2</sub>. <span class="cite">— Abbott §2.2, p. 41</span></p>
+<p><strong>Scratchwork (done before writing proof):</strong> We want |<var>a<sub>n</sub></var> − <var>L</var>| &lt; &epsilon;, i.e.,</p>
+<div class="math-block">
+  |<var>a<sub>n</sub></var> − <var>L</var>| = | <sup>(3<var>n</var>+1)</sup>/<sub>(2<var>n</var>+5)</sub> − <sup>3</sup>/<sub>2</sub> | = | <sup>(6<var>n</var>+2 − 6<var>n</var> − 15)</sup>/<sub>(4<var>n</var>+10)</sub> | = <sup>13</sup>/<sub>(4<var>n</var>+10)</sub> &lt; &epsilon;.
+</div>
+<p>Since 4<var>n</var>+10 &gt; 4<var>n</var>, we have <sup>13</sup>/<sub>(4<var>n</var>+10)</sub> &lt; <sup>13</sup>/<sub>4<var>n</var></sub>. Setting <sup>13</sup>/<sub>4<var>n</var></sub> &lt; &epsilon; gives <var>n</var> &gt; <sup>13</sup>/<sub>4&epsilon;</sub>.</p>
 
-<p><strong>Formal Proof:</strong> Let $\epsilon > 0$ be arbitrary. Choose $N \in \mathbb{N}$ such that $N > \frac{13}{4\epsilon}$.<br>
-Let $n \geq N$. Then $n > \frac{13}{4\epsilon} \implies \frac{13}{4n} < \epsilon$.<br>
-Thus, $\left|\frac{3n+1}{2n+5} - \frac{3}{2}\right| = \frac{13}{4n+10} < \frac{13}{4n} < \epsilon$.<br>
-By Definition 2.2.3, $\lim_{n\to\infty} \frac{3n+1}{2n+5} = \frac{3}{2}$. $\blacksquare$</p>
+<p><strong>Formal Proof:</strong> Let &epsilon; &gt; 0 be arbitrary. Choose <var>N</var> ∈ ℕ such that <var>N</var> &gt; <sup>13</sup>/<sub>4&epsilon;</sub>.<br>
+Let <var>n</var> ≥ <var>N</var>. Then <var>n</var> &gt; <sup>13</sup>/<sub>4&epsilon;</sub> ⇒ <sup>13</sup>/<sub>4<var>n</var></sub> &lt; &epsilon;.<br>
+Thus, | <sup>(3<var>n</var>+1)</sup>/<sub>(2<var>n</var>+5)</sub> − <sup>3</sup>/<sub>2</sub> | = <sup>13</sup>/<sub>(4<var>n</var>+10)</sub> &lt; <sup>13</sup>/<sub>4<var>n</var></sub> &lt; &epsilon;.<br>
+By Definition 2.2.3, lim <sup>(3<var>n</var>+1)</sup>/<sub>(2<var>n</var>+5)</sub> = <sup>3</sup>/<sub>2</sub>. ∎</p>
 </div>
 
 <div class="worked fade">
-<p><strong>Worked Example 2 (Faded).</strong> Prove $\lim_{n\to\infty} \frac{1}{\sqrt{n}} = 0$. <span class="cite">— Abbott §2.2, Example 2.2.5, p. 40</span></p>
-<p><strong>Proof:</strong> Let $\epsilon > 0$ be arbitrary. We need $\left|\frac{1}{\sqrt{n}} - 0\right| = \frac{1}{\sqrt{n}} < \epsilon$, which is equivalent to $n > \frac{1}{\epsilon^2}$.<br>
-Choose $N \in \mathbb{N}$ satisfying $N > \langle\text{your step: expression in } \epsilon\rangle$.<br>
-Then for any $n \geq N$, we have $n > \frac{1}{\epsilon^2} \implies \frac{1}{\sqrt{n}} < \epsilon$, so $\left|\frac{1}{\sqrt{n}} - 0\right| < \epsilon$. $\blacksquare$</p>
-<p class="cite">Gap solution: $N > 1/\epsilon^2$.</p>
+<p><strong>Worked Example 2 (Faded).</strong> Prove lim <sup>1</sup>/<sub>√<var>n</var></sub> = 0. <span class="cite">— Abbott §2.2, Example 2.2.5, p. 40</span></p>
+<p><strong>Proof:</strong> Let &epsilon; &gt; 0 be arbitrary. We need | <sup>1</sup>/<sub>√<var>n</var></sub> − 0 | = <sup>1</sup>/<sub>√<var>n</var></sub> &lt; &epsilon;, which is equivalent to <var>n</var> &gt; <sup>1</sup>/<sub>&epsilon;²</sub>.<br>
+Choose <var>N</var> ∈ ℕ satisfying <var>N</var> &gt; <span class="gap">⟨your step: expression in &epsilon;⟩</span>.<br>
+Then for any <var>n</var> ≥ <var>N</var>, we have <var>n</var> &gt; <sup>1</sup>/<sub>&epsilon;²</sub> ⇒ <sup>1</sup>/<sub>√<var>n</var></sub> &lt; &epsilon;, so | <sup>1</sup>/<sub>√<var>n</var></sub> − 0 | &lt; &epsilon;. ∎</p>
+<p class="cite">Gap solution: <var>N</var> &gt; 1/&epsilon;².</p>
 </div>
 
 <div class="you-try">
-<p><strong>You Try (Solo):</strong> Write a formal $\epsilon$-$N$ proof for $\lim_{n\to\infty} \frac{2}{\sqrt{n+3}} = 0$. <span class="cite">— Abbott §2.2, Exercise 2.2.1(c)</span></p>
-<p><em>Hint:</em> Simplify $\left|\frac{2}{\sqrt{n+3}} - 0\right| = \frac{2}{\sqrt{n+3}} < \frac{2}{\sqrt{n}}$. Solve $\frac{2}{\sqrt{n}} < \epsilon$ to pick $N$.</p>
+<p><strong>You Try (Solo):</strong> Write a formal &epsilon;-<var>N</var> proof for lim <sup>2</sup>/<sub>√(n+3)</sub> = 0. <span class="cite">— Abbott §2.2, Exercise 2.2.1(c)</span></p>
+<p><em>Hint:</em> Simplify | <sup>2</sup>/<sub>√(n+3)</sub> − 0 | = <sup>2</sup>/<sub>√(n+3)</sub> &lt; <sup>2</sup>/<sub>√n</sub>. Solve <sup>2</sup>/<sub>√n</sub> &lt; &epsilon; to pick <var>N</var>.</p>
 </div>
 
 <div class="selfcheck">
-<p><strong>Self-check 1.</strong> What happens to the threshold $N$ in Definition 2.2.3 when the adversary chooses a smaller value of $\epsilon > 0$?</p>
+<p><strong>Self-check 1.</strong> What happens to the threshold <var>N</var> in Definition 2.2.3 when the adversary chooses a smaller value of &epsilon; &gt; 0?</p>
 <button onclick="check(this,false)">N must stay the same for all epsilon</button>
 <button onclick="check(this,true)" data-ok>N generally increases, because a tighter neighborhood requires looking further into the sequence tail</button>
 <button onclick="check(this,false)">N decreases to zero</button>
-<div class="explain">Smaller $\epsilon$ defines a narrower target band $V_\epsilon(a)$. Sequence terms take longer to enter and stay inside this narrower band, so $N$ typically gets larger as $\epsilon \to 0$.</div>
+<div class="explain">Smaller &epsilon; defines a narrower target band <var>V<sub>&epsilon;</sub></var>(<var>a</var>). Sequence terms take longer to enter and stay inside this narrower band, so <var>N</var> typically gets larger as &epsilon; → 0.</div>
 </div>
 
 <div class="selfcheck">
-<p><strong>Self-check 2.</strong> Rephrasing Definition 2.2.3B topologically, a sequence $(a_n) \to a$ if and only if every $\epsilon$-neighborhood $V_\epsilon(a)$ contains:</p>
+<p><strong>Self-check 2.</strong> Rephrasing Definition 2.2.3B topologically, a sequence (<var>a<sub>n</sub></var>) → <var>a</var> if and only if every &epsilon;-neighborhood <var>V<sub>&epsilon;</sub></var>(<var>a</var>) contains:</p>
 <button onclick="check(this,false)">Infinitely many terms of the sequence, even if infinitely many lie outside</button>
 <button onclick="check(this,true)" data-ok>All but a finite number of terms of the sequence (the entire tail from N onward)</button>
 <button onclick="check(this,false)">At least one term of the sequence</button>
-<div class="explain">"Infinitely many terms" is not enough — the sequence $1, 0, 1, 0, 1, 0\dots$ visits $V_{0.1}(1)$ infinitely often, but infinitely many terms ($0$) stay outside. Convergence requires that <em>all but finitely many</em> terms lie inside $V_\epsilon(a)$.</div>
+<div class="explain">"Infinitely many terms" is not enough — the sequence 1, 0, 1, 0, 1, 0… visits <var>V</var><sub>0.1</sub>(1) infinitely often, but infinitely many terms (0) stay outside. Convergence requires that <em>all but finitely many</em> terms lie inside <var>V<sub>&epsilon;</sub></var>(<var>a</var>).</div>
 </div>
 
 </div>
@@ -193,76 +196,80 @@ Then for any $n \geq N$, we have $n > \frac{1}{\epsilon^2} \implies \frac{1}{\sq
 <p>Now that we have a rigorous definition of convergence, we use it to establish fundamental structural properties of convergent sequences.</p>
 
 <div class="definition">
-<p><strong>Definition 2.3.1.</strong> A sequence $(x_n)$ is <em>bounded</em> if there exists a real number $M > 0$ such that $|x_n| \leq M$ for all $n \in \mathbb{N}$. <span class="cite">— Abbott §2.3, p. 44</span></p>
+<p><strong>Definition 2.3.1.</strong> A sequence (<var>x<sub>n</sub></var>) is <em>bounded</em> if there exists a real number <var>M</var> &gt; 0 such that |<var>x<sub>n</sub></var>| ≤ <var>M</var> for all <var>n</var> ∈ ℕ. <span class="cite">— Abbott §2.3, p. 44</span></p>
 </div>
 
 <div class="theorem">
 <p><strong>Theorem 2.3.2.</strong> <em>Every convergent sequence is bounded.</em> <span class="cite">— Abbott §2.3, p. 44</span></p>
 </div>
 
-<p><strong>Proof:</strong> Assume $(x_n) \to L$. Setting $\epsilon = 1$ in Definition 2.2.3, there exists $N \in \mathbb{N}$ such that for all $n \geq N$, $|x_n - L| < 1$. By the triangle inequality,</p>
-$$|x_n| = |x_n - L + L| \leq |x_n - L| + |L| < |L| + 1 \quad \text{for all } n \geq N.$$
-<p>To handle the finite number of terms before $N$, set $M = \max\{|x_1|, |x_2|, \dots, |x_{N-1}|, |L| + 1\}$. Then $|x_n| \leq M$ for all $n \in \mathbb{N}$, so $(x_n)$ is bounded. $\blacksquare$</p>
+<p><strong>Proof:</strong> Assume (<var>x<sub>n</sub></var>) → <var>L</var>. Setting &epsilon; = 1 in Definition 2.2.3, there exists <var>N</var> ∈ ℕ such that for all <var>n</var> ≥ <var>N</var>, |<var>x<sub>n</sub></var> − <var>L</var>| &lt; 1. By the triangle inequality,</p>
+<div class="math-block">
+  |<var>x<sub>n</sub></var>| = |<var>x<sub>n</sub></var> − <var>L</var> + <var>L</var>| ≤ |<var>x<sub>n</sub></var> − <var>L</var>| + |<var>L</var>| &lt; |<var>L</var>| + 1 &emsp; for all <var>n</var> ≥ <var>N</var>.
+</div>
+<p>To handle the finite number of terms before <var>N</var>, set <var>M</var> = max{|<var>x</var>₁|, |<var>x</var>₂|, …, |<var>x</var><sub><var>N</var>−1</sub>|, |<var>L</var>| + 1}. Then |<var>x<sub>n</sub></var>| ≤ <var>M</var> for all <var>n</var> ∈ ℕ, so (<var>x<sub>n</sub></var>) is bounded. ∎</p>
 
 <h3>Intermediate Building Block Lemmas</h3>
 <p>Before proving the full limit theorems, we state two intermediate lemmas that arise repeatedly in problem set proofs.</p>
 
 <div class="lemma">
-<p><strong>Lemma 2.3.A (Constant Sequence).</strong> The constant sequence $a_n = c$ for all $n \in \mathbb{N}$ converges to $c$. <span class="cite">— Abbott §2.3, Exercise 2.3.1, p. 49</span></p>
+<p><strong>Lemma 2.3.A (Constant Sequence).</strong> The constant sequence <var>a<sub>n</sub></var> = <var>c</var> for all <var>n</var> ∈ ℕ converges to <var>c</var>. <span class="cite">— Abbott §2.3, Exercise 2.3.1, p. 49</span></p>
 </div>
-<p><em>Proof:</em> For any $\epsilon > 0$, pick $N = 1$. Then for $n \geq 1$, $|a_n - c| = |c - c| = 0 < \epsilon$. $\blacksquare$</p>
+<p><em>Proof:</em> For any &epsilon; &gt; 0, pick <var>N</var> = 1. Then for <var>n</var> ≥ 1, |<var>a<sub>n</sub></var> − <var>c</var>| = |<var>c</var> − <var>c</var>| = 0 &lt; &epsilon;. ∎</p>
 
 <div class="lemma">
-<p><strong>Lemma 2.3.B (Triangle Inequality Split).</strong> For any two sequences $(a_n) \to a$ and $(b_n) \to b$, the termwise distance satisfies $|(a_n + b_n) - (a + b)| \leq |a_n - a| + |b_n - b|$. <span class="cite">— Abbott §2.3, p. 46</span></p>
+<p><strong>Lemma 2.3.B (Triangle Inequality Split).</strong> For any two sequences (<var>a<sub>n</sub></var>) → <var>a</var> and (<var>b<sub>n</sub></var>) → <var>b</var>, the termwise distance satisfies |(<var>a<sub>n</sub></var> + <var>b<sub>n</sub></var>) − (<var>a</var> + <var>b</var>)| ≤ |<var>a<sub>n</sub></var> − <var>a</var>| + |<var>b<sub>n</sub></var> − <var>b</var>|. <span class="cite">— Abbott §2.3, p. 46</span></p>
 </div>
 
 <div class="theorem">
-<p><strong>Theorem 2.3.3 (Algebraic Limit Theorem).</strong> Let $\lim a_n = a$ and $\lim b_n = b$. Then: <span class="cite">— Abbott §2.3, pp. 45–48</span></p>
+<p><strong>Theorem 2.3.3 (Algebraic Limit Theorem).</strong> Let lim <var>a<sub>n</sub></var> = <var>a</var> and lim <var>b<sub>n</sub></var> = <var>b</var>. Then: <span class="cite">— Abbott §2.3, pp. 45–48</span></p>
 <ol type="i">
-<li>$\lim (c a_n) = c a$ for all $c \in \mathbb{R}$;</li>
-<li>$\lim (a_n + b_n) = a + b$;</li>
-<li>$\lim (a_n b_n) = a b$;</li>
-<li>$\lim (a_n / b_n) = a / b$, provided $b \neq 0$ and $b_n \neq 0$ for all $n$.</li>
+<li>lim (<var>c</var> <var>a<sub>n</sub></var>) = <var>c</var> <var>a</var> for all <var>c</var> ∈ ℝ;</li>
+<li>lim (<var>a<sub>n</sub></var> + <var>b<sub>n</sub></var>) = <var>a</var> + <var>b</var>;</li>
+<li>lim (<var>a<sub>n</sub></var> <var>b<sub>n</sub></var>) = <var>a</var> <var>b</var>;</li>
+<li>lim (<var>a<sub>n</sub></var> / <var>b<sub>n</sub></var>) = <var>a</var> / <var>b</var>, provided <var>b</var> ≠ 0 and <var>b<sub>n</sub></var> ≠ 0 for all <var>n</var>.</li>
 </ol>
 </div>
 
-<p><strong>Proof of (ii) Sum Rule:</strong> Let $\epsilon > 0$. Since $(a_n) \to a$, choose $N_1$ so $n \geq N_1 \implies |a_n - a| < \epsilon/2$. Since $(b_n) \to b$, choose $N_2$ so $n \geq N_2 \implies |b_n - b| < \epsilon/2$. Set $N = \max\{N_1, N_2\}$. For any $n \geq N$, applying Lemma 2.3.B yields:</p>
-$$|(a_n + b_n) - (a + b)| \leq |a_n - a| + |b_n - b| < \frac{\epsilon}{2} + \frac{\epsilon}{2} = \epsilon. \quad \blacksquare$$
+<p><strong>Proof of (ii) Sum Rule:</strong> Let &epsilon; &gt; 0. Since (<var>a<sub>n</sub></var>) → <var>a</var>, choose <var>N</var>₁ so <var>n</var> ≥ <var>N</var>₁ ⇒ |<var>a<sub>n</sub></var> − <var>a</var>| &lt; &epsilon;/2. Since (<var>b<sub>n</sub></var>) → <var>b</var>, choose <var>N</var>₂ so <var>n</var> ≥ <var>N</var>₂ ⇒ |<var>b<sub>n</sub></var> − <var>b</var>| &lt; &epsilon;/2. Set <var>N</var> = max{<var>N</var>₁, <var>N</var>₂}. For any <var>n</var> ≥ <var>N</var>, applying Lemma 2.3.B yields:</p>
+<div class="math-block">
+  |(<var>a<sub>n</sub></var> + <var>b<sub>n</sub></var>) − (<var>a</var> + <var>b</var>)| ≤ |<var>a<sub>n</sub></var> − <var>a</var>| + |<var>b<sub>n</sub></var> − <var>b</var>| &lt; <sup>&epsilon;</sup>/<sub>2</sub> + <sup>&epsilon;</sup>/<sub>2</sub> = &epsilon;. ∎
+</div>
 
 <div class="theorem">
-<p><strong>Theorem 2.3.4 (Order Limit Theorem).</strong> Assume $\lim a_n = a$ and $\lim b_n = b$. <span class="cite">— Abbott §2.3, pp. 48–49</span></p>
+<p><strong>Theorem 2.3.4 (Order Limit Theorem).</strong> Assume lim <var>a<sub>n</sub></var> = <var>a</var> and lim <var>b<sub>n</sub></var> = <var>b</var>. <span class="cite">— Abbott §2.3, pp. 48–49</span></p>
 <ol type="i">
-<li>If $a_n \geq 0$ for all $n \in \mathbb{N}$, then $a \geq 0$.</li>
-<li>If $a_n \leq b_n$ for all $n \in \mathbb{N}$, then $a \leq b$.</li>
-<li>If $c \leq b_n$ for all $n \in \mathbb{N}$, then $c \leq b$; if $a_n \leq c$ for all $n \in \mathbb{N}$, then $a \leq c$.</li>
+<li>If <var>a<sub>n</sub></var> ≥ 0 for all <var>n</var> ∈ ℕ, then <var>a</var> ≥ 0.</li>
+<li>If <var>a<sub>n</sub></var> ≤ <var>b<sub>n</sub></var> for all <var>n</var> ∈ ℕ, then <var>a</var> ≤ <var>b</var>.</li>
+<li>If <var>c</var> ≤ <var>b<sub>n</sub></var> for all <var>n</var> ∈ ℕ, then <var>c</var> ≤ <var>b</var>; if <var>a<sub>n</sub></var> ≤ <var>c</var> for all <var>n</var> ∈ ℕ, then <var>a</var> ≤ <var>c</var>.</li>
 </ol>
 </div>
 
-<p><strong>Proof of (i):</strong> By contradiction: assume $a < 0$. Pick $\epsilon_0 = |a| = -a > 0$. Since $(a_n) \to a$, there exists $N$ such that $|a_N - a| < -a$. This implies $a_N - a < -a \implies a_N < 0$, contradicting $a_N \geq 0$. Thus $a \geq 0$. $\blacksquare$</p>
+<p><strong>Proof of (i):</strong> By contradiction: assume <var>a</var> &lt; 0. Pick &epsilon;₀ = |<var>a</var>| = −<var>a</var> &gt; 0. Since (<var>a<sub>n</sub></var>) → <var>a</var>, there exists <var>N</var> such that |<var>a<sub>N</sub></var> − <var>a</var>| &lt; −<var>a</var>. This implies <var>a<sub>N</sub></var> − <var>a</var> &lt; −<var>a</var> ⇒ <var>a<sub>N</sub></var> &lt; 0, contradicting <var>a<sub>N</sub></var> ≥ 0. Thus <var>a</var> ≥ 0. ∎</p>
 
 <div class="selfcheck">
 <p><strong>Self-check 3.</strong> Why can't we prove that an unbounded sequence is convergent?</p>
 <button onclick="check(this,false)">Because unbounded sequences have no terms</button>
 <button onclick="check(this,true)" data-ok>Because Theorem 2.3.2 proves that every convergent sequence MUST be bounded (so unbounded implies divergent by contrapositive)</button>
 <button onclick="check(this,false)">Because limits can only be positive integers</button>
-<div class="explain">By contrapositive of Theorem 2.3.2 (Convergent $\implies$ Bounded), if a sequence is unbounded, it cannot converge!</div>
+<div class="explain">By contrapositive of Theorem 2.3.2 (Convergent ⇒ Bounded), if a sequence is unbounded, it cannot converge!</div>
 </div>
 
 <div class="selfcheck">
-<p><strong>Self-check 4.</strong> If $a_n > 0$ for all $n \in \mathbb{N}$, does Theorem 2.3.4 guarantee that $a = \lim a_n > 0$ strictly?</p>
+<p><strong>Self-check 4.</strong> If <var>a<sub>n</sub></var> &gt; 0 for all <var>n</var> ∈ ℕ, does Theorem 2.3.4 guarantee that <var>a</var> = lim <var>a<sub>n</sub></var> &gt; 0 strictly?</p>
 <button onclick="check(this,false)">Yes, strict inequalities are always preserved under limits</button>
 <button onclick="check(this,true)" data-ok>No! Strict inequalities can become weak inequalities in the limit (e.g., a_n = 1/n > 0, but lim 1/n = 0)</button>
 <button onclick="check(this,false)">No, the limit becomes negative</button>
-<div class="explain">Consider $a_n = 1/n$. Every term is strictly positive ($1/n > 0$), but $\lim (1/n) = 0$, which is not strictly positive. Order limit theorems preserve non-strict inequalities ($\geq$), not strict ones ($>$).</div>
+<div class="explain">Consider <var>a<sub>n</sub></var> = 1/<var>n</var>. Every term is strictly positive (1/<var>n</var> &gt; 0), but lim (1/<var>n</var>) = 0, which is not strictly positive. Order limit theorems preserve non-strict inequalities (≥), not strict ones (&gt;).</div>
 </div>
 
 <div class="guided-proof">
 <h3>Guided Proof Practice</h3>
-<p><strong>Prompt:</strong> Prove that if $(a_n) \to a$ and $(b_n) \to b$ with $a_n \leq b_n$ for all $n \in \mathbb{N}$, then $a \leq b$ (Theorem 2.3.4 part ii). <em>Hint:</em> Define $d_n = b_n - a_n \geq 0$ and use Theorem 2.3.3(ii) alongside Theorem 2.3.4(i).</p>
+<p><strong>Prompt:</strong> Prove that if (<var>a<sub>n</sub></var>) → <var>a</var> and (<var>b<sub>n</sub></var>) → <var>b</var> with <var>a<sub>n</sub></var> ≤ <var>b<sub>n</sub></var> for all <var>n</var> ∈ ℕ, then <var>a</var> ≤ <var>b</var> (Theorem 2.3.4 part ii). <em>Hint:</em> Define <var>d<sub>n</sub></var> = <var>b<sub>n</sub></var> − <var>a<sub>n</sub></var> ≥ 0 and use Theorem 2.3.3(ii) alongside Theorem 2.3.4(i).</p>
 <textarea class="proof-input" placeholder="Write your proof sketch here..."></textarea>
 <details class="model-answer">
 <summary>Click to reveal model answer</summary>
-<p><strong>Model Answer:</strong> Define the sequence $d_n = b_n - a_n$. Since $a_n \leq b_n$ for all $n$, we have $d_n \geq 0$ for all $n \in \mathbb{N}$. By the Algebraic Limit Theorem (Theorem 2.3.3 part ii), $(d_n) = (b_n - a_n) \to b - a$. Now apply Theorem 2.3.4 part (i) to the non-negative sequence $(d_n)$: since $d_n \geq 0$ for all $n$, its limit must be non-negative, so $b - a \geq 0 \implies a \leq b$. $\blacksquare$</p>
+<p><strong>Model Answer:</strong> Define the sequence <var>d<sub>n</sub></var> = <var>b<sub>n</sub></var> − <var>a<sub>n</sub></var>. Since <var>a<sub>n</sub></var> ≤ <var>b<sub>n</sub></var> for all <var>n</var>, we have <var>d<sub>n</sub></var> ≥ 0 for all <var>n</var> ∈ ℕ. By the Algebraic Limit Theorem (Theorem 2.3.3 part ii), (<var>d<sub>n</sub></var>) = (<var>b<sub>n</sub></var> − <var>a<sub>n</sub></var>) → <var>b</var> − <var>a</var>. Now apply Theorem 2.3.4 part (i) to the non-negative sequence (<var>d<sub>n</sub></var>): since <var>d<sub>n</sub></var> ≥ 0 for all <var>n</var>, its limit must be non-negative, so <var>b</var> − <var>a</var> ≥ 0 ⇒ <var>a</var> ≤ <var>b</var>. ∎</p>
 </details>
 </div>
 
@@ -272,14 +279,14 @@ $$|(a_n + b_n) - (a + b)| \leq |a_n - a| + |b_n - b| < \frac{\epsilon}{2} + \fra
 <h3>Exit Ritual: Blank-Page Reconstruction</h3>
 <p>Before closing this lesson, look away from the page and reconstruct the 4 load-bearing steps of sequence analysis:</p>
 <ol>
-<li>The formal $\epsilon$-$N$ definition of convergence (Definition 2.2.3) and its topological neighborhood rephrasing (Definition 2.2.3B).</li>
-<li>Why every convergent sequence is bounded (Theorem 2.3.2) using $\epsilon = 1$ and $M = \max\{|a_1|,\dots,|a_{N-1}|, |L|+1\}$.</li>
-<li>How the Algebraic Limit Theorem (Theorem 2.3.3) uses $\epsilon/2$ splitting and triangle inequality (Lemma 2.3.B) to prove sum and product rules.</li>
-<li>How the Order Limit Theorem (Theorem 2.3.4) proves non-negativity of limits via contradiction using $\epsilon_0 = -a$.</li>
+<li>The formal &epsilon;-<var>N</var> definition of convergence (Definition 2.2.3) and its topological neighborhood rephrasing (Definition 2.2.3B).</li>
+<li>Why every convergent sequence is bounded (Theorem 2.3.2) using &epsilon; = 1 and <var>M</var> = max{|<var>a</var>₁|,…,|<var>a</var><sub><var>N</var>−1</sub>|, |<var>L</var>|+1}.</li>
+<li>How the Algebraic Limit Theorem (Theorem 2.3.3) uses &epsilon;/2 splitting and triangle inequality (Lemma 2.3.B) to prove sum and product rules.</li>
+<li>How the Order Limit Theorem (Theorem 2.3.4) proves non-negativity of limits via contradiction using &epsilon;₀ = −<var>a</var>.</li>
 </ol>
 <details>
 <summary>Check your mental skeleton</summary>
-<p>If you can state: (1) $\forall \epsilon>0, \exists N, n\ge N \implies |a_n-a|<\epsilon$, (2) $\epsilon=1 \implies |a_n|<|L|+1$, (3) $\epsilon/2$ for sum, $M$ bound for product, (4) $\epsilon_0=-a$ forces $a_N<0$, you have mastered the foundational mechanics of Real Analysis limits!</p>
+<p>If you can state: (1) ∀ &epsilon;&gt;0, ∃ <var>N</var>, <var>n</var>≥<var>N</var> ⇒ |<var>a<sub>n</sub></var>−<var>a</var>|&lt;&epsilon;, (2) &epsilon;=1 ⇒ |<var>a<sub>n</sub></var>|&lt;|<var>L</var>|+1, (3) &epsilon;/2 for sum, <var>M</var> bound for product, (4) &epsilon;₀=−<var>a</var> forces <var>a<sub>N</sub></var>&lt;0, you have mastered the foundational mechanics of Real Analysis limits!</p>
 </details>
 </div>
 
