@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-01 — Integers: well-ordering, induction, division</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Integers: well-ordering, induction, division <span class="cite">(aa-01)</span></h1>
+
+<div class="hook">
+You have added and multiplied integers since before you could spell "integer". This lesson hands them back to you as strangers.
+<p>We are hunting for the <em>single</em> structural fact that makes ℤ behave the way it does — not addition, not multiplication, but one quiet statement about <strong>order</strong>: every nonempty collection of nonnegative integers has a smallest member. From that one fact we will re-derive <em>induction</em> (the domino trick turns out to be a theorem here, not an axiom) and prove that you can always divide, landing on a <em>unique</em> remainder. Rings, modules, and homology are all built on top of ℤ — today we set the first stone.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> The well-ordering principle says "every nonempty set of nonnegative <em>integers</em> has a least element." Does the same hold for the positive <em>rationals</em> ℚ<sup>&gt;0</sup>?</p>
+<button onclick="check(this,false)">Yes — least element always exists</button>
+<button data-ok onclick="check(this,true)">No — some nonempty sets have no least element</button>
+<button onclick="check(this,false)">Only for finite sets</button>
+<div class="explain">No. Take the set of <em>all</em> positive rationals. If some q &gt; 0 were least, then q/2 is still positive, still rational, and strictly smaller — contradiction. Well-ordering is a special feature of ℤ<sup>≥0</sup>, not a generic fact about ordered number systems. Hold that thought; it is the whole engine of this lesson. <span class="cite">— Aluffi §1.1, p. 5</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: ℤ is the first ring, and the ground every chain complex is built over — homology with integer coefficients lives here, and "well-ordering ⟹ you can always divide" is the seed of every structure theorem downstream.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The one special property of ℤ</h2>
+
+<p>Before the star of the show, one piece of vocabulary we will lean on twice.</p>
+
+<div class="definition">
+<strong>Definition 1.1 (divides).</strong> Let a, b ∈ ℤ. We say <strong>b divides a</strong> (written b ∣ a) if there is an <em>integer</em> c such that a = bc. <span class="cite">— Aluffi §1.1, Definition 1.1, p. 4</span>
+</div>
+
+<p>So 3 ∣ 18 (because 18 = 3·6, and 6 ∈ ℤ), but 2 ∤ 1 (the only c with 1 = 2c is ½, which is <em>not</em> an integer). The whole subtlety of ℤ lives in that insistence on "integer c". From it comes a small but load-bearing fact.</p>
+
+<div class="theorem">
+<strong>Lemma 1.2.</strong> If b ∣ a and a ≠ 0, then |b| ≤ |a|. <span class="cite">— Aluffi §1.1, Lemma 1.2, p. 4</span>
+</div>
+
+<div class="worked">
+<strong>Proof of Lemma 1.2.</strong> By definition a = bc for some integer c. Since a ≠ 0, both b and c are nonzero. A nonzero <em>integer</em> has absolute value at least 1, so |c| ≥ 1. Then
+<p style="text-align:center">|a| = |b|·|c| ≥ |b|·1 = |b|. ∎</p>
+Notice the step that uses "integer": |c| ≥ 1 is <em>false</em> for a nonzero rational (⅓ ≠ 0 but |⅓| &lt; 1). We will re-use this lemma to pin down uniqueness in Segment 3 — flag it in your memory now.
+</div>
+
+<p>Now the protagonist. ℤ carries the usual total order ≤ (given any two integers, one is ≤ the other). But ℤ<sup>≥0</sup> = {0, 1, 2, 3, …} has a property the rationals and reals lack.</p>
+
+<div class="theorem">
+<strong>The Well-Ordering Principle.</strong> Every nonempty set of nonnegative integers contains a least element. <span class="cite">— Aluffi §1.1, p. 5</span>
+</div>
+
+<p>Aluffi is candid about its status: if we built ℤ from scratch, well-ordering would be <em>adopted as an axiom</em> — there is no way to derive it from more primitive facts. It should still feel obvious ("among finitely-or-infinitely many bags of potatoes, some bag has the fewest"), but the previous panel's prediction shows it is genuinely special: the positive rationals form a nonempty set of "nonnegative rationals" with <em>no</em> least element. Well-ordering is what ℤ has and ℚ does not.</p>
+
+<div class="worked">
+<strong>Worked example — well-ordering as an existence tool.</strong> <em>Claim: every integer n ≥ 2 has a prime divisor.</em>
+<p>Let S be the set of integers n ≥ 2 that have <em>no</em> prime divisor. We want S = ∅. Suppose not: then S is a nonempty set of nonnegative integers, so by well-ordering it has a least element m ≥ 2.</p>
+<p>Now m divides itself, so m has <em>some</em> divisor &gt; 1 (namely m). Is m prime? If m is prime, then m is a prime divisor of m — contradicting m ∈ S. So m is <em>not</em> prime: m = d·e with 1 &lt; d &lt; m. Then d ≥ 2 and d &lt; m, so d ∉ S (m was least in S), meaning d has a prime divisor p. But p ∣ d and d ∣ m give p ∣ m, so p is a prime divisor of m — again contradicting m ∈ S.</p>
+<p>Either way we contradict m ∈ S, so S = ∅. ∎ &nbsp; <em>Pattern to keep:</em> to prove "every … has a …", assume the set of counterexamples is nonempty, take its <strong>least</strong> element, and manufacture a smaller one.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which set is <em>not</em> well-ordered by ≤ (i.e. has a nonempty subset with no least element)?</p>
+<button onclick="check(this,false)">ℤ<sup>≥0</sup>, the nonnegative integers</button>
+<button data-ok onclick="check(this,true)">ℚ<sup>≥0</sup>, the nonnegative rationals</button>
+<button onclick="check(this,false)">{5, 6, 7, 8, …}</button>
+<div class="explain">The nonnegative rationals fail: the subset of <em>strictly positive</em> rationals has no least element (halve any candidate). Every nonempty set of nonnegative integers, by contrast, does have a least element — that is exactly the well-ordering principle. <span class="cite">— Aluffi §1.1, p. 5</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes. Let "take the least counterexample" settle in.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Induction is a theorem here</h2>
+
+<p>You know induction: to prove a property P(n) for all n ≥ 0, prove (i) P(0), and (ii) P(n) ⟹ P(n+1) for every n ≥ 0. The intuition is dominoes — P(0) knocks P(1), which knocks P(2), "and so on forever." Aluffi's needle: <em>"so on forever" is not mathematics.</em> Well-ordering makes it rigorous.</p>
+
+<div class="theorem">
+<strong>Induction, from well-ordering.</strong> If (i) P(0) holds and (ii) P(n) ⟹ P(n+1) for all n ≥ 0, then P(n) holds for all n ≥ 0. <span class="cite">— Aluffi §1.1, pp. 5–6</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Let F = { n ∈ ℤ<sup>≥0</sup> : P(n) is <em>false</em> }. We want F = ∅. Suppose instead F ≠ ∅. Then F is a nonempty set of nonnegative integers, so by well-ordering it has a least element ℓ — the <strong>least counterexample</strong>.
+<p>By (i), P(0) is true, so 0 ∉ F, hence ℓ &gt; 0. Then n = ℓ − 1 is a nonnegative integer with n &lt; ℓ. Because ℓ is the <em>least</em> element of F, this smaller n is not in F: P(ℓ − 1) is true. But (ii) says P(ℓ − 1) ⟹ P(ℓ), so P(ℓ) is true — i.e. ℓ ∉ F. That contradicts ℓ ∈ F.</p>
+<p>The contradiction kills the assumption F ≠ ∅, so F = ∅: P(n) holds for every n ≥ 0. ∎</p>
+<p>Read what happened: induction is just "there is no least counterexample," and <em>that</em> is well-ordering wearing a disguise. Every induction proof can be rewritten this way.</p>
+</div>
+
+<p><em>Scope note:</em> the day-to-day mechanics of writing induction and <strong>strong induction</strong> (assuming P(0), …, P(n) to get P(n+1)) are drilled in <strong>pw-02</strong>; here we care about <em>why</em> the machine runs — well-ordering — and we will use it as a tool, sometimes directly, sometimes dressed as induction.</p>
+
+<div class="worked">
+<strong>Worked example (ordinary induction).</strong> <em>For all n ≥ 1, &nbsp; 1 + 2 + ⋯ + n = n(n+1)/2.</em>
+<p><em>Base.</em> n = 1: left side 1, right side 1·2/2 = 1. ✓</p>
+<p><em>Step.</em> Assume 1 + ⋯ + n = n(n+1)/2. Add (n+1) to both sides:<br>
+1 + ⋯ + n + (n+1) = n(n+1)/2 + (n+1) = (n+1)(n/2 + 1) = (n+1)(n+2)/2,<br>
+which is the formula with n replaced by n+1. By induction it holds for all n ≥ 1. ∎</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — you fill the gaps.</strong> <em>For all n ≥ 1, &nbsp; 1 + 3 + 5 + ⋯ + (2n − 1) = n².</em> (The sum of the first n odd numbers.)
+<p><em>Base.</em> n = 1: left side is 1, right side is ⟨your step: compute 1²⟩, and these agree. ✓</p>
+<p><em>Step.</em> Assume 1 + 3 + ⋯ + (2n − 1) = n². The next odd number is 2(n+1) − 1 = 2n + 1. Add it:<br>
+1 + 3 + ⋯ + (2n − 1) + (2n + 1) = n² + (2n + 1) = ⟨your step: factor this as a square⟩.<br>
+Since ⟨your step⟩ = (n+1)², the statement holds for n+1, and by induction for all n ≥ 1. ∎</p>
+</div>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Prove by induction that 2<sup>n</sup> ≥ n + 1 for all integers n ≥ 0. (Base n = 0: 2⁰ = 1 ≥ 1. For the step, from 2<sup>n</sup> ≥ n+1 show 2<sup>n+1</sup> ≥ n+2 — double both sides, then check 2(n+1) ≥ n+2.) Write it out before revealing anything.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In the well-ordering proof that induction works, what is ℓ?</p>
+<button data-ok onclick="check(this,true)">The least n for which P(n) is false</button>
+<button onclick="check(this,false)">The largest n for which P(n) is true</button>
+<button onclick="check(this,false)">The value P(0)</button>
+<div class="explain">ℓ is the least element of F = {n : P(n) false} — the "least counterexample." The whole proof is showing this least counterexample can't exist: ℓ − 1 satisfies P, and the inductive step (ii) then forces P(ℓ), contradiction. <span class="cite">— Aluffi §1.1, p. 6</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Next we cash well-ordering out into arithmetic you thought you already owned.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Division with remainder — and why the remainder is unique</h2>
+
+<p>The first real dividend of well-ordering: in ℤ you can always divide, provided you allow a remainder — and there is exactly <em>one</em> honest way to do it.</p>
+
+<div class="theorem">
+<strong>Theorem 1.3 (Division with remainder).</strong> Let a, b ∈ ℤ with b ≠ 0. Then there exist a <em>unique</em> quotient q ∈ ℤ and a <em>unique</em> remainder r ∈ ℤ with
+<p style="text-align:center">a = bq + r &nbsp;&nbsp;and&nbsp;&nbsp; 0 ≤ r &lt; |b|.</p>
+<span class="cite">— Aluffi §1.2, Theorem 1.3, p. 6</span>
+</div>
+
+<p><strong>Remark 1.4.</strong> Uniqueness is the whole point. You can write 13 = 4·4 − 3 = 4·3 + 1 = 4·2 + 5 = ⋯ in infinitely many ways; the theorem says exactly <em>one</em> of them puts the remainder in the window 0 ≤ r &lt; 4 (namely 13 = 4·3 + 1). <span class="cite">— Aluffi §1.2, p. 6</span></p>
+
+<div class="worked">
+<strong>Proof — existence (via well-ordering).</strong> Assume b &gt; 0 (if b &lt; 0, run the argument with −b and flip the sign of q; |b| is unchanged). Consider
+<p style="text-align:center">S = { a − bx : x ∈ ℤ, and a − bx ≥ 0 }.</p>
+S is nonempty: if a ≥ 0 take x = 0 to get a ≥ 0 ∈ S; if a &lt; 0 take x = a to get a − ba = a(1 − b) ≥ 0 (since 1 − b ≤ 0). So S is a nonempty set of nonnegative integers, and by <strong>well-ordering</strong> it has a least element r = a − bq for some x = q. By construction a = bq + r and r ≥ 0.
+<p>Why is r &lt; b? Suppose r ≥ b. Then r − b ≥ 0 and r − b = (a − bq) − b = a − b(q+1), so r − b ∈ S. But r − b &lt; r, contradicting that r is the <em>least</em> element of S. Hence r &lt; b = |b|. Existence done.</p>
+</div>
+
+<div class="worked">
+<strong>Proof — uniqueness (via Lemma 1.2).</strong> Suppose a = bq + r = bq′ + r′ with 0 ≤ r, r′ &lt; b. Subtracting,
+<p style="text-align:center">b(q − q′) = r′ − r. &nbsp;&nbsp;(∗)</p>
+Both r, r′ lie in {0, …, b − 1}, so |r′ − r| ≤ b − 1 &lt; |b|. But (∗) says b ∣ (r′ − r). If r′ − r ≠ 0, Lemma 1.2 forces |b| ≤ |r′ − r| — contradicting |r′ − r| &lt; |b|. So r′ − r = 0, i.e. r′ = r; then b(q − q′) = 0 and b ≠ 0 give q′ = q. Unique. ∎</p>
+<p>There is Lemma 1.2 earning its keep — uniqueness is nothing but "a nonzero multiple of b can't be smaller than |b|".</p>
+</div>
+
+<p>Watch existence happen: the picture below starts at a and slides by whole steps of b, and the well-ordering principle is exactly the guarantee that the sliding <em>stops</em> — at the least nonnegative point, which is r.</p>
+
+<canvas id="divcanvas" width="620" height="150" aria-label="Division algorithm as descent to the least nonnegative a - bx"></canvas>
+<div class="controls">
+<button onclick="setDiv(13,4)">13 ÷ 4</button>
+<button onclick="setDiv(-17,5)">−17 ÷ 5</button>
+<button onclick="setDiv(100,7)">100 ÷ 7</button>
+<button onclick="stepDiv()">Step ▸</button>
+<button onclick="resetDiv()">Reset</button>
+</div>
+
+<div class="worked">
+<strong>Worked numeric example.</strong> Divide a = −17 by b = 5. We need 0 ≤ r &lt; 5. Slide down from... up to −17: −17 = 5·(−4) + 3, since 5·(−4) = −20 and −17 − (−20) = 3, and 0 ≤ 3 &lt; 5. So q = −4, r = 3. (Note the naive "−17 = 5·(−3) − 2" is rejected: −2 is outside the window.)
+</div>
+
+<div class="worked fade">
+<strong>Faded example.</strong> Divide a = 100 by b = 7.
+<p>The multiples of 7 near 100 are 7·14 = 98 and 7·15 = 105. The largest one <em>not exceeding</em> 100 is ⟨your step: which one?⟩, giving q = 14 and r = 100 − ⟨your step⟩ = ⟨your step⟩, with 0 ≤ r &lt; 7. Check: 7·14 + r = 100.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Dividing a = −17 by b = 5 with the theorem's rule (0 ≤ r &lt; 5), the remainder r is:</p>
+<button onclick="check(this,false)">−2</button>
+<button data-ok onclick="check(this,true)">3</button>
+<button onclick="check(this,false)">2</button>
+<div class="explain">r must satisfy 0 ≤ r &lt; 5, which rules out −2. Since −17 = 5·(−4) + 3 and 0 ≤ 3 &lt; 5, we get q = −4, r = 3. Remainders are always taken in [0, |b|), even for negative a. <span class="cite">— Aluffi §1.2, Theorem 1.3, p. 6</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In the existence proof, which principle guarantees the set S = {a − bx ≥ 0} actually <em>has</em> a least element r?</p>
+<button onclick="check(this,false)">The inductive step P(n) ⟹ P(n+1)</button>
+<button data-ok onclick="check(this,true)">The well-ordering principle</button>
+<button onclick="check(this,false)">Lemma 1.2</button>
+<div class="explain">S is a nonempty set of nonnegative integers, so well-ordering hands us its least element, which we name r. (Lemma 1.2 is used later, for <em>uniqueness</em>, not existence.) This is the same "take the least element" move as Segment 1's prime-divisor proof. <span class="cite">— Aluffi §1.2, p. 7</span></div>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Use the well-ordering principle to prove: <strong>there is no integer n with 0 &lt; n &lt; 1.</strong> Draft your argument here, then reveal the model and compare — grade yourself on whether you (a) built the right set, (b) invoked well-ordering explicitly, (c) produced a genuinely smaller element.</p>
+<textarea placeholder="Suppose, for contradiction, that the set S = { n in Z : 0 < n < 1 } is nonempty. Then ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>Suppose for contradiction that S = { n ∈ ℤ : 0 &lt; n &lt; 1 } is nonempty. Every element of S is a positive integer, hence nonnegative, so S is a nonempty set of nonnegative integers. By the <strong>well-ordering principle</strong>, S has a least element m, with 0 &lt; m &lt; 1.</p>
+<p>Since 0 &lt; m &lt; 1, multiplying the inequality m &lt; 1 by the positive number m gives m² &lt; m; and m² &gt; 0. So 0 &lt; m² &lt; m &lt; 1. Now m² is an integer (a product of the integer m with itself), and it satisfies 0 &lt; m² &lt; 1, so m² ∈ S. But m² &lt; m contradicts m being the <em>least</em> element of S.</p>
+<p>Therefore S is empty: no integer lies strictly between 0 and 1. ∎ &nbsp; (Same recipe as every proof today: nonempty set of nonnegatives → least element → build something smaller → contradiction.)</p>
+</details>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. From nothing, reconstruct today's skeleton — the three load-bearing claims and why each forces the next:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Well-ordering</strong> is <em>the</em> special fact about ℤ: every nonempty set of nonnegative integers has a least element (false for ℚ<sup>≥0</sup>). It is taken as an axiom.</li>
+<li>It <strong>implies induction</strong>: if P had any counterexample, well-ordering would hand us the <em>least</em> one ℓ; but P(ℓ−1) holds and the step forces P(ℓ) — no least counterexample can exist, so there are none.</li>
+<li>It <strong>implies division with remainder</strong>: the set {a − bx ≥ 0} is nonempty nonnegative, so it has a least element r = a − bq with 0 ≤ r &lt; |b| (existence); and <strong>Lemma 1.2</strong> — a nonzero multiple of b has absolute value ≥ |b| — squeezes r′ − r to 0 (uniqueness).</li>
+</ol>
+One fact about <em>order</em>, and out fall induction and division. That is the whole lesson.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §1.1 "The Well-Ordering Principle and Induction" (Definition 1.1 divisibility, Lemma 1.2, the well-ordering principle, induction from well-ordering), pp. 4–6; §1.2 "'Division with Remainder' in ℤ" (Theorem 1.3, Remark 1.4), pp. 6–7. Prime-divisor and 0&lt;n&lt;1 arguments are standard well-ordering exercises composed for this lesson. Mechanics of induction/strong induction are developed in pw-02.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Division-as-descent visual: slide a - b*x down to the least nonnegative value r.
+var dc=document.getElementById('divcanvas'),dx=dc.getContext('2d');
+var A=13,B=4,cur=13,q=0;
+function drawDiv(){dx.clearRect(0,0,dc.width,dc.height);
+ var W=dc.width,mid=95,unit=Math.max(6,Math.min(38,420/Math.max(Math.abs(A),B*3+1)));
+ var originX=W/2-(A/ (Math.abs(A)||1))*0; originX=70;
+ // number line
+ dx.strokeStyle='#2a333d';dx.lineWidth=1;dx.beginPath();dx.moveTo(20,mid);dx.lineTo(W-20,mid);dx.stroke();
+ // shade the target window [0,B)
+ dx.fillStyle='rgba(138,180,248,0.15)';dx.fillRect(originX,mid-26,B*unit,52);
+ dx.fillStyle='#8ab4f8';dx.font='12px Segoe UI';dx.fillText('window 0 ≤ r < '+B,originX+2,mid-32);
+ // ticks for multiples of B from 0
+ dx.fillStyle='#9aa5b1';dx.font='11px Segoe UI';
+ for(var k=0;k*unit<W-40 && k<40;k++){var xx=originX+k*B*unit;if(xx>W-20)break;dx.strokeStyle='#22303c';dx.beginPath();dx.moveTo(xx,mid-6);dx.lineTo(xx,mid+6);dx.stroke();dx.fillText(''+(k*B),xx-4,mid+20);}
+ dx.fillStyle='#26313c';for(var k=0;k*unit<W-40 && k<60;k++){var xx=originX+k*unit;if(xx>W-20)break;}
+ // current point a - b*q
+ var px=originX+cur*unit;
+ dx.fillStyle=(cur>=0&&cur<B)?'#4caf82':'#d8a657';
+ dx.beginPath();dx.arc(px,mid,7,0,7);dx.fill();
+ dx.fillStyle='#e8e8e8';dx.font='13px Segoe UI';
+ dx.fillText('a − b·q = '+A+' − '+B+'·('+q+') = '+cur,20,24);
+ if(cur>=0&&cur<B){dx.fillStyle='#4caf82';dx.fillText('least nonnegative reached → q = '+q+', r = '+cur,20,44);}
+ else if(cur<0){dx.fillStyle='#d8a657';dx.fillText('overshot below 0 — step back',20,44);}
+ else{dx.fillStyle='#9aa5b1';dx.fillText('still ≥ b, keep stepping ▸',20,44);}
+}
+function setDiv(a,b){A=a;B=b;q=Math.floor(a/b)-2;if(!isFinite(q))q=0;cur=A-B*q;if(cur<0){q=Math.floor(a/b);cur=A-B*q;}resetDiv();}
+function resetDiv(){q=A>=0?0:Math.floor(A/B)-1;cur=A-B*q;drawDiv();}
+function stepDiv(){if(cur-B>=0){q+=1;cur=A-B*q;}else if(cur<0){q-=1;cur=A-B*q;}drawDiv();}
+resetDiv();
+</script></body></html>
