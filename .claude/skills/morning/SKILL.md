@@ -11,7 +11,9 @@ description: Pre-build today's study day and post the hook notification. Run by 
    `python srs/scheduler.py stats`, two lecture candidates from different
    modules, problem segment) and write it to state/sessions/YYYY-MM-DD.md
    under a "## Plan (pre-built 06:30)" heading. /today step 2's resume
-   check picks this up so nothing is rebuilt.
+   check picks this up so nothing is rebuilt. If that `stats` reports
+   `engram.ready: true`, add ONE line to the plan: "FSRS scheduler swap
+   unblocked — see docs/engram-fsrs-swap.md" (no more than one line).
 3. Run `python scripts/build_dashboard.py`.
 4. Send ONE notification whose text IS the hook: "<hook of lecture-1 unit>
    — that's lecture 1. <n> cards waiting. /today when ready." Use the push

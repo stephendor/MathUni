@@ -27,3 +27,11 @@ Phases 2+3 (2026-07-07): SRS, mastery gating, problem sets, resume, morning rout
    threshold). Deck format is JSON either way; migration is mechanical.
    Do NOT run engram as a parallel plugin for maths content — two review
    queues over one curriculum fragments the spacing data.
+
+   **STAGED & WIRED (2026-07-22).** The FSRS-4.5 *core* (not engram's
+   concept-graph engine) is vendored to `srs/fsrs.py`, dormant behind
+   `srs/config.json` (`"scheduler": "sm2"`). A trip-wire on the `due`/`rate`
+   path fires an `[engram]` banner once the deck hits 50 cumulative reps
+   (currently 30), so this no longer relies on remembering this note. One
+   command flips it: `python srs/scheduler.py swap-to-fsrs`. Full design,
+   migration semantics, and refit: `docs/engram-fsrs-swap.md`.
