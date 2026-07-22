@@ -53,6 +53,13 @@ zero external requests, MathML/Unicode maths only (no LaTeX/JS libraries).
 
 ## Stage 1 — Reference A/B (do this first)
 
+> **One-command harness:** `python scripts/drift_bundle.py <unit>` builds the isolated
+> bundle (reference pulled from git, the answer excluded) outside the repo, so the college
+> slash commands never see it. After generating, `python scripts/drift_bundle.py <unit> --check`
+> runs the whole free pre-filter: coverage + HTML parse + self-contained + `lesson_lint`
+> (render fidelity + structural counts, i.e. rubric Gate 0.5). Candidates that survive come
+> to Claude for the scored Gates 1-3.
+
 Isolates the variables on a unit already built to standard.
 
 - **Target:** regenerate `aa-01` (proof-heavy: has a guided proof, faded examples, *and* a canvas visual — maximum surface to drift on). Its problem set and syllabus entry already exist.

@@ -23,15 +23,21 @@ Model-agnostic, free, run before a human looks. Any FAIL ⇒ reject, do not scor
 | 0.2 | HTML parses clean | `python -c "from html.parser import HTMLParser; HTMLParser().feed(open(PATH,encoding='utf-8').read())"` | ☐ |
 | 0.3 | Self-contained: zero external requests | grep the file for `http://`, `https://`, `src=`, `cdn`, `<link`, external `<script src>` → none | ☐ |
 | 0.4 | Zero browser console errors on load | open in browser pane, read console | ☐ |
+| 0.5 | Renders faithfully + structural counts: no invalid HTML entities or LaTeX leak (render as literal text yet raise no error), and the countable structure items are present in sufficient number (>=4 self-checks, 2-3 segments, breaks, >=1 faded, guided proof, visual, blank-page, mission, footer) | `python scripts/lesson_lint.py lessons/<m>/<u>.html` | ☐ |
 
-> ⚠️ Gate 0 proves **form and mention**, never truth. 0.1 confirms a ref is
-> *present*, not that its statement or proof is *correct*. Correctness is Gate 2.
+> ⚠️ Gate 0 proves **form and mention**, never truth. 0.1-0.4 confirm a ref is
+> *present*, parses, and does not error; **0.5** (added after the aa-01 drift test)
+> catches invalid-entity / LaTeX-leak rendering and structural undercounts that emit no
+> error -- the two drifts a cheaper model actually produced. None of Gate 0 checks whether
+> a statement or proof is *correct*; that is Gate 2.
 
 ---
 
 ## Gate 1 — Structural conformance (binary; all 12 required)
 
 Straight from LESSON-GUIDE §Structure — "non-negotiable". Any FAIL ⇒ revise.
+
+> Items 1.4-1.6 and 1.8-1.11 are **mechanically pre-screened** by `scripts/lesson_lint.py` (Gate 0.5): a failure there bounces the lesson before a human scores this gate. The lint keys on semantic signals (e.g. `<textarea>` for the guided proof, "reconstruct" for the blank page), so it accepts either the reference's or a generator's markup conventions.
 
 | # | Item | Pass? |
 |---|------|:---:|
