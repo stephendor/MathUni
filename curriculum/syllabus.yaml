@@ -21,11 +21,12 @@ modules:
     semester: s1
     primary_text: "Abbott, Understanding Analysis (Core Texts)"
     support: ["Brannan", "Oxford M2 Analysis I", "Spivak Calculus"]
-  - id: gt
-    title: Group Theory
+  - id: aa
+    title: Abstract Algebra
     semester: s1
-    primary_text: "Aluffi, Algebra: Notes from the Underground (Core Texts)"
-    support: ["Carter, Visual Group Theory", "Macauley VGT playlist",
+    primary_text: "Aluffi, Algebra: Notes from the Underground — ch. 1-12 (Core Texts)"
+    support: ["Carter, Visual Group Theory (visual layer, groups units only)",
+              "Macauley VGT playlist (visual layer, groups units only)",
               "Oxford M1 Groups and Group Actions notes"]
   - id: pw
     title: Proof Workshop
@@ -38,11 +39,7 @@ modules:
     semester: s2
     primary_text: "Munkres, Topology (Core Texts)"
     support: ["Dexter Chua notes", "Conway", "McCleary"]
-  - id: rm
-    title: Rings and Modules
-    semester: s2
-    primary_text: "Aluffi Underground -> Chapter 0"
-    support: []
+  # (Rings & Modules absorbed into the Semester-1 'aa' Abstract Algebra module.)
   - id: an2
     title: Analysis II
     semester: s2
@@ -61,7 +58,7 @@ modules:
   - id: cat
     title: Category Theory Essentials
     semester: s3
-    primary_text: "Aluffi Chapter 0"
+    primary_text: "Aluffi Chapter 0 (deepens the categorical thread built through aa)"
     support: ["Spivak, Applied Category Theory"]
   - id: tda1
     title: TDA I
@@ -329,88 +326,230 @@ units:
     hook: "Everything you just proved for R, replayed on any set with a distance."
     mission_link: "Point clouds, diagram space, bottleneck distance: all metric spaces."
 
-  # ---- Group Theory (Aluffi Underground + visual strand) ----
-  - id: gt-01
-    module: gt
-    title: "Symmetry: groups before the definition"
+  # ---- Abstract Algebra (Aluffi Underground ch. 1-12; rings -> modules -> groups) ----
+  # Optional motivation aside (ungated); the spine proper starts at aa-01.
+  - id: aa-00
+    module: aa
+    title: "Symmetry: groups before the definition (optional)"
     prereqs: []
     resources: ["Carter ch. 1-2", "Macauley VGT lecture 1"]
     hook: "A rectangle, a light switch, and a dance move walk into a bar — same group."
-    mission_link: "Groups measure symmetry; homology groups measure holes. Same idiom."
-  - id: gt-02
-    module: gt
-    title: "Groups: definition and first properties"
-    prereqs: ["gt-01", "pw-01"]
-    resources: ["Aluffi Underground ch. 11", "Oxford M1 Groups"]
-    hook: "Four axioms that generate a universe."
-    mission_link: "H1 is a group before it's anything else."
-  - id: gt-03
-    module: gt
-    title: "Cayley diagrams and generators"
-    prereqs: ["gt-02"]
-    resources: ["Carter ch. 2-3", "Macauley VGT lectures 2-3"]
-    hook: "Draw the group: every group is a graph you can walk."
-    mission_link: "Visual habit-building for fundamental group loops later."
-  - id: gt-04
-    module: gt
-    title: "Subgroups and cyclic groups"
-    prereqs: ["gt-02"]
-    resources: ["Aluffi Underground ch. 10-11"]
-    hook: "The clock arithmetic hiding inside every group."
-    mission_link: "Torsion in homology = cyclic subgroups making themselves felt."
-  - id: gt-05
-    module: gt
-    title: "Homomorphisms and isomorphisms"
-    prereqs: ["gt-04"]
-    resources: ["Aluffi Underground ch. 11", "Macauley VGT"]
-    hook: "Structure-preserving maps: the only arrows that matter."
-    mission_link: "Induced maps on homology are homomorphisms — functoriality's atoms."
-  - id: gt-06
-    module: gt
-    title: "Cosets and Lagrange's theorem"
-    prereqs: ["gt-04"]
-    resources: ["Aluffi Underground ch. 12"]
-    hook: "Tile a group by copies of a subgroup; count the tiles."
-    mission_link: "Cosets are the elements of every quotient you'll ever take."
-  - id: gt-07
-    module: gt
-    title: "Normal subgroups and quotient groups"
-    prereqs: ["gt-05", "gt-06"]
-    resources: ["Aluffi Underground ch. 11-12"]
-    hook: "When does collapsing a subgroup leave a group behind? (Compare la-09.)"
-    mission_link: "Homology IS a quotient group. This is the single most mission-critical unit."
-  - id: gt-08
-    module: gt
-    title: "The isomorphism theorems"
-    prereqs: ["gt-07"]
-    resources: ["Aluffi Underground ch. 11-12"]
-    hook: "Three theorems, one picture: the lattice folds."
-    mission_link: "Used silently in every homology computation you'll do."
-  - id: gt-09
-    module: gt
+    mission_link: "Optional on-ramp: structure abstracted from examples, the move algebra makes over and over."
+
+  # -- Rings (Underground Part I, ch. 1-7) --
+  - id: aa-01
+    module: aa
+    title: "Integers: well-ordering, induction, division"
+    prereqs: ["pw-01"]
+    resources: ["Aluffi Underground 1.1-1.2"]
+    hook: "The integers you've known since childhood, re-introduced as strangers with axioms."
+    mission_link: "Z is the first ring, and the ground every chain complex is built over."
+  - id: aa-02
+    module: aa
+    title: "GCD, Bezout, and the Fundamental Theorem of Arithmetic"
+    prereqs: ["aa-01"]
+    resources: ["Aluffi Underground 1.3-1.4"]
+    hook: "Why is 1 = 3*5 - 2*7? Bezout says every gcd is a hidden combination."
+    mission_link: "Unique factorisation is the template for every 'decompose into irreducibles' theorem ahead."
+  - id: aa-03
+    module: aa
+    title: "Equivalence relations, quotients, and Z/nZ"
+    prereqs: ["aa-02", "pw-03"]
+    resources: ["Aluffi Underground 2.1-2.2"]
+    hook: "Glue every multiple of 12 into a single point and a clock falls out."
+    mission_link: "Your very first quotient — the construction homology is built from, rehearsed on integers."
+  - id: aa-04
+    module: aa
+    title: "Arithmetic in Z/nZ; Fermat's little theorem and RSA"
+    prereqs: ["aa-03"]
+    resources: ["Aluffi Underground 2.3-2.5"]
+    hook: "Do arithmetic where 7 + 7 = 2, then watch it encrypt the internet."
+    mission_link: "Finite rings are the coefficient worlds Z/2, Z/p that TDA computes homology over."
+  - id: aa-05
+    module: aa
+    title: "Rings: definition, examples, basic properties"
+    prereqs: ["aa-04"]
+    resources: ["Aluffi Underground 3.1-3.2"]
+    hook: "One structure that holds the integers, polynomials, matrices, and functions all at once."
+    mission_link: "Coefficients for homology come from a ring; everything downstream lives here."
+  - id: aa-06
+    module: aa
+    title: "Domains, fields, and zero-divisors"
+    prereqs: ["aa-05"]
+    resources: ["Aluffi Underground 3.3"]
+    hook: "In some rings two nonzero things multiply to zero. That single defect reshapes everything."
+    mission_link: "Field coefficients make homology a vector space; over a ring you keep torsion. This is that fork."
+  - id: aa-07
+    module: aa
+    title: "The category of rings I: products and subrings"
+    prereqs: ["aa-06"]
+    resources: ["Aluffi Underground 4.1-4.2"]
+    hook: "Stop studying rings one at a time; study the arrows between all of them."
+    mission_link: "The categorical habit — objects plus structure-preserving maps — that persistence lives inside."
+  - id: aa-08
+    module: aa
+    title: "Ring homomorphisms and isomorphisms"
+    prereqs: ["aa-07"]
+    resources: ["Aluffi Underground 4.3-4.4"]
+    hook: "The only maps a ring respects — and when two rings are secretly identical."
+    mission_link: "Induced maps on homology are homomorphisms; functoriality is born here."
+  - id: aa-09
+    module: aa
+    title: "Kernels, ideals, and quotient rings"
+    prereqs: ["aa-08"]
+    resources: ["Aluffi Underground 5.1-5.3"]
+    hook: "Collapse an ideal to zero and a brand-new ring survives the fall. (Compare la-09.)"
+    mission_link: "Kernel-mod-image, made concrete for rings — the exact shape of a homology group."
+  - id: aa-10
+    module: aa
+    title: "Isomorphism theorems for rings; the Chinese Remainder Theorem"
+    prereqs: ["aa-09"]
+    resources: ["Aluffi Underground 5.4-5.7"]
+    hook: "One diagram — kernel, image, quotient — that you will now see everywhere for the rest of your life."
+    mission_link: "First pass at the isomorphism theorems, the engine of every homology computation."
+  - id: aa-11
+    module: aa
+    title: "Prime and maximal ideals; primes vs irreducibles"
+    prereqs: ["aa-10"]
+    resources: ["Aluffi Underground 6.1-6.2"]
+    hook: "Which ideals behave like prime numbers? The answer builds a geometry out of algebra."
+    mission_link: "Primes and maximals are the points of the spectrum — algebra's first bridge back to space."
+  - id: aa-12
+    module: aa
+    title: "Euclidean domains, PIDs, UFDs; field of fractions"
+    prereqs: ["aa-11"]
+    resources: ["Aluffi Underground 6.3-6.5"]
+    hook: "Rank rings by how much of the integers' good behaviour they keep — one chain of acronyms."
+    mission_link: "'Principal ideal domain' is the exact hypothesis the persistence structure theorem will demand."
+  - id: aa-13
+    module: aa
+    title: "Polynomial rings over a field"
+    prereqs: ["aa-12"]
+    resources: ["Aluffi Underground 7.1-7.2"]
+    hook: "k[x]: the ring that behaves almost exactly like the integers, long division and all."
+    mission_link: "A persistence module is formally a graded module over k[x] — this is that ring."
+  - id: aa-14
+    module: aa
+    title: "Irreducibility and factorization in Q[x], Z[x]"
+    prereqs: ["aa-13"]
+    resources: ["Aluffi Underground 7.3-7.5"]
+    hook: "Is x^4 + 1 secretly a product? Eisenstein hands you a one-line lie detector."
+    mission_link: "Rigour and technique; the factorisation habits carry straight into module decomposition."
+
+  # -- Modules (Underground Part II, ch. 8-9) --
+  - id: aa-15
+    module: aa
+    title: "Modules and the category of R-modules"
+    prereqs: ["aa-14", "la-05"]
+    resources: ["Aluffi Underground 8.1-8.2"]
+    hook: "Take a vector space and let the scalars be any ring. Almost nothing — and everything — changes."
+    mission_link: "Homology's true home: chain groups are modules, not merely vector spaces."
+  - id: aa-16
+    module: aa
+    title: "Submodules, direct sums, and quotient modules"
+    prereqs: ["aa-15"]
+    resources: ["Aluffi Underground 8.3-8.4"]
+    hook: "Quotients again — but this is the exact move, cycles mod boundaries, that defines a homology group."
+    mission_link: "Z/B is a quotient module. This unit is homology, one abstraction early."
+  - id: aa-17
+    module: aa
+    title: "Isomorphism theorems for modules"
+    prereqs: ["aa-16"]
+    resources: ["Aluffi Underground 8.5"]
+    hook: "The same three theorems, a category deeper — and the exact version homology uses."
+    mission_link: "Second pass at the iso theorems; these are the identities behind every Betti computation."
+  - id: aa-18
+    module: aa
+    title: "Free modules; modules from matrices"
+    prereqs: ["aa-17"]
+    resources: ["Aluffi Underground 9.1-9.2"]
+    hook: "When does a module have a basis? And what a matrix is really presenting."
+    mission_link: "Boundary matrices present the chain modules; reducing them is persistence computation."
+  - id: aa-19
+    module: aa
+    title: "Finitely generated vs finitely presented modules"
+    prereqs: ["aa-18"]
+    resources: ["Aluffi Underground 9.3-9.4"]
+    hook: "Generators and relations: describe an infinite object with a finite blueprint."
+    mission_link: "A finite presentation is exactly what a computer stores to compute homology."
+  - id: aa-20
+    module: aa
+    title: "Structure theorem: finitely generated modules over a PID"
+    prereqs: ["aa-19", "la-07"]
+    resources: ["Aluffi Underground 9.5-9.6"]
+    hook: "One theorem shatters every f.g. module into free part plus torsion — cleanly, and uniquely."
+    mission_link: "This IS the barcode: persistence modules decompose into intervals by exactly this theorem."
+
+  # -- Abelian groups (Underground ch. 10) --
+  - id: aa-21
+    module: aa
+    title: "Abelian groups as Z-modules; cyclic groups and orders"
+    prereqs: ["aa-20"]
+    resources: ["Aluffi Underground 10.1-10.2"]
+    hook: "Every abelian group is secretly a Z-module — so you already proved most of this last unit."
+    mission_link: "H0 and torsion in homology are finitely generated abelian groups; this is how you read them."
+  - id: aa-22
+    module: aa
+    title: "Classification of finitely generated abelian groups"
+    prereqs: ["aa-21"]
+    resources: ["Aluffi Underground 10.3-10.4"]
+    hook: "A complete periodic table: every f.g. abelian group, named, with no exceptions."
+    mission_link: "Free rank (Betti numbers) plus torsion coefficients — the full content of an integral homology group."
+
+  # -- Groups (Underground Part III, ch. 11-12; visual layer returns) --
+  - id: aa-23
+    module: aa
+    title: "Groups and their category: subgroups and homomorphisms"
+    prereqs: ["aa-22"]
+    resources: ["Aluffi Underground 11.1", "Carter ch. 1-2", "Macauley VGT lecture 1-2"]
+    hook: "Drop commutativity and the world turns wilder — symmetry in its full non-abelian glory. (Remember aa-00's rectangle?)"
+    mission_link: "Fundamental groups and covering-space deck transformations are non-abelian; this is their grammar."
+  - id: aa-24
+    module: aa
     title: "Group actions"
-    prereqs: ["gt-05"]
-    resources: ["Aluffi Underground ch. 12", "Oxford M1 Groups and Group Actions"]
-    hook: "Groups don't just exist — they DO things to spaces."
-    mission_link: "Covering space theory (Semester 3) is group actions on topology."
-  - id: gt-10
-    module: gt
-    title: "Orbit-stabiliser and counting"
-    prereqs: ["gt-09"]
-    resources: ["Aluffi Underground ch. 12"]
-    hook: "How many truly different necklaces? Burnside knows."
-    mission_link: "Orbit decompositions mirror how covering spaces partition fibres."
-  - id: gt-11
-    module: gt
-    title: "Symmetric and alternating groups"
-    prereqs: ["gt-06"]
-    resources: ["Aluffi Underground ch. 11"]
-    hook: "Every group hides inside a shuffle."
-    mission_link: "Simplicial orientation signs are alternating-group bookkeeping."
-  - id: gt-12
-    module: gt
-    title: "Direct products and small-group classification"
-    prereqs: ["gt-08", "gt-11"]
-    resources: ["Aluffi Underground ch. 10, 12", "Carter"]
-    hook: "Build a periodic table of every group up to order 15."
-    mission_link: "Homology outputs decompose as direct sums — reading them needs this."
+    prereqs: ["aa-23"]
+    resources: ["Aluffi Underground 11.2", "Oxford M1 Groups and Group Actions"]
+    hook: "Groups don't just sit there — they DO things to sets, and the doing is where the theorems hide."
+    mission_link: "Covering space theory (Semester 3) is a group acting on a space; deck groups are actions."
+  - id: aa-25
+    module: aa
+    title: "Cyclic, dihedral, symmetric, and free groups"
+    prereqs: ["aa-24"]
+    resources: ["Aluffi Underground 11.3", "Carter ch. 2-3", "Macauley VGT lectures 2-3"]
+    hook: "The zoo: clocks, mirror symmetries, shuffles — and the wildest of all, the free group."
+    mission_link: "Free groups are literally the fundamental groups of graphs; symmetric-group signs orient simplices."
+  - id: aa-26
+    module: aa
+    title: "Normality and quotient groups"
+    prereqs: ["aa-25"]
+    resources: ["Aluffi Underground 11.4"]
+    hook: "Which subgroups can you divide by? The quotient move in its non-abelian final form. (Compare aa-09, aa-16.)"
+    mission_link: "Hn is a quotient group; the third and deepest rehearsal of homology's defining construction."
+  - id: aa-27
+    module: aa
+    title: "Isomorphism theorems for groups"
+    prereqs: ["aa-26"]
+    resources: ["Aluffi Underground 11.5"]
+    hook: "Third pass, three categories deep — rings, modules, groups — one lattice that always folds the same way."
+    mission_link: "The version used silently in every homology and fundamental-group computation you will read."
+  - id: aa-28
+    module: aa
+    title: "Lagrange's theorem and the class equation"
+    prereqs: ["aa-27"]
+    resources: ["Aluffi Underground 12.1-12.2"]
+    hook: "Count a group by tiling it with copies of a subgroup — and counting suddenly proves structure."
+    mission_link: "Counting arguments recur in covering-space degrees and orbit decompositions."
+  - id: aa-29
+    module: aa
+    title: "Classification, simplicity, and Sylow's theorems"
+    prereqs: ["aa-28"]
+    resources: ["Aluffi Underground 12.3-12.5"]
+    hook: "Prime factorisation for groups: Sylow's theorems pull p-subgroups out of thin air."
+    mission_link: "The deep structural payoff — how a finite symmetry group is actually taken apart."
+  - id: aa-30
+    module: aa
+    title: "Simplicity of A_n and solvable groups"
+    prereqs: ["aa-29"]
+    resources: ["Aluffi Underground 12.6-12.7"]
+    hook: "Why you cannot solve the quintic by radicals — a group-theoretic murder mystery, solved."
+    mission_link: "Capstone of the algebra arc; solvable and simple groups close the Underground's group story."
