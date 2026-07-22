@@ -553,3 +553,232 @@ units:
     resources: ["Aluffi Underground 12.6-12.7"]
     hook: "Why you cannot solve the quintic by radicals — a group-theoretic murder mystery, solved."
     mission_link: "Capstone of the algebra arc; solvable and simple groups close the Underground's group story."
+
+  # ==== SEMESTER 2 ========================================================
+
+  # ---- Point-Set Topology (Munkres; quotient-heavy, climaxing in cell complexes) ----
+  # Linear spine top-01..top-13; cross-links into the analysis strand at 01/06/08.
+  # Urysohn/Tietze/metrization (Munkres §33-35) are out of scope for the mission.
+  - id: top-01
+    module: top
+    title: "Topological spaces and open sets"
+    prereqs: ["an-07"]
+    resources: ["Munkres §12"]
+    hook: "Forget distance. Keep only which sets are open — and almost all of analysis still works."
+    mission_link: "A topology is the minimal structure on which continuity, and therefore homology, can be defined."
+  - id: top-02
+    module: top
+    title: "Basis, order, and subspace topologies"
+    prereqs: ["top-01"]
+    resources: ["Munkres §13, §14, §16"]
+    hook: "You can't list every open set by hand — so name a basis and let it generate the rest."
+    mission_link: "The subspace topology is how sampled data inherits structure from the space it sits inside."
+  - id: top-03
+    module: top
+    title: "Closed sets, closure, interior, and limit points"
+    prereqs: ["top-02"]
+    resources: ["Munkres §17"]
+    hook: "The closure adds exactly the points you can sneak up on — the boundary made precise."
+    mission_link: "Limit points and closure are the raw material of the connectedness and compactness proofs ahead."
+  - id: top-04
+    module: top
+    title: "Continuous functions and homeomorphisms"
+    prereqs: ["top-03"]
+    resources: ["Munkres §18"]
+    hook: "Continuity with no epsilons: preimages of open sets are open. (You proved this shape in an-10.)"
+    mission_link: "A homeomorphism is topology's notion of 'same shape' — the equivalence TDA measures everything against."
+  - id: top-05
+    module: top
+    title: "The product topology"
+    prereqs: ["top-04"]
+    resources: ["Munkres §15, §19"]
+    hook: "Infinitely many spaces, one product — and the obvious box topology is the wrong answer. Why?"
+    mission_link: "Product spaces model multi-parameter data; this subtlety returns in multiparameter persistence."
+  - id: top-06
+    module: top
+    title: "The metric topology"
+    prereqs: ["top-05", "an-14"]
+    resources: ["Munkres §20, §21"]
+    hook: "Every metric space is a topological space — so all of an-14 was secretly topology already."
+    mission_link: "Point clouds are metric spaces; this is the bridge from their distances to their topology."
+  - id: top-07
+    module: top
+    title: "Connectedness and components"
+    prereqs: ["top-06"]
+    resources: ["Munkres §23, §24, §25"]
+    hook: "Can you walk between any two points without leaving the set? Counting the pieces is H0."
+    mission_link: "Connected components ARE zeroth homology — the first and most robust Betti number."
+  - id: top-08
+    module: top
+    title: "Compactness"
+    prereqs: ["top-07", "an-08"]
+    resources: ["Munkres §26, §27"]
+    hook: "Every open cover has a finite subcover — the property that tames the infinite, now off the real line."
+    mission_link: "TDA's theory lives on compact spaces; filtrations of compact data are where the theorems hold."
+  - id: top-09
+    module: top
+    title: "Limit-point and local compactness"
+    prereqs: ["top-08"]
+    resources: ["Munkres §28, §29"]
+    hook: "Three flavours of compactness — and when the neighbourhood, not the whole space, is what behaves finitely."
+    mission_link: "Local compactness underwrites the well-behaved spaces (manifolds) that real data is sampled from."
+  - id: top-10
+    module: top
+    title: "The countability axioms"
+    prereqs: ["top-09"]
+    resources: ["Munkres §30"]
+    hook: "How small is your space's basis? Second-countability quietly powers half the metrization results."
+    mission_link: "Countability separates the pathological spaces from the ones data can actually sample."
+  - id: top-11
+    module: top
+    title: "Separation axioms and normal spaces"
+    prereqs: ["top-10"]
+    resources: ["Munkres §31, §32"]
+    hook: "Can points be told apart by open sets? Hausdorff and beyond — a ladder of how polite a space is."
+    mission_link: "Hausdorffness is the sanity axiom persistence diagrams and their limits silently assume."
+  - id: top-12
+    module: top
+    title: "The quotient topology"
+    prereqs: ["top-11"]
+    resources: ["Munkres §22"]
+    hook: "Glue the edges of a square and a torus falls out — the construction algebraic topology is built on. (Compare la-09, aa-09, aa-16.)"
+    mission_link: "Quotients build every cell complex; the fourth and most geometric rehearsal of the collapse move."
+  - id: top-13
+    module: top
+    title: "Quotient constructions: cones, suspension, CW complexes"
+    prereqs: ["top-12"]
+    resources: ["Munkres §22 (constructions)", "Hatcher ch. 0"]
+    hook: "Cone a space to a point, suspend it, or build it cell by cell — the Lego kit of algebraic topology."
+    mission_link: "CW complexes are exactly the spaces whose homology a computer can compute — the on-ramp to at1 and the lab."
+
+  # ---- Analysis II (Oxford M2; metric spaces, uniform convergence, Banach spaces) ----
+  # Linear spine an2-01..an2-09; cross-links into an (analysis I) and la.
+  - id: an2-01
+    module: an2
+    title: "Metric-space topology, deepened"
+    prereqs: ["an-14"]
+    resources: ["Oxford M2 Metric Spaces notes", "Abbott 8.2 (or equiv.)"]
+    hook: "Open balls, Cauchy sequences, continuity — replayed on any metric space until it is second nature."
+    mission_link: "The space of persistence diagrams is a metric space; fluency here is fluency there."
+  - id: an2-02
+    module: an2
+    title: "Completeness and completion"
+    prereqs: ["an2-01", "an-05"]
+    resources: ["Oxford M2 Metric Spaces notes"]
+    hook: "Fill every hole a Cauchy sequence points at — and turn Q into R for any space at all."
+    mission_link: "Diagram space is complete; completeness is what lets limits of diagrams exist to be proven stable."
+  - id: an2-03
+    module: an2
+    title: "Compactness: sequential, total boundedness, Arzela-Ascoli"
+    prereqs: ["an2-02"]
+    resources: ["Oxford M2 Metric Spaces notes"]
+    hook: "When does every sequence have a convergent subsequence? Arzela-Ascoli answers it for whole families of functions."
+    mission_link: "Compactness of diagram and function spaces is the engine behind existence proofs in stability theory."
+  - id: an2-04
+    module: an2
+    title: "The contraction mapping theorem and applications"
+    prereqs: ["an2-03"]
+    resources: ["Oxford M2 Metric Spaces notes"]
+    hook: "One inequality guarantees a unique fixed point — and hands you existence theorems for ODEs for free."
+    mission_link: "Fixed-point arguments recur wherever an algorithm's convergence must be proven, not merely hoped."
+  - id: an2-05
+    module: an2
+    title: "Uniform convergence of derivatives and integrals"
+    prereqs: ["an2-04", "an-13"]
+    resources: ["Abbott 6.2-6.3", "Oxford M2 Analysis III notes"]
+    hook: "When can you swap limit and integral? Pointwise convergence lies; uniform convergence doesn't. (Recall an-13.)"
+    mission_link: "Sup-norm (uniform) control is the exact language the persistence stability theorem is written in."
+  - id: an2-06
+    module: an2
+    title: "Series of functions; the Weierstrass M-test and approximation"
+    prereqs: ["an2-05", "an-06"]
+    resources: ["Abbott 6.4-6.7", "Oxford M2 Analysis III notes"]
+    hook: "Add infinitely many functions safely — then approximate ANY continuous function by polynomials."
+    mission_link: "Uniform approximation justifies discretising a continuous signal before you compute its topology."
+  - id: an2-07
+    module: an2
+    title: "Normed and Banach spaces"
+    prereqs: ["an2-06", "la-01"]
+    resources: ["Oxford M2 Analysis III notes"]
+    hook: "Give a vector space a length and complete it — where analysis and linear algebra finally merge."
+    mission_link: "Feature spaces for vectorised diagrams are normed spaces; kernels live in complete (Banach) ones."
+  - id: an2-08
+    module: an2
+    title: "Function spaces: C[a,b]"
+    prereqs: ["an2-07"]
+    resources: ["Oxford M2 Analysis III notes"]
+    hook: "The continuous functions on an interval form a single infinite-dimensional space — with its own geometry."
+    mission_link: "Filtration functions live in C(X); treating a whole space of functions as one object is the key move."
+  - id: an2-09
+    module: an2
+    title: "Differentiation in R^n"
+    prereqs: ["an2-08", "la-05", "la-06"]
+    resources: ["Oxford M2 notes (multivariable analysis)"]
+    hook: "The derivative is not a number but a linear map — the best linear approximation, made rigorous. (See la-05.)"
+    mission_link: "Morse theory and gradient-based filtrations need the multivariable derivative treated honestly."
+
+  # ---- Python for TDA Lab (Ripser/GUDHI/giotto-tda; the applied strand) ----
+  # Linear spine lab-01..lab-09; cross-links carry in the la/aa/pw/an2 machinery each step needs.
+  - id: lab-01
+    module: lab
+    title: "Setup and point clouds"
+    prereqs: ["la-01", "an-14"]
+    resources: ["giotto-tda: point-cloud tutorials", "GUDHI install docs"]
+    hook: "Install the toolkit, sample a noisy circle, and see the hole you're about to detect — before any theory."
+    mission_link: "A point cloud is a finite metric space; every pipeline in this lab starts exactly here."
+  - id: lab-02
+    module: lab
+    title: "Simplicial complexes: Vietoris-Rips and Cech"
+    prereqs: ["lab-01"]
+    resources: ["GUDHI: RipsComplex & AlphaComplex tutorials", "Edelsbrunner ch. III"]
+    hook: "Connect points closer than a threshold and a shape condenses out of the dust — the filtration begins."
+    mission_link: "Vietoris-Rips and Cech complexes are how raw points become something with computable homology."
+  - id: lab-03
+    module: lab
+    title: "Computing persistence; boundary-matrix reduction"
+    prereqs: ["lab-02", "la-07", "aa-18"]
+    resources: ["Ripser docs", "Edelsbrunner ch. VII", "Otter et al., A roadmap for computing persistent homology"]
+    hook: "Persistence is one matrix reduction over Z/2 — watch the algorithm from la-07 pull the holes out."
+    mission_link: "The computational heart: reducing boundary matrices IS computing homology (aa-18 made runnable)."
+  - id: lab-04
+    module: lab
+    title: "Persistence diagrams and barcodes"
+    prereqs: ["lab-03", "aa-20"]
+    resources: ["giotto-tda: persistence diagrams", "Oudot ch. 1"]
+    hook: "Every hole gets a birth and a death — plot them and the structure theorem's intervals appear on screen."
+    mission_link: "The barcode is aa-20's decomposition made visible; this is the mission's central object."
+  - id: lab-05
+    module: lab
+    title: "Bottleneck and Wasserstein distance; stability"
+    prereqs: ["lab-04", "pw-04", "an2-03"]
+    resources: ["persim: bottleneck & Wasserstein", "Oudot ch. 3"]
+    hook: "Perturb the data a little, the diagram moves a little — measure exactly how much, and prove it can't move more."
+    mission_link: "The stability theorem (an epsilon statement, cf. pw-04) is why TDA is trustworthy on noisy real data."
+  - id: lab-06
+    module: lab
+    title: "Vectorising diagrams: persistence images, landscapes, Betti curves"
+    prereqs: ["lab-05"]
+    resources: ["giotto-tda: diagram vectorisation", "scikit-tda persim (images, landscapes)"]
+    hook: "Diagrams are not vectors — so turn them into vectors, carefully, without throwing the topology away."
+    mission_link: "Vectorisation is the bridge that lets a machine-learning model consume a persistence diagram."
+  - id: lab-07
+    module: lab
+    title: "TDA in machine-learning pipelines"
+    prereqs: ["lab-06"]
+    resources: ["giotto-tda: Pipeline API", "scikit-learn Pipeline docs"]
+    hook: "Bolt persistence onto a scikit-learn pipeline and let topology become one more feature the model sees."
+    mission_link: "End-to-end pipelines are how TDA earns its keep in an actual data-analysis project."
+  - id: lab-08
+    module: lab
+    title: "Mapper"
+    prereqs: ["lab-07", "la-15"]
+    resources: ["giotto-tda: Mapper", "Kepler-Mapper docs", "Singh-Memoli-Carlsson, Mapper (2007)"]
+    hook: "Cover, cluster, connect — Mapper squeezes a high-dimensional dataset into a graph you can actually look at."
+    mission_link: "Mapper's graph is a topological summary; its clustering leans on la-15's spectral machinery."
+  - id: lab-09
+    module: lab
+    title: "Mini-project: a full TDA analysis"
+    prereqs: ["lab-08"]
+    resources: ["giotto-tda examples gallery", "self-directed dataset"]
+    hook: "One dataset, end to end: point cloud, complex, persistence, features, conclusion. Your first real result."
+    mission_link: "A dry run of the capstone — the whole pipeline, on data you choose, defended in writing."
