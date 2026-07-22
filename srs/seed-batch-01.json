@@ -357,106 +357,106 @@
     "back": "- Group rationals into finite shells Aₙ by |p|+|q| in lowest terms (n∈ℕ)\n- Note each Aₙ is finite, and every rational lands in exactly one shell\n- List shells one after another: all of A₁, then A₂, then A₃, …\n- This concatenated list contains every rational exactly once\n- The list itself is the required bijection with ℕ — Abbott §1.4, Theorem 1.4.11(i), pp. 24–26"
   },
   {
-    "id": "gt-01-c01",
-    "unit": "gt-01",
+    "id": "aa-00-c01",
+    "unit": "aa-00",
     "type": "definition",
     "front": "State Carter's four informal Rules (1.5–1.8) that define \"a system of actions\" before the formal group axioms appear.",
     "back": "Rule 1.5: a fixed list of moves that never changes. Rule 1.6: every action is reversible. Rule 1.7: every action is deterministic (no randomness). Rule 1.8: any sequence of consecutive actions is also an action. — Carter §1.4, pp. 6–7"
   },
   {
-    "id": "gt-01-c02",
-    "unit": "gt-01",
+    "id": "aa-00-c02",
+    "unit": "aa-00",
     "type": "definition",
     "front": "What is the Klein 4-group, and which two physically different puzzles does Carter show share it?",
     "back": "The abstract structure shared by the rectangle's four flip-configurations and two independent light switches' four on/off configurations — same map of configurations and moves, just relabelled. Named the Klein 4-group. — Carter §2.5, pp. 19–20"
   },
   {
-    "id": "gt-01-c03",
-    "unit": "gt-01",
+    "id": "aa-00-c03",
+    "unit": "aa-00",
     "type": "theorem",
     "front": "How many distinct configurations does the rectangle puzzle (two flips: horizontal, vertical) have in total, and why exactly that many?",
     "back": "Four: solved, horizontal-flipped, vertical-flipped, and both together (the half-turn). Flipping twice in either direction returns to an already-visited state; combining both flips gives one genuinely new fourth state, and nothing beyond that appears. — Carter §2.3, pp. 15–18"
   },
   {
-    "id": "gt-01-c04",
-    "unit": "gt-01",
+    "id": "aa-00-c04",
+    "unit": "aa-00",
     "type": "theorem",
     "front": "Why do the rectangle puzzle and the two-light-switch puzzle count as \"the same group\" despite being physically different?",
     "back": "Group theory studies the pattern of how actions combine, not the physical material carrying them out. Their maps of configurations-and-moves (Cayley diagrams) have identical structure, just different labels — strip away the rectangle-ness or switch-ness and the same abstract skeleton (Klein 4-group) remains. — Carter §2.5, pp. 19–20"
   },
   {
-    "id": "gt-01-c05",
-    "unit": "gt-01",
+    "id": "aa-00-c05",
+    "unit": "aa-00",
     "type": "theorem",
     "front": "Which of Carter's rules guarantees that a combination not on the original generator list (e.g. flip-horizontal-then-flip-vertical) still counts as a legitimate group move?",
     "back": "Rule 1.8 — any sequence of consecutive actions is also an action. The generators are a starting point for building the whole group, not a ceiling on what counts as a move. — Carter §1.4, Rule 1.8, p. 6"
   },
   {
-    "id": "gt-01-c06",
-    "unit": "gt-01",
+    "id": "aa-00-c06",
+    "unit": "aa-00",
     "type": "proof-sketch",
     "front": "Outline how Carter informally establishes that the rectangle puzzle's \"do-nothing\" move is a legitimate action on par with the two flips.",
-    "back": "- Note every rectangle configuration count must include the case where corners haven't moved (\"reset\")\n- Observe Rule 1.8 lets \"flip horizontal, then flip horizontal again\" be treated as one combined action\n- That combined action changes nothing, so it counts as a valid action by the rules already stated\n- This \"changes-nothing\" action is later formalised as the identity — Carter §2.3, discovered fact 1, p. 15 (formalised gt-02, Aluffi Definition 11.1)"
+    "back": "- Note every rectangle configuration count must include the case where corners haven't moved (\"reset\")\n- Observe Rule 1.8 lets \"flip horizontal, then flip horizontal again\" be treated as one combined action\n- That combined action changes nothing, so it counts as a valid action by the rules already stated\n- This \"changes-nothing\" action is later formalised as the identity — Carter §2.3, discovered fact 1, p. 15 (formalised aa-23, Aluffi Definition 11.1)"
   },
   {
-    "id": "gt-01-c07",
-    "unit": "gt-01",
+    "id": "aa-00-c07",
+    "unit": "aa-00",
     "type": "proof-sketch",
     "front": "Outline the reasoning that establishes every rectangle-puzzle move has an \"undo\" (inverse), informally, before any axioms are stated.",
-    "back": "- For each of the four configurations, exhibit another move (possibly the same one) that returns to solved\n- Horizontal flip undoes itself (flip again); vertical flip undoes itself likewise\n- The 180° rotation (horizontal-then-vertical) is undone by repeating the same combination\n- Note that in this particular group, every move happens to be its own undo — not true of every group — Carter §2.3, discovered fact 2, p. 15 (formalised gt-02 as inverses)"
+    "back": "- For each of the four configurations, exhibit another move (possibly the same one) that returns to solved\n- Horizontal flip undoes itself (flip again); vertical flip undoes itself likewise\n- The 180° rotation (horizontal-then-vertical) is undone by repeating the same combination\n- Note that in this particular group, every move happens to be its own undo — not true of every group — Carter §2.3, discovered fact 2, p. 15 (formalised aa-23 as inverses)"
   },
   {
-    "id": "gt-02-c01",
-    "unit": "gt-02",
+    "id": "aa-23-c01",
+    "unit": "aa-23",
     "type": "definition",
     "front": "State Aluffi's formal group definition (Definition 11.1).",
     "back": "A group (G,·) is a set G with a binary operation · such that: (i) associativity (g·h)·k = g·(h·k); (ii) identity ∃eG ∈G ∀g: g·eG=eG·g=g; (iii) inverse ∀g ∃h: g·h=h·g=eG. Closure is built into \"a binary operation on G\". — Aluffi, Definition 11.1, pp. 229–230"
   },
   {
-    "id": "gt-02-c02",
-    "unit": "gt-02",
+    "id": "aa-23-c02",
+    "unit": "aa-23",
     "type": "definition",
     "front": "State Aluffi's definition of the order of an element (Definition 10.12).",
     "back": "The order of g ∈ G, written |g|, is the cardinality of the cyclic group ⟨g⟩ = {gⁱ : i ∈ ℤ} generated by g. — Aluffi, Definition 10.12, p. 261"
   },
   {
-    "id": "gt-02-c03",
-    "unit": "gt-02",
+    "id": "aa-23-c03",
+    "unit": "aa-23",
     "type": "definition",
-    "front": "What does it mean to say a group is abelian, and give an example from gt-02.",
+    "front": "What does it mean to say a group is abelian, and give an example from aa-23.",
     "back": "A group is abelian if its operation is commutative: a·b = b·a for all a, b. Example: (ℤ, +) is abelian, since ordinary addition of integers commutes. — Aluffi §11.1, p. 231"
   },
   {
-    "id": "gt-02-c04",
-    "unit": "gt-02",
+    "id": "aa-23-c04",
+    "unit": "aa-23",
     "type": "theorem",
-    "front": "Which single phrase in Definition 11.1 does the job that Carter's Rule 1.8 (combinations are also actions) did informally in gt-01?",
+    "front": "Which single phrase in Definition 11.1 does the job that Carter's Rule 1.8 (combinations are also actions) did informally in aa-00?",
     "back": "The phrase \"a binary operation on G\" — this is closure: g·h always lands back inside G, symbolically encoding what Rule 1.8 stated informally. — Aluffi, Definition 11.1, p. 229"
   },
   {
-    "id": "gt-02-c05",
-    "unit": "gt-02",
+    "id": "aa-23-c05",
+    "unit": "aa-23",
     "type": "theorem",
     "front": "Which axiom of Definition 11.1 forces every row and column of a Cayley table to contain each group element exactly once, and why?",
     "back": "Axiom (iii), existence of inverses. If element x appeared twice in row g (g·h₁=g·h₂=x, h₁≠h₂), multiplying both sides on the left by g⁻¹ forces h₁=h₂ — a contradiction. So no repeats occur (the Latin square property). — Aluffi §11.1, discussion following Definition 11.1, p. 230"
   },
   {
-    "id": "gt-02-c06",
-    "unit": "gt-02",
+    "id": "aa-23-c06",
+    "unit": "aa-23",
     "type": "theorem",
     "front": "What structural fact distinguishes ℤ/4ℤ from the Klein four-group V₄, even though both have four elements?",
     "back": "ℤ/4ℤ has an element of order 4 (e.g. [1]), while every non-identity element of V₄ has order 2 (each is its own inverse). Same size, different internal clockwork — the groups are not relabellings of each other. — Aluffi §11.1, Definition 10.12 and Cayley table comparison, pp. 230, 261"
   },
   {
-    "id": "gt-02-c07",
-    "unit": "gt-02",
+    "id": "aa-23-c07",
+    "unit": "aa-23",
     "type": "proof-sketch",
     "front": "Outline the proof strategy for uniqueness of the identity element in a group.",
     "back": "- Suppose e₁ and e₂ both satisfy axiom (ii) for the same G\n- Combine e₁ with e₂ using e₁'s identity property: e₁·e₂ = e₂\n- Combine e₁ with e₂ using e₂'s identity property: e₁·e₂ = e₁\n- Both compute the same expression e₁·e₂, so e₁ = e₂ — Aluffi §11.1, p. 230 (proof expanded from bullet observation)"
   },
   {
-    "id": "gt-02-c08",
-    "unit": "gt-02",
+    "id": "aa-23-c08",
+    "unit": "aa-23",
     "type": "proof-sketch",
     "front": "Outline the proof strategy for uniqueness of inverses in a group (the \"sandwich\" strategy).",
     "back": "- Suppose h₁ and h₂ both satisfy axiom (iii) as inverses of the same g\n- Bracket h₁·g·h₂ on the left: (h₁·g)·h₂ = eG·h₂ = h₂\n- Bracket the same expression on the right: h₁·(g·h₂) = h₁·eG = h₁\n- By associativity these two bracketings compute the same element, so h₁ = h₂ — Aluffi §11.1, p. 230 (faded proof, standard sandwich strategy)"

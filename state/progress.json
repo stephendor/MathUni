@@ -69,7 +69,8 @@
     "status": "in-progress"
   },
   "an-03": {
-    "status": "unlocked"
+    "status": "in-progress",
+    "last_studied": "2026-07-20"
   },
   "an-04": {
     "status": "locked"
@@ -104,41 +105,98 @@
   "an-14": {
     "status": "locked"
   },
-  "gt-01": {
+  "aa-00": {
     "status": "in-progress",
     "last_studied": "2026-07-08"
   },
-  "gt-02": {
+  "aa-01": {
+    "status": "unlocked"
+  },
+  "aa-02": {
     "status": "locked"
   },
-  "gt-03": {
+  "aa-03": {
     "status": "locked"
   },
-  "gt-04": {
+  "aa-04": {
     "status": "locked"
   },
-  "gt-05": {
+  "aa-05": {
     "status": "locked"
   },
-  "gt-06": {
+  "aa-06": {
     "status": "locked"
   },
-  "gt-07": {
+  "aa-07": {
     "status": "locked"
   },
-  "gt-08": {
+  "aa-08": {
     "status": "locked"
   },
-  "gt-09": {
+  "aa-09": {
     "status": "locked"
   },
-  "gt-10": {
+  "aa-10": {
     "status": "locked"
   },
-  "gt-11": {
+  "aa-11": {
     "status": "locked"
   },
-  "gt-12": {
+  "aa-12": {
+    "status": "locked"
+  },
+  "aa-13": {
+    "status": "locked"
+  },
+  "aa-14": {
+    "status": "locked"
+  },
+  "aa-15": {
+    "status": "locked"
+  },
+  "aa-16": {
+    "status": "locked"
+  },
+  "aa-17": {
+    "status": "locked"
+  },
+  "aa-18": {
+    "status": "locked"
+  },
+  "aa-19": {
+    "status": "locked"
+  },
+  "aa-20": {
+    "status": "locked"
+  },
+  "aa-21": {
+    "status": "locked"
+  },
+  "aa-22": {
+    "status": "locked"
+  },
+  "aa-23": {
+    "status": "locked"
+  },
+  "aa-24": {
+    "status": "locked"
+  },
+  "aa-25": {
+    "status": "locked"
+  },
+  "aa-26": {
+    "status": "locked"
+  },
+  "aa-27": {
+    "status": "locked"
+  },
+  "aa-28": {
+    "status": "locked"
+  },
+  "aa-29": {
+    "status": "locked"
+  },
+  "aa-30": {
     "status": "locked"
   }
 }
