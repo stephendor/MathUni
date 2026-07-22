@@ -20,3 +20,7 @@ description: Run a spaced-repetition retrieval session from the SRS deck. Use fo
 6. Cap: 15 cards or ~10 minutes, whichever first; then stop — retention
    lives in the schedule, not in marathon sessions. Close with count + one
    encouraging, specific observation.
+7. If `scheduler.py` prints an `[engram] …` notice on **stderr** (it fires
+   once the deck passes 50 logged reviews), relay that one line to Stephen at
+   the close — it means the FSRS-4.5 scheduler swap is now worthwhile
+   (`docs/engram-fsrs-swap.md`). Never let it interrupt the retrieval flow.
