@@ -1,5 +1,5 @@
 {
-  "_doc": "Registered NON-book resource source prefixes. A syllabus.yaml resource string resolves if a bookmap.json key OR one of these prefixes matches the start of the string (the longest-prefix rule in resources/RESOURCES.md). Register a source here (or add the book to bookmap.json) BEFORE citing it in the syllabus: validate_syllabus.py fails the build on any unresolvable citation, which is the anti-hallucination catch. Keep this list flat and specific; a prefix that is too broad silently waves through typos.",
+  "_doc": "Registered NON-book resource source prefixes. A syllabus.yaml resource string resolves if a bookmap.json key OR one of these prefixes matches the start of the string (the longest-prefix rule in resources/RESOURCES.md). Register a source here (or add the book to bookmap.json) BEFORE citing it in the syllabus: validate_syllabus.py fails the build on any unresolvable citation, which is the anti-hallucination catch. Keep this list flat and specific. A name matches only when the citation ends there or continues with a non-alphanumeric delimiter (space/punctuation), so 'Ripser' matches 'Ripser 1.2' but not 'Ripserext', and an empty entry matches nothing.",
   "non_book_sources": [
     "Oxford",
     "Dexter",

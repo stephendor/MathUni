@@ -31,12 +31,26 @@ def _load_json(path):
         return None
 
 
+def _boundary_match(r, name):
+    """True iff `name` equals `r`, or is a prefix of `r` terminated by a
+    non-alphanumeric citation delimiter (a space or punctuation). Rejects
+    run-on typos like 'HatcherMistyped 2.1' or 'OxfordTypo notes' where a
+    registered name is a prefix only by accident, and never matches an empty
+    name (an empty registry entry must not wave every citation through)."""
+    if not name:
+        return False
+    if r == name:
+        return True
+    return r.startswith(name) and not r[len(name)].isalnum()
+
+
 def resource_resolves(res, book_keys, source_prefixes):
     """A resource string resolves if a bookmap key or a registered non-book
-    source prefix is a prefix of it (the longest-prefix rule, RESOURCES.md)."""
+    source name begins it and is terminated by an exact match or a citation
+    delimiter (the longest-prefix rule, RESOURCES.md, boundary-checked)."""
     r = res.strip()
-    return (any(r.startswith(k) for k in book_keys)
-            or any(r.startswith(s) for s in source_prefixes))
+    return (any(_boundary_match(r, k) for k in book_keys)
+            or any(_boundary_match(r, s) for s in source_prefixes))
 
 
 def validate(doc, book_keys=(), source_prefixes=()):
@@ -137,6 +151,15 @@ def selftest():
 
     check("resource check is skipped when no registry is loaded",
           not any("unresolvable" in e for e in validate(bad_res, (), ())))
+
+    runon = json.loads(json.dumps(ok))
+    runon["units"][1]["resources"] = ["Munkresextra §1"]  # 'Munkres' + letter run-on
+    check("fires on a run-on typo of a registered name (boundary check)",
+          any("unresolvable resource" in e for e in validate(runon, books, srcs)))
+
+    check("an empty registry prefix does not wave everything through",
+          any("unresolvable resource" in e
+              for e in validate(bad_res, books, srcs + [""])))
 
     fwd = json.loads(json.dumps(ok))
     fwd["units"].append({"id": "an-02", "module": "an", "title": "t",

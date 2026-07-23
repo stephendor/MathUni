@@ -30,7 +30,11 @@ python scripts/validate_syllabus.py --selftest
 `resources/bookmap.json`; a new non-book source (course notes, tool docs, a paper)
 → add its prefix to `resources/resource_sources.json`. An unregistered citation
 fails the build. That failure *is* the anti-hallucination catch — do not work
-around it by loosening a prefix; add the real source.
+around it by loosening a prefix; add the real source. Keep registered names
+distinct, and always cite them with a delimiter after the name (a space before
+the section, e.g. `Hatcher 2.1`) — the resolver requires that boundary, so a
+run-on like `Hatcher2.1` or `Hatcherx` fails the build instead of resolving by
+accident.
 
 ## 2. Semantic — eyeball / second-model (the validator cannot judge these)
 

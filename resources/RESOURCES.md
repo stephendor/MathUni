@@ -57,4 +57,7 @@ The **machine-checkable** half of this rule lives in `resource_sources.json` —
 the flat list of permitted non-book source prefixes. `validate_syllabus.py`
 fails the build on any syllabus resource that resolves to neither a `bookmap.json`
 key nor a registered prefix, so **register a source there (or the book in
-bookmap) before citing it**. See `docs/syllabus-authoring-checklist.md`.
+bookmap) before citing it**. Resolution is boundary-checked: a name matches
+only when the citation ends there or continues with a delimiter (a space or
+punctuation), so a run-on typo like `Hatcherx 2.1` is rejected rather than
+silently absorbed. See `docs/syllabus-authoring-checklist.md`.

@@ -895,7 +895,7 @@ units:
     prereqs: ["cat-04"]
     resources: ["Spivak", "Aluffi Chapter 0 I.5"]
     hook: "Products and intersections are limits, quotients and gluings their dual colimits — one idea and its mirror, seen from the right height."
-    mission_link: "The limit/colimit view unifies the quotient and gluing moves from la, aa, and top into a single idea."
+    mission_link: "Quotient and gluing moves from la, aa, and top are all colimits — dual to the limits behind products and intersections; one categorical idea seen from both sides."
   - id: cat-06
     module: cat
     title: "Adjunctions"
