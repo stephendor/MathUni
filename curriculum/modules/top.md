@@ -6,10 +6,11 @@
 Conway, *A Course in Point Set Topology*; McCleary for the geometric bent.
 
 **Mission link:** Topology is where "shape" is finally defined without distance,
-and it is the language the whole mission is written in. Connected components are
-**H0** (top-07); the **quotient topology** (top-12) and **cell complexes**
-(top-13) are how every space whose homology a computer computes is actually
-built. Continuity-as-preimages-of-open-sets (top-04) is the definition algebraic
+and it is the language the whole mission is written in. **Path** components are
+what **H0** counts (top-07) — and for the finite complexes TDA builds, those are
+exactly the connected pieces; the **quotient topology** (top-12) and **finite
+cell complexes** (top-13) are how every space whose homology a computer computes
+is actually built. Continuity-as-preimages-of-open-sets (top-04) is the definition algebraic
 topology and TDA keep verbatim. This module turns Semester-1 analysis on ℝ into
 topology on anything.
 
@@ -22,7 +23,7 @@ topology in disguise, so the strands converge rather than repeat.
 A single linear spine, top-01 → top-13, deliberately resequenced so the
 **quotient material comes last as the payoff** rather than mid-book where Munkres
 places §22. Foundations first (spaces, continuity, products, metrics), then the
-two great theorems (connectedness = H0, compactness), then the countability and
+two great theorems (connectedness → H0, compactness), then the countability and
 separation hygiene, then quotients and cell complexes as the bridge out of the
 module.
 
@@ -34,13 +35,13 @@ module.
 | top-04 continuity & homeomorphism | §18 | continuity via preimages; "same shape" |
 | top-05 product topology | §15, §19 | box vs product subtlety (→ multiparameter) |
 | top-06 metric topology | §20, §21 | every metric space is a space (←an-14) |
-| top-07 connectedness & components | §23, §24, §25 | **= H0** |
+| top-07 connectedness & components | §23, §24, §25 | path components **= H0** |
 | top-08 compactness | §26, §27 | finiteness for the infinite (←an-08) |
 | top-09 limit-point & local compactness | §28, §29 | flavours of compactness; manifolds |
 | top-10 countability axioms | §30 | which spaces data can sample |
 | top-11 separation axioms, normal spaces | §31, §32 | Hausdorff = the sanity axiom |
 | top-12 quotient topology ★ | §22 | glue to build; the collapse move, geometric |
-| top-13 cones, suspension, CW complexes ★ | §22 + Hatcher ch. 0 | the computable spaces; on-ramp to at1/lab |
+| top-13 cones, suspension, CW complexes ★ | §22 + Hatcher ch. 0 | the *finite* computable models; on-ramp to at1/lab |
 
 ## Teaching notes
 
@@ -49,7 +50,7 @@ module.
   (quotient modules). Point-set topology gives it its most *geometric* face —
   gluing — and that picture is what makes cell complexes intuitive.
 - top-07 (connectedness) and top-08 (compactness) are the module's two theorems
-  that matter most for the mission. Slow down; connect top-07 to H0 out loud and
+  that matter most for the mission. Slow down; connect top-07 to H0 (path components) out loud and
   top-08 to where TDA's stability theory can hold.
 - The metric topology (top-06) should feel like a homecoming, not new material:
   reframe an-14, don't re-teach it. Every open ball is now "just" a basis element.

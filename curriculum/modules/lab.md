@@ -9,7 +9,7 @@ homology* (2017) as the practical map.
 **Mission link:** this is the module where the mission stops being abstract. A
 **point cloud** becomes a **filtered simplicial complex** (lab-02), whose
 **persistence** is one boundary-matrix reduction (lab-03), read off as a
-**barcode** (lab-04) — which is exactly aa-20's structure theorem on screen. It
+**barcode** (lab-04) — which is an analogue of aa-20's structure theorem, now visible in the barcode. It
 is the hands-on counterpart to the algebra (`aa`), the topology (`top`), and the
 Semester-3 theory (`tda1`); the mini-project (lab-09) is a dry run of the
 capstone.
