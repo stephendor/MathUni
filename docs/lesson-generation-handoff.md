@@ -53,6 +53,13 @@ zero external requests, MathML/Unicode maths only (no LaTeX/JS libraries).
 
 ## Stage 1 — Reference A/B (do this first)
 
+> **One-command harness:** `python scripts/drift_bundle.py <unit>` builds the isolated
+> bundle (reference pulled from git, the answer excluded) outside the repo, so the college
+> slash commands never see it. After generating, `python scripts/drift_bundle.py <unit> --check`
+> runs the whole free pre-filter: coverage + HTML parse + self-contained + `lesson_lint`
+> (render fidelity + structural counts, i.e. rubric Gate 0.5). Candidates that survive come
+> to Claude for the scored Gates 1-3.
+
 Isolates the variables on a unit already built to standard.
 
 - **Target:** regenerate `aa-01` (proof-heavy: has a guided proof, faded examples, *and* a canvas visual — maximum surface to drift on). Its problem set and syllabus entry already exist.
@@ -62,10 +69,9 @@ Isolates the variables on a unit already built to standard.
 
 **Before sending back to me, run the free pre-filter (Gate 0.1–0.2):**
 ```
-python scripts/check_lesson_coverage.py problems/sets/aa-01.md <candidate>.html
-python -c "from html.parser import HTMLParser; HTMLParser().feed(open('<candidate>.html',encoding='utf-8').read())"
+python scripts/drift_bundle.py aa-01 --check
 ```
-Bounce anything that fails straight back to the generator — no need to spend a review on it.
+That one command runs coverage + HTML parse + self-contained + `lesson_lint` (render fidelity + structural counts) over every candidate in the workspace. Bounce anything it marks BOUNCE straight back to the generator — no need to spend a review on it.
 
 **Bring back to me:** both candidate HTML files (name them e.g. `aa-01.flash.html`,
 `aa-01.pro.html`). I score each against `LESSON-RUBRIC.md` **head-to-head with the
@@ -98,7 +104,7 @@ diagnose (spec vs model vs archetype) before scaling.
 
 The 55 pending S1 lessons (pw 2 · la 13 · an 11 · aa 29). Per unit, the pipeline is:
 
-1. problem set → 2. lesson → 3. Gate 0 pre-filter (coverage + parse) → 4. rubric score → 5. commit only on ACCEPT.
+1. problem set → 2. lesson → 3. free pre-filter via `drift_bundle.py <unit> --check` (coverage + parse + self-contained + `lesson_lint`, i.e. Gates 0.1–0.5) → 4. rubric score → 5. commit only on ACCEPT.
 
 Feed each committed lesson as a fresh exemplar candidate to keep the gold-standard
 pool current. Batch by module so a systematic drift in one strand is caught early,
