@@ -808,7 +808,7 @@ units:
     prereqs: ["at1-02", "aa-23"]
     resources: ["Hatcher 1.1", "Dexter algebraic_topology notes"]
     hook: "Loops you can't shrink detect holes you can't see — and they compose into a group. (aa-23's groups, geometrised.)"
-    mission_link: "Pi_1 is the first algebraic invariant of shape; H_1 is its abelianisation — the Betti-1 you will compute."
+    mission_link: "Pi_1 is the first algebraic invariant of shape; H_1 is its abelianisation, whose rank is the Betti-1 you will compute."
   - id: at1-04
     module: at1
     title: "The fundamental group of the circle and applications"
@@ -894,7 +894,7 @@ units:
     title: "Limits and colimits"
     prereqs: ["cat-04"]
     resources: ["Spivak", "Aluffi Chapter 0 I.5"]
-    hook: "Products, quotients, gluings, intersections — all one construction (a limit) seen from the right height."
+    hook: "Products and intersections are limits, quotients and gluings their dual colimits — one idea and its mirror, seen from the right height."
     mission_link: "The limit/colimit view unifies the quotient and gluing moves from la, aa, and top into a single idea."
   - id: cat-06
     module: cat
@@ -940,7 +940,7 @@ units:
     prereqs: ["tda1-03", "aa-20"]
     resources: ["Oudot ch. 1"]
     hook: "Every persistence module shatters uniquely into intervals — and aa-20 is why. The barcode is a theorem, not a picture."
-    mission_link: "aa-20 (f.g. modules over a PID) applied to k[t]-modules IS the barcode decomposition — the summit link of the whole degree."
+    mission_link: "aa-20 (f.g. modules over a PID) is the algebra the barcode rests on: a tame persistence module over k[t] decomposes into intervals by exactly that theorem — the summit link of the degree."
   - id: tda1-05
     module: tda1
     title: "Persistence diagrams and their space"
@@ -961,7 +961,7 @@ units:
     prereqs: ["tda1-06", "an2-05", "pw-04"]
     resources: ["Oudot ch. 3", "Edelsbrunner VIII.2"]
     hook: "Perturb the data by epsilon, the diagram moves by at most epsilon. The theorem that makes TDA a science, proven. (pw-04's craft.)"
-    mission_link: "Stability (the Isometry Theorem) is why persistence is trustworthy on noisy data — the mission's keystone theorem."
+    mission_link: "The stability theorem is why persistence is trustworthy on noisy data — the mission's keystone; the isometry theorem (bottleneck = interleaving distance) is its algebraic partner."
   - id: tda1-08
     module: tda1
     title: "Morse theory and sublevel-set persistence"
