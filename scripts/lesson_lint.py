@@ -52,6 +52,7 @@ def latex_leaks(html):
 
 
 def structure(html):
+    html = _strip_code(html)  # count rendered markup only, not <script>/<style> string contents
     def count(pat):
         return len(re.findall(pat, html))
     return {
@@ -139,6 +140,9 @@ def selftest():
           not fired(good, "invalid entities"))
     check("entity inside <script> is ignored",
           not fired(good + "<script>var s='&mathbb;';</script>", "invalid entities"))
+    check("structure signal inside <script> is ignored",
+          fired(good.replace('<textarea></textarea>', '')
+                + "<script>var t='<textarea></textarea>';</script>", "guided proof"))
 
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0

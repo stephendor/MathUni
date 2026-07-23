@@ -37,7 +37,7 @@ Model-agnostic, free, run before a human looks. Any FAIL ⇒ reject, do not scor
 
 Straight from LESSON-GUIDE §Structure — "non-negotiable". Any FAIL ⇒ revise.
 
-> Items 1.4-1.6 and 1.8-1.11 are **mechanically pre-screened** by `scripts/lesson_lint.py` (Gate 0.5): a failure there bounces the lesson before a human scores this gate. The lint keys on semantic signals (e.g. `<textarea>` for the guided proof, "reconstruct" for the blank page), so it accepts either the reference's or a generator's markup conventions.
+> Items 1.4-1.6 and 1.8-1.11 are **mechanically pre-screened** by `scripts/lesson_lint.py` (Gate 0.5): a failure there bounces the lesson before a human scores this gate. The lint keys on semantic signals (e.g. `<textarea>` for the guided proof, "reconstruct" for the blank page), so it accepts either the reference's or a generator's markup conventions. Passing Gate 0.5 is **necessary, not sufficient** — it checks only presence and counts (is there a `<textarea>`? are there >=4 self-checks?), never quality; every item below still requires human scoring for mathematical correctness and pedagogy.
 
 | # | Item | Pass? |
 |---|------|:---:|

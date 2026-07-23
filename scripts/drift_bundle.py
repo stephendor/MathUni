@@ -95,7 +95,7 @@ def build(args):
     if unit not in units:
         sys.exit(f"ERROR: unit {unit!r} not in syllabus.yaml")
     if args.exemplar == unit:
-        sys.exit(f"ERROR: exemplar must differ from the target unit (would leak the answer)")
+        sys.exit("ERROR: exemplar must differ from the target unit (would leak the answer)")
     if args.exemplar not in units:
         sys.exit(f"ERROR: exemplar {args.exemplar!r} not in syllabus.yaml")
 
@@ -176,13 +176,13 @@ def build(args):
     print("\nInbox contents (hand THIS folder to the generator):")
     for p in sorted(inbox.iterdir()):
         print("   ", p.name)
-    print(f"\nNEXT:")
-    print(f"  1. Paste the source sections named in SOURCE-POINTER.md into the inbox.")
-    print(f"  2. Run the inbox + PROMPT.md through Gemini Flash AND Pro.")
+    print("\nNEXT:")
+    print("  1. Paste the source sections named in SOURCE-POINTER.md into the inbox.")
+    print("  2. Run the inbox + PROMPT.md through Gemini Flash AND Pro.")
     print(f"  3. Save outputs as  {ws / 'candidates'}\\{unit}.flash.html  and  {unit}.pro.html")
     print(f"  4. python scripts/drift_bundle.py {unit} --check")
-    print(f"  5. Bring the surviving candidates to Claude to score vs the reference.")
-    print(f"\nDo NOT put reference/ or the working-tree lesson in the generator's input.")
+    print("  5. Bring the surviving candidates to Claude to score vs the reference.")
+    print("\nDo NOT put reference/ or the working-tree lesson in the generator's input.")
 
 
 # ----------------------------------------------------------------- check
@@ -228,7 +228,7 @@ def check(args):
         selfc = "PASS" if not ext else f"FAIL external: {', '.join(ext[:3])}"
         lint_results = lesson_lint.lint(html)
         lfails = [(nm, d) for nm, ok, d in lint_results if not ok]
-        failed = (cov.startswith("FAIL") or parse.startswith("FAIL")
+        failed = (cov.startswith(("FAIL", "ERROR")) or parse.startswith("FAIL")
                   or selfc.startswith("FAIL") or bool(lfails))
         any_fail = any_fail or failed
         print(f"\n{c.name}  [{'BOUNCE' if failed else 'ready to score'}]")
