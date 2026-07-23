@@ -606,8 +606,8 @@ units:
     title: "Connectedness and components"
     prereqs: ["top-06"]
     resources: ["Munkres §23, §24, §25"]
-    hook: "Can you walk between any two points without leaving the set? Counting the pieces is H0."
-    mission_link: "Connected components ARE zeroth homology — the first and most robust Betti number."
+    hook: "Can you walk between any two points without leaving the set? Counting those path-pieces is H0."
+    mission_link: "Path components ARE what zeroth homology counts — for TDA's finite complexes they are the connected pieces, the first and most robust Betti number."
   - id: top-08
     module: top
     title: "Compactness"
@@ -649,7 +649,7 @@ units:
     prereqs: ["top-12"]
     resources: ["Munkres §22 (constructions)", "Hatcher ch. 0"]
     hook: "Cone a space to a point, suspend it, or build it cell by cell — the Lego kit of algebraic topology."
-    mission_link: "CW complexes are exactly the spaces whose homology a computer can compute — the on-ramp to at1 and the lab."
+    mission_link: "Finite simplicial and CW complexes are the spaces whose homology a computer can compute — the on-ramp to at1 and the lab."
 
   # ---- Analysis II (Oxford M2; metric spaces, uniform convergence, Banach spaces) ----
   # Linear spine an2-01..an2-09; cross-links into an (analysis I) and la.
