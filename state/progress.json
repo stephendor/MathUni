@@ -369,5 +369,74 @@
   },
   "tda1-09": {
     "status": "locked"
+  },
+  "at2-01": {
+    "status": "locked"
+  },
+  "at2-02": {
+    "status": "locked"
+  },
+  "at2-03": {
+    "status": "locked"
+  },
+  "at2-04": {
+    "status": "locked"
+  },
+  "at2-05": {
+    "status": "locked"
+  },
+  "at2-06": {
+    "status": "locked"
+  },
+  "at2-07": {
+    "status": "locked"
+  },
+  "at2-08": {
+    "status": "locked"
+  },
+  "tda2-01": {
+    "status": "locked"
+  },
+  "tda2-02": {
+    "status": "locked"
+  },
+  "tda2-03": {
+    "status": "locked"
+  },
+  "tda2-04": {
+    "status": "locked"
+  },
+  "tda2-05": {
+    "status": "locked"
+  },
+  "tda2-06": {
+    "status": "locked"
+  },
+  "tda2-07": {
+    "status": "locked"
+  },
+  "tda2-08": {
+    "status": "locked"
+  },
+  "tda2-09": {
+    "status": "locked"
+  },
+  "tda2-10": {
+    "status": "locked"
+  },
+  "tda2-11": {
+    "status": "locked"
+  },
+  "cap-01": {
+    "status": "locked"
+  },
+  "cap-02": {
+    "status": "locked"
+  },
+  "cap-03": {
+    "status": "locked"
+  },
+  "cap-04": {
+    "status": "locked"
   }
 }

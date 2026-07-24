@@ -69,7 +69,8 @@ modules:
     title: Algebraic Topology II
     semester: s4
     primary_text: "Hatcher ch. 3"
-    support: ["Dexter algebraic_topology_iii notes"]
+    support: ["Dexter algebraic_topology_iii notes",
+              "Ghrist 6.13 (circular coordinates) and Dey 2.5.4 for the persistent-cohomology unit"]
   - id: tda2
     title: TDA II
     semester: s4
@@ -976,3 +977,170 @@ units:
     resources: ["Edelsbrunner VII.2", "Edelsbrunner IV.4"]
     hook: "The full algorithm, with its clever pairing and cohomological speed-up — why Ripser (lab-03) is so fast."
     mission_link: "The theory behind the tool: the reduction algorithm's correctness and the duality that makes it efficient."
+
+  # ---- Semester 4: Algebraic Topology II (Hatcher ch. 3) ----
+  - id: at2-01
+    module: at2
+    title: "Cochain complexes and cohomology groups"
+    prereqs: ["at1-07", "la-10"]
+    resources: ["Hatcher 3.1", "Dexter algebraic_topology_iii notes"]
+    hook: "Turn every arrow in the chain complex around. Almost nothing changes — and then everything does."
+    mission_link: "Cohomology is homology's dual theory: H^n(X;G) is the homology of the dualised complex Hom(C_*(X), G). Over a field its ranks agree with homology's, which is exactly why persistent cohomology computes the same barcode (at2-08)."
+  - id: at2-02
+    module: at2
+    title: "The Universal Coefficient Theorem"
+    prereqs: ["at2-01", "aa-20", "at1-09"]
+    resources: ["Hatcher 3.1"]
+    hook: "Cohomology is not quite the dual of homology — there is a correction term, and it is exactly the torsion you met in aa-20."
+    mission_link: "The UCT gives a split short exact sequence 0 -> Ext(H_{n-1}(X), G) -> H^n(X;G) -> Hom(H_n(X), G) -> 0. Over a field Ext vanishes and H^n is simply the dual of H_n — the reason TDA over F_p never has to reason about Ext."
+  - id: at2-03
+    module: at2
+    title: "Cohomology of spaces and cellular cohomology"
+    prereqs: ["at2-01", "at1-08"]
+    resources: ["Hatcher 3.1"]
+    hook: "The same CW machinery as at1-08, run backwards: transpose the boundary matrices and read cohomology off by hand."
+    mission_link: "Cellular cohomology computes H^* from a CW structure by transposing at1-08's cellular boundary maps — the finite linear algebra a persistence implementation actually performs."
+  - id: at2-04
+    module: at2
+    title: "Cup product and the cohomology ring"
+    prereqs: ["at2-03", "aa-05"]
+    resources: ["Hatcher 3.2"]
+    hook: "Cohomology classes multiply. Two spaces with identical Betti numbers can now be told apart."
+    mission_link: "The cup product makes H^*(X;R) a graded ring (aa-05's structure, now on a topological invariant), and it is strictly finer than homology: S^2 x S^1 and S^2 v S^1 v S^3 have isomorphic homology groups but non-isomorphic cohomology rings."
+  - id: at2-05
+    module: at2
+    title: "The Kunneth formula and products of spaces"
+    prereqs: ["at2-04", "at2-02", "top-05"]
+    resources: ["Hatcher 3.2"]
+    hook: "If you know the cohomology of X and of Y, what is the cohomology of X x Y? Usually the tensor product — usually."
+    mission_link: "Kunneth computes the cohomology of a product (top-05's product topology) from its factors as a tensor product, with a Tor correction that vanishes over a field. It is how the topology of a product feature space decomposes into the topology of its parts."
+  - id: at2-06
+    module: at2
+    title: "Orientation and the fundamental class"
+    prereqs: ["at2-03", "at1-09"]
+    resources: ["Hatcher 3.3"]
+    hook: "Can you pick a consistent positive direction at every point of a surface at once? On the Klein bottle you cannot — and homology says so."
+    mission_link: "For a closed connected n-manifold M, H_n(M;Z) is Z when M is orientable and 0 otherwise, and a generator is the fundamental class [M]. Capping with [M] is the map that implements duality in at2-07."
+  - id: at2-07
+    module: at2
+    title: "Poincare duality"
+    prereqs: ["at2-06", "at2-04", "la-10"]
+    resources: ["Hatcher 3.3"]
+    hook: "On a closed orientable n-manifold, the k-dimensional holes and the (n-k)-dimensional ones are the same holes counted from opposite ends."
+    mission_link: "For a closed R-orientable n-manifold, cap product with the fundamental class gives an isomorphism H^k(M;R) -> H_{n-k}(M;R). The hypotheses are load-bearing — closed and orientable — and la-10's dual-space pairing is the linear-algebra shadow of the statement."
+  - id: at2-08
+    module: at2
+    title: "Persistent cohomology and circular coordinates"
+    prereqs: ["at2-01", "at2-03", "tda1-09"]
+    resources: ["Hatcher 3.1", "Dey 2.5.4", "Ghrist 6.13"]
+    hook: "The same barcode, computed the other way round — and much faster. Then a bonus, if the class lifts to the integers: a 1-cocycle becomes a real circular coordinate on your data."
+    mission_link: "Over a field, persistent cohomology of a filtration yields the same barcode as persistent homology while reducing far more cheaply in practice — the speed-up tda1-09 named. Circular coordinates are a SEPARATE construction with a stronger requirement: because S^1 is a K(Z,1), a map from the data to S^1 corresponds up to homotopy to an INTEGRAL class in H^1(-;Z), so a class computed over F_p must first be lifted to Z and the lift verified before it can be smoothed and integrated into an actual coordinate."
+
+  # ---- Semester 4: TDA II (Dey-Wang, with Ghrist for sheaves) ----
+  - id: tda2-01
+    module: tda2
+    title: "Zigzag and levelset zigzag persistence"
+    prereqs: ["tda1-04", "tda1-03"]
+    resources: ["Dey 4.3", "Dey 4.5", "Ghrist 5.15"]
+    hook: "Filtrations only ever add. What if the arrows were allowed to point both ways — spaces that grow and shrink?"
+    mission_link: "A zigzag module is a representation of an A_n quiver with arbitrary arrow directions, and by Gabriel's theorem it still decomposes into intervals — so a barcode survives even though tda1-04's monotone filtration does not. This is what lets persistence handle time-varying and sliced data."
+  - id: tda2-02
+    module: tda2
+    title: "Multiparameter persistence modules"
+    prereqs: ["tda1-03", "aa-15", "aa-13"]
+    resources: ["Dey 11.1"]
+    hook: "Filter by scale and by density at once. The parameter is now a grid rather than a line — and the barcode does not survive the move."
+    mission_link: "A d-parameter persistence module is a Z^d-graded module over the polynomial ring k[x_1,...,x_d] (aa-13's rings acting on aa-15's modules). For d >= 2 there is no interval decomposition and hence no barcode — the structural fact that separates tda2 from tda1."
+  - id: tda2-03
+    module: tda2
+    title: "Presentations, decomposition, and invariants"
+    prereqs: ["tda2-02", "aa-19", "aa-20"]
+    resources: ["Dey 11.2", "Dey 11.3", "Dey 11.4", "Dey 11.6"]
+    hook: "No barcode, so compute the next best thing: generators, relations, and whatever survives of the decomposition."
+    mission_link: "Multiparameter modules are handled through presentations (aa-19's finitely presented modules) because aa-20's PID structure theorem does not apply to k[x,y]. Total diagonalisation decomposes a presentation, and rank invariants, graded Betti numbers and blockcodes are the computable but incomplete summaries that stand in for the barcode."
+  - id: tda2-04
+    module: tda2
+    title: "Distances for multiparameter persistence"
+    prereqs: ["tda2-02", "tda1-06", "cat-07"]
+    resources: ["Dey 12.1", "Dey 12.2", "Dey 12.3", "Dey 12.4"]
+    hook: "Stability needs a metric. Interleaving generalises to d parameters word for word; actually computing it is another matter entirely."
+    mission_link: "The interleaving distance is defined categorically (cat-07's functor viewpoint) and extends verbatim to d parameters, but unlike tda1-06's one-parameter case it is not obtained from a matching of intervals. The matching distance is a tractable lower bound, and bottleneck distance returns only for interval-decomposable modules."
+  - id: tda2-05
+    module: tda2
+    title: "Discrete Morse theory and graph reconstruction"
+    prereqs: ["tda1-08", "at1-08"]
+    resources: ["Dey 10.1", "Dey 10.2", "Dey 10.3", "Dey 10.4", "Dey 10.5", "Ghrist 7.8"]
+    hook: "Morse theory with no calculus at all: pair each cell with a neighbour, and whatever is left unpaired is critical."
+    mission_link: "A discrete Morse vector field pairs cells so the unpaired critical cells generate a much smaller complex with the same homology — a preprocessing step that shrinks a filtration before tda1-09's reduction ever runs. Persistence-guided cancellation then reconstructs graphs, such as road networks and neuron traces, from noisy density fields."
+  - id: tda2-06
+    module: tda2
+    title: "Reeb graphs and their distances"
+    prereqs: ["tda1-08", "top-12"]
+    resources: ["Dey 7.1", "Dey 7.2", "Dey 7.3"]
+    hook: "Collapse each level set of a function to its connected components. A surface becomes a graph that remembers how the function flowed across it."
+    mission_link: "The Reeb graph is the quotient of X by the relation 'lies in the same connected component of a level set of f' — top-12's quotient topology applied to a scalar field. It retains branching information that tda1-08's sublevel-set barcode discards, and it carries its own interleaving and functional-distortion distances."
+  - id: tda2-07
+    module: tda2
+    title: "Cover, nerve, and multiscale Mapper"
+    prereqs: ["lab-08", "tda1-06", "at1-09"]
+    resources: ["Dey 9.1", "Dey 9.3", "Dey 9.4", "Dey 9.6"]
+    hook: "You ran Mapper in lab-08 and it drew you a picture. Here is the theorem that says when the picture is not lying."
+    mission_link: "The nerve theorem says that for a good cover the nerve is homotopy equivalent to the covered space — the guarantee lab-08's Mapper output was implicitly leaning on. Multiscale Mapper makes the cover a parameter and recovers stability in tda1-06's interleaving distance, turning a heuristic visualisation into a summary with an error bar."
+  - id: tda2-08
+    module: tda2
+    title: "Sparsification and approximate persistence"
+    prereqs: ["tda1-01", "lab-03", "an2-01"]
+    resources: ["Dey 6.1", "Dey 6.2", "Dey 6.3", "Dey 2.3"]
+    hook: "A Rips complex on ten thousand points has more simplices than you can store. Throw most of them away — provably without moving the barcode much."
+    mission_link: "Sparse Rips filtrations, witness complexes and graph-induced complexes produce complexes of size linear in the sample while staying multiplicatively interleaved with the exact filtration, so tda1-07's stability bound still governs the approximation. This is the difference between lab-03 finishing and lab-03 exhausting memory."
+  - id: tda2-09
+    module: tda2
+    title: "Kernels, vectorisation, and topological loss functions"
+    prereqs: ["lab-06", "lab-07", "tda1-05"]
+    resources: ["Dey 13.1", "Dey 13.2", "Dey 13.3"]
+    hook: "You vectorised diagrams in lab-06 because the pipeline demanded it. Now find out which of those maps are stable and which are merely convenient."
+    mission_link: "The space of diagrams (tda1-05) is a metric space but not a Hilbert space, which is precisely why lab-06's landscapes, images and kernels exist — and each carries its own stability constant against the bottleneck or Wasserstein distance. Persistence-based loss functions are differentiable almost everywhere, which is what allows topology to be optimised inside a model rather than only measured after it."
+  - id: tda2-10
+    module: tda2
+    title: "Cellular sheaves and sheaf cohomology"
+    prereqs: ["at2-01", "cat-03", "la-06"]
+    resources: ["Ghrist 9.1", "Ghrist 9.2", "Ghrist 9.3", "Ghrist 9.4", "Ghrist 9.5"]
+    hook: "Stop putting one number on each cell. Put a whole vector space there, with maps saying how neighbours are required to agree."
+    mission_link: "A cellular sheaf assigns data to cells and restriction maps to incidences — cat-03's functors, now indexed by a cell complex. Its H^0 is exactly the space of global sections, the globally consistent assignments, so sheaf cohomology measures the obstruction to consistency and la-06's kernel/range theorem is literally the computation."
+  - id: tda2-11
+    module: tda2
+    title: "Cosheaves, categorification, and interleaving revisited"
+    prereqs: ["tda2-10", "cat-04", "cat-05", "tda1-06"]
+    resources: ["Ghrist 9.10", "Ghrist 10.1", "Ghrist 10.5", "Ghrist 10.6"]
+    hook: "Every construction of the last two semesters has been the same move: replace a number by an object, and an inequality by a map."
+    mission_link: "Cosheaves dualise sheaves and recover homology-flavoured local-to-global statements. Recast categorically, an epsilon-interleaving is a pair of natural transformations (cat-04) between functors shifted by epsilon, which is what makes tda1-06's interleaving distance a definition rather than a construction — and it then generalises unchanged to sheaves, Reeb graphs and multiparameter modules."
+
+  # ---- Semester 4: Capstone ----
+  - id: cap-01
+    module: cap
+    title: "Scoping a research question"
+    prereqs: ["pw-05", "lab-09"]
+    resources: ["self-directed", "tdlbook.org"]
+    hook: "The hardest part of a project is not the mathematics. It is deciding what claim you are trying to support, and what would falsify it."
+    mission_link: "A question is well scoped when the topological summary you plan to compute could in principle come out the other way. This is the step that separates a TDA analysis from a TDA demonstration."
+  - id: cap-02
+    module: cap
+    title: "The TDL pipeline end to end"
+    prereqs: ["cap-01", "tda2-09", "tda2-08"]
+    resources: ["tdlbook.org", "self-directed"]
+    hook: "Raw data in, defensible topological claim out — with every parameter choice on the record."
+    mission_link: "Running the full pipeline forces the choices lab-09 could leave implicit: metric, filtration, coefficient field, sparsification tolerance (tda2-08), vectorisation and its stability constant (tda2-09). Each one is a place the conclusion can quietly be lost."
+  - id: cap-03
+    module: cap
+    title: "Reading and verifying a research paper"
+    prereqs: ["cap-01", "tda2-04", "at2-08"]
+    resources: ["self-directed", "tdlbook.org"]
+    hook: "Take a published TDA result and try to break it. Which theorem is doing the work, and does its hypothesis actually hold on their data?"
+    mission_link: "Verification means locating the load-bearing theorem and checking its hypotheses against the data at hand — tameness for a barcode, a good cover for a nerve claim, closed and orientable for a duality claim, interval-decomposability for a multiparameter distance (tda2-04). This is the skill the whole curriculum was aimed at."
+  - id: cap-04
+    module: cap
+    title: "The written defence"
+    prereqs: ["cap-02", "cap-03"]
+    resources: ["Expository Writing folder", "self-directed"]
+    hook: "Write it so that a competent reader who distrusts you can either reproduce it or find the flaw."
+    mission_link: "The defence states the claim, the topological evidence, the stability guarantee that licenses it, and the failure modes ruled out — pw-05's critique standard turned on your own work."
