@@ -24,11 +24,19 @@ def load_syllabus(path):
 
 
 def _load_json(path):
+    """Return (data, error). `error` is a message when the file is missing,
+    unparseable, or not a JSON object; a successful load gives (data, None).
+    A registry that fails to load must not be silently indistinguishable from
+    one that loaded and happens to be empty — the first disables the
+    anti-hallucination catch, the second is a deliberate mode."""
     try:
         with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, ValueError):
-        return None
+            data = json.load(f)
+    except (FileNotFoundError, ValueError) as e:
+        return None, f"{path}: {e}"
+    if not isinstance(data, dict):
+        return None, f"{path}: expected a JSON object, got {type(data).__name__}"
+    return data, None
 
 
 def _boundary_match(r, name):
@@ -82,8 +90,20 @@ def validate(doc, book_keys=(), source_prefixes=()):
         unit_mod[uid] = u.get("module")
         if u.get("module") not in mod_ids:
             errors.append(f"unit {uid}: unknown module {u.get('module')}")
+        # 'resources' must be a non-empty list of non-empty strings before the
+        # resolver loop runs: `resources: []` slips past the required-field
+        # check above (an empty list is neither None nor "") and would then
+        # iterate zero times, passing a unit that cites nothing at all. A bare
+        # string would iterate its characters.
+        res_list = u.get("resources")
+        if "resources" in u and not (
+                isinstance(res_list, list) and res_list
+                and all(isinstance(r, str) and r.strip() for r in res_list)):
+            errors.append(f"unit {uid}: 'resources' must be a non-empty list of "
+                          f"non-empty strings, got {res_list!r}")
+            res_list = []
         if book_keys or source_prefixes:
-            for res in u.get("resources", []) or []:
+            for res in res_list or []:
                 if not resource_resolves(res, book_keys, source_prefixes):
                     errors.append(
                         f"unit {uid}: unresolvable resource {res!r} — register "
@@ -161,6 +181,22 @@ def selftest():
           any("unresolvable resource" in e
               for e in validate(bad_res, books, srcs + [""])))
 
+    empty_res = json.loads(json.dumps(ok))
+    empty_res["units"][1]["resources"] = []
+    check("fires on an empty resources list (the required-field check cannot)",
+          any("non-empty list" in e for e in validate(empty_res, books, srcs)))
+
+    str_res = json.loads(json.dumps(ok))
+    str_res["units"][1]["resources"] = "Munkres §12"  # a bare string, not a list
+    check("fires on a bare-string resources value (would iterate characters)",
+          any("non-empty list" in e for e in validate(str_res, books, srcs)))
+
+    check("a missing registry file is reported as an error, not an empty registry",
+          _load_json("resources/__no_such_registry__.json")[1] is not None)
+
+    check("a loaded registry reports no error",
+          _load_json(BOOKMAP)[1] is None)
+
     fwd = json.loads(json.dumps(ok))
     fwd["units"].append({"id": "an-02", "module": "an", "title": "t",
                          "prereqs": ["top-01"], "resources": ["Abbott 2.1"],
@@ -178,12 +214,19 @@ def main(path="curriculum/syllabus.yaml"):
     except (FileNotFoundError, yaml.YAMLError) as e:
         print(f"ERROR: {e}")
         sys.exit(1)
-    bookmap = _load_json(BOOKMAP) or {}
-    sources = _load_json(SOURCES) or {}
+    bookmap, book_err = _load_json(BOOKMAP)
+    sources, src_err = _load_json(SOURCES)
+    registry_errors = [e for e in (book_err, src_err) if e]
+    if registry_errors:
+        # An unreadable registry would silently switch the resource check off
+        # and still exit 0. Fail instead: a vacuous gate is worse than none.
+        for e in registry_errors:
+            print(f"ERROR: resolver registry unreadable — {e}")
+        sys.exit(1)
     book_keys = sorted(bookmap.keys(), key=len, reverse=True)
-    source_prefixes = sources.get("non_book_sources", [])
+    source_prefixes = sources.get("non_book_sources", []) or []
     if not book_keys and not source_prefixes:
-        print("WARNING: no resolver registry found — resource checks skipped")
+        print("WARNING: resolver registries loaded but empty — resource checks skipped")
     errors = validate(doc, book_keys, source_prefixes)
     for e in errors:
         print(f"ERROR: {e}")

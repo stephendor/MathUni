@@ -7,9 +7,12 @@ Ghrist, *Elementary Applied Topology* for intuition.
 
 **Mission link:** this is the mission, stated and proved. Filtrations (tda1-01)
 feed **persistent homology** (tda1-03); the **structure theorem** (tda1-04)
-decomposes a persistence module uniquely into intervals — the **barcode** — and
-it is exactly `aa-20` (finitely generated modules over a PID) applied to
-k[t]-modules. The **stability theorem** (tda1-07) proves the barcode moves by at
+decomposes a *tame* persistence module over a field — pointwise
+finite-dimensional, and for the finite filtrations this course works with, of
+finite type — uniquely into intervals, the **barcode**. In that finite-type case
+it is exactly `aa-20` (finitely generated modules over a PID) applied to graded
+k[t]-modules; drop the hypothesis and the decomposition can fail. The
+**stability theorem** (tda1-07) proves the barcode moves by at
 most ε when the data is perturbed by ε — the reason TDA is trustworthy. Every
 theorem here is the *why* behind something `lab` computed.
 
@@ -46,9 +49,11 @@ verified against both TOCs (Edelsbrunner ch. III/IV/VI/VII/VIII; Oudot ch. 1–3
 
 - **tda1-04 is the summit of the entire degree.** Everything — la's quotients,
   aa's modules and structure theorem, at1's homology — converges on the statement
-  "a persistence module decomposes uniquely into intervals." Draw the line from
-  aa-20 explicitly; the barcode is not a new theorem, it is aa-20 in a graded
-  guise. Foreshadow it from aa-20 and lab-04.
+  "a *tame* persistence module decomposes uniquely into intervals." Say the
+  hypothesis every time the statement is said; it is the first thing `cap-03`
+  will ask of a paper. Draw the line from aa-20 explicitly: for finite type the
+  barcode is not a new theorem, it is aa-20 in a graded guise. Foreshadow it from
+  aa-20 and lab-04.
 - **tda1-07 (stability) is the keystone theorem.** Frame it as the ε-statement
   pw-04 trained and the compactness/uniform-bound machinery an2-03/05 underwrites.
   This is the theorem that justifies ignoring short bars as noise.

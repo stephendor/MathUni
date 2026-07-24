@@ -9,9 +9,12 @@ applied framing.
 
 **Mission link:** category theory is the language in which the mission's final
 statement is cleanest. **Homology is a functor** (at1-10); a **persistence
-module is a functor** from a poset category (cat-07); an **interleaving is a
-natural transformation** (cat-04), which is exactly how the stability theorem is
-phrased. This module makes the "category of —" reflex Aluffi built through `aa`
+module is a functor** from a poset category (cat-07); and an **ε-interleaving is
+a pair of natural transformations** φ: M ⇒ N(·+ε) and ψ: N ⇒ M(·+ε) whose two
+composites are the 2ε-shift maps of M and of N (cat-04). Stability is not itself
+a natural transformation — it is the inequality `tda1-07` proves — but
+interleaving is the language it is stated in. This module makes the "category
+of —" reflex Aluffi built through `aa`
 into an explicit toolkit, so `tda1` can speak of persistence categorically.
 
 **On-ramp:** builds directly on `aa` — aa-07 (category of rings), aa-15 (category
@@ -47,8 +50,10 @@ the systematic gaps (limits, Yoneda).
   representable-functor view of persistence, not for its own sake; monoidal
   categories, operads, and higher categories are out of scope.
 - cat-07 is the payoff and the boundary with `tda1`: here persistence is *named*
-  as a functor and stability as a natural transformation; `tda1` then *proves*
-  the stability theorem. Language here, theorems there.
+  as a functor and interleaving as a pair of natural transformations between
+  shifted functors; `tda1` then *proves* the stability theorem in that language.
+  Language here, theorems there — and do not let "stability is natural" become a
+  slogan, because stability is an inequality, not a natural transformation.
 
 ## Assessment
 

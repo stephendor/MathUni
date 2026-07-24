@@ -888,7 +888,7 @@ units:
     prereqs: ["cat-03"]
     resources: ["Aluffi Chapter 0 VIII.1", "Spivak"]
     hook: "A map between functors — and Yoneda's startling claim that an object is completely known by its arrows."
-    mission_link: "Interleavings between persistence modules ARE natural transformations — this is stability's native language."
+    mission_link: "An ε-interleaving of persistence modules is a pair of natural transformations M ⇒ N(·+ε) and N ⇒ M(·+ε) whose composites are the 2ε-shift maps — the native language in which stability is stated (tda1-06/07)."
   - id: cat-05
     module: cat
     title: "Limits and colimits"
@@ -909,7 +909,7 @@ units:
     prereqs: ["cat-06", "at1-10"]
     resources: ["Oudot ch. 1", "Spivak"]
     hook: "Cash it all in: a persistence module is a functor from a poset, and taking its barcode is a change of category."
-    mission_link: "The categorical statement of the mission — persistence is a functor, and stability is a natural one."
+    mission_link: "The categorical statement of the mission — persistence is a functor, and stability is expressed through interleavings of those functors (cat-04), not as a natural transformation in its own right."
 
   # ---- TDA I (Edelsbrunner-Harer + Oudot; the THEORY behind the lab's computation) ----
   # Pins verified against both TOCs. Boundary with 'lab': lab computes, tda1 proves.
@@ -939,7 +939,7 @@ units:
     title: "The structure theorem: interval decomposition and barcodes"
     prereqs: ["tda1-03", "aa-20"]
     resources: ["Oudot ch. 1"]
-    hook: "Every persistence module shatters uniquely into intervals — and aa-20 is why. The barcode is a theorem, not a picture."
+    hook: "Every *tame* persistence module shatters uniquely into intervals — and for finite type, aa-20 is why. The barcode is a theorem with a hypothesis, not a picture."
     mission_link: "aa-20 (f.g. modules over a PID) is the algebra the barcode rests on: a tame persistence module over k[t] decomposes into intervals by exactly that theorem — the summit link of the degree."
   - id: tda1-05
     module: tda1

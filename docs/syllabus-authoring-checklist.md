@@ -15,9 +15,18 @@ python scripts/validate_syllabus.py
 ```
 
 Enforces: unique unit ids · every prereq resolves · **DAG acyclic** · all required
-fields present and non-empty · **every resource resolves** to a `bookmap.json`
-book or a registered source in `resources/resource_sources.json` · **no prereq
-points forward into a later semester** (the common cross-module mis-wire).
+fields present and non-empty · `resources` is a **non-empty list of non-empty
+strings** (an empty list is neither `None` nor `""`, so it would otherwise slip
+past the required-field check and cite nothing) · **every resource resolves** to
+a `bookmap.json` book or a registered source in `resources/resource_sources.json`
+· **no prereq points forward into a later semester** (the common cross-module
+mis-wire).
+
+An **unreadable or malformed registry is a hard failure**, not a warning: if
+`bookmap.json` or `resource_sources.json` cannot be loaded, the resource check
+would silently switch itself off and the build would still print `syllabus OK`.
+A registry that loads and is genuinely empty is a different case and still only
+warns.
 
 Prove the two new gates can still fire (negative control — an always-green gate is
 worthless):
