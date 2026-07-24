@@ -782,3 +782,197 @@ units:
     resources: ["giotto-tda examples gallery", "self-directed dataset"]
     hook: "One dataset, end to end: point cloud, complex, persistence, features, conclusion. Your first real result."
     mission_link: "A dry run of the capstone — the whole pipeline, on data you choose, defended in writing."
+
+  # ==== SEMESTER 3 ========================================================
+
+  # ---- Algebraic Topology I (Hatcher ch. 0-2; the fundamental group, then homology) ----
+  # Section pins verified against the Hatcher TOC on disk (ch.0, 1.1-1.3, 2.1-2.3).
+  # Cross-links cash in the aa groups/modules machinery and the S2 topology.
+  - id: at1-01
+    module: at1
+    title: "Homotopy, homotopy equivalence, and deformation retracts"
+    prereqs: ["top-04", "top-13"]
+    resources: ["Hatcher ch. 0"]
+    hook: "A coffee mug and a doughnut, made rigorous: when is 'continuously deform' an actual theorem?"
+    mission_link: "Homology is a homotopy invariant — that invariance is exactly why topological features survive noise."
+  - id: at1-02
+    module: at1
+    title: "CW complexes and operations on spaces"
+    prereqs: ["at1-01", "top-13"]
+    resources: ["Hatcher ch. 0"]
+    hook: "Build any space from cells, one dimension at a time — the data structure algebraic topology actually computes on."
+    mission_link: "A CW structure turns a space into chain groups a persistence algorithm can chew: cells become generators."
+  - id: at1-03
+    module: at1
+    title: "The fundamental group"
+    prereqs: ["at1-02", "aa-23"]
+    resources: ["Hatcher 1.1", "Dexter algebraic_topology notes"]
+    hook: "Loops you can't shrink detect holes you can't see — and they compose into a group. (aa-23's groups, geometrised.)"
+    mission_link: "Pi_1 is the first algebraic invariant of shape; H_1 is its abelianisation, whose rank is the Betti-1 you will compute."
+  - id: at1-04
+    module: at1
+    title: "The fundamental group of the circle and applications"
+    prereqs: ["at1-03"]
+    resources: ["Hatcher 1.1", "Stillwell"]
+    hook: "Pi_1(S^1) = Z: winding number is a theorem, and it proves Brouwer's fixed point and the fundamental theorem of algebra."
+    mission_link: "The first nontrivial computation — a hole detected algebraically, the template for all of persistent H_1."
+  - id: at1-05
+    module: at1
+    title: "Van Kampen's theorem"
+    prereqs: ["at1-04", "aa-25", "aa-26"]
+    resources: ["Hatcher 1.2"]
+    hook: "Cut a space into pieces, know each piece's loops, glue the groups back — free products with amalgamation (aa-25 arrives)."
+    mission_link: "Local-to-global: the same 'assemble from pieces' logic Mayer-Vietoris and the nerve theorem later run on."
+  - id: at1-06
+    module: at1
+    title: "Covering spaces"
+    prereqs: ["at1-05", "aa-24"]
+    resources: ["Hatcher 1.3"]
+    hook: "Unroll the circle onto the real line and pi_1 becomes a group ACTING on the cover — aa-24's actions, geometrised."
+    mission_link: "Covering-space theory is pi_1 as a group action (deck transformations) — the deepest tie from aa's groups to space."
+  - id: at1-07
+    module: at1
+    title: "Simplicial and singular homology"
+    prereqs: ["at1-02", "aa-17", "la-09"]
+    resources: ["Hatcher 2.1", "Dexter algebraic_topology notes"]
+    hook: "Cycles modulo boundaries, at last, in full generality — the quotient move of aa-17 and la-09 becomes H_n."
+    mission_link: "This is homology proper: H_n = ker d_n / im d_(n+1), the object every persistence computation tracks."
+  - id: at1-08
+    module: at1
+    title: "Cellular homology and degree"
+    prereqs: ["at1-07", "aa-22"]
+    resources: ["Hatcher 2.2"]
+    hook: "Compute H_n of a CW complex from a tiny chain of cells — and read Betti numbers straight off (aa-22 pays out)."
+    mission_link: "Cellular homology is the hand-computable engine; Betti numbers are free ranks, exactly aa-22's invariants."
+  - id: at1-09
+    module: at1
+    title: "Exact sequences: Mayer-Vietoris and coefficients"
+    prereqs: ["at1-08", "aa-06"]
+    resources: ["Hatcher 2.2"]
+    hook: "The long exact sequence: an algebraic machine that computes the homology of a whole from its overlapping parts."
+    mission_link: "Mayer-Vietoris and the coefficient choice (aa-06's fields vs rings) are exactly what TDA fixes when it picks F_2."
+  - id: at1-10
+    module: at1
+    title: "The formal viewpoint: axioms and functoriality"
+    prereqs: ["at1-09", "aa-08"]
+    resources: ["Hatcher 2.3"]
+    hook: "Forget the construction — homology is pinned down by a handful of axioms, and it is a FUNCTOR."
+    mission_link: "Homology as a functor Top -> Ab is what makes persistence a functor too — the bridge to cat and tda1."
+
+  # ---- Category Theory Essentials (Aluffi Chapter 0 + Spivak; deepens aa's 'category of -') ----
+  # Aluffi threads category theory (categories I.3-I.5, functors VIII.1); Spivak systematises limits/adjunctions.
+  - id: cat-01
+    module: cat
+    title: "Categories and morphisms"
+    prereqs: ["aa-07"]
+    resources: ["Aluffi Chapter 0 I.3-I.4"]
+    hook: "Stop looking inside objects; study only the arrows between them. Everything from aa-07 was rehearsal for this."
+    mission_link: "Persistence lives in a category — objects are homology groups, arrows are the maps a filtration induces."
+  - id: cat-02
+    module: cat
+    title: "Universal properties; products and coproducts"
+    prereqs: ["cat-01", "aa-15"]
+    resources: ["Aluffi Chapter 0 I.5"]
+    hook: "Define a thing by the one property only it satisfies — no construction, just a diagram nothing else fits."
+    mission_link: "Direct sums of persistence modules (aa-15's category of modules) are a universal property — how barcodes combine."
+  - id: cat-03
+    module: cat
+    title: "Functors"
+    prereqs: ["cat-02", "aa-08"]
+    resources: ["Aluffi Chapter 0 VIII.1", "Spivak"]
+    hook: "A map between whole categories that respects arrows — the grown-up form of aa-08's homomorphisms."
+    mission_link: "Homology is a functor; so is 'sample the filtration at level t'. Persistence composes the two."
+  - id: cat-04
+    module: cat
+    title: "Natural transformations and the Yoneda lemma"
+    prereqs: ["cat-03"]
+    resources: ["Aluffi Chapter 0 VIII.1", "Spivak"]
+    hook: "A map between functors — and Yoneda's startling claim that an object is completely known by its arrows."
+    mission_link: "Interleavings between persistence modules ARE natural transformations — this is stability's native language."
+  - id: cat-05
+    module: cat
+    title: "Limits and colimits"
+    prereqs: ["cat-04"]
+    resources: ["Spivak", "Aluffi Chapter 0 I.5"]
+    hook: "Products and intersections are limits, quotients and gluings their dual colimits — one idea and its mirror, seen from the right height."
+    mission_link: "Quotient and gluing moves from la, aa, and top are all colimits — dual to the limits behind products and intersections; one categorical idea seen from both sides."
+  - id: cat-06
+    module: cat
+    title: "Adjunctions"
+    prereqs: ["cat-05"]
+    resources: ["Aluffi Chapter 0 VIII.1", "Spivak"]
+    hook: "The idea category theory is built around: two functors in perfect balance. Free constructions are left adjoints."
+    mission_link: "Adjunctions organise the constructions (free complex, geometric realisation) that turn data into topology."
+  - id: cat-07
+    module: cat
+    title: "Homology and persistence as functors"
+    prereqs: ["cat-06", "at1-10"]
+    resources: ["Oudot ch. 1", "Spivak"]
+    hook: "Cash it all in: a persistence module is a functor from a poset, and taking its barcode is a change of category."
+    mission_link: "The categorical statement of the mission — persistence is a functor, and stability is a natural one."
+
+  # ---- TDA I (Edelsbrunner-Harer + Oudot; the THEORY behind the lab's computation) ----
+  # Pins verified against both TOCs. Boundary with 'lab': lab computes, tda1 proves.
+  - id: tda1-01
+    module: tda1
+    title: "Simplicial complexes and filtrations"
+    prereqs: ["at1-07", "lab-02", "top-13"]
+    resources: ["Edelsbrunner III.1", "Oudot ch. 2"]
+    hook: "A single space grows as you turn a dial — the filtration — and topology appears and vanishes as it does."
+    mission_link: "The filtration is the input to everything; persistence studies how homology changes along it."
+  - id: tda1-02
+    module: tda1
+    title: "Homology by matrix reduction"
+    prereqs: ["at1-08", "la-07"]
+    resources: ["Edelsbrunner IV.1-IV.2"]
+    hook: "Homology as pure linear algebra over F_2: one Gaussian elimination on the boundary matrix (la-07, cashed in)."
+    mission_link: "The computational-topology view of at1's homology — the exact operation the persistence algorithm iterates."
+  - id: tda1-03
+    module: tda1
+    title: "Persistent homology and the persistence module"
+    prereqs: ["tda1-01", "tda1-02"]
+    resources: ["Edelsbrunner VII.1", "Oudot ch. 1"]
+    hook: "Track a hole from the level it is born to the level it dies — persistence is homology with a lifespan."
+    mission_link: "The persistence module — one vector space per level, one map per step — is the mission's central algebraic object."
+  - id: tda1-04
+    module: tda1
+    title: "The structure theorem: interval decomposition and barcodes"
+    prereqs: ["tda1-03", "aa-20"]
+    resources: ["Oudot ch. 1"]
+    hook: "Every persistence module shatters uniquely into intervals — and aa-20 is why. The barcode is a theorem, not a picture."
+    mission_link: "aa-20 (f.g. modules over a PID) is the algebra the barcode rests on: a tame persistence module over k[t] decomposes into intervals by exactly that theorem — the summit link of the degree."
+  - id: tda1-05
+    module: tda1
+    title: "Persistence diagrams and their space"
+    prereqs: ["tda1-04", "an2-01", "lab-04"]
+    resources: ["Oudot ch. 1", "Edelsbrunner VII"]
+    hook: "Replot each interval as a point above the diagonal — the persistence diagram, a multiset you can do geometry on."
+    mission_link: "Diagram space is the metric space (an2-01) where stability is stated; lab-04 computed these, here they are defined."
+  - id: tda1-06
+    module: tda1
+    title: "Metrics on diagrams: bottleneck and interleaving"
+    prereqs: ["tda1-05", "an2-03"]
+    resources: ["Oudot ch. 3", "Edelsbrunner VIII"]
+    hook: "How far apart are two diagrams? Match points optimally (bottleneck) — or compare the modules directly (interleaving)."
+    mission_link: "The interleaving distance is the algebraic metric; bottleneck is its geometric shadow — stability relates them."
+  - id: tda1-07
+    module: tda1
+    title: "The stability theorem"
+    prereqs: ["tda1-06", "an2-05", "pw-04"]
+    resources: ["Oudot ch. 3", "Edelsbrunner VIII.2"]
+    hook: "Perturb the data by epsilon, the diagram moves by at most epsilon. The theorem that makes TDA a science, proven. (pw-04's craft.)"
+    mission_link: "The stability theorem is why persistence is trustworthy on noisy data — the mission's keystone; the isometry theorem (bottleneck = interleaving distance) is its algebraic partner."
+  - id: tda1-08
+    module: tda1
+    title: "Morse theory and sublevel-set persistence"
+    prereqs: ["tda1-03", "an2-09", "an-12"]
+    resources: ["Edelsbrunner VI", "Edelsbrunner VII"]
+    hook: "Watch the sublevel sets of a function fill up; topology only changes at critical points (an-12's derivatives return)."
+    mission_link: "Sublevel-set persistence links Morse theory to filtrations — how a scalar field becomes a barcode."
+  - id: tda1-09
+    module: tda1
+    title: "The persistence algorithm and duality"
+    prereqs: ["tda1-03", "lab-03", "at1-09"]
+    resources: ["Edelsbrunner VII.2", "Edelsbrunner IV.4"]
+    hook: "The full algorithm, with its clever pairing and cohomological speed-up — why Ripser (lab-03) is so fast."
+    mission_link: "The theory behind the tool: the reduction algorithm's correctness and the duality that makes it efficient."
