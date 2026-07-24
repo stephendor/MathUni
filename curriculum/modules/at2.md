@@ -8,8 +8,11 @@ notes; Ghrist §6.13 and Dey–Wang §2.5.4 for the persistent-cohomology unit.
 the duality in. Two payoffs are mission-critical. First, **persistent
 cohomology** (at2-08): over a field it produces the *same barcode* as persistent
 homology but reduces far more cheaply — the speed-up `tda1-09` named but could
-not explain — and a persistent H¹ class lifts to a genuine circular coordinate
-on the data. Second, **the ring structure** (at2-04): cohomology multiplies, so
+not explain. Circular coordinates are a **separate construction with a stronger
+requirement**, not a corollary of that barcode equality: a map to S¹ is, up to
+homotopy, an *integral* class in H¹(−;ℤ), so a class computed over 𝔽_p must be
+lifted to ℤ and the lift verified before it can be smoothed into a coordinate.
+Second, **the ring structure** (at2-04): cohomology multiplies, so
 it separates spaces that homology cannot, which is the first invariant in the
 curriculum strictly finer than Betti numbers.
 
@@ -52,6 +55,12 @@ the chapter's destination (3.3). Section pins verified against the Hatcher TOC
 - at2-08 is the deliberate handoff into `tda2` and `cap`. State the barcode
   equality as a theorem over a field, not as folklore, and be explicit that the
   advantage is computational (reduction cost), not informational.
+- **Keep the two halves of at2-08 apart.** The barcode equality holds over a
+  field; the circular coordinate needs an integral class, because S¹ is a
+  K(ℤ,1) and so H¹(X;ℤ) ≅ [X, S¹]. The 𝔽_p class computed in practice is a
+  *candidate* for a lift, not a lift — the lift has to exist and be checked
+  before any smoothing or integration step. This is a `cap-03`-shaped
+  hypothesis check sitting inside the module's own headline result.
 
 ## Scope note
 
@@ -90,3 +99,6 @@ ch. 9, a different construction with a different index category.
   (at2-07) — those need Lefschetz duality or the compactly-supported version.
 - Believing persistent cohomology gives a *different* (better) barcode (at2-08)
   — over a field it gives the same one, faster.
+- Treating an 𝔽_p persistent H¹ class as if it were already a circular
+  coordinate (at2-08) — the coordinate needs an integral class, so the lift to ℤ
+  must exist and be verified first.

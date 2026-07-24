@@ -1033,8 +1033,8 @@ units:
     title: "Persistent cohomology and circular coordinates"
     prereqs: ["at2-01", "at2-03", "tda1-09"]
     resources: ["Hatcher 3.1", "Dey 2.5.4", "Ghrist 6.13"]
-    hook: "The same barcode, computed the other way round — and much faster. Then a bonus: a 1-cocycle becomes a real circular coordinate on your data."
-    mission_link: "Over a field, persistent cohomology of a filtration yields the same barcode as persistent homology while reducing far more cheaply in practice — the speed-up tda1-09 named. A persistent H^1 class further lifts to a map from the data to the circle, turning a detected loop into a usable coordinate."
+    hook: "The same barcode, computed the other way round — and much faster. Then a bonus, if the class lifts to the integers: a 1-cocycle becomes a real circular coordinate on your data."
+    mission_link: "Over a field, persistent cohomology of a filtration yields the same barcode as persistent homology while reducing far more cheaply in practice — the speed-up tda1-09 named. Circular coordinates are a SEPARATE construction with a stronger requirement: because S^1 is a K(Z,1), a map from the data to S^1 corresponds up to homotopy to an INTEGRAL class in H^1(-;Z), so a class computed over F_p must first be lifted to Z and the lift verified before it can be smoothed and integrated into an actual coordinate."
 
   # ---- Semester 4: TDA II (Dey-Wang, with Ghrist for sheaves) ----
   - id: tda2-01
