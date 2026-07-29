@@ -1,3 +1,10 @@
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
 from srs.scheduler import rate_card, due_cards
 
 def card(**kw):
@@ -36,3 +43,24 @@ def test_due_cards_filters_and_sorts():
                       card(id="c", due="2026-07-07")]}
     ids = [c["id"] for c in due_cards(deck, "2026-07-07")]
     assert ids == ["b", "c"]
+
+def test_stdout_commands_emit_utf8_json_when_parent_requests_cp1252(tmp_path):
+    repo = Path(__file__).resolve().parents[1]
+    (tmp_path / "srs").mkdir()
+    shutil.copy(repo / "srs/config.json", tmp_path / "srs/config.json")
+    deck = {
+        "cards": [card(id="unicode", front="A₁ ∩ A₂ ⇒ B", due="2000-01-01")],
+    }
+    (tmp_path / "srs/deck.json").write_text(
+        json.dumps(deck, ensure_ascii=False), encoding="utf-8")
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "cp1252"
+    script = repo / "srs/scheduler.py"
+
+    for command in (["due"], ["stats"], ["rate", "unicode", "3"]):
+        result = subprocess.run(
+            [sys.executable, str(script), *command],
+            cwd=tmp_path, env=env, capture_output=True,
+        )
+        assert result.returncode == 0, result.stderr.decode("utf-8", errors="replace")
+        json.loads(result.stdout.decode("utf-8"))

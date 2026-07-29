@@ -65,3 +65,15 @@ def test_cli_missing_file_clean_error():
     assert result.stdout.startswith("ERROR:") or result.stderr.startswith("ERROR:")
     combined = result.stdout + result.stderr
     assert "Traceback" not in combined
+
+def test_declared_primary_resource_must_lead():
+    doc = copy.deepcopy(VALID)
+    doc["modules"][0]["primary_resource"] = "Axler"
+    doc["units"][0]["resources"] = ["Oxford notes"]
+    assert any("does not match" in e for e in validate(doc))
+
+def test_declared_primary_resource_requires_section_locator():
+    doc = copy.deepcopy(VALID)
+    doc["modules"][0]["primary_resource"] = "Axler"
+    doc["units"][0]["resources"] = ["Axler ch. 1-2"]
+    assert any("section-level locator" in e for e in validate(doc))

@@ -25,6 +25,8 @@ modules:
     title: Abstract Algebra
     semester: s1
     primary_text: "Aluffi, Algebra: Notes from the Underground — ch. 1-12 (Core Texts)"
+    primary_resource: "Aluffi Underground"
+    primary_resource_exceptions: ["aa-00"]
     support: ["Carter, Visual Group Theory (visual layer, groups units only)",
               "Macauley VGT playlist (visual layer, groups units only)",
               "Oxford M1 Groups and Group Actions notes"]

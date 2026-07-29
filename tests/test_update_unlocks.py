@@ -21,6 +21,16 @@ def test_in_progress_never_demoted():
                              "c": {"status": "locked"}}, {"a": {"score": 0.9}})
     assert prog["b"]["status"] == "in-progress"
 
+def test_mastered_and_in_progress_survive_empty_mastery_record():
+    progress = {
+        "a": {"status": "mastered"},
+        "b": {"status": "in-progress"},
+        "c": {"status": "locked"},
+    }
+    prog = recompute(UNITS, progress, {})
+    assert prog["a"]["status"] == "mastered"
+    assert prog["b"]["status"] == "in-progress"
+
 def test_roots_stay_unlocked_without_mastery():
     prog = recompute(UNITS, {"a": {"status": "unlocked"}, "b": {"status": "locked"}}, {})
     assert prog["a"]["status"] == "unlocked"

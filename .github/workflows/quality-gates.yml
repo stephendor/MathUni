@@ -1,0 +1,34 @@
+name: MathUni quality gates
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pr-base-policy:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require pull requests to target main
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: test "$BASE_REF" = main
+
+  curriculum-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: python scripts/validate_syllabus.py
+      - run: python scripts/validate_syllabus.py --selftest
+      - run: python scripts/check_id_consistency.py
+      - run: python scripts/lesson_lint.py --selftest
+      - run: python -m pytest -q

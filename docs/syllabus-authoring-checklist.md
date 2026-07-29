@@ -22,6 +22,18 @@ a `bookmap.json` book or a registered source in `resources/resource_sources.json
 · **no prereq points forward into a later semester** (the common cross-module
 mis-wire).
 
+Modules that declare `primary_resource` also enforce that every non-exempt
+unit leads with that source and uses a section-level locator. This turns a
+primary-text migration into a checked binding instead of a metadata-only edit.
+
+```bash
+python scripts/check_id_consistency.py
+```
+
+Reconciles syllabus ids with progress, SRS cards, lessons, problem sets,
+solutions, and learning records. Any renamed or retired unit left behind in a
+mirrored store fails with its path.
+
 An **unreadable or malformed registry is a hard failure**, not a warning: if
 `bookmap.json` or `resource_sources.json` cannot be loaded, the resource check
 would silently switch itself off and the build would still print `syllabus OK`.
