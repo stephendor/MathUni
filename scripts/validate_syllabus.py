@@ -6,6 +6,7 @@ resolves to a known source, and no prereq points forward into a later semester.
   python scripts/validate_syllabus.py --selftest  # prove the new gates can fire
 """
 import json
+import re
 import sys
 from graphlib import TopologicalSorter, CycleError
 
@@ -69,11 +70,16 @@ def validate(doc, book_keys=(), source_prefixes=()):
     sem_order = {s["id"]: i for i, s in enumerate(doc.get("semesters", []))}
     mod_ids = set()
     mod_sem = {}
+    mod_primary_resource = {}
+    mod_primary_exceptions = {}
     for m in doc.get("modules", []):
         if m["id"] in mod_ids:
             errors.append(f"duplicate module id: {m['id']}")
         mod_ids.add(m["id"])
         mod_sem[m["id"]] = m.get("semester")
+        mod_primary_resource[m["id"]] = m.get("primary_resource")
+        mod_primary_exceptions[m["id"]] = set(
+            m.get("primary_resource_exceptions", []))
         if m.get("semester") not in sem_ids:
             errors.append(f"module {m['id']}: unknown semester {m.get('semester')}")
 
@@ -108,6 +114,19 @@ def validate(doc, book_keys=(), source_prefixes=()):
                     errors.append(
                         f"unit {uid}: unresolvable resource {res!r} — register "
                         f"the book in {BOOKMAP} or the source in {SOURCES}")
+
+        primary = mod_primary_resource.get(u.get("module"))
+        if (primary and res_list
+                and uid not in mod_primary_exceptions.get(u.get("module"), set())):
+            lead = res_list[0].strip()
+            if not _boundary_match(lead, primary):
+                errors.append(
+                    f"unit {uid}: lead resource {lead!r} does not match module "
+                    f"primary_resource {primary!r}")
+            elif not re.search(r"\d+\.\d+", lead):
+                errors.append(
+                    f"unit {uid}: lead resource {lead!r} needs a section-level "
+                    "locator (for example 11.2), not only a chapter-level pin")
 
     def sem_of(uid):
         return sem_order.get(mod_sem.get(unit_mod.get(uid)))
@@ -196,6 +215,20 @@ def selftest():
 
     check("a loaded registry reports no error",
           _load_json(BOOKMAP)[1] is None)
+
+    pinned = json.loads(json.dumps(ok))
+    pinned["modules"][1]["primary_resource"] = "Munkres"
+    wrong_lead = json.loads(json.dumps(pinned))
+    wrong_lead["units"][1]["resources"] = ["Oxford notes"]
+    check("fires when lead resource contradicts declared primary resource",
+          any("does not match" in e
+              for e in validate(wrong_lead, books, srcs)))
+
+    coarse = json.loads(json.dumps(pinned))
+    coarse["units"][1]["resources"] = ["Munkres ch. 11-12"]
+    check("fires on a chapter-only lead-resource locator",
+          any("section-level locator" in e
+              for e in validate(coarse, books, srcs)))
 
     fwd = json.loads(json.dumps(ok))
     fwd["units"].append({"id": "an-02", "module": "an", "title": "t",
