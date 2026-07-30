@@ -24,6 +24,7 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 .guided textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
 details summary{cursor:pointer;color:var(--acc)}
 .svgwrap{background:#0c1013;border-radius:10px;padding:.6rem;margin:1rem 0}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
 svg text{font-family:Georgia,serif}
 </style></head><body>
 <p class="cite">Proofs &amp; Writing · Nexus College</p>
@@ -31,7 +32,13 @@ svg text{font-family:Georgia,serif}
 
 <div class="hook">
 <p>Here is a fact that catches nearly everyone the first time they meet it: if <var>f</var> is a function and <var>A</var>, <var>B</var> are subsets of its domain, you would expect <var>f(A ∩ B)</var> to equal <var>f(A) ∩ f(B)</var> — after all, <var>f</var> just relabels elements, so surely intersecting first or relabelling first shouldn't matter. It does. Take <var>f</var>: ℝ → ℝ, <var>f(x) = x²</var>, with <var>A = [−2, 0]</var> and <var>B = [0, 2]</var>. Then <var>A ∩ B = {0}</var>, so <var>f(A ∩ B) = {0}</var> — a single point. But <var>f(A) = [0, 4]</var> and <var>f(B) = [0, 4]</var> too, so <var>f(A) ∩ f(B) = [0, 4]</var> — an entire interval. The two sides aren't even close. Somewhere between "intersect the inputs" and "intersect the outputs", information got lost — and pinning down exactly what got lost, and why the same trick <em>doesn't</em> lose anything when you go the other way (preimages, not images), is the whole of today's lesson.</p>
-<p><strong>Before you read on, commit to an answer:</strong> is <var>f(A ∩ B) ⊆ f(A) ∩ f(B)</var> always true, always false, or sometimes true and sometimes false? Hold that answer in your head — segment 1 proves it.</p>
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction Gate:</strong> Before you read on, commit to an answer. The counterexample above killed the <em>equality</em> <var>f(A ∩ B) = f(A) ∩ f(B)</var>. What about the one-way inclusion <var>f(A ∩ B) ⊆ f(A) ∩ f(B)</var>?</p>
+<button onclick="check(this,true)" data-ok>Always true, for every function and every pair of subsets</button>
+<button onclick="check(this,false)">Sometimes true, sometimes false — it depends on f</button>
+<button onclick="check(this,false)">Always false, since the hook just showed the two sides differ</button>
+<div class="explain">Always true — and Segment 1 proves it as Lemma 1, using nothing about <var>f</var> beyond the definition of image. Note which direction survived: the hook's example has the left side <em>smaller</em> ({0} inside [0,4]), so "the two sides differ" rules out equality without ruling out containment. Segment 3 then pins down the exact hypothesis that upgrades the inclusion to equality.</div>
+</div>
 </div>
 
 <p class="mission">Why this matters for the mission: continuity in topology is defined entirely via preimages — not images. By the end of today you'll see in your bones why that's the only sane choice.</p>
@@ -88,7 +95,7 @@ svg text{font-family:Georgia,serif}
 </div>
 
 <div class="selfcheck">
-<p>Is <var>f(A ∩ B) ⊆ f(A) ∩ f(B)</var> a theorem for <em>every</em> function <var>f</var> and every <var>A, B</var>?</p>
+<p><strong>Self-check 1.</strong> Is <var>f(A ∩ B) ⊆ f(A) ∩ f(B)</var> a theorem for <em>every</em> function <var>f</var> and every <var>A, B</var>?</p>
 <button onclick="check(this,true)" data-ok>Yes, always</button>
 <button onclick="check(this,false)">No, it needs f injective</button>
 <button onclick="check(this,false)">No, it needs f surjective</button>
@@ -96,7 +103,7 @@ svg text{font-family:Georgia,serif}
 </div>
 
 <div class="selfcheck">
-<p>Which best explains why <var>f(C ∪ D) = f(C) ∪ f(D)</var> but <var>f(C ∩ D)</var> can be a strict subset of <var>f(C) ∩ f(D)</var>?</p>
+<p><strong>Self-check 2.</strong> Which best explains why <var>f(C ∪ D) = f(C) ∪ f(D)</var> but <var>f(C ∩ D)</var> can be a strict subset of <var>f(C) ∩ f(D)</var>?</p>
 <button onclick="check(this,false)">Unions are always bigger sets than intersections</button>
 <button onclick="check(this,true)" data-ok>An element of f(C)∪f(D) needs only one witness in C or D; an element of f(C)∩f(D) needs two witnesses that need not coincide</button>
 <button onclick="check(this,false)">f(C∩D) is undefined when C∩D = ∅</button>
@@ -146,7 +153,7 @@ svg text{font-family:Georgia,serif}
 </div>
 
 <div class="selfcheck">
-<p>Why does Lemma 3(i) give an equality (⟺ throughout) while Lemma 1 only gave an inclusion?</p>
+<p><strong>Self-check 3.</strong> Why does Lemma 3(i) give an equality (⟺ throughout) while Lemma 1 only gave an inclusion?</p>
 <button onclick="check(this,true)" data-ok>Preimage membership is a direct test on a single x; image membership involves an existential "some x", which "and" can't distribute over safely</button>
 <button onclick="check(this,false)">Because preimages are only defined for bijections</button>
 <button onclick="check(this,false)">Because ∩ is commutative but ∪ isn't</button>
@@ -154,7 +161,7 @@ svg text{font-family:Georgia,serif}
 </div>
 
 <div class="selfcheck">
-<p><var>f : ℝ → ℝ</var>, <var>f(x)=x²</var>. Is <var>f⁻¹((−∞,0))</var> equal to <var>∅</var>?</p>
+<p><strong>Self-check 4.</strong> <var>f : ℝ → ℝ</var>, <var>f(x)=x²</var>. Is <var>f⁻¹((−∞,0))</var> equal to <var>∅</var>?</p>
 <button onclick="check(this,true)" data-ok>Yes — no real x has x² &lt; 0</button>
 <button onclick="check(this,false)">No — it's all of ℝ</button>
 <button onclick="check(this,false)">No — it's {0}</button>
@@ -194,7 +201,7 @@ svg text{font-family:Georgia,serif}
 </div>
 
 <div class="selfcheck">
-<p><var>f : ℤ → ℤ</var>, <var>f(n) = 2n</var>. Is <var>f(f⁻¹({4,5,6})) = {4,5,6}</var>?</p>
+<p><strong>Self-check 5.</strong> <var>f : ℤ → ℤ</var>, <var>f(n) = 2n</var>. Is <var>f(f⁻¹({4,5,6})) = {4,5,6}</var>?</p>
 <button onclick="check(this,true)" data-ok>No — it equals {4,6}, since 5 has no preimage</button>
 <button onclick="check(this,false)">Yes, by Lemma 5</button>
 <button onclick="check(this,false)">No — it equals {2,3}</button>
@@ -202,7 +209,7 @@ svg text{font-family:Georgia,serif}
 </div>
 
 <div class="selfcheck">
-<p>Let f : A → B be injective and C, D ⊆ A with C ∩ D = ∅. What can you say about f(C) and f(D)?</p>
+<p><strong>Self-check 6.</strong> Let f : A → B be injective and C, D ⊆ A with C ∩ D = ∅. What can you say about f(C) and f(D)?</p>
 <button onclick="check(this,true)" data-ok>f(C) ∩ f(D) = ∅ too</button>
 <button onclick="check(this,false)">Nothing — they could still overlap</button>
 <button onclick="check(this,false)">f(C) = f(D)</button>
@@ -256,8 +263,9 @@ svg text{font-family:Georgia,serif}
 </svg>
 </div>
 
-<h2>Before you look away</h2>
-<p>Close your eyes, or look at the ceiling, and rebuild the argument skeleton of this lesson from nothing — just the shape, not every symbol:</p>
+<div class="blank-page">
+<h3>Exit Ritual: Blank-Page Reconstruction</h3>
+<p>Close your eyes, or look at the ceiling, and reconstruct the argument skeleton of this lesson from nothing — just the shape, not every symbol:</p>
 <ol>
 <li>What does the hook's counterexample show, and what's the one-sentence reason it happens (witnesses)?</li>
 <li>Which of ∪ and ∩ survives images unchanged, and which needs an extra hypothesis to survive — and what is that hypothesis?</li>
@@ -268,6 +276,7 @@ svg text{font-family:Georgia,serif}
 <summary>Reveal the skeleton to check against</summary>
 <p>(1) f(C∩D) can be a strict subset of f(C)∩f(D) because an element of f(C)∩f(D) may come from two <em>different</em> points, one in C and one in D, that don't have to lie in C∩D. (2) Union survives (f(C∪D)=f(C)∪f(D)) because "or" distributes cleanly over an existential witness; intersection needs f injective to force the two witnesses to coincide (Lemma 4). (3) Preimage membership is a direct pointwise test ("f(x)∈Y"), not an existential search, so logical connectives on the Y-side translate word-for-word to the x-side — no witness-matching problem ever arises (Lemma 3). (4) f injective ⟺ X=f⁻¹(f(X)) for every X⊆A (Lemma 4/guided proof); f surjective ⟺ Y=f(f⁻¹(Y)) for every Y⊆B (Lemma 5).</p>
 </details>
+</div>
 
 <footer>Sources: Cummings, <em>Proofs: A Long-Form Mathematics Textbook</em> — Ch. 3 "Sets" §3.4 Set Operations, Definition 3.8 (union/intersection) p. 82, Definition 3.9 (complement) p. 84; Ch. 8 "Functions" §8.2, Definition 8.3 (injective) p. 252, Definition 8.5 (surjective) / Definition 8.7 (bijective) p. 253, image/inverse-image definitions and Exercises 8.28–8.30 (images/preimages under ∩, ∪, and the injective/surjective characterisations) pp. 280–281. Schumacher was named as a secondary source in the unit brief but has no entry in resources/bookmap.json, so this lesson draws solely on Cummings.</footer>
 <script>

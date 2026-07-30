@@ -25,6 +25,11 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 .controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
 .controls button:hover{background:#2f3d4a}
 .rulebox{background:var(--panel);border-radius:10px;padding:.9rem 1.2rem;margin:.8rem 0;border-left:4px solid #d8a657}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
 </style></head><body>
 <p class="cite">Abstract Algebra· Nexus College</p>
 <h1>Symmetry: groups before the definition <span class="cite">(aa-00)</span></h1>
@@ -35,6 +40,14 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 A rectangle, a light switch, and a dance move walk into a bar — same group.
 <p>The rectangle only knows two tricks: flip it over left-to-right, or flip it over top-to-bottom. The light switches on your wall only know one trick each: on or off. A dancer marking a spin only knows how to turn a quarter, a half, three-quarters, or come back to facing front. None of these three things looks remotely like the others — paper, electricity, a body in motion. And yet, if you write down <em>how many ways each one can end up arranged</em>, and <em>what happens when you do one move after another</em>, you get exactly the same pattern, three times over. That repeated pattern has a name. It's called a group, and by the end of this lesson you will have found one with your own hands before anybody hands you a definition for it.</p>
 <p>We are going to resist the urge to define anything up front. Instead — like every mathematician before the definition existed — we will play with a rectangle until the rules reveal themselves.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction Gate:</strong> Before you touch the rectangle, commit to an answer. Take the sheet of paper, flip it left-to-right, and then flip <em>that</em> top-to-bottom. Where do the corner labels end up?</p>
+<button onclick="check(this,false)">Back where they started — two flips always cancel</button>
+<button onclick="check(this,true)" data-ok>In the arrangement you would get by spinning the sheet a half-turn, without ever flipping it</button>
+<button onclick="check(this,false)">In a fifth arrangement, reachable no other way</button>
+<div class="explain">A half-turn. Neither flip on its own can produce it, and yet the two of them in sequence land exactly there — which is the first hint that the <em>combination</em> of two moves is a move in its own right. Segment 1 has you check this against the canvas; Segment 2 gives the observation its name (Carter's Rule 1.8).</div>
+</div>
 </div>
 
 <p class="mission">Why this matters for the mission: Groups measure symmetry; homology groups measure holes. Same idiom.</p>
@@ -157,6 +170,35 @@ A rectangle, a light switch, and a dance move walk into a bar — same group.
 <div class="explain">Just as adding 0 leaves a number unchanged, applying the "do-nothing" action leaves every configuration unchanged. This role — an action that changes nothing — is exactly what gt-02 will formalise as the group's identity element.</div>
 </div>
 
+<div class="guided-proof">
+<h3>Guided Proof Practice</h3>
+<p><strong>Prompt:</strong> Segment 1 asserted that the rectangle's exploration <em>terminates</em> after exactly four configurations — that no fifth arrangement is reachable, however long a sequence of flips you perform. Argue this informally, in Carter's pre-axiomatic register, using only what you can check with your hands. <em>Hint:</em> write <var>h</var> for the horizontal flip and <var>v</var> for the vertical one, and find the two facts about sequences of <var>h</var>'s and <var>v</var>'s that let you shorten <em>any</em> sequence down to a very small list of survivors.</p>
+<textarea class="proof-input" placeholder="Write your argument here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model Answer:</strong> Write <var>h</var> for the horizontal flip and <var>v</var> for the vertical one. Every configuration you can reach is the result of <em>some</em> finite sequence of <var>h</var>'s and <var>v</var>'s, because those are the only two moves on the list (Rule 1.5). Two facts about such sequences, both checkable on the paper:</p>
+<p>(1) <strong><var>h</var> twice in a row does nothing, and so does <var>v</var> twice in a row.</strong> Flip the sheet left-to-right and left-to-right again and every corner is home. So wherever a sequence contains <var>hh</var> or <var>vv</var>, you may delete that pair without changing where you end up.</p>
+<p>(2) <strong><var>h</var> then <var>v</var> lands in the same place as <var>v</var> then <var>h</var>.</strong> Both routes give the half-turn — the Prediction Gate's answer. So you may swap any adjacent <var>vh</var> into <var>hv</var>.</p>
+<p>Now take any sequence at all. Using (2) repeatedly, shuffle every <var>h</var> to the front, leaving a block of <var>h</var>'s followed by a block of <var>v</var>'s. Using (1) repeatedly, delete pairs from each block until at most one of each survives. What is left is one of exactly four sequences: nothing at all, <var>h</var>, <var>v</var>, or <var>hv</var>. So at most four configurations are reachable.</p>
+<p>And all four are genuinely different — the canvas shows four distinct corner arrangements, so none of them is secretly another in disguise. At most four, and no two the same: exactly four. ∎</p>
+<p>(Notice what this argument did <em>not</em> need: any definition of "group", any axiom, any set. It needed only the list of moves, and the two observations you made with your hands. That is what it means to find the structure before the definition.)</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit Ritual: Blank-Page Reconstruction</h3>
+<p>Before closing this lesson, look away from the screen and reconstruct the three load-bearing claims from nothing:</p>
+<ol>
+<li>The rectangle puzzle's exploration closes after exactly <strong>four</strong> configurations — and the reason it closes (each flip undoes itself; the two flips commute).</li>
+<li>Carter's four rules (1.5 fixed list, 1.6 reversible, 1.7 deterministic, 1.8 combinations count), and which one licenses "flip horizontal then flip vertical" as a move in its own right.</li>
+<li>The two facts you discovered by hand that the rules do not name: a <em>do-nothing</em> action exists, and every move has an <em>undo</em>. State what later chapters call each.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) four — solved, horizontal, vertical, half-turn — because <var>hh</var> and <var>vv</var> delete and <var>hv</var> = <var>vh</var>; (2) Rule 1.8, combinations of actions are actions; (3) do-nothing = the <strong>identity</strong>, undo = the <strong>inverse</strong>, and in this particular group every move happens to be its own inverse — then you have the whole of aa-00 without the vocabulary, which is exactly the order Carter intended. The vocabulary arrives in aa-23.</p>
+</details>
 </div>
 
 <footer>Sources: Carter, <em>Visual Group Theory</em> — Ch. 1 "What is a Group?" §1.2–1.4 (Observations 1.1–1.4, Rules 1.5–1.8, Definition 1.9), pp. 4–7; Ch. 2 "What Do Groups Look Like?" §2.2 "A Not-So-Famous Toy" (the rectangle puzzle), pp. 14–15; §2.3 "Mapping a Group" (exploring the rectangle's four configurations), pp. 15–18; §2.4 "Cayley Diagrams", p. 18; §2.5 "A Touch More Abstract" (the light-switch group and the Klein 4-group), pp. 19–20.
