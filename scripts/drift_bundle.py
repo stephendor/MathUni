@@ -226,8 +226,15 @@ def check(args):
         # self-contained
         ext = _self_contained(html)
         selfc = "PASS" if not ext else f"FAIL external: {', '.join(ext[:3])}"
+        # A candidate that declares "NOT IN SOURCE: ..." is being honest about the
+        # extract: a datum to read at Gate 2, not a bounce. Committed lessons are
+        # linted by the same function and DO fail on a gap — the exemption is this
+        # caller's policy, so it drops that one row by name rather than asking
+        # lesson_lint to soften.
         lint_results = lesson_lint.lint(html)
-        lfails = [(nm, d) for nm, ok, d in lint_results if not ok]
+        gaps = lesson_lint.gap_markers(html)
+        lfails = [(nm, d) for nm, ok, d in lint_results
+                  if not ok and nm != lesson_lint.GAP_CHECK]
         failed = (cov.startswith(("FAIL", "ERROR")) or parse.startswith("FAIL")
                   or selfc.startswith("FAIL") or bool(lfails))
         any_fail = any_fail or failed
@@ -235,6 +242,11 @@ def check(args):
         print(f"  coverage        : {cov}")
         print(f"  html parses     : {parse}")
         print(f"  self-contained  : {selfc}")
+        print(f"  declared gaps   : {len(gaps)}"
+              + ("  <- read these before scoring" if gaps else
+                 "  (none — check this is completeness, not silent invention)"))
+        for g in gaps:
+            print(f"      NOT IN SOURCE: {g.strip()[:100]}")
         if lfails:
             for nm, d in lfails:
                 print(f"  {nm} : FAIL{(': ' + d) if d else ''}")
