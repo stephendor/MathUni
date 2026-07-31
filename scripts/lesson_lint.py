@@ -31,6 +31,7 @@ _NAMED = re.compile(r"&([a-zA-Z][a-zA-Z0-9]*);")   # &name;  (numeric &#...; is 
 _LATEX = re.compile(r"\\(?:left|right|frac|mathbb|mathbf|mathcal|cdot|times|sqrt"
                     r"|begin|end|leq|geq|neq|infty|sum|int|forall|exists)\b"
                     r"|\\\(|\\\)|\\\[|\\\]|\$\$")   # LaTeX that leaked as text
+_GAP = re.compile(r"NOT IN SOURCE:\s*([^<\n]*)")   # LESSON-GUIDE 'Source discipline'
 
 
 def _strip_code(html):
@@ -73,9 +74,28 @@ def structure(html):
     }
 
 
+def gap_markers(html):
+    """Author-declared source gaps (LESSON-GUIDE 'Source discipline'). A committed
+    lesson must carry none; a drift candidate that carries one is being HONEST —
+    hence the allow_gaps escape hatch in lint()."""
+    return _GAP.findall(_strip_code(html))
+
+
+GAP_CHECK = "source: no unresolved gap markers"
+
+
 def lint(html):
-    """Return [(check_name, ok, detail)] — render fidelity first, then structure."""
+    """Return [(check_name, ok, detail)] — render fidelity first, then structure.
+
+    The GAP_CHECK row always fails when a gap marker is present: that is the right
+    answer for a lesson about to be committed. A caller for whom a declared gap is
+    a datum rather than a defect (drift_bundle scoring candidates) filters that one
+    row out by name — the policy lives with the caller, not in a flag here."""
     out = []
+    gaps = gap_markers(html)
+    out.append((GAP_CHECK, not gaps,
+                "" if not gaps else "%d declared: %s" % (
+                    len(gaps), "; ".join(g.strip()[:60] for g in gaps[:3]))))
     bad = invalid_entities(html)
     out.append(("render: no invalid entities", not bad,
                 "" if not bad else "%d: %s" % (sum(bad.values()),
@@ -143,6 +163,12 @@ def selftest():
     check("structure signal inside <script> is ignored",
           fired(good.replace('<textarea></textarea>', '')
                 + "<script>var t='<textarea></textarea>';</script>", "guided proof"))
+    gapped = good + '<p class="gap">NOT IN SOURCE: the good-cover hypothesis</p>'
+    check("fires on an unresolved gap marker", fired(gapped, "gap markers"))
+    check("the gap row names what was declared (drift scoring reads this)",
+          any(nm == GAP_CHECK and "good-cover" in d for nm, _, d in lint(gapped)))
+    check("a caller can drop the gap row by name and see an otherwise clean lesson",
+          all(ok for nm, ok, _ in lint(gapped) if nm != GAP_CHECK))
 
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0
