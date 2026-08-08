@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at2-07 — Poincaré duality</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+table.rel{margin:1rem auto;border-collapse:collapse;font-family:Segoe UI,sans-serif;font-size:.95rem}
+table.rel td,table.rel th{border:1px solid #2a333d;padding:.35rem .8rem;text-align:center}
+table.rel th{color:var(--acc)}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology II · Nexus College</p>
+<h1>Poincaré duality <span class="cite">(at2-07)</span></h1>
+
+<div class="hook">
+On a closed orientable n-manifold, the k-dimensional holes and the (n&minus;k)-dimensional ones are the same holes counted from opposite ends.
+<p>Draw a grid on a torus. Now draw a second grid offset by half a cell in each direction. Every vertex of the first grid sits inside exactly one square of the second; every edge of the first crosses exactly one edge of the second; every square of the first contains exactly one vertex of the second. The two cell structures are the same size, counted in reverse.</p>
+<p>That picture is the whole theorem, and it is also the reason Hatcher does not use it: constructing such dual cell structures on a general manifold takes real manifold theory. The route taken instead replaces the geometry with a single algebraic operation — cap product with the fundamental class of at2-06 — and gets a theorem that applies to every manifold.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> ℝP<sup>2</sup> is a closed connected 2-manifold with H<sup>0</sup>(ℝP<sup>2</sup>;ℤ) = ℤ and, by Theorem 3.26 of at2-06, H<sub>2</sub>(ℝP<sup>2</sup>;ℤ) = 0. Duality would say H<sup>k</sup> ≅ H<sub>n−k</sub>. Predict which hypothesis has to be doing the work.</p>
+<button onclick="check(this,false)">Compactness — ℝP<sup>2</sup> is not closed</button>
+<button onclick="check(this,true)" data-ok>ℤ-orientability — ℝP<sup>2</sup> is nonorientable, so it has no fundamental class over ℤ and there is no duality map to speak of</button>
+<button onclick="check(this,false)">Connectedness, since duality needs each component treated separately</button>
+<div class="explain">Correct. ℝP<sup>2</sup> is certainly closed and connected; what it lacks is a ℤ-orientation, hence a fundamental class [M] ∈ H<sub>2</sub>(M;ℤ), hence any map to cap with. Notice how sharply the hypothesis is about the <em>pair</em> (M, R) and not about M alone: every manifold is ℤ<sub>2</sub>-orientable, so duality is restored for ℝP<sup>2</sup> the moment you work over ℤ<sub>2</sub>. That is why manifold topologists reach for ℤ<sub>2</sub> coefficients so readily, and why a TDA claim resting on duality must say which field it is over.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: For a closed R-orientable n-manifold, cap product with the fundamental class gives an isomorphism H<sup>k</sup>(M;R) → H<sub>n−k</sub>(M;R). The hypotheses are load-bearing — closed and orientable — and la-10's dual-space pairing is the linear-algebra shadow of the statement.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Cap product</h2>
+
+<p>Duality will be implemented by a map H<sup>k</sup>(M;R) → H<sub>n−k</sub>(M;R). Nothing so far produces maps from cohomology to homology, so the first job is to build one. It is the cap product, and it is close kin to the cup product of at2-04 — the same trick of cutting a simplex at a vertex, with one of the two pieces kept as a chain rather than evaluated.</p>
+
+<div class="definition">
+<p><strong>Cap product.</strong> For a space X and coefficient ring R, the R-bilinear cap product ⌢ : C<sub>k</sub>(X;R) × C<sup>ℓ</sup>(X;R) → C<sub>k−ℓ</sub>(X;R), defined for k ≥ ℓ, is given by</p>
+<div class="math-block">σ ⌢ φ = φ(σ | [v<sub>0</sub>, …, v<sub>ℓ</sub>]) · σ | [v<sub>ℓ</sub>, …, v<sub>k</sub>]</div>
+<p>for σ : Δ<sup>k</sup> → X and φ ∈ C<sup>ℓ</sup>(X;R). <span class="cite">— Hatcher §3.3, p. 239</span></p>
+</div>
+
+<p>Compare the cup product formula of at2-04. There, both faces were fed to cochains and the two values multiplied in R. Here the front face is fed to φ, producing a scalar, and that scalar multiplies the back face, which survives as a chain. The degree bookkeeping matches: k &minus; ℓ, because ℓ + 1 vertices were consumed and one, v<sub>ℓ</sub>, was handed back.</p>
+
+<div class="lemma">
+<p><strong>Lemma C (boundary formula for cap product).</strong> ∂(σ ⌢ φ) = (&minus;1)<sup>ℓ</sup>(∂σ ⌢ φ &minus; σ ⌢ δφ). <span class="cite">— Hatcher §3.3, p. 240, verified there by direct calculation</span></p>
+</div>
+
+<p>Hatcher checks it by writing out three sums. Expanding ∂σ ⌢ φ splits into the terms omitting a vertex from the front face and those omitting one from the back; σ ⌢ δφ reproduces the first group exactly; and what is left is ∂(σ ⌢ φ). The point is not the bookkeeping but what the formula immediately buys, and that is the guided proof below: cap product descends to homology and cohomology, giving</p>
+<div class="math-block">H<sub>k</sub>(X;R) × H<sup>ℓ</sup>(X;R) &nbsp;⌢⟶&nbsp; H<sub>k−ℓ</sub>(X;R),</div>
+<p>R-linear in each variable. The same formulas give relative forms H<sub>k</sub>(X,A;R) × H<sup>ℓ</sup>(X;R) → H<sub>k−ℓ</sub>(X,A;R) and H<sub>k</sub>(X,A;R) × H<sup>ℓ</sup>(X,A;R) → H<sub>k−ℓ</sub>(X;R), and — for A and B open in X — a more general H<sub>k</sub>(X, A ∪ B;R) × H<sup>ℓ</sup>(X,A;R) → H<sub>k−ℓ</sub>(X,B;R).</p>
+
+<div class="theorem">
+<p><strong>Naturality of cap product.</strong> For f : X → Y, both a covariant and a contravariant functor are involved, so no square simply commutes; the content is the formula</p>
+<div class="math-block">f<sub>∗</sub>(α) ⌢ φ = f<sub>∗</sub>(α ⌢ f<sup>∗</sup>(φ)).</div>
+<p>It follows by substituting fσ for σ in the definition. <span class="cite">— Hatcher §3.3, pp. 240–241</span></p>
+</div>
+
+<p>Read that formula slowly: it says a class pushed forward and then capped with a cochain upstairs equals the pushforward of the class capped with the pulled-back cochain. It is the correct statement of "cap product is natural" when the two variables run in opposite directions, and it is what makes the duality map behave under maps of manifolds.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does cap product lower degree by ℓ rather than raising it?</p>
+<button onclick="check(this,true)" data-ok>Because the front ℓ-face is consumed by φ, leaving the back face on the remaining k &minus; ℓ + 1 vertices as the output chain</button>
+<button onclick="check(this,false)">Because homology is covariant and cohomology contravariant, so the degrees must subtract</button>
+<button onclick="check(this,false)">Because ∂ lowers degree by 1 and the formula applies it ℓ times</button>
+<div class="explain">Count vertices, as with the cup product. The simplex σ has k + 1 vertices; φ eats [v<sub>0</sub>,…,v<sub>ℓ</sub>] and returns a scalar; the surviving chain spans [v<sub>ℓ</sub>,…,v<sub>k</sub>], which is k &minus; ℓ + 1 vertices, a (k &minus; ℓ)-simplex. The variance remark is true but is not a proof of anything, and the third option describes a formula that does not appear.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which is the correct statement of naturality for cap product?</p>
+<button onclick="check(this,false)">f<sub>∗</sub>(α ⌢ φ) = f<sub>∗</sub>(α) ⌢ f<sub>∗</sub>(φ)</button>
+<button onclick="check(this,true)" data-ok>f<sub>∗</sub>(α) ⌢ φ = f<sub>∗</sub>(α ⌢ f<sup>∗</sup>(φ))</button>
+<button onclick="check(this,false)">f<sup>∗</sup>(α ⌢ φ) = f<sup>∗</sup>(α) ⌢ f<sup>∗</sup>(φ)</button>
+<div class="explain">The first option is not even well typed: cohomology has no pushforward f<sub>∗</sub>. The third is not well typed either, since homology has no pullback. Only the middle statement respects the variances — the cohomology variable travels backwards along f while the homology variable travels forwards, which is precisely why Hatcher says the diagram does not quite commute but the spirit of commutativity is in this formula.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The duality theorem and what it forces</h2>
+
+<div class="theorem">
+<p><strong>Theorem 3.30 (Poincaré Duality).</strong> If M is a closed R-orientable n-manifold with fundamental class [M] ∈ H<sub>n</sub>(M;R), then the map D : H<sup>k</sup>(M;R) → H<sub>n−k</sub>(M;R) defined by D(α) = [M] ⌢ α is an isomorphism for all k. <span class="cite">— Hatcher §3.3, Theorem 3.30, p. 241</span></p>
+</div>
+
+<p>Every word of the hypothesis is doing work. <em>Closed</em> and <em>R-orientable</em> are exactly the two conditions at2-06 showed to be equivalent to the existence of the fundamental class — Theorem 3.26 supplies it, and the converse argument showed a fundamental class forces both. Without [M] there is nothing to cap with, so the map D is not merely non-invertible: it is undefined.</p>
+
+<h3>Visual: the dual cell structure the proof deliberately avoids</h3>
+
+<p>The geometric picture Hatcher sketches for orientation, and then sets aside: on the torus, take the standard square grid lifted from the integer lattice in ℝ<sup>2</sup>, and translate it by (1/2, 1/2). Each i-cell of one structure meets exactly one (n&minus;i)-cell of the other, transversely, in a single point. Press the button to overlay the dual grid.</p>
+
+<canvas id="dualCanvas" width="640" height="260" role="img" aria-label="A square grid on the torus and its dual grid translated by half a cell, showing each vertex inside one dual square and each edge crossing one dual edge"></canvas>
+<p style="text-align:center"><button onclick="toggleDual()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Toggle dual grid</button></p>
+<script>
+(function(){
+const cv=document.getElementById('dualCanvas'), ctx=cv.getContext('2d');
+let show=false;
+function draw(){
+  const w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h);
+  const ox=150, oy=30, n=4, cs=48;
+  ctx.lineWidth=1.5; ctx.strokeStyle='#8ab4f8';
+  for(let i=0;i<=n;i++){
+    ctx.beginPath(); ctx.moveTo(ox,oy+i*cs); ctx.lineTo(ox+n*cs,oy+i*cs); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox+i*cs,oy); ctx.lineTo(ox+i*cs,oy+n*cs); ctx.stroke();
+  }
+  for(let i=0;i<=n;i++)for(let j=0;j<=n;j++){
+    ctx.fillStyle='#8ab4f8'; ctx.beginPath(); ctx.arc(ox+i*cs,oy+j*cs,3.5,0,2*Math.PI); ctx.fill();
+  }
+  if(show){
+    ctx.strokeStyle='#d8a657'; ctx.setLineDash([5,4]);
+    for(let i=-1;i<=n;i++){
+      const y=oy+(i+0.5)*cs, x=ox+(i+0.5)*cs;
+      if(y>oy-1&&y<oy+n*cs+1){ctx.beginPath(); ctx.moveTo(ox,y); ctx.lineTo(ox+n*cs,y); ctx.stroke();}
+      if(x>ox-1&&x<ox+n*cs+1){ctx.beginPath(); ctx.moveTo(x,oy); ctx.lineTo(x,oy+n*cs); ctx.stroke();}
+    }
+    ctx.setLineDash([]);
+    for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+      ctx.fillStyle='#d8a657'; ctx.beginPath();
+      ctx.arc(ox+(i+0.5)*cs,oy+(j+0.5)*cs,3.5,0,2*Math.PI); ctx.fill();
+    }
+    ctx.strokeStyle='#4caf82'; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(ox+cs,oy+2*cs); ctx.lineTo(ox+2*cs,oy+2*cs); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(ox+1.5*cs,oy+1.5*cs); ctx.lineTo(ox+1.5*cs,oy+2.5*cs); ctx.stroke();
+    ctx.fillStyle='#4caf82'; ctx.beginPath(); ctx.arc(ox+1.5*cs,oy+2*cs,5,0,2*Math.PI); ctx.fill();
+  }
+  ctx.font='13px Segoe UI'; ctx.textAlign='left';
+  ctx.fillStyle='#8ab4f8'; ctx.fillText('cell structure C', 16, 50);
+  if(show){ctx.fillStyle='#d8a657'; ctx.fillText('dual structure C*', 16, 72);
+    ctx.fillStyle='#4caf82'; ctx.fillText('one edge of C crosses', 16, 104);
+    ctx.fillText('exactly one dual edge,', 16, 122);
+    ctx.fillText('in exactly one point', 16, 140);}
+  ctx.fillStyle='#9aa5b1';
+  ctx.fillText('i-cells of C  ↔  (n − i)-cells of C*', 16, oy+n*cs+30);
+}
+window.toggleDual=function(){show=!show; draw();};
+draw();
+})();
+</script>
+
+<p>For a surface this pairs vertices with faces and edges with edges; on the 3-torus, Hatcher notes, each edge has a dual 2-cell it pierces orthogonally and each vertex lies in a dual 3-cell. All the manifolds one commonly meets, differentiable ones in particular, carry such dually paired structures — but constructing them requires manifold theory, so the proof takes the algebraic route instead, by induction with Mayer–Vietoris sequences over open subsets, which forces the introduction of cohomology with compact supports. That machinery is beyond this lesson; what we take from §3.3 here is the statement, the computations, and the consequences.</p>
+
+<h3>Worked example 1: duality on a surface, computed with cap products</h3>
+
+<div class="worked">
+<p><strong>Example 3.31.</strong> Let M be the closed orientable surface of genus g, obtained from a 4g-gon by identifying edge pairs according to a<sub>1</sub>b<sub>1</sub>a<sub>1</sub><sup>−1</sup>b<sub>1</sub><sup>−1</sup>⋯a<sub>g</sub>b<sub>g</sub>a<sub>g</sub><sup>−1</sup>b<sub>g</sub><sup>−1</sup>, with the Δ-complex structure obtained by coning the polygon to its centre.</p>
+<p><strong>Step 1 — why simplicial computation is legitimate.</strong> Cap products are defined for simplicial homology and cohomology by exactly the same formula as in the singular theory, so the isomorphism between the theories respects cap products.</p>
+<p><strong>Step 2 — the fundamental class.</strong> [M] generating H<sub>2</sub>(M) is represented by the 2-cycle formed by the sum of all 4g 2-simplices with appropriate signs — the simplicial construction of at2-06, whose sign choice is available exactly because M is orientable.</p>
+<p><strong>Step 3 — the cohomology classes.</strong> The edges a<sub>i</sub> and b<sub>i</sub> form a basis of H<sub>1</sub>(M). Under H<sup>1</sup>(M) ≅ Hom(H<sub>1</sub>(M), ℤ), the class α<sub>i</sub> dual to a<sub>i</sub> assigns 1 to a<sub>i</sub> and 0 to the other basis elements; it is represented by the cocycle φ<sub>i</sub> giving the value 1 to the 1-simplices meeting the arc labelled α<sub>i</sub> and 0 to the others. Similarly β<sub>i</sub> is represented by ψ<sub>i</sub>.</p>
+<p><strong>Step 4 — cap.</strong> Applying the definition of cap product directly,</p>
+<div class="math-block">[M] ⌢ φ<sub>i</sub> = b<sub>i</sub>, &emsp; [M] ⌢ ψ<sub>i</sub> = &minus;a<sub>i</sub>,</div>
+<p>since in each case there is exactly one 2-simplex [v<sub>0</sub>,v<sub>1</sub>,v<sub>2</sub>] on whose front edge [v<sub>0</sub>,v<sub>1</sub>] the cocycle is non-zero. So b<sub>i</sub> is the Poincaré dual of α<sub>i</sub> and &minus;a<sub>i</sub> is the Poincaré dual of β<sub>i</sub>.</p>
+<p><strong>Step 5 — read it geometrically.</strong> Identifying α<sub>i</sub> with its Hom-dual a<sub>i</sub> and β<sub>i</sub> with b<sub>i</sub>, the classes a<sub>i</sub> and b<sub>i</sub> are Poincaré duals of each other, up to sign. Geometrically this is the statement that the loop α<sub>i</sub> is homotopic to b<sub>i</sub>, and β<sub>i</sub> to a<sub>i</sub> — the transverse arc used to define the cocycle is, up to homotopy, the dual cycle itself.</p>
+<p><strong>The nonorientable case.</strong> The closed nonorientable surface N of genus g is treated the same way over ℤ<sub>2</sub>, viewing N as a 2g-gon with consecutive edge pairs identified according to a<sub>1</sub>²⋯a<sub>g</sub>². There [N] ⌢ φ<sub>i</sub> = a<sub>i</sub>, so a<sub>i</sub> is its own Poincaré dual — and geometrically the loops a<sub>i</sub> are homotopic to their dual loops α<sub>i</sub>.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded): duality degree by degree.</strong> Let M be the closed orientable surface of genus g. Check Theorem 3.30 in every degree using the known homology H<sub>0</sub> = ℤ, H<sub>1</sub> = ℤ<sup>2g</sup>, H<sub>2</sub> = ℤ.</p>
+<p><strong>Cohomology first.</strong> All the homology is free, so the universal coefficient theorem of at2-02 gives H<sup>k</sup>(M;ℤ) ≅ Hom(H<sub>k</sub>(M),ℤ) with no Ext term: H<sup>0</sup> = ℤ, H<sup>1</sup> = <span class="gap">⟨your step⟩</span>, H<sup>2</sup> = ℤ.</p>
+<p><strong>Pair the degrees.</strong> With n = 2, duality pairs k with 2 &minus; k: H<sup>0</sup> → H<sub>2</sub>, H<sup>1</sup> → H<sub>1</sub>, H<sup>2</sup> → H<sub>0</sub>. Written out, these are ℤ → ℤ, ℤ<sup>2g</sup> → ℤ<sup>2g</sup>, ℤ → ℤ — each a map between free abelian groups of <span class="gap">⟨your step: what relation between the ranks?⟩</span>, as Theorem 3.30 requires.</p>
+<p><strong>Notice the middle.</strong> Degree 1 is paired with itself. A self-paired middle degree is what turns the cup product into a bilinear <em>form</em> on a single group, which is the subject of Proposition 3.38 below.</p>
+<p class="cite">Gap solutions: H<sup>1</sup>(M;ℤ) ≅ ℤ<sup>2g</sup>; and each pair has equal rank.</p>
+</div>
+
+<h3>Three consequences</h3>
+
+<div class="theorem">
+<p><strong>Corollary 3.37.</strong> A closed manifold of odd dimension has Euler characteristic zero. <span class="cite">— Hatcher §3.3, Corollary 3.37, p. 249</span></p>
+</div>
+
+<p><em>Proof in the orientable case.</em> Let M be closed and orientable of odd dimension n. Theorem 3.30 gives rank H<sub>i</sub>(M;ℤ) = rank H<sup>n−i</sup>(M;ℤ), which equals rank H<sub>n−i</sub>(M;ℤ) by the universal coefficient theorem — the Ext term being finite, it contributes no rank. Since n is odd, i ≠ n &minus; i for every i and (&minus;1)<sup>n−i</sup> = &minus;(&minus;1)<sup>i</sup>, so the terms of Σ<sub>i</sub>(&minus;1)<sup>i</sup> rank H<sub>i</sub>(M;ℤ) cancel in pairs. Hatcher handles the nonorientable case by the same argument over ℤ<sub>2</sub>, with dim H<sub>i</sub>(M;ℤ<sub>2</sub>) in place of rank, and then checks that this alternating sum equals the Euler characteristic. ∎</p>
+
+<div class="theorem">
+<p><strong>Proposition 3.38.</strong> The cup product pairing is nonsingular for closed R-orientable manifolds when R is a field, or when R = ℤ and torsion in H<sup>∗</sup>(M;ℤ) is factored out. <span class="cite">— Hatcher §3.3, Proposition 3.38, p. 250</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 3.39.</strong> If M is a closed connected orientable n-manifold, then an element α ∈ H<sup>k</sup>(M;ℤ) generates an infinite cyclic summand of H<sup>k</sup>(M;ℤ) iff there exists β ∈ H<sup>n−k</sup>(M;ℤ) such that α ⌣ β is a generator of H<sup>n</sup>(M;ℤ) ≅ ℤ. With coefficients in a field this holds for any α ≠ 0. <span class="cite">— Hatcher §3.3, Corollary 3.39, p. 250</span></p>
+</div>
+
+<p>Corollary 3.39 is duality turned into a working tool: it converts a question about summands into a question about finding a partner class. Hatcher's Example 3.40 uses exactly this to pin down the ring structure of ℂP<sup>n</sup>. By induction H<sup>2i</sup>(ℂP<sup>n</sup>;ℤ) is generated by α<sup>i</sup> for i &lt; n; the corollary then supplies m with α ⌣ mα<sup>n−1</sup> = mα<sup>n</sup> generating H<sup>2n</sup>, which can only happen if m = ±1, and therefore H<sup>∗</sup>(ℂP<sup>n</sup>;ℤ) ≅ ℤ[α]/(α<sup>n+1</sup>) — the ring at2-04 quoted and could not yet prove.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which failure does dropping "closed" produce, concretely?</p>
+<button onclick="check(this,true)" data-ok>Take M = ℝ<sup>2</sup>: it is orientable, H<sup>0</sup> = ℤ, but H<sub>2</sub>(ℝ<sup>2</sup>) = 0, so no isomorphism H<sup>0</sup> ≅ H<sub>2</sub> is possible</button>
+<button onclick="check(this,false)">Nothing concrete; the hypothesis is only needed to make the proof work</button>
+<button onclick="check(this,false)">The duality map becomes injective but not surjective</button>
+<div class="explain">ℝ<sup>2</sup> is a clean counterexample: orientable, connected, and duality fails in degree 0 for the crudest possible reason. Deeper still, at2-06's converse argument showed that a fundamental class forces compactness, so on a noncompact manifold there is no [M] and D is undefined rather than merely non-bijective. Duality is recovered for noncompact manifolds, but only after replacing H<sup>k</sup> by cohomology with compact supports — Hatcher's Theorem 3.35, beyond this lesson.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The Klein bottle K has H<sub>1</sub>(K;ℤ) ≅ ℤ ⊕ ℤ<sub>2</sub> and H<sub>2</sub>(K;ℤ) = 0. Is the ℤ<sub>2</sub> an instance of Poincaré duality?</p>
+<button onclick="check(this,false)">Yes: it is the duality partner of H<sup>1</sup>(K;ℤ)</button>
+<button onclick="check(this,true)" data-ok>No: H<sub>2</sub>(K;ℤ) = 0 shows K is not ℤ-orientable, so Theorem 3.30 does not apply at all; the ℤ<sub>2</sub> is Corollary 3.28's torsion statement, proved by other means</button>
+<button onclick="check(this,false)">Yes, but only over ℤ<sub>2</sub> coefficients</button>
+<div class="explain">Theorem 3.26 of at2-06 reads H<sub>2</sub>(K;ℤ) = 0 as non-orientability, which removes the hypothesis Theorem 3.30 needs. The ℤ<sub>2</sub> torsion in H<sub>1</sub> is precisely what Corollary 3.28 predicts for a closed nonorientable n-manifold in degree n &minus; 1, and Hatcher proves that from the universal coefficient theorem, not from duality. Duality does return over ℤ<sub>2</sub> — but then it relates ℤ<sub>2</sub>-cohomology to ℤ<sub>2</sub>-homology, and says nothing about integral torsion.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Corollary 3.37 says a closed odd-dimensional manifold has χ = 0. Which is the sharpest correct reading?</p>
+<button onclick="check(this,false)">Only orientable closed odd-dimensional manifolds have χ = 0</button>
+<button onclick="check(this,true)" data-ok>All of them: the orientable case uses duality over ℤ, and the nonorientable case the same argument over ℤ<sub>2</sub>, which every manifold admits</button>
+<button onclick="check(this,false)">It holds for all closed manifolds, odd- or even-dimensional</button>
+<div class="explain">The statement carries no orientability hypothesis, and that is not an oversight: ℤ<sub>2</sub>-orientability is free, so the pairing argument runs over ℤ<sub>2</sub> for any closed M, once one checks that the ℤ<sub>2</sub> alternating sum equals the integral Euler characteristic. The last option is plainly false — a closed orientable surface of genus g has χ = 2 &minus; 2g, and evenness of the dimension is exactly what lets the middle degree pair with itself instead of cancelling.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> From the boundary formula ∂(σ ⌢ φ) = (&minus;1)<sup>ℓ</sup>(∂σ ⌢ φ &minus; σ ⌢ δφ), prove the three statements that make the cap product descend to homology and cohomology: the cap product of a cycle and a cocycle is a cycle; the cap product of a cycle and a coboundary is a boundary; and the cap product of a boundary and a cocycle is a boundary. Then explain in one sentence why those three together give a well-defined map H<sub>k</sub>(X;R) × H<sup>ℓ</sup>(X;R) → H<sub>k−ℓ</sub>(X;R).</p>
+<p><em>Hint:</em> set one of ∂σ, δφ to zero at a time and read what the formula collapses to. Extend from a single simplex σ to a general chain by R-bilinearity.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Throughout write the formula as ∂(σ ⌢ φ) = ±(∂σ ⌢ φ &minus; σ ⌢ δφ); the sign (&minus;1)<sup>ℓ</sup> never affects whether something is zero. The cap product is R-bilinear, so it suffices to argue on a single singular simplex σ and extend linearly to chains.</p>
+<p><em>(i) Cycle ⌢ cocycle is a cycle.</em> Suppose ∂σ = 0 and δφ = 0. Both terms on the right vanish, so ∂(σ ⌢ φ) = 0.</p>
+<p><em>(ii) Cycle ⌢ coboundary is a boundary.</em> Suppose ∂σ = 0 and φ = δψ. The first term vanishes, leaving ∂(σ ⌢ δψ) = ∓(σ ⌢ δδψ) = 0 — but that shows σ ⌢ δψ is a cycle, not yet a boundary. Instead apply the formula to ψ itself: with ∂σ = 0 it gives ∂(σ ⌢ ψ) = ∓(σ ⌢ δψ), exhibiting σ ⌢ δψ = ∓∂(σ ⌢ ψ) as a boundary.</p>
+<p><em>(iii) Boundary ⌢ cocycle is a boundary.</em> Suppose σ = ∂τ and δφ = 0. Apply the formula to τ: ∂(τ ⌢ φ) = ±(∂τ ⌢ φ &minus; τ ⌢ δφ) = ±(∂τ ⌢ φ), so ∂τ ⌢ φ = ±∂(τ ⌢ φ) is a boundary.</p>
+<p><em>Why this suffices.</em> By (i) a cycle and a cocycle produce a cycle, so a class is defined; by (ii) and (iii) altering either representative by a coboundary or a boundary alters the result by a boundary, so that class depends only on the homology class of the first argument and the cohomology class of the second. Hence the induced map on H<sub>k</sub>(X;R) × H<sup>ℓ</sup>(X;R) is well defined, and it is R-linear in each variable because the cochain-level operation is. ∎</p>
+<p><em>The step worth noticing.</em> In (ii) the naive move — substituting φ = δψ into the formula — proves the wrong thing. The right move is to apply the formula one degree down, to ψ, so that the coboundary appears on the <em>right</em> of the equation where it can be recognised as a boundary. The same manoeuvre appeared for cup product in at2-04, and it is the standard way a Leibniz rule is used to prove a product descends.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>The cap product formula, what it does to a simplex, and the boundary formula that makes it descend.</li>
+<li>Theorem 3.30 with both hypotheses, and what each hypothesis is really supplying.</li>
+<li>Two consequences: the Euler characteristic of a closed odd-dimensional manifold, and the criterion of Corollary 3.39 for generating an infinite cyclic summand.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) σ ⌢ φ = φ(front ℓ-face) · (back face), with ∂(σ ⌢ φ) = (&minus;1)<sup>ℓ</sup>(∂σ ⌢ φ &minus; σ ⌢ δφ), whence cycle ⌢ cocycle descends; (2) D(α) = [M] ⌢ α is an isomorphism H<sup>k</sup>(M;R) → H<sub>n−k</sub>(M;R) for M closed and R-orientable — and both hypotheses exist to supply [M], with ℝ<sup>2</sup> and ℝP<sup>2</sup> as the two counterexamples when each is dropped; (3) rank H<sub>i</sub> = rank H<sub>n−i</sub> forces χ = 0 in odd dimensions, and α generates an infinite cyclic summand iff some β has α ⌣ β generating H<sup>n</sup> — then you have the lesson, and the geometric picture of dual cells is the intuition it is standing in for.</p>
+</details>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em> — §3.3: the sketch of duality via dual cell structures on surfaces and the 3-torus, and why the proof avoids them (pp. 232–233); "The Duality Theorem": the cap product formula, the boundary formula and the descent to homology and cohomology, the relative forms, and naturality (pp. 239–241); Theorem 3.30 (p. 241); Example 3.31, computing [M] ⌢ φ<sub>i</sub> = b<sub>i</sub> and [M] ⌢ ψ<sub>i</sub> = &minus;a<sub>i</sub> on the closed orientable surface of genus g, and the ℤ<sub>2</sub> treatment of the nonorientable surface (pp. 241–242); Corollary 3.37 with proof (p. 249); Proposition 3.38 and Corollary 3.39, with Example 3.40's deduction of the ring structure of ℂP<sup>n</sup> (p. 250). Assumed from at2-06: Theorem 3.26, the fundamental class, and Corollary 3.28. Assumed from at2-02 and at2-04: the universal coefficient theorem and the cup product. Deferred: cohomology with compact supports and Theorem 3.35, duality for noncompact manifolds, and the other forms of duality in Theorems 3.43–3.44 (Hatcher §3.3, pp. 242–256).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

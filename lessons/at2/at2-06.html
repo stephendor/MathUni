@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at2-06 — Orientation and the fundamental class</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+table.rel{margin:1rem auto;border-collapse:collapse;font-family:Segoe UI,sans-serif;font-size:.95rem}
+table.rel td,table.rel th{border:1px solid #2a333d;padding:.35rem .8rem;text-align:center}
+table.rel th{color:var(--acc)}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology II · Nexus College</p>
+<h1>Orientation and the fundamental class <span class="cite">(at2-06)</span></h1>
+
+<div class="hook">
+Can you pick a consistent positive direction at every point of a surface at once? On the Klein bottle you cannot — and homology says so.
+<p>Walk an anticlockwise arrow once round a Möbius band and it comes back clockwise. Nothing went wrong locally: at every instant the arrow turned smoothly and continuously. The obstruction is global, and it is the kind of obstruction that algebraic topology exists to name.</p>
+<p>Hatcher's move is to refuse any geometric definition of "orientation" and take an algebraic one instead: an orientation at a point is a choice of generator of a local homology group. That sounds like a retreat from geometry, and it buys three things at once — a definition that works on every manifold, a covering space that measures the failure, and a single homology class, the fundamental class, that exists exactly when the choices can be made consistently.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Suppose M is a closed connected n-manifold that is <em>not</em> orientable. Predict what happens to the top homology group H<sub>n</sub>(M;ℤ<sub>2</sub>).</p>
+<button onclick="check(this,false)">It vanishes, exactly as H<sub>n</sub>(M;ℤ) does</button>
+<button onclick="check(this,true)" data-ok>It is ℤ<sub>2</sub> — non-orientability is invisible to ℤ<sub>2</sub> coefficients</button>
+<button onclick="check(this,false)">It is ℤ<sub>2</sub> only when M is a surface; in higher dimensions it vanishes</button>
+<div class="explain">Correct. Theorem 3.26 says the map H<sub>n</sub>(M;R) → H<sub>n</sub>(M|x;R) ≅ R is injective with image {r ∈ R : 2r = 0} in the non-orientable case — the 2-torsion of R. Over ℤ that is zero; over ℤ<sub>2</sub> it is everything. The reason is that an orientation is a coherent choice of sign, and in ℤ<sub>2</sub> there is no sign to be inconsistent about: every manifold is ℤ<sub>2</sub>-orientable. This is why ℤ<sub>2</sub> coefficients are the standard refuge in manifold topology, and why a duality statement over a field of characteristic 2 needs no orientability hypothesis at all.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: For a closed connected n-manifold M, H<sub>n</sub>(M;ℤ) is ℤ when M is orientable and 0 otherwise, and a generator is the fundamental class [M]. Capping with [M] is the map that implements duality in at2-07.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Local orientations and the orientation covering space</h2>
+
+<p>Start with the local question: what is an orientation of ℝ<sup>n</sup>? Whatever it is, it should be preserved by rotations and reversed by reflections — clockwise and anticlockwise in ℝ<sup>2</sup>, right- and left-handed in ℝ<sup>3</sup>, both have this property. Hatcher's viewpoint is that this property is what <em>characterises</em> orientations, so anything with it may be taken as one.</p>
+
+<div class="definition">
+<p><strong>Local orientation.</strong> An orientation of ℝ<sup>n</sup> at a point x is a choice of generator of the infinite cyclic group H<sub>n</sub>(ℝ<sup>n</sup>, ℝ<sup>n</sup> &minus; {x}). More generally, a local orientation of an n-manifold M at x is a choice of generator μ<sub>x</sub> of H<sub>n</sub>(M, M &minus; {x}). <span class="cite">— Hatcher §3.3, pp. 233–234</span></p>
+</div>
+
+<p><em>Why this has the characteristic property.</em> Use the natural isomorphisms H<sub>n</sub>(ℝ<sup>n</sup>, ℝ<sup>n</sup> &minus; {x}) ≅ H<sub>n−1</sub>(ℝ<sup>n</sup> &minus; {x}) ≅ H<sub>n−1</sub>(S<sup>n−1</sup>), for S<sup>n−1</sup> a sphere centred at x. A self-map of ℝ<sup>n</sup> fixing x acts on all three groups compatibly, and on H<sub>n−1</sub>(S<sup>n−1</sup>) it acts by its degree. Rotations are homotopic to the identity and so have degree 1, fixing a generator α; reflections have degree &minus;1 and send α to &minus;α. Exactly what was wanted.</p>
+
+<p><strong>Notational convention.</strong> Groups of the form H<sub>n</sub>(X, X &minus; A) will appear constantly, so write them H<sub>n</sub>(X|A), or H<sub>n</sub>(X|A;G) when the coefficients matter. By excision H<sub>n</sub>(X|A) depends only on a neighbourhood of the closure of A, which is why it makes sense to call it the local homology of X at A.</p>
+
+<div class="definition">
+<p><strong>Orientation.</strong> An orientation of an n-manifold M is a function x ↦ μ<sub>x</sub> assigning to each x a local orientation μ<sub>x</sub> ∈ H<sub>n</sub>(M|x), satisfying local consistency: each x has a neighbourhood ℝ<sup>n</sup> ⊂ M containing an open ball B of finite radius about x such that all the μ<sub>y</sub> for y ∈ B are images of one generator μ<sub>B</sub> of H<sub>n</sub>(M|B) under the natural maps H<sub>n</sub>(M|B) → H<sub>n</sub>(M|y). If an orientation exists, M is <em>orientable</em>. <span class="cite">— Hatcher §3.3, p. 234</span></p>
+</div>
+
+<p>Note what the definition does not say. It does not ask for a single global gadget; it asks for a pointwise choice plus a local compatibility. The whole difficulty of orientability is that local compatibility need not add up to global consistency, and the object that measures the gap is a covering space.</p>
+
+<h3>The orientation double cover</h3>
+
+<p>As a set, let M̃ = {μ<sub>x</sub> : x ∈ M and μ<sub>x</sub> is a local orientation of M at x}. The map μ<sub>x</sub> ↦ x is two-to-one, since H<sub>n</sub>(M|x) ≅ ℤ has exactly two generators. Topologise M̃ by the basis of sets U(μ<sub>B</sub>), consisting of those μ<sub>x</sub> with x ∈ B whose value is the image of a chosen generator μ<sub>B</sub> ∈ H<sub>n</sub>(M|B); these make the projection a covering space. And M̃ is itself orientable: each μ<sub>x</sub> ∈ M̃ carries the canonical local orientation corresponding to μ<sub>x</sub> under H<sub>n</sub>(M̃|μ<sub>x</sub>) ≅ H<sub>n</sub>(U(μ<sub>B</sub>)|μ<sub>x</sub>) ≅ H<sub>n</sub>(B|x), and these satisfy local consistency by construction.</p>
+
+<canvas id="mobCanvas" width="640" height="230" role="img" aria-label="An oriented frame transported once round a Mobius band, returning reversed, next to the same transport on an annulus where it returns unchanged"></canvas>
+<p style="text-align:center"><button onclick="toggleBand()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Switch band</button></p>
+<script>
+(function(){
+const cv=document.getElementById('mobCanvas'), ctx=cv.getContext('2d');
+let twist=true, t=0;
+function draw(){
+  const w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h);
+  const x0=60, x1=w-60, y=110, hh=42;
+  ctx.strokeStyle='#2a333d'; ctx.lineWidth=2;
+  ctx.strokeRect(x0,y-hh,x1-x0,2*hh);
+  ctx.setLineDash([4,4]); ctx.strokeStyle='#4a555f';
+  ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x1,y); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='#9aa5b1'; ctx.font='13px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText(twist?'left and right edges glued with a flip  →  Möbius band'
+                    :'left and right edges glued directly  →  annulus', w/2, y+hh+34);
+  ctx.textAlign='left';
+  ctx.fillText(twist?'transport reverses the local orientation: non-orientable'
+                    :'transport preserves it: orientable', 24, 30);
+  const px=x0+(x1-x0)*t;
+  const flipped = twist && t>0.999;
+  const sign = (twist? Math.cos(Math.PI*t) : 1);
+  ctx.strokeStyle='#8ab4f8'; ctx.lineWidth=3;
+  const a=0.3+(sign>=0?2.2:-2.2);
+  ctx.beginPath(); ctx.arc(px,y,18,0.3,a,sign<0); ctx.stroke();
+  const ax=px+18*Math.cos(a), ay=y+18*Math.sin(a);
+  ctx.fillStyle='#8ab4f8'; ctx.beginPath();
+  ctx.arc(ax,ay,4,0,2*Math.PI); ctx.fill();
+  ctx.fillStyle=flipped?'#e06c75':'#4caf82';
+  ctx.beginPath(); ctx.arc(px,y,4,0,2*Math.PI); ctx.fill();
+  if(twist){
+    ctx.fillStyle='#9aa5b1'; ctx.font='12px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('arrow at start', x0, y-hh-10);
+    ctx.fillText('arrow on return', x1, y-hh-10);
+  }
+  t+=0.006; if(t>1) t=0;
+  requestAnimationFrame(draw);
+}
+window.toggleBand=function(){twist=!twist; t=0;};
+draw();
+})();
+</script>
+
+<div class="theorem">
+<p><strong>Proposition 3.25.</strong> If M is connected, then M is orientable iff M̃ has two components. In particular, M is orientable if it is simply connected, or more generally if π<sub>1</sub>(M) has no subgroup of index two. <span class="cite">— Hatcher §3.3, Proposition 3.25, p. 234</span></p>
+</div>
+
+<p><em>Proof.</em> M̃ is a two-sheeted cover of a connected M, so it has one or two components. If two, each maps homeomorphically to M, so M is homeomorphic to a component of the orientable manifold M̃ and is orientable. Conversely, if M is orientable then, being connected, it has exactly two orientations, and each defines a component of M̃. The last statement follows because connected two-sheeted covers of M correspond to index-two subgroups of π<sub>1</sub>(M). ∎</p>
+
+<p>The first sentence formalises the Möbius intuition exactly: going round a loop and returning with the opposite orientation corresponds to a loop in M lifting to a path in M̃ joining two distinct points over the same base point, and such paths exist precisely when M̃ is connected.</p>
+
+<h3>R-orientations: which coefficient rings can see the obstruction</h3>
+
+<p>Enlarge M̃ to the covering space M<sub>ℤ</sub> → M whose points are all elements α<sub>x</sub> ∈ H<sub>n</sub>(M|x), topologised by the analogous basis. It is infinite-sheeted. Setting α<sub>x</sub> = 0 gives a copy M<sub>0</sub> of M inside it, and the rest is a sequence of copies M<sub>k</sub> of M̃, where M<sub>k</sub> consists of the α<sub>x</sub> that are k times either generator. A continuous map x ↦ α<sub>x</sub> is a <em>section</em>, and an orientation is exactly a section whose value at each x is a generator.</p>
+
+<div class="definition">
+<p><strong>R-orientation.</strong> For a commutative ring R with identity, an R-orientation assigns to each x ∈ M a generator of H<sub>n</sub>(M|x;R) ≅ R, subject to the same local consistency condition — a generator meaning an element u with Ru = R, equivalently a unit. It is a section of the covering space M<sub>R</sub> → M taking generator values. <span class="cite">— Hatcher §3.3, p. 235</span></p>
+</div>
+
+<p>The structure of M<sub>R</sub> settles which rings work. Using H<sub>n</sub>(M|x;R) ≅ H<sub>n</sub>(M|x) ⊗ R, each r ∈ R gives a subcovering M<sub>r</sub> consisting of the points ±μ<sub>x</sub> ⊗ r. If r has order 2 in R then r = &minus;r, the two signs coincide, and M<sub>r</sub> is a copy of M; otherwise M<sub>r</sub> ≅ M̃. So:</p>
+
+<div class="theorem">
+<p><strong>Which manifolds are R-orientable.</strong> An orientable manifold is R-orientable for every R. A nonorientable manifold is R-orientable iff R contains a unit of order 2, which is equivalent to 2 = 0 in R. In particular every manifold is ℤ<sub>2</sub>-orientable, so the two cases to keep in mind are R = ℤ and R = ℤ<sub>2</sub>. <span class="cite">— Hatcher §3.3, p. 235</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Proposition 3.25 says M is orientable if π<sub>1</sub>(M) has no subgroup of index two. What does it tell you about ℝP<sup>2</sup>, whose fundamental group is ℤ<sub>2</sub>?</p>
+<button onclick="check(this,false)">That ℝP<sup>2</sup> is orientable, since ℤ<sub>2</sub> is abelian</button>
+<button onclick="check(this,true)" data-ok>Nothing — ℤ<sub>2</sub> does have a subgroup of index two, so the sufficient condition simply fails to apply</button>
+<button onclick="check(this,false)">That ℝP<sup>2</sup> is nonorientable, since the condition fails</button>
+<div class="explain">The trivial subgroup of ℤ<sub>2</sub> has index two, so the hypothesis is not met and the proposition is silent. A sufficient condition that fails proves nothing either way — the third option commits exactly that error. ℝP<sup>2</sup> is in fact nonorientable, but that has to be established otherwise, for instance by exhibiting the orientation cover S<sup>2</sup> → ℝP<sup>2</sup> as connected.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why is a nonorientable M still R-orientable when 2 = 0 in R?</p>
+<button onclick="check(this,true)" data-ok>Because then the unit 1 satisfies 1 = &minus;1, so the sign ambiguity disappears and the section x ↦ μ<sub>x</sub> ⊗ 1 is well defined</button>
+<button onclick="check(this,false)">Because rings of characteristic 2 have no non-trivial covering spaces</button>
+<button onclick="check(this,false)">Because H<sub>n</sub>(M|x;R) is zero when 2 = 0 in R</button>
+<div class="explain">Non-orientability is the impossibility of choosing signs consistently. When 2 = 0 the two candidate generators ±μ<sub>x</sub> ⊗ 1 are literally the same element, so the subcovering M<sub>1</sub> is a copy of M rather than the two-sheeted M̃, and the section exists. The third option is false — H<sub>n</sub>(M|x;R) ≅ R is non-zero — and the second is not a statement about rings at all.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Top homology and the fundamental class</h2>
+
+<div class="theorem">
+<p><strong>Theorem 3.26.</strong> Let M be a closed connected n-manifold. Then:</p>
+<p>(a) if M is R-orientable, the map H<sub>n</sub>(M;R) → H<sub>n</sub>(M|x;R) ≅ R is an isomorphism for all x ∈ M;<br>
+(b) if M is not R-orientable, that map is injective with image {r ∈ R : 2r = 0} for all x ∈ M;<br>
+(c) H<sub>i</sub>(M;R) = 0 for i &gt; n.</p>
+<p>In particular H<sub>n</sub>(M;ℤ) is ℤ or 0 according as M is orientable or not, and in either case H<sub>n</sub>(M;ℤ<sub>2</sub>) = ℤ<sub>2</sub>. <span class="cite">— Hatcher §3.3, Theorem 3.26, p. 236</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Fundamental class.</strong> An element of H<sub>n</sub>(M;R) whose image in H<sub>n</sub>(M|x;R) is a generator for every x is a fundamental class for M with coefficients in R, also called an orientation class. By Theorem 3.26 one exists whenever M is closed and R-orientable. <span class="cite">— Hatcher §3.3, p. 236</span></p>
+</div>
+
+<p><em>The converse, which is where the compactness comes from.</em> Let μ ∈ H<sub>n</sub>(M;R) be a fundamental class and μ<sub>x</sub> its image in H<sub>n</sub>(M|x;R). Then x ↦ μ<sub>x</sub> is an R-orientation, because the map H<sub>n</sub>(M;R) → H<sub>n</sub>(M|x;R) factors through H<sub>n</sub>(M|B;R) for any open ball B containing x — and that factoring <em>is</em> the local consistency condition. Moreover M must be compact, since μ<sub>x</sub> can be non-zero only for x in the image of a cycle representing μ, and that image is compact. So a fundamental class exists exactly when M is closed and R-orientable. ∎</p>
+
+<h3>Worked example 1: the top two homology groups, case by case</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Let M be a closed connected n-manifold. Tabulate H<sub>n</sub>(M;R) for R = ℤ, ℤ<sub>2</sub>, ℤ<sub>3</sub>, ℚ, in both the orientable and the nonorientable case, and record the torsion of H<sub>n−1</sub>(M;ℤ).</p>
+<p><strong>Step 1 — orientable case.</strong> Theorem 3.26(a) gives H<sub>n</sub>(M;R) ≅ R throughout: ℤ, ℤ<sub>2</sub>, ℤ<sub>3</sub>, ℚ.</p>
+<p><strong>Step 2 — nonorientable case.</strong> Theorem 3.26(b) gives the 2-torsion {r ∈ R : 2r = 0} of R. In ℤ that is 0; in ℤ<sub>2</sub> it is all of ℤ<sub>2</sub>; in ℤ<sub>3</sub> it is 0, since 2 is invertible; in ℚ it is 0.</p>
+<table class="rel">
+<tr><th>R</th><th>H<sub>n</sub>(M;R), M orientable</th><th>H<sub>n</sub>(M;R), M nonorientable</th></tr>
+<tr><td>ℤ</td><td>ℤ</td><td>0</td></tr>
+<tr><td>ℤ<sub>2</sub></td><td>ℤ<sub>2</sub></td><td>ℤ<sub>2</sub></td></tr>
+<tr><td>ℤ<sub>3</sub></td><td>ℤ<sub>3</sub></td><td>0</td></tr>
+<tr><td>ℚ</td><td>ℚ</td><td>0</td></tr>
+</table>
+<p><strong>Step 3 — one dimension down.</strong> Corollary 3.28 records what the theorem still yields about H<sub>n−1</sub>: for a closed connected n-manifold, the torsion subgroup of H<sub>n−1</sub>(M;ℤ) is trivial if M is orientable and ℤ<sub>2</sub> if M is nonorientable. Hatcher's proof is an application of the universal coefficient theorem for homology, using that the homology groups of M are finitely generated: in the orientable case, torsion in H<sub>n−1</sub>(M;ℤ) would make H<sub>n</sub>(M;ℤ<sub>p</sub>) larger than the ℤ<sub>p</sub> coming from H<sub>n</sub>(M;ℤ) for some prime p; in the nonorientable case H<sub>n</sub>(M;ℤ<sub>m</sub>) is ℤ<sub>2</sub> or 0 according as m is even or odd, which forces the torsion subgroup to be ℤ<sub>2</sub>.</p>
+<p><strong>Read the table.</strong> The whole of orientability is a single bit, and only coefficient rings in which 2 fails to be invertible can see it. Over ℚ or ℤ<sub>3</sub> a nonorientable closed manifold looks, in top degree, exactly like a noncompact one.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded): a simplicial fundamental class.</strong> Let M be a closed n-manifold with a Δ-complex structure. Construct a fundamental class with ℤ coefficients, and see where it fails.</p>
+<p><strong>The shape of the answer.</strong> A simplicial fundamental class must be a linear combination Σ<sub>i</sub>k<sub>i</sub>σ<sub>i</sub> of the n-simplices of M.</p>
+<p><strong>Constraint one.</strong> For the class to map to a generator of H<sub>n</sub>(M|x;ℤ) at points x interior to σ<sub>i</sub>, each coefficient k<sub>i</sub> must be <span class="gap">⟨your step: which values?⟩</span>.</p>
+<p><strong>Constraint two.</strong> The combination must be a cycle. If σ<sub>i</sub> and σ<sub>j</sub> share an (n&minus;1)-face, then k<sub>i</sub> determines k<sub>j</sub> and conversely, so the sign choice <span class="gap">⟨your step: propagates how?⟩</span> across the complex.</p>
+<p><strong>When it succeeds.</strong> Analysing more closely, a choice of signs making Σ<sub>i</sub>k<sub>i</sub>σ<sub>i</sub> a cycle is possible iff M is orientable, and when possible the resulting cycle defines a fundamental class. With ℤ<sub>2</sub> coefficients there is no issue of signs at all, and Σ<sub>i</sub>σ<sub>i</sub> always defines a fundamental class — the concrete face of "every manifold is ℤ<sub>2</sub>-orientable".</p>
+<p class="cite">Gap solutions: each k<sub>i</sub> must be ±1; and the sign propagates across every shared (n&minus;1)-face, so that one choice determines all the others along any chain of adjacent simplices — the obstruction being that a loop of adjacencies may demand both signs at once.</p>
+</div>
+
+<h3>Where the theorem comes from</h3>
+
+<p>Theorem 3.26 follows from a more technical statement about compact subsets, and the technical statement is where the actual work lives.</p>
+
+<div class="lemma">
+<p><strong>Lemma 3.27.</strong> Let M be a manifold of dimension n and A ⊂ M compact. Then: (a) if x ↦ α<sub>x</sub> is a section of the covering space M<sub>R</sub> → M, there is a unique class α<sub>A</sub> ∈ H<sub>n</sub>(M|A;R) whose image in H<sub>n</sub>(M|x;R) is α<sub>x</sub> for all x ∈ A; (b) H<sub>i</sub>(M|A;R) = 0 for i &gt; n. <span class="cite">— Hatcher §3.3, Lemma 3.27, p. 236</span></p>
+</div>
+
+<p><em>How the theorem follows.</em> Take A = M, compact by assumption. Part (b) gives Theorem 3.26(c) at once. For the rest, let Γ<sub>R</sub>(M) be the set of sections of M<sub>R</sub> → M; sums and scalar multiples of sections are sections, so Γ<sub>R</sub>(M) is an R-module, and there is a homomorphism H<sub>n</sub>(M;R) → Γ<sub>R</sub>(M) sending α to x ↦ α<sub>x</sub>. Part (a) of the lemma says precisely that this homomorphism is an isomorphism. When M is connected each section is determined by its value at a single point, so (a) and (b) of the theorem drop out of the description of M<sub>R</sub> given above. ∎</p>
+
+<p>Hatcher's proof of the lemma runs in four steps: (1) if it holds for compact A, B and A ∩ B then it holds for A ∪ B, by a Mayer–Vietoris argument; (2) an arbitrary compact A is a finite union of compact sets each inside a coordinate chart, so (1) reduces to A ⊂ ℝ<sup>n</sup> ⊂ M; (3) inside ℝ<sup>n</sup> the same induction reduces to A convex, where the result is immediate by excision because both ℝ<sup>n</sup> &minus; A and ℝ<sup>n</sup> &minus; {x} deformation retract onto a sphere about x; (4) a limiting argument covers an arbitrary compact A by finitely many small closed balls. Step (1) is the one worth doing yourself, and it is the guided proof below.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> M is a closed connected n-manifold with H<sub>n</sub>(M;ℤ) = 0. What can you conclude?</p>
+<button onclick="check(this,false)">M is not compact</button>
+<button onclick="check(this,true)" data-ok>M is nonorientable, and consequently the torsion subgroup of H<sub>n−1</sub>(M;ℤ) is ℤ<sub>2</sub></button>
+<button onclick="check(this,false)">M has dimension less than n</button>
+<div class="explain">By Theorem 3.26 a closed connected R-orientable M has H<sub>n</sub>(M;R) ≅ R, so H<sub>n</sub>(M;ℤ) = 0 rules out ℤ-orientability. Corollary 3.28 then pins the torsion of H<sub>n−1</sub>(M;ℤ) as exactly ℤ<sub>2</sub>. "Closed" already means compact, so the first option contradicts the hypothesis.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which statement about fundamental classes is exactly right?</p>
+<button onclick="check(this,false)">Every connected n-manifold has a fundamental class with ℤ<sub>2</sub> coefficients</button>
+<button onclick="check(this,true)" data-ok>A fundamental class with coefficients in R exists iff M is compact and R-orientable</button>
+<button onclick="check(this,false)">A fundamental class is any generator of H<sub>n</sub>(M;R)</button>
+<div class="explain">Theorem 3.26 supplies one when M is closed and R-orientable; the converse argument shows a fundamental class forces both R-orientability (via local consistency) and compactness (the representing cycle has compact image). The first option drops compactness — a noncompact manifold has no fundamental class over any R. The third confuses the definition: a fundamental class is defined by its <em>local</em> images being generators, and it is that condition, not generating the top group, that makes the definition work.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In Lemma 3.27 step (3), why is the convex case immediate?</p>
+<button onclick="check(this,false)">Because a convex set is contractible, so its homology vanishes</button>
+<button onclick="check(this,true)" data-ok>Because excision turns H<sub>i</sub>(M|A) → H<sub>i</sub>(M|x) into H<sub>i</sub>(ℝ<sup>n</sup>|A) → H<sub>i</sub>(ℝ<sup>n</sup>|x), and both ℝ<sup>n</sup> &minus; A and ℝ<sup>n</sup> &minus; {x} deformation retract onto a sphere about x</button>
+<button onclick="check(this,false)">Because a convex compact set is a single point up to homeomorphism</button>
+<div class="explain">The point is not that A is contractible — that alone says nothing about the relative groups — but that the <em>complements</em> ℝ<sup>n</sup> &minus; A and ℝ<sup>n</sup> &minus; {x} have the same homotopy type, both retracting onto a sphere centred at x. That makes the comparison map an isomorphism, which is both halves of the lemma at once for convex A.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove step (1) of Lemma 3.27: if the lemma holds for compact sets A, B and A ∩ B, then it holds for A ∪ B. Write out the Mayer–Vietoris sequence you use, justify the zero at its left-hand end, and prove both parts — the vanishing (b) for A ∪ B, and existence and uniqueness in (a).</p>
+<p><em>Hint:</em> the relevant sequence is 0 → H<sub>n</sub>(M|A ∪ B) → H<sub>n</sub>(M|A) ⊕ H<sub>n</sub>(M|B) → H<sub>n</sub>(M|A ∩ B), with Φ(α) = (α, &minus;α) and Ψ(α, β) = α + β.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Write the Mayer–Vietoris sequence for the local homology groups,</p>
+<div class="math-block">0 → H<sub>n</sub>(M|A ∪ B) &nbsp;<sup>Φ</sup>⟶&nbsp; H<sub>n</sub>(M|A) ⊕ H<sub>n</sub>(M|B) &nbsp;<sup>Ψ</sup>⟶&nbsp; H<sub>n</sub>(M|A ∩ B),</div>
+<p>with Φ(α) = (α, &minus;α) and Ψ(α, β) = α + β, all maps induced by inclusions. The zero at the left is the term H<sub>n+1</sub>(M|A ∩ B), which vanishes by the hypothesis applied to A ∩ B.</p>
+<p><strong>Part (b).</strong> For i &gt; n the term H<sub>i</sub>(M|A ∪ B) sits in the sequence between H<sub>i+1</sub>(M|A ∩ B) and H<sub>i</sub>(M|A) ⊕ H<sub>i</sub>(M|B), both of which vanish by hypothesis. Exactness forces H<sub>i</sub>(M|A ∪ B) = 0.</p>
+<p><strong>Part (a), existence.</strong> Let x ↦ α<sub>x</sub> be a section. The hypothesis supplies unique classes α<sub>A</sub>, α<sub>B</sub> and α<sub>A∩B</sub> with the right local images. The image of α<sub>A</sub> in H<sub>n</sub>(M|A ∩ B) has image α<sub>x</sub> at every x ∈ A ∩ B, so by the uniqueness clause it equals α<sub>A∩B</sub>; likewise for α<sub>B</sub>. Hence Ψ(α<sub>A</sub>, &minus;α<sub>B</sub>) = α<sub>A∩B</sub> &minus; α<sub>A∩B</sub> = 0, so (α<sub>A</sub>, &minus;α<sub>B</sub>) ∈ Ker Ψ = Im Φ and there is α<sub>A∪B</sub> with Φ(α<sub>A∪B</sub>) = (α<sub>A</sub>, &minus;α<sub>B</sub>). This α<sub>A∪B</sub> maps to α<sub>A</sub> and to α<sub>B</sub>, hence has image α<sub>x</sub> for every x ∈ A ∪ B.</p>
+<p><strong>Part (a), uniqueness.</strong> Suppose α ∈ H<sub>n</sub>(M|A ∪ B) has image zero in H<sub>n</sub>(M|x) for every x ∈ A ∪ B. Then its images in H<sub>n</sub>(M|A) and H<sub>n</sub>(M|B) have that property too, so by the uniqueness clause of the hypothesis — applied to the zero section — both are zero. Thus Φ(α) = 0, and Φ is injective, so α = 0. Applying this to the difference of two candidate classes for α<sub>A∪B</sub> gives uniqueness. ∎</p>
+<p><em>What the step actually buys.</em> It converts the lemma into a statement that can be proved by induction over a finite cover, which is what steps (2) and (3) then exploit: any compact A is a finite union of pieces inside coordinate charts, and inside a chart a finite union of convex sets. The Mayer–Vietoris step is the only place the two halves of the lemma interact — the vanishing (b) for A ∩ B is exactly what supplies the injectivity that uniqueness in (a) needs.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What a local orientation is, why the definition has the right behaviour under rotations and reflections, and what an orientation of M is.</li>
+<li>The orientation double cover, what Proposition 3.25 says, and which coefficient rings can and cannot see non-orientability.</li>
+<li>Theorem 3.26 in all three parts, the definition of a fundamental class, and the two properties its existence forces on M.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) a generator of H<sub>n</sub>(M|x), with rotations of degree 1 and reflections of degree &minus;1 acting through H<sub>n−1</sub>(S<sup>n−1</sup>), and an orientation is a locally consistent choice at every point; (2) M̃ is the space of local orientations, orientable, two-sheeted, and M is orientable iff M̃ is disconnected — while a nonorientable M is R-orientable iff 2 = 0 in R, so every manifold is ℤ<sub>2</sub>-orientable; (3) for closed connected M the map to H<sub>n</sub>(M|x;R) is an isomorphism when R-orientable and has image the 2-torsion of R otherwise, with H<sub>i</sub> = 0 above n — and a fundamental class exists iff M is compact and R-orientable — then you have the lesson, and at2-07 needs exactly the class [M] it produces.</p>
+</details>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em> — §3.3 "Orientations and Homology": the local definition of orientation and its behaviour under rotations and reflections, the H<sub>n</sub>(X|A) convention (pp. 233–234); the definition of an orientation and the construction of the orientation double cover, Proposition 3.25 with proof (pp. 234–235); the covering space M<sub>ℤ</sub>, sections, R-orientations, the structure of M<sub>R</sub>, and the criterion 2 = 0 in R (p. 235); Theorem 3.26, the definition of a fundamental class and the converse argument giving R-orientability and compactness (p. 236); Lemma 3.27 with the deduction of Theorem 3.26 and steps (1)–(4) of its proof (pp. 236–238); the simplicial construction of a fundamental class and Corollary 3.28 with proof (p. 238); Proposition 3.29 on noncompact manifolds (p. 239). Deferred to at2-07: the cap product and Theorem 3.30, Poincaré duality (Hatcher §3.3, pp. 239–241).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
