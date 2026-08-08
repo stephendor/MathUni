@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-01 — Zigzag and levelset zigzag persistence</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+table.rel{margin:1rem auto;border-collapse:collapse;font-family:Segoe UI,sans-serif;font-size:.95rem}
+table.rel td,table.rel th{border:1px solid #2a333d;padding:.35rem .8rem;text-align:center}
+table.rel th{color:var(--acc)}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Zigzag and levelset zigzag persistence <span class="cite">(tda2-01)</span></h1>
+
+<div class="hook">
+Filtrations only ever add. What if the arrows were allowed to point both ways — spaces that grow and shrink?
+<p>You have a data set too large to build a Vietoris–Rips complex on. So you subsample, twice, and compute the homology of each sample. Both report one hole. Excellent — except that this tells you almost nothing, because the two computations were run on different complexes and there is no map between them. Is it the same hole? Or does the true data have many holes, each sample finding a different one?</p>
+<p>Ghrist's fix is to stop comparing answers and start building a diagram. Interleave the two samples with a complex containing both, and you get a sequence of spaces whose arrows alternate in direction. The homology of that sequence is worth more than the sequence of homologies — but only if such a thing still has a barcode.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> The one-parameter structure theorem of tda1-04 decomposed a persistence module into intervals by reading it as a graded module over 𝐤[t]. Predict what happens to that argument when some arrows point backwards.</p>
+<button onclick="check(this,false)">It goes through unchanged — reversing an arrow is just relabelling the indices</button>
+<button onclick="check(this,true)" data-ok>It fails completely: with arrows in both directions there is no single variable acting, so nothing in the argument applies and the barcode has to be re-established from scratch</button>
+<button onclick="check(this,false)">It survives, but the intervals become half-open on both sides</button>
+<div class="explain">Correct, and it is worth being precise about the loss. The whole force of the one-parameter theorem came from the module being a sequence of maps all pointing the same way, which is what let "advance one step" be multiplication by t. Reverse a single arrow and there is no such action, so the structure theorem is simply unavailable — not weakened, unavailable. Remarkably the conclusion survives anyway, for an entirely different reason: Gabriel's classification of representations of A<sub>n</sub> quivers. That substitution of one theorem for another, with the same conclusion, is the content of Segment 1.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A zigzag module is a representation of an A<sub>n</sub> quiver with arbitrary arrow directions, and by Gabriel's theorem it still decomposes into intervals — so a barcode survives even though tda1-04's monotone filtration does not. This is what lets persistence handle time-varying and sliced data.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Zigzag filtrations and the quiver that saves them</h2>
+
+<div class="definition">
+<p><strong>Zigzag filtration.</strong> A zigzag filtration 𝓕 of a complex K (space 𝕋) is a diagram</p>
+<div class="math-block">𝓕 : X<sub>0</sub> ↔ X<sub>1</sub> ↔ ⋯ ↔ X<sub>n−1</sub> ↔ X<sub>n</sub>,</div>
+<p>where each X<sub>i</sub> is a subcomplex K<sub>i</sub> ⊆ K (or subspace 𝕋<sub>i</sub> ⊆ 𝕋), and each X<sub>i</sub> ↔ X<sub>i+1</sub> is either a forward inclusion X<sub>i</sub> ↪ X<sub>i+1</sub> or a backward inclusion X<sub>i</sub> ↩ X<sub>i+1</sub>. <span class="cite">— Dey &amp; Wang §4.3, p. 125</span></p>
+</div>
+
+<p>Reverse arrows can be read as simplex deletions: the complex is now permitted to grow <em>and</em> shrink as the index advances. Taking p-th homology with coefficients in a field 𝐤 — ℤ<sub>2</sub> throughout Dey and Wang — gives the zigzag persistence module</p>
+<div class="math-block">H<sub>p</sub>𝓕 : H<sub>p</sub>(X<sub>0</sub>) &nbsp;<sup>φ<sub>0</sub></sup>↔&nbsp; H<sub>p</sub>(X<sub>1</sub>) &nbsp;<sup>φ<sub>1</sub></sup>↔&nbsp; ⋯,</div>
+<p>a vector space at each node and a linear map on each arrow, pointing whichever way its inclusion does. Dey and Wang are careful to say that it is not obvious <em>a priori</em> that such a module admits barcodes — the existence of which is essential before persistence pairs or an algorithm can even be defined.</p>
+
+<div class="definition">
+<p><strong>Definition 4.10 (quiver).</strong> A quiver Q = (N, E) is a directed graph, finite or infinite. A representation 𝕍(Q) of Q assigns a vector space V<sub>i</sub> to every node N<sub>i</sub> and a linear map v<sub>ij</sub> : V<sub>i</sub> → V<sub>j</sub> to every directed edge (N<sub>i</sub>, N<sub>j</sub>). A zigzag persistence module is the special case in which the graph is finite and linear shaped — also known as A<sub>n</sub> type — where every node has at most two directed edges incident to it. <span class="cite">— Dey &amp; Wang §4.3, Definition 4.10, pp. 126–127</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 4.11 (interval module).</strong> An interval module 𝓘<sub>[b,d]</sub>, also called an interval or a bar, over an index set 0, 1, …, n with field 𝐤 is a sequence of vector spaces 𝓘<sub>[b,d]</sub> : I<sub>0</sub> ↔ I<sub>1</sub> ↔ ⋯ ↔ I<sub>n</sub> where I<sub>k</sub> = 𝐤 for b ≤ k ≤ d and 0 otherwise, the maps 𝐤 ← 𝐤 and 𝐤 → 𝐤 being identities. <span class="cite">— Dey &amp; Wang §4.3, Definition 4.11, pp. 127–128</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 4.10.</strong> Every quiver representation 𝕍(Q) for an A<sub>n</sub>-type quiver Q has an interval decomposition, that is 𝕍(Q) ≅ ⊕<sub>i</sub> 𝓘<sub>[b<sub>i</sub>,d<sub>i</sub>]</sub>. Furthermore this decomposition is unique up to isomorphism and permutation of the intervals. <span class="cite">— Dey &amp; Wang §4.3, Theorem 4.10, p. 128</span></p>
+</div>
+
+<p>Since the underlying graph of a zigzag persistence module is of A<sub>n</sub> type, we get H<sub>p</sub>𝓕 ≅ ⊕<sub>i</sub> 𝓘<sub>[b<sub>i</sub>,d<sub>i</sub>]</sub>, and that decomposition is the barcode. Ghrist tells the same story from the representation-theoretic side: Gabriel's classification theorem for quivers of type A reveals that the Structure Theorem classifies indecomposables of <em>any</em> linear sequence in which each node is an 𝔽-vector space and each arrow a linear transformation going either left or right. An indecomposable interval is, as before, a sequence of copies of 𝔽 with identity maps, respecting the arrow directions. In classical persistence all arrows go right; in consistency tests they alternate.</p>
+
+<div class="theorem">
+<p><strong>Remark 4.2 — the bars have changed shape.</strong> Unlike the bars defined in Chapter 3 for non-zigzag filtrations, an interval module here is non-zero on the <em>closed</em> index range b ≤ k ≤ d. So a zigzag bar [b, d] is closed at both ends: index d is the last index at which the class is present, not the first at which it is absent. <span class="cite">— Dey &amp; Wang §4.3, Remark 4.2, p. 128</span></p>
+</div>
+
+<h3>Visual: a zigzag filtration and its barcode</h3>
+
+<p>Dey's Figure 4.4 shows a five-term zigzag filtration whose H<sub>1</sub> barcode has the four bars [0,4], [1,1], [3,4] and [4,4]. Below, the arrows along the top and the bars beneath; press the button to step through the indices and watch the dimension count, which is just the number of bars crossing the current index.</p>
+
+<canvas id="zzCanvas" width="640" height="270" role="img" aria-label="A five-term zigzag filtration with alternating arrows above four bars, with the current index highlighted and the dimension of H1 shown as the number of bars crossing it"></canvas>
+<p style="text-align:center"><button onclick="stepIdx()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Step index</button></p>
+<script>
+(function(){
+const cv=document.getElementById('zzCanvas'), ctx=cv.getContext('2d');
+const bars=[[0,4],[1,1],[3,4],[4,4]];
+const dirs=['fwd','bwd','fwd','bwd'];   // direction of arrow i -> i+1
+let cur=0;
+function draw(){
+  const w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h);
+  const x0=90, dx=(w-170)/4, ytop=56;
+  ctx.font='13px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(let i=0;i<4;i++){
+    const a=x0+i*dx, b=x0+(i+1)*dx;
+    ctx.strokeStyle='#4a555f'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(a+22,ytop); ctx.lineTo(b-22,ytop); ctx.stroke();
+    const tipx = dirs[i]==='fwd' ? b-22 : a+22, s = dirs[i]==='fwd' ? -1 : 1;
+    ctx.fillStyle='#4a555f'; ctx.beginPath();
+    ctx.moveTo(tipx,ytop); ctx.lineTo(tipx+s*9,ytop-5); ctx.lineTo(tipx+s*9,ytop+5); ctx.closePath(); ctx.fill();
+  }
+  for(let i=0;i<=4;i++){
+    const x=x0+i*dx, on=(i===cur);
+    ctx.fillStyle=on?'#1d2a1f':'#1a2027'; ctx.strokeStyle=on?'#4caf82':'#2a333d'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(x,ytop,20,0,2*Math.PI); ctx.fill(); ctx.stroke();
+    ctx.fillStyle=on?'#c3e88d':'#e8e8e8'; ctx.fillText('K'+i,x,ytop);
+  }
+  let dim=0;
+  bars.forEach((bd,k)=>{
+    const y=112+k*30, a=x0+bd[0]*dx, b=x0+bd[1]*dx, live=(cur>=bd[0]&&cur<=bd[1]);
+    if(live) dim++;
+    ctx.strokeStyle=live?'#8ab4f8':'#33404d'; ctx.lineWidth=live?7:5; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(a,y); ctx.lineTo(b,y); ctx.stroke();
+    ctx.fillStyle=live?'#8ab4f8':'#4a555f'; ctx.textAlign='left'; ctx.font='12px Segoe UI';
+    ctx.fillText('['+bd[0]+', '+bd[1]+']', w-72, y);
+    ctx.textAlign='center';
+  });
+  ctx.strokeStyle='#4caf82'; ctx.setLineDash([4,4]); ctx.lineWidth=1;
+  const cx=x0+cur*dx;
+  ctx.beginPath(); ctx.moveTo(cx,84); ctx.lineTo(cx,238); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='#c3e88d'; ctx.font='14px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('dim H1(K'+cur+') = '+dim+'  — the number of bars crossing index '+cur, 24, 254);
+  ctx.fillStyle='#9aa5b1'; ctx.font='12px Segoe UI';
+  ctx.fillText('arrows alternate: forward, backward, forward, backward', 24, 24);
+}
+window.stepIdx=function(){cur=(cur+1)%5; draw();};
+draw();
+})();
+</script>
+
+<h3>Worked example 1: reading the barcode</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> For Dey's Figure 4.4 filtration with H<sub>1</sub> bars [0,4], [1,1], [3,4], [4,4], compute dim H<sub>1</sub>(K<sub>i</sub>) at each index.</p>
+<p><strong>The counting rule.</strong> Theorem 4.10 gives H<sub>1</sub>𝓕 ≅ ⊕<sub>i</sub>𝓘<sub>[b<sub>i</sub>,d<sub>i</sub>]</sub>, and an interval module contributes exactly one dimension at index k when b<sub>i</sub> ≤ k ≤ d<sub>i</sub> and none otherwise. So the dimension at index k is the number of bars whose closed range contains k.</p>
+<table class="rel">
+<tr><th>index k</th><th>bars containing k</th><th>dim H<sub>1</sub>(K<sub>k</sub>)</th></tr>
+<tr><td>0</td><td>[0,4]</td><td>1</td></tr>
+<tr><td>1</td><td>[0,4], [1,1]</td><td>2</td></tr>
+<tr><td>2</td><td>[0,4]</td><td>1</td></tr>
+<tr><td>3</td><td>[0,4], [3,4]</td><td>2</td></tr>
+<tr><td>4</td><td>[0,4], [3,4], [4,4]</td><td>3</td></tr>
+</table>
+<p><strong>What the bar [0,4] means and the dimensions do not.</strong> Reading only the sequence 1, 2, 1, 2, 3 you would know how many one-dimensional holes are present at each stage and nothing more. The bar [0,4] says something the sequence cannot: that a <em>single</em> class is carried across every map of the diagram. That is exactly Ghrist's consistency question — a long bar means a homological feature is sampled consistently over the sequence — and it is why the homology of a sequence is worth more than a sequence of homologies.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded): a bar of length one.</strong> The bar [1,1] occupies a single index. What must be happening at the two arrows on either side of index 1?</p>
+<p><strong>At the left end.</strong> The class is present at index 1 but the bar does not extend to index 0. If the arrow between them points <em>forward</em>, K<sub>0</sub> ↪ K<sub>1</sub>, then the class is not in the image of φ<sub>0</sub> — it is <span class="gap">⟨your step: born how?⟩</span>. If instead the arrow points <em>backward</em>, K<sub>0</sub> ↩ K<sub>1</sub>, then the class exists at index 1 without coming from index 0, which happens because <span class="gap">⟨your step: what has been removed?⟩</span>.</p>
+<p><strong>At the right end.</strong> Symmetrically: a forward arrow out of index 1 kills the class by sending it to zero, while a backward arrow out of index 1 means the class is simply not in the image coming from index 2.</p>
+<p><strong>The moral.</strong> In a monotone filtration each endpoint has exactly one explanation. In a zigzag each endpoint has two, decided by the direction of the adjoining arrow — which is precisely why the bookkeeping in Segment 2 needs four kinds of endpoint rather than one.</p>
+<p class="cite">Gap solutions: the class is newly born at index 1, by the addition of simplices; and in the backward case, simplices present in K<sub>0</sub> have been deleted, and their removal has opened up a cycle that was previously filled.</p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 4.12 (representative cycles).</strong> For a zigzag filtration 𝓕 and an interval [b,d] in Dgm<sub>p</sub>(𝓕), a set of representative p-cycles is an indexed set {c<sub>i</sub> ⊆ K<sub>i</sub> : i ∈ [b,d]} of p-cycles whose classes are carried to one another across the interval, and which genuinely begin and end there — for b &gt; 0, [c<sub>b</sub>] is not in the image of φ<sub>b−1</sub> when that arrow points into index b, and symmetrically at the right endpoint. <span class="cite">— Dey &amp; Wang §4.3, Definition 4.12, pp. 129–130</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 4.11.</strong> Let 𝓕 : K<sub>0</sub> ↔ ⋯ ↔ K<sub>n</sub> be a zigzag filtration with H<sub>p</sub>(K<sub>0</sub>) = 0 and A an index set. Then H<sub>p</sub>𝓕 is <em>equal</em> to — not merely isomorphic to — a direct sum of interval submodules ⊕<sub>α∈A</sub>𝓘<sub>[b<sub>α</sub>,d<sub>α</sub>]</sub> if and only if each 𝓘<sub>[b<sub>α</sub>,d<sub>α</sub>]</sub> is induced by a set of representative p-cycles for [b<sub>α</sub>, d<sub>α</sub>], where Dgm<sub>p</sub>(𝓕) = {[b<sub>α</sub>, d<sub>α</sub>]}. <span class="cite">— Dey &amp; Wang §4.3, Theorem 4.11, pp. 130–131</span></p>
+</div>
+
+<p>The single word being upgraded is "isomorphic". Theorem 4.10 supplies an abstract decomposition; Theorem 4.11 says exactly when the decomposition can be realised on the nose, by actual cycles sitting in the actual complexes — and the answer is: precisely when representative cycles exist. That matters in practice for the same reason it mattered in at2-08: only a concrete representative can be localised, drawn, or fed to anything downstream.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why is a zigzag persistence module a quiver representation of A<sub>n</sub> type?</p>
+<button onclick="check(this,true)" data-ok>Because its underlying directed graph is finite and linear shaped, with every node having at most two incident directed edges</button>
+<button onclick="check(this,false)">Because all its arrows point in the same direction</button>
+<button onclick="check(this,false)">Because its vector spaces are finite-dimensional</button>
+<div class="explain">A<sub>n</sub> type is a condition on the shape of the graph, not on the directions of its arrows or the size of its spaces — that is exactly why it covers the zigzag case. The second option describes ordinary persistence, a special case. Theorem 4.10 is explicitly noted not to require finite-dimensionality, so the third is not the criterion either.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A zigzag bar is written [b, d] with both ends closed. What is present at index d?</p>
+<button onclick="check(this,true)" data-ok>The class is still present at index d; d is the last index at which it exists</button>
+<button onclick="check(this,false)">The class has just died at index d, as with the half-open bars of Chapter 3</button>
+<button onclick="check(this,false)">Nothing — d records the index of the arrow that killed the class</button>
+<div class="explain">Remark 4.2 flags this precisely because it differs from the ordinary convention. The interval module is 𝐤 for b ≤ k ≤ d inclusive, so the class lives at index d and is gone by d + 1. Carrying the Chapter 3 half-open reading across is the standard off-by-one error here, and it shifts every death by one index.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Levelset zigzag: slicing instead of accumulating</h2>
+
+<p>Now specialise to a function. Standard persistence filters by growing sublevel sets; levelset zigzag persistence replaces the sublevel sets by <em>levelsets</em> and interval sets, with the maps from each levelset into its two adjacent interval sets giving the alternating arrows. For a real value s and an interval I ⊆ ℝ, write X<sub>=s</sub> for the levelset f<sup>−1</sup>(s) and X<sub>I</sub> for the interval set f<sup>−1</sup>(I).</p>
+
+<div class="definition">
+<p><strong>Definition 4.14 (critical and regular values).</strong> An open interval I ⊆ ℝ is a <em>regular interval</em> if there exist a space Y and a homeomorphism Φ : Y × I → X<sub>I</sub> with f ∘ Φ the projection onto I, and with Φ extending to a continuous Φ̃ : Y × Ĩ → X<sub>Ĩ</sub> on the closure. f is of <em>Morse type</em> if each levelset X<sub>=s</sub> has finitely generated homology groups and there are finitely many <em>critical</em> values a<sub>0</sub> = −∞ &lt; a<sub>1</sub> &lt; ⋯ &lt; a<sub>n</sub> &lt; a<sub>n+1</sub> = +∞. <span class="cite">— Dey &amp; Wang §4.5, Definition 4.14, p. 138</span></p>
+</div>
+
+<p>The point of "regular" is that over such an interval the space is a product: nothing happens topologically as the value varies. All the change is concentrated at the finitely many critical values, which is what makes a finite diagram sufficient.</p>
+
+<div class="definition">
+<p><strong>Definition 4.15 (compatible complex).</strong> A complex K is <em>compatible</em> with the levelsets of a PL-function f : |K| → ℝ if for every simplex σ of K, the function values of points in |σ| contain at most one critical value of f. Given a PL-function on K, one can always make K compatible by barycentric subdivision. <span class="cite">— Dey &amp; Wang §4.5, Definition 4.15, pp. 140–141</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 4.14.</strong> Let K be compatible with the levelsets of f and let X = |K|. Then X<sub>(a<sub>i</sub>,a<sub>j</sub>)</sub> deformation retracts to |K<sub>(i,j)</sub>| for any two critical values a<sub>i</sub> &lt; a<sub>j</sub>. Therefore the zigzag modules induced by the space and the simplicial levelset zigzag filtrations are isomorphic. <span class="cite">— Dey &amp; Wang §4.5, Proposition 4.14, p. 141</span></p>
+</div>
+
+<p>This is the licence to compute. The space-level object is not finite; the simplicial one is, and Proposition 4.14 says they carry the same module, so the barcode computed from the finite object is a statement about the space.</p>
+
+<h3>Worked example 3: what the levelset barcode recovers</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Compare the sublevel-set barcode of tda1-08 with the levelset zigzag barcode.</p>
+<p><strong>Step 1 — the sublevel-set side.</strong> With s<sub>i</sub> ∈ (a<sub>i</sub>, a<sub>i+1</sub>) a regular value, set X<sub>[0,i]</sub> = f<sup>−1</sup>[s<sub>0</sub>, s<sub>i</sub>] = f<sup>−1</sup>(−∞, s<sub>i</sub>], giving the sublevel-set diagram 𝓧 : X<sub>[0,0]</sub> → X<sub>[0,1]</sub> → ⋯ → X<sub>[0,n]</sub>, which for a PL-function converts to the simplicial filtration 𝓚 with K<sub>[0,i]</sub> = {σ ∈ K : f(σ) ≤ a<sub>i</sub>}.</p>
+<p><strong>Step 2 — its bars have one shape.</strong> Every bar is [a<sub>i</sub>, a<sub>j</sub>): closed on the left because the class exists at K<sub>[0,i]</sub>, open on the right because it does not exist at K<sub>[0,j]</sub>. There are two kinds — those with j ≤ n, bounded on the right, and those of the form [a<sub>i</sub>, ∞) = [a<sub>i</sub>, a<sub>n+1</sub>), which are the infinite bars of tda1-05. The infinite ones correspond to the essential classes, since H<sub>p</sub>(K) ≅ ⊕<sub>i</sub>[a<sub>i</sub>, ∞).</p>
+<p><strong>Step 3 — the correspondence.</strong> Writing 𝓚 for the sublevel-set filtration and 𝓚′ for the levelset one, Theorem 4.15 states that for every p ≥ 0:</p>
+<p>(a) for j ≠ n + 1, [a<sub>i</sub>, a<sub>j</sub>) is a bar of Dgm<sub>p</sub>(𝓚) if and only if it is a bar of Dgm<sub>p</sub>(𝓚′);<br>
+(b) [a<sub>i</sub>, a<sub>n+1</sub>) is a bar of Dgm<sub>p</sub>(𝓚) if and only if either [a<sub>i</sub>, a<sub>j</sub>] is a closed-closed bar of Dgm<sub>p</sub>(𝓚′) for some a<sub>j</sub> &gt; a<sub>i</sub>, or (a<sub>j</sub>, a<sub>i</sub>) is an open-open bar of Dgm<sub>p−1</sub>(𝓚′) for some a<sub>j</sub> &lt; a<sub>i</sub>.</p>
+<p><strong>Step 4 — read it.</strong> The finite bars transfer unchanged: nothing is lost. The <em>infinite</em> bars are the interesting case — an essential class, which the sublevel-set barcode could only record as "never dies", reappears in the levelset barcode as a finite object, either a closed-closed bar in the same degree or an open-open bar one degree down. Infinite information has been traded for finite information, which is the practical gain of the levelset construction.</p>
+<p><strong>Why four endpoint types.</strong> A monotone filtration offers exactly one reason for a bar to end: the class dies going forward. A zigzag offers two at each end, decided by the direction of the adjoining arrow — the class fails to come from the previous term, or fails to map into the next. Closed and open at each end gives four combinations, which is precisely the vocabulary Theorem 4.15 needs.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 4 (faded): making a complex compatible.</strong> Let f be a PL-function on K with critical values a<sub>1</sub> &lt; a<sub>2</sub>, and suppose some simplex σ has function values on |σ| spanning both.</p>
+<p><strong>The problem.</strong> Definition 4.15 requires each simplex to see at most <span class="gap">⟨your step: how many critical values?⟩</span>, and σ violates it.</p>
+<p><strong>The repair.</strong> Barycentric subdivision replaces σ by smaller simplices. Iterating it makes the simplices as small as required, and since the critical values are <span class="gap">⟨your step: what property of the critical set makes this work?⟩</span>, eventually no simplex spans two of them.</p>
+<p><strong>What is then licensed.</strong> With K compatible, Proposition 4.14 applies: the interval sets deformation retract onto the corresponding subcomplexes, and the space-level and simplicial zigzag modules are isomorphic. Only then may the finite computation be read as a statement about |K|.</p>
+<p class="cite">Gap solutions: at most one critical value; and the critical values are finite in number and separated, so there is a positive minimum gap between consecutive ones.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Take a PL-function on a circle with exactly two critical values, a minimum and a maximum. (i) Write down the sublevel-set barcode for H<sub>0</sub> and H<sub>1</sub>, identifying which bars are infinite. (ii) Using Theorem 4.15(b), say what each infinite bar must correspond to in the levelset zigzag barcode, being explicit about the degree and the endpoint type. (iii) Sanity-check your answer against the shape of the levelsets: what is f<sup>−1</sup>(s) for s strictly between the two critical values?</p>
+<p><em>Hint:</em> for (iii), a regular levelset of a height function on a circle is two points, so its H<sub>0</sub> has dimension 2 — which is where the degree shift in Theorem 4.15(b) shows up.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> What does Proposition 4.14 actually license?</p>
+<button onclick="check(this,false)">That every PL-function is of Morse type</button>
+<button onclick="check(this,true)" data-ok>That the finite simplicial levelset zigzag may be computed in place of the space-level one, the two modules being isomorphic</button>
+<button onclick="check(this,false)">That the levelset barcode determines the function up to homeomorphism</button>
+<div class="explain">The proposition is a bridge between a computable object and an uncomputable one: the interval sets deformation retract onto subcomplexes, so the induced zigzag modules agree. Without it, a barcode computed simplicially would be a fact about a triangulation rather than about the space. Morse type is a hypothesis assumed earlier, in Definition 4.14, not a conclusion; and nothing here claims the barcode is a complete invariant.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> An essential class has an infinite sublevel-set bar [a<sub>i</sub>, ∞). What happens to it in the levelset barcode?</p>
+<button onclick="check(this,false)">It becomes an infinite bar there too — essential classes are essential in any filtration</button>
+<button onclick="check(this,true)" data-ok>It becomes finite: a closed-closed bar in the same degree, or an open-open bar one degree down</button>
+<button onclick="check(this,false)">It disappears, which is why levelset zigzag loses information</button>
+<div class="explain">Theorem 4.15(b) is exactly this statement, and the degree shift in the second alternative is the surprising part. Nothing is lost — the theorem is an "if and only if" in both clauses, so the two barcodes determine each other — but the essential classes are re-encoded as finite bars, which is why levelset zigzag is attractive for functions whose sublevel-set barcode is dominated by infinite bars.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why does the levelset barcode need four endpoint types where the sublevel-set barcode needs one?</p>
+<button onclick="check(this,false)">Because levelsets can be disconnected while sublevel sets cannot</button>
+<button onclick="check(this,true)" data-ok>Because in a zigzag each end of a bar has two possible explanations depending on the direction of the adjoining arrow, and closed or open at each of two ends gives four combinations</button>
+<button onclick="check(this,false)">Because there are four critical-value types for a Morse function</button>
+<div class="explain">The vocabulary is forced by the diagram, not by the geometry. In a monotone filtration the only way a bar can end is by the class dying under a forward map, so one convention — closed on the left, open on the right — suffices. Reverse some arrows and each endpoint admits two readings, exactly as worked example 2 spelled out for the bar [1,1].</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Let 𝕍 be a zigzag persistence module over indices 0, …, n, and suppose 𝕍 ≅ ⊕<sub>i∈A</sub>𝓘<sub>[b<sub>i</sub>,d<sub>i</sub>]</sub> by Theorem 4.10. Prove that dim V<sub>k</sub> equals the number of indices i ∈ A with b<sub>i</sub> ≤ k ≤ d<sub>i</sub>, and deduce that the barcode determines the dimension sequence but that the dimension sequence does not determine the barcode. For the second part, exhibit two zigzag modules over indices 0, 1, 2 with the same dimensions at every index but different barcodes.</p>
+<p><em>Hint:</em> for the counterexample, think about a class that survives all the way across versus two classes each surviving part of the way.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer, first part.</strong> An isomorphism of zigzag modules is in particular an isomorphism of vector spaces at each index, so dim V<sub>k</sub> = dim (⊕<sub>i∈A</sub>𝓘<sub>[b<sub>i</sub>,d<sub>i</sub>]</sub>)<sub>k</sub>. Dimension is additive over direct sums, so this is Σ<sub>i∈A</sub> dim (𝓘<sub>[b<sub>i</sub>,d<sub>i</sub>]</sub>)<sub>k</sub>. By Definition 4.11 each summand contributes dim 𝐤 = 1 when b<sub>i</sub> ≤ k ≤ d<sub>i</sub> and dim 0 = 0 otherwise. Hence the sum counts exactly the intervals whose closed range contains k. ∎</p>
+<p><strong>Second part.</strong> The first part shows the barcode determines every dim V<sub>k</sub>, so the map from barcodes to dimension sequences is well defined. It is not injective. Over indices 0, 1, 2, take</p>
+<div class="math-block">𝕍 = 𝓘<sub>[0,2]</sub> &emsp; and &emsp; 𝕎 = 𝓘<sub>[0,1]</sub> ⊕ 𝓘<sub>[2,2]</sub>.</div>
+<p>Counting intervals containing each index: 𝕍 has dimensions 1, 1, 1 and 𝕎 has dimensions 1, 1, 1. The barcodes {[0,2]} and {[0,1], [2,2]} are different multisets, so by the uniqueness clause of Theorem 4.10 the two modules are not isomorphic. ∎</p>
+<p><em>What the counterexample is really saying.</em> 𝕍 has a single class carried across every map; 𝕎 has one class that dies and another, unrelated, that appears. No amount of dimension counting can tell them apart, because dimension is computed index by index and the difference lives in the maps. This is Ghrist's consistency question in its smallest possible form: both diagrams report "one hole throughout", and only one of them means it.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What a zigzag filtration is, why tda1-04's structure theorem cannot apply, and which theorem restores the barcode.</li>
+<li>Definition 4.11's interval module, the counting rule it gives for dimensions, and the endpoint convention that differs from Chapter 3.</li>
+<li>The levelset construction: which hypotheses make it finite, and what Theorem 4.15 says happens to a finite and to an infinite sublevel-set bar.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) X<sub>0</sub> ↔ ⋯ ↔ X<sub>n</sub> with forward or backward inclusions, no single variable acting so no 𝐤[t]-module, but the graph is A<sub>n</sub> type and Theorem 4.10 — Gabriel — gives an interval decomposition unique up to permutation; (2) 𝓘<sub>[b,d]</sub> is 𝐤 on the closed range, so dim at index k counts the bars crossing k, and both endpoints are closed, unlike Chapter 3's [b,d); (3) Morse type gives finitely many critical values, compatibility via barycentric subdivision plus Proposition 4.14 makes the simplicial computation legitimate, and Theorem 4.15 transfers finite sublevel-set bars unchanged while converting each infinite one into a closed-closed bar in the same degree or an open-open bar one degree down — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §4.3 "Persistence for Zigzag Filtration": the zigzag filtration and the induced zigzag persistence module, and Figure 4.4's example barcode (pp. 125–126); Definition 4.10 on quivers and A<sub>n</sub>-type representations (pp. 126–127); Definition 4.11 on interval modules and Remark 4.2 on the closed endpoints (pp. 127–128); Theorem 4.10, the interval decomposition and its uniqueness (p. 128); Definition 4.12 on representative cycles and Theorem 4.11 upgrading isomorphism to equality (pp. 129–131). §4.5 "Levelset Zigzag Persistence": the levelset and interval-set construction (pp. 137–138); Definition 4.14 on regular intervals, Morse type and critical values (p. 138); Definition 4.15 on compatible complexes and Proposition 4.14 (pp. 140–141); the two kinds of sublevel-set bar and Theorem 4.15's correspondence (pp. 142–143). Ghrist, <em>Elementary Applied Topology</em> — §5.15 "Zigzag persistence": the consistency-test motivation from subsampling, Gabriel's classification for type-A quivers, and the moral that the homology of a sequence is worth more than a sequence of homologies (pp. 108–109). Deferred: the zigzag persistence algorithm itself (Dey §4.3.2), persistence for zigzag towers (§4.4), and the correspondence with extended persistence, Theorem 4.16 (Dey §4.5.4).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

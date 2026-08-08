@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-02 — Multiparameter persistence modules</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}.math-block{text-align:center;margin:.8rem 0;font-style:italic}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+svg{display:block;max-width:100%;height:auto;margin:1.2rem auto;background:#0c1013;border-radius:10px}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}th,td{border-bottom:1px solid #2a333d;padding:.55rem;text-align:left;vertical-align:top}th{color:var(--acc);font-family:Segoe UI,system-ui,sans-serif}
+.note{border-left:3px solid #d8a657;padding-left:1rem;color:#e2d5b9}.tight li{margin:.25rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Multiparameter persistence modules <span class="cite">(tda2-02)</span></h1>
+
+<div class="hook">
+<p>Imagine screening a cloud of points with two knobs: the allowed radius and the density threshold. Turning one knob at a time gives a line of snapshots; turning both gives a grid, and a connected component can be born on one route and merge on the other. The puzzle is whether those two routes tell the same algebraic story.</p>
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Self-check 1.</strong> <strong>Prediction gate:</strong> Put a one-dimensional class at grade (0,0). Let the route through t₁ then t₂ send it to 0 at (1,1), while the route through t₂ then t₁ sends it to a nonzero class. Does this still define a ℤ²-graded module?</p>
+<button onclick="check(this,false)">Yes: the two routes are allowed to record different histories</button>
+<button onclick="check(this,true)" data-ok>No: the two routes must agree, so the square fails the required commutativity</button>
+<button onclick="check(this,false)">Only if the vector spaces at the four grades have different dimensions</button>
+<div class="explain">The order of coordinate moves cannot matter for a ring action. Definition 11.2 requires the two composites around every square to be equal; the lesson will make this condition concrete and then connect it to filtrations and homology.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A d-parameter persistence module is a ℤᵈ-graded module over the polynomial ring k[t₁,…,t_d] (aa-13’s rings acting on aa-15’s modules); for d ≥ 2 the interval decomposition behind a barcode is unavailable—the structural fact that separates TDA II from TDA I.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The grid is algebra: grades, actions, and commuting squares</h2>
+
+<p>For one parameter, adjacent stages form a chain. With d parameters, the stages sit at grades <span class="math-block">u = (u₁,…,u_d) ∈ ℤᵈ</span> and each coordinate supplies its own step. The polynomial ring records those steps algebraically.</p>
+
+<div class="definition">
+<p><strong>Definition 11.1 (Polynomial ring).</strong> Given a variable t and a field k, the set of polynomials <span class="math-block">k[t] = {a₀ + a₁t + a₂t² + ⋯ + aₙtⁿ : n ≥ 0, aᵢ ∈ k}</span> forms a ring under the usual polynomial addition and multiplication. In the multiparameter setting we use <span class="math-block">R = k[t₁,…,t_d]</span>, whose elements are finite sums of monomials <span class="math-block">a<sub>i₁,…,i_d</sub>t₁<sup>i₁</sup>⋯t<sub>d</sub><sup>i_d</sup></span> with every exponent nonnegative and every coefficient in k. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.1, p. 325</span></p>
+</div>
+
+<p>Throughout this chapter k is a field, so the homology groups used as graded pieces are k-vector spaces. Write e<sub>i</sub> for the i-th standard basis vector of ℤᵈ.</p>
+
+<div class="definition">
+<p><strong>Definition 11.2 (Graded module).</strong> A ℤᵈ-graded R-module is an R-module M that is a direct sum of k-vector spaces indexed by grades, <span class="math-block">M = ⊕<sub>u∈ℤᵈ</sub> M<sub>u</sub>,</span> and whose ring action satisfies <span class="math-block">t<sub>i</sub> · M<sub>u</sub> ⊆ M<sub>u+e<sub>i</sub></sub></span> for every i and every u. The indices u are called grades. Equivalently, multiplication by t<sub>i</sub> is a linear map t<sub>i</sub>• : M<sub>u</sub> → M<sub>u+e<sub>i</sub></sub>, and these maps commute: <span class="math-block">(t<sub>j</sub>•) ∘ (t<sub>i</sub>•) = (t<sub>i</sub>•) ∘ (t<sub>j</sub>•).</span> <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.2, p. 325; equivalent map description, p. 326</span></p>
+</div>
+
+<p>The direct sum says what lives at each grid point. The action condition says which neighbouring point receives it. The commutative-square condition says that moving one step in direction i and then one in direction j has the same result as taking those steps in the opposite order.</p>
+
+<svg width="640" height="250" viewBox="0 0 640 250" role="img" aria-label="A commuting square of a two-parameter graded module">
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8ab4f8"></path></marker></defs>
+<rect x="40" y="38" width="560" height="170" rx="12" fill="#151b21" stroke="#2a333d"></rect>
+<line x1="155" y1="88" x2="475" y2="88" stroke="#8ab4f8" stroke-width="2" marker-end="url(#arrow)"></line>
+<line x1="155" y1="158" x2="475" y2="158" stroke="#8ab4f8" stroke-width="2" marker-end="url(#arrow)"></line>
+<line x1="145" y1="100" x2="145" y2="146" stroke="#4caf82" stroke-width="2" marker-end="url(#arrow)"></line>
+<line x1="485" y1="100" x2="485" y2="146" stroke="#4caf82" stroke-width="2" marker-end="url(#arrow)"></line>
+<circle cx="145" cy="88" r="7" fill="#8ab4f8"></circle><circle cx="485" cy="88" r="7" fill="#8ab4f8"></circle><circle cx="145" cy="158" r="7" fill="#8ab4f8"></circle><circle cx="485" cy="158" r="7" fill="#8ab4f8"></circle>
+<text x="82" y="72" fill="#e8e8e8" font-size="17">Mᵤ</text><text x="500" y="72" fill="#e8e8e8" font-size="17">Mᵤ₊ₑ₁</text>
+<text x="72" y="190" fill="#e8e8e8" font-size="17">Mᵤ₊ₑ₂</text><text x="500" y="190" fill="#e8e8e8" font-size="17">Mᵤ₊ₑ₁₊ₑ₂</text>
+<text x="295" y="78" fill="#8ab4f8" font-size="16">t₁ •</text><text x="295" y="149" fill="#8ab4f8" font-size="16">t₁ •</text>
+<text x="112" y="128" fill="#4caf82" font-size="16">t₂ •</text><text x="455" y="128" fill="#4caf82" font-size="16">t₂ •</text>
+<text x="222" y="232" fill="#9aa5b1" font-size="15">t₂• after t₁• = t₁• after t₂•</text>
+</svg>
+<p class="cite">The diagram is the map interpretation of Dey &amp; Wang, §11.1.1, Definition 11.2, p. 326.</p>
+
+<div class="worked">
+<p><strong>Worked Example 1 · Problem 1(c).</strong> Let M<sub>(0,0)</sub>, M<sub>(1,0)</sub>, M<sub>(0,1)</sub>, and M<sub>(1,1)</sub> each be k, with all other grades 0. Let t₁• be the identity on the two horizontal nonzero maps and let t₂• be the zero map on the two vertical nonzero maps; maps involving a zero source or target are the unique zero maps.</p>
+<p><strong>Clause 1: direct sum.</strong> The vector space at each grade has been specified, and M is their direct sum, so the decomposition clause holds.</p>
+<p><strong>Clause 2: grade shift.</strong> Every t₁• map goes from M<sub>u</sub> to M<sub>u+e₁</sub>, and every t₂• map goes from M<sub>u</sub> to M<sub>u+e₂</sub>. The action lands in the required grade.</p>
+<p><strong>Clause 3: commutativity.</strong> At the only square with a nonzero source, the route through t₁ and then t₂ is zero because the second map is zero. The route through t₂ and then t₁ is zero because the first map is zero. Thus both composites M<sub>(0,0)</sub> → M<sub>(1,1)</sub> are the same zero map. The construction is therefore a ℤ²-graded R-module. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.2, p. 325</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked Example 2 · Faded, Problem 1(b).</strong> Let M<sub>u</sub> = k for u ≥ (0,0), coordinatewise, and M<sub>u</sub> = 0 otherwise. Let each t<sub>i</sub>• be the identity whenever both source and target are nonzero.</p>
+<p>The direct-sum clause is satisfied because M is specified as <span class="gap">⟨your step⟩</span>. The maps have the correct grades. For a square based at u ≥ (0,0), both routes are <span class="gap">⟨your step⟩</span>. If a route reaches a zero graded piece, both composites are zero because <span class="gap">⟨your step⟩</span>. Hence the commutativity check is <span class="gap">⟨your step⟩</span>.</p>
+<p class="cite">Complete the four blanks before reading on. The source definition is Dey &amp; Wang, §11.1.1, Definition 11.2, p. 325.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You Try (Solo) · Problem 1(a).</strong> For M<sub>u</sub> = k at every u ∈ ℤ², with both t<sub>i</sub>• the identity, decide whether M is a graded module. Write three short sentences: one for the direct sum, one for grade shifting, and one for the two composites around a square.</p>
+<p><em>Hint:</em> Do not stop at “there is a vector space at every grid point”; explicitly check the commutative square.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which condition is the easy-to-miss extra check in Definition 11.2?</p>
+<button onclick="check(this,false)">Every M<sub>u</sub> must have dimension one</button>
+<button onclick="check(this,true)" data-ok>The two composites around every coordinate square must agree</button>
+<button onclick="check(this,false)">Every structure map must be an isomorphism</button>
+<div class="explain">The definition allows arbitrary k-vector spaces and linear maps, including zero maps. What makes the separate coordinate actions a single R-action is their commutativity.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In Problem 1(c), why do the two routes from (0,0) to (1,1) agree?</p>
+<button onclick="check(this,false)">Both routes are identity maps</button>
+<button onclick="check(this,false)">The two intermediate vector spaces are zero</button>
+<button onclick="check(this,true)" data-ok>Each route contains one zero action, so both composites are the zero map</button>
+<div class="explain">One route applies t₁• then the zero t₂•; the other applies the zero t₂• then t₁•. They are equal even though the horizontal maps are identities.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>From a bifiltration to modules, then to morphisms and shifts</h2>
+
+<p>Now put topology back into the square. A multiparameter filtration supplies the spaces and the inclusions; homology turns those inclusions into the linear maps that the graded-module language requires.</p>
+
+<div class="definition">
+<p><strong>Definition 11.4 (d-parameter filtration).</strong> A d-parameter simplicial filtration is a family of simplicial complexes {X<sub>u</sub>}<sub>u∈ℤᵈ</sub> such that X<sub>u</sub> ⊆ X<sub>u+e<sub>i</sub></sub> for each grade u and each i = 1,…,d. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.4, p. 326</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.5 (d-parameter persistence module).</strong> A ℤᵈ-graded R-module M is a d-parameter persistence module when each M<sub>u</sub> is a homology group defined over a field and the linear maps coming from the ring actions are induced by inclusions in a d-parameter simplicial filtration. A module is finitely generated when a finite set {g₁,…,gₙ} ⊆ M generates every element by an R-linear combination m = ∑ αᵢgᵢ, with αᵢ ∈ R; the R-linear combinations that equal zero are relations. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.5, pp. 326–327</span></p>
+</div>
+
+<p class="note">Prerequisite bridge: from the earlier homology unit, H₀ records connected components. We will use that fact without reproving cellular or singular homology here.</p>
+
+<div class="worked">
+<p><strong>Worked Example 1 · Problem 2.</strong> Consider the filtration on vertices {a,b}: X<sub>(0,0)</sub> = {a}, X<sub>(1,0)</sub> = {a,b}, X<sub>(0,1)</sub> = {a}, and X<sub>(1,1)</sub> = {a,b,ab}, constant beyond these grades.</p>
+<p><strong>(a) Filtration check.</strong> The four generating inclusions are {a} ⊆ {a,b}, {a} ⊆ {a}, {a,b} ⊆ {a,b,ab}, and {a} ⊆ {a,b,ab}. Each holds, so the family satisfies Definition 11.4.</p>
+<p><strong>(b) Homology pieces and maps.</strong> The component bases are [a] at (0,0), [a],[b] at (1,0), [a] at (0,1), and [a] at (1,1), because the edge ab joins a to b at the final grade.</p>
+<table><thead><tr><th>source → target</th><th>map on H₀</th></tr></thead><tbody>
+<tr><td>(0,0) → (1,0) via t₁•</td><td>[a] ↦ [a]</td></tr>
+<tr><td>(0,0) → (0,1) via t₂•</td><td>[a] ↦ [a]</td></tr>
+<tr><td>(1,0) → (1,1) via t₂•</td><td>[a] ↦ [a], [b] ↦ [a]</td></tr>
+<tr><td>(0,1) → (1,1) via t₁•</td><td>[a] ↦ [a]</td></tr>
+</tbody></table>
+<p>Thus dim M<sub>(0,0)</sub> = 1, dim M<sub>(1,0)</sub> = 2, dim M<sub>(0,1)</sub> = 1, and dim M<sub>(1,1)</sub> = 1.</p>
+<p><strong>(c) Square check.</strong> The t₁-then-t₂ route sends [a] to [a]. The t₂-then-t₁ route also sends [a] to [a]. Since M<sub>(0,0)</sub> is generated by [a], the two linear maps are equal. The H₀ module therefore has the required commutativity. <span class="cite">— Dey &amp; Wang, §11.1.1, Definitions 11.4–11.5, pp. 326–327</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.6 (Morphism).</strong> A graded-module morphism f : M → N is an R-linear map preserving grades: f(M<sub>u</sub>) ⊆ N<sub>u</sub> for every u ∈ ℤᵈ. Equivalently, it is a collection of linear maps f<sub>u</sub> : M<sub>u</sub> → N<sub>u</sub> for which every square with a structure map commutes. Two graded modules are isomorphic when there are morphisms in both directions whose composites are identity maps; we write M ≅ N. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.6, p. 328</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.3 (The special graded module R).</strong> There is a special graded module whose piece at grade u is the k-vector space generated by the monomial t<sup>u</sup>, with the ring action given by R. We denote this graded module by R, keeping it distinct from the polynomial ring used to define it. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.3, p. 326</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.7 (Shifted module).</strong> For a graded module M and u ∈ ℤᵈ, define M<sub>→u</sub> by <span class="math-block">(M<sub>→u</sub>)<sub>v</sub> = M<sub>v−u</sub></span> for each v. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.7, p. 328</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.8 (Free module).</strong> A graded module is free if it is isomorphic to a direct sum of shifted copies of the special graded module R: <span class="math-block">F ≅ ⊕<sub>j</sub> R<sup>j</sup>, where R<sup>j</sup> = R<sub>→u<sub>j</sub></sub>.</span> <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.8, p. 328</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.9 (Homogeneous element).</strong> An element m ∈ M is homogeneous when m ∈ M<sub>u</sub> for some grade u; write gr(m) = u. A minimal generating set of a free module is a basis, usually chosen to consist of homogeneous elements. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.9, p. 328</span></p>
+</div>
+
+<h3>Two small lemmas for the problem set</h3>
+
+<div class="lemma">
+<p><strong>Lemma A (the shifted quadrant).</strong> For the special graded module R, R<sub>w</sub> is one-dimensional when w ≥ (0,…,0) coordinatewise and is zero otherwise. Consequently, <span class="math-block">(R<sub>→u</sub>)<sub>v</sub> = R<sub>v−u</sub></span> is one-dimensional exactly when v ≥ u and is zero otherwise.</p>
+<p><strong>Proof.</strong> Definition 11.3 says that R<sub>w</sub> is generated by the monomial t<sup>w</sup>. The polynomial-ring description allows only nonnegative exponents, so that monomial exists precisely when every coordinate of w is nonnegative; in that case its scalar multiples form a one-dimensional k-vector space. Substitute w = v − u and use Definition 11.7. <span class="cite">— Follows directly from Dey &amp; Wang, §11.1.1, Definition 11.3, p. 326, and Definition 11.7, p. 328</span></p>
+</div>
+
+<div class="lemma">
+<p><strong>Lemma B (free structure maps are injective).</strong> In a free graded module, each structure map t<sub>i</sub>• : F<sub>v</sub> → F<sub>v+e<sub>i</sub></sub> is injective.</p>
+<p><strong>Proof.</strong> On a shifted copy R<sub>→uⱼ</sub>, multiplication by t<sub>i</sub> sends each monomial basis element to a distinct monomial basis element one grade higher, so it has no nonzero kernel. A direct sum of these maps is injective. If F is only presented as isomorphic to that direct sum, the grade-preserving isomorphism conjugates the structure maps, so injectivity is preserved. <span class="cite">— Follows from Dey &amp; Wang, §11.1.1, Definitions 11.3, 11.7–11.8, pp. 326 and 328, with elementary linear algebra</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked Example 2 · Faded, Problem 3(a) and (c).</strong> For R<sub>→(2,1)</sub>, Definition 11.7 gives <span class="math-block">(R<sub>→(2,1)</sub>)<sub>v</sub> = R<sub>v−(2,1)</sub>.</span> By Lemma A this is k exactly when <span class="gap">⟨your step: the two coordinate inequalities⟩</span>, and is zero elsewhere. Thus the module is a shifted quadrant with apex at (2,1).</p>
+<p>For R<sub>→(2,1)</sub> ⊕ R<sub>→(0,0)</sub>, take the identity e₁ in the first summand and e₂ in the second. The homogeneous basis is {e₁,e₂}, with gr(e₁) = <span class="gap">⟨your step⟩</span> and gr(e₂) = <span class="gap">⟨your step⟩</span>. <span class="cite">— Dey &amp; Wang, §11.1.1, Definitions 11.7–11.9, p. 328</span></p>
+</div>
+
+<div class="you-try">
+<p><strong>You Try (Solo) · Problem 3(b).</strong> Decide whether the H₀ module from Problem 2 is free. Give a proof, not just a dimension count.</p>
+<p><em>Hint:</em> Look at t₂• : M<sub>(1,0)</sub> → M<sub>(1,1)</sub>. Find a nonzero vector in its kernel, then compare with Lemma B.</p>
+</div>
+
+<div class="worked">
+<p><strong>Application Worked Example · Problem 4.</strong> Let N<sub>u</sub> = k for u ≥ (0,0), N<sub>u</sub> = 0 otherwise, with identity structure maps wherever both pieces are nonzero. Define f : M → N on the module from Problem 2 by sending every component generator in M<sub>u</sub> to the generator 1 ∈ N<sub>u</sub>; in particular, f<sub>(1,0)</sub>([a]) = f<sub>(1,0)</sub>([b]) = 1.</p>
+<p>This is grade-preserving because f<sub>u</sub> lands in N<sub>u</sub>. It is R-linear because the two possible routes around the only nontrivial square both send [a] to 1, and at (1,0) the map t₂• sends both [a] and [b] to [a], which f also sends to 1. Thus every structure-map square commutes.</p>
+<p>For any morphism g : N → M, the component g<sub>(1,0)</sub> has domain dimension 1 and codomain dimension 2. Its image has dimension at most 1, so it cannot be surjective.</p>
+<p>A map M<sub>u</sub> → N<sub>u+e₁</sub> is not grade-preserving in the sense of Definition 11.6. The construction that handles this is a shift. With Definition 11.7’s convention, such a map is an ordinary morphism M → N<sub>→(−e₁)</sub>, because (N<sub>→(−e₁)</sub>)<sub>u</sub> = N<sub>u+e₁</sub>. The minus sign is forced by the source’s shift convention. <span class="cite">— Dey &amp; Wang, §11.1.1, Definitions 11.6–11.7, p. 328</span></p>
+</div>
+
+<h3>Why the barcode stops being the right summary</h3>
+<p>The earlier one-parameter unit supplies the familiar chain: a finitely generated graded k[t]-module is controlled by the structure theorem over the PID k[t]; its graded cyclic summands appear as interval modules, and their multiset is the barcode. The two-parameter obstruction is a change in the coefficient ring, not a failure of the graded-module language.</p>
+
+<div class="worked">
+<p><strong>Auxiliary algebra bridge · Problem 5(a).</strong> Use the standard ideal notation from aa-13: (t₁,t₂) = {t₁a + t₂b : a,b ∈ R}. We prove directly from the polynomial-ring description that this ideal is not principal.</p>
+<p>Suppose, for contradiction, that (t₁,t₂) = (f). Then f divides both t₁ and t₂. Regard the polynomials first as polynomials in t₂ with coefficients in k[t₁]. Since t₁ has t₂-degree 0, f also has t₂-degree 0, so f ∈ k[t₁]. Now regard the equation f h = t₂ as an equation in t₁. Since t₂ has t₁-degree 0, f has t₁-degree 0 as well. Thus f is a nonzero constant, hence a unit in R.</p>
+<p>But a unit generates the whole ring, so (f) contains 1. Every element of (t₁,t₂) has zero constant term, so 1 ∉ (t₁,t₂). This contradiction proves that (t₁,t₂) is not principal. Since a PID requires every ideal to be principal, R = k[t₁,t₂] is not a PID. This is an auxiliary proof, not a numbered Dey &amp; Wang theorem; it is the elementary polynomial-ring bridge needed to unpack the problem-set comparison. <span class="cite">— Uses Dey &amp; Wang, §11.1.1, Definition 11.1, p. 325; the ideal and PID notions are prerequisite ring language from aa-13</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Problem 5(b)–(c), faded explanation.</strong> The one-parameter chain is: graded k[t]-module → PID structure theorem → cyclic summands → intervals → barcode. Already in the first multiparameter case d = 2, the ring k[t₁,t₂] has the nonprincipal ideal above, so the step that is unavailable is <span class="gap">⟨your step: name the broken link⟩</span>. What remains is the graded-module framework and, as the chapter opening states, existence of indecomposable summands for finitely generated persistence modules over ℤᵈ via Krull–Schmidt. What does not remain is a complete classification of those summands by a simple list of intervals. A claimed “two-parameter barcode” would therefore contradict the claim about <span class="gap">⟨your step: existence or classification?⟩</span>, not the claim about <span class="gap">⟨your step⟩</span>.</p>
+<p class="cite">The structural contrast is Dey &amp; Wang, Chapter 11 opening, pp. 321–322; the ring is Dey &amp; Wang, §11.1.1, Definition 11.1, p. 325. The one-parameter chain is a prerequisite result from tda1-04.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In the H₀ module from Problem 2, which map witnesses non-freeness?</p>
+<button onclick="check(this,false)">t₁• : M<sub>(0,0)</sub> → M<sub>(1,0)</sub>, because its target has larger dimension</button>
+<button onclick="check(this,true)" data-ok>t₂• : M<sub>(1,0)</sub> → M<sub>(1,1)</sub>, because [a] − [b] is a nonzero kernel vector</button>
+<button onclick="check(this,false)">t₁• : M<sub>(0,1)</sub> → M<sub>(1,1)</sub>, because it is an identity map</button>
+<div class="explain">At (1,0), the two component classes both map to [a] after the edge appears, so [a] − [b] maps to zero. Lemma B says free modules have injective structure maps.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> With (N<sub>→u</sub>)<sub>v</sub> = N<sub>v−u</sub>, which shifted target represents a map M<sub>v</sub> → N<sub>v+e₁</sub> as an ordinary grade-preserving morphism?</p>
+<button onclick="check(this,false)">N<sub>→e₁</sub>, because the arrow points in the positive direction</button>
+<button onclick="check(this,true)" data-ok>N<sub>→(−e₁)</sub>, because (N<sub>→(−e₁)</sub>)<sub>v</sub> = N<sub>v+e₁</sub></button>
+<button onclick="check(this,false)">N itself, because every R-linear map preserves grades</button>
+<div class="explain">Substitute u = −e₁ into Definition 11.7: the target’s grade-v piece becomes N<sub>v−(−e₁)</sub> = N<sub>v+e₁</sub>. The shift is a bookkeeping device that restores grade preservation.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided Proof Practice</h3>
+<p><strong>Prompt:</strong> Let M be the H₀ persistence module from Problem 2. Prove that M is not free. Your proof should identify a nonzero kernel vector for one structure map and invoke Lemma B.</p>
+<textarea class="proof-input" placeholder="Write your proof sketch here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer:</strong> Consider t₂• : M<sub>(1,0)</sub> → M<sub>(1,1)</sub>. The source has basis [a],[b], while the edge ab makes [a] = [b] in H₀ at (1,1), and t₂• sends both basis vectors to [a]. Therefore the nonzero vector [a] − [b] lies in the kernel. By Lemma B, every structure map of a free graded module is injective. Hence M cannot be free. ∎</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit Ritual: Blank-Page Reconstruction</h3>
+<p>Look away from the page. From nothing, reconstruct the three load-bearing claims of this lesson and explain why each forces the next:</p>
+<ol class="tight">
+<li>A ℤᵈ-graded R-module is a direct sum of graded pieces, with t<sub>i</sub> moving one step in direction e<sub>i</sub>; commutativity makes the route around every grid square independent of order.</li>
+<li>A d-parameter filtration supplies inclusions, and homology turns them into those commuting maps. Grade-preserving morphisms compare such modules; shifts move the bookkeeping of grades, and free modules have injective coordinate maps.</li>
+<li>Already for d = 2, the polynomial ring has a nonprincipal ideal, so the one-parameter PID-to-interval-to-barcode route is unavailable. Indecomposable pieces may still exist, but the chapter’s warning is about their classification, not their existence.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>Say: ring variables move grades; Definition 11.2 demands commuting squares; Definition 11.4 and Definition 11.5 turn a bifiltration into an H₀ module; Definitions 11.6–11.9 control maps, shifts, free modules, and homogeneous bases; the ideal (t₁,t₂) blocks the PID step, so a barcode is no longer the general classification.</p>
+</details>
+</div>
+
+<footer>Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — Chapter 11 opening, pp. 321–324; §11.1.1, Definition 11.1, p. 325; Definition 11.2, pp. 325–326; Definition 11.3, p. 326; Definition 11.4, p. 326; Definition 11.5, pp. 326–327; Definitions 11.6–11.9, p. 328. Prerequisite results used: H₀ and connected components from tda1-03; polynomial-ring, ideal, and PID language from aa-13; the one-parameter interval/barcode structure from tda1-04. Later presentation matrices and decomposition algorithms are deferred to the later tda2 units.</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
