@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at2-08 — Persistent cohomology and circular coordinates</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology II · Nexus College</p>
+<h1>Persistent cohomology and circular coordinates <span class="cite">(at2-08)</span></h1>
+
+<div class="hook">
+The same barcode, computed the other way round — and much faster. Then a bonus, if the class lifts to the integers: a 1-cocycle becomes a real circular coordinate on your data.
+<p>Seven units of cohomology have been abstract. This one cashes them. A point cloud sampled from something roughly annular has a one-dimensional hole; persistent homology will tell you the hole is there. What it will not do is tell you <em>where you are</em> around the hole — assign to each data point an angle, consistently, so that walking round the annulus advances the angle by exactly one turn.</p>
+<p>Cohomology can. And the reason is a single sentence from homotopy theory that fixes the coefficient ring for you, whether or not it is the ring your barcode computation preferred.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Persistent cohomology is computed over a finite field 𝔽<sub>p</sub>, for good numerical reasons. Circular coordinates come from the fact that homotopy classes of maps X → S<sup>1</sup> correspond to H<sup>1</sup>(X;ℤ). Predict what this mismatch costs.</p>
+<button onclick="check(this,false)">Nothing — over a field cohomology and homology agree, so 𝔽<sub>p</sub> and ℤ classes are interchangeable</button>
+<button onclick="check(this,true)" data-ok>A separate step: the 𝔽<sub>p</sub> class must be lifted to an integral class, and the lift can fail</button>
+<button onclick="check(this,false)">Only a loss of precision, repaired by using a larger prime p</button>
+<div class="explain">Correct, and this is the distinction the whole lesson turns on. Duality over a field (at2-03) makes 𝔽<sub>p</sub>-cohomology a legitimate way to get the <em>barcode</em>. It says nothing about producing a map to S<sup>1</sup>, because that correspondence is with H<sup>1</sup>(X;ℤ) and with no other coefficient ring. Step 3 of the construction below exists solely to cross that gap, and it succeeds only under a hypothesis about p-torsion in H<sup>2</sup>(X;ℤ) — an assumption to be checked, not a fact to be assumed. A bigger prime does not help: the obstruction is torsion, not rounding.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Over a field, persistent cohomology of a filtration yields the same barcode as persistent homology while reducing far more cheaply in practice — the speed-up tda1-09 named. Circular coordinates are a SEPARATE construction with a stronger requirement: because S<sup>1</sup> is a K(ℤ,1), a map from the data to S<sup>1</sup> corresponds up to homotopy to an INTEGRAL class in H<sup>1</sup>(−;ℤ), so a class computed over 𝔽<sub>p</sub> must first be lifted to ℤ and the lift verified before it can be smoothed and integrated into an actual coordinate.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Simplicial cohomology, concretely, over 𝔽<sub>2</sub></h2>
+
+<p>Dey and Wang set cohomology up over a field from the start, so that everything in sight is a vector space. Their §2.5.4 is the computational face of at2-01's algebra, and it is worth seeing the same definitions in the notation an implementation actually uses.</p>
+
+<div class="definition">
+<p><strong>Cochains.</strong> A p-cochain is a homomorphism φ : C<sub>p</sub> → ℤ<sub>2</sub> from the chain group to the coefficient ring. It is given by its evaluation φ(σ) ∈ {0, 1} on every p-simplex σ, a chain c = Σ<sub>i</sub>α<sub>i</sub>σ<sub>i</sub> receiving φ(c) = Σ<sub>i</sub>α<sub>i</sub>φ(σ<sub>i</sub>). The p-cochains form a vector space C<sup>p</sup> dual to C<sub>p</sub>, with (φ + φ′)(c) = φ(c) + φ′(c) and (αφ)(c) = αφ(c). For a chain c, the cochain assigning 1 to exactly the simplices with non-zero coefficient in c is its dual cochain c<sup>∗</sup>. <span class="cite">— Dey &amp; Wang §2.5.4, p. 55</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Coboundary.</strong> For a p-cochain φ, its coboundary is the homomorphism δφ : C<sub>p+1</sub> → ℤ<sub>2</sub> defined by δφ(c) = φ(∂c), giving the sequence 0 = C<sup>−1</sup> → C<sup>0</sup> → C<sup>1</sup> → ⋯ → C<sup>k</sup> → C<sup>k+1</sup> = 0 for a simplicial k-complex. <span class="cite">— Dey &amp; Wang §2.5.4, p. 55</span></p>
+</div>
+
+<p>Note that this is at2-01's δφ = φ∂ written for a specific model. The p-coboundaries form B<sup>p</sup> and the p-cocycles — those φ with δφ the zero homomorphism — form Z<sup>p</sup>.</p>
+
+<div class="lemma">
+<p><strong>Fact 2.13.</strong> For p &gt; 0, δ<sub>p</sub> ∘ δ<sub>p−1</sub> = 0, which implies B<sup>p</sup> ⊆ Z<sup>p</sup>. <span class="cite">— Dey &amp; Wang §2.5.4, p. 56</span></p>
+</div>
+
+<p><em>Proof.</em> For any chain c, δδφ(c) = δφ(∂c) = φ(∂∂c) = φ(0) = 0, using ∂∂ = 0 and that φ is a homomorphism. Hence every coboundary is a cocycle. ∎</p>
+
+<div class="definition">
+<p><strong>Definition 2.29 (cohomology group).</strong> Since B<sup>p</sup> is a subgroup of Z<sup>p</sup>, the quotient H<sup>p</sup> = Z<sup>p</sup>/B<sup>p</sup> is well defined and is called the p-th cohomology group. <span class="cite">— Dey &amp; Wang §2.5.4, Definition 2.29, p. 56</span></p>
+</div>
+
+<p>One warning Dey and Wang make explicitly, and it is worth taking seriously. H<sup>p</sup>(K) is <em>not equal</em> to Hom(H<sub>p</sub>(K), ℤ<sub>2</sub>), although over ℤ<sub>2</sub> the two are isomorphic — a distinction at2-02 spent a whole lesson on. What you compute with is the quotient of cocycles by coboundaries, and what a computation hands you is a representative cocycle, not a functional on homology.</p>
+
+<h3>Worked example 1: Dey's Example 2.2</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Take K with vertices a, b, c and edges ab, bc, ac, and <em>no</em> triangle. Let φ be the 1-cochain with support {ac} — that is, φ(ac) = 1 and φ(ab) = φ(bc) = 0.</p>
+<p><strong>It is a cocycle.</strong> There is no triangle, so no non-zero 2-cochain exists and δ<sub>1</sub>φ = 0 automatically.</p>
+<p><strong>It is not a coboundary.</strong> Suppose φ = δ<sub>0</sub>φ′ for a 0-cochain φ′, an assignment of 0s and 1s to vertices. Then, since δ<sub>0</sub>φ′(uv) = φ′(u + v) = φ′(u) + φ′(v),</p>
+<div class="math-block">φ′(a) + φ′(c) = 1, &emsp; φ′(a) + φ′(b) = 0, &emsp; φ′(b) + φ′(c) = 0.</div>
+<p>Add all three equations. Each of φ′(a), φ′(b), φ′(c) appears exactly twice, and over ℤ<sub>2</sub> a repeated term cancels, so the left side is 0 while the right is 1. Contradiction, so φ is not a coboundary and [φ] is a non-trivial class in H<sup>1</sup>.</p>
+<p><strong>Now fill in the triangle abc.</strong> The same φ is no longer a cocycle: δ<sub>1</sub>φ(abc) = φ(ab + ac + bc) = 0 + 1 + 0 = 1 ≠ 0. But the cochain with support {ab, ac} is a cocycle, since 1 + 1 + 0 = 0 over ℤ<sub>2</sub>; and it is a coboundary, produced by the 0-cochain assigning 1 to the vertex a and 0 to b and c. The presence of a single 2-simplex has changed both which cochains are cocycles and which cocycles are trivial.</p>
+<p><strong>Cohomologous classes.</strong> Dey's third complex has a cocycle φ with support {cd, ce} that is not a coboundary, and another φ′ with support {bf, bg} whose class is cohomologous to it: [φ] + [φ′] = [φ + φ′] = [0], because φ + φ′ is the coboundary obtained by assigning 1 to the vertices a, b and c. Over ℤ<sub>2</sub>, where every element is its own inverse, "cohomologous" and "equal in H<sup>1</sup>" are the same statement.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded).</strong> For the triangle-free K of worked example 1, compute dim H<sup>1</sup>(K) by counting.</p>
+<p><strong>Cocycles.</strong> With no 2-simplices, every 1-cochain is a cocycle, so dim Z<sup>1</sup> = <span class="gap">⟨your step: how many edges?⟩</span>.</p>
+<p><strong>Coboundaries.</strong> B<sup>1</sup> is the image of δ<sub>0</sub> on the space of 0-cochains, which has dimension 3. The kernel of δ<sub>0</sub> is the cochains constant on each connected component; K is connected, so that kernel has dimension <span class="gap">⟨your step⟩</span>, and by rank–nullity dim B<sup>1</sup> = 3 − 1 = 2.</p>
+<p><strong>Quotient.</strong> dim H<sup>1</sup> = dim Z<sup>1</sup> − dim B<sup>1</sup> = 1, so there are exactly two classes: the trivial one and [φ]. This agrees with the geometry — K is a triangle boundary, a circle, with one one-dimensional hole.</p>
+<p class="cite">Gap solutions: dim Z<sup>1</sup> = 3, one for each edge; the kernel of δ<sub>0</sub> has dimension 1.</p>
+</div>
+
+<div class="lemma">
+<p><strong>Fact 2.14.</strong> A simplicial map f : K<sub>1</sub> → K<sub>2</sub> induces a homomorphism f<sup>∗</sup> : H<sup>p</sup>(K<sub>2</sub>) → H<sup>p</sup>(K<sub>1</sub>) for every p ≥ 0 — in the opposite direction to the map induced on homology. It comes from the cochain map f<sup>#</sup>(φ)(c) = φ(f<sub>#</sub>(c)). <span class="cite">— Dey &amp; Wang §2.5.4, Fact 2.14, p. 57</span></p>
+</div>
+
+<p>Contravariance again, and this time it has an operational consequence: in a filtration the inclusions run forwards, so the induced cohomology maps run <em>backwards</em> along the filtration. Any persistence algorithm built on cohomology processes the filtration in that reversed sense, which is exactly what Dey and Wang's annotation method of §4.2.1 exploits — the section Fact 2.14 explicitly points forward to.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Adding the triangle abc to the triangle-free complex changed the status of the cochain with support {ac}. What exactly changed?</p>
+<button onclick="check(this,false)">It stopped being a coboundary, having been one before</button>
+<button onclick="check(this,true)" data-ok>It stopped being a cocycle: with a 2-simplex present, δ<sub>1</sub>φ(abc) = 1 ≠ 0</button>
+<button onclick="check(this,false)">Nothing about the cochain changed; only H<sup>1</sup> changed</button>
+<div class="explain">δ<sub>1</sub> is a map into the 2-cochains, so when there are no 2-simplices it is the zero map and every 1-cochain is a cocycle for free. Introducing abc gives δ<sub>1</sub> somewhere to land, and φ fails the test. This is worth internalising: whether a given cochain is a cocycle depends on the simplices <em>above</em> it, not only on the ones it is supported on.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does Dey and Wang's chapter insist that H<sup>p</sup>(K) is not <em>equal</em> to Hom(H<sub>p</sub>(K), ℤ<sub>2</sub>)?</p>
+<button onclick="check(this,false)">Because they are not isomorphic over ℤ<sub>2</sub></button>
+<button onclick="check(this,true)" data-ok>Because they are different constructions — a quotient of cochain spaces versus the dual of homology — that happen to be isomorphic over a field; what an algorithm returns is a representative cocycle, not a functional on homology</button>
+<button onclick="check(this,false)">Because Hom(H<sub>p</sub>(K), ℤ<sub>2</sub>) is not a vector space</button>
+<div class="explain">They are isomorphic over ℤ<sub>2</sub> — that is stated in the same paragraph — so the first option is wrong, and the third is plainly false. The point is that the isomorphism is a theorem about the two objects, not an identification you may make silently. It matters here because everything downstream in this lesson operates on a representative cocycle: you smooth it, you integrate it. Only an actual cochain can be smoothed.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Circular coordinates, and the step that is easy to skip</h2>
+
+<p>Ghrist §6.13 poses the problem exactly. Persistent homology addressed the topology of a point cloud; a cohomological approach addresses the related problem of <em>coordinatising</em> one. Let Ω ⊂ ℝ<sup>n</sup> be a point cloud whose topology is known or suspected to be sufficiently circular to merit outfitting circular coordinates Θ : Ω → S<sup>1</sup>, respecting the underlying topology of the space X ⊂ ℝ<sup>n</sup> (homotopic to S<sup>1</sup>) that Ω is presumed to sample. The solution of de Silva, Morozov and Vejdemo-Johansson runs in four steps.</p>
+
+<div class="theorem">
+<p><strong>Step 1 — why cohomology at all.</strong> For any space X, the group of basepoint-preserving homotopy classes [X, S<sup>1</sup>] of maps X → S<sup>1</sup> is isomorphic to H<sup>1</sup>(X;ℤ). The coordinatisation function Θ : X → S<sup>1</sup> is therefore naturally approachable via cohomology. <span class="cite">— Ghrist §6.13, p. 131</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Step 2 — compute.</strong> To find a cohomology class for X from a sampling of nodes, compute the persistent cohomology of a sequence of Vietoris–Rips complexes. Field coefficients are required for the Structure Theorem (Ghrist's Theorem 5.21); coefficients in a finite field 𝔽<sub>p</sub> are preferred for numerical reasons, to avoid roundoff errors. <span class="cite">— Ghrist §6.13, p. 131</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Step 3 — lift to ℤ.</strong> A persistent class [α<sub>p</sub>] ∈ H<sup>1</sup>(X;𝔽<sub>p</sub>) can be converted to an integral class [α] ∈ H<sup>1</sup>(X;ℤ) using the short exact sequence of coefficients 0 → ℤ →<sup>·p</sup> ℤ → 𝔽<sub>p</sub> → 0, which yields a short exact sequence of cochain complexes and hence a long exact sequence</p>
+<div class="math-block">⟶ H<sup>1</sup>(X;ℤ) ⟶ H<sup>1</sup>(X;𝔽<sub>p</sub>) &nbsp;<sup>δ</sup>⟶&nbsp; H<sup>2</sup>(X;ℤ) &nbsp;<sup>·p</sup>⟶&nbsp; H<sup>2</sup>(X;ℤ).</div>
+<p>The kernel of ·p on H<sup>2</sup>(X;ℤ) consists of the p-torsional classes. By exactness ker(·p) = im δ; assuming this is zero, H<sup>1</sup>(X;ℤ) → H<sup>1</sup>(X;𝔽<sub>p</sub>) is surjective and classes over 𝔽<sub>p</sub> lift to integral classes. <span class="cite">— Ghrist §6.13, pp. 131–132</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Step 4 — smooth.</strong> The resulting integer cocycle α may be a poor S<sup>1</sup>-coordinatisation: all the circular motion may be concentrated over a small subset of X. To relax α, lift to ℝ coefficients and find a cohomologous harmonic cocycle ᾱ. Thanks to the local-averaging properties of the Laplacian, this 1-cocycle integrates to a well-regulated coordinate function Θ : X → S<sup>1</sup>. <span class="cite">— Ghrist §6.13, p. 132</span></p>
+</div>
+
+<h3>Visual: what step 4 repairs</h3>
+
+<p>A point cloud sampled from an annulus, each point coloured by its circular coordinate. On the left of the toggle is a coordinate whose entire variation is concentrated across one narrow cut — topologically correct, practically useless. On the right is the harmonically smoothed version, in which the coordinate advances evenly around the loop.</p>
+
+<canvas id="ccCanvas" width="640" height="270" role="img" aria-label="Points sampled from an annulus coloured by a circular coordinate, shown first with all variation concentrated at one cut and then harmonically smoothed"></canvas>
+<p style="text-align:center"><button onclick="toggleSmooth()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Toggle smoothing</button></p>
+<script>
+(function(){
+const cv=document.getElementById('ccCanvas'), ctx=cv.getContext('2d');
+let smooth=false, seed=12345;
+function rnd(){ seed=(1103515245*seed+12345)%2147483648; return seed/2147483648; }
+const pts=[]; seed=12345;
+for(let i=0;i<420;i++){ const th=rnd()*2*Math.PI, r=62+rnd()*34; pts.push([th,r]); }
+function hue(f){ return 'hsl('+Math.round(360*f)+',70%,58%)'; }
+function draw(){
+  const w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h);
+  const cx=w/2, cy=125;
+  for(const [th,r] of pts){
+    const x=cx+r*Math.cos(th), y=cy+r*Math.sin(th);
+    // raw: coordinate essentially constant except across a narrow cut near theta = 0
+    const u=th/(2*Math.PI);
+    const raw=Math.min(1,Math.max(0,(u-0.92)/0.08));
+    ctx.fillStyle=hue(smooth?u:raw);
+    ctx.beginPath(); ctx.arc(x,y,2.6,0,2*Math.PI); ctx.fill();
+  }
+  ctx.strokeStyle='#4a555f'; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(cx+55,cy); ctx.lineTo(cx+100,cy); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='#9aa5b1'; ctx.font='13px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText(smooth?'harmonic cocycle: the coordinate advances evenly around the loop'
+                     :'raw integer cocycle: all the circular motion across one cut', 24, 26);
+  ctx.fillText('colour = value of Θ; the dashed segment is the cut', 24, h-16);
+}
+window.toggleSmooth=function(){smooth=!smooth; draw();};
+draw();
+})();
+</script>
+
+<h3>Worked example 3: the lift, done carefully</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Suppose H<sup>2</sup>(X;ℤ) has no p-torsion. Show that every class in H<sup>1</sup>(X;𝔽<sub>p</sub>) lifts to H<sup>1</sup>(X;ℤ).</p>
+<p><strong>Step 1 — locate the obstruction.</strong> In the long exact sequence, the map immediately after H<sup>1</sup>(X;𝔽<sub>p</sub>) is δ : H<sup>1</sup>(X;𝔽<sub>p</sub>) → H<sup>2</sup>(X;ℤ), and the map after that is multiplication by p on H<sup>2</sup>(X;ℤ).</p>
+<p><strong>Step 2 — exactness at H<sup>2</sup>(X;ℤ).</strong> Exactness there says im δ = ker(·p). The kernel of multiplication by p is by definition the set of classes killed by p, that is the p-torsion of H<sup>2</sup>(X;ℤ).</p>
+<p><strong>Step 3 — use the hypothesis.</strong> No p-torsion means ker(·p) = 0, hence im δ = 0, hence δ is the zero map and ker δ is the whole of H<sup>1</sup>(X;𝔽<sub>p</sub>).</p>
+<p><strong>Step 4 — exactness at H<sup>1</sup>(X;𝔽<sub>p</sub>).</strong> There, ker δ equals the image of H<sup>1</sup>(X;ℤ) → H<sup>1</sup>(X;𝔽<sub>p</sub>). Since ker δ is everything, that map is surjective: every 𝔽<sub>p</sub> class is the reduction of an integral class, which is exactly what "lifts" means. ∎</p>
+<p><strong>What the argument does not say.</strong> It gives no procedure for finding the lift, and it does not say the lift is unique — the sequence continues to the left, and the ambiguity is measured there. What it gives is existence, conditional on a hypothesis about X that the data does not hand you.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 4 (faded): what the hypothesis is worth.</strong> Ghrist writes that p-torsional classes in H<sup>2</sup>(X;ℤ) "would seem to be rare occurrences in <em>organic</em> spaces X living behind data sets" for p &gt; 2.</p>
+<p><strong>Read the modality.</strong> "Would seem to be rare" is a heuristic expectation about the class of spaces one meets in practice, not a <span class="gap">⟨your step: what kind of statement would it need to be?⟩</span>.</p>
+<p><strong>Consequence for a pipeline.</strong> The hypothesis ker(·p) = 0 is therefore an assumption to be declared or checked, not one that holds automatically. If it fails, worked example 3 does not apply and the class need not lift — so the object being smoothed in step 4 is <span class="gap">⟨your step: what is it not?⟩</span>.</p>
+<p><strong>The observable symptom.</strong> A non-lifting class smoothed and integrated anyway produces a Θ that fails to close up: integrating around some loop returns a value differing from its start by something that is not a whole number of turns. Every local computation succeeds; only the global consistency fails — which is, of course, precisely the shape of every cohomological obstruction in this module, from the mountain trails of at2-01 onwards.</p>
+<p class="cite">Gap solutions: it would need to be a theorem about X, with a hypothesis that can be checked; and the smoothed object is not an integral class, hence does not correspond to any homotopy class of maps X → S<sup>1</sup>.</p>
+</div>
+
+<div class="warn">
+<p><strong>The distinction to carry out of this unit.</strong> There are two separate uses of cohomology here and they have different requirements.</p>
+<p><em>Barcode computation.</em> Over a field, cohomology is the exact dual of homology (Hatcher §3.1, at2-03), so the dimensions agree degree by degree and computing on the cohomology side is a legitimate route to the same answer, chosen for speed. Here the coefficient field is largely an implementation choice — subject to the standing caveat that torsion invisible to one field may be visible to another.</p>
+<p><em>Circular coordinates.</em> Here the coefficient ring is the entire content. The correspondence [X, S<sup>1</sup>] ≅ H<sup>1</sup>(X;ℤ) holds over ℤ and over nothing else, so an 𝔽<sub>p</sub> class must be lifted, and the lift must be verified, before it is smoothed and integrated. Treating a barcode-grade 𝔽<sub>p</sub> class as a coordinate-grade integral class is the one error this unit exists to prevent.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Take the triangle-free complex K of worked example 1 as a crude model of an annular point cloud, and its non-trivial class [φ] with support {ac}. (i) Check by hand that assigning the value 0 to a and to b, and 1 to c, does <em>not</em> produce φ as a coboundary. (ii) Describe, in words, what a circular coordinate on K would look like if one integrated φ around the cycle abc — where does the coordinate jump, and how does that match the raw picture in the visual above?</p>
+<p><em>Hint:</em> for (ii) walk a → b → c → a accumulating φ on each edge traversed, exactly as in at2-01's mountain trails.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which step of the four fixes the coefficient ring as ℤ, and why?</p>
+<button onclick="check(this,true)" data-ok>Step 1, because [X, S<sup>1</sup>] ≅ H<sup>1</sup>(X;ℤ) — the correspondence with maps to S<sup>1</sup> is with integral cohomology specifically</button>
+<button onclick="check(this,false)">Step 2, because the Structure Theorem needs ℤ coefficients</button>
+<button onclick="check(this,false)">Step 4, because the Laplacian is defined over ℤ</button>
+<div class="explain">Step 1 is where the requirement enters, and it is not negotiable: the homotopy-theoretic input names H<sup>1</sup>(X;ℤ). Step 2 wants the opposite — the Structure Theorem requires a <em>field</em>, and 𝔽<sub>p</sub> is chosen for numerical reasons. That tension between steps 1 and 2 is the entire reason step 3 exists. Step 4 works over ℝ coefficients, after the integral class has been obtained.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The kernel of multiplication by p on H<sup>2</sup>(X;ℤ) is non-zero. What follows?</p>
+<button onclick="check(this,false)">The persistent cohomology barcode over 𝔽<sub>p</sub> is wrong</button>
+<button onclick="check(this,true)" data-ok>The map δ need not be zero, so H<sup>1</sup>(X;ℤ) → H<sup>1</sup>(X;𝔽<sub>p</sub>) need not be surjective and a given class may fail to lift</button>
+<button onclick="check(this,false)">X is not homotopy equivalent to S<sup>1</sup></button>
+<div class="explain">The barcode is unaffected — step 2 is complete and correct in itself, which is exactly why the failure is easy to miss. What breaks is the bridge to step 1: by exactness im δ = ker(·p), so a non-zero kernel permits a non-zero δ, and a class with δ[α<sub>p</sub>] ≠ 0 is not in the image of the reduction map and does not lift. Nothing here says X fails to be circular; it says one particular class fails to be integral.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why is the harmonic representative of step 4 sought within the same cohomology class rather than as a fresh cocycle?</p>
+<button onclick="check(this,true)" data-ok>Because cohomologous cocycles determine the same homotopy class of maps to S<sup>1</sup>, so smoothing within the class changes the coordinate function without changing the topology it encodes</button>
+<button onclick="check(this,false)">Because harmonic cocycles do not exist outside a given class</button>
+<button onclick="check(this,false)">Because a fresh cocycle would have to be recomputed over 𝔽<sub>p</sub> and would lose the integral lift</button>
+<div class="explain">Step 1 identifies homotopy classes of maps with cohomology <em>classes</em>, not with individual cocycles. So every representative of [α] encodes the same circular structure, and one is free to choose the representative that integrates to the most usable coordinate — which is what the Laplacian's local averaging supplies. Leaving the class would change which map to S<sup>1</sup> you are building.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove Fact 2.13 from the definition δφ(c) = φ(∂c), and then prove that the coboundary of a dual cochain behaves as follows: for a p-chain c, the cochain δ(c<sup>∗</sup>) evaluated on a (p+1)-chain d equals c<sup>∗</sup>(∂d). Using this, prove that in a complex with no (p+1)-simplices every p-cochain is a cocycle, and explain why that makes H<sup>p</sup> = C<sup>p</sup>/B<sup>p</sup> in the top dimension.</p>
+<p><em>Hint:</em> everything follows by pushing δ across to ∂ and using ∂∂ = 0; for the last part ask what the target of δ<sub>p</sub> is when there are no (p+1)-simplices.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> <em>Fact 2.13.</em> Let φ be a (p−1)-cochain and c any (p+1)-chain. Then</p>
+<div class="math-block">(δ<sub>p</sub>δ<sub>p−1</sub>φ)(c) = (δ<sub>p−1</sub>φ)(∂c) = φ(∂∂c) = φ(0) = 0,</div>
+<p>using the definition of δ twice, then ∂∂ = 0, then that a homomorphism sends 0 to 0. As c was arbitrary, δ<sub>p</sub>δ<sub>p−1</sub> = 0. Consequently any coboundary δψ satisfies δ(δψ) = 0 and is a cocycle, so B<sup>p</sup> ⊆ Z<sup>p</sup> and Definition 2.29's quotient makes sense. ∎</p>
+<p><em>The dual cochain.</em> By definition δ(c<sup>∗</sup>)(d) = c<sup>∗</sup>(∂d) for any (p+1)-chain d — this is simply the definition of δ applied to the particular cochain c<sup>∗</sup>, and it says that δ(c<sup>∗</sup>) detects which simplices of ∂d appear in c. ∎</p>
+<p><em>Top dimension.</em> Suppose K has no (p+1)-simplices. Then C<sup>p+1</sup> is the zero vector space, since a cochain is determined by its values on (p+1)-simplices and there are none. The map δ<sub>p</sub> : C<sup>p</sup> → C<sup>p+1</sup> therefore has zero target, so δ<sub>p</sub>φ = 0 for every p-cochain φ, and Z<sup>p</sup> = C<sup>p</sup>. Hence H<sup>p</sup> = Z<sup>p</sup>/B<sup>p</sup> = C<sup>p</sup>/B<sup>p</sup>. ∎</p>
+<p><em>What this explains.</em> It is why the triangle-free complex of worked example 1 had every 1-cochain a cocycle, and why filling in the triangle abc changed that. In the top dimension the cocycle condition is vacuous, so all the information in H<sup>p</sup> comes from which cochains are coboundaries — and that is a statement about the simplices one dimension <em>down</em>. The asymmetry is the mirror image of homology, where the top-dimensional condition that is vacuous is being a boundary.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>The cochain, coboundary and cocycle definitions in Dey and Wang's notation, Fact 2.13, and Definition 2.29 — plus the warning about H<sup>p</sup> against Hom(H<sub>p</sub>, ℤ<sub>2</sub>).</li>
+<li>The four steps of the circular-coordinate construction, and which coefficient ring each one demands.</li>
+<li>The exactness argument of step 3, the hypothesis it needs, and what is observable when that hypothesis fails.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) φ : C<sub>p</sub> → ℤ<sub>2</sub>, δφ(c) = φ(∂c), δδ = 0 so B<sup>p</sup> ⊆ Z<sup>p</sup>, H<sup>p</sup> = Z<sup>p</sup>/B<sup>p</sup> — isomorphic to but not equal to the dual of homology; (2) [X,S<sup>1</sup>] ≅ H<sup>1</sup>(X;ℤ) needs ℤ, the Structure Theorem needs a field, step 3 bridges them and step 4 smooths over ℝ; (3) ker(·p) = im δ by exactness, so no p-torsion in H<sup>2</sup>(X;ℤ) makes the reduction map surjective — and if it fails, the smoothed coordinate simply does not close up — then you have the lesson, and with it the whole of at2.</p>
+</details>
+</div>
+
+<footer>
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §2.5.4 "Cohomology": cochains and the cochain vector space, the dual cochain, the coboundary operator δφ(c) = φ(∂c) and the cochain sequence (p. 55); coboundary and cocycle groups, Fact 2.13, Definition 2.29, and Example 2.2 on the three complexes of Figure 2.14 (pp. 56–57); Fact 2.14 on the contravariance of induced maps, with its forward reference to the annotation method of §4.2.1 (p. 57). Ghrist, <em>Elementary Applied Topology</em> — §6.13 "Circular coordinates in data sets": the problem statement, and the four steps of de Silva, Morozov and Vejdemo-Johansson, including [X,S<sup>1</sup>] ≅ H<sup>1</sup>(X;ℤ), the requirement of field coefficients for Theorem 5.21, the coefficient sequence 0 → ℤ → ℤ → 𝔽<sub>p</sub> → 0 with its long exact sequence and the p-torsion condition, and harmonic smoothing (pp. 131–132). Hatcher, <em>Algebraic Topology</em> — §3.1, the field-coefficient case H<sup>n</sup>(X;F) ≅ Hom<sub>F</sub>(H<sub>n</sub>(X;F),F) (p. 198). Not established here: that persistent cohomology and persistent homology produce the same <em>barcode</em>, as opposed to the same Betti numbers at each scale — that is a statement about the filtration's maps, and the sections read for this unit establish the degreewise duality and Fact 2.14's contravariance only.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
