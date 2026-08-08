@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at2-01 — Cochain complexes and cohomology groups</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology II · Nexus College</p>
+<h1>Cochain complexes and cohomology groups <span class="cite">(at2-01)</span></h1>
+
+<div class="hook">
+Turn every arrow in the chain complex around. Almost nothing changes — and then everything does.
+<p>A hiking club is mapping a mountain. At every junction of trails they nail up a sign giving the net change in elevation along each trail to the next junction: +100 m along this one, &minus;40 m along that one. Two things are now true at once. Anyone can walk the mountain using only the signs, and — if the signs were computed from real elevations — the numbers around any closed circuit must cancel exactly.</p>
+<p>So a natural question arises. Given an arbitrary set of signs, was there ever an elevation function behind them? Hatcher opens Chapter 3 with exactly this graph, and the answer is a group: the obstruction to reconstructing the function from its differences is the first cohomology group.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Three junctions A, B, C, with trail signs reading: A → B is +100 m, B → C is +150 m, and the direct trail A → C is +200 m. Is there an assignment of elevations to A, B, C consistent with all three signs?</p>
+<button onclick="check(this,false)">Yes — set A = 0, B = 100, C = 250 and every sign is satisfied</button>
+<button onclick="check(this,true)" data-ok>No — the two routes from A to C force C to be both 250 and 200</button>
+<button onclick="check(this,false)">Only if elevations are allowed to be negative</button>
+<div class="explain">Correct. Walking A → B → C accumulates 100 + 150 = 250, while the direct sign says 200; no single value of the elevation at C can satisfy both. The mismatch, 250 &minus; 200 = 50, is not an error in one sign in particular — it is a property of the whole system. By the end of Segment 1 you will be able to name it: the class of these signs is a non-zero element of H<sup>1</sup>(X; ℤ), and it is non-zero precisely because the deficit 50 is non-zero.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Cohomology is homology's dual theory: H<sup>n</sup>(X;G) is the homology of the dualised complex Hom(C<sub>∗</sub>(X), G). Over a field its ranks agree with homology's, which is exactly why persistent cohomology computes the same barcode (at2-08).</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The idea of cohomology: differences on a graph</h2>
+
+<p>Hatcher starts a dimension lower than you might expect, and with no dualisation in sight. Let X be a one-dimensional Δ-complex — an oriented graph — and fix an abelian group G.</p>
+
+<div class="definition">
+<p><strong>The two groups.</strong> Write Δ<sup>0</sup>(X;G) for the abelian group of all functions from the vertices of X to G, and Δ<sup>1</sup>(X;G) for the abelian group of all functions from the edges of X to G. Define the homomorphism δ : Δ<sup>0</sup>(X;G) → Δ<sup>1</sup>(X;G) by sending φ to the function whose value on an oriented edge [v<sub>0</sub>, v<sub>1</sub>] is the difference φ(v<sub>1</sub>) &minus; φ(v<sub>0</sub>). <span class="cite">— Hatcher, "The Idea of Cohomology", pp. 186–187</span></p>
+</div>
+
+<p>The mountain is Hatcher's own illustration: X is a system of trails, the vertices are junctions, φ assigns to each junction its elevation, and δφ measures the net change in elevation along each trail. An electrical circuit does just as well, with φ the voltage at each connection point and δφ the change in voltage across each component.</p>
+
+<div class="definition">
+<p><strong>Simplicial cohomology of a graph.</strong> Regard δ : Δ<sup>0</sup>(X;G) → Δ<sup>1</sup>(X;G) as a chain complex with zeros before and after. Its homology groups are by definition the simplicial cohomology groups of X: H<sup>0</sup>(X;G) = Ker δ ⊂ Δ<sup>0</sup>(X;G) and H<sup>1</sup>(X;G) = Δ<sup>1</sup>(X;G) / Im δ. <span class="cite">— Hatcher, p. 187</span></p>
+</div>
+
+<p>Read those two groups slowly, because they answer two different questions. The kernel asks which elevation functions have all differences zero. The quotient asks which systems of signs fail to come from any elevation function at all.</p>
+
+<h3>H<sup>0</sup>: the easy one</h3>
+
+<p>A function φ has δφ = 0 exactly when it takes the same value at both ends of every edge, which is to say that φ is constant on each component of X. So H<sup>0</sup>(X;G) is the group of all functions from the set of components of X to G — a direct product of copies of G, one for each component.</p>
+
+<h3>H<sup>1</sup>: solving δφ = ψ</h3>
+
+<p>The group H<sup>1</sup>(X;G) is trivial exactly when the equation δφ = ψ can be solved for every ψ. Hatcher's comparison is worth taking seriously: this is the calculus problem of finding a function with a prescribed derivative, with the difference operator δ in the role of differentiation. As in calculus, if a solution exists it is unique up to adding an element of Ker δ — a function constant on each component.</p>
+
+<p>The solution method is the same as the one you just used on the mountain, made systematic. Choose a maximal tree in each component of X. Fixing φ arbitrarily at one basepoint vertex per component, the values of ψ along tree edges determine φ at every vertex by induction along the unique path in the tree. Every edge <em>not</em> in a maximal tree then imposes one further equation, which ψ may or may not satisfy — and ψ is free to take any value there. Hence:</p>
+
+<div class="theorem">
+<p><strong>Counting the obstruction.</strong> H<sup>1</sup>(X;G) is a direct product of copies of G, one copy for each edge of X not in one of the chosen maximal trees. Compare H<sub>1</sub>(X;G), which is a direct <em>sum</em> of copies of G indexed by the same set of edges. <span class="cite">— Hatcher, p. 187</span></p>
+</div>
+
+<p>The same product-versus-sum relation holds one dimension down: H<sup>0</sup>(X;G) is a product of copies of G over the components and H<sub>0</sub>(X;G) a sum. For a finite graph the distinction is invisible; it is a genuine difference as soon as there are infinitely many factors.</p>
+
+<h3>Visual: integrating the signs around a loop</h3>
+
+<p>Below, a cycle of six junctions with the posted change on each trail. The right-hand panel accumulates those changes as you walk round, starting from elevation 0. If the signs came from an actual elevation function, the walk would close up. Press the button to change the signs and watch the closure gap — which is exactly the class in H<sup>1</sup>.</p>
+
+<canvas id="loopCanvas" width="640" height="260" role="img" aria-label="A six-junction loop with a posted elevation change on each trail, and a staircase accumulating those changes showing whether the walk closes up"></canvas>
+<p style="text-align:center"><button onclick="cycleCase()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Change the signs</button></p>
+<script>
+(function(){
+const cv=document.getElementById('loopCanvas'), ctx=cv.getContext('2d');
+const cases=[[2,-1,3,-2,1,-3],[2,-1,3,-2,1,-1],[1,1,1,-1,-1,-1]];
+let k=0;
+function draw(){
+  const psi=cases[k], n=psi.length, w=cv.width, h=cv.height;
+  ctx.clearRect(0,0,w,h);
+  const cx=140, cy=130, R=88;
+  const pt=i=>[cx+R*Math.cos(-Math.PI/2+2*Math.PI*i/n), cy+R*Math.sin(-Math.PI/2+2*Math.PI*i/n)];
+  ctx.strokeStyle='#2a333d'; ctx.lineWidth=2;
+  for(let i=0;i<n;i++){const a=pt(i), b=pt((i+1)%n);
+    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
+    const mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2;
+    ctx.fillStyle=psi[i]>=0?'#4caf82':'#e06c75'; ctx.font='13px Segoe UI';
+    ctx.textAlign='center'; ctx.fillText((psi[i]>0?'+':'')+psi[i], mx+(mx-cx)*0.22, my+(my-cy)*0.22+4);}
+  for(let i=0;i<n;i++){const a=pt(i);
+    ctx.fillStyle='#8ab4f8'; ctx.beginPath(); ctx.arc(a[0],a[1],5,0,2*Math.PI); ctx.fill();}
+  ctx.fillStyle='#9aa5b1'; ctx.font='12px Segoe UI'; ctx.fillText('the loop, signed', cx, 30);
+  const x0=300, y0=40, bw=44, unit=17, base=y0+120;
+  ctx.strokeStyle='#2a333d'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(x0-10,base); ctx.lineTo(w-16,base); ctx.stroke();
+  ctx.setLineDash([3,3]); ctx.strokeStyle='#8ab4f8';
+  ctx.beginPath(); ctx.moveTo(x0-10,base); ctx.lineTo(w-16,base); ctx.stroke(); ctx.setLineDash([]);
+  let acc=0;
+  for(let i=0;i<n;i++){
+    const yA=base-acc*unit; acc+=psi[i]; const yB=base-acc*unit;
+    ctx.strokeStyle='#d8a657'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x0+i*bw,yA); ctx.lineTo(x0+(i+1)*bw,yA); ctx.lineTo(x0+(i+1)*bw,yB); ctx.stroke();
+  }
+  const yEnd=base-acc*unit;
+  ctx.fillStyle=acc===0?'#4caf82':'#e06c75'; ctx.font='13px Segoe UI'; ctx.textAlign='left';
+  if(acc!==0){ctx.setLineDash([4,3]); ctx.strokeStyle='#e06c75'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.moveTo(x0+n*bw,yEnd); ctx.lineTo(x0+n*bw,base); ctx.stroke(); ctx.setLineDash([]);}
+  ctx.fillText(acc===0?'closes up: this is a coboundary':'gap '+acc+': non-zero in H1', x0-10, base+26);
+  ctx.fillStyle='#9aa5b1'; ctx.font='12px Segoe UI';
+  ctx.fillText('accumulated elevation', x0-10, y0-8);
+}
+window.cycleCase=function(){k=(k+1)%cases.length; draw();};
+draw();
+})();
+</script>
+
+<h3>Worked example 1: a graph with one independent loop</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Let X have vertices v<sub>0</sub>, v<sub>1</sub>, v<sub>2</sub>, v<sub>3</sub> and edges a = [v<sub>0</sub>,v<sub>1</sub>], b = [v<sub>1</sub>,v<sub>2</sub>], c = [v<sub>0</sub>,v<sub>2</sub>], d = [v<sub>2</sub>,v<sub>3</sub>]. Compute H<sup>0</sup>(X;G) and H<sup>1</sup>(X;G).</p>
+<p><strong>Step 1 — write δ out.</strong> For φ ∈ Δ<sup>0</sup>(X;G):</p>
+<div class="math-block">δφ(a) = φ(v<sub>1</sub>) &minus; φ(v<sub>0</sub>), &emsp; δφ(b) = φ(v<sub>2</sub>) &minus; φ(v<sub>1</sub>), &emsp; δφ(c) = φ(v<sub>2</sub>) &minus; φ(v<sub>0</sub>), &emsp; δφ(d) = φ(v<sub>3</sub>) &minus; φ(v<sub>2</sub>).</div>
+<p><strong>Step 2 — kernel.</strong> Setting all four to zero forces φ(v<sub>0</sub>) = φ(v<sub>1</sub>) = φ(v<sub>2</sub>) = φ(v<sub>3</sub>). X is connected, so H<sup>0</sup>(X;G) ≅ G, one copy for the single component.</p>
+<p><strong>Step 3 — choose a maximal tree.</strong> T = {a, b, d} reaches every vertex and contains no loop, so it is a maximal tree. One edge, c, lies outside it.</p>
+<p><strong>Step 4 — solve along the tree.</strong> Given ψ ∈ Δ<sup>1</sup>(X;G), pick φ(v<sub>0</sub>) freely; the tree then forces φ(v<sub>1</sub>) = φ(v<sub>0</sub>) + ψ(a), φ(v<sub>2</sub>) = φ(v<sub>1</sub>) + ψ(b), φ(v<sub>3</sub>) = φ(v<sub>2</sub>) + ψ(d).</p>
+<p><strong>Step 5 — read the obstruction off the non-tree edge.</strong> For δφ = ψ we need in addition ψ(c) = φ(v<sub>2</sub>) &minus; φ(v<sub>0</sub>) = ψ(a) + ψ(b). Nothing constrains ψ(c), so the failure is measured by the single element ψ(c) &minus; ψ(a) &minus; ψ(b) of G, and</p>
+<div class="math-block">H<sup>1</sup>(X;G) ≅ G, one copy for the one edge outside the maximal tree.</div>
+<p>Note that the hook's mountain is this graph with d deleted and G = ℤ: the deficit was 200 &minus; 100 &minus; 150 = &minus;50, non-zero, so those signs represented a non-zero class.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded).</strong> Let Y have vertices u<sub>0</sub>, u<sub>1</sub>, w; edges e = [u<sub>0</sub>,u<sub>1</sub>] and f = [u<sub>0</sub>,u<sub>1</sub>] (two distinct edges with the same endpoints); and w isolated. Compute H<sup>0</sup>(Y;G) and H<sup>1</sup>(Y;G).</p>
+<p><strong>Components.</strong> Y has <span class="gap">⟨your step: how many components?⟩</span>, namely {u<sub>0</sub>, u<sub>1</sub>} joined by e and f, and the isolated vertex w. Hence H<sup>0</sup>(Y;G) ≅ <span class="gap">⟨your step: which product of copies of G?⟩</span>.</p>
+<p><strong>Maximal trees.</strong> In the first component take T<sub>1</sub> = {e}; the second component is the single vertex w, whose maximal tree is empty. Edges outside the chosen trees: <span class="gap">⟨your step: list them⟩</span>.</p>
+<p><strong>Conclusion.</strong> H<sup>1</sup>(Y;G) ≅ G, generated by the class of the deficit ψ(f) &minus; ψ(e).</p>
+<p class="cite">Gap solutions: two components; H<sup>0</sup>(Y;G) ≅ G × G; the only edge outside the trees is f.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Let Z be the complete graph on three vertices — edges [v<sub>0</sub>,v<sub>1</sub>], [v<sub>1</sub>,v<sub>2</sub>], [v<sub>0</sub>,v<sub>2</sub>] — with a fourth vertex v<sub>3</sub> joined to v<sub>0</sub> by two distinct edges. Compute H<sup>0</sup>(Z;G) and H<sup>1</sup>(Z;G) by the five steps above.</p>
+<p><em>Hint:</em> count vertices and edges first; a maximal tree of a connected graph on k vertices has k &minus; 1 edges, so the number of copies of G in H<sup>1</sup> is (number of edges) &minus; (number of vertices) + (number of components).</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> X is a graph with three components and no edges at all. What is H<sup>1</sup>(X;G)?</p>
+<button onclick="check(this,false)">G × G × G, one factor per component</button>
+<button onclick="check(this,true)" data-ok>0, because every edge lies in a maximal tree — there are no edges</button>
+<button onclick="check(this,false)">G, because the graph is not connected</button>
+<div class="explain">H<sup>1</sup> counts one copy of G per edge <em>outside</em> the maximal trees. With no edges at all, Δ<sup>1</sup>(X;G) = 0, so H<sup>1</sup>(X;G) = 0. The three components show up in H<sup>0</sup>(X;G) ≅ G × G × G instead.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Hatcher stresses that H<sup>1</sup>(X;G) is a direct <em>product</em> of copies of G while H<sub>1</sub>(X;G) is a direct <em>sum</em>. When does that distinction actually change the answer?</p>
+<button onclick="check(this,false)">Whenever G has torsion</button>
+<button onclick="check(this,true)" data-ok>When infinitely many edges lie outside the maximal trees — an infinite product is strictly larger than the corresponding sum</button>
+<button onclick="check(this,false)">Never; product and sum of abelian groups are always isomorphic</button>
+<div class="explain">For a finite index set, direct product and direct sum coincide. They part company for infinite index sets: the sum consists of families with only finitely many non-zero entries, the product of arbitrary families. A function on the edges of an infinite graph may be non-zero on all of them, which is exactly why the cochain side gives a product.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Dualisation in general: cochain complexes and H<sup>n</sup>(C;G)</h2>
+
+<p>Everything in Segment 1 was a special case of one algebraic move, and it is worth seeing why. A function from the i-simplices of X to G is the same thing as a homomorphism Δ<sub>i</sub>(X) → G, because Δ<sub>i</sub>(X) is free abelian with the i-simplices as a basis, and a homomorphism out of a free abelian group may be prescribed arbitrarily on a basis. So Δ<sup>i</sup>(X;G) is the dual group Hom(Δ<sub>i</sub>(X), G).</p>
+
+<p>The relation between δ and ∂ is just as tidy. The general simplicial formula is</p>
+<div class="math-block">δφ([v<sub>0</sub>, …, v<sub>i+1</sub>]) = Σ<sub>j</sub> (&minus;1)<sup>j</sup> φ([v<sub>0</sub>, …, v̂<sub>j</sub>, …, v<sub>i+1</sub>]),</div>
+<p>and the right-hand side is precisely φ(∂[v<sub>0</sub>, …, v<sub>i+1</sub>]). So δφ = φ∂: the operator δ sends φ to the composite Δ<sub>i+1</sub>(X) → Δ<sub>i</sub>(X) → G. In the language of linear algebra, δ is the dual map of ∂.</p>
+
+<div class="definition">
+<p><strong>Dualising a chain complex.</strong> Let C be a chain complex of free abelian groups. Replace each chain group C<sub>n</sub> by its dual cochain group C<sub>n</sub><sup>∗</sup> = Hom(C<sub>n</sub>, G), and each boundary map ∂ : C<sub>n</sub> → C<sub>n−1</sub> by its dual coboundary map δ = ∂<sup>∗</sup> : C<sub>n−1</sub><sup>∗</sup> → C<sub>n</sub><sup>∗</sup>. <span class="cite">— Hatcher §3.1, p. 191</span></p>
+</div>
+
+<p>Why does δ go the other way? For purely formal reasons, and it is worth being able to say them precisely rather than gesturing at "duality".</p>
+
+<div class="lemma">
+<p><strong>Lemma A (the dual homomorphism).</strong> For a homomorphism α : A → B of abelian groups, define α<sup>∗</sup> : Hom(B,G) → Hom(A,G) by α<sup>∗</sup>(φ) = φα — that is, α<sup>∗</sup> sends B → G to the composite A → B → G. Then (αβ)<sup>∗</sup> = β<sup>∗</sup>α<sup>∗</sup>, and the identity and zero maps satisfy 𝟙<sup>∗</sup> = 𝟙 and 0<sup>∗</sup> = 0. <span class="cite">— Hatcher §3.1, p. 191</span></p>
+</div>
+
+<p><em>Proof.</em> All three are one-line checks on composites. For the first, (αβ)<sup>∗</sup>(φ) = φ(αβ) = (φα)β = β<sup>∗</sup>(φα) = β<sup>∗</sup>(α<sup>∗</sup>(φ)), where the middle step is associativity of composition. For the others, 𝟙<sup>∗</sup>(φ) = φ𝟙 = φ and 0<sup>∗</sup>(φ) = φ0 = 0. ∎</p>
+
+<p>Notice that α<sup>∗</sup> goes from Hom(B,G) to Hom(A,G) — dualising reverses the arrow, and that single fact is the whole reason cohomology is contravariant and δ raises degree. It also gives δδ = 0 for free:</p>
+
+<div class="math-block">δδ = ∂<sup>∗</sup>∂<sup>∗</sup> = (∂∂)<sup>∗</sup> = 0<sup>∗</sup> = 0.</div>
+
+<div class="definition">
+<p><strong>Cohomology of a chain complex.</strong> Since δδ = 0, the cohomology group H<sup>n</sup>(C;G) is defined as the homology group Ker δ / Im δ at C<sub>n</sub><sup>∗</sup> in the cochain complex ⋯ ← C<sub>n+1</sub><sup>∗</sup> ← C<sub>n</sub><sup>∗</sup> ← C<sub>n−1</sub><sup>∗</sup> ← ⋯. <span class="cite">— Hatcher §3.1, p. 191</span></p>
+</div>
+
+<h3>Worked example 3: where the torsion goes</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Take Hatcher's opening complex, with C<sub>3</sub>, C<sub>2</sub>, C<sub>1</sub>, C<sub>0</sub> all equal to ℤ:</p>
+<div class="math-block">0 ⟶ ℤ &nbsp;<sup>0</sup>⟶&nbsp; ℤ &nbsp;<sup>2</sup>⟶&nbsp; ℤ &nbsp;<sup>0</sup>⟶&nbsp; ℤ ⟶ 0,</div>
+<p>where the labelled arrows are multiplication by 0 and by 2. Compute the homology, then the cohomology with G = ℤ.</p>
+<p><strong>Homology.</strong> ∂<sub>1</sub> = 0, so H<sub>0</sub> = ℤ. Next, Ker ∂<sub>1</sub> = ℤ and Im ∂<sub>2</sub> = 2ℤ, so H<sub>1</sub> = ℤ/2ℤ = ℤ<sub>2</sub>. Then Ker ∂<sub>2</sub> = 0 because multiplication by 2 is injective on ℤ, so H<sub>2</sub> = 0. Finally Ker ∂<sub>3</sub> = ℤ, so H<sub>3</sub> = ℤ.</p>
+<p><strong>Dualise.</strong> Hom(ℤ, ℤ) ≅ ℤ, and under this identification the dual of multiplication by m is again multiplication by m. Reversing the arrows:</p>
+<div class="math-block">0 ⟵ ℤ &nbsp;<sup>0</sup>⟵&nbsp; ℤ &nbsp;<sup>2</sup>⟵&nbsp; ℤ &nbsp;<sup>0</sup>⟵&nbsp; ℤ ⟵ 0,</div>
+<p>so as maps out of C<sub>0</sub><sup>∗</sup> we have δ = 0 : C<sub>0</sub><sup>∗</sup> → C<sub>1</sub><sup>∗</sup>, δ = 2 : C<sub>1</sub><sup>∗</sup> → C<sub>2</sub><sup>∗</sup>, δ = 0 : C<sub>2</sub><sup>∗</sup> → C<sub>3</sub><sup>∗</sup>.</p>
+<p><strong>Cohomology.</strong> H<sup>0</sup> = Ker(0) = ℤ. H<sup>1</sup> = Ker(×2) / Im(0) = 0. H<sup>2</sup> = Ker(0) / Im(×2) = ℤ/2ℤ = ℤ<sub>2</sub>. H<sup>3</sup> = ℤ / Im(0) = ℤ.</p>
+<p><strong>Read the answer.</strong> The free parts stayed put, in dimensions 0 and 3; the ℤ<sub>2</sub> moved up one dimension, from H<sub>1</sub> to H<sup>2</sup>. Hatcher's general remark is that this is what always happens for a chain complex of finitely generated free abelian groups, since such a complex splits as a direct sum of elementary complexes 0 → ℤ → 0 and 0 → ℤ → ℤ → 0, and dualising each summand shifts its torsion up.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 4 (faded).</strong> Same complex, now with coefficients G = ℤ<sub>3</sub>.</p>
+<p><strong>Dual groups.</strong> Hom(ℤ, ℤ<sub>3</sub>) ≅ ℤ<sub>3</sub>, so every term of the cochain complex is ℤ<sub>3</sub> and the maps are again multiplication by 0, 2, 0.</p>
+<p><strong>The one thing that changed.</strong> Multiplication by 2 on ℤ<sub>3</sub> is <span class="gap">⟨your step: injective? surjective? neither?⟩</span>, because 2 · 2 = 1 in ℤ<sub>3</sub>.</p>
+<p><strong>Consequences.</strong> H<sup>1</sup>(C; ℤ<sub>3</sub>) = Ker(×2)/Im(0) = <span class="gap">⟨your step⟩</span> and H<sup>2</sup>(C; ℤ<sub>3</sub>) = Ker(0)/Im(×2) = <span class="gap">⟨your step⟩</span>.</p>
+<p><strong>Moral.</strong> The 2-torsion of this complex is completely invisible to ℤ<sub>3</sub> coefficients, and completely visible to ℤ<sub>2</sub> coefficients, where multiplication by 2 is the zero map and both H<sup>1</sup> and H<sup>2</sup> come out as ℤ<sub>2</sub>. Choosing a coefficient group is choosing what you are able to see.</p>
+<p class="cite">Gap solutions: multiplication by 2 is an isomorphism of ℤ<sub>3</sub>; hence H<sup>1</sup> = 0 and H<sup>2</sup> = ℤ<sub>3</sub>/ℤ<sub>3</sub> = 0.</p>
+</div>
+
+<h3>How close is H<sup>n</sup>(C;G) to Hom(H<sub>n</sub>(C), G)?</h3>
+
+<p>The goal of the rest of §3.1 is to show that the cohomology groups are determined by G together with the homology groups H<sub>n</sub>(C) alone. A first guess is that H<sup>n</sup>(C;G) is simply Hom(H<sub>n</sub>(C), G). Worked example 3 already refutes it: there H<sub>2</sub> = 0, so Hom(H<sub>2</sub>(C), ℤ) = 0, while H<sup>2</sup>(C;ℤ) = ℤ<sub>2</sub>. But the guess is not far wrong, and the precise sense in which it fails is the content of the next unit.</p>
+
+<p>Write Z<sub>n</sub> = Ker ∂ ⊂ C<sub>n</sub> and B<sub>n</sub> = Im ∂ ⊂ C<sub>n</sub>. There is a natural map</p>
+<div class="math-block">h : H<sup>n</sup>(C;G) → Hom(H<sub>n</sub>(C), G)</div>
+<p>built as follows. A class in H<sup>n</sup>(C;G) is represented by φ : C<sub>n</sub> → G with δφ = 0, that is φ∂ = 0, which says exactly that φ vanishes on B<sub>n</sub>. Restricting to Z<sub>n</sub> gives φ<sub>0</sub> = φ|Z<sub>n</sub>, which kills B<sub>n</sub> and so induces a quotient homomorphism φ̄<sub>0</sub> : Z<sub>n</sub>/B<sub>n</sub> → G — an element of Hom(H<sub>n</sub>(C), G). Send [φ] to φ̄<sub>0</sub>.</p>
+
+<p>Two facts make this useful, and one lemma is doing the work in both.</p>
+
+<div class="lemma">
+<p><strong>Lemma B (freeness and splitting).</strong> A subgroup of a free abelian group is free. Consequently B<sub>n−1</sub> ⊂ C<sub>n−1</sub> is free, the short exact sequence 0 → Z<sub>n</sub> → C<sub>n</sub> → B<sub>n−1</sub> → 0 splits, and there is a projection p : C<sub>n</sub> → Z<sub>n</sub> restricting to the identity on Z<sub>n</sub>. <span class="cite">— Hatcher §3.1, p. 191 (freeness of subgroups of free abelian groups is used there as known)</span></p>
+</div>
+
+<p><em>Why splitting follows.</em> In 0 → Z<sub>n</sub> → C<sub>n</sub> → B<sub>n−1</sub> → 0 the quotient B<sub>n−1</sub> is free, so choosing a preimage in C<sub>n</sub> for each basis element of B<sub>n−1</sub> defines a homomorphism s : B<sub>n−1</sub> → C<sub>n</sub> with ∂s = 𝟙. Then every c ∈ C<sub>n</sub> decomposes as c = (c &minus; s∂c) + s∂c with the first summand in Z<sub>n</sub>, and p(c) = c &minus; s∂c is the required projection. ∎</p>
+
+<p>With p in hand, any φ<sub>0</sub> : Z<sub>n</sub> → G extends to φ<sub>0</sub>p : C<sub>n</sub> → G, and if φ<sub>0</sub> vanishes on B<sub>n</sub> then so does the extension — so homomorphisms H<sub>n</sub>(C) → G lift to cocycles. Following that lift by h simply undoes the extension, giving the identity. Hence h is surjective, and more: the sequence</p>
+<div class="math-block">0 → Ker h → H<sup>n</sup>(C;G) &nbsp;<sup>h</sup>⟶&nbsp; Hom(H<sub>n</sub>(C), G) → 0</div>
+<p>is a split short exact sequence. Everything now turns on identifying Ker h. Hatcher's answer, which is <em>deferred to at2-02</em>, is that it equals Ext(H<sub>n−1</sub>(C), G) — a group built from a free resolution of the homology one dimension down. That is the Universal Coefficient Theorem, and the reason a persistence computation over a field never has to think about any of it is that Ext vanishes for vector spaces.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does the coboundary map δ raise degree while ∂ lowers it?</p>
+<button onclick="check(this,false)">Because Hom(C<sub>n</sub>, G) is bigger than C<sub>n</sub>, so the indices must grow</button>
+<button onclick="check(this,true)" data-ok>Because dualising reverses arrows: α : A → B gives α<sup>∗</sup> : Hom(B,G) → Hom(A,G), so ∂ : C<sub>n</sub> → C<sub>n−1</sub> dualises to a map C<sub>n−1</sub><sup>∗</sup> → C<sub>n</sub><sup>∗</sup></button>
+<button onclick="check(this,false)">Because cocycles are defined as functions on boundaries rather than on cycles</button>
+<div class="explain">This is Lemma A and nothing more. Hatcher calls the reason "purely formal": α<sup>∗</sup>(φ) = φα needs α's source as its own target, so the direction flips. Contravariance of cohomology, the raising of degree by δ, and the eventual existence of the cup product all descend from this one reversal.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In worked example 3, which statement correctly describes h in degree 2?</p>
+<button onclick="check(this,false)">h is an isomorphism ℤ<sub>2</sub> → ℤ<sub>2</sub></button>
+<button onclick="check(this,true)" data-ok>h is the zero map ℤ<sub>2</sub> → 0, and Ker h is all of H<sup>2</sup>(C;ℤ) = ℤ<sub>2</sub></button>
+<button onclick="check(this,false)">h is injective but not surjective</button>
+<div class="explain">H<sub>2</sub>(C) = 0, so the target Hom(H<sub>2</sub>(C), ℤ) is the zero group and h must be the zero map. Since H<sup>2</sup>(C;ℤ) = ℤ<sub>2</sub>, the kernel is the whole of it. The split sequence is still perfectly true — it reads 0 → ℤ<sub>2</sub> → ℤ<sub>2</sub> → 0 → 0 — it is just carrying no information until Ker h is identified, which is at2-02's job.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> A cochain φ ∈ C<sub>n</sub><sup>∗</sup> is a cocycle. What exactly does that say?</p>
+<button onclick="check(this,false)">φ vanishes on Z<sub>n</sub>, the cycles</button>
+<button onclick="check(this,true)" data-ok>φ vanishes on B<sub>n</sub>, the boundaries, since δφ = φ∂ = 0</button>
+<button onclick="check(this,false)">φ is surjective onto G</button>
+<div class="explain">δφ = φ∂ by definition of the dual map, so δφ = 0 says the composite C<sub>n+1</sub> → C<sub>n</sub> → G is zero, i.e. φ kills Im ∂ = B<sub>n</sub>. Vanishing on cycles is a different and much stronger condition — it is what happens to a <em>coboundary</em> φ = δψ = ψ∂, since ∂ kills Z<sub>n</sub>. That asymmetry is what makes h well defined.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Let X be a connected graph which is a tree, and let G be any abelian group. Prove that H<sup>1</sup>(X;G) = 0 — that is, prove that for every ψ ∈ Δ<sup>1</sup>(X;G) there is a φ ∈ Δ<sup>0</sup>(X;G) with δφ = ψ. Write the argument out properly, including why φ is well defined at every vertex.</p>
+<p><em>Hint:</em> fix a basepoint vertex and use the defining property of a tree — that between any two vertices there is a unique path with no repeated edge.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Fix a vertex v<sub>0</sub> of X and set φ(v<sub>0</sub>) = 0. Let v be any vertex. Since X is a connected tree, there is a unique path v<sub>0</sub> = w<sub>0</sub>, w<sub>1</sub>, …, w<sub>k</sub> = v in X with no repeated edge. Define</p>
+<div class="math-block">φ(v) = Σ<sub>i=1..k</sub> ε<sub>i</sub> ψ(e<sub>i</sub>),</div>
+<p>where e<sub>i</sub> is the edge joining w<sub>i−1</sub> to w<sub>i</sub>, and ε<sub>i</sub> = +1 if e<sub>i</sub> is oriented as [w<sub>i−1</sub>, w<sub>i</sub>] and ε<sub>i</sub> = &minus;1 if it is oriented as [w<sub>i</sub>, w<sub>i−1</sub>]. This is well defined precisely because the path is unique: there is no second path along which the sum could come out differently.</p>
+<p>Now let e = [u, u′] be any edge of X. Removing e from the tree disconnects it, and the unique path from v<sub>0</sub> to u′ is the unique path from v<sub>0</sub> to u followed by e — or the unique path from v<sub>0</sub> to u is the unique path to u′ followed by e traversed backwards; the two cases are symmetric, so take the first. Then by the defining formula φ(u′) = φ(u) + ψ(e), that is</p>
+<div class="math-block">δφ(e) = φ(u′) &minus; φ(u) = ψ(e).</div>
+<p>As e was arbitrary, δφ = ψ. Hence δ : Δ<sup>0</sup>(X;G) → Δ<sup>1</sup>(X;G) is surjective and H<sup>1</sup>(X;G) = Δ<sup>1</sup>(X;G)/Im δ = 0. ∎</p>
+<p><em>Where the hypothesis was used.</em> Connectedness gave the existence of a path; being a tree gave uniqueness, and uniqueness is what made φ well defined. On a graph with a loop the two routes round the loop can disagree, and their disagreement is exactly the class we counted in Segment 1.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton from nothing — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What δ is on a graph, what its kernel and cokernel are called, and why H<sup>0</sup> counts components while H<sup>1</sup> counts edges outside a maximal tree.</li>
+<li>Why the same construction works in every degree: Δ<sup>i</sup>(X;G) = Hom(Δ<sub>i</sub>(X),G) because Δ<sub>i</sub>(X) is free, and δφ = φ∂ makes δ the dual of ∂ — from which δδ = 0 follows formally.</li>
+<li>What the map h is, why it is well defined and surjective, and the one example that shows it need not be injective.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) δφ([v<sub>0</sub>,v<sub>1</sub>]) = φ(v<sub>1</sub>) &minus; φ(v<sub>0</sub>), Ker δ = functions constant on components, and one copy of G per non-tree edge in the quotient; (2) free basis ⇒ functions equal homomorphisms, δ = ∂<sup>∗</sup>, and δδ = (∂∂)<sup>∗</sup> = 0; (3) h[φ] = φ̄<sub>0</sub>, well defined because coboundaries vanish on cycles, surjective because B<sub>n−1</sub> is free so the sequence 0 → Z<sub>n</sub> → C<sub>n</sub> → B<sub>n−1</sub> → 0 splits — and not injective, since H<sub>2</sub> = 0 while H<sup>2</sup> = ℤ<sub>2</sub> in the worked example — then you have the whole of this lesson, and the only thing still missing is the name of Ker h.</p>
+</details>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em> — Chapter 3 introduction, "The Idea of Cohomology" (δ on a graph, H<sup>0</sup> and H<sup>1</sup>, maximal trees, the calculus analogy, Δ<sup>i</sup>(X;G) = Hom(Δ<sub>i</sub>(X),G) and δφ = φ∂, pp. 186–189); §3.1 (cochain group, coboundary map, Lemma A's identities for dual homomorphisms, δδ = 0, the definition of H<sup>n</sup>(C;G), the opening ℤ-complex and the upward shift of torsion, the map h and the split short exact sequence, pp. 190–193). Deferred to at2-02: the identification of Ker h as Ext(H<sub>n−1</sub>(C),G), free resolutions and Lemma 3.1, Theorem 3.2 and Corollary 3.3 (Hatcher §3.1, pp. 193–196). Deferred to at2-03: singular cochains C<sup>n</sup>(X;G) and the cohomology of spaces (Hatcher §3.1, pp. 197 onwards).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
