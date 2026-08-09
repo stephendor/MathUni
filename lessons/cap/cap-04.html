@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cap-04 — The written defence</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table{border-collapse:collapse;margin:1rem 0;width:100%}
+th,td{border:1px solid #2a333d;padding:.4rem .6rem;text-align:left;font-size:.95rem}
+th{background:#1a2027;font-family:Segoe UI,sans-serif}
+</style></head><body>
+<p class="cite">Capstone · Nexus College</p>
+<h1>The written defence <span class="cite">(cap-04)</span></h1>
+
+<div class="hook">
+Write it so that a competent reader who distrusts you can either reproduce it or find the flaw.
+<p>That is the whole specification, and it rules out both of the documents people actually write. It rules out the one that reports what worked, because a reader cannot find a flaw in a description that has been smoothed. And it rules out the one that hedges everything, because a reader cannot reproduce a claim that was never stated.</p>
+<p>This is the last unit of the curriculum, and it has the smallest amount of new mathematics in it: almost everything it needs has already been proved. What it adds is the obligation to write down which of those results carries your conclusion — and, twice in this particular case, that the answer is "none of them, yet".</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Your defence must state "the stability guarantee that licenses the claim". For the TDL pipeline as it currently stands, predict what that section can honestly contain.</p>
+<button onclick="check(this,false)">The stability theorem for persistence diagrams, applied to the reported statistic — that is what the theorem is for</button>
+<button onclick="check(this,true)" data-ok>A guarantee for one form of claim that the pipeline does not currently state, plus a named list of the links that do not close — one of which is missing a number the code computes and throws away</button>
+<button onclick="check(this,false)">Nothing: cap-02 showed the constants do not compose, so the section should be omitted as vacuous</button>
+<div class="explain">The available guarantee is real but narrow: Theorem 6.3(a) with Definition 6.1 gives a bottleneck bound, hence a persistence threshold 2ε, licensing claims about features above that threshold. The pipeline does not state its claim in that form, and cannot yet, because ε — the covering radius of the landmark subsample — is computed inside <code>maxmin_landmarks</code> and never returned. The third option is the failure this unit exists to prevent: an unavailable guarantee is a thing to state, not a section to delete, because the deletion is invisible to the reader and the statement is not.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The defence states the claim, the topological evidence, the stability guarantee that licenses it, and the failure modes ruled out — pw-05's critique standard turned on your own work.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Four parts, and the standard they are scored against</h2>
+
+<p>The mission strip fixes the structure. Take each part by what it leaves the reader able to do: after the <strong>claim</strong>, state what would have to be observed for it to be false; after the <strong>evidence</strong>, locate every number in a file on disk; after the <strong>stability guarantee</strong>, name the theorem carrying the inference and the hypotheses it needs; after the <strong>failure modes</strong>, name what you considered and rejected, and by what artifact.</p>
+
+<div class="warn">
+<p><strong>The standard this unit was told to use does not exist here.</strong> The mission strip says "pw-05's critique standard". pw-05 is <em>Proof style: writing and critiquing</em>, and it has no lesson; its two resources in <code>curriculum/syllabus.yaml</code> are "Cummings appendix" and "Expository Writing folder". This unit's own second resource is that same folder. It is not in this repository, not in <code>resources/bookmap.json</code>, and not listed in <code>resources/RESOURCES.md</code>; and the Cummings volume in the bookmap runs from Chapter 1 to <em>Introduction to Group Theory</em> with no appendix. So the standard cannot be read, and nothing here is attributed to it. What this unit uses instead is a critique standard that <em>is</em> in this repository and can be checked line by line: <code>curriculum/LESSON-RUBRIC.md</code>, the rubric every lesson in this curriculum — including this one — was admitted by. The substitution is stated rather than quietly made, which is itself the habit the unit is about.</p>
+</div>
+
+<h3>The rubric, and what makes it a standard rather than a checklist</h3>
+
+<p>Three of its design decisions are worth taking whole. First, <strong>the gates are ordered</strong>: "The four gates are ordered. A lesson must clear each to reach the next." Cheap mechanical checks run before expensive human ones, so a defect that a script can find never costs a reader's attention. Second, <strong>one gate has a veto</strong> — Gate 2, mathematical correctness: "Any single defect here fails the lesson outright, whatever Gates 1/3 look like", because "a lesson that teaches a false statement is worse than no lesson". Third, and most useful here, <strong>the rubric states its own limits</strong>: "Gate 0 proves <em>form and mention</em>, never truth."</p>
+
+<p>That third one has a companion warning that transposes directly to a defence. On declared gaps the rubric says: "a candidate that declares <strong>zero</strong> gaps is not thereby complete — the likelier reading is that it filled silently from recollection… Zero gaps plus full coverage is a claim to be checked, not a result." Read "gaps" as "limitations" and you have the rule for reading a defence: a document with no limitations section has not been checked, it has been asserted.</p>
+
+<h3>The transposition</h3>
+
+<table>
+<tr><th>Gate</th><th>On a lesson</th><th>On a defence</th><th>Method</th></tr>
+<tr><td>0 — mechanical</td><td>coverage, parsing, no external requests</td><td>every number appears in a named file; every citation resolves to a section containing what is attributed to it</td><td>open the files</td></tr>
+<tr><td>1 — structural</td><td>hook, segments, faded examples, footer</td><td>all four parts present; the claim carries a statistic, a reference class, a dimension and a threshold</td><td>read the headings</td></tr>
+<tr><td>2 — correctness <em>(veto)</em></td><td>every definition, theorem and proof correct</td><td>every theorem stated with its actual hypotheses; every inference one the cited theorem licenses</td><td>cap-03's five steps</td></tr>
+<tr><td>3 — depth</td><td>proofs proved not asserted; register</td><td>every claim carries its "does not imply" line; the limits are as specific as the results</td><td>judgement, hence scored</td></tr>
+</table>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does the rubric put the veto on Gate 2 rather than on Gate 0, which is the gate that cannot be argued with?</p>
+<button onclick="check(this,true)" data-ok>Because Gate 0 checks form and mention, never truth — a document can pass every mechanical check and still assert something false, and that is the failure worth vetoing</button>
+<button onclick="check(this,false)">Because Gate 0 runs first, and only the last gate in an ordered sequence can carry a veto</button>
+<button onclick="check(this,false)">Because mechanical checks are unreliable, so their failures should be warnings rather than rejections</button>
+<div class="explain">The rubric says so in its own warning under Gate 0: it "proves form and mention, never truth". A citation that resolves, a number that appears in a file, a section that is present — none of these is evidence that the sentence built from them is true. Ordering is about cost, not authority: cheap checks run first so that expensive attention is not spent on documents that fail them. And the third option inverts the rubric's actual position, which is that Gate 0 failures are binary rejections precisely because they are unarguable.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A defence's limitations section is empty. Under the transposed standard, what does that establish?</p>
+<button onclick="check(this,true)" data-ok>Nothing about the work, and something about the document: an empty limitations section is a claim to be checked, not a result — the rubric's warning about zero declared gaps</button>
+<button onclick="check(this,false)">That the work is clean, since limitations are reported when they exist</button>
+<button onclick="check(this,false)">That the author is overconfident, which is a Gate 3 depth deduction and no more</button>
+<div class="explain">The rubric's reasoning on gap counts is that zero is the reading you would get both from work with no gaps and from work whose gaps were filled silently, so the count alone cannot distinguish them — which makes it a claim requiring evidence rather than evidence in itself. The second option is exactly the inference the warning blocks. The third understates it: on a defence, an absent limitations section leaves every inference in the document unchecked against its own hypotheses, which is Gate 2 territory and therefore a veto, not a score.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Part 3: the guarantee that holds, and the ones that do not</h2>
+
+<p>Part 3 is the hard part and the reason the other three are worth writing. Start with what is available, because there genuinely is something.</p>
+
+<div class="definition">
+<p><strong>Definition 6.1 (Čech and Rips distances).</strong> For finite point sets P and Q with appropriate metrics, d<sub>Rips</sub>(P,Q) = max<sub>k</sub> d<sub>B</sub>(Dgm<sub>k</sub>ℛ(P), Dgm<sub>k</sub>ℛ(Q)), and similarly for d<sub>Cech</sub> with the Čech filtration. <strong>Definition 6.2 (Hausdorff distance).</strong> For compact A, B ⊆ (Z, d<sub>Z</sub>), d<sub>H</sub>(A,B) = max{max<sub>a∈A</sub> d<sub>Z</sub>(a,B), max<sub>b∈B</sub> d<sub>Z</sub>(b,A)}. <span class="cite">— Dey &amp; Wang §6.1, Definitions 6.1 and 6.2, p. 181</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 6.3(a).</strong> Given two finite sets P, Q ⊆ (Z, d<sub>Z</sub>), d<sub>Cech</sub>(P,Q) ≤ d<sub>H</sub>(P,Q) and d<sub>Rips</sub>(P,Q) ≤ d<sub>H</sub>(P,Q). Part (b) replaces d<sub>H</sub> by the Gromov–Hausdorff distance for two finite metric spaces, with an extra factor 2 on the Čech side; the text remarks that <em>(b)</em> extends to totally bounded metric spaces, which need not be finite. <span class="cite">— Dey &amp; Wang §6.1, Theorem 6.3 and the remark following it, p. 182</span></p>
+</div>
+
+<div class="worked">
+<p><strong>Worked example: the guarantee, in full.</strong> Suppose d<sub>H</sub>(P, X) ≤ ε.</p>
+<p><strong>Step 1.</strong> Theorem 6.3(a) gives d<sub>Rips</sub>(P, X) ≤ ε, and Definition 6.1 says that left-hand side is max<sub>k</sub> d<sub>B</sub>. So for every k, d<sub>B</sub>(Dgm<sub>k</sub>ℛ(P), Dgm<sub>k</sub>ℛ(X)) ≤ ε.</p>
+<p><strong>Step 2.</strong> A bottleneck matching may send a diagram point to the diagonal at cost equal to its L<sub>∞</sub>-distance to it. The nearest diagonal point to (b,d) is the midpoint ((b+d)/2, (b+d)/2), at L<sub>∞</sub>-distance (d−b)/2 — half the persistence.</p>
+<p><strong>Step 3.</strong> So a bar of persistence 2ε costs exactly ε to delete, and a matching realising d<sub>B</sub> ≤ ε is permitted to delete it. Only features of persistence strictly greater than 2ε may be claimed.</p>
+<p class="cite">This is cap-01's derivation, restated because part 3 is where it gets used.</p>
+</div>
+
+<p>That is a real guarantee, and it licenses a real form of claim: <em>a statement about features above an explicit threshold</em>. It is worth being clear about what makes it usable — it converts a fact about your sampling into a number, and the number is checkable.</p>
+
+<div class="warn">
+<p><strong>Which ε, and about what.</strong> Theorem 6.3(a) quantifies over two <em>finite</em> sets in a common metric space, so the second argument decides what you have proved. Put the full embedded cloud there and ε is the covering radius of the landmark subsample: both sets are finite, the theorem applies verbatim, and the claim is about the subsampling. Put a hidden space there and it is not finite, so (a) does not literally cover it — the remark after Theorem 6.3 extends <em>(b)</em>, the Gromov–Hausdorff part with its factor 2 for Čech, to totally bounded spaces, which is a different statement in a different metric. These are two different claims with two different ε's, and only one of them has an ε any computation can produce. A defence that writes "ε" without saying which has skipped the hypothesis.</p>
+</div>
+
+<h3>The number the code computes and throws away</h3>
+
+<p><code>03_ph.json</code> records <code>n_landmarks = 5000</code>, an elapsed time, and the per-dimension summaries. It does not record a covering radius. Now open <code>trajectory_tda/topology/trajectory_ph.py</code> and read <code>maxmin_landmarks</code>: it maintains an array <code>min_dists</code> holding, for each of the N points, its distance to the nearest landmark chosen so far, and updates it on every iteration — because taking the <code>argmax</code> of that array is how the next landmark is chosen. Its maximum at loop exit is the covering radius of every landmark but the last, an upper bound on the true one; one further update, the same O(N) pass the loop already performs each iteration, makes it exact. Either way the number is there, and the function returns <code>indices, landmarks</code>.</p>
+
+<p>So the single hypothesis on which the whole guarantee turns is one line away and absent. Two things stop this being a cheap complaint. First, note what it costs: without ε there is no threshold, so part 3's first paragraph cannot be completed and must be written conditionally. Second, note where the mechanism already lives — <code>trajectory_tda/topology/permutation_nulls.py</code> computes and records <code>covering_radius_at_n_perm</code> on the deduplication path, choosing the permutation count via <code>compute_greedy_dedup_count</code> so that, as its docstring puts it, "the covering radius is at or below" a documented tolerance. The project records covering radii; it records them on the null path and not on the path the headline persistence result comes through. A finding written as "nobody thought of this" is both ruder and less accurate than one written as "this is recorded over there and not here", and only the second tells anyone what to do.</p>
+
+<h3>Visual: which links in the chain close</h3>
+
+<canvas id="chainCanvas" width="640" height="390" role="img" aria-label="A vertical chain of five pipeline stages with four link bands between them, each labelled by its theorem and metric and coloured by whether the bound closes; a button shows the effect of recording the covering radius"></canvas>
+<p style="text-align:center"><button onclick="toggleChain()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Record the covering radius</button></p>
+<script>
+(function(){
+const cv=document.getElementById('chainCanvas'), ctx=cv.getContext('2d');
+const NODES=['trajectories (n = 27280)','embedding (no theorem)','maxmin landmarks (5000)','Rips diagram','statistic: total pers. / W2'];
+const LINKS=[
+ {t:'no theorem constrains this choice',m:'ARI 0.310 between PCA and UMAP',s:'open'},
+ {t:'Theorem 6.3(a) + Definition 6.1',m:'d_B <= eps_cov',s:'unstated'},
+ {t:'threshold: claim only persistence > 2*eps',m:'bottleneck',s:'unstated'},
+ {t:'Thm 13.1 takes d_B; Thm 13.2 needs d_W,1',m:'no inequality in that direction',s:'open'}];
+let rec=false;
+const COL={open:'#e06c75',unstated:'#d8a657',closed:'#4caf82'};
+function state(i){ return (rec && LINKS[i].s==='unstated') ? 'closed' : LINKS[i].s; }
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const X=28, W=250, H=32, GAP=38, Y0=32;
+  ctx.font='13px Segoe UI'; ctx.textBaseline='middle';
+  NODES.forEach(function(n,i){ const y=Y0+i*(H+GAP);
+    ctx.fillStyle='#1a2027'; ctx.fillRect(X,y,W,H);
+    ctx.strokeStyle='#2a333d'; ctx.lineWidth=1; ctx.strokeRect(X,y,W,H);
+    ctx.fillStyle='#e8e8e8'; ctx.textAlign='left'; ctx.fillText(n,X+10,y+H/2); });
+  LINKS.forEach(function(L,i){ const y=Y0+i*(H+GAP)+H, c=COL[state(i)];
+    ctx.strokeStyle=c; ctx.lineWidth=3; ctx.beginPath();
+    ctx.moveTo(X+W/2,y+4); ctx.lineTo(X+W/2,y+GAP-4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X+W/2-5,y+GAP-11); ctx.lineTo(X+W/2+5,y+GAP-11);
+    ctx.lineTo(X+W/2,y+GAP-3); ctx.closePath(); ctx.fillStyle=c; ctx.fill();
+    ctx.textAlign='left'; ctx.font='12px Segoe UI';
+    ctx.fillStyle=c; ctx.fillText(L.t, X+W+18, y+GAP/2-8);
+    ctx.fillStyle='#9aa5b1'; ctx.fillText(L.m, X+W+18, y+GAP/2+8);
+    ctx.font='13px Segoe UI'; });
+  ctx.textAlign='left'; ctx.font='12px Segoe UI'; ctx.fillStyle='#9aa5b1';
+  ctx.fillText('amber = a theorem applies but its input is not recorded; red = no bound in the direction needed', 20, 14);
+  ctx.fillStyle = rec ? '#4caf82' : '#5a6b7a';
+  ctx.fillText(rec ? 'eps recorded: threshold 2*eps is now computable — compare with the mean H1 bar, 0.373'
+                   : 'eps not recorded: max(min_dists) is computed in maxmin_landmarks and not returned', 20, 372);
+}
+window.toggleChain=function(){ rec=!rec; draw(); };
+draw();
+})();
+</script>
+
+<p>Press the button. Two links are amber, not red: a theorem applies to them and its input is simply unrecorded, so one line of code moves both to green. The red links are different in kind. The embedding is constrained by no theorem at all — cap-02's ledger records "none" against that row, and <code>07_umap_sensitivity.json</code> is what that empty cell looks like once measured: an adjusted Rand index of about 0.310 between the PCA and UMAP clusterings. And the last link is cap-02's junction 2: <strong>Theorem 13.2</strong> requires a bound on d<sub>W,1</sub>, everything upstream supplies a bound on d<sub>B</sub>, and by <strong>Definition 13.8</strong> a Wasserstein distance is a sum over matched pairs where the bottleneck distance is a maximum, so the inequality needed runs the wrong way. That link closes only by changing the design: <strong>Theorem 13.1</strong>'s landscape bound, Λ<sub>∞</sub> ≤ d<sub>B</sub> with constant 1, accepts exactly what the upstream stages produce.</p>
+
+<p>Junction 1 of cap-02 — sampling to sparsification — is the one that does not close by any choice: <strong>Theorem 6.4</strong>'s sparsification error is log(1/(1−ε)), an increment at log scale, while Theorem 6.3's is an increment on the linear scale, and adding them is adding a length to a ratio. This pipeline subsamples by maxmin landmarks rather than by Definition 6.5's sparse Rips filtration, so Theorem 6.4 is not what governs it — which is itself a line the defence owes: name the stage, name the theorem that governs it, and where none does, say so.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> The covering radius is unrecorded. What is the honest content of part 3's first paragraph?</p>
+<button onclick="check(this,true)" data-ok>The guarantee stated conditionally in ε, with the threshold 2ε, plus the statement that ε is computed inside <code>maxmin_landmarks</code> and not returned</button>
+<button onclick="check(this,false)">A statement that the pipeline is stable by the stability theorem, since the theorem holds regardless of whether ε was recorded</button>
+<button onclick="check(this,false)">Nothing — with no ε there is no guarantee, so the paragraph belongs in the limitations section instead</button>
+<div class="explain">The theorem does hold regardless, which is exactly why the second option is tempting and wrong: what the theorem gives is an implication whose antecedent is a number, and without the number you have the implication and no conclusion. Writing it conditionally keeps the implication visible and tells the reader precisely what to supply. The third option quietly moves the missing hypothesis to a section readers skim, which is the difference between a defence and a report.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why are two links amber and two red?</p>
+<button onclick="check(this,true)" data-ok>Amber marks a link where a theorem applies and its input was not recorded — fixable by recording it; red marks a link where no theorem in the read corpus bounds the quantity in the direction needed</button>
+<button onclick="check(this,false)">Amber marks smaller errors and red larger ones, so the colours order the links by how much they move the result</button>
+<button onclick="check(this,false)">Amber marks the links cap-02's ledger analysed and red the ones the artifacts measured</button>
+<div class="explain">The distinction is between a missing measurement and a missing theorem, and it matters because the two have completely different costs: one is a line of code, the other is a design change or a piece of research. Nothing in the diagram claims anything about the size of the errors — an unrecorded ε could be tiny or ruinous, and that is the point of recording it. The third option matches neither: the embedding row is in cap-02's ledger <em>and</em> measured by an artifact, and it is red on both counts.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Parts 1, 2 and 4, and failing your own draft</h2>
+
+<div class="guided-proof">
+<h3>Guided derivation</h3>
+<p><strong>Prompt.</strong> <code>03_ph.json</code> reports, for H<sub>1</sub>, 5962 features of which 5961 are finite, with total persistence 2224.68; and for H<sub>0</sub>, 5000 features of which 4999 are finite, with total persistence 20411.13. (1) Compute the mean finite bar length in each dimension. (2) Deduce the largest ε under which the <em>typical</em> H<sub>1</sub> bar could be claimed at all. (3) Say what follows for a statistic that sums over all 5961 finite H<sub>1</sub> bars — and state carefully what it does <em>not</em> follow.</p>
+<p><em>Hint:</em> the threshold is on each bar individually. Ask what the statistic is made of.</p>
+<textarea class="proof-input" placeholder="Write your derivation here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) The means.</strong> H<sub>0</sub>: 20411.13 / 4999 ≈ 4.083. H<sub>1</sub>: 2224.68 / 5961 ≈ 0.373. Both are in the embedding's metric, whatever that metric is — which is a hypothesis the defence must state, since a threshold in an unnamed metric is not a threshold.</p>
+<p><strong>(2) The ceiling.</strong> A bar may be claimed only if its persistence exceeds 2ε. For the mean H<sub>1</sub> bar, 0.373 &gt; 2ε requires ε &lt; 0.187. For the longest H<sub>1</sub> bar, at max persistence 3.213, the ceiling is ε &lt; 1.607; for the longest H<sub>0</sub> bar, at 15.809, it is ε &lt; 7.904. So the longest features are robust to a fairly coarse subsample and the typical ones are not, and the gap between 0.187 and 1.607 is the range in which the answer depends entirely on the number nobody recorded.</p>
+<p><strong>(3) What follows.</strong> Total persistence is a <em>sum</em> over all 5961 finite H<sub>1</sub> bars. Unless ε is below roughly 0.19, the typical summand is a bar that Theorem 6.3(a) with Definition 6.1 does not permit you to claim individually — the matching realising d<sub>B</sub> ≤ ε is allowed to delete it. So the statistic is, in the regime the defence has not ruled out, dominated by bars that carry no individual licence.</p>
+<p><strong>What this does not show.</strong> It does not show the statistic is invalid. A sum over individually unclaimable bars can be a perfectly good test statistic: the permutation test compares the observed sum against the sums produced by surrogates through the identical pipeline, and that comparison is licensed by the test's own logic, which never required any bar to be individually claimable. Nor does it show the p-values are wrong. What it shows is narrower and sharper: the defence may not describe this statistic as topological evidence <em>licensed by the stability theorem</em>, because the licence covers individual features above a threshold and the statistic is not one. It is licensed by a different argument, and the defence should name which.</p>
+<p><em>Why this is the derivation part 3 needs.</em> It takes three numbers already in the artifact, does arithmetic anyone can check, and converts a vague worry — "is the subsample fine enough?" — into a decision boundary at ε ≈ 0.19. That is what a stability section is for: not to invoke a theorem, but to produce a number a reader can compare against.</p>
+</details>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example (faded): the failure-mode ledger.</strong> Part 4 says which failure modes are ruled out, and "ruled out" means an artifact rules them out. Four columns: <em>Failure mode</em>, <em>What would produce it</em>, <em>What rules it out</em>, <em>Status</em>. Three of the four are shown here; supply the second yourself as you read each row.</p>
+<table>
+<tr><th>Failure mode</th><th>What rules it out</th><th>Status</th></tr>
+<tr><td>Label leakage — the effect is an artefact of the cohort labels</td><td><code>04_nulls_wasserstein.json</code>, label_shuffle: p = 0.452 (H<sub>0</sub>), 0.538 (H<sub>1</sub>)</td><td>ruled out</td></tr>
+<tr><td>The test rejects because the null model is degenerate, not because the data has structure</td><td><span class="gap">⟨your step: which file, and what does it show?⟩</span></td><td>ruled out</td></tr>
+<tr><td>Low power — the test could not have detected a real effect</td><td>—</td><td><span class="gap">⟨your step: status?⟩</span></td></tr>
+<tr><td>The clustering is an artefact of the embedding</td><td><code>07_umap_sensitivity.json</code>: ARI ≈ 0.310, which is evidence <em>for</em> the failure mode</td><td>open, and measured</td></tr>
+</table>
+<p><strong>The trap.</strong> Row 2 and row 3 are both about the same file, and the same file cannot serve both. <code>positive_control/</code> shows that a cloud drawn <em>from</em> the Markov-1 null is not rejected against it — specificity, which is exactly what row 2 needs. It plants no signal of known size, so it says nothing about power, and row 3 has nothing in its third column.</p>
+<p class="cite">Gap solutions: <code>positive_control/positive_control_markov1_L5000_20260502.json</code>, reporting p = 0.588 and 0.822 on a cloud generated from the null it is tested against; and <strong>open</strong> — nothing in the directory plants a signal of known size.</p>
+</div>
+
+<h3>Part 1, and why it comes last in the writing</h3>
+
+<p>Write part 3 first and part 1 second. What you can license determines what you may claim, and doing it the other way round produces a claim you then have to walk back — which reads, to a hostile reader, exactly like a claim that was walked back. A model fragment, in cap-01's form:</p>
+
+<div class="worked">
+<p>"In the embedded trajectory data (n = 27280 trajectories; embedding named from the parameter ledger, since <code>03_ph.json</code> does not record it), the H<sub>1</sub> persistence structure of a 5000-point maxmin landmark subsample differs from that of second-order Markov surrogates by more than the surrogates differ from each other, measured by mean 2-Wasserstein distance between diagrams, at the 0.05 level. <strong>This claim is not established: the test reports p = 0.078.</strong>"</p>
+<p class="cite">A claim you did not establish still belongs in part 1, stated as the claim you tested. A defence that states only the claims that came out well is not a defence.</p>
+</div>
+
+<div class="warn">
+<p><strong>The two failures, and they are symmetric.</strong> One is the smoothed report: everything worked, the limitations are generic, and the reader cannot find the flaw because the surface has no seams. The other is the confession: every finding hedged, the limits section longer than the results, and the reader cannot reproduce anything because no claim was ever made. Both are unfalsifiable documents, which is why they feel so different and fail the same way. The specification in the hook rules out both by requiring two things of the same text — that a reader can <em>reproduce</em> it, which needs a stated claim, and that they can <em>find the flaw</em>, which needs stated limits. cap-03's discipline is what holds them together: every claim carries its "does not imply" line, and the limits are as specific as the results.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (i) Write part 3 in full: the conditional guarantee with its threshold and its named hypothesis, then the links that do not close, each with what would close it and what it would cost. (ii) Write part 1 as a claim in cap-01's form, chosen so that part 3 licenses it or so that the gap is stated. (iii) Complete the failure-mode ledger to at least six rows, including one failure mode of the <em>defence</em> rather than of the analysis. (iv) Score your own draft on the four transposed gates, recording at least one Gate 2 defect — or explaining, in a sentence a sceptic would accept, why there is none. (v) Write the closing paragraph: what a reader who distrusts you should check first, and what they would find.</p>
+<p><em>Hint:</em> for (v), the cheapest thing to check is the missing number, and pointing a hostile reader at it is stronger than waiting for them to find it.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> A ledger row reads "ruled out" and its third column says "the effect is implausible given the design". What is wrong?</p>
+<button onclick="check(this,true)" data-ok>The third column names no artifact — "ruled out" requires something that would have shown the failure mode had it been present, and did not</button>
+<button onclick="check(this,false)">Nothing, provided the design argument is correct, since a valid argument rules out a failure mode as securely as a file does</button>
+<button onclick="check(this,false)">The row should be deleted, since a failure mode with no evidence either way does not belong in the ledger</button>
+<div class="explain">The ledger's whole function is to let a reader check the rejections rather than take them, so a row whose evidence is the author's judgement returns the reader to trusting the author. A design argument may be perfectly correct and still belongs in a different column — as the reason a test was not run, with the row's status "open". Deleting the row is worse than either: it removes the failure mode from the reader's view, which is the one outcome the ledger exists to prevent.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> <code>MISSION.md</code> lists as a success criterion: "I can explain the stability theorem for persistence diagrams and why it licenses the TDL pipeline's conclusions." What does this unit's analysis do to that criterion?</p>
+<button onclick="check(this,true)" data-ok>Meets it, in the only way it can be met: the explanation is that the theorem licenses claims about features above 2ε, that this pipeline does not currently state its claim in that form, and what would change that</button>
+<button onclick="check(this,false)">Fails it, since the conclusions turn out not to be licensed and the criterion asked for an explanation of why they are</button>
+<button onclick="check(this,false)">Leaves it untouched, since the criterion is about explaining a theorem and the theorem is unchanged</button>
+<div class="explain">The criterion asks for an explanation of what the theorem licenses; an accurate explanation that ends in "and therefore not this statistic, for these reasons" is a better answer than an inaccurate one that ends in "and therefore this statistic". Reading it as a failure treats a presupposition in the phrasing as a requirement on the answer — the mission document was written before the analysis, which is the normal order. And the third option misses that the criterion is explicitly about the pipeline, not the theorem alone.</div>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>The four parts of the defence, and the four gates they are scored against.</li>
+<li>The guarantee that holds, its threshold, and the hypothesis it needs.</li>
+<li>Which links do not close, which of those is a missing measurement rather than a missing theorem, and what the ledger's "ruled out" requires.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) claim, evidence, stability guarantee, failure modes — scored on Gate 0 mechanical, Gate 1 structural, Gate 2 correctness with the veto because a false statement is worse than none, and Gate 3 depth, with Gate 0 proving form and mention and never truth, and an empty limitations section being a claim to be checked rather than a result; (2) Theorem 6.3(a) with Definition 6.1 gives d<sub>B</sub> ≤ ε in every dimension, the L<sub>∞</sub>-distance from (b,d) to the diagonal is (d−b)/2, so only features of persistence above 2ε may be claimed — with the hypothesis being which finite set sits in the second argument, since the extension to non-finite spaces is remarked for part (b) in the Gromov–Hausdorff metric; (3) the embedding is bounded by no theorem and measured at ARI 0.310, junction 2 needs d<sub>W,1</sub> where the upstream gives d<sub>B</sub> and closes only by taking Theorem 13.1's landscape instead of Theorem 13.2's kernel, while the covering radius is merely unrecorded — computed inside <code>maxmin_landmarks</code>, thrown away, and recorded elsewhere in the same repository as <code>covering_radius_at_n_perm</code> — so that at mean H<sub>1</sub> bar 0.373 the whole reading turns on whether ε is below 0.19, and a ledger row says "ruled out" only when a named artifact would have shown the failure and did not — then you have the lesson, and the curriculum.</p>
+</details>
+</div>
+
+<footer>
+Sources. This unit has no textbook, and two of its named resources are unavailable. <strong>Repository artifacts:</strong> MathUni <code>MISSION.md</code>, for the standard the defence answers to and for the success criterion quoted in Self-check 6; <code>curriculum/LESSON-RUBRIC.md</code>, for the four ordered gates, the ordering rule, Gate 2's veto and its reason, Gate 0's "form and mention, never truth" warning, and the scorecard's "zero is a claim, not a result"; <code>curriculum/syllabus.yaml</code>, for pw-05's title and resources; <code>resources/bookmap.json</code> and <code>resources/RESOURCES.md</code>, for the record that the Expository Writing folder is in neither and that the Cummings volume held here has no appendix. <strong>Theorems already proved in this curriculum, cited to their texts:</strong> Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — Definition 6.1 on the Čech and Rips diagram distances as maxima over k of bottleneck distances, and Definition 6.2 on the Hausdorff distance (§6.1, p. 181); Theorem 6.3, both parts, together with the remark that (b) extends to totally bounded metric spaces (§6.1, p. 182); Theorem 6.4's log(1/(1−ε)) sparsification error (§6.2.1, p. 186); Theorem 13.1 on the landscape's bottleneck stability with constant 1 (§13.1.1, p. 393); Theorem 13.2 on the PSSK's 1/(2πσ) bound against the 1-Wasserstein distance (§13.1.2, p. 394); Definition 13.8 on the (p,q)-Wasserstein distance as a sum over matched pairs (§13.3, p. 406). <strong>The artifacts:</strong> <code>TDL/results/trajectory_tda_integration/03_ph.json</code> (the landmark count and the H<sub>0</sub> and H<sub>1</sub> feature counts and total persistences used in the guided derivation, and the absence of any covering radius); <code>04_nulls.json</code> and <code>04_nulls_wasserstein.json</code> (the label-shuffle and markov2 p-values); <code>07_umap_sensitivity.json</code> (the adjusted Rand index, 0.3097); <code>positive_control/positive_control_markov1_L5000_20260502.json</code> (p = 0.588 and 0.822) with the design stated in <code>trajectory_tda/scripts/run_positive_control.py</code>; <code>trajectory_tda/topology/trajectory_ph.py</code>, function <code>maxmin_landmarks</code>, for the <code>min_dists</code> array and the returned values; <code>trajectory_tda/topology/permutation_nulls.py</code>, for <code>covering_radius_at_n_perm</code> and the <code>compute_greedy_dedup_count</code> call that produces it. <strong>Earlier units:</strong> cap-01's threshold derivation and falsifiability requirements, cap-02's parameter ledger and junction analysis, cap-03's five-step protocol and its reading of the positive control. Supplied here, not in any source: the four-part defence structure taken from the mission strip, the transposition of the rubric's gates to a defence, the failure-mode ledger, and the arithmetic of the guided derivation. <strong>Not established here:</strong> that the TDL pipeline's conclusions are wrong. Every gap named is a gap in what this curriculum can currently license, which is a statement about the available proofs and not about the truth of the claims — the covering radius may well be small, the missing inequality may hold under hypotheses not read here, and the embedding sensitivity bounds no particular conclusion until a conclusion is stated. <strong>Also not established here:</strong> pw-05's critique standard, which cannot be read from this repository; <code>curriculum/LESSON-RUBRIC.md</code> is a substitute chosen for being checkable, not an equivalent, and no claim about the missing folder's contents is made or implied.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
