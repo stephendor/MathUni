@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-03 — Presentations, decomposition, and invariants</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+table.rel{margin:1rem auto;border-collapse:collapse;font-family:Segoe UI,sans-serif;font-size:.95rem}
+table.rel td,table.rel th{border:1px solid #2a333d;padding:.35rem .8rem;text-align:center}
+table.rel th{color:var(--acc)}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Presentations, decomposition, and invariants <span class="cite">(tda2-03)</span></h1>
+
+<div class="hook">
+No barcode, so compute the next best thing: generators, relations, and whatever survives of the decomposition.
+<p>tda2-02 left the subject in an awkward place. A two-parameter persistence module is a perfectly good algebraic object, it decomposes into indecomposables, and that decomposition is essentially unique — and none of this helps, because nobody can tell you what the indecomposables look like. There is no list to match them against.</p>
+<p>So the working mathematician does what one always does when classification fails: writes down generators and relations, and computes whatever invariants can be computed. This unit is about doing that well enough to be useful, and about being exact regarding what the resulting numbers do and do not prove.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Krull–Schmidt guarantees that a finitely generated multiparameter module has an essentially unique decomposition into indecomposables. Dey and Wang nevertheless open §11.6 by saying that for multiparameter modules "no such complete invariants exist that are finite and hence computable". Predict how both can be true.</p>
+<button onclick="check(this,false)">They cannot both be true; one of the two statements must have extra hypotheses</button>
+<button onclick="check(this,true)" data-ok>They are about different things: existence and uniqueness of a decomposition says nothing about being able to enumerate or finitely summarise the pieces</button>
+<button onclick="check(this,false)">Krull–Schmidt applies only to finite-dimensional modules, and complete invariants fail for the rest</button>
+<div class="explain">Correct. Keep three claims apart: a decomposition exists; it is unique; and there is a finite computable invariant equal for two modules exactly when they are isomorphic. Krull–Schmidt delivers the first two and is silent on the third. In one parameter the third came for free because the indecomposables were classified — they were the intervals — and the barcode enumerated them. Here they are not classified, so a unique decomposition into unnameable pieces is exactly what we have, and the rest of the unit is a series of principled retreats.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Multiparameter modules are handled through presentations (aa-19's finitely presented modules) because aa-20's PID structure theorem does not apply to 𝐤[x,y]. Total diagonalisation decomposes a presentation, and rank invariants, graded Betti numbers and blockcodes are the computable but incomplete summaries that stand in for the barcode.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Presentations, and the three-way correspondence</h2>
+
+<div class="definition">
+<p><strong>Definition 11.10 (decomposition).</strong> For a finitely generated graded module M, a decomposition is an isomorphism M ≅ ⊕ M<sup>i</sup> for some collection {M<sup>i</sup>}. M is <em>indecomposable</em> if M ≅ M<sup>1</sup> ⊕ M<sup>2</sup> implies M<sup>1</sup> = 𝟎 or M<sup>2</sup> = 𝟎. By the Krull–Schmidt theorem there exists an essentially unique decomposition into indecomposables, up to permutation and isomorphism. <span class="cite">— Dey &amp; Wang §11.2.1, Definition 11.10, p. 329</span></p>
+</div>
+
+<p>With classification unavailable, the object one actually computes with is a presentation.</p>
+
+<div class="definition">
+<p><strong>Definition 11.13 (presentation).</strong> A presentation of a graded module H is an exact sequence</p>
+<div class="math-block">F<sup>1</sup> &nbsp;<sup>f</sup>⟶&nbsp; F<sup>0</sup> &nbsp;<sup>g</sup>⟶&nbsp; H ⟶ 𝟎, &emsp; F<sup>1</sup> and F<sup>0</sup> free.</div>
+<p>We call f the presentation map, and H is <em>finitely presented</em> when both free modules are finitely generated. <span class="cite">— Dey &amp; Wang §11.2.1, Definition 11.13, p. 330</span></p>
+</div>
+
+<p>Read the exactness. At H it says g is surjective; at F<sup>0</sup> it says im f = ker g. Together they give H ≅ coker f. So the entire module is recoverable from the single map f, and this is the sense in which a presentation is a description by generators and relations: a basis of F<sup>0</sup> maps onto generators of H, a basis of F<sup>1</sup> maps to combinations of generators that vanish in H, and f records which.</p>
+
+<div class="theorem">
+<p><strong>Remark 11.1 (minimality).</strong> Presentations of a given graded module are not unique. However there exists an essentially unique presentation f — the <em>minimal presentation</em> — such that any presentation f′ can be written f′ ≅ f ⊕ f″ with coker f″ = 𝟎. <span class="cite">— Dey &amp; Wang §11.2.1, Remark 11.1, p. 330</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.14 (presentation matrix).</strong> Given a presentation F<sup>1</sup> → F<sup>0</sup> → H, fixed bases of F<sup>1</sup> (relations) and F<sup>0</sup> (generators) give the presentation map a matrix form [f], the presentation matrix of H, with entries in R. If H is free, so that F<sup>1</sup> is the zero module, [f] is defined to be a null column matrix. <span class="cite">— Dey &amp; Wang §11.2.1, Definition 11.14, pp. 330–331</span></p>
+</div>
+
+<p>Note what had to be chosen: bases on both sides. The matrix is not canonical; the map is. That is exactly the situation of la-04, and it is why the next theorem is stated in terms of equivalence classes rather than particular matrices.</p>
+
+<div class="theorem">
+<p><strong>Theorem 11.1.</strong> There are one-to-one correspondences between the following three structures arising from a minimal presentation map f : F<sup>1</sup> → F<sup>0</sup> of a graded module H, and its presentation matrix [f]:</p>
+<p>(a) a decomposition of the graded module H ≅ ⊕ H<sup>i</sup>;<br>
+(b) a decomposition of the presentation map f ≅ ⊕ f<sub>i</sub>;<br>
+(c) a diagonalisation of the presentation matrix [f] ≅ ⊕ [f]<sub>i</sub>.</p>
+<p><span class="cite">— Dey &amp; Wang §11.2.1, Theorem 11.1, p. 331</span></p>
+</div>
+
+<p>This is the load-bearing theorem of the chapter. Decomposing a module, decomposing a morphism, and block-diagonalising a matrix over 𝐤[x<sub>1</sub>,…,x<sub>d</sub>] are three views of one operation. An implementation therefore stores the presentation matrix and never the module, and the algorithmic problem becomes: partition the rows and columns into blocks so that everything off the blocks is zero.</p>
+
+<div class="definition">
+<p><strong>Definition 11.15 (diagonalisation).</strong> A matrix A′ ∼ A is a diagonalisation of A with a set of non-empty disjoint index blocks 𝓑 = {B<sub>1</sub>, …, B<sub>k</sub>} if the rows and columns of A are partitioned into these blocks — Row(A) = ⨿<sub>i</sub>Row(B<sub>i</sub>) and Col(A) = ⨿<sub>i</sub>Col(B<sub>i</sub>) — and all non-zero entries lie within the blocks. <span class="cite">— Dey &amp; Wang §11.3, Definition 11.15, pp. 332–333</span></p>
+</div>
+
+<h3>Visual: three views of one operation</h3>
+
+<canvas id="pmCanvas" width="640" height="250" role="img" aria-label="A presentation matrix being permuted into two diagonal blocks, alongside the corresponding splitting of the module into two summands"></canvas>
+<p style="text-align:center"><button onclick="togglePM()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Diagonalise</button></p>
+<script>
+(function(){
+const cv=document.getElementById('pmCanvas'), ctx=cv.getContext('2d');
+// entries: [row, col, value] in the SCRAMBLED order; blocks are rows/cols {0,2} and {1,3}
+const ent=[[0,0,'x'],[2,0,'y'],[0,2,'1'],[2,2,'x'],[1,1,'y'],[3,1,'x'],[1,3,'x'],[3,3,'1']];
+const perm=[0,2,1,3];    // diagonalised order
+let diag=false;
+function draw(){
+  const w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h);
+  const ox=200, oy=52, cs=38;
+  const pos = i => diag ? perm.indexOf(i) : i;
+  ctx.font='14px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(let r=0;r<4;r++)for(let c=0;c<4;c++){
+    const R=pos(r), C=pos(c);
+    const inBlock = diag && ((R<2&&C<2)||(R>=2&&C>=2));
+    ctx.fillStyle=inBlock?'#161f28':'#12171c';
+    ctx.strokeStyle='#2a333d'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.rect(ox+C*cs,oy+R*cs,cs,cs); ctx.fill(); ctx.stroke();
+  }
+  for(const [r,c,v] of ent){
+    const R=pos(r), C=pos(c);
+    ctx.fillStyle='#8ab4f8'; ctx.fillText(v, ox+C*cs+cs/2, oy+R*cs+cs/2);
+  }
+  if(diag){
+    ctx.strokeStyle='#4caf82'; ctx.lineWidth=2.5;
+    ctx.strokeRect(ox,oy,2*cs,2*cs); ctx.strokeRect(ox+2*cs,oy+2*cs,2*cs,2*cs);
+  }
+  ctx.fillStyle='#9aa5b1'; ctx.font='13px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('presentation matrix [f]', ox, oy-16);
+  ctx.fillText('rows: relations', 24, oy+16);
+  ctx.fillText('cols: generators', 24, oy+36);
+  if(diag){
+    ctx.fillStyle='#c3e88d';
+    ctx.fillText('[f] ≅ [f]₁ ⊕ [f]₂', 24, oy+80);
+    ctx.fillText('f ≅ f₁ ⊕ f₂', 24, oy+102);
+    ctx.fillText('H ≅ H¹ ⊕ H²', 24, oy+124);
+    ctx.fillStyle='#9aa5b1';
+    ctx.fillText('Theorem 11.1: one operation,', 24, oy+156);
+    ctx.fillText('three descriptions', 24, oy+174);
+  } else {
+    ctx.fillStyle='#9aa5b1';
+    ctx.fillText('no zero block visible', 24, oy+80);
+    ctx.fillText('in this basis ordering', 24, oy+98);
+  }
+}
+window.togglePM=function(){diag=!diag; draw();};
+draw();
+})();
+</script>
+
+<div class="worked">
+<p><strong>Worked example 1: what minimality is for.</strong> Theorem 11.1 is stated for a <em>minimal</em> presentation map. Why does the correspondence need it, and what survives without it?</p>
+<p><strong>The failure.</strong> A non-minimal presentation carries extra summands with zero cokernel. Those summands decompose happily, and their decompositions correspond to nothing in H, so the correspondence (b) ↔ (a) stops being a bijection: the presentation has more pieces than the module does.</p>
+<p><strong>What survives — Proposition 11.2.</strong> Let f be any presentation of H, minimal or not. Then (a) for any decomposition H ≅ ⊕H<sup>i</sup> there exists a decomposition f ≅ ⊕f<sub>i</sub> with coker f<sub>i</sub> = H<sup>i</sup>; and (b) the total decomposition of H follows from the total decomposition of f. So one direction always works: decomposing the presentation is never <em>wrong</em>, it may simply produce redundant pieces.</p>
+<p><strong>What the redundant pieces look like — Remark 11.3.</strong> By Remark 11.1 any presentation splits as f ≅ f<sup>∗</sup> ⊕ f′ with f<sup>∗</sup> minimal and coker f′ = 𝟎; and f′ splits further as g ⊕ h with g an identity map and h a zero map. In matrix form [f] ≅ [f<sup>∗</sup>] ⊕ [g] ⊕ [h], with [g] an identity submatrix and [h] an empty matrix. Only [f<sup>∗</sup>] carries the module; the identity block is a generator cancelled by a relation, and the empty block is a relation with nothing to relate.</p>
+<p><strong>The practical reading.</strong> An algorithm need not be handed a minimal presentation. It can diagonalise whatever it is given and recognise the trivial blocks afterwards by their shape — which is exactly the escape hatch Dey and Wang's Remark 11.5 uses for TOTDIAGONALIZE.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded): a presentation of a familiar module.</strong> Take the module M of tda2-02's Problem 2 — the 0-dimensional homology of the two-parameter filtration on {a, b}, with dim M<sub>(0,0)</sub> = 1, dim M<sub>(1,0)</sub> = 2, dim M<sub>(0,1)</sub> = 1, dim M<sub>(1,1)</sub> = 1.</p>
+<p><strong>Generators.</strong> A component class is born at (0,0) and another at (1,0), and nothing else is born, so F<sup>0</sup> is free on two homogeneous basis elements of grades <span class="gap">⟨your step: which two grades?⟩</span>.</p>
+<p><strong>Relations.</strong> At grade (1,1) the two classes have merged, so the difference of the two generators, pushed up to grade (1,1), is zero there. That is one relation, of grade <span class="gap">⟨your step⟩</span>, and F<sup>1</sup> is free on one basis element of that grade.</p>
+<p><strong>The matrix.</strong> [f] is then a 1 × 2 matrix over R = 𝐤[t<sub>1</sub>,t<sub>2</sub>] whose single row records that relation in terms of the two generators. Since it is a single block, the module is indecomposable as presented — consistent with tda2-02's finding that M is not free, since a free module would have an empty relation set.</p>
+<p class="cite">Gap solutions: generators of grades (0,0) and (1,0); the relation has grade (1,1).</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> What does exactness of F<sup>1</sup> → F<sup>0</sup> → H → 𝟎 give you?</p>
+<button onclick="check(this,true)" data-ok>g is surjective and im f = ker g, so H ≅ coker f</button>
+<button onclick="check(this,false)">f is injective and g is surjective, so H ≅ F<sup>0</sup>/F<sup>1</sup></button>
+<button onclick="check(this,false)">The sequence splits, so F<sup>0</sup> ≅ F<sup>1</sup> ⊕ H</button>
+<div class="explain">Exactness at H makes g onto; exactness at F<sup>0</sup> equates im f with ker g. Nothing says f is injective — relations may themselves be dependent, which is exactly what the next term of a free resolution records — so the second option's quotient is not even well posed. And nothing says the sequence splits; if it did, H would be a direct summand of a free module, which is far stronger than being presented by one.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Theorem 11.1 says decomposing H and diagonalising [f] are the same problem. What does that buy?</p>
+<button onclick="check(this,true)" data-ok>An abstract algebra question becomes linear algebra over a polynomial ring, so an algorithm can store and manipulate the matrix instead of the module</button>
+<button onclick="check(this,false)">It proves the indecomposables are classifiable after all</button>
+<button onclick="check(this,false)">It shows every presentation matrix can be diagonalised to a single block</button>
+<div class="explain">The correspondence is a change of representation, not a classification result — the indecomposables remain unnameable, which is the whole of Segment 2's difficulty. What it buys is computational: block-diagonalising a matrix is something one can write an algorithm for, and Dey and Wang's TOTDIAGONALIZE does exactly that. The third option inverts the goal: the aim is to find as many blocks as possible, not one.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Invariants, and exactly what they prove</h2>
+
+<p>Dey and Wang set the bar and then lower it, in one paragraph worth quoting in substance. Ideally an invariant should characterise the module completely — equal invariants if and only if isomorphic modules — and persistence diagrams do this for one-parameter tame modules. For multiparameter modules, <em>no such complete invariants exist that are finite and hence computable</em>. So one settles for invariants that are computable and remain equal for isomorphic modules, though they may fail to distinguish non-isomorphic ones, and judges them by their discriminative power in practice.</p>
+
+<div class="definition">
+<p><strong>Definition 11.17 (support) and Definition 11.18 (rank invariant).</strong> The support of a ℤ<sup>d</sup>-graded module M is the graph supp(M) = (V, E) with a node 𝐯 ∈ V iff M<sub>𝐯</sub> ≠ 𝟎, and edges recording immediate comparabilities. Setting r<sub>𝐮𝐯</sub>(M) = rank(M<sub>𝐮</sub> → M<sub>𝐯</sub>) for pairs 𝐮, 𝐯 ∈ supp(M), the collection {r<sub>𝐮𝐯</sub>(M)} is the <em>rank invariant</em> of M. <span class="cite">— Dey &amp; Wang §11.6.1, Definitions 11.17 and 11.18, pp. 357–358</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Fact 11.3.</strong> The rank invariant of a one-parameter module is a complete invariant. For a one-parameter persistence module H<sub>p</sub> it is given by the persistent Betti numbers β<sub>p</sub><sup>i,j</sup>. <span class="cite">— Dey &amp; Wang §11.6.1, Fact 11.3, p. 358</span></p>
+</div>
+
+<p>So in one parameter the rank invariant <em>is</em> the barcode, in another notation. In several parameters it is not complete, and Dey and Wang name the specific thing it misses: it cannot provide information about the birth and death of generators. The repair is to take ranks not between single grades but between whole sets of them.</p>
+
+<div class="definition">
+<p><strong>Definition 11.19 (multirank invariant).</strong> The collection {r<sub>𝐔𝐕</sub>(M)} over every pair of subsets 𝐔, 𝐕 ⊆ supp(M), where r<sub>𝐔𝐕</sub>(M) = rank(⊕<sub>𝐮∈𝐔</sub>M<sub>𝐮</sub> → ⊕<sub>𝐯∈𝐕</sub>M<sub>𝐯</sub>), is the <em>multirank invariant</em> of M. <span class="cite">— Dey &amp; Wang §11.6.1, Definition 11.19, p. 358</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Fact 11.4.</strong> With P<sub>𝐮</sub> the immediate predecessors and S<sub>𝐮</sub> the immediate successors of a grade 𝐮: (a) m generators are born at grade 𝐮 if and only if coker(⊕<sub>𝐮′∈P<sub>𝐮</sub></sub>M<sub>𝐮′</sub> → M<sub>𝐮</sub>) has dimension m; (b) m generators die leaving grade 𝐮 if and only if ker(M<sub>𝐮</sub> → ⊕<sub>𝐮′∈S<sub>𝐮</sub></sub>M<sub>𝐮′</sub>) has dimension m. <span class="cite">— Dey &amp; Wang §11.6.1, Fact 11.4, pp. 358–359</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Fact 11.5.</strong> Two <em>interval decomposable</em> modules are isomorphic if and only if they have the same multirank invariants. <span class="cite">— Dey &amp; Wang §11.6.1, Fact 11.5, p. 359</span></p>
+</div>
+
+<p>Read Fact 11.5 carefully, because it is the kind of statement that gets misquoted. It is completeness <em>on a restricted class</em>. Outside the interval decomposable modules the multirank invariant is still not complete — Dey and Wang say so explicitly in the same passage. What a practitioner may conclude from two modules having equal multirank invariants is: nothing, unless both are already known to be interval decomposable. Different multirank invariants, on the other hand, always prove non-isomorphism.</p>
+
+<h3>Graded Betti numbers and blockcodes</h3>
+
+<div class="definition">
+<p><strong>Definition 11.20 (free resolution).</strong> For a graded module M, a free resolution 𝓕 → M is an exact sequence ⋯ → F<sup>2</sup> →<sup>f<sup>2</sup></sup> F<sup>1</sup> →<sup>f<sup>1</sup></sup> F<sup>0</sup> →<sup>f<sup>0</sup></sup> M → 𝟎 with each F<sup>i</sup> free. <span class="cite">— Dey &amp; Wang §11.6.2, Definition 11.20, p. 359</span></p>
+</div>
+
+<p>A presentation is precisely the truncation F<sup>1</sup> → F<sup>0</sup> → M → 𝟎 of a resolution; a resolution is obtained by continuing — resolving the relations among the relations, then the relations among those, and so on. This is the same construction as at2-02's free resolutions, now over a polynomial ring in several variables rather than over ℤ, and it will not in general stop after one step.</p>
+
+<div class="definition">
+<p><strong>Definition 11.21 (graded Betti numbers).</strong> Let F<sup>j</sup> be a free module in the <em>minimal</em> free resolution of M, and let β<sub>j,𝐮</sub><sup>M</sup> be the multiplicity of the grade 𝐮 in the multiset of grades of homogeneous basis elements of F<sup>j</sup>. The mapping β<sub>(−,−)</sub><sup>M</sup> is the <em>graded Betti numbers</em> of M. <span class="cite">— Dey &amp; Wang §11.6.2, Definition 11.21, pp. 359–360</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.22 (persistent graded Betti numbers).</strong> Let M ≅ ⊕M<sup>i</sup> be a total decomposition. Recording the graded Betti numbers β<sup>M<sup>i</sup></sup> of each indecomposable separately gives 𝓟𝓑(M) := {β<sup>M<sup>i</sup></sup>}, the <em>persistent graded Betti numbers</em>. <span class="cite">— Dey &amp; Wang §11.6.2, Definition 11.22, p. 360</span></p>
+</div>
+
+<p>The difference between the two is the whole reason the second exists. Plain graded Betti numbers aggregate over the module, so they record how many generators sit at each grade but not which relation belongs to which generator. Keeping the summands apart restores the pairing, and it is that pairing which makes the invariant barcode-like.</p>
+
+<div class="theorem">
+<p><strong>Fact 11.6.</strong> For all 𝐮 ∈ ℤ<sup>d</sup>, dm M(𝐮) = Σ<sub>𝐯 ≤ 𝐮</sub> Σ<sub>j</sub> (−1)<sup>j</sup> β<sub>j,𝐯</sub>. <span class="cite">— Dey &amp; Wang §11.6.2, Fact 11.6, p. 360</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.23 (blockcode).</strong> The set of dimension functions 𝓑<sub>dm</sub>(M) := {dm M<sup>i</sup>} over the indecomposable summands is the <em>blockcode</em> of M. <span class="cite">— Dey &amp; Wang §11.6.2, Definition 11.23, p. 361</span></p>
+</div>
+
+<h3>Worked example 3: the alternating sum on a free module</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Verify Fact 11.6 on the shifted free module R<sub>→(1,1)</sub> of tda2-02.</p>
+<p><strong>Step 1 — the minimal resolution.</strong> R<sub>→(1,1)</sub> is free, so it is its own F<sup>0</sup>, generated by one homogeneous element of grade (1,1), with no relations: F<sup>0</sup> = R<sub>→(1,1)</sub> and F<sup>j</sup> = 0 for j ≥ 1.</p>
+<p><strong>Step 2 — the graded Betti numbers.</strong> The only non-zero entry is β<sub>0,(1,1)</sub> = 1, one basis element of F<sup>0</sup> at grade (1,1).</p>
+<p><strong>Step 3 — apply Fact 11.6.</strong> dm M(𝐮) = Σ<sub>𝐯 ≤ 𝐮</sub> Σ<sub>j</sub>(−1)<sup>j</sup>β<sub>j,𝐯</sub>. The inner sum is 1 at 𝐯 = (1,1) and 0 elsewhere, so the total is 1 exactly when (1,1) ≤ 𝐮, and 0 otherwise.</p>
+<p><strong>Step 4 — check against tda2-02.</strong> That is precisely the shifted quadrant with apex (1,1) computed there: (R<sub>→(1,1)</sub>)<sub>𝐯</sub> = 𝐤 iff v<sub>1</sub> ≥ 1 and v<sub>2</sub> ≥ 1. The alternating sum has reproduced the dimension function from the resolution alone.</p>
+<p><strong>Where the alternation earns its keep.</strong> For a module with relations, F<sup>1</sup> contributes with sign −1, subtracting off the dimensions that the relations kill; F<sup>2</sup> adds back the over-subtraction caused by dependencies among relations, and so on. It is inclusion–exclusion, indexed by homological degree.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 4 (faded): what a blockcode mismatch proves.</strong> Two modules M and N are computed from two data sets, and their blockcodes differ.</p>
+<p><strong>What follows.</strong> The blockcode is an invariant: isomorphic modules have equal blockcodes. So a difference in blockcodes proves <span class="gap">⟨your step: what, exactly?⟩</span>.</p>
+<p><strong>What does not follow.</strong> Now suppose instead the two blockcodes agree. Since no finite computable complete invariant exists for d ≥ 2, agreement proves <span class="gap">⟨your step⟩</span>.</p>
+<p><strong>Why compute it anyway.</strong> The choice is not between an incomplete invariant and a complete one — that option does not exist. It is between an incomplete invariant and none at all, and the blockcode is computable, is stable under isomorphism, and refines the plain graded Betti numbers by keeping the indecomposable summands apart.</p>
+<p class="cite">Gap solutions: a difference proves M and N are not isomorphic; agreement proves nothing, since non-isomorphic modules may share a blockcode.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Let M be a two-parameter module with a minimal free resolution whose F<sup>0</sup> has one generator at grade (0,0) and F<sup>1</sup> has one relation at grade (2,2), with F<sup>j</sup> = 0 for j ≥ 2. (i) Write down all non-zero graded Betti numbers. (ii) Use Fact 11.6 to compute dm M(𝐮) at 𝐮 = (1,1), (2,2) and (3,3). (iii) Describe the shape of the support, and say in one sentence what module this is.</p>
+<p><em>Hint:</em> the answer at (2,2) is where the sign in the alternating sum first bites.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Two modules have the same multirank invariants. What may be concluded?</p>
+<button onclick="check(this,false)">They are isomorphic — that is what Fact 11.5 says</button>
+<button onclick="check(this,true)" data-ok>Nothing, unless both are already known to be interval decomposable; Fact 11.5 is completeness on that restricted class only</button>
+<button onclick="check(this,false)">They have the same rank invariant but may differ in dimension at some grade</button>
+<div class="explain">Fact 11.5 carries the hypothesis "interval decomposable" and Dey and Wang state in the same passage that the multirank invariant is not complete in general. Dropping the hypothesis is the standard misquotation. The third option is wrong in its second half: the multirank invariant includes the single-grade ranks, and rank(M<sub>𝐮</sub> → M<sub>𝐮</sub>) is dim M<sub>𝐮</sub>, so the dimensions do agree.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why are the graded Betti numbers defined using the <em>minimal</em> free resolution?</p>
+<button onclick="check(this,true)" data-ok>Because a non-minimal resolution contains redundant generator–relation pairs, so the multiplicities would depend on the choice of resolution rather than on the module</button>
+<button onclick="check(this,false)">Because non-minimal resolutions are infinite</button>
+<button onclick="check(this,false)">Because only minimal resolutions terminate</button>
+<div class="explain">This is exactly the situation Remark 11.1 and Remark 11.3 described one level down: any resolution is the minimal one plus trivial pieces — an identity block pairing a superfluous generator with a superfluous relation. Counting basis elements of a non-minimal F<sup>j</sup> would count those too, and the answer would depend on which redundancies were introduced. It is the same reason at2-02 needed Lemma 3.1 before Ext could be well defined: a construction involving choices needs a theorem saying the choices do not matter.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which statement about invariants for d ≥ 2 is correct as Dey and Wang state it?</p>
+<button onclick="check(this,false)">A complete invariant exists but is not yet known</button>
+<button onclick="check(this,true)" data-ok>No complete invariant exists that is finite and hence computable, so one settles for invariants that are equal for isomorphic modules and judges them by discriminative power</button>
+<button onclick="check(this,false)">Complete invariants exist for d = 2 but not for d ≥ 3</button>
+<div class="explain">The claim is a non-existence statement, not a gap in current knowledge, and it is qualified in an important way: no complete invariant that is <em>finite and hence computable</em>. That qualification is what makes it consistent with Krull–Schmidt, which supplies an essentially unique decomposition — the decomposition itself is a complete invariant in the abstract, just not a finite computable one. The prediction gate was about exactly this distinction.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Let H be a graded module with presentation F<sup>1</sup> →<sup>f</sup> F<sup>0</sup> →<sup>g</sup> H → 𝟎. Prove that H ≅ coker f, and deduce that a graded module is free if and only if it admits a presentation with F<sup>1</sup> = 𝟎. Then prove that if [f] admits a diagonalisation with blocks B<sub>1</sub>, …, B<sub>k</sub>, the corresponding decomposition of f is into k summands — that is, prove the direction (c) ⇒ (b) of Theorem 11.1 at the level of matrices, without assuming minimality.</p>
+<p><em>Hint:</em> for the last part, a block partition of rows and columns with no non-zero entries outside the blocks means the matrix is a direct sum of its blocks as a map, because each block acts on its own coordinate subspace.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer, first part.</strong> Exactness at H says g is surjective, so H ≅ F<sup>0</sup>/ker g. Exactness at F<sup>0</sup> says ker g = im f. Substituting, H ≅ F<sup>0</sup>/im f = coker f. ∎</p>
+<p><strong>Second part.</strong> If F<sup>1</sup> = 𝟎 then f is the zero map from the zero module, so im f = 𝟎 and H ≅ F<sup>0</sup>/𝟎 = F<sup>0</sup>, which is free. Conversely if H is free, take F<sup>0</sup> = H with g the identity and F<sup>1</sup> = 𝟎; exactness holds since ker g = 𝟎 = im f. This is precisely the case Definition 11.14 handles by declaring [f] to be a null column matrix. ∎</p>
+<p><strong>Third part.</strong> Suppose Row([f]) = ⨿<sub>i</sub>Row(B<sub>i</sub>) and Col([f]) = ⨿<sub>i</sub>Col(B<sub>i</sub>) with every non-zero entry inside some B<sub>i</sub>, as in Definition 11.15. Let F<sup>1</sup><sub>i</sub> ⊆ F<sup>1</sup> be the free submodule spanned by the basis elements indexed by Row(B<sub>i</sub>), and F<sup>0</sup><sub>i</sub> ⊆ F<sup>0</sup> the one spanned by Col(B<sub>i</sub>). Since the index sets partition the bases, F<sup>1</sup> = ⊕<sub>i</sub>F<sup>1</sup><sub>i</sub> and F<sup>0</sup> = ⊕<sub>i</sub>F<sup>0</sup><sub>i</sub>.</p>
+<p>Now take a basis element e of F<sup>1</sup><sub>i</sub>, indexed by a row in B<sub>i</sub>. Its image f(e) is the combination of generators given by that row of [f]; every non-zero entry of that row lies in B<sub>i</sub>, hence in a column of B<sub>i</sub>, so f(e) ∈ F<sup>0</sup><sub>i</sub>. Therefore f carries F<sup>1</sup><sub>i</sub> into F<sup>0</sup><sub>i</sub> for each i, and writing f<sub>i</sub> for the restriction, f = ⊕<sub>i</sub>f<sub>i</sub> as a map of direct sums. That is a decomposition of f into k summands. ∎</p>
+<p><em>What was and was not used.</em> Minimality played no part: the argument is pure bookkeeping about where the non-zero entries sit. What minimality is needed for is the <em>converse</em> direction and the bijectivity claim — that distinct decompositions of H correspond to distinct diagonalisations and nothing is left over. Proposition 11.2 is the precise statement of how much survives without it, and Remark 11.3 identifies the leftovers as identity blocks and empty blocks.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What a presentation is, why H ≅ coker f, and what minimality means.</li>
+<li>Theorem 11.1's three-way correspondence, and what it converts the decomposition problem into.</li>
+<li>The invariants of §11.6 in order of strength, and exactly what each one proves and fails to prove.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) F<sup>1</sup> → F<sup>0</sup> → H → 𝟎 exact with both free, so H ≅ coker f, and any presentation is the minimal one plus pieces with zero cokernel; (2) decomposing H, decomposing f, and block-diagonalising [f] are one operation, so an implementation stores the matrix; (3) rank invariant — complete in one parameter, blind to births and deaths in several; multirank — recovers births and deaths, complete only on interval decomposable modules; graded Betti numbers from the minimal free resolution, refined to persistent graded Betti numbers by keeping the summands apart, with dm M(𝐮) an alternating sum over the down-set; and the blockcode, whose mismatch proves non-isomorphism and whose agreement proves nothing — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §11.2.1: Definition 11.10 on decomposition and the Krull–Schmidt theorem (p. 329); Definition 11.13 on presentations, Remark 11.1 on minimal presentations, Definition 11.14 on the presentation matrix (pp. 330–331); Theorem 11.1's three-way correspondence, Remark 11.2, Proposition 11.2 for non-minimal presentations, and Remark 11.3's [f] ≅ [f<sup>∗</sup>] ⊕ [g] ⊕ [h] (pp. 331–332); §11.3, Definition 11.15 on diagonalisation (pp. 332–333). §11.6: the opening statement that no finite computable complete invariant exists for multiparameter modules (pp. 356–357); Definitions 11.17 and 11.18 and Fact 11.3 on the rank invariant, Definition 11.19 and Facts 11.4 and 11.5 on the multirank invariant (pp. 357–359); Definitions 11.20 to 11.23 and Fact 11.6 on free resolutions, graded Betti numbers, persistent graded Betti numbers and blockcodes (pp. 359–361). Assumed from tda2-02: graded modules, shifted and free modules, and the failure of the PID argument. Deferred: the TOTDIAGONALIZE algorithm and its correctness and complexity analysis (Dey §11.4, pp. 337–350), and the computation of presentations from a filtration (Dey §11.5).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
