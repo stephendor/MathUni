@@ -170,9 +170,13 @@ def build(args):
     # 7. generation prompt. Model-neutral by design: no vendor named, no
     # reasoning directives (they would advantage models with those features and
     # confound a reasoning-effort arm), and a fixed output contract.
+    # One canonical candidate path, built with pathlib so the separator is the
+    # platform's. It goes into the generator prompt AND the next-step print, so
+    # the file the generator is told to write is the file --check globs for.
+    candidate_path = ws / "candidates" / f"{unit}.candidate.html"
     (inbox / "PROMPT.md").write_text(
         PROMPT_TEMPLATE.format(unit=unit, exemplar=args.exemplar, inbox=inbox,
-                               candidates=ws / "candidates"),
+                               candidate_path=candidate_path),
         encoding="utf-8")
 
     # manifest
@@ -184,11 +188,11 @@ def build(args):
         print("   ", p.name)
     print("\nNEXT:")
     print("  1. Extract the sections named in SOURCE-POINTER.md into")
-    print(f"     {inbox}\\SOURCE-EXTRACT.md  (the one manual step; PROMPT.md reads it as")
+    print(f"     {inbox / 'SOURCE-EXTRACT.md'}  (the one manual step; PROMPT.md reads it as")
     print("     the sole source for this unit's own mathematics).")
     print("  2. Point each generator at the inbox folder and PROMPT.md. Same bytes to")
     print("     every generator, one turn each, no repair prompts.")
-    print(f"  3. Each writes {ws / 'candidates'}\\{unit}.candidate.html — RENAME IT")
+    print(f"  3. Each writes {candidate_path} — RENAME IT")
     print("     before the next run, or the next generator overwrites it.")
     print(f"  4. python scripts/drift_bundle.py {unit} --check")
     print("  5. Bring the surviving candidates to Claude to score against the rubric.")
@@ -217,7 +221,7 @@ def check(args):
     unit = args.unit
     cands = sorted((ws / "candidates").glob(f"{unit}*.html"))
     if not cands:
-        sys.exit(f"no candidates at {ws / 'candidates'}\\{unit}*.html -- generate them first")
+        sys.exit(f"no candidates at {ws / 'candidates' / (unit + '*.html')} -- generate them first")
     pset = repo / "problems/sets" / f"{unit}.md"
     any_fail = False
     for c in cands:
@@ -226,10 +230,15 @@ def check(args):
         if pset.exists():
             r = subprocess.run([sys.executable, str(repo / "scripts/check_lesson_coverage.py"),
                                 str(pset), str(c)], capture_output=True, text=True)
-            cov = "PASS" if r.returncode == 0 else \
-                  ("FAIL missing: " + ", ".join(r.stdout.split()) if r.returncode == 1 else "ERROR")
+            report = r.stdout.strip()
+            cov = report if r.returncode in {0, 1} and report else \
+                  ("ERROR " + r.stderr.strip()).strip()
         else:
             cov = "SKIP (no problem set)"
+        source_gap_disposition = getattr(args, "source_gap_disposition", None)
+        unchecked = cov.startswith("UNCHECKED")
+        source_gap_ok = not unchecked or source_gap_disposition == "accept-no-checkable-refs"
+        source_gap = source_gap_disposition or "SOURCE GAP UNDISPOSITIONED"
         # parse
         ok, err = _parses(html)
         parse = "PASS" if ok else f"FAIL {err}"
@@ -245,11 +254,17 @@ def check(args):
         gaps = lesson_lint.gap_markers(html)
         lfails = [(nm, d) for nm, ok, d in lint_results
                   if not ok and nm != lesson_lint.GAP_CHECK]
-        failed = (cov.startswith(("FAIL", "ERROR")) or parse.startswith("FAIL")
-                  or selfc.startswith("FAIL") or bool(lfails))
+        # The gap row is a datum, not a check: exclude it from the count too, or a
+        # candidate with declared gaps reports one more "render+structure" check
+        # than one without.
+        structural = [r for r in lint_results if r[0] != lesson_lint.GAP_CHECK]
+        failed = (cov.startswith(("FAIL", "ERROR")) or not source_gap_ok
+                  or parse.startswith("FAIL") or selfc.startswith("FAIL") or bool(lfails))
         any_fail = any_fail or failed
         print(f"\n{c.name}  [{'BOUNCE' if failed else 'ready to score'}]")
         print(f"  coverage        : {cov}")
+        if unchecked:
+            print(f"  source gap      : {source_gap}")
         print(f"  html parses     : {parse}")
         print(f"  self-contained  : {selfc}")
         print(f"  declared gaps   : {len(gaps)}"
@@ -261,7 +276,7 @@ def check(args):
             for nm, d in lfails:
                 print(f"  {nm} : FAIL{(': ' + d) if d else ''}")
         else:
-            print(f"  render+structure: PASS ({len(lint_results)} checks)")
+            print(f"  render+structure: PASS ({len(structural)} checks)")
     print("\n" + ("Some candidates failed the free gate — fix/regenerate before scoring."
                   if any_fail else "All candidates passed the free gate — bring them to Claude to score."))
     sys.exit(1 if any_fail else 0)
@@ -298,7 +313,7 @@ Ignore `SOURCE-POINTER.md`; it is a build record, not input.
 Write the finished lesson as a real file at exactly:
 
 ```
-{candidates}\\{unit}.candidate.html
+{candidate_path}
 ```
 
 One file. Do not print the HTML into the conversation, do not wrap it in a code
@@ -374,6 +389,11 @@ def main():
     ap.add_argument("--ref", default="main", help="git ref for the held-out reference & exemplar (default main)")
     ap.add_argument("--workspace", default=None, help="override workspace dir (default <repo>-drift/)")
     ap.add_argument("--check", action="store_true", help="run the free pre-filter on candidates instead of building")
+    ap.add_argument(
+        "--source-gap-disposition",
+        choices=("accept-no-checkable-refs", "block-for-source-repair"),
+        help="required decision when coverage reports UNCHECKED",
+    )
     args = ap.parse_args()
     (check if args.check else build)(args)
 

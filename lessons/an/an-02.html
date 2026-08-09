@@ -22,6 +22,11 @@ h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
 .gap{color:var(--acc);font-style:italic}
 svg text{font-family:Segoe UI,system-ui,sans-serif}
 .heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
 </style></head><body>
 <p class="cite">Real Analysis I · Nexus College</p>
 <h1>Cardinality and Cantor's diagonal <span class="cite">(an-02)</span></h1>
@@ -29,6 +34,14 @@ svg text{font-family:Segoe UI,system-ui,sans-serif}
 <div class="hook">
 Some infinities are bigger than others — provably.
 <p>ℕ, ℤ, and ℚ all feel like they ought to have different "sizes" — ℤ contains negative numbers ℕ doesn't have, and ℚ is packed absurdly densely compared to either. Yet all three turn out to be exactly the same size, in the only sense of "size" that survives contact with infinity: you can list each of them off, one at a time, without ever running out of natural numbers to use as list-tags. ℝ cannot be listed this way. Not "hasn't been listed yet" — cannot, ever, no matter how clever the listing scheme. Georg Cantor proved this in 1891 with an argument so short it fits in half a page, and so slippery that it convinced almost nobody at first.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction Gate:</strong> Commit before Segment 1. Between any two rationals sits another rational, so ℚ is packed infinitely densely into every interval, while ℕ has visible gaps everywhere. Which is the larger set?</p>
+<button onclick="check(this,false)">ℚ — it is dense, and ℕ sits inside it as a sparse sub-collection</button>
+<button onclick="check(this,true)" data-ok>Neither: they are exactly the same size, because ℚ can be arranged into one infinite ℕ-indexed list</button>
+<button onclick="check(this,false)">The question is meaningless — infinite sets cannot be compared by size</button>
+<div class="explain">Density is a fact about <em>order</em>, not about <em>size</em>. Once size is defined by bijection (Definition 1.4.7), ℚ ∼ ℕ, and Segment 1 builds the listing that proves it. Hold on to how strongly the wrong answer pulled — that same intuition is what makes the failure for ℝ in Segment 2 land as a genuine surprise rather than a formality.</div>
+</div>
 </div>
 
 <p class="mission">Why this matters for the mission: Countability arguments recur in measure-free TDA foundations.</p>
@@ -203,6 +216,37 @@ Some infinities are bigger than others — provably.
 <div class="explain">The proof is a genuine impossibility result: it starts by assuming an arbitrary onto function f exists (not a specific flawed attempt) and derives a contradiction that holds regardless of which f was chosen. That universality is exactly what upgrades "this listing missed some numbers" into "no listing ever could work."</div>
 </div>
 
+<div class="guided-proof">
+<h3>Guided Proof Practice</h3>
+<p><strong>Prompt:</strong> Above, Cantor's Theorem (Theorem 1.5.2) was only sketched in a sentence. Write the proof out properly: show that for <em>any</em> set <var>A</var>, no function <var>f</var>: <var>A</var> → <var>P</var>(<var>A</var>) is onto. <em>Hint:</em> the diagonal is still there, wearing a different costume. Each <var>a</var> ∈ <var>A</var> can be asked a yes/no question about itself — "is <var>a</var> a member of the set <var>f</var>(<var>a</var>)?" — and the adversary object is the set of everyone who answers no. Then ask whether that set can be anybody's image.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model Answer:</strong> Let <var>A</var> be any set and let <var>f</var>: <var>A</var> → <var>P</var>(<var>A</var>) be any function. Define the adversary set</p>
+<p style="text-align:center"><var>B</var> = {<var>a</var> ∈ <var>A</var> : <var>a</var> ∉ <var>f</var>(<var>a</var>)}.</p>
+<p>This is a well-defined subset of <var>A</var>, so <var>B</var> ∈ <var>P</var>(<var>A</var>). We show <var>B</var> is not in the range of <var>f</var>.</p>
+<p>Suppose, for contradiction, that <var>B</var> = <var>f</var>(<var>a</var>′) for some <var>a</var>′ ∈ <var>A</var>. There are two cases, and both break.</p>
+<p><em>Case 1: <var>a</var>′ ∈ <var>B</var>.</em> Then <var>a</var>′ satisfies <var>B</var>'s defining condition, so <var>a</var>′ ∉ <var>f</var>(<var>a</var>′). But <var>f</var>(<var>a</var>′) = <var>B</var>, so <var>a</var>′ ∉ <var>B</var> — contradicting the case assumption.</p>
+<p><em>Case 2: <var>a</var>′ ∉ <var>B</var>.</em> Then <var>a</var>′ fails <var>B</var>'s defining condition, so <var>a</var>′ ∈ <var>f</var>(<var>a</var>′) = <var>B</var> — again contradicting the case assumption.</p>
+<p>Every <var>a</var>′ ∈ <var>A</var> is in exactly one of these two cases, and both are impossible. So no <var>a</var>′ with <var>f</var>(<var>a</var>′) = <var>B</var> exists, meaning <var>B</var> ∈ <var>P</var>(<var>A</var>) is missed by <var>f</var>. Hence <var>f</var> is not onto. Since <var>f</var> was arbitrary, no onto function <var>A</var> → <var>P</var>(<var>A</var>) exists. ∎ <span class="cite">— Abbott §1.5, Theorem 1.5.2, p. 32</span></p>
+<p><strong>Where the diagonal went.</strong> Line up the elements of <var>A</var> against the subsets <var>f</var>(<var>a</var>) and record a 1 whenever <var>a</var> ∈ <var>f</var>(<var>a</var>). The diagonal of that table is the sequence of self-membership answers, and <var>B</var> is built by flipping every one of them — the same move as choosing <var>b<sub>n</sub></var> ≠ <var>a<sub>nn</sub></var>, with 0/1 in place of decimal digits. Note also what the proof does <em>not</em> assume: <var>A</var> need not be infinite, and no listing of <var>A</var> is ever required.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit Ritual: Blank-Page Reconstruction</h3>
+<p>Look away from the screen and reconstruct the three load-bearing claims of this lesson from nothing — the moves, not the wording:</p>
+<ol>
+<li>What "same cardinality" means (Definition 1.4.7), and the example that shows a set can match one of its own proper subsets.</li>
+<li>The shell-listing that makes ℚ countable — how the shells are indexed, and the one property of each shell the concatenation depends on.</li>
+<li>The diagonal construction: what the opponent commits to first, which digits you read, the rule defining <var>b<sub>n</sub></var>, and the exact reason <var>x</var> cannot equal <var>f</var>(<var>n</var>) for any <var>n</var>. Then state Cantor's Theorem and the adversary set <var>B</var> that proves it.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can state: (1) <var>A</var> ∼ <var>B</var> iff some <var>f</var>: <var>A</var> → <var>B</var> is 1–1 and onto, witnessed by ℕ ∼ <var>E</var> via <var>f</var>(<var>n</var>) = 2<var>n</var>; (2) <var>A<sub>n</sub></var> = the rationals whose reduced numerator and denominator sum to <var>n</var>, each shell <em>finite</em> so the concatenation reaches every shell; (3) <var>b<sub>n</sub></var> = 2 if <var>a<sub>nn</sub></var> ≠ 2 else 3 — never 0 or 9, so no repeating-nines ambiguity — with <var>x</var> ≠ <var>f</var>(<var>n</var>) at digit <var>n</var> for every <var>n</var>; and <var>B</var> = {<var>a</var> : <var>a</var> ∉ <var>f</var>(<var>a</var>)} defeating every <var>f</var>: <var>A</var> → <var>P</var>(<var>A</var>) — then the whole cardinal tower card ℕ &lt; card ℝ &lt; card <var>P</var>(ℝ) &lt; ⋯ is yours to rebuild on demand.</p>
+</details>
 </div>
 
 <footer>Sources: Abbott, <em>Understanding Analysis</em> — §1.4 "Consequences of Completeness" (Cardinality subsection: Definitions 1.4.6, 1.4.7, 1.4.10, Example 1.4.8, Theorem 1.4.11(i) — ℚ countable), pp. 22–26; §1.5 "Cantor's Theorem" (Theorem 1.5.1 — diagonal argument on (0,1), Exercises 1.5.2–1.5.4, Theorem 1.5.2 — Cantor's Theorem on power sets), pp. 29–32; §1.6 "Epilogue" (cardinal hierarchy, ℵ₀ and c), pp. 33–34.
