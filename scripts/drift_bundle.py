@@ -170,9 +170,13 @@ def build(args):
     # 7. generation prompt. Model-neutral by design: no vendor named, no
     # reasoning directives (they would advantage models with those features and
     # confound a reasoning-effort arm), and a fixed output contract.
+    # One canonical candidate path, built with pathlib so the separator is the
+    # platform's. It goes into the generator prompt AND the next-step print, so
+    # the file the generator is told to write is the file --check globs for.
+    candidate_path = ws / "candidates" / f"{unit}.candidate.html"
     (inbox / "PROMPT.md").write_text(
         PROMPT_TEMPLATE.format(unit=unit, exemplar=args.exemplar, inbox=inbox,
-                               candidates=ws / "candidates"),
+                               candidate_path=candidate_path),
         encoding="utf-8")
 
     # manifest
@@ -184,11 +188,11 @@ def build(args):
         print("   ", p.name)
     print("\nNEXT:")
     print("  1. Extract the sections named in SOURCE-POINTER.md into")
-    print(f"     {inbox}\\SOURCE-EXTRACT.md  (the one manual step; PROMPT.md reads it as")
+    print(f"     {inbox / 'SOURCE-EXTRACT.md'}  (the one manual step; PROMPT.md reads it as")
     print("     the sole source for this unit's own mathematics).")
     print("  2. Point each generator at the inbox folder and PROMPT.md. Same bytes to")
     print("     every generator, one turn each, no repair prompts.")
-    print(f"  3. Each writes {ws / 'candidates'}\\{unit}.candidate.html — RENAME IT")
+    print(f"  3. Each writes {candidate_path} — RENAME IT")
     print("     before the next run, or the next generator overwrites it.")
     print(f"  4. python scripts/drift_bundle.py {unit} --check")
     print("  5. Bring the surviving candidates to Claude to score against the rubric.")
@@ -217,7 +221,7 @@ def check(args):
     unit = args.unit
     cands = sorted((ws / "candidates").glob(f"{unit}*.html"))
     if not cands:
-        sys.exit(f"no candidates at {ws / 'candidates'}\\{unit}*.html -- generate them first")
+        sys.exit(f"no candidates at {ws / 'candidates' / (unit + '*.html')} -- generate them first")
     pset = repo / "problems/sets" / f"{unit}.md"
     any_fail = False
     for c in cands:
@@ -309,7 +313,7 @@ Ignore `SOURCE-POINTER.md`; it is a build record, not input.
 Write the finished lesson as a real file at exactly:
 
 ```
-{candidates}\\{unit}.candidate.html
+{candidate_path}
 ```
 
 One file. Do not print the HTML into the conversation, do not wrap it in a code
