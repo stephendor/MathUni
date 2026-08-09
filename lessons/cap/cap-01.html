@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cap-01 — Scoping a research question</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table{border-collapse:collapse;margin:1rem 0;width:100%}
+th,td{border:1px solid #2a333d;padding:.4rem .6rem;text-align:left;font-size:.95rem}
+th{background:#1a2027;font-family:Segoe UI,sans-serif}
+</style></head><body>
+<p class="cite">Capstone · Nexus College</p>
+<h1>Scoping a research question <span class="cite">(cap-01)</span></h1>
+
+<div class="hook">
+Three semesters of theorems, and the capstone will turn on a sentence you write before any of them run.
+<p>The hardest part of a project is not the mathematics. It is deciding what claim you are trying to support, and what would falsify it. Get that wrong and every theorem downstream is still true and still useless: you will have computed something correct about a question that could not have come out any other way.</p>
+<p>This unit has no textbook. What it has instead is better suited to the job: a stack of theorems whose hypotheses you now know, and which between them decide what a claim is even permitted to be about. A scoped question is one the theorems can reach.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Your point sample is accurate to ε in Hausdorff distance — the true set and your sample are within ε of each other. Predict which features of the Rips persistence diagram a claim may legitimately be about.</p>
+<button onclick="check(this,false)">All of them: Theorem 6.3 says the diagrams are ε-close, so every feature is pinned to within ε and every feature is claimable</button>
+<button onclick="check(this,true)" data-ok>Only those of persistence greater than 2ε — a shorter bar can be matched to the diagonal at cost ε and so may be absent from the true diagram entirely</button>
+<button onclick="check(this,false)">Only those of persistence greater than ε, since ε is the bound the theorem gives</button>
+<div class="explain">The bound is on the <em>bottleneck</em> distance, and a bottleneck matching is allowed to send a diagram point to the diagonal at a cost equal to its L<sub>∞</sub>-distance to it — which for the point (b, d) is (d − b)/2, half its persistence. So a feature of persistence 2ε costs exactly ε to delete, and the theorem permits it to be deleted. The first option confuses "the diagrams are close" with "the features correspond"; the third forgets the factor of two that the distance-to-diagonal introduces. Segment 2 derives this properly, and it is the single most useful sentence in the unit: it converts an assumption about your data collection into a threshold below which you have agreed not to speak.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A question is well scoped when the topological summary you plan to compute could in principle come out the other way. This is the step that separates a TDA analysis from a TDA demonstration.</p>
+
+<p class="cite">A note on sources. This unit's resources are listed as "self-directed" and tdlbook.org, and the second is a book on topological <em>deep</em> learning; Segment 3 says exactly what it does and does not supply. Everything mathematical below is cited to the texts this curriculum has already read, and everything methodological is either cited to a repository artifact or is the unit's own argument, marked as such.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>A claim, and the thing that would kill it</h2>
+
+<p>Start with the document the capstone answers to. <code>MISSION.md</code> lists four things that success looks like, and two of them are constraints on this unit's work:</p>
+
+<div class="definition">
+<p><strong>From MISSION.md, "Success looks like".</strong> "I can read a current TDA paper (e.g. on multiparameter persistence) and verify its main argument." — "I can explain the stability theorem for persistence diagrams and why it licenses the TDL pipeline's conclusions." <span class="cite">— MathUni <code>MISSION.md</code></span></p>
+</div>
+
+<p>Read the second one slowly. It does not say a stability theorem is nice to know. It says a conclusion must be one that a stability theorem <em>licenses</em> — which means there are conclusions that no stability theorem licenses, and that a well-scoped question is one that stays inside the licensed set. That is a mathematical constraint on the claim, available before any data is touched, and Segment 2 makes it a number.</p>
+
+<p>The first constraint is about evidence: verification is an operation on an argument and its hypotheses, so a claim has to be the sort of thing that has hypotheses to check. "The data has interesting topological structure" has none. It is not a claim; it is a mood. No observation contradicts it, because every barcode has bars.</p>
+
+<h3>The shape every claim in this curriculum has</h3>
+
+<p>Look at what the last three semesters actually proved. Every guarantee has the same form: <em>under hypotheses H, the computed object stands in relation R to the hidden object.</em> Not one is unconditional. Four examples you have already met, with their hypotheses in the open:</p>
+
+<table>
+<tr><th>Result</th><th>Hypotheses</th><th>What it licenses</th></tr>
+<tr><td>Theorem 6.3(a)</td><td>Finite P, Q in a common metric space</td><td>Diagram distance ≤ Hausdorff distance</td></tr>
+<tr><td>Theorem 6.11</td><td>X a smooth manifold, reach ρ(X), d<sub>H</sub>(P,X) ≤ ε, α in a stated window</td><td>rank im(i<sub>∗</sub>) = dim H<sub>∗</sub>(X)</td></tr>
+<tr><td>Theorem 6.13</td><td>X compact, ε &lt; (1/9)wfs(X), α in a stated window</td><td>H<sub>∗</sub>(X<sup>λ</sup>) ≅ im(j<sub>∗</sub>)</td></tr>
+<tr><td>Theorem 10.15</td><td>h, h′ : X → ℝ</td><td>Interleaving distance ≤ ‖h − h′‖<sub>∞</sub></td></tr>
+</table>
+
+<p>Two of the four require a quantity — the reach, the weak feature size — that cannot be computed from a sample. That is not a defect of the theorems; it is information about what a claim can be. It means a capstone claim invoking Theorem 6.11 or Theorem 6.13 is <em>conditional</em>, and scoping the question includes deciding what argument, from the acquisition process rather than from the data, will support the condition.</p>
+
+<div class="worked">
+<p><strong>Worked example: three claims, graded.</strong></p>
+<p><strong>Claim A.</strong> "Topology reveals hidden structure in the trajectory data." <em>Verdict: not a claim.</em> "Structure" is undefined, "reveals" names no measurement, and there is no observation that would contradict it. The tell is that you cannot write the falsifier down. Try: what output would make you say this was wrong? There is none, because every dataset has a barcode and every barcode has bars.</p>
+<p><strong>Claim B.</strong> "The trajectory embedding contains a persistent one-dimensional cycle." <em>Verdict: falsifiable in principle, unscoped in practice.</em> It names a dimension and an object, which is progress. But "persistent" has no threshold and no reference: persistent compared to what? Until both are fixed, the claim is decided by a choice you make after seeing the answer, which is the definition of unfalsifiable in practice.</p>
+<p><strong>Claim C.</strong> "The observed H<sub>1</sub> diagram lies further from second-order Markov surrogates, in 2-Wasserstein distance, than those surrogates lie from one another — for features of persistence above 2ε, with ε the assumed sampling accuracy." <em>Verdict: scoped.</em> It names a statistic (a Wasserstein distance, in the sense of Definition 13.8), a reference class (the surrogates), a dimension (H<sub>1</sub>), and a threshold (2ε, which Segment 2 derives). And it has an explicit falsifier: the observed-to-surrogate distance falls inside the surrogate-to-surrogate distribution.</p>
+<p><strong>The pattern.</strong> A → B added a dimension and an object. B → C added a statistic, a reference and a threshold. Those three are what turn a sentence into a question, and none of them is supplied by the mathematics — they are decisions, and the point of writing them before running anything is that afterwards you will not be able to tell which of them you chose because it was right and which because it worked.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why is "the trajectory embedding contains a persistent one-dimensional cycle" not yet a scoped claim?</p>
+<button onclick="check(this,true)" data-ok>Because "persistent" fixes neither a threshold nor a reference class, so the claim is settled by a choice made after seeing the output</button>
+<button onclick="check(this,false)">Because H<sub>1</sub> features are never reliable, so no claim about them can be scoped</button>
+<button onclick="check(this,false)">Because it does not say which coefficient field was used</button>
+<div class="explain">The defect is that the deciding quantity is undetermined at the time the claim is made — whatever bar you happen to see can be called persistent afterwards. H<sub>1</sub> features are perfectly claimable once a threshold and a reference exist, which is what Claim C supplies, so the second option overshoots. The coefficient field is a real parameter and belongs in the pre-registration, but its absence is not what stops this sentence being a claim.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Theorem 6.13 requires ε &lt; (1/9)wfs(X). What does that do to a claim invoking it?</p>
+<button onclick="check(this,false)">Nothing, once you compute wfs(X) from the point cloud</button>
+<button onclick="check(this,true)" data-ok>It makes the claim conditional on a quantity of the hidden set that the sample cannot supply, so the condition must appear in the claim and be argued for from the acquisition process</button>
+<button onclick="check(this,false)">It rules the claim out entirely, since an uncheckable hypothesis can never be assumed</button>
+<div class="explain">The weak feature size of Definition 6.10 is defined through the critical points of the distance field of the hidden compact set; it is not a statistic of the sample and there is nothing to compute. That does not forbid the claim — hypotheses about data can be argued for from how the data were acquired — but it does mean the hypothesis is part of what is being asserted, and hiding it in a footnote misrepresents the result. The third option is the overcorrection that would rule out most of applied mathematics.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>What the theorems let a claim be about</h2>
+
+<p>Now the number. Recall the two objects the pipeline builds from a finite sample P in a metric space.</p>
+
+<div class="definition">
+<p><strong>Definition 2.10 (Vietoris–Rips complex).</strong> For a finite metric space (P, d) and scale r, 𝕍ℝ<sup>r</sup>(P) is the complex whose simplices are the σ = {p<sub>0</sub>,…,p<sub>k</sub>} with d(p<sub>i</sub>, p<sub>j</sub>) ≤ 2r for all i, j. <span class="cite">— Dey &amp; Wang §2.2, Definition 2.10, p. 32</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.1 (Čech and Rips distances).</strong> For finite point sets P and Q, d<sub>Cech</sub>(P,Q) = max<sub>k</sub> d<sub>B</sub>(Dgm<sub>k</sub>𝒞(P), Dgm<sub>k</sub>𝒞(Q)) and d<sub>Rips</sub>(P,Q) = max<sub>k</sub> d<sub>B</sub>(Dgm<sub>k</sub>ℛ(P), Dgm<sub>k</sub>ℛ(Q)). <span class="cite">— Dey &amp; Wang §6.1, Definition 6.1, p. 181</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.2 (Hausdorff distance).</strong> For compact A, B ⊆ (Z, d<sub>Z</sub>), d<sub>H</sub>(A,B) = max{max<sub>a∈A</sub> d<sub>Z</sub>(a,B), max<sub>b∈B</sub> d<sub>Z</sub>(b,A)}. <span class="cite">— Dey &amp; Wang §6.1, Definition 6.2, p. 181</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 6.3(a).</strong> For finite P, Q ⊆ (Z, d<sub>Z</sub>): d<sub>Cech</sub>(P,Q) ≤ d<sub>H</sub>(P,Q) and d<sub>Rips</sub>(P,Q) ≤ d<sub>H</sub>(P,Q). <span class="cite">— Dey &amp; Wang §6.1, Theorem 6.3, p. 182</span></p>
+</div>
+
+<p>This is the theorem that converts a statement about your <em>data collection</em> into a statement about your <em>diagram</em>. Assume the sample is within ε of the thing it samples, in Hausdorff distance; then the diagrams are within ε in bottleneck distance, in every dimension. The question is what that buys, and the answer is not "every feature is pinned to within ε".</p>
+
+<h3>Visual: the band you have agreed not to speak inside</h3>
+
+<canvas id="epsCanvas" width="640" height="320" role="img" aria-label="A persistence diagram in the birth-death plane with the diagonal and a shaded band of vertical width two epsilon above it; points inside the band are drawn hollow to mark them as unclaimable"></canvas>
+<p style="text-align:center"><button onclick="toggleEps()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Pause / resume</button></p>
+<script>
+(function(){
+const cv=document.getElementById('epsCanvas'), ctx=cv.getContext('2d');
+const OX=70, OY=272, S=23;   // origin and units-to-pixels
+const PTS=[[0.4,8.6],[1.1,7.4],[2.0,5.2],[0.7,2.1],[3.1,4.4],[4.2,8.0],
+           [5.0,6.1],[2.6,3.4],[6.1,7.0],[1.6,2.4],[7.0,9.2],[3.8,4.6]];
+let eps=0.35, dir=1, run=true;
+function X(u){return OX+u*S;} function Y(v){return OY-v*S;}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#1b2b22';                                   // the unclaimable band
+  ctx.beginPath(); ctx.moveTo(X(0),Y(0)); ctx.lineTo(X(9.6),Y(9.6));
+  ctx.lineTo(X(9.6),Y(9.6+2*eps)); ctx.lineTo(X(0),Y(2*eps)); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='#2a333d'; ctx.lineWidth=1.4;              // axes
+  ctx.beginPath(); ctx.moveTo(X(0),Y(9.8)); ctx.lineTo(X(0),Y(0)); ctx.lineTo(X(9.8),Y(0)); ctx.stroke();
+  ctx.strokeStyle='#3a4652';                                  // diagonal
+  ctx.beginPath(); ctx.moveTo(X(0),Y(0)); ctx.lineTo(X(9.6),Y(9.6)); ctx.stroke();
+  ctx.strokeStyle='#4caf82'; ctx.setLineDash([5,4]);          // upper edge of the band
+  ctx.beginPath(); ctx.moveTo(X(0),Y(2*eps)); ctx.lineTo(X(9.6),Y(9.6+2*eps)); ctx.stroke();
+  ctx.setLineDash([]);
+  let keep=0;
+  PTS.forEach(function(p){ const claimable=(p[1]-p[0])>2*eps; if(claimable)keep++;
+    ctx.beginPath(); ctx.arc(X(p[0]),Y(p[1]), claimable?5.5:4, 0, 2*Math.PI);
+    if(claimable){ ctx.fillStyle='#d8a657'; ctx.fill(); }
+    else { ctx.strokeStyle='#5a6b7a'; ctx.lineWidth=1.5; ctx.stroke(); } });
+  ctx.font='13px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle='#9aa5b1';
+  ctx.fillText('death', X(0)-40, Y(9.6)); ctx.fillText('birth', X(9.2), Y(0)+20);
+  ctx.fillStyle='#4caf82'; ctx.fillText('d = b + 2ε', X(6.4), Y(7.9));
+  ctx.fillStyle='#d8a657'; ctx.fillText('claimable: '+keep+' of '+PTS.length, 400, 40);
+  ctx.fillStyle='#5a6b7a'; ctx.fillText('inside the band: matchable to the diagonal', 400, 62);
+  ctx.fillStyle='#9aa5b1'; ctx.fillText('sampling accuracy ε = '+eps.toFixed(2), 400, 20);
+}
+function step(){ if(run){ eps+=dir*0.012; if(eps>2.05){eps=2.05;dir=-1;} if(eps<0.2){eps=0.2;dir=1;} draw(); }
+  requestAnimationFrame(step); }
+window.toggleEps=function(){run=!run;};
+draw(); step();
+})();
+</script>
+
+<p>The shaded wedge is the set of diagram points with d − b ≤ 2ε. As the assumed sampling accuracy grows, the wedge swallows features, and the gold count falls. Nothing about the data changed; what changed is the accuracy you were willing to claim, and with it the number of things you are entitled to talk about. That is the whole of scoping in one picture.</p>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Let X be the hidden set, P your finite sample, and suppose d<sub>H</sub>(P, X) ≤ ε. (1) Using Theorem 6.3(a) and Definition 6.1, state precisely what follows about Dgm<sub>k</sub>ℛ(P) and Dgm<sub>k</sub>ℛ(X). (2) Recall that a bottleneck matching may send a diagram point to the diagonal at cost equal to its L<sub>∞</sub>-distance to it. Compute that distance for a point (b, d) and deduce the threshold below which a feature of your diagram may be absent from the true one. (3) State the resulting rule as a constraint on a research claim, and say what the rule does <em>not</em> say.</p>
+<p><em>Hint:</em> for (2), the closest diagonal point to (b, d) in the L<sub>∞</sub> metric is the midpoint ((b+d)/2, (b+d)/2).</p>
+<textarea class="proof-input" placeholder="Write your argument here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) What follows.</strong> Theorem 6.3(a) gives d<sub>Rips</sub>(P, X) ≤ d<sub>H</sub>(P, X) ≤ ε, and by Definition 6.1 d<sub>Rips</sub> is the maximum over k of the bottleneck distances between the k-th Rips diagrams. So for every k, d<sub>B</sub>(Dgm<sub>k</sub>ℛ(P), Dgm<sub>k</sub>ℛ(X)) ≤ ε: there exists a matching between the two diagrams in which no point moves more than ε in the L<sub>∞</sub> metric, where unmatched points are matched to the diagonal.</p>
+<p><strong>(2) The threshold.</strong> Fix a point (b, d) with b &lt; d. The diagonal is {(x, x)}, and the L<sub>∞</sub>-distance from (b, d) to (x, x) is max{|b − x|, |d − x|}, which is minimised by taking x midway, x = (b + d)/2, giving</p>
+<div class="math-block">dist<sub>∞</sub>((b, d), Δ) = (d − b)/2 = ½ · persistence.</div>
+<p>Now suppose (b, d) is a point of Dgm<sub>k</sub>ℛ(P) with (d − b)/2 ≤ ε. Then a matching that sends it to the diagonal pays at most ε for that point, which the bound permits. Hence the ε-bound is consistent with (b, d) having <em>no</em> partner in Dgm<sub>k</sub>ℛ(X) at all: the feature may be entirely absent from the true diagram. Contrapositively, a feature that is guaranteed to have a genuine partner is one that cannot be matched to the diagonal within budget, that is one with</p>
+<div class="math-block">persistence = d − b &gt; 2ε.</div>
+<p><strong>(3) The rule, and its limits.</strong> The rule: given an assumed sampling accuracy ε, a claim may be made only about features of persistence exceeding 2ε; below that threshold the theorem licenses nothing, and an assertion there is an assertion about the particular sample rather than about what it samples. Fix ε first, derive the threshold, and write both into the claim.</p>
+<p>What the rule does <em>not</em> say. It does not say a feature of persistence above 2ε is real — it says only that the stability bound alone cannot dispose of it; the feature could still be an artifact of the metric, the embedding, or the sampling scheme, none of which Theorem 6.3 speaks to. It does not say a feature below the threshold is absent from the truth; it says you cannot tell. And it says nothing about H<sub>∗</sub> of the hidden set: relating the diagram to the topology of X is Theorem 6.11's or Theorem 6.13's job, and those carry the further hypotheses on reach or weak feature size that no sample supplies. The rule is a filter on what may be discussed, not a warrant for what survives it.</p>
+</details>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 10.15.</strong> Given h, h′ : X → ℝ, the interleaving distance between the sublevel set persistent homology sequences is bounded by the L<sub>∞</sub> norm of the difference of the height functions: d(H<sub>k</sub>(X<sub>t</sub>), H<sub>k</sub>(X′<sub>t</sub>)) ≤ ‖h − h′‖<sub>∞</sub>. <span class="cite">— Ghrist §10.6, Theorem 10.15, p. 220</span></p>
+</div>
+
+<p>The same move, in the other setting. Theorem 6.3 converts an error in <em>where the points are</em> into a diagram bound; Theorem 10.15 converts an error in <em>what the function says about them</em> into one. Most real pipelines have both kinds of error, and a scoping document should name which one its ε is, because the two are not interchangeable and neither bounds the other.</p>
+
+<div class="definition">
+<p><strong>Definition 6.8 (local feature size; reach).</strong> The local feature size at x ∈ X is its distance to the medial axis of X; the reach ρ(X) is the minimum local feature size over X. <span class="cite">— Dey &amp; Wang §6.3.1, Definition 6.8, pp. 193–194</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.10 (weak feature size).</strong> With C the set of critical points of the generalized gradient ∇<sub>d</sub>, wfs(X) = min<sub>x∈X</sub> inf<sub>c∈C</sub> d(x,c). <span class="cite">— Dey &amp; Wang §6.3.1, Definition 6.10, p. 195</span></p>
+</div>
+
+<p>And the two theorems that need them: <strong>Theorem 6.11</strong>, which for a smooth manifold X of reach ρ(X) and a sample with d<sub>H</sub>(P,X) ≤ ε gives rank(im(i<sub>∗</sub>)) = dim(H<sub>∗</sub>(X)) for 3ε ≤ α ≤ (3/16)√(3/5)ρ(X); and <strong>Theorem 6.13</strong>, which for compact X with ε &lt; (1/9)wfs(X) gives H<sub>∗</sub>(X<sup>λ</sup>) ≅ im(j<sub>∗</sub>) for α in a stated window. Both are conditional on a number the sample cannot produce. Naming that number, and saying what would justify a bound on it, is part of scoping — not a caveat to be added at the end.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Your assumed sampling accuracy doubles from ε to 2ε. What happens to the set of claimable features?</p>
+<button onclick="check(this,true)" data-ok>The threshold doubles from 2ε to 4ε, so strictly fewer features remain claimable — the claim gets weaker without any data changing</button>
+<button onclick="check(this,false)">Nothing, since the diagram is a property of the data and does not depend on ε</button>
+<button onclick="check(this,false)">The threshold doubles but the conclusion is unaffected, since stability bounds are worst-case</button>
+<div class="explain">The diagram indeed does not depend on ε — but the set of features a theorem licenses you to discuss does, and that is what a claim is made of. Doubling the assumed error doubles the band and evicts every feature of persistence between 2ε and 4ε. The third option mistakes "worst-case" for "ignorable": a worst-case bound is exactly the one a claim must survive.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which of Theorem 6.3 and Theorem 10.15 applies when the points are right but the scalar field measured on them is noisy?</p>
+<button onclick="check(this,true)" data-ok>Theorem 10.15, which bounds the interleaving distance by ‖h − h′‖<sub>∞</sub> — Theorem 6.3 bounds a diagram distance by a Hausdorff distance between point sets and says nothing about function error</button>
+<button onclick="check(this,false)">Theorem 6.3, since a noisy function value can be absorbed into a perturbation of the points</button>
+<button onclick="check(this,false)">Either, since both bound bottleneck distance by a sup-norm</button>
+<div class="explain">The two theorems have different inputs: one takes d<sub>H</sub> between point sets, the other ‖h − h′‖<sub>∞</sub> between functions on a fixed space. Absorbing function noise into point positions is not free — it changes the metric and hence the complex — so the second option smuggles in an unstated assumption. The third is wrong on the face of it: d<sub>H</sub> is not a sup-norm on functions, and the conclusions are stated for different constructions.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Making "could come out the other way" operational</h2>
+
+<p>The threshold of Segment 2 says what a claim may be about. It does not say the claim is testable. For that you need a reference: a distribution of the statistic under the assumption that the claimed structure is <em>absent</em>. That is a null model, and the operational form of the mission strip is this — before the analysis runs, someone else must be able to name the output you have committed to reporting as failure.</p>
+
+<div class="definition">
+<p><strong>Definition 13.8 ((p,q)-Wasserstein distance).</strong> For persistence diagrams P and Q, d<sub>W,q</sub><sup>p</sup>(P,Q) := inf<sub>Π : P→Q</sub> [ Σ<sub>x∈P</sub> ‖x − Π(x)‖<sub>p</sub><sup>q</sup> ]<sup>1/q</sup>, over bijections Π. <span class="cite">— Dey &amp; Wang §13.3, Definition 13.8, p. 406</span></p>
+</div>
+
+<p>A statistic of this kind is what a null distribution is built for: compute it between the observed diagram and each surrogate, and separately between pairs of surrogates, and ask whether the first distribution sits outside the second.</p>
+
+<div class="worked fade">
+<p><strong>Worked example (faded): a null that does nothing.</strong> A proposed test: compute the H<sub>1</sub> Rips diagram of the point cloud; then permute the class labels attached to the points and recompute; repeat 1000 times.</p>
+<p><strong>Step 1 — what does the statistic consume?</strong> The diagram comes from the Rips filtration, and by Definition 2.10 the Rips complex is determined entirely by the <span class="gap">⟨your step: by what data?⟩</span>.</p>
+<p><strong>Step 2 — what does the null perturb?</strong> The labels, which are not among that data.</p>
+<p><strong>Step 3 — conclude.</strong> Every surrogate has exactly the same complex at every scale, hence exactly the same diagram, so the null distribution is a point mass at the observed value and the test has <span class="gap">⟨your step: how much power?⟩</span>. It will never reject, whatever is true.</p>
+<p><strong>Step 4 — the general rule.</strong> A null must perturb the object the statistic consumes. Diagnose a proposed null by tracing backwards from the statistic to the data it reads, and asking whether the perturbation touches that. If it does not, the surrogate is a copy of the observation wearing a different label.</p>
+<p class="cite">Gap solutions: the pairwise distances among the points; and no power at all.</p>
+</div>
+
+<p>Two more requirements follow, and neither is optional.</p>
+
+<p><strong>Nulls should differ in what they destroy.</strong> Two surrogates that break the same structure are one surrogate run twice. An order shuffle that destroys temporal sequence while preserving the marginal distribution of states, and a second-order Markov surrogate that preserves pairwise transition structure and destroys only what sits above it, are different tests; agreement between them is evidence and disagreement is informative. Two shuffles of the same kind tell you the variance of your estimator and nothing else.</p>
+
+<p><strong>A positive control is not optional.</strong> A null says what the statistic looks like when the structure is absent. A positive control — a synthetic dataset with a planted signal of known size, pushed through the identical pipeline — says what it looks like when the structure is present. Without one, a non-rejection is ambiguous between "no effect" and "no power", and those are not the same finding. The pattern to look for is the pair: null not rejected <em>and</em> positive control also not rejected. That study is uninformative, not negative, and reporting it as negative would be a mistake.</p>
+
+<div class="definition">
+<p><strong>From the rubric, as a model of pre-registration.</strong> <code>curriculum/LESSON-RUBRIC.md</code> fixes in advance what would count as failure, at four ordered gates. Gate 0 is "model-agnostic, free, run before a human looks. Any FAIL ⇒ reject, do not score further." Gate 2 is the correctness gate: "The one gate no script can run and the whole batch leans on. Any single defect here fails the lesson outright, whatever Gates 1/3 look like." <span class="cite">— MathUni <code>curriculum/LESSON-RUBRIC.md</code>, Gate 0 and Gate 2</span></p>
+</div>
+
+<p>That document is worth reading as an example of the artifact this unit is asking you to produce, in a different domain. It states the checks before the work exists, orders them, says which are mechanical and which require judgement, and — the part most pre-registrations omit — says explicitly what passing the cheap gate does <em>not</em> establish: "Gate 0 proves form and mention, never truth." A falsifiability plan that is only a threshold on a p-value is a Gate 0. Most plans need a Gate 2 row as well: a named human check that the statistic's hypotheses hold on this data.</p>
+
+<div class="warn">
+<p><strong>What tdlbook.org supplies, and what it does not.</strong> This unit's resources name tdlbook.org, and <code>resources/RESOURCES.md</code> records it as the "Topological Deep Learning book … Reserve for Semester 4 / capstone alongside the TDL project". It is <em>Topological Deep Learning: Going Beyond Graph Data</em> — combinatorial complexes and combinatorial complex neural networks, higher-order message passing, pooling and unpooling, applications to mesh segmentation and classification, with software in TopoNetX, TopoEmbedX and TopoModelX. It contains no persistent homology, no filtrations, no persistence diagrams and no stability theorems; no guidance on scoping or designing a study; and no null models or hypothesis testing. Mapper appears — §7.4 "Mapper and the CC-pooling operation", §9.4 "Pooling with mapper on graphs and data classification", and Appendix E — but as a pooling operation inside a neural architecture, not as a topological summary of data in tda2-07's sense. So the book supports the framing that data need not be a graph, and offers one genuine point of contact with tda2-07; it supports none of this unit's methodology, which comes from the theorems cited above and from the argument here. Note the name collision that makes this easy to get wrong: "TDL" in cap-02's title is the <em>TDL project</em> of <code>MISSION.md</code>, a persistent-homology pipeline, not Topological Deep Learning.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Take the question a colleague proposes: <em>"Does topological data analysis reveal structure in the trajectory data that clustering misses?"</em> (i) Name every respect in which it is not yet scoped — there are at least four. (ii) Rewrite it as a claim with a statistic, a reference class, a dimension and a threshold. (iii) Suppose your sampling accuracy is ε = 0.4 in the embedding's metric. State the persistence threshold and say what you will do about features just below it. (iv) Design two nulls that destroy different structure, name the positive control, and write the decision rule. (v) Finally, list three things your rewritten claim cannot settle, each with its reason — and check that at least one of the reasons is a hypothesis of a theorem rather than a limitation of the data.</p>
+<p><em>Hint:</em> for (v), the reach and the weak feature size are the obvious candidates, and "the design compares against surrogates, and surrogates are not interventions" is the third.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> A study reports: null not rejected, positive control also not rejected. What has been learned?</p>
+<button onclick="check(this,false)">That the claimed structure is absent — the null survived</button>
+<button onclick="check(this,true)" data-ok>Nothing about the structure: the positive control's failure means the test could not have detected the signal, so the non-rejection is uninformative rather than negative</button>
+<button onclick="check(this,false)">That the positive control was badly designed, since a correct one always rejects</button>
+<div class="explain">This is exactly the pair the positive control exists to detect. A test that cannot find a planted signal of known size tells you nothing when it fails to find an unplanted one, so reporting "no effect" would be a misreading. The third option inverts the logic: a positive control that fails is evidence about the pipeline, and diagnosing whether the fault is the control's design or the pipeline's power is the next task, not a reason to discard the observation.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Which of these is the best evidence that a question was scoped rather than rationalised?</p>
+<button onclick="check(this,false)">The conclusion is stated with confidence intervals</button>
+<button onclick="check(this,true)" data-ok>A dated document, written before the analysis ran, in which someone other than the analyst could name the output that would have counted as failure</button>
+<button onclick="check(this,false)">The parameters were all swept, so no choice was arbitrary</button>
+<div class="explain">The operational test in the mission strip is about the design, and the only durable evidence that a design preceded a result is a dated record of it — the difference between a plan and a summary is not visible from the document unless the document says so. Confidence intervals are a property of the reporting, not of the design. Sweeping every parameter is excellent practice and still leaves the claim unfixed: a sweep with no pre-registered decision rule lets the analyst choose the sweep point that worked.</div>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What distinguishes a claim from a mood, and the three things that turn a sentence into a question.</li>
+<li>The derivation that turns an assumed sampling accuracy into a threshold, and exactly what the threshold licenses.</li>
+<li>What a null must perturb, what a positive control adds, and the outcome pattern that means nothing was learned.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) a claim has a falsifier you can write down before running anything, and the three additions are a statistic, a reference class and a threshold — with MISSION.md demanding that the conclusion be one a stability theorem licenses; (2) d<sub>H</sub>(P,X) ≤ ε gives d<sub>B</sub> ≤ ε in every dimension by Theorem 6.3(a) and Definition 6.1, the L<sub>∞</sub>-distance from (b,d) to the diagonal is (d−b)/2, so any feature of persistence at most 2ε can be matched away and only features above 2ε may be claimed — while Theorem 10.15 does the same job for function error, and Theorems 6.11 and 6.13 add conditions on the reach and weak feature size that no sample supplies; (3) a null must perturb the object the statistic consumes — label shuffling leaves a Rips diagram identical by Definition 2.10 — nulls should destroy different structure, a positive control distinguishes "no effect" from "no power", and null-not-rejected together with control-not-rejected means the study is uninformative, not negative — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources. This unit has no textbook; its claims bind to three things. <strong>Repository artifacts:</strong> MathUni <code>MISSION.md</code>, the "Success looks like" criteria, quoted for the two that constrain a capstone claim and its evidence; <code>curriculum/LESSON-RUBRIC.md</code>, Gate 0 and Gate 2, used as a worked example of a document that fixes in advance what counts as failure and states what the cheap gate does not establish; <code>resources/RESOURCES.md</code>, the "Capstone resource" note recording tdlbook.org and its intended role. <strong>Theorems already proved in this curriculum, cited to their texts:</strong> Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — Definition 2.10 on the Vietoris–Rips complex (§2.2, p. 32); Definition 6.1 on the Čech and Rips distances and Definition 6.2 on the Hausdorff distance (§6.1, p. 181); Theorem 6.3 on their stability (§6.1, p. 182); Definition 6.8 on local feature size and reach (§6.3.1, pp. 193–194); Definition 6.10 on the weak feature size (§6.3.1, p. 195); Theorem 6.11 for smooth manifolds (§6.3.2, pp. 196–197); Theorem 6.13 for compact sets (§6.3.3, p. 198); Definition 13.8 on the (p,q)-Wasserstein distance (§13.3, p. 406). Ghrist, <em>Elementary Applied Topology</em> — Theorem 10.15 on the stability of sublevel set persistence under sup-norm perturbation of the height function (§10.6, p. 220). <strong>tdlbook.org</strong>, <em>Topological Deep Learning: Going Beyond Graph Data</em> — its table of contents, and §7.4, §9.4 and Appendix E for Mapper as a CC-pooling operation; consulted and reported on in Segment 3. Supplied here, not in any source: the derivation converting an assumed Hausdorff sampling accuracy ε into the persistence threshold 2ε, which chains Theorem 6.3(a) with the definition of the bottleneck distance and the L<sub>∞</sub>-distance from a diagram point to the diagonal — no source states this as a scoping rule, and the guided proof gives it in full; and the methodological content of Segments 1 and 3, which is this unit's own argument, marked as such throughout. Not established here: that any particular feature surviving the 2ε threshold is real. The threshold is a filter on what may be discussed, not a warrant for what passes it — artifacts of the metric, the embedding or the sampling scheme are outside what Theorem 6.3 speaks to, and relating a diagram to the topology of a hidden set is Theorem 6.11's or Theorem 6.13's job, under hypotheses no sample supplies. Also not established here: any methodology from tdlbook.org, which contains no persistent homology, no study design and no null models, as Segment 3 records.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
