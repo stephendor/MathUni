@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-09 — Kernels, vectorisation, and topological loss functions</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Kernels, vectorisation, and topological loss functions <span class="cite">(tda2-09)</span></h1>
+
+<div class="hook">
+You cannot average two persistence diagrams. There is no sum, no scalar multiple, no inner product — and every machine learning pipeline you own assumes all three.
+<p>The space of diagrams with the bottleneck or Wasserstein distance is a perfectly good metric space and nothing more. Dey and Wang open the chapter by naming exactly that defect: it "lacks (e.g., inner product) structure, which can pose challenges when used within a machine learning framework". Everything in §13.1 is a way of mapping diagrams somewhere that does have the missing structure, and every such map is a lossy bargain.</p>
+<p>The second half of the chapter reverses the arrow. Instead of measuring topology after training, put a topological term in the loss and differentiate through it — which requires knowing when a persistence diagram is a differentiable function of a model's parameters, and that is a more delicate question than it sounds.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> To do gradient descent on a persistence-based loss you must differentiate the birth and death values with respect to the model parameters ω. Predict what §13.2 actually proves about that.</p>
+<button onclick="check(this,false)">That the set of ω at which the diagram fails to be differentiable has measure zero, so the loss is differentiable almost everywhere</button>
+<button onclick="check(this,true)" data-ok>Something local and conditional: where f<sub>ω</sub> is PL on a finite complex with <em>all vertex values distinct</em>, the map back to vertices is locally constant, so each b<sub>i</sub> equals f<sub>ω</sub> at a fixed vertex and is differentiable there — with nothing said about how large the exceptional set is</button>
+<button onclick="check(this,false)">Nothing — the map from a function to its diagram has no inverse, so no derivative exists and one must use a surrogate</button>
+<div class="explain">Proposition 13.9 is the whole content and it is a statement about a <em>neighbourhood</em> of a good ω, under a genericity hypothesis on vertex values. It licenses the chain rule at such parameters and says nothing at all about the size or structure of the set where two vertex values collide. The third option correctly notes that the map from f<sub>ω</sub> to Dgm f<sub>ω</sub> has no inverse — Dey and Wang say so — but the repair is not a surrogate: it is to map birth and death values back to <em>vertices</em> rather than to functions, which Theorem 3.16 makes possible for a PL-function.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The space of diagrams (tda1-05) is a metric space but not a Hilbert space, which is precisely why lab-06's landscapes, images and kernels exist — and each carries its own stability constant against the bottleneck or Wasserstein distance. Persistence-based loss functions are differentiable almost everywhere, which is what allows topology to be optimised inside a model rather than only measured after it.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Landscapes: a diagram as a function</h2>
+
+<p>Write 𝔻 for the space of bounded, finite persistence diagrams. The first construction, and still the cleanest, turns a diagram into a function.</p>
+
+<div class="definition">
+<p><strong>Definition 13.1 (persistence landscape).</strong> Given a finite persistence diagram D = {(b<sub>i</sub>, d<sub>i</sub>)}<sub>i∈[1,n]</sub> from 𝔻, the persistence landscape with respect to D is the function λ<sub>D</sub> : ℕ × ℝ → ℝ where</p>
+<div class="math-block">λ<sub>D</sub>(k, t) := k-th largest value of [min{t − b<sub>i</sub>, d<sub>i</sub> − t}]<sub>+</sub> for i ∈ [1, n],</div>
+<p>with [c]<sub>+</sub> = max(c, 0). <span class="cite">— Dey &amp; Wang §13.1.1, Definition 13.1, p. 391</span></p>
+</div>
+
+<p>The picture is the definition. Each point (b<sub>i</sub>, d<sub>i</sub>) traces out a tent: the curve {(t, [min{t − b<sub>i</sub>, d<sub>i</sub> − t}]<sub>+</sub>) | t ∈ ℝ} rises from (b<sub>i</sub>, 0) to an apex at the midpoint of the interval, at height half its persistence, and falls back to (d<sub>i</sub>, 0). There are n such tents, and λ<sub>D</sub>(k, ·) is the k-th upper envelope of their arrangement — the boundary of the k-th layer. For k &gt; n no point of the line is covered k times, so λ<sub>D</sub>(k, ·) ≡ 0.</p>
+
+<h3>Visual: the tents and their envelopes</h3>
+
+<canvas id="lsCanvas" width="640" height="310" role="img" aria-label="Left: a persistence diagram with four points above the diagonal, one of which moves; right: the tent functions of those points and the first three landscape envelopes"></canvas>
+<p style="text-align:center"><button onclick="toggleLs()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Pause / resume</button></p>
+<script>
+(function(){
+const cv=document.getElementById('lsCanvas'), ctx=cv.getContext('2d');
+const LX=52, LY=252, LS=20;            // left panel origin and scale (10 units wide)
+const RX=350, RY=258, RSX=26, RSY=34;  // right panel origin and scales
+const FIX=[[1,7],[2,5],[5,9]], COL=['#8ab4f8','#4caf82','#d8a657'];
+let dm=8.6, dir=-1, run=true;
+function pts(){ return FIX.concat([[3.5, dm]]); }
+function lam(k,t,P){ const v=P.map(function(p){return Math.max(Math.min(t-p[0], p[1]-t),0);});
+  v.sort(function(a,b){return b-a;}); return v[k-1]===undefined?0:v[k-1]; }
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const P=pts();
+  ctx.strokeStyle='#2a333d'; ctx.lineWidth=1.2;                       // left axes + diagonal
+  ctx.beginPath(); ctx.moveTo(LX,LY-200); ctx.lineTo(LX,LY); ctx.lineTo(LX+200,LY); ctx.stroke();
+  ctx.strokeStyle='#3a4652'; ctx.beginPath(); ctx.moveTo(LX,LY); ctx.lineTo(LX+200,LY-200); ctx.stroke();
+  P.forEach(function(p,i){ ctx.fillStyle = i===3 ? '#e06c75' : '#9aa5b1';
+    ctx.beginPath(); ctx.arc(LX+p[0]*LS, LY-p[1]*LS, 5, 0, 2*Math.PI); ctx.fill(); });
+  ctx.strokeStyle='#2a333d';                                          // right axis
+  ctx.beginPath(); ctx.moveTo(RX,RY-180); ctx.lineTo(RX,RY); ctx.lineTo(RX+264,RY); ctx.stroke();
+  ctx.strokeStyle='#39434e'; ctx.lineWidth=1;                         // the tents themselves
+  P.forEach(function(p){ ctx.beginPath();
+    ctx.moveTo(RX+p[0]*RSX, RY); ctx.lineTo(RX+(p[0]+p[1])/2*RSX, RY-(p[1]-p[0])/2*RSY);
+    ctx.lineTo(RX+p[1]*RSX, RY); ctx.stroke(); });
+  for(let k=1;k<=3;k++){                                              // the k-th envelopes
+    ctx.strokeStyle=COL[k-1]; ctx.lineWidth=2; ctx.beginPath();
+    for(let s=0;s<=264;s++){ const t=s/RSX, y=RY-lam(k,t,P)*RSY;
+      if(s===0) ctx.moveTo(RX+s,y); else ctx.lineTo(RX+s,y); }
+    ctx.stroke(); }
+  ctx.font='13px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle='#9aa5b1';
+  ctx.fillText('the diagram D  (red point moves)', LX-8, 26);
+  ctx.fillText('tents, and the envelopes', RX, 26);
+  COL.forEach(function(c,i){ ctx.fillStyle=c; ctx.fillText('λ'+(i+1), RX+206+i*22, 44); });
+  ctx.fillStyle='#9aa5b1'; ctx.fillText('birth', LX+176, LY+18); ctx.fillText('t', RX+252, RY+18);
+}
+function step(){ if(run){ dm+=dir*0.035; if(dm>9.4){dm=9.4;dir=-1;} if(dm<4.6){dm=4.6;dir=1;} draw(); }
+  requestAnimationFrame(step); }
+window.toggleLs=function(){run=!run;};
+draw(); step();
+})();
+</script>
+
+<p>Watch the red point and the envelopes together. Moving one death coordinate by δ moves its tent by δ and therefore moves every envelope by at most δ — which is Theorem 13.1 below, seen rather than proved. Note also how a point close to the diagonal makes a short flat tent that contributes almost nothing: low-persistence noise is quietly demoted, without anyone having thresholded it away.</p>
+
+<p>Landscapes live in a normed space, which is the entire point. Put</p>
+<div class="math-block">‖λ<sub>D</sub>‖<sub>p</sub><sup>p</sup> = Σ<sub>k=1</sub><sup>∞</sup> ‖λ<sub>D</sub>(k, ·)‖<sub>p</sub><sup>p</sup>, &nbsp;&nbsp; Λ<sub>p</sub>(D<sub>1</sub>, D<sub>2</sub>) = ‖λ<sub>D<sub>1</sub></sub> − λ<sub>D<sub>2</sub></sub>‖<sub>p</sub>.</div>
+<p>Landscapes of finite diagrams lie in the L<sup>p</sup>-space 𝓛<sup>p</sup>(ℕ × ℝ), and for p = 2 that is a Hilbert space — the missing structure, recovered.</p>
+
+<div class="theorem">
+<p><strong>Claim 13.1.</strong> Given a persistence diagram D, let λ<sub>D</sub> be its persistence landscape. Then from λ<sub>D</sub> one can uniquely recover the persistence diagram D. <span class="cite">— Dey &amp; Wang §13.1.1, Claim 13.1, p. 392</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 13.1.</strong> For persistence diagrams D and D′, Λ<sub>∞</sub>(D, D′) ≤ d<sub>B</sub>(D, D′). <span class="cite">— Dey &amp; Wang §13.1.1, Theorem 13.1, p. 393</span></p>
+</div>
+
+<p>So the map D ↦ λ<sub>D</sub> is injective and 1-Lipschitz against the bottleneck distance — lossless and stable, which is as good as this subject gets. Dey and Wang note further results for Λ<sub>p</sub> against the p-th Wasserstein distance, and for diagrams induced by tame Lipschitz functions.</p>
+
+<div class="worked fade">
+<p><strong>Worked example (faded): a landscape by hand.</strong> Take D = {(1, 7), (2, 5)} and compute λ<sub>D</sub>(1, t) and λ<sub>D</sub>(2, t) at t = 3 and t = 4.</p>
+<p><strong>At t = 3.</strong> The first point contributes [min{3 − 1, 7 − 3}]<sub>+</sub> = [min{2, 4}]<sub>+</sub> = 2. The second contributes [min{3 − 2, 5 − 3}]<sub>+</sub> = [min{1, 2}]<sub>+</sub> = 1. Sorting descending, λ<sub>D</sub>(1, 3) = 2 and λ<sub>D</sub>(2, 3) = <span class="gap">⟨your step: what value?⟩</span>.</p>
+<p><strong>At t = 4.</strong> The first gives [min{3, 3}]<sub>+</sub> = 3; the second gives [min{2, 1}]<sub>+</sub> = 1. So λ<sub>D</sub>(1, 4) = 3, λ<sub>D</sub>(2, 4) = 1.</p>
+<p><strong>Outside the intervals.</strong> At t = 0 both minima are negative, so both are clipped by [·]<sub>+</sub> to 0 and λ<sub>D</sub>(k, 0) = 0 for every k. And λ<sub>D</sub>(k, ·) ≡ 0 for every k &gt; <span class="gap">⟨your step: which threshold?⟩</span>, since there are only that many tents.</p>
+<p><strong>Recovering D.</strong> Claim 13.1 says this is reversible. λ<sub>D</sub>(1, ·) has apex 3 at t = 4, and a tent with apex h at t = m came from the point (m − h, m + h) = (1, 7). Peel that tent off and repeat on the rest.</p>
+<p class="cite">Gap solutions: λ<sub>D</sub>(2, 3) = 1; and the threshold is k &gt; 2, the number of points of D.</p>
+</div>
+
+<p>One caveat, and it recurs. The landscape map is injective but far from surjective: a function λ : ℕ × ℝ → ℝ need not be the image of any valid diagram. In particular the <em>mean landscape</em> of D<sub>1</sub>, …, D<sub>ℓ</sub>,</p>
+<div class="math-block">λ̄(k, t) = (1/ℓ) Σ<sub>i=1</sub><sup>ℓ</sup> λ<sub>D<sub>i</sub></sub>(k, t),</div>
+<p>is easy to compute and may correspond to no persistence diagram at all. That is the cost of leaving 𝔻 for a linear space: you gain arithmetic and lose the guarantee that your answers are diagrams. Segment 3's Fréchet mean is the opposite bargain — it stays inside 𝔻 and gives up uniqueness.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does the mean landscape not contradict Claim 13.1?</p>
+<button onclick="check(this,true)" data-ok>Claim 13.1 asserts injectivity, so the map has a left inverse on its image; averaging can leave that image, and nothing was claimed about surjectivity</button>
+<button onclick="check(this,false)">Because the mean landscape is not in 𝓛<sup>p</sup>(ℕ × ℝ), so Claim 13.1 does not apply to it</button>
+<button onclick="check(this,false)">Because Claim 13.1 holds only for diagrams with distinct persistence values</button>
+<div class="explain">Injectivity constrains the map on its image and says nothing about which functions are in that image. A convex combination of landscapes is perfectly good as a function — it is in 𝓛<sup>p</sup>, so the second option is false — and it simply need not be a landscape. Nothing in Claim 13.1 assumes distinct persistence values.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A diagram point moves distance δ. By how much can λ<sub>D</sub>(3, ·) change in sup-norm?</p>
+<button onclick="check(this,false)">Up to 3δ, since the third envelope sits under three tents</button>
+<button onclick="check(this,true)" data-ok>At most δ: Theorem 13.1 bounds Λ<sub>∞</sub> — which is the sup over all k and t — by the bottleneck distance</button>
+<button onclick="check(this,false)">Unboundedly, since a small move can change which tent is third</button>
+<div class="explain">Λ<sub>∞</sub>(D, D′) = ‖λ<sub>D</sub> − λ<sub>D′</sub>‖<sub>∞</sub> is a supremum over every layer k and every t, so Theorem 13.1's bound applies to λ<sub>D</sub>(3, ·) as much as to λ<sub>D</sub>(1, ·) — with no factor of k. The third option names something real, that the identity of the third-largest tent can switch, but that switch happens exactly where two values are equal, so the envelope itself does not jump.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Kernels: a diagram as an inner product</h2>
+
+<div class="definition">
+<p><strong>Definition 13.2 (positive, negative semidefinite kernel).</strong> Given a topological space X, a function k : X × X → ℝ is a <em>positive semidefinite kernel</em> if it is symmetric and for any integer n &gt; 0, any x<sub>1</sub>,…,x<sub>n</sub> ∈ X and any a<sub>1</sub>,…,a<sub>n</sub> ∈ ℝ with Σ<sub>i</sub> a<sub>i</sub> = 0, it holds that Σ<sub>i,j</sub> a<sub>i</sub>a<sub>j</sub> k(x<sub>i</sub>,x<sub>j</sub>) ≥ 0. Analogously k is <em>negative semidefinite</em> if under the same conditions Σ<sub>i,j</sub> a<sub>i</sub>a<sub>j</sub> k(x<sub>i</sub>,x<sub>j</sub>) ≤ 0. <span class="cite">— Dey &amp; Wang §13.1.2, Definition 13.2, p. 393</span></p>
+</div>
+
+<p>The apparatus around it is standard and worth stating once. Given a set X and a Hilbert space ℋ of real-valued functions on X, the <em>evaluation functional</em> at x is L<sub>x</sub> : ℋ → ℝ, L<sub>x</sub>(f) = f(x); ℋ is a <em>reproducing kernel Hilbert space</em> if L<sub>x</sub> is continuous for every x. Given a positive semidefinite kernel k there is a unique RKHS ℋ<sub>k</sub> with k(x,y) = ⟨k(·,x), k(·,y)⟩<sub>ℋ<sub>k</sub></sub>, and k is its <em>reproducing kernel</em>. Equivalently a kernel is an inner product after a feature map Φ : X → ℋ, and it induces</p>
+<div class="math-block">d<sub>k</sub><sup>2</sup>(x,y) := k(x,x) + k(y,y) − 2k(x,y), &nbsp;&nbsp; equivalently d<sub>k</sub>(x,y) = ‖x − y‖<sub>ℋ</sub>,</div>
+<p>a <em>pseudo</em>metric: d(x,y) = 0 need not force x = y, since a feature map need not be injective.</p>
+
+<h3>Worked example: the persistence scale space kernel, end to end</h3>
+
+<div class="worked">
+<p><strong>Step 1 — where the features live.</strong> Let Ω = {x = (x<sub>1</sub>,x<sub>2</sub>) ∈ ℝ<sup>2</sup> | x<sub>2</sub> ≥ x<sub>1</sub>} be the closed half-plane on or above the diagonal, and recall that 𝓛<sup>2</sup>(Ω) is a Hilbert space. Diagrams will be mapped to functions on Ω.</p>
+<div class="definition">
+<p><strong>Definition 13.3 (persistence scale space kernel).</strong> Define the feature map Φ<sub>σ</sub> : 𝔻 → 𝓛<sup>2</sup>(Ω) at scale σ &gt; 0 by</p>
+<div class="math-block">Φ<sub>σ</sub>(D)(x) = (1/4πσ) Σ<sub>y∈D</sub> [e<sup>−‖x−y‖²/4σ</sup> − e<sup>−‖x−ȳ‖²/4σ</sup>],</div>
+<p>where ȳ = (y<sub>2</sub>, y<sub>1</sub>) is the reflection of y across the diagonal. The induced kernel is</p>
+<div class="math-block">k<sub>σ</sub>(D,E) = ⟨Φ<sub>σ</sub>(D), Φ<sub>σ</sub>(E)⟩<sub>𝓛²(Ω)</sub> = (1/8πσ) Σ<sub>y∈D; z∈E</sub> [e<sup>−‖y−z‖²/8σ</sup> − e<sup>−‖y−z̄‖²/8σ</sup>].</div>
+<p><span class="cite">— Dey &amp; Wang §13.1.2, Definition 13.3 and Eq. (13.2), p. 394</span></p>
+</div>
+<p><strong>Step 2 — read the reflected term.</strong> Each diagram point places a Gaussian bump at y and a negative bump at its mirror image ȳ. On the diagonal the two are equidistant, so they cancel exactly and the feature function vanishes there. A point of tiny persistence sits near the diagonal, so its positive and negative bumps nearly cancel and it contributes almost nothing. Low-persistence noise is suppressed by the geometry of the construction rather than by a threshold.</p>
+<p><strong>Step 3 — positive definiteness is free.</strong> k<sub>σ</sub> was <em>defined</em> as an inner product of feature vectors in a Hilbert space, so Definition 13.2's condition holds automatically: Σ<sub>i,j</sub> a<sub>i</sub>a<sub>j</sub>⟨Φ(D<sub>i</sub>), Φ(D<sub>j</sub>)⟩ = ‖Σ<sub>i</sub> a<sub>i</sub>Φ(D<sub>i</sub>)‖² ≥ 0. This is the general lesson about feature-map constructions and it is why Segment 2's later kernels, which are not built from a feature map, need Theorem 13.4 instead.</p>
+<p><strong>Step 4 — the price, and what it is measured against.</strong></p>
+<div class="theorem">
+<p><strong>Theorem 13.2.</strong> Given two persistence diagrams D, E ∈ 𝔻, ‖Φ<sub>σ</sub>(D) − Φ<sub>σ</sub>(E)‖<sub>𝓛²(Ω)</sub> ≤ (1/2πσ) d<sub>W,1</sub>(D,E). <span class="cite">— Dey &amp; Wang §13.1.2, Theorem 13.2, p. 394</span></p>
+</div>
+<p><strong>Step 5 — the trade the constant encodes.</strong> The Lipschitz constant is 1/(2πσ), and it is against the 1-Wasserstein distance, not the bottleneck distance. Both facts matter. Small σ means sharp Gaussians and a feature that distinguishes nearby points well — and a Lipschitz constant that blows up, so the same feature reacts violently to a small perturbation of the diagram. Resolution and stability are the two ends of one parameter, and choosing σ is choosing where on that line to sit.</p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 13.4 (persistence image).</strong> Let T(x,y) = (x, y − x) and T(D) the transformed diagram; let φ<sub>u</sub> be a differentiable probability distribution with mean u. For a nonnegative weight function ω : ℝ<sup>2</sup> → ℝ, the <em>persistence surface</em> of D is μ<sub>D</sub>(z) := Σ<sub>u∈T(D)</sub> ω(u)φ<sub>u</sub>(z). Fixing a grid of N pixels 𝖯 on a rectangle, the <em>persistence image</em> is I<sub>D</sub> = {I<sub>D</sub>[𝗉]}<sub>𝗉∈𝖯</sub> with I<sub>D</sub>[𝗉] := ∫<sub>𝗉</sub> μ<sub>D</sub> dx dy, a vector in ℝ<sup>N</sup>. <span class="cite">— Dey &amp; Wang §13.1.3, Definition 13.4, p. 395. The displayed integrand there reads ρ<sub>D</sub>; Eq. (13.3) defines the surface as μ<sub>D</sub>, which is what is integrated.</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 13.3.</strong> Suppose persistence images are computed with the normalised Gaussian of variance σ² and weight function ω. Then for finite bounded diagrams D and E,</p>
+<div class="math-block">‖I<sub>D</sub> − I<sub>E</sub>‖<sub>1</sub> ≤ (√5 |∇ω| + √(10/π) ‖ω‖<sub>∞</sub>/σ) · d<sub>W,1</sub>(D, E),</div>
+<p>where |∇ω| = sup<sub>z∈ℝ²</sub>‖∇ω‖<sub>2</sub>; the same bound holds for ‖·‖<sub>2</sub> and ‖·‖<sub>∞</sub>. <span class="cite">— Dey &amp; Wang §13.1.3, Theorem 13.3, p. 395</span></p>
+</div>
+
+<p>Again the constant degrades as σ → 0, and now it also depends on the weight function twice over — through its sup-norm and through its gradient. Dey and Wang's suggested choice for ω(u) is the persistence |b − d| of the point u = (b,d), which lets high-persistence features dominate the picture.</p>
+
+<div class="definition">
+<p><strong>Definition 13.5 (persistence weighted kernel).</strong> Let k : Ω → ℝ be a C<sub>0</sub>-universal kernel on Ω and ω : Ω → ℝ<sup>+</sup> strictly positive. The feature map Ψ<sub>k,ω</sub> : 𝔻 → ℋ<sub>k</sub> is Ψ<sub>k,ω</sub>(D) = Σ<sub>x∈D</sub> ω(x)k(·,x), and it induces</p>
+<div class="math-block">K<sub>k,ω</sub>(D,E) = ⟨Ψ<sub>k,ω</sub>(D), Ψ<sub>k,ω</sub>(E)⟩<sub>ℋ<sub>k</sub></sub> = Σ<sub>x∈D; y∈E</sub> ω(x)ω(y)k(x,y).</div>
+<p><span class="cite">— Dey &amp; Wang §13.1.4, Definition 13.5, p. 396</span></p>
+</div>
+
+<p>A kernel on a locally compact Hausdorff X is a C<sub>0</sub>-<em>kernel</em> if k(·,x) lies in C<sub>0</sub>(X), the continuous functions vanishing at infinity, and C<sub>0</sub>-<em>universal</em> if additionally ℋ<sub>k</sub> is dense in C<sub>0</sub>(X); the Gaussian kernel is C<sub>0</sub>-universal on ℝ<sup>d</sup>. Universality earns something concrete: viewing D as the weighted discrete measure μ<sub>D</sub><sup>ω</sup> = Σ<sub>x∈D</sub> ω(x)δ<sub>x</sub>, the map Ψ<sub>k,ω</sub> is the kernel mean embedding, and for a C<sub>0</sub>-universal k that embedding is injective — so the induced distance is a proper metric, not merely a pseudometric. Taking ω<sub>arc</sub>(x) = arctan(C·pers(x)<sup>p</sup>) and the 2D Gaussian gives the <em>persistence weighted Gaussian kernel</em>; putting a Gaussian on top of the RKHS representation instead of a linear kernel gives the (k,ω)-Gaussian kernel.</p>
+
+<h3>Kernels built from a distance instead of a feature map</h3>
+
+<div class="theorem">
+<p><strong>Theorem 13.4.</strong> Given X and φ : X × X → ℝ, the kernel φ is negative semidefinite if and only if e<sup>−tφ</sup> is positive semidefinite for all t &gt; 0. <span class="cite">— Dey &amp; Wang §13.1.5, Theorem 13.4, p. 398</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 13.6 (sliced Wasserstein distance).</strong> For a unit vector θ ∈ 𝕊<sup>1</sup> let L(θ) = {λθ} and π<sub>θ</sub> the orthogonal projection onto it. For diagrams D and E set μ<sub>D</sub><sup>θ</sup> := Σ<sub>p∈D</sub> δ<sub>π<sub>θ</sub>(p)</sub> and μ̄<sub>D</sub><sup>θ</sup> := Σ<sub>p∈D</sub> δ<sub>π<sub>θ</sub>∘π<sub>Δ</sub>(p)</sub>, where π<sub>Δ</sub> is the orthogonal projection onto the diagonal, and symmetrically for E. Then</p>
+<div class="math-block">d<sub>SW</sub>(D,E) := (1/2π) ∫<sub>𝕊¹</sub> 𝒲(μ<sub>D</sub><sup>θ</sup> + μ̄<sub>E</sub><sup>θ</sup>, μ<sub>E</sub><sup>θ</sup> + μ̄<sub>D</sub><sup>θ</sup>) dθ.</div>
+<p><span class="cite">— Dey &amp; Wang §13.1.5, Definition 13.6, p. 398</span></p>
+</div>
+
+<p>Here 𝒲 is the 1-Wasserstein distance between measures on the line. The crossed sums are not decoration: 𝒲 compares measures of equal total mass, and D and E may have different cardinalities, so each is padded with the diagonal projections of the other. Proposition 13.5 then says d<sub>SW</sub> is negative semidefinite on 𝔻, and Theorem 13.4 converts it into the positive semidefinite <em>sliced Wasserstein kernel</em> k<sub>SW</sub>(D,E) := e<sup>−d<sub>SW</sub>(D,E)/2σ²</sup>.</p>
+
+<div class="theorem">
+<p><strong>Theorem 13.6.</strong> Let 𝔻<sub>N</sub> be the set of bounded persistence diagrams with cardinalities at most N. For any D, E ∈ 𝔻<sub>N</sub>,</p>
+<div class="math-block">d<sub>W,1</sub>(D,E) / (4N(4N−1) + 2) ≤ d<sub>SW</sub>(D,E) ≤ 2√2 · d<sub>W,1</sub>(D,E).</div>
+<p><span class="cite">— Dey &amp; Wang §13.1.5, Theorem 13.6, p. 399</span></p>
+</div>
+
+<p>This is stronger than stability: each distance bounds the other, so d<sub>SW</sub> and d<sub>W,1</sub> are strongly equivalent and a statement in one transfers to the other up to constants. But read the lower bound. Its denominator is quadratic in N, so the guarantee that d<sub>SW</sub> cannot collapse relative to d<sub>W,1</sub> weakens fast as one allows larger diagrams.</p>
+
+<div class="definition">
+<p><strong>Definition 13.7 (persistence Fisher kernel).</strong> Map D to μ<sub>D</sub>(x) := (1/Z) Σ<sub>u∈D</sub> φ<sub>G,σ</sub>(x,u) with φ<sub>G,σ</sub>(x,u) = e<sup>−‖x−u‖²/2σ</sup> and Z the normalising integral, and put D<sub>Δ</sub> := {π<sub>Δ</sub>(u) | u ∈ D}. The <em>Fisher information metric</em> is</p>
+<div class="math-block">d<sub>FIM</sub>(D,E) := arccos( ∫<sub>ℝ²</sub> √(μ<sub>D∪E<sub>Δ</sub></sub>(x) · μ<sub>E∪D<sub>Δ</sub></sub>(x)) dx ),</div>
+<p>and the <em>persistence Fisher kernel</em> is k<sub>PF</sub>(D,E) := e<sup>−t·d<sub>FIM</sub>(D,E)</sup> for some t &gt; 0. <span class="cite">— Dey &amp; Wang §13.1.6, Definition 13.7, pp. 399–400</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 13.8.</strong> The persistence Fisher kernel k<sub>PF</sub> is positive definite on 𝔻. <span class="cite">— Dey &amp; Wang §13.1.6, Corollary 13.8, p. 400</span></p>
+</div>
+
+<p>Proposition 13.7 supplies what Theorem 13.4 needs — (d<sub>FIM</sub> − τ) is negative definite for any τ ≥ π/2 — and the guided proof asks you to finish the argument. Dey and Wang add that both k<sub>SW</sub> and k<sub>PF</sub> are <em>infinitely divisible</em>, which can bring computational advantages in kernel machines, and that the PSSK and PWGK are not.</p>
+
+<div class="warn">
+<p><strong>What the mission strip claims, and what §13.1 establishes.</strong> The strip says each of these constructions "carries its own stability constant against the bottleneck or Wasserstein distance". For three of them that is exactly right and the constants are displayed above: Theorem 13.1 gives landscapes a constant of 1 against d<sub>B</sub>; Theorem 13.2 gives the PSSK 1/(2πσ) against d<sub>W,1</sub>; Theorem 13.3 gives persistence images an explicit constant in ω and σ against d<sub>W,1</sub>. For the sliced Wasserstein distance the situation is better than stability — Theorem 13.6 is a two-sided equivalence. But for the other two the strip outruns the section. For the PWGK, Dey and Wang state that stability results with respect to both d<sub>B</sub> and d<sub>W,1</sub> exist in the cited work with bounds depending on ω and k<sub>G</sub>, and then write that the precise statements are somewhat involved and they omit the details — so no constant is available here, only the remark that bottleneck stability is provided and is usually harder to obtain. And for the persistence Fisher kernel §13.1.6 states no stability result at all; what it proves is positive definiteness (Corollary 13.8) and records infinite divisibility. Positive definiteness is a statement about being a legitimate kernel, not about being robust to a perturbation of the diagram, and the two must not be conflated.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does the PSSK need no separate proof of positive definiteness, while the sliced Wasserstein kernel does?</p>
+<button onclick="check(this,true)" data-ok>The PSSK is defined as an inner product of feature vectors, so the defining sum is a squared norm; k<sub>SW</sub> is built from a distance instead, so it needs Proposition 13.5 plus Theorem 13.4</button>
+<button onclick="check(this,false)">Because the PSSK is finite-dimensional and k<sub>SW</sub> is not</button>
+<button onclick="check(this,false)">Because k<sub>SW</sub> involves an integral over 𝕊<sup>1</sup>, and integrals of kernels need not be kernels</button>
+<div class="explain">Σ<sub>i,j</sub>a<sub>i</sub>a<sub>j</sub>⟨Φ(D<sub>i</sub>),Φ(D<sub>j</sub>)⟩ = ‖Σ<sub>i</sub>a<sub>i</sub>Φ(D<sub>i</sub>)‖² ≥ 0 with no work at all — that is what a feature-map construction buys, and it is why Dey and Wang say the PSSK is positive definite "by construction". The PSSK's feature space 𝓛²(Ω) is infinite-dimensional, so the second option is false. The third names a real subtlety but not the reason: the route taken is negative semidefiniteness of d<sub>SW</sub> followed by exponentiation.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Both Theorem 13.2 and Theorem 13.3 have constants that grow as σ → 0. What is the general lesson?</p>
+<button onclick="check(this,false)">Small σ should always be avoided, since the bounds become vacuous</button>
+<button onclick="check(this,true)" data-ok>Resolution and stability are two ends of one parameter: sharper smoothing separates nearby diagrams better and reacts more violently to perturbing them, and choosing σ is choosing a point on that trade</button>
+<button onclick="check(this,false)">The bounds are artefacts of the proofs; the true constants are independent of σ</button>
+<div class="explain">A large Lipschitz constant is not a defect of the analysis, it is a description of the map: as σ shrinks, the Gaussians concentrate and moving a diagram point a little moves the feature a lot. The first option overshoots — a small σ may be exactly right when the diagrams are known to be clean — and the third is an assertion about proofs that the source does not make and that the σ-dependence of the construction contradicts.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Optimising topology, and averaging diagrams</h2>
+
+<p>Now reverse the arrow. A classifier is a smooth f : 𝐗 → ℝ on a d-dimensional hypercube, predicting by sign(f(x)); its <em>classification boundary</em> is the zero level set S<sub>f</sub> = f<sup>−1</sup>(0). One wants to penalise a boundary that is topologically fussy — but the number of components of S<sub>f</sub> is a bad penalty, because it counts features without asking how real they are.</p>
+
+<p>The fix uses the whole function, not just its zero set. Let Dgm f be the levelset zigzag persistence diagram of f, and set</p>
+<div class="math-block">Π<sub>S<sub>f</sub></sub> := {(b, d) ∈ Dgm f | b ≤ 0; d ≥ 0},</div>
+<p>the features whose lifetime passes through the zero level, in one-to-one correspondence with the topological features of S<sub>f</sub>. For c = (b, d) ∈ Π<sub>S<sub>f</sub></sub> define the <em>robustness</em> ρ(c) = min{|b|, |d|}: the least L<sub>∞</sub> perturbation of f needed to push c out of Π<sub>S<sub>f</sub></sub> and so delete the feature from S<sub>f</sub>. Then</p>
+<div class="math-block">L<sub>topo</sub>(f) := Σ<sub>c∈Π<sub>S<sub>f</sub></sub></sub> ρ²(c),</div>
+<p>and with any standard loss ℓ and a parameterisation f<sub>ω</sub>, ω ∈ ℝ<sup>m</sup>,</p>
+<div class="math-block">L(f<sub>ω</sub>, X<sub>n</sub>) = Σ<sub>x<sub>i</sub>∈X<sub>n</sub></sub> ℓ(f<sub>ω</sub>(x<sub>i</sub>), y<sub>i</sub>) + λ L<sub>topo</sub>(f<sub>ω</sub>).</div>
+
+<p>Why the robustness rather than the size of the feature? Dey and Wang's illustration is two small components of S<sub>f</sub> of similar size, one of which is destroyed by pushing a single saddle q<sub>1</sub> down a little so that it merges with the large component, while the other needs a much larger move of q<sub>2</sub> or p<sub>2</sub>. How big a feature looks inside S<sub>f</sub> says nothing about how deep the surrounding function must be moved to erase it. The persistence pairing knows; the level set alone does not.</p>
+
+<h3>Differentiating through a persistence diagram</h3>
+
+<p>To run gradient descent on L one needs ∂𝒯/∂ω for 𝒯(ω) := 𝒯(Dgm f<sub>ω</sub>) = 𝒯({(b<sub>i</sub>, d<sub>i</sub>)}). The terms ∂𝒯/∂b<sub>i</sub> are easy when 𝒯 is given analytically, as L<sub>topo</sub> is. What is hard is ∂b<sub>i</sub>/∂ω, which would seem to need an inverse for the map sending f<sub>ω</sub> to its diagram — and that inverse does not exist, since many functions share a diagram.</p>
+
+<p>The repair is to map back not to functions but to <em>vertices</em>. For a PL-function f on a finite complex K, Theorem 3.16 says each persistent point of Dgm f has the form (b<sub>i</sub>, d<sub>i</sub>) = (f(v<sub>ℓ<sub>i</sub></sub>), f(v<sub>r<sub>i</sub></sub>)) with v<sub>ℓ<sub>i</sub></sub> and v<sub>r<sub>i</sub></sub> homological critical points, giving a map ρ : Dgm f → V × V with ρ(b<sub>i</sub>, d<sub>i</sub>) = (v<sub>ℓ<sub>i</sub></sub>, v<sub>r<sub>i</sub></sub>). Writing ξ(ω) := ρ<sub>ω</sub>(Dgm f<sub>ω</sub>) ⊆ V × V, the question becomes whether ξ moves as ω moves.</p>
+
+<div class="theorem">
+<p><strong>Proposition 13.9.</strong> Suppose f<sub>ω</sub> : |K| → ℝ is a PL-function with distinct values on all vertices V of K, and K is a finite simplicial complex. Then there exists a neighbourhood of ω in the parameter space such that ξ remains constant within this neighbourhood; that is, the image set ξ(ω) = ρ<sub>ω</sub>(Dgm f<sub>ω</sub>) remains the same for all parameters within this neighbourhood. <span class="cite">— Dey &amp; Wang §13.2.2, Proposition 13.9, p. 405</span></p>
+</div>
+
+<div class="warn">
+<p><strong>What the mission strip claims, and what §13.2 establishes.</strong> The strip says persistence-based loss functions are "differentiable almost everywhere". Proposition 13.9 does not say that, and neither does anything else in §13.2. What it says is local and conditional: <em>at a parameter ω where f<sub>ω</sub> is PL on a finite complex and takes distinct values on all vertices</em>, the vertex assignment is constant on a neighbourhood, so b<sub>i</sub> = f<sub>ω</sub>(v<sub>ℓ<sub>i</sub></sub>) with a fixed vertex and the chain rule applies there. No claim is made about the set of ω where two vertex values coincide — not that it is small, not that it has measure zero, not that the loss extends differentiably across it. "Almost everywhere" is a measure-theoretic assertion, and §13.2 contains no measure. What one may say honestly is: differentiable at generic parameters, in the precise sense Proposition 13.9 names, and silent elsewhere. The strip's conclusion — that this is what lets topology be optimised inside a model rather than only measured after it — stands unaltered; it is the quantifier that overreaches.</p>
+</div>
+
+<h3>Statistics on the space of diagrams</h3>
+
+<p>The other way to keep arithmetic is to refuse to leave 𝔻 and redefine what a mean is.</p>
+
+<div class="definition">
+<p><strong>Definition 13.8 ((p,q)-Wasserstein distance).</strong> For persistence diagrams P and Q, d<sub>W,q</sub><sup>p</sup>(P,Q) := inf<sub>Π : P→Q</sub> [ Σ<sub>x∈P</sub> ‖x − Π(x)‖<sub>p</sub><sup>q</sup> ]<sup>1/q</sup>, where Π ranges over all bijections from P to Q. <span class="cite">— Dey &amp; Wang §13.3, Definition 13.8, p. 406</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 13.9 (space of persistence diagrams).</strong> With D<sub>∅</sub> the trivial diagram containing only infinite copies of the diagonal, 𝔻<sub>q</sub><sup>p</sup> := {P | d<sub>W,q</sub><sup>p</sup>(P, D<sub>∅</sub>) &lt; ∞}. <span class="cite">— Dey &amp; Wang §13.3, Definition 13.9, p. 406</span></p>
+</div>
+
+<p>The q-Wasserstein distance of Definition 3.10, met in tda1-05, is d<sub>W,q</sub><sup>∞</sup> in this notation. What is known about these spaces is exactly what statistics needs and no more: 𝔻<sub>q</sub><sup>∞</sup> is Polish — complete and separable — so probability measures can be defined on it, and 𝔻<sub>2</sub><sup>2</sup> is a nonnegatively curved Alexandrov space, a geodesic space with curvature bounded below by zero. Neither is a Hilbert space, which is where this lesson began.</p>
+
+<div class="definition">
+<p><strong>Definition 13.10 (Fréchet function, variance, and expectation).</strong> Given a probability distribution ρ on (𝒟, ℬ(𝒟)), its <em>Fréchet function</em> is ℱ<sub>ρ</sub>(X) := ∫<sub>𝒟</sub> d<sub>𝒟</sub><sup>2</sup>(X,Y) dρ(Y). The <em>Fréchet variance</em> is Var<sub>ρ</sub> := inf<sub>X∈𝒟</sub> ℱ<sub>ρ</sub>(X), and the set at which it is attained, 𝔼(ρ) = {X | ℱ<sub>ρ</sub>(X) = Var<sub>ρ</sub>}, is the <em>Fréchet expectation</em>, or Fréchet mean set. <span class="cite">— Dey &amp; Wang §13.3, Definition 13.10, pp. 406–407</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 13.10.</strong> Let ρ be a probability measure on (𝒟, ℬ(𝒟)) with a finite second moment, that is ℱ<sub>ρ</sub>(X) &lt; ∞ for any X ∈ 𝒟. If ρ has compact support, then 𝔼(ρ) ≠ ∅. <span class="cite">— Dey &amp; Wang §13.3, Theorem 13.10, p. 407</span></p>
+</div>
+
+<p>Note precisely what is bought and what is not. Theorem 13.10 says the mean <em>set</em> is non-empty, under two hypotheses. It does not say the mean is unique — Dey and Wang state plainly that in general it is not, which is awkward as soon as one wants to track a mean across a family of diagrams, and the probabilistic Fréchet mean is the proposed repair. An iterative algorithm computing a local minimum exists for 𝔻<sub>2</sub><sup>2</sup>, and the computational question remains open. So the two routes trade off exactly against each other: the mean landscape of Segment 1 always exists, is trivial to compute, and may be no diagram at all; the Fréchet mean is always a diagram, may not be unique, and may not be computable.</p>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (i) Take D = {(0,4), (1,3)} and compute λ<sub>D</sub>(1,t) and λ<sub>D</sub>(2,t) at t = 1, 2, 3, then sketch both envelopes. (ii) Perturb the first point to (0, 4.5) and recompute λ<sub>D</sub>(1,3); compute the bottleneck distance between the two diagrams and check Theorem 13.1 by hand. Is the bound attained? (iii) A colleague builds a pipeline that averages persistence images across a dataset and feeds the average to a classifier. Which of Segment 1's caveats applies to that average, which does not, and what would you have to check about their weight function ω before quoting Theorem 13.3's constant?</p>
+<p><em>Hint:</em> for (iii), persistence images are vectors in ℝ<sup>N</sup>, so averaging is unproblematic as arithmetic; the question is what the average <em>is</em>. For the constant, Theorem 13.3 needs both ‖ω‖<sub>∞</sub> and |∇ω|.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where exactly does the hypothesis "distinct values on all vertices" do its work in Proposition 13.9?</p>
+<button onclick="check(this,true)" data-ok>It is what makes the persistence pairing locally rigid: the lower-star filtration sorts vertices by function value, and a tie is precisely where that order, and hence the pairing, can switch</button>
+<button onclick="check(this,false)">It ensures f<sub>ω</sub> is PL, which is needed for Theorem 3.16 to apply</button>
+<button onclick="check(this,false)">It guarantees the diagram has no points on the diagonal</button>
+<div class="explain">The vertex map ρ exists because f<sub>ω</sub> is PL on a finite complex, via Theorem 3.16 and the lower-star filtration; distinctness is a separate hypothesis, and what it buys is that small changes in ω cannot reorder the vertices and so cannot repair the pairing to different vertices. Being PL is assumed outright, not derived from distinctness. And distinctness is about vertex values, not about diagonal points of the diagram.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Which statement about averaging diagrams is correct?</p>
+<button onclick="check(this,false)">The Fréchet mean exists and is unique whenever ρ has compact support and finite second moment</button>
+<button onclick="check(this,true)" data-ok>Under those hypotheses Theorem 13.10 gives a non-empty mean <em>set</em>; uniqueness is not claimed and in general fails</button>
+<button onclick="check(this,false)">Averaging is impossible in 𝔻, which is why landscapes were introduced</button>
+<div class="explain">Theorem 13.10 concludes 𝔼(ρ) ≠ ∅ and nothing more; Dey and Wang note the mean is in general not unique and describe the probabilistic Fréchet mean as the repair for settings where uniqueness matters. The third option overstates the motivation for landscapes: what 𝔻 lacks is inner-product structure, and the Fréchet construction shows a notion of mean is available in a metric space — it is just set-valued.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> (1) Derive Corollary 13.8 from Proposition 13.7 and Theorem 13.4, filling in why multiplying by a positive constant is harmless. (2) Derive the gradient formula ∂b<sub>i</sub>/∂ω = ∂f<sub>ω</sub>(v<sub>ℓ<sub>i</sub></sub>)/∂ω from Proposition 13.9, naming where each hypothesis is used. (3) State precisely what (2) does and does not establish about the differentiability of a persistence-based loss, and say what would have to be proved to justify the phrase "differentiable almost everywhere".</p>
+<p><em>Hint:</em> for (1), write k<sub>PF</sub> = α·e<sup>−t(d<sub>FIM</sub>−τ)</sup> and identify α. For (2), the only moving part is whether the vertex v<sub>ℓ<sub>i</sub></sub> is the same vertex before and after.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) Corollary 13.8.</strong> Fix t &gt; 0 and τ ≥ π/2. By Proposition 13.7 the function (d<sub>FIM</sub> − τ) is negative definite on 𝔻, so by Theorem 13.4 the function e<sup>−t(d<sub>FIM</sub>−τ)</sup> is positive definite. Now</p>
+<div class="math-block">k<sub>PF</sub>(D,E) = e<sup>−t·d<sub>FIM</sub>(D,E)</sup> = e<sup>−tτ</sup> · e<sup>−t(d<sub>FIM</sub>(D,E) − τ)</sup> = α · e<sup>−t(d<sub>FIM</sub>(D,E) − τ)</sup>, &nbsp; α := e<sup>−tτ</sup> &gt; 0.</div>
+<p>Multiplying by a positive constant preserves positive definiteness: for any a<sub>1</sub>,…,a<sub>n</sub> with Σa<sub>i</sub> = 0, Σ<sub>i,j</sub>a<sub>i</sub>a<sub>j</sub>·αk′(D<sub>i</sub>,D<sub>j</sub>) = α·Σ<sub>i,j</sub>a<sub>i</sub>a<sub>j</sub>k′(D<sub>i</sub>,D<sub>j</sub>) ≥ 0 since α &gt; 0, and symmetry is untouched. Hence k<sub>PF</sub> is positive definite on 𝔻. ∎</p>
+<p><strong>(2) The gradient.</strong> Fix ω at which the hypotheses of Proposition 13.9 hold: K a finite simplicial complex, f<sub>ω</sub> PL on |K| with distinct values on all vertices. Two facts are in play. First, unconditionally, b<sub>i</sub> = f<sub>ω</sub>(ρ<sub>ω</sub>(b<sub>i</sub>)) = f<sub>ω</sub>(v<sub>ℓ<sub>i</sub></sub>): this is Theorem 3.16's identification of persistent points with pairs of vertices, available because f<sub>ω</sub> is PL on a finite complex, so that the sublevel-set filtration is simulated by the lower star filtration. Second, by Proposition 13.9 there is a neighbourhood U of ω on which ξ = ρ<sub>ω</sub>(Dgm f<sub>ω</sub>) is constant — the identity of the vertex v<sub>ℓ<sub>i</sub></sub> does not change as the parameter varies within U.</p>
+<p>So on U the function ω′ ↦ b<sub>i</sub>(ω′) is literally ω′ ↦ f<sub>ω′</sub>(v) for one <em>fixed</em> vertex v = v<sub>ℓ<sub>i</sub></sub>, and the composite that looked unmanageable — differentiate through a diagram — is just the evaluation of the parameterised function at a fixed point of the domain. Therefore</p>
+<div class="math-block">∂b<sub>i</sub>/∂ω = ∂f<sub>ω</sub>(ρ<sub>ω</sub>(b<sub>i</sub>))/∂ω = ∂f<sub>ω</sub>(v<sub>ℓ<sub>i</sub></sub>)/∂ω,</div>
+<p>and symmetrically ∂d<sub>i</sub>/∂ω = ∂f<sub>ω</sub>(v<sub>r<sub>i</sub></sub>)/∂ω. Combining with the analytic derivatives ∂𝒯/∂b<sub>i</sub> and ∂𝒯/∂d<sub>i</sub> by the chain rule gives ∂𝒯/∂ω. Where each hypothesis is used: <em>finiteness of K</em> and <em>f<sub>ω</sub> PL</em> give the vertex map ρ at all; <em>distinct vertex values</em> give the local constancy, since the lower-star filtration is built by sorting vertices by function value and a tie is exactly where that order — and hence the pairing — can change. ∎</p>
+<p><strong>(3) What is and is not established.</strong> Established: at any parameter ω satisfying the hypotheses, and provided ω′ ↦ f<sub>ω′</sub>(v) is itself differentiable at ω for each vertex v, the birth and death coordinates are differentiable at ω and their derivatives are given by the displayed formula. That is a statement about one point of parameter space and a neighbourhood of it.</p>
+<p>Not established: anything about the set B of parameters at which two vertices share a function value. Proposition 13.9 says nothing about B — not that it is closed, not that it is small, not that it is Lebesgue-null, and not that 𝒯 extends differentiably across it. To justify "differentiable almost everywhere" one would have to prove that B has Lebesgue measure zero in ℝ<sup>m</sup>, which is a statement about the particular parameterisation ω ↦ f<sub>ω</sub> and not about persistence at all: for a parameterisation in which two vertices are constrained to share a value, B is everything. The honest formulation is <em>differentiable at generic parameters, in the sense of Proposition 13.9</em>.</p>
+<p><em>What this does and does not license.</em> It licenses running gradient descent and reading the gradient formula as exact wherever the hypotheses hold — which is the whole engineering point, since it means no surrogate or smoothed persistence is needed. It does not license any claim about what happens at a tie, and in a pipeline where ties are structurally forced, the argument gives nothing.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>The defect of the space of diagrams, and how a landscape repairs it — with what preserved and what given up.</li>
+<li>The two ways to build a kernel on diagrams, and what each one has to prove.</li>
+<li>What makes a persistence diagram differentiable in a model's parameters, and the exact scope of that statement.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) 𝔻 with d<sub>B</sub> or Wasserstein is a metric space without an inner product, Definition 13.1's landscape sends a diagram to the k-th upper envelopes of its tents, lands in 𝓛<sup>p</sup>(ℕ × ℝ) which is Hilbert for p = 2, is injective by Claim 13.1 and 1-Lipschitz by Theorem 13.1 — and the mean landscape may be no diagram's landscape at all; (2) either define a feature map and get positive definiteness free — Definition 13.3's PSSK with Theorem 13.2's 1/(2πσ), Definition 13.4's images with Theorem 13.3, Definition 13.5's weighted kernels — or define a distance, prove it negative semidefinite, and exponentiate by Theorem 13.4, as Definition 13.6's sliced Wasserstein does with Theorem 13.6's two-sided equivalence and Definition 13.7's Fisher kernel does with Corollary 13.8; (3) Π<sub>S<sub>f</sub></sub>, robustness and L<sub>topo</sub> give a differentiable-looking loss, Theorem 3.16 maps births and deaths back to vertices, and Proposition 13.9 makes that map locally constant when the vertex values are distinct — giving differentiability at generic parameters and nothing at ties — while Definition 13.10 and Theorem 13.10 give a Fréchet mean set that is non-empty but not unique — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — chapter opening on mapping objects into a common feature space and on topological loss functions (pp. 389–390). §13.1 "Feature Vectorization of Persistence Diagrams": the lack of inner product structure and the parenthetical definition of a Hilbert space (pp. 390–391). §13.1.1: Definition 13.1, the tent picture and the k-th upper envelope, the p-norm and the landscape distance Eq. (13.1) (p. 391); the mean landscape, Claim 13.1, and the warning that a function need not be any diagram's landscape (p. 392); Theorem 13.1, with the note that further Λ<sub>p</sub> results against the Wasserstein distance and for tame Lipschitz functions are given in the cited work (p. 393). §13.1.2: Definition 13.2, the evaluation functional, the RKHS and reproducing kernel, the feature-map view and the induced pseudometric (p. 393); Ω and 𝓛<sup>2</sup>(Ω), Definition 13.3 with Eq. (13.2), the remark that the PSSK is positive definite by construction, and Theorem 13.2 (p. 394). §13.1.3: Definition 13.4 with Eq. (13.3), the role of the weight function and the suggested choice ω(u) = |b − d|, and Theorem 13.3 (p. 395). §13.1.4: C<sub>0</sub>-kernels and C<sub>0</sub>-universality with the Gaussian example, Definition 13.5 with Eq. (13.4), and the kernel mean embedding view with the injectivity consequence (p. 396); the alternative construction via k<sup>ω</sup> and Eq. (13.5), the PWGK with ω<sub>arc</sub>, and the stability remark (p. 397); the (k,ω)-Gaussian kernel (p. 398). §13.1.5: Theorem 13.4, the 1-Wasserstein distance between measures Eq. (13.6), and Definition 13.6 with the reason for the crossed sums (p. 398); Proposition 13.5, the sliced Wasserstein kernel Eq. (13.7), and Theorem 13.6 (p. 399). §13.1.6: the map to μ<sub>D</sub>, Definition 13.7 (pp. 399–400); Proposition 13.7, Corollary 13.8 with its derivation, and the infinite divisibility remark distinguishing k<sub>SW</sub> and k<sub>PF</sub> from the PSSK and PWGK (p. 400). §13.2 "Optimizing Topological Loss Functions": the classifier and its boundary S<sub>f</sub>, and Π<sub>S<sub>f</sub></sub> (pp. 401–402); the saddle illustration, the robustness ρ(c) = min{|b|,|d|}, L<sub>topo</sub>, and the combined loss Eq. (13.8) (p. 403); §13.2.2's persistence-based topological function, the non-existence of an inverse, and the vertex map ρ built on Theorem 3.16 and the lower-star filtration (p. 404); Proposition 13.9 and the gradient formula (p. 405). §13.3 "Statistical Treatment of Topological Summaries": Definition 13.8 with Eq. (13.9) and its relation to Definition 3.10, Definition 13.9, and Definition 13.10 with Eq. (13.10) (pp. 406–407); the Fréchet variance and expectation, Theorem 13.10, the non-uniqueness of the Fréchet mean and the probabilistic Fréchet mean, the iterative algorithm for 𝔻<sub>2</sub><sup>2</sup>, and the Polish and Alexandrov properties of 𝔻<sub>q</sub><sup>∞</sup> and 𝔻<sub>2</sub><sup>2</sup> (pp. 406–407). Not established here: a stability constant for the persistence weighted Gaussian kernel — §13.1.4 states that such bounds exist in the cited work and explicitly omits them — and any stability result whatever for the persistence Fisher kernel, for which §13.1.6 proves positive definiteness only; so the mission strip's "each carries its own stability constant" holds for landscapes, the PSSK, persistence images and, in the stronger two-sided form, the sliced Wasserstein distance. Also not established: that a persistence-based loss is differentiable <em>almost everywhere</em> — Proposition 13.9 is local and conditional on distinct vertex values, and §13.2 makes no measure-theoretic claim about the set of parameters where that fails. Cited but not restated, being Chapter 3 material: Definition 3.10 on the q-Wasserstein distance and Theorem 3.16 on the lower-star pairing. Deferred: §13.3's other statistical analyses, including concentration and convergence of diagrams and landscapes, confidence sets by bootstrapping, the distance-to-measure construction, and the topology of random simplicial complexes; and §13.4's bibliographical notes on end-to-end representation learning and topological layers.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
