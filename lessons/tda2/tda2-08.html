@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-08 — Sparsification and approximate persistence</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Sparsification and approximate persistence <span class="cite">(tda2-08)</span></h1>
+
+<div class="hook">
+Fifteen thousand points from a natural-image dataset. The 2-skeleton of their Rips complex has 1 329 672 867 simplices. Now compute its persistence.
+<p>That number is Dey and Wang's, measured on the primary circle in ℝ<sup>25</sup> at a scale of 0.6. It is not a pathological example — it is what the exact object costs. Once the scale exceeds the diameter of the sample, every subset spans a simplex, so the d-skeleton has Θ(n<sup>d+1</sup>) simplices and there is nothing clever to be done about it.</p>
+<p>The response of this chapter is not a faster algorithm. It is to build a <em>different, smaller</em> filtration and prove how far its barcode can be from the true one. The error turns out to be a single constant you choose in advance, and the whole subject is the exchange rate between that constant and the size you pay.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> The sparse Rips complex <strong>Q</strong><sup>α</sup> is built on a vertex set that <em>shrinks</em> as α grows: points that have become redundant are thrown away. Predict what that does to the sequence {<strong>Q</strong><sup>α</sup>}<sub>α</sub>.</p>
+<button onclick="check(this,false)">Nothing — discarding vertices only deletes simplices, and deletion is compatible with the inclusions a filtration needs</button>
+<button onclick="check(this,true)" data-ok>It stops being a filtration: <strong>Q</strong><sup>α</sup> ⊄ <strong>Q</strong><sup>β</sup> for α &lt; β in general, and the repair is to take cumulative unions</button>
+<button onclick="check(this,false)">It remains a filtration, but only for ε &lt; 1/3, which is exactly why that hypothesis appears</button>
+<div class="explain">A filtration needs each complex to sit <em>inside</em> the next, and deleting vertices does the opposite of that — the first option has the direction backwards. Dey and Wang note it explicitly: for α &lt; β, <strong>Q</strong><sup>α</sup> need not be contained in <strong>Q</strong><sup>β</sup>, nor <strong>Q̄</strong><sup>α</sup> in <strong>Q̄</strong><sup>β</sup>; what is always true is 𝕊<sup>α</sup> ⊆ 𝕊<sup>β</sup> for the cumulative complex 𝕊<sup>α</sup> := ⋃<sub>β≤α</sub> <strong>Q̄</strong><sup>β</sup>, and it is 𝕊 that is called the sparse Rips filtration. The hypothesis ε &lt; 1/3 is real but does other work — it is what makes the packing bound in Theorem 6.4(b) come out.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Sparse Rips filtrations, witness complexes and graph-induced complexes produce complexes of size linear in the sample while staying multiplicatively interleaved with the exact filtration, so tda1-07's stability bound still governs the approximation. This is the difference between lab-03 finishing and lab-03 exhausting memory.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The two filtrations, and the wall</h2>
+
+<p>Fix a finite P in a metric space (Z, d<sub>Z</sub>). The Čech complex at scale r is the nerve of the union of balls P<sup>r</sup> = ⋃<sub>p∈P</sub>B<sub>Z</sub>(p,r):</p>
+<div class="math-block">ℂ<sup>r</sup><sub>Z</sub>(P) = {σ = {p<sub>0</sub>,…,p<sub>k</sub>} | ⋂<sub>i</sub> B<sub>Z</sub>(p<sub>i</sub>, r) ≠ ∅},</div>
+<p>while the Vietoris–Rips complex uses pairwise distances alone:</p>
+<div class="math-block">𝕍ℝ<sup>r</sup>(P) = {σ = {p<sub>0</sub>,…,p<sub>k</sub>} | d<sub>Z</sub>(p<sub>i</sub>, p<sub>j</sub>) ≤ 2r for all i, j}.</div>
+
+<div class="theorem">
+<p><strong>Corollary 6.1.</strong> For a fixed r ≥ 0, if the metric ball B<sub>Z</sub>(x, r) is convex for every x ∈ P, then ℂ<sup>r</sup>(P) is homotopy equivalent to P<sup>r</sup>, and thus H<sub>k</sub>(ℂ<sup>r</sup>(P)) ≅ H<sub>k</sub>(P<sup>r</sup>) for any dimension k ≥ 0. <span class="cite">— Dey &amp; Wang §6.1, Corollary 6.1, p. 180</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 6.2.</strong> If the metric ball B(x, r) is convex for every x ∈ P and all r ≥ 0, then the persistence module H<sub>k</sub>𝒫 is isomorphic to H<sub>k</sub>𝒞(P); their persistence diagrams are identical, Dgm<sub>k</sub>𝒫 = Dgm<sub>k</sub>𝒞(P), for any k ≥ 0. <span class="cite">— Dey &amp; Wang §6.1, Proposition 6.2, p. 180</span></p>
+</div>
+
+<p>Corollary 6.1 is the nerve theorem applied at one radius; Proposition 6.2 is the upgrade a persistence statement actually needs — the whole filtration of unions of balls and the whole Čech filtration have the same diagram — and it pays for the upgrade with convexity at every radius rather than at one. Between the Čech and Rips filtrations, meanwhile, Dey and Wang record the standard comparison: they are multiplicatively 2-interleaved, so at log scale their modules are log 2-interleaved and</p>
+<div class="math-block">d<sub>b</sub>(Dgm<sub>log</sub>𝒞(P), Dgm<sub>log</sub>ℛ(P)) ≤ log 2 &nbsp;&nbsp;(Corollary 4.4).</div>
+
+<p>One subtlety before the cost. If the ambient space is dropped and P is treated as a discrete metric space (P, d<sub>P</sub>), the balls change — B<sub>P</sub>(p,r) holds only points of P — and the two Čech complexes differ:</p>
+<div class="math-block">ℂ<sup>r</sup><sub>P</sub>(P) ⊆ ℂ<sup>r</sup><sub>Z</sub>(P) ⊆ ℂ<sup>2r</sup><sub>P</sub>(P).</div>
+<p>The Rips complexes, by contrast, coincide exactly, because the definition never mentions a ball. Remember the factor 2: it will reappear in Theorem 6.3.</p>
+
+<div class="definition">
+<p><strong>Definition 6.1 (Čech distance; Rips distance).</strong> For finite point sets P and Q with appropriate metrics, d<sub>Cech</sub>(P,Q) = max<sub>k</sub> d<sub>B</sub>(Dgm<sub>k</sub>𝒞(P), Dgm<sub>k</sub>𝒞(Q)) and d<sub>Rips</sub>(P,Q) = max<sub>k</sub> d<sub>B</sub>(Dgm<sub>k</sub>ℛ(P), Dgm<sub>k</sub>ℛ(Q)). <span class="cite">— Dey &amp; Wang §6.1, Definition 6.1, p. 181</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.2 (Hausdorff distance).</strong> For compact A, B ⊆ (Z, d<sub>Z</sub>), d<sub>H</sub>(A,B) = max{max<sub>a∈A</sub> d<sub>Z</sub>(a,B), max<sub>b∈B</sub> d<sub>Z</sub>(b,A)}. <span class="cite">— Dey &amp; Wang §6.1, Definition 6.2, p. 181</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.3 (Gromov–Hausdorff distance).</strong> For metric spaces (X, d<sub>X</sub>) and (Y, d<sub>Y</sub>), a correspondence is a C ⊆ X × Y meeting every x ∈ X and every y ∈ Y; its distortion is distort<sub>C</sub>(X,Y) = ½ sup<sub>(x,y),(x′,y′)∈C</sub> |d<sub>X</sub>(x,x′) − d<sub>Y</sub>(y,y′)|; and d<sub>GH</sub>(X,Y) = inf<sub>C</sub> distort<sub>C</sub>(X,Y). <span class="cite">— Dey &amp; Wang §6.1, Definition 6.3, p. 182</span></p>
+</div>
+
+<p>Definition 6.1's distances are only <em>pseudo</em>distances: two different point sets can share every diagram, and then the distance is zero without the sets being equal. Definition 6.2 needs a common ambient space; Definition 6.3 does not, which is what makes it the right tool for two point clouds that merely came from somewhere.</p>
+
+<div class="theorem">
+<p><strong>Theorem 6.3.</strong> (a) For finite P, Q ⊆ (Z, d<sub>Z</sub>): d<sub>Cech</sub>(P,Q) ≤ d<sub>H</sub>(P,Q) and d<sub>Rips</sub>(P,Q) ≤ d<sub>H</sub>(P,Q). (b) For finite metric spaces (P, d<sub>P</sub>) and (Q, d<sub>Q</sub>): d<sub>Cech</sub>(P,Q) ≤ 2d<sub>GH</sub>((P,d<sub>P</sub>),(Q,d<sub>Q</sub>)) and d<sub>Rips</sub>(P,Q) ≤ d<sub>GH</sub>((P,d<sub>P</sub>),(Q,d<sub>Q</sub>)). <span class="cite">— Dey &amp; Wang §6.1, Theorem 6.3, p. 182</span></p>
+</div>
+
+<p>There is the factor 2 again, on the Čech bound in part (b) and nowhere else. Dey and Wang say where it comes from: the difference in metric balls recorded above. The Rips distance escapes it because the Rips complex never looked at a ball. They also note that part (b) extends to <em>totally bounded</em> metric spaces — those admitting a finite ε-sample for every ε &gt; 0, hence approximable by a finite metric space at any resolution — which need not be finite themselves.</p>
+
+<div class="warn">
+<p><strong>The wall.</strong> When the scale r exceeds the diameter of P, every subset of P spans a simplex of both complexes, so the d-skeleton of ℂ<sup>r</sup>(P) or 𝕍ℝ<sup>r</sup>(P) has size Θ(n<sup>d+1</sup>) for n = |P|. This is not an implementation problem. A few thousand points already produce triangles in the millions, and the exact filtration on a realistic sample cannot be written down, let alone reduced. Everything after this point is a trade: a smaller object, and a theorem saying how far its barcode can be from the true one.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Theorem 6.3(b) carry a factor 2 for the Čech distance but not for the Rips distance?</p>
+<button onclick="check(this,true)" data-ok>Because without an ambient space the Čech complex must use balls internal to the point set, and ℂ<sup>r</sup><sub>Z</sub>(P) ⊆ ℂ<sup>2r</sup><sub>P</sub>(P) is the price; the Rips complex uses only pairwise distances, which do not change</button>
+<button onclick="check(this,false)">Because the Gromov–Hausdorff distance already contains a factor ½ in its distortion</button>
+<button onclick="check(this,false)">Because Čech complexes are larger than Rips complexes, so their diagrams are more sensitive</button>
+<div class="explain">The factor traces to Eq. (6.5): dropping the ambient space changes the balls, and the two Čech complexes are only related up to a doubling of the radius. The ½ in the distortion is present in both bounds and so cannot explain a difference between them. The third option has the containment backwards in any case — a Rips complex contains its Čech complex at the same scale — and size is not what stability keys on.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> What exactly does Proposition 6.2 add to Corollary 6.1?</p>
+<button onclick="check(this,false)">It removes the convexity hypothesis by working with the whole filtration at once</button>
+<button onclick="check(this,true)" data-ok>It promotes a scale-by-scale homotopy equivalence to an isomorphism of persistence modules, hence equality of diagrams — at the cost of requiring convexity at every radius</button>
+<button onclick="check(this,false)">It replaces homotopy equivalence by homeomorphism</button>
+<div class="explain">Corollary 6.1 gives one isomorphism per radius; that is not enough for persistence, which is a statement about the maps between scales as much as about the spaces. Proposition 6.2 asserts the isomorphism of modules and deduces Dgm<sub>k</sub>𝒫 = Dgm<sub>k</sub>𝒞(P) — and its hypothesis is strictly stronger, convexity of B(x,r) for all r rather than for one. Nothing here upgrades homotopy equivalence to homeomorphism, which would be false.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Sparse by subsampling: Delaunay, witness, graph-induced</h2>
+
+<p>The oldest answer to the size problem is to build a complex that is sparse by construction. Chapter 2 offers three, and it is worth being precise about what each one is <em>proved</em> to do.</p>
+
+<div class="definition">
+<p><strong>Definition 2.11 (Delaunay simplex; complex).</strong> For a finite P ⊂ ℝ<sup>d</sup>, a k-simplex σ is <em>Delaunay</em> if its vertices are in P and there is an open d-ball whose boundary contains its vertices and which is empty — contains no point of P. A <em>Delaunay complex</em> Del P is a geometric simplicial complex with vertices in P in which every simplex is Delaunay and whose underlying space is the convex hull of P. <span class="cite">— Dey &amp; Wang §2.3.1, Definition 2.11, p. 34</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 2.12 (Voronoi diagram).</strong> For a finite P ⊂ ℝ<sup>d</sup> in generic position, Vor(P) tessellates ℝ<sup>d</sup> into convex cells V<sub>p</sub> = {x ∈ ℝ<sup>d</sup> | d(x,p) ≤ d(x,q) for all q ∈ P}; a k-face of Vor(P) is the intersection of (d − k + 1) cells. <span class="cite">— Dey &amp; Wang §2.3.1, Definition 2.12, p. 35</span></p>
+</div>
+
+<p>Fact 2.3 says a nondegenerate point set — no d + 2 points cospherical — has a unique Delaunay complex, and Fact 2.4 identifies Del(P) as the nerve of the closed cover {V<sub>p</sub>}, which is the source of the Delaunay–Voronoi duality sending a Delaunay k-simplex to a Voronoi (d − k)-face. Fact 2.5 records three optimality properties: in ℝ<sup>2</sup>, Del P maximises the minimum angle and minimises the largest circumcircle; in all dimensions it minimises the largest min-ball. The <em>alpha complex</em> Del<sup>α</sup>(P) is the subcomplex of simplices with a circumscribing ball of radius at most α, equivalently the nerve of the truncated Voronoi cells D<sub>p</sub><sup>α</sup> = {x ∈ B(p,α) | d(x,p) ≤ d(x,q) ∀q}.</p>
+
+<p>The catch is arithmetic. Del P has size Θ(n) in ℝ<sup>2</sup>, Θ(n<sup>2</sup>) in ℝ<sup>3</sup>, and Θ(n<sup>⌈d/2⌉</sup>) in ℝ<sup>d</sup> — computable in that same time, but for high-dimensional data that is no help at all.</p>
+
+<div class="definition">
+<p><strong>Definition 2.13 (weak witness).</strong> Let P be a point set with d : P × P → ℝ and Q ⊆ P finite. A simplex σ = {q<sub>1</sub>,…,q<sub>k</sub>} with q<sub>i</sub> ∈ Q is <em>weakly witnessed</em> by x ∈ P ∖ Q if d(q,x) ≤ d(p,x) for every q ∈ σ and every p ∈ Q ∖ σ. <span class="cite">— Dey &amp; Wang §2.3.2, Definition 2.13, p. 36</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 2.14 (witness complex).</strong> With P and Q as above, the <em>witness complex</em> 𝒲(Q,P) is the collection of all simplices <em>all of whose faces</em> are weakly witnessed by a point in P ∖ Q. <span class="cite">— Dey &amp; Wang §2.3.2, Definition 2.14, p. 37</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 2.15 (strong witness).</strong> For finite Q ⊂ ℝ<sup>d</sup>, σ = {q<sub>1</sub>,…,q<sub>d</sub>} is <em>strongly witnessed</em> by x ∈ ℝ<sup>d</sup> if the weak-witness inequality holds and in addition d(q<sub>1</sub>,x) = ⋯ = d(q<sub>d</sub>,x). <span class="cite">— Dey &amp; Wang §2.3.2, Definition 2.15, p. 37</span></p>
+</div>
+
+<p>The "all of whose faces" clause in Definition 2.14 is not fussiness. Dey and Wang note that a weakly witnessed simplex need not have all its faces weakly witnessed, so without the clause the collection would fail to be closed under faces and would not be a simplicial complex at all. Proposition 2.3 then says σ is strongly witnessed exactly when every face of σ is weakly witnessed; Fact 2.6 says σ ∈ Del Q exactly when σ is strongly witnessed by points of ℝ<sup>d</sup>; and combining them gives Proposition 2.4: for finite P ⊂ ℝ<sup>d</sup> and Q ⊆ P, 𝒲(Q,P) ⊆ Del Q. That containment has a pleasant consequence — a witness complex of a Euclidean sample embeds in that Euclidean space — and an unpleasant one, which is the next definition's reason for existing. Proposition 2.5 pins down when the containment is an equality: 𝒲(Q,ℝ<sup>d</sup>) = Del Q; 𝒲(Q,M) is the restricted Delaunay complex Del|<sub>M</sub>Q for a smooth 1- or 2-manifold M; and 𝒲(Q,P) = Del|<sub>M</sub>Q for sufficiently dense samples of a 1-manifold in ℝ<sup>2</sup>, with no extension to other submanifolds.</p>
+
+<div class="definition">
+<p><strong>Definition 2.16 (graph induced complex).</strong> Let (P, d) be a finite metric space, G(P) a graph with vertices in P, Q ⊆ P, and ν : P → Q with ν(p) any point of argmin d(p,Q). The <em>graph induced complex</em> 𝒢(G(P), Q, d) contains the k-simplex σ = {q<sub>1</sub>,…,q<sub>k+1</sub>}, q<sub>i</sub> ∈ Q, if and only if there is a (k+1)-clique in G(P) spanned by {p<sub>1</sub>,…,p<sub>k+1</sub>} ⊆ P with q<sub>i</sub> ∈ ν(p<sub>i</sub>) for each i. <span class="cite">— Dey &amp; Wang §2.3.3, Definition 2.16, p. 39</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 2.17 (δ-sample; δ-sparse).</strong> Q ⊆ P is a <em>δ-sample</em> of (P, d) if every p ∈ P has some q ∈ Q with d(p,q) ≤ δ, and <em>δ-sparse</em> if d(q,r) ≥ δ for all distinct q, r ∈ Q. <span class="cite">— Dey &amp; Wang §2.3.3, Definition 2.17, pp. 39–40</span></p>
+</div>
+
+<p>It is a simplicial complex because a subset of a clique is a clique. The motivation Dey and Wang give is blunt: the witness complex does not capture the topology of a manifold even for dense input, except for smooth curves in the plane. The GIC's advantage is that it is <em>not</em> forced to be a subcomplex of Del Q, so it carries extra simplices that help inference; its disadvantage is the same sentence read backwards — it may not embed in the Euclidean space its vertices live in. Two inference results are stated.</p>
+
+<div class="theorem">
+<p><strong>Theorem 2.6.</strong> Let M ⊂ ℝ<sup>3</sup> be a smooth, compact, connected surface. If 8ε ≤ δ ≤ (2/27)ρ, α ≥ 8ε, P is an ε-sample of (M, d<sub>E</sub>), and Q ⊆ P is a δ-sparse δ-sample of (P, d<sub>E</sub>), then a triangulation T of M exists as a subcomplex of 𝒢<sup>α</sup>(P,Q,d<sub>E</sub>) and can be computed efficiently. <span class="cite">— Dey &amp; Wang §2.3.3, Theorem 2.6, p. 40</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 2.7.</strong> Let P be an ε-sample of an embedded smooth compact manifold M with reach ρ, and Q a δ-sample of (P, d<sub>G</sub>). For 4ε ≤ α and δ ≤ (1/3)√(3/5) ρ, the map h<sub>∗</sub> : H<sub>1</sub>(𝕍ℝ<sup>α</sup>(P)) → H<sub>1</sub>(𝒢<sup>α</sup>(P,Q,d<sub>G</sub>)) is an isomorphism, where h is the simplicial map induced by the nearest-point map ν<sub>d<sub>G</sub></sub> : P → Q. <span class="cite">— Dey &amp; Wang §2.3.3, Theorem 2.7, p. 40</span></p>
+</div>
+
+<div class="warn">
+<p><strong>What the mission strip claims, and what §2.3 establishes.</strong> The strip says that sparse Rips filtrations, witness complexes and graph-induced complexes all "produce complexes of size linear in the sample while staying multiplicatively interleaved with the exact filtration". For the sparse Rips filtration both halves are theorems, and Segment 3 proves them: Theorem 6.4(b) gives Θ((1/ε)<sup>kd</sup>n) simplices and Theorem 6.4(a) gives multiplicative 1/(1−ε)-interleaving. For witness complexes and graph-induced complexes, §2.3 proves <em>neither</em>. It states no bound on the number of simplices of either — what it offers instead is the qualitative claim that they are "much sparser", the remark that a GIC "retains the simplicity of the Rips complex as well as the sparsity of the witness complex", and the empirical comparison of Figure 2.8 on a Klein bottle sample in ℝ<sup>4</sup> and a primary-circle sample in ℝ<sup>25</sup>. And it proves no interleaving with the Rips filtration; what it proves instead is of a different type — Theorem 2.6's triangulation-as-subcomplex and Theorem 2.7's H<sub>1</sub>-isomorphism, both under sampling hypotheses on a hidden manifold, and both about a single scale α rather than about a filtration. The strip's last clause is right in substance but worth restating precisely: what converts interleaving into a diagram bound here is Chapter 4's Corollary 4.4, and the resulting errors are <em>logarithmic and multiplicative</em>, not additive.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why must Definition 2.14 require every <em>face</em> to be weakly witnessed?</p>
+<button onclick="check(this,true)" data-ok>Because a weakly witnessed simplex need not have all its faces weakly witnessed, so without the clause the collection would not be closed under faces and would not be a simplicial complex</button>
+<button onclick="check(this,false)">Because otherwise the witness complex could fail to be contained in Del Q</button>
+<button onclick="check(this,false)">Because the witnesses must be distinct for distinct faces</button>
+<div class="explain">Dey and Wang state the reason exactly: the clause is there to force a simplicial complex, since being weakly witnessed is not inherited by faces. The containment in Del Q is a consequence proved afterwards, via Proposition 2.3 and Fact 2.6, not the motivation. And nothing in the definition requires distinct witnesses; one point may witness many simplices, as Figure 2.6 shows.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Theorem 2.7 concerns H<sub>1</sub> only. What should you conclude about H<sub>2</sub> of a graph induced complex?</p>
+<button onclick="check(this,false)">The same isomorphism holds in every dimension, since the simplicial map h is defined in all dimensions</button>
+<button onclick="check(this,true)" data-ok>Nothing from Theorem 2.7 — it is a statement about H<sub>1</sub>, and §2.3 states no analogue in higher dimensions</button>
+<button onclick="check(this,false)">It is zero, because a GIC built from a graph has no simplices above dimension 1</button>
+<div class="explain">The map h being defined in all dimensions is not an argument that it is an isomorphism in all of them; Theorem 2.7 says H<sub>1</sub> and stops, and Dey and Wang explicitly decline to state further homology inference results precisely, offering empirical evidence instead. The third option misreads Definition 2.16: a (k+1)-clique of G(P) yields a k-simplex, so a GIC certainly has simplices above dimension 1 — that is exactly why it is not a graph.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Sparsifying the filtration itself, and inferring a hidden space</h2>
+
+<p>The second strategy does not subsample once. It sparsifies <em>as the scale grows</em>, which is the right thing to do because Figure 6.2's observation is that redundancy is scale-dependent: two points needed at a small radius become superfluous at a large one.</p>
+
+<div class="definition">
+<p><strong>Definition 6.4 (nets; net-tower).</strong> For finite P ⊂ (ℝ<sup>d</sup>, d) and γ, γ′ ≥ 0, a subset Q ⊆ P is a <em>(γ,γ′)-net</em> of P if (covering) Q is a γ-sample, d(p,Q) ≤ γ for every p ∈ P, and (packing) Q is γ′-sparse, d(q,q′) ≥ γ′ for distinct q,q′ ∈ Q; if γ = γ′ it is a γ-net. A family {N<sub>γ</sub>}<sub>γ</sub> is a <em>net-tower</em> of P if (i) there is a constant c &gt; 0 with N<sub>γ</sub> a (γ, γ/c)-net for all γ, and (ii) N<sub>γ</sub> ⊇ N<sub>γ′</sub> for γ ≤ γ′. <span class="cite">— Dey &amp; Wang §6.2.1, Definition 6.4, pp. 183–184</span></p>
+</div>
+
+<p>Farthest point sampling builds one. Choose p<sub>1</sub> ∈ P arbitrarily, set P<sub>1</sub> = {p<sub>1</sub>}, and recursively take p<sub>i</sub> ∈ argmax<sub>p∈P∖P<sub>i−1</sub></sub> d(p, P<sub>i−1</sub>) with P<sub>i</sub> = P<sub>i−1</sub> ∪ {p<sub>i</sub>}. The <em>exit-time</em> of p<sub>i</sub> is t<sub>p<sub>i</sub></sub> := d(p<sub>i</sub>, P<sub>i−1</sub>) — how far it was from everything already chosen. The open and closed net-towers are then N<sub>γ</sub> = {p ∈ P | t<sub>p</sub> &gt; γ} and N̄<sub>γ</sub> = {p ∈ P | t<sub>p</sub> ≥ γ}: as γ grows, only the points that were far from their predecessors survive.</p>
+
+<p>Fix 0 &lt; ε &lt; 1. Each point now carries a weight that switches on when the scale outgrows it:</p>
+<div class="math-block">w<sub>p</sub>(α) = 0 if t<sub>p</sub>/ε ≥ α; &nbsp; α − t<sub>p</sub>/ε if t<sub>p</sub>/ε &lt; α &lt; t<sub>p</sub>/(ε(1−ε)); &nbsp; εα if t<sub>p</sub>/(ε(1−ε)) ≤ α.</div>
+<p>Claim 6.1 records that w<sub>p</sub> is continuous, 1-Lipschitz and nondecreasing — all three matter, and the Lipschitz property does the most work. The <em>net-induced distance at scale α</em> inflates the metric by the weights,</p>
+<div class="math-block">d̂<sub>α</sub>(p,q) := d(p,q) + w<sub>p</sub>(α) + w<sub>q</sub>(α),</div>
+<p>so a point becomes progressively harder to connect to as it ages out.</p>
+
+<div class="definition">
+<p><strong>Definition 6.5 (sparse Rips).</strong> For P ⊂ ℝ<sup>d</sup>, a constant 0 &lt; ε &lt; 1 and the net-towers above, the <em>open sparse Rips complex at scale α</em> is <strong>Q</strong><sup>α</sup> := {σ ⊆ N<sub>ε(1−ε)α</sub> | d̂<sub>α</sub>(p,q) ≤ 2α for all p,q ∈ σ}, and the <em>closed</em> one is <strong>Q̄</strong><sup>α</sup> := {σ ⊆ N̄<sub>ε(1−ε)α</sub> | d̂<sub>α</sub>(p,q) ≤ 2α for all p,q ∈ σ}. The <em>cumulative complex</em> is 𝕊<sup>α</sup> := ⋃<sub>β≤α</sub> <strong>Q̄</strong><sup>β</sup>, and the ε-<em>sparse Rips filtration</em> is 𝕊 = {𝕊<sup>α</sup> ↪ 𝕊<sup>β</sup>}<sub>α≤β</sub>. <span class="cite">— Dey &amp; Wang §6.2.1, Definition 6.5, pp. 185–186</span></p>
+</div>
+
+<p>This settles the prediction gate. Neither <strong>Q</strong><sup>α</sup> ⊆ <strong>Q</strong><sup>β</sup> nor <strong>Q̄</strong><sup>α</sup> ⊆ <strong>Q̄</strong><sup>β</sup> holds in general for α &lt; β, because the vertex set shrinks; only 𝕊<sup>α</sup> ⊆ 𝕊<sup>β</sup> is automatic, and the cumulative union is what makes the object a filtration at all.</p>
+
+<h3>Visual: the sparse complex against the exact one</h3>
+
+<canvas id="sparseCanvas" width="640" height="330" role="img" aria-label="A noisy circle of sample points; grey edges show the exact Rips graph at scale alpha, blue edges the sparse Rips graph, and points drop out of the sparse complex as alpha grows"></canvas>
+<p style="text-align:center"><button onclick="toggleSp()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Pause / resume</button></p>
+<script>
+(function(){
+const cv=document.getElementById('sparseCanvas'), ctx=cv.getContext('2d');
+const CX=210, CY=170, EPS=0.3, N=26, P=[];
+for(let i=0;i<N;i++){const a=2*Math.PI*i/N, r=104+15*Math.sin(3.1*i);
+  P.push([CX+r*Math.cos(a), CY+r*Math.sin(a)]);}
+function D(i,j){return Math.hypot(P[i][0]-P[j][0], P[i][1]-P[j][1]);}
+const t=new Array(N).fill(0), taken=new Array(N).fill(false), dist=[];
+taken[0]=true; t[0]=Infinity;
+for(let i=0;i<N;i++) dist.push(D(i,0));
+for(let k=1;k<N;k++){ let b=-1, bv=-1;
+  for(let i=0;i<N;i++) if(!taken[i] && dist[i]>bv){bv=dist[i]; b=i;}
+  t[b]=bv; taken[b]=true;
+  for(let i=0;i<N;i++) dist[i]=Math.min(dist[i], D(i,b)); }
+function w(i,a){const s=t[i]/EPS; if(s>=a) return 0;
+  return (a < t[i]/(EPS*(1-EPS))) ? a-s : EPS*a; }
+let al=10, dir=1, run=true;
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const cut=EPS*(1-EPS)*al, act=[]; let sp=0, full=0;
+  for(let i=0;i<N;i++) if(t[i]>cut) act.push(i);
+  ctx.strokeStyle='#232c35'; ctx.lineWidth=1;
+  for(let i=0;i<N;i++) for(let j=i+1;j<N;j++) if(D(i,j)<=2*al){ full++;
+    ctx.beginPath(); ctx.moveTo(P[i][0],P[i][1]); ctx.lineTo(P[j][0],P[j][1]); ctx.stroke(); }
+  ctx.strokeStyle='#8ab4f8'; ctx.lineWidth=2;
+  for(let a1=0;a1<act.length;a1++) for(let b1=a1+1;b1<act.length;b1++){
+    const i=act[a1], j=act[b1];
+    if(D(i,j)+w(i,al)+w(j,al) <= 2*al){ sp++;
+      ctx.beginPath(); ctx.moveTo(P[i][0],P[i][1]); ctx.lineTo(P[j][0],P[j][1]); ctx.stroke(); } }
+  for(let i=0;i<N;i++){ const on = t[i]>cut;
+    ctx.beginPath(); ctx.arc(P[i][0],P[i][1], on?5:3.5, 0, 2*Math.PI);
+    if(on){ ctx.fillStyle='#d8a657'; ctx.fill(); }
+    else { ctx.strokeStyle='#4a5661'; ctx.lineWidth=1.4; ctx.stroke(); } }
+  ctx.font='13px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle='#9aa5b1';
+  ctx.fillText('scale α = '+al.toFixed(0)+'   (ε = 0.3)', 400, 40);
+  ctx.fillStyle='#4a5661'; ctx.fillText('exact Rips edges: '+full, 400, 66);
+  ctx.fillStyle='#8ab4f8'; ctx.fillText('sparse Rips edges: '+sp, 400, 90);
+  ctx.fillStyle='#d8a657'; ctx.fillText('vertices kept: '+act.length+' of '+N, 400, 114);
+  ctx.fillStyle='#9aa5b1';
+  ctx.fillText('gold: still in the net     hollow: aged out of it', 20, 318);
+}
+function step(){ if(run){ al += dir*1.4; if(al>190){al=190;dir=-1;} if(al<10){al=10;dir=1;} draw(); }
+  requestAnimationFrame(step); }
+window.toggleSp=function(){run=!run;};
+draw(); step();
+})();
+</script>
+
+<p>The grey graph is the 1-skeleton of the exact Rips complex at scale α; the blue one is the sparse complex of Definition 6.5, on the vertices that survive N<sub>ε(1−ε)α</sub>. At small α they agree. As α grows the grey graph races towards the complete graph while the blue one sheds vertices and keeps its edge count under control — and that gap, extended to k-simplices, is Theorem 6.4(b).</p>
+
+<p>Read that bound carefully before believing it solves the problem. Θ((1/ε)<sup>kd</sup>n) is linear in n, which is the whole point, but the constant is exponential in kd. With ε = 0.1, k = 2 and d = 3 the constant alone is 10<sup>6</sup>. What has been bought is the removal of the n<sup>d+1</sup> growth, not smallness in any absolute sense — and the price of shrinking the error by taking ε → 0 is that the constant explodes. That trade is the subject.</p>
+
+<h3>Worked example: the chain that proves Theorem 6.4</h3>
+
+<div class="worked">
+<p><strong>The statement.</strong> Theorem 6.4: for P ⊂ ℝ<sup>d</sup> with |P| = n and d constant, ℛ(P) the Rips filtration and 𝕊(P) the ε-sparse Rips filtration, and fixed 0 &lt; ε &lt; 1/3: (a) 𝕊(P) and ℛ(P) are multiplicatively 1/(1−ε)-interleaved at the homology level, so Dgm<sub>k</sub>𝕊(P) is a log(1/(1−ε))-approximation of Dgm<sub>k</sub>ℛ(P) at log scale; (b) for fixed k ≥ 0, the total number of k-simplices ever appearing in 𝕊(P) is Θ((1/ε)<sup>kd</sup>n).</p>
+<p><strong>Step 1 — an intermediate object.</strong> Define the <em>relaxed Rips complex</em> 𝕍ℝ̂<sup>α</sup>(P) := {σ ⊆ P | d̂<sub>α</sub>(p,q) ≤ 2α for all p,q ∈ σ}: same inflated distance, but on <em>all</em> of P. Claim 6.2 says that if d̂<sub>α</sub>(p,q) ≤ 2α ≤ 2β then d̂<sub>β</sub>(p,q) ≤ 2β, so the relaxed complexes really do form a filtration under inclusion — unlike the sparse ones.</p>
+<p><strong>Step 2 — sandwich the intermediate object.</strong> Proposition 6.5: with C = 1/(1−ε), 𝕍ℝ<sup>α/C</sup> ⊆ 𝕍ℝ̂<sup>α</sup> ⊆ 𝕍ℝ<sup>α</sup>. This is the entire source of the approximation constant, and the guided proof below asks you to supply it.</p>
+<p><strong>Step 3 — identify the sparse complex with the relaxed one.</strong> Proposition 6.6: the inclusion i : <strong>Q</strong><sup>α</sup> ↪ 𝕍ℝ̂<sup>α</sup> induces an isomorphism on homology. The mechanism is a projection π<sub>α</sub> onto the net — the identity on N<sub>ε(1−ε)α</sub> and the nearest net point otherwise — shown to be a simplicial retraction with i ∘ π<sub>α</sub> contiguous to the identity. Fact 6.2, applied twice, is what makes π<sub>α</sub> simplicial: d̂<sub>α</sub>(π<sub>α</sub>(p), π<sub>α</sub>(q)) ≤ d̂<sub>α</sub>(p, π<sub>α</sub>(q)) ≤ d̂<sub>α</sub>(p,q). Fact 6.1, together with w<sub>p</sub>(α) ≤ εα, is what supplies the contiguity: d̂<sub>α</sub>(p, π<sub>α</sub>(p)) ≤ 2w<sub>p</sub>(α) ≤ 2εα &lt; 2α.</p>
+<p><strong>Step 4 — climb to the cumulative complex.</strong> The same argument covers <strong>Q</strong><sup>α</sup> ↪ <strong>Q̄</strong><sup>α</sup>. Proposition 6.7 then handles <strong>Q̄</strong><sup>α</sup> ↪ 𝕊<sup>α</sup>, factoring the inclusion through the intermediate complexes T<sub>i,k</sub> = ⋃<sub>j=i</sub><sup>k</sup> <strong>Q̄</strong><sup>α<sub>j</sub></sup> and repeating retraction-plus-contiguity at each step. Combining, {𝕊<sup>α</sup>} and {𝕍ℝ̂<sup>α</sup>} induce isomorphic persistence modules, and with Step 2 that is Theorem 6.4(a).</p>
+<p><strong>Step 5 — the size bound, by packing.</strong> Charge each simplex of 𝕊(P) to its vertex of <em>smallest</em> exit-time. A point p contributes no new edge beyond β = t<sub>p</sub>/(ε(1−ε)), so it is enough to count in <strong>Q̄</strong><sup>α<sub>p</sub></sup> with α<sub>p</sub> = t<sub>p</sub>/(ε(1−ε)). Put E(p) = {q | (p,q) ∈ <strong>Q̄</strong><sup>α<sub>p</sub></sup>, t<sub>p</sub> ≤ t<sub>q</sub>} ∪ {p}. Every pair in E(p) is at distance at least t<sub>p</sub>, by the packing condition of the net; and E(p) ⊆ B(p, 2α<sub>p</sub>). A packing argument in ℝ<sup>d</sup> gives |E(p)| = O((2α<sub>p</sub>/t<sub>p</sub>)<sup>d</sup>) = O((2/(ε(1−ε)))<sup>d</sup>) = O((1/ε)<sup>d</sup>), the last step using ε &lt; 1/3 so that 1 − ε ≥ 2/3. So at most O((1/ε)<sup>kd</sup>) k-simplices are charged to each point, and O((1/ε)<sup>kd</sup>n) in total. <em>That</em> is where ε &lt; 1/3 earns its place.</p>
+</div>
+
+<h3>A second sparsification, and a weaker interleaving</h3>
+
+<p>Dey and Wang give an alternative that is conceptually simpler and provably worse. Start from the geometric subsequence of the Rips filtration, 𝕍ℝ<sup>α</sup>(P) ↪ 𝕍ℝ<sup>α(1+ε)</sup>(P) ↪ ⋯ ↪ 𝕍ℝ<sup>α(1+ε)<sup>m</sup></sup>(P). Then set P<sub>0</sub> = P and let P<sub>k+1</sub> be an (αε<sup>2</sup>)(1+ε)<sup>k−1</sup>-net of P<sub>k</sub>, stopping when P<sub>m</sub> has constant size; the nearest-neighbour map π<sub>k</sub> : P<sub>k</sub> → P<sub>k+1</sub> induces a simplicial map, and one obtains a <em>tower</em> connected by simplicial maps rather than a filtration connected by inclusions. Claim 6.3 says the triangles relating the two sequences commute at the homology level — but only at the discrete indices.</p>
+
+<div class="definition">
+<p><strong>Definition 6.6 (weak interleaving of vector space towers).</strong> Towers 𝕌 and 𝕍 over {a ∈ ℝ | a ≥ a<sub>0</sub>} are <em>weakly ε-interleaved</em> if there are linear maps φ<sub>i</sub> : U<sub>a<sub>0</sub>+iε</sub> → V<sub>a<sub>0</sub>+(i+1)ε</sub> and ψ<sub>i</sub> : V<sub>a<sub>0</sub>+iε</sub> → U<sub>a<sub>0</sub>+(i+1)ε</sub> for every integer i ≥ 0 such that any subdiagram of the resulting diagram commutes. <span class="cite">— Dey &amp; Wang §6.2.2, Definition 6.6, p. 191</span></p>
+</div>
+
+<p>The difference from the strong notion of Definition 4.4 is that the relations hold only at discrete index values, and the price is exactly a factor of three: weakly ε-interleaved modules satisfy d<sub>b</sub>(Dgm 𝕌, Dgm 𝕍) ≤ 3ε rather than ε.</p>
+
+<div class="theorem">
+<p><strong>Theorem 6.8.</strong> Given n points P ⊂ ℝ<sup>d</sup>, one can 3log(1+ε)-approximate the persistence diagram of the discrete Rips filtration by that of the sparsified tower at the log scale. The number of k-simplices ever appearing in the tower is O((1/ε)<sup>O(kd)</sup>n). <span class="cite">— Dey &amp; Wang §6.2.2, Theorem 6.8, p. 192</span></p>
+</div>
+
+<h3>What any of this says about a hidden space</h3>
+
+<p>So far everything has been about approximating the diagram of a filtration built from P. The inference question is different: P is a sample of some hidden X, and one wants H<sub>∗</sub>(X).</p>
+
+<div class="definition">
+<p><strong>Definition 6.7 (distance field).</strong> For compact X ⊂ ℝ<sup>d</sup>, the distance field is d<sub>X</sub> : ℝ<sup>d</sup> → ℝ, x ↦ d(x,X); the α-offset is X<sup>α</sup> := {x | d<sub>X</sub>(x) ≤ α}, the sublevel set d<sub>X</sub><sup>−1</sup>((−∞,α]). <span class="cite">— Dey &amp; Wang §6.3.1, Definition 6.7, p. 193</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.8 (local feature size; reach).</strong> The local feature size at x ∈ X is its distance to the medial axis of X; the <em>reach</em> ρ(X) is the minimum local feature size over X. <span class="cite">— Dey &amp; Wang §6.3.1, Definition 6.8, pp. 193–194</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.9 (generalized vector field).</strong> With Π(x) the set of closest points of x in X and c(x) the centre of the minimal enclosing ball of Π(x), define ∇<sub>d</sub> : ℝ<sup>d</sup> ∖ X → ℝ<sup>d</sup> by ∇<sub>d</sub>(x) = (x − c(x))/d<sub>X</sub>(x). Its critical points are the x with ∇<sub>d</sub>(x) = 0. <span class="cite">— Dey &amp; Wang §6.3.1, Definition 6.9, p. 194</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.10 (weak feature size).</strong> With C the set of critical points of ∇<sub>d</sub>, wfs(X) = min<sub>x∈X</sub> inf<sub>c∈C</sub> d(x,c). <span class="cite">— Dey &amp; Wang §6.3.1, Definition 6.10, p. 195</span></p>
+</div>
+
+<p>Why two feature sizes? Because the reach is fragile. It can be zero at a nonsmooth point — a polygon's medial axis reaches its vertices — and Dey and Wang note that even a smoothly embedded manifold can have reach zero. The reach is used for smooth manifolds, the weak feature size for general compact sets. Proposition 6.9 is the reason the second one is useful: if 0 &lt; α &lt; α′ and d<sub>X</sub> has no critical value in [α,α′], then X<sup>α′</sup> deformation retracts onto X<sup>α</sup>, so H<sub>∗</sub>(X<sup>α</sup>) ≅ H<sub>∗</sub>(X<sup>α′</sup>).</p>
+
+<div class="lemma">
+<p><strong>Fact 6.3 (rank sandwich).</strong> Given a sequence A → B → C → D → E → F of linear maps between finite-dimensional vector spaces, if rank(A → F) = rank(C → D), then this quantity also equals rank(B → E). Specifically, if A → B → C → E → F has rank(A → F) = dim C, then rank(B → E) = dim C. <span class="cite">— Dey &amp; Wang §6.3.2, Fact 6.3, p. 195</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example (faded): pinning H<sub>∗</sub>(X) between two Rips complexes.</strong> Let X ⊂ ℝ<sup>d</sup> be a smooth manifold of reach ρ(X) and P a finite sample with d<sub>H</sub>(P,X) ≤ ε.</p>
+<p><strong>Step 1 — from the sample to the space.</strong> Proposition 6.10: if 3ε ≤ α ≤ (3/4)√(3/5) ρ(X) then H<sub>∗</sub>(P<sup>α</sup>) ≅ H<sub>∗</sub>(X). Note this is about the union of balls, not about any complex.</p>
+<p><strong>Step 2 — from the union of balls to the Čech complex.</strong> Euclidean balls are convex, so the Nerve Theorem applies and ℂ<sup>α</sup>(P) is homotopy equivalent to P<sup>α</sup>. Combining with Step 1, H<sub>∗</sub>(X) ≅ H<sub>∗</sub>(P<sup>α</sup>) ≅ H<sub>∗</sub>(ℂ<sup>α</sup>(P)) ≅ H<sub>∗</sub>(ℂ<sup>β</sup>(P)) for any β in the same window, the last isomorphism being induced by <span class="gap">⟨your step: which map?⟩</span>.</p>
+<p><strong>Step 3 — interleave Čech with Rips.</strong> Write the chain ℂ<sup>α</sup>(P) ⊆ 𝕍ℝ<sup>α</sup>(P) ⊆ ℂ<sup>2α</sup>(P) ⊆ 𝕍ℝ<sup>2α</sup>(P) ⊆ ℂ<sup>4α</sup>(P) and apply H<sub>∗</sub>. By Step 2 the three Čech groups are all isomorphic under the inclusion-induced maps, so rank(H<sub>∗</sub>(ℂ<sup>α</sup>) → H<sub>∗</sub>(ℂ<sup>4α</sup>)) = <span class="gap">⟨your step: equal to what?⟩</span>.</p>
+<p><strong>Step 4 — squeeze.</strong> Apply the second part of Fact 6.3 to that five-term sequence. The middle rank is pinned, which is Theorem 6.11: for 3ε ≤ α ≤ (3/16)√(3/5) ρ(X) and i<sub>∗</sub> : H<sub>∗</sub>(𝕍ℝ<sup>α</sup>) → H<sub>∗</sub>(𝕍ℝ<sup>2α</sup>) the inclusion-induced map, rank(im(i<sub>∗</sub>)) = dim(H<sub>∗</sub>(ℂ<sup>α</sup>(P))) = dim(H<sub>∗</sub>(X)).</p>
+<p><strong>Why the image and not the group.</strong> Read what the sandwich actually controls. Fact 6.3 pins a rank along a <em>composite</em>, so what the argument delivers is the rank of the image of the map between two scales — not the dimension of H<sub>∗</sub>(𝕍ℝ<sup>α</sup>) for either one on its own, about which the chain says nothing. That is the persistence idea used as an inference tool.</p>
+<p class="cite">Gap solutions: the inclusion ℂ<sup>α</sup>(P) ⊆ ℂ<sup>β</sup>(P); and the rank equals dim(H<sub>∗</sub>(ℂ<sup>α</sup>(P))).</p>
+</div>
+
+<p>For a general compact X the first step fails, and Dey and Wang say why: there are compact sets for which H<sub>∗</sub>(X<sup>λ</sup>) is not isomorphic to H<sub>∗</sub>(X) however small λ &gt; 0 is. So one gives up on X and targets an offset instead, using Proposition 6.9 to know that all small offsets agree.</p>
+
+<div class="theorem">
+<p><strong>Proposition 6.12.</strong> Let X be compact in ℝ<sup>d</sup> and P finite with d<sub>H</sub>(X,P) &lt; ε for some ε &lt; ¼wfs(X). Then for all α, α′ ∈ (ε, wfs(X) − ε) with α′ − α ≥ 2ε, and any λ ∈ (0, wfs(X)), H<sub>∗</sub>(X<sup>λ</sup>) ≅ im(i<sub>∗</sub>), where i<sub>∗</sub> : H<sub>∗</sub>(ℂ<sup>α</sup>(P)) → H<sub>∗</sub>(ℂ<sup>α′</sup>(P)) is induced by inclusion. <span class="cite">— Dey &amp; Wang §6.3.3, Proposition 6.12, p. 198</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 6.13.</strong> Let X be compact in ℝ<sup>d</sup> and P a finite point set with d<sub>H</sub>(X,P) &lt; ε for some ε &lt; (1/9)wfs(X). Then for all α ∈ (2ε, ¼(wfs(X) − ε)) and all λ ∈ (0, wfs(X)), H<sub>∗</sub>(X<sup>λ</sup>) ≅ im(j<sub>∗</sub>), where j<sub>∗</sub> is induced by the inclusion j : 𝕍ℝ<sup>α/2</sup>(P) ↪ 𝕍ℝ<sup>2α</sup>(P). <span class="cite">— Dey &amp; Wang §6.3.3, Theorem 6.13, p. 198</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 6.11.</strong> Given a smooth manifold X embedded in ℝ<sup>d</sup> with reach ρ(X) and a finite sample P with d<sub>H</sub>(P,X) ≤ ε, for any 3ε ≤ α ≤ (3/16)√(3/5) ρ(X) and i<sub>∗</sub> : H<sub>∗</sub>(𝕍ℝ<sup>α</sup>) → H<sub>∗</sub>(𝕍ℝ<sup>2α</sup>) induced by inclusion, rank(im(i<sub>∗</sub>)) = dim(H<sub>∗</sub>(ℂ<sup>α</sup>(P))) = dim(H<sub>∗</sub>(X)). <span class="cite">— Dey &amp; Wang §6.3.2, Theorem 6.11, pp. 196–197</span></p>
+</div>
+
+<div class="warn">
+<p><strong>The pattern to carry out of this unit.</strong> Two errors, of different kinds, and both must be reported. The first is the <em>sparsification</em> error: log(1/(1−ε)) at log scale for Definition 6.5 by Theorem 6.4(a), or 3log(1+ε) for the tower by Theorem 6.8. It is entirely under your control — you chose ε — and it is multiplicative, so it lives on the log axis, not the linear one. The second is the <em>inference</em> error: Theorem 6.11 and Theorem 6.13 say nothing at all unless d<sub>H</sub>(P,X) ≤ ε for a hidden X and the scale α lies inside a window set by ρ(X) or wfs(X). Neither the sampling density nor the feature size is computable from P, so that half is a hypothesis about the data, argued for from how the data were acquired. Reporting a sparse barcode as if it were a fact about a manifold conflates the two.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Take ε = 0.1 and a sample of n = 10<sup>5</sup> points in ℝ<sup>3</sup>. (i) Using Theorem 6.4, write down the bound on the number of triangles (k = 2) in the sparse Rips filtration, and compare it with the Θ(n<sup>d+1</sup>) count for the exact filtration once the scale passes the diameter. (ii) Write down the log-scale error Theorem 6.4(a) gives for this ε, and then the error Theorem 6.8 would give for the same ε; which construction is more accurate, and by roughly what factor? (iii) Your collaborator reports that the sparse barcode has one long H<sub>1</sub> bar and concludes the data lie near a circle. Using Theorem 6.13, list precisely what would have to be established before that conclusion is licensed, and name which of those things can be checked from the point cloud alone.</p>
+<p><em>Hint:</em> for (ii), compare log(1/0.9) with 3log(1.1); for (iii), the unavailable quantity is wfs(X).</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where is the hypothesis ε &lt; 1/3 actually used in Theorem 6.4?</p>
+<button onclick="check(this,false)">In Proposition 6.5, to make the sandwich 𝕍ℝ<sup>α/C</sup> ⊆ 𝕍ℝ̂<sup>α</sup> ⊆ 𝕍ℝ<sup>α</sup> hold</button>
+<button onclick="check(this,true)" data-ok>In the packing argument for part (b): it gives 1 − ε ≥ 2/3, which is what turns O((2/(ε(1−ε)))<sup>d</sup>) into O((1/ε)<sup>d</sup>)</button>
+<button onclick="check(this,false)">In Claim 6.2, to make the relaxed Rips complexes a filtration</button>
+<div class="explain">Part (b) is where the constant is spent. Proposition 6.5 holds for any 0 &lt; ε &lt; 1 — its proof needs only w<sub>p</sub>(α) ≤ εα and non-negativity — and Claim 6.2 needs nothing but the 1-Lipschitz property from Claim 6.1. The bound ε &lt; 1/3 is what lets Dey and Wang absorb the factor (1 − ε) into the constant and state the count as Θ((1/ε)<sup>kd</sup>n).</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Why does the compact-set case need a pair of Čech complexes where the manifold case needed one?</p>
+<button onclick="check(this,true)" data-ok>Because H<sub>∗</sub>(P<sup>α</sup>) ≅ H<sub>∗</sub>(X) is unavailable for a general compact X — there are compact sets whose offsets never recover their homology — so one targets an offset X<sup>λ</sup> and can only pin the image of a map between two scales</button>
+<button onclick="check(this,false)">Because the Nerve Theorem fails for compact sets, so one Čech complex is not homotopy equivalent to the union of balls</button>
+<button onclick="check(this,false)">Because the weak feature size is smaller than the reach, so a single scale is never inside the admissible window</button>
+<div class="explain">Proposition 6.10 is the step that dies: it is stated for smooth manifolds via the reach, and Dey and Wang record compact sets for which no offset has the homology of X. The Nerve Theorem is unaffected — it depends on the balls being convex, which they still are. And the third option invents a comparison; the window in Proposition 6.12 is stated in terms of wfs(X) and is perfectly capable of being non-empty.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> (1) Prove the intermediate bound w<sub>p</sub>(α) ≤ εα for every p and every α ≥ 0, directly from the three-piece definition. (2) Prove Proposition 6.5: with C = 1/(1−ε), 𝕍ℝ<sup>α/C</sup> ⊆ 𝕍ℝ̂<sup>α</sup> ⊆ 𝕍ℝ<sup>α</sup>. (3) Deduce that the relaxed Rips filtration and the Rips filtration are multiplicatively C-interleaved, and say which further results are then needed to reach Theorem 6.4(a).</p>
+<p><em>Hint:</em> for (1) the only case with any content is the middle one, where α &lt; t<sub>p</sub>/(ε(1−ε)). Dey and Wang state Proposition 6.5 without proof; part (2) is the argument they leave out.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) The weight never exceeds εα.</strong> Take the three cases of the definition. If t<sub>p</sub>/ε ≥ α then w<sub>p</sub>(α) = 0 ≤ εα, since ε, α ≥ 0. If t<sub>p</sub>/(ε(1−ε)) ≤ α then w<sub>p</sub>(α) = εα exactly. The middle case is the one to check: there t<sub>p</sub>/ε &lt; α &lt; t<sub>p</sub>/(ε(1−ε)), and the right-hand inequality rearranges to t<sub>p</sub> &gt; ε(1−ε)α, hence t<sub>p</sub>/ε &gt; (1−ε)α. Therefore</p>
+<div class="math-block">w<sub>p</sub>(α) = α − t<sub>p</sub>/ε &lt; α − (1−ε)α = εα.</div>
+<p>So w<sub>p</sub>(α) ≤ εα in all three cases, with equality only in the third. ∎</p>
+<p><strong>(2) Proposition 6.5.</strong> Both complexes are determined by their edges, being clique complexes, so it suffices to compare the conditions on pairs.</p>
+<p><em>Right inclusion, 𝕍ℝ̂<sup>α</sup> ⊆ 𝕍ℝ<sup>α</sup>.</em> Let σ ∈ 𝕍ℝ̂<sup>α</sup> and p, q ∈ σ. Weights are non-negative, so</p>
+<div class="math-block">d(p,q) ≤ d(p,q) + w<sub>p</sub>(α) + w<sub>q</sub>(α) = d̂<sub>α</sub>(p,q) ≤ 2α,</div>
+<p>which is the membership condition for 𝕍ℝ<sup>α</sup>. Hence σ ∈ 𝕍ℝ<sup>α</sup>.</p>
+<p><em>Left inclusion, 𝕍ℝ<sup>α/C</sup> ⊆ 𝕍ℝ̂<sup>α</sup>.</em> Let σ ∈ 𝕍ℝ<sup>α/C</sup> and p, q ∈ σ, so d(p,q) ≤ 2α/C = 2α(1−ε). Using part (1) twice,</p>
+<div class="math-block">d̂<sub>α</sub>(p,q) = d(p,q) + w<sub>p</sub>(α) + w<sub>q</sub>(α) ≤ 2α(1−ε) + εα + εα = 2α − 2εα + 2εα = 2α.</div>
+<p>Hence σ ∈ 𝕍ℝ̂<sup>α</sup>. ∎</p>
+<p><strong>(3) The interleaving.</strong> Replacing α by Cα in the left inclusion gives 𝕍ℝ<sup>α</sup> ⊆ 𝕍ℝ̂<sup>Cα</sup>; together with the right inclusion this is the chain</p>
+<div class="math-block">𝕍ℝ̂<sup>α</sup> ⊆ 𝕍ℝ<sup>α</sup> ⊆ 𝕍ℝ̂<sup>Cα</sup> ⊆ 𝕍ℝ<sup>Cα</sup>,</div>
+<p>valid for every α ≥ 0. Every map in sight is an inclusion, so every composite is again an inclusion and therefore agrees with the internal map of the relevant filtration at that scale factor — the commutativity an interleaving demands is automatic. Applying H<sub>∗</sub> exhibits the two filtrations as multiplicatively C-interleaved with C = 1/(1−ε), and by Corollary 4.4 that bounds the bottleneck distance between the log-scaled diagrams by log C = log(1/(1−ε)).</p>
+<p>To reach Theorem 6.4(a) one still needs the sparse filtration 𝕊 to be interchangeable with the relaxed one, which is Proposition 6.6 (<strong>Q</strong><sup>α</sup> ↪ 𝕍ℝ̂<sup>α</sup> induces an isomorphism, and likewise <strong>Q</strong><sup>α</sup> ↪ <strong>Q̄</strong><sup>α</sup>) together with Proposition 6.7 (<strong>Q̄</strong><sup>α</sup> ↪ 𝕊<sup>α</sup> induces an isomorphism). Both are proved by the same device: exhibit a simplicial retraction onto the smaller complex and show the composite is contiguous to the identity.</p>
+<p><em>What this does and does not license.</em> The interleaving constant is C = 1/(1−ε) and nothing smaller comes out of this argument; the approximation cannot be made exact by any choice of ε &gt; 0, and driving ε to 0 destroys the size bound, since Theorem 6.4(b) is Θ((1/ε)<sup>kd</sup>n). The trade is genuine and quantified, which is the whole point — but note that it says nothing whatever about how close either diagram is to a hidden space. That is a separate hypothesis and a separate theorem.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>Why the exact Čech and Rips filtrations cannot be built, and what their diagrams are stable with respect to.</li>
+<li>The two routes to a smaller complex — subsample once, or sparsify as the scale grows — and what is proved about each.</li>
+<li>The chain from a sparse complex back to a hidden space, and which link in it is a hypothesis rather than a theorem.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) Θ(n<sup>d+1</sup>) in the d-skeleton once the scale passes the diameter, with Corollary 6.1 and Proposition 6.2 relating Čech to the union of balls, the multiplicative 2-interleaving relating Čech to Rips, and Theorem 6.3 giving stability in Hausdorff and Gromov–Hausdorff distance with a factor 2 traceable to the change of metric balls; (2) §2.3's Delaunay, witness and graph-induced complexes, sparse by construction and proved to satisfy inference statements — Proposition 2.4, Theorem 2.6, Theorem 2.7 — but no size bound and no interleaving, against §6.2's sparse Rips filtration of Definition 6.5, built on a farthest-point net-tower with the weight function, whose Theorem 6.4 gives both a Θ((1/ε)<sup>kd</sup>n) size and a 1/(1−ε) multiplicative interleaving, with the tower of Theorem 6.8 as a simpler and threefold worse alternative under Definition 6.6's weak interleaving; (3) Definition 6.7 to Definition 6.10's distance field, reach and weak feature size, Proposition 6.9 and Fact 6.3's rank sandwich, giving Theorem 6.11 for manifolds and Theorem 6.13 for compact sets — and that the sampling condition d<sub>H</sub>(P,X) ≤ ε with a feature-size window is the link that is assumed, not proved — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §6.1 "Persistence for Rips and Čech Filtrations": the Čech complex as the nerve of a union of balls, Eq. (6.1) (p. 179); Corollary 6.1, Proposition 6.2, the Rips complex Eq. (6.2), and the multiplicative 2-interleaving with its log 2 bottleneck bound via Corollary 4.4, Eq. (6.3) (p. 180); the finite-metric-space reading with Eqs. (6.4) and (6.5), Definition 6.1 and Definition 6.2 (pp. 180–181); Definition 6.3, Theorem 6.3, the provenance of its factor 2, and totally bounded spaces (p. 182). §6.2 "Approximation via Data Sparsification": the Θ(n<sup>d+1</sup>) size of the d-skeleton (p. 182); Figure 6.2's scale-dependent redundancy and the linear-size goal (p. 183); Definition 6.4 (pp. 183–184); farthest point sampling, exit-times, and the open and closed net-towers of Eqs. (6.6) and (6.7) (p. 184); the weight function, Claim 6.1, and the net-induced distance Eq. (6.8) (pp. 184–185); Definition 6.5 with the cumulative complex and the failure of inclusion for <strong>Q</strong><sup>α</sup> and <strong>Q̄</strong><sup>α</sup> (pp. 185–186); Theorem 6.4, the relaxed Rips complex and Claim 6.2 (p. 186); Proposition 6.5, Fact 6.1 and Fact 6.2 (p. 187); Proposition 6.6 with its retraction-and-contiguity proof (pp. 187–188); Proposition 6.7 with the intermediate complexes T<sub>i,k</sub> (pp. 188–189); the packing argument proving Theorem 6.4(b), including the use of ε &lt; 1/3 (p. 190). §6.2.2: the geometric subsequence Eq. (6.12), the net-based tower Eq. (6.13) (pp. 190–191); Claim 6.3 and Definition 6.6 (p. 191); the 3ε bound for weak interleaving and Theorem 6.8 (p. 192). §6.3 "Homology Inference from Point Cloud Data": the two-step framework (pp. 192–193); Definition 6.7 (p. 193); Definition 6.8 with the remark that reach can vanish (pp. 193–194); Definition 6.9 (p. 194); Definition 6.10 and Proposition 6.9 (p. 195); Fact 6.3 (p. 195); Eq. (6.15) and Proposition 6.10 (p. 196); Theorem 6.11 with its proof through the Čech–Rips chain (pp. 196–197); the failure of offsets to recover H<sub>∗</sub>(X) for general compact sets, Proposition 6.12 and Theorem 6.13 (pp. 197–198). §2.3 "Sparse Complexes": the size motivation (p. 33); Definition 2.11 and Fact 2.3 (p. 34); Definition 2.12, Fact 2.4's nerve description, Fact 2.5's optimality criteria, and the Θ(n<sup>⌈d/2⌉</sup>) sizes (p. 35); the alpha complex as subcomplex and as nerve (pp. 35–36); Definition 2.13 (p. 36); Definition 2.14 with the reason for the all-faces clause, Definition 2.15, Proposition 2.3 and Fact 2.6 (p. 37); Proposition 2.4 and Proposition 2.5 (p. 38); Definition 2.16 and Definition 2.17 (pp. 39–40); Theorem 2.6 and Theorem 2.7 (p. 40); the empirical comparison of Figure 2.8, including the 608 200 and 1 329 672 867 simplex counts (pp. 41–42). Supplied here, not in the source: the proof of Proposition 6.5 and the intermediate bound w<sub>p</sub>(α) ≤ εα it rests on — Dey and Wang state Proposition 6.5 without proof, and the guided proof supplies it. Not established here: any bound on the size of a witness complex or a graph induced complex, and any interleaving between either of them and the Rips filtration; §2.3 offers inference theorems and an empirical table in place of both, so the mission strip's attribution of linear size and multiplicative interleaving to all three constructions holds for the sparse Rips filtration only. Cited but not restated, being Chapter 2 and Chapter 4 material: the Nerve Theorem; Definition 4.4 on strong interleaving of towers and Corollary 4.4 converting multiplicative interleaving into a log-scale bottleneck bound. Deferred: §6.4's homology inference for scalar fields with its nested pair filtration; the alternative net-tower via the net-tree data structure; and the detailed proof of Claim 6.3.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
