@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-10 — Cellular sheaves and sheaf cohomology</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Cellular sheaves and sheaf cohomology <span class="cite">(tda2-10)</span></h1>
+
+<div class="hook">
+A robot in a corridor measures distance in two directions. At a junction, the number of directions jumps. The data has no fixed dimension — so no coefficient group can hold it.
+<p>That is Ghrist's opening example, and it is a real defect in everything you have done so far. Cellular cohomology puts the <em>same</em> group on every cell. Fibre bundles do better but insist the fibre be locally constant. Neither can express "two numbers along a corridor, three at a junction, and here is how they must agree where the corridor meets the junction".</p>
+<p>A cellular sheaf drops both restrictions: a group on each cell, chosen freely, and a homomorphism for each incidence saying how a value on a face is required to appear on the cell above it. The whole subject is then one question — which local assignments fit together globally — and the answer turns out to be a cohomology group you can compute with the linear algebra of la-06.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Take a cell complex X and put the same group 𝐆 on every cell, once with all restriction maps the identity (the constant sheaf 𝐆<sub>X</sub>) and once with all of them zero (the sum of skyscrapers ⊕<sub>σ</sub>𝐆<sub>σ</sub>). Every stalk agrees. Predict how the two compare.</p>
+<button onclick="check(this,false)">They are the same sheaf: a sheaf is determined by its stalks, and the restriction maps are bookkeeping</button>
+<button onclick="check(this,true)" data-ok>They are utterly different: 𝐆<sub>X</sub>(X) ≅ 𝐆 because the identities force consensus, while the all-zero sheaf imposes nothing and has a 𝐆 for every vertex</button>
+<button onclick="check(this,false)">They differ, but only in gradings above zero, since H<sup>0</sup> sees only the stalks</button>
+<div class="explain">Ghrist makes the point explicitly: ⊕<sub>σ</sub>𝐆<sub>σ</sub> ≠ 𝐆<sub>X</sub> "even though all the stalks agree: the restriction maps of this city full of skyscrapers are all zero". The sum-of-skyscrapers has value ⊕<sub>v</sub>𝐆 on X — an anarchic choice at each vertex, since the zero restrictions demand nothing on higher cells — while 𝐆<sub>X</sub>(X) ≅ 𝐆, because the identity maps force a perfect consensus among cells. The disagreement is loudest in grading <em>zero</em>, which is precisely where the third option says it cannot be. Restriction maps are not bookkeeping; they are the entire content.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A cellular sheaf assigns data to cells and restriction maps to incidences — cat-03's functors, now indexed by a cell complex. Its H^0 is exactly the space of global sections, the globally consistent assignments, so sheaf cohomology measures the obstruction to consistency and la-06's kernel/range theorem is literally the computation.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Data over a complex</h2>
+
+<div class="definition">
+<p><strong>Cellular sheaf.</strong> Fix X a regular cell complex with ◁ denoting the face relation: σ ◁ τ iff σ ⊂ τ̄. A <strong>cellular sheaf</strong> ℱ over X is generated by an assignment to each cell σ of an abelian group ℱ(σ), and to each face σ ◁ τ a <strong>restriction map</strong> — a homomorphism ℱ(σ ◁ τ) : ℱ(σ) → ℱ(τ) — such that faces of faces satisfy the composition rule</p>
+<div class="math-block">ρ ◁ σ ◁ τ &nbsp; ⇒ &nbsp; ℱ(ρ ◁ τ) = ℱ(σ ◁ τ) ∘ ℱ(ρ ◁ σ). &nbsp;&nbsp;(9.1)</div>
+<p>The trivial face τ ◁ τ induces the identity, ℱ(τ ◁ τ) = Id. <span class="cite">— Ghrist §9.1, pp. 180–181</span></p>
+</div>
+
+<p>Two remarks on the name and the shape. Ghrist footnotes that it does seem backwards to call this a <em>restriction</em>, the terminology coming from the topological perspective of §9.6 for which the cellular case acts as a nerve. And the composition rule (9.1) is exactly functoriality on the face poset — that is the sense in which cat-03's functors are being indexed by a cell complex — though Ghrist's own phrase is that this is "a sheaf as a representation of the face structure". The rule looks like bookkeeping. Segment 2's guided proof shows it is the only reason cohomology exists here at all.</p>
+
+<p>The value ℱ(τ) is the group of <em>local sections</em> over τ, and one writes s<sub>τ</sub> ∈ ℱ(τ). The value on all of X collects the local sections that continue consistently:</p>
+<div class="math-block">ℱ(X) := { (s<sub>τ</sub>)<sub>τ∈X</sub> : s<sub>σ</sub> = ℱ(ρ ◁ σ)(s<sub>ρ</sub>) ∀ ρ ◁ σ } ⊂ ∏<sub>τ</sub> ℱ(τ). &nbsp;&nbsp;(9.2)</div>
+<p>These are the <em>global sections</em>. For a point x ∈ X the <em>stalk</em> ℱ<sub>x</sub> is simply ℱ(σ) for the unique cell σ in whose interior x lies.</p>
+
+<h3>The two extremes, and why they differ</h3>
+
+<p>The simplest sheaf is the <strong>constant sheaf</strong> 𝐆<sub>X</sub>: the group 𝐆 on every cell and the identity on every face relation. Every point has stalk 𝐆 and the global sections match the local ones, 𝐆<sub>X</sub>(X) ≅ 𝐆. The antipode is the <strong>skyscraper sheaf</strong> 𝐆<sub>σ</sub>: the group 𝐆 on the cell σ and zero on every other cell, with every restriction map zero apart from the identity σ ◁ σ. It has no nonzero global sections if dim σ &gt; 0, but for a vertex v, 𝐆<sub>v</sub>(X) ≅ 𝐆.</p>
+
+<p>Now the prediction gate. Summing skyscrapers over every cell gives ⊕<sub>σ∈X</sub>𝐆<sub>σ</sub> ≠ 𝐆<sub>X</sub>, even though the stalks all agree — the restriction maps of this city full of skyscrapers are all zero. Its value on X is ⊕<sub>v</sub>𝐆, since an arbitrary element at each vertex agrees, via zero maps, with the null on higher cells; whereas 𝐆<sub>X</sub>(X) ≅ 𝐆, the identities forcing consensus. Ghrist adds a third case worth keeping: if all stalks are ℤ, the restriction maps are multiplications by constants, which must factor according to (9.1); if none is zero and X is connected there are always nonzero global sections — a ℤ's worth — yet it is still <em>not</em> the case that local sections can always be patched into a global one.</p>
+
+<h3>Four sheaves that are not toys</h3>
+
+<p><strong>Example 9.1 (recurrence equations).</strong> For u<sub>n+1</sub> = A<sub>n</sub>u<sub>n</sub> with u<sub>n</sub> ∈ ℝ<sup>k</sup>, take the cell structure on ℝ with ℤ as vertices, put ℝ<sup>k</sup> on every cell, let ℱ({n} ◁ (n, n+1)) be u ↦ A<sub>n</sub>u and ℱ({n+1} ◁ (n, n+1)) be the identity. Global sections then correspond precisely to solutions of the recurrence. Linearity is not optional: to be a sheaf of vector spaces the dynamics must be linear, so the solution space is a linear subspace.</p>
+
+<p><strong>Example 9.2 (local cohomology).</strong> Assign to σ the local cohomology H<sup>k</sup>(X, X − σ̄), with restriction ℱ(σ ◁ τ) = H(ι) induced by the inclusion ι : (X, X − τ̄) ↪ (X, X − σ̄). On an n-manifold this yields a constant sheaf of dimension one, the <em>orientation sheaf</em>, and the manifold is orientable if and only if that sheaf has a global section. On a finite graph the local H<sup>1</sup> sheaf has stalk dimension 1 on edges and deg(v) − 1 on each vertex v.</p>
+
+<p><strong>Example 9.3 (fibre homology).</strong> For a cellular f : X → Y, put ℱ(σ) = H<sub>k</sub>(f<sup>−1</sup>σ̄) on each simplex σ of Y, with restrictions induced by f<sup>−1</sup>σ̄ ⊂ f<sup>−1</sup>τ̄. For a cellular height function h : X → ℝ this records the homology of level sets as stalks over the vertices of ℝ — the same level-set data that tda2-06 organised into a Reeb graph, here recorded instead as stalks along the line.</p>
+
+<p><strong>Example 9.4 (logic gates).</strong> Topologise an XOR gate as a directed Y-graph. Take 𝔽<sub>2</sub>-vector spaces with stalk dimension one everywhere except the central vertex, where it is two. The restrictions from the centre to the two input edges are the projections to the first and second factors; the restriction to the output edge is addition, + : 𝔽<sub>2</sub><sup>2</sup> → 𝔽<sub>2</sub>. The global sections are then precisely the truth table. Ghrist notes the same trick fails for AND, since 𝔽<sub>2</sub><sup>2</sup> → 𝔽<sub>2</sub> encoded by AND is not a homomorphism — nor are NOT, OR, NOR or NAND.</p>
+
+<h3>Visual: the XOR sheaf and its global sections</h3>
+
+<canvas id="xorCanvas" width="640" height="300" role="img" aria-label="A Y-shaped graph with a central vertex carrying a two-dimensional stalk, two input edges and one output edge, with the restriction maps shown and the current global section highlighted"></canvas>
+<p style="text-align:center"><button onclick="nextSec()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Next global section</button></p>
+<script>
+(function(){
+const cv=document.getElementById('xorCanvas'), ctx=cv.getContext('2d');
+const C=[300,150], I1=[130,72], I2=[130,228], O=[478,150];
+const SEC=[[0,0],[0,1],[1,0],[1,1]];
+let i=0;
+function edge(p,q,col,w){ ctx.strokeStyle=col; ctx.lineWidth=w||2.4;
+  ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0],q[1]); ctx.stroke(); }
+function node(p,r,col){ ctx.fillStyle=col; ctx.beginPath(); ctx.arc(p[0],p[1],r,0,2*Math.PI); ctx.fill(); }
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const s=SEC[i], out=(s[0]+s[1])%2;
+  edge(I1,C,'#8ab4f8'); edge(I2,C,'#4caf82'); edge(C,O,'#d8a657');
+  node(C,11,'#e8e8e8'); node(I1,7,'#8ab4f8'); node(I2,7,'#4caf82'); node(O,7,'#d8a657');
+  ctx.font='14px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle='#0c1013';
+  ctx.fillText(''+s[0]+s[1], C[0], C[1]+5);
+  ctx.textAlign='left'; ctx.fillStyle='#8ab4f8';
+  ctx.fillText('input edge: proj₁ → '+s[0], 26, 60);
+  ctx.fillStyle='#4caf82'; ctx.fillText('input edge: proj₂ → '+s[1], 26, 252);
+  ctx.fillStyle='#d8a657'; ctx.fillText('output edge: + → '+out, 452, 118);
+  ctx.fillStyle='#9aa5b1'; ctx.font='13px Segoe UI';
+  ctx.fillText('stalk at the centre: 𝔽₂ × 𝔽₂   (dimension 2)', 26, 30);
+  ctx.fillText('stalk on each edge: 𝔽₂   (dimension 1)', 26, 284);
+  ctx.fillText('this section: ('+s[0]+', '+s[1]+') ↦ '+out+'   —  row '+(i+1)+' of the truth table', 300, 284);
+  ctx.fillText('ℱ(X) ≅ 𝔽₂², so H⁰ has dimension 2 by Lemma 9.5', 300, 30);
+}
+window.nextSec=function(){ i=(i+1)%SEC.length; draw(); };
+draw();
+})();
+</script>
+
+<p>Step through all four. A global section is determined by the value at the central vertex, and every one of the four values extends — so ℱ(X) ≅ 𝔽<sub>2</sub><sup>2</sup>, which is the truth table read as a vector space. Nothing here is an accident of the gate: it works because projection and addition are homomorphisms, and it is exactly what fails for AND.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does the XOR construction fail for an AND gate?</p>
+<button onclick="check(this,true)" data-ok>Because AND is not a homomorphism 𝔽<sub>2</sub><sup>2</sup> → 𝔽<sub>2</sub>, and a restriction map is required to be one</button>
+<button onclick="check(this,false)">Because AND is not surjective, so the output edge would have no global sections</button>
+<button onclick="check(this,false)">Because AND requires a stalk of dimension three at the central vertex</button>
+<div class="explain">A cellular sheaf's restriction maps are homomorphisms by definition, and AND is not additive — Ghrist lists NOT, OR, NOR and NAND as failing for the same reason. AND is surjective onto 𝔽<sub>2</sub>, so the second option is false on its own terms. Stalk dimension is not the obstruction: two inputs need dimension two whichever gate one wants.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A sheaf on a connected X has every stalk ℤ and every restriction map multiplication by a nonzero integer. What follows?</p>
+<button onclick="check(this,false)">Every local section extends to a global one, since no map kills anything</button>
+<button onclick="check(this,true)" data-ok>There are always nonzero global sections — a ℤ's worth — but it is still not true that every local section patches into a global one</button>
+<button onclick="check(this,false)">The sheaf is isomorphic to the constant sheaf ℤ<sub>X</sub></button>
+<div class="explain">Ghrist states both halves: the constants must factor according to the composition rule, and given that none is zero and X is connected there is a ℤ's worth of global sections, yet local sections need not patch. Injectivity of each map does not make extension automatic — a local section must satisfy every constraint along every path, and the multipliers can be incompatible. Nor does it make the sheaf constant, which would need every multiplier to be 1.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Cohomology with coefficients that move</h2>
+
+<p>Read a sheaf as a coefficient system: ℱ(σ) is the coefficient group over σ, and the restriction maps encode the switching required to glue local cochains into global cocycles. Then the construction is the one from at2-03 with the coefficients allowed to vary. For ℱ over a compact cell complex X, let C<sup>n</sup>(X; ℱ) be the product of ℱ(σ) over all n-cells:</p>
+<div class="math-block">0 ⟶ ∏<sub>dim σ=0</sub> ℱ(σ) —<sup>d</sup>→ ∏<sub>dim σ=1</sub> ℱ(σ) —<sup>d</sup>→ ∏<sub>dim σ=2</sub> ℱ(σ) —<sup>d</sup>→ ⋯ &nbsp;&nbsp;(9.3)</div>
+<p>with coboundary</p>
+<div class="math-block">d(σ) := Σ<sub>σ◁τ</sub> [σ : τ] ℱ(σ ◁ τ). &nbsp;&nbsp;(9.4)</div>
+<p>Since [σ : τ] = 0 unless σ is a codimension-1 face of τ, this maps C<sup>n</sup> to C<sup>n+1</sup>. The resulting <strong>cellular sheaf cohomology</strong> is H<sup>•</sup>(X; ℱ). Two sanity checks are immediate and both were the prediction gate's subject: the cohomology of the constant sheaf 𝐆<sub>X</sub> is H<sup>•</sup><sub>cell</sub>(X; 𝐆), and a skyscraper 𝐆<sub>σ</sub> has a cochain complex with d = 0 throughout, so its cohomology equals its cochain complex — vanishing except in grading dim σ, where it has rank one.</p>
+
+<div class="theorem">
+<p><strong>Lemma 9.5.</strong> Sheaf cohomology in grading zero classifies global sections:</p>
+<div class="math-block">H<sup>0</sup>(X; ℱ) = ℱ(X). &nbsp;&nbsp;(9.5)</div>
+<p><span class="cite">— Ghrist §9.3, Lemma 9.5, p. 184</span></p>
+</div>
+
+<p>Ghrist anticipates the beginner's objection: is the data on higher-dimensional cells ignored, since ℱ(X) is determined by vertices and edges? No — the compatibility on higher cells is built into the definition of a sheaf. His analogy is a planar tiling by square tiles with coloured edges: place tiles at the vertices of a cubical complex and demand that incident tiles have compatible edges, and the legal tilings of the plane are classified completely by vertex and edge data, with no additional constraints where four corners meet.</p>
+
+<h3>Worked example: the sheaf that is a matrix</h3>
+
+<div class="worked">
+<p><strong>Example 9.6 (matrix equations).</strong> Take the closed interval with vertices a, b and edge e. Set ℱ(a) = ℝ<sup>m</sup>, ℱ(b) = 0, ℱ(e) = ℝ<sup>n</sup>, with ℱ(b ◁ e) = 0 and ℱ(a ◁ e) = A a linear transformation.</p>
+<p><strong>Step 1 — write the complex.</strong> C<sup>0</sup>(X; ℱ) = ℱ(a) × ℱ(b) = ℝ<sup>m</sup> and C<sup>1</sup>(X; ℱ) = ℱ(e) = ℝ<sup>n</sup>; everything above grading 1 is zero because X has no 2-cells. By (9.4) the coboundary of a 0-cochain x is [a:e]Ax + [b:e]·0 = ±Ax, the sign coming from the incidence number and the orientation of e.</p>
+<p><strong>Step 2 — read off the cohomology.</strong> A two-term complex has H<sup>0</sup> = ker d and H<sup>1</sup> = coker d, and the sign changes neither. So, by definition, H<sup>0</sup> ≅ ker A and H<sup>1</sup> ≅ coker A.</p>
+<p><strong>Step 3 — say what that means.</strong> H<sup>0</sup> = ker A is the failure of <em>uniqueness</em> for Ax = y: the homogeneous solutions. H<sup>1</sup> = coker A is the obstruction to <em>solvability</em>: Ax = y has a solution exactly when y vanishes in coker A. This is the sense in which sheaf cohomology is an obstruction theory, and it is the mission strip's claim made literal — la-06's kernel and range are not an analogy for H<sup>0</sup> and H<sup>1</sup> here, they are the same two spaces.</p>
+<p><strong>Step 4 — two vertices instead of one.</strong> Ghrist continues: replace ℱ(b) = 0 by ℝ<sup>p</sup> with ℱ(b ◁ e) = B. Then the complex is</p>
+<div class="math-block">0 ⟶ ℝ<sup>m</sup> × ℝ<sup>p</sup> —<sup>[A | −B]</sup>→ ℝ<sup>n</sup> ⟶ 0 ⟶ ⋯</div>
+<p>and H<sup>0</sup> is precisely the set of solutions to Ax = By for x ∈ ℝ<sup>m</sup> and y ∈ ℝ<sup>p</sup> — the global sections over the closed edge. H<sup>1</sup> measures the degree to which Ax − By fails to span ℝ<sup>n</sup>. All higher groups vanish.</p>
+<p><strong>Step 5 — the general moral.</strong> Cellular sheaf cohomology valued in vector spaces is, in Ghrist's words, really a characterisation of solutions to complex networks of linear equations. Each cell contributes unknowns, each incidence contributes an equation, and the complex assembles them. What cohomology adds to plain linear algebra is that the assembly respects the topology of X — which is why Segment 3's flow theorem can be read off a long exact sequence.</p>
+</div>
+
+<h3>Relative sections</h3>
+
+<p>Since sheaves are a coefficient system, the machinery of exact sequences carries over. A short exact sequence of sheaves 0 → ℱ → 𝒢 → ℋ → 0, exactness enforced cell-by-cell, yields a connecting homomorphism and a long exact sequence</p>
+<div class="math-block">⟶ H<sup>n−1</sup>(X; ℋ) —<sup>δ</sup>→ H<sup>n</sup>(X; ℱ) ⟶ H<sup>n</sup>(X; 𝒢) ⟶ H<sup>n</sup>(X; ℋ) ⟶ &nbsp;&nbsp;(9.6)</div>
+<p>For a closed subcomplex A ⊂ X let ℱ<sub>A</sub> be the restriction of ℱ to A — stalks zero off A, and all restriction maps set to zero unless both cells lie in A — and ℱ<sub>X−A</sub> the complementary restriction, vanishing on A. Then 0 → ℱ<sub>X−A</sub> → ℱ → ℱ<sub>A</sub> → 0 is exact, and (9.6) gives the long exact sequence of the pair, with the notation H<sup>•</sup>(A; ℱ) := H<sup>•</sup>(X; ℱ<sub>A</sub>) and H<sup>•</sup>(X, A; ℱ) := H<sup>•</sup>(X; ℱ<sub>X−A</sub>).</p>
+
+<div class="theorem">
+<p><strong>Corollary 9.7.</strong> For A a subcomplex of X, H<sup>0</sup>(X, A; ℱ) classifies global sections of ℱ on X which vanish on A. <span class="cite">— Ghrist §9.3, Corollary 9.7, p. 186</span></p>
+</div>
+
+<p>Ghrist's gloss is the one to remember: this interpretation is in keeping with the notion of cohomology as an obstruction to solving certain problems of extension and restriction.</p>
+
+<div class="worked fade">
+<p><strong>Worked example (faded): a relative computation.</strong> Take X the interval with a, b, e and the sheaf with all stalks ℝ and both restrictions the identity, and let A = {a}.</p>
+<p><strong>Absolute first.</strong> C<sup>0</sup> = ℝ², C<sup>1</sup> = ℝ, and orienting e from a to b, d(x<sub>a</sub>, x<sub>b</sub>) = x<sub>b</sub> − x<sub>a</sub> with matrix (−1 &nbsp; 1). So H<sup>0</sup> = {(x,x)} ≅ ℝ and H<sup>1</sup> = <span class="gap">⟨your step: what group?⟩</span>. By Lemma 9.5 the H<sup>0</sup> answer says a global section is a single real number, agreed at both ends.</p>
+<p><strong>Now relative.</strong> ℱ<sub>X−A</sub> has stalk 0 at a and ℝ at b and at e, so C<sup>0</sup>(X, A; ℱ) = ℱ(b) = ℝ and C<sup>1</sup>(X, A; ℱ) = ℱ(e) = ℝ, with d(x<sub>b</sub>) = x<sub>b</sub>, the a-contribution having been sent to zero. Hence H<sup>0</sup>(X, A; ℱ) = ker d = <span class="gap">⟨your step: what group?⟩</span>.</p>
+<p><strong>Check against Corollary 9.7.</strong> A global section is a constant (x, x); requiring it to vanish at a forces x = 0, leaving only the zero section. The two computations agree, which is the point of doing both.</p>
+<p class="cite">Gap solutions: H<sup>1</sup> = coker d = ℝ/ℝ = 0; and H<sup>0</sup>(X, A; ℱ) = 0.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Ghrist writes that (9.3) is a cochain complex because "in the computation of d², the incidence numbers factor from the restriction maps, and the computation from cellular co/homology suffices to yield 0". Unpack that. (1) Write out (d²x)<sub>υ</sub> for a cochain x and a cell υ of dimension n+2. (2) Show that the composition rule (9.1) is exactly what lets the restriction maps be pulled out of the inner sum, and finish the proof that d² = 0. (3) Say what would go wrong if (9.1) were dropped.</p>
+<p><em>Hint:</em> you may use the identity Σ<sub>τ</sub>[σ:τ][τ:υ] = 0 from cellular cohomology without proof — that is the "computation from cellular co/homology" Ghrist is invoking.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) Expand.</strong> Let x ∈ C<sup>n</sup>(X; ℱ), so x assigns x<sub>σ</sub> ∈ ℱ(σ) to each n-cell σ. By (9.4), for an (n+1)-cell τ,</p>
+<div class="math-block">(dx)<sub>τ</sub> = Σ<sub>σ ◁ τ</sub> [σ:τ] ℱ(σ ◁ τ)(x<sub>σ</sub>),</div>
+<p>the sum over codimension-1 faces σ of τ. Applying d again, for an (n+2)-cell υ,</p>
+<div class="math-block">(d²x)<sub>υ</sub> = Σ<sub>τ ◁ υ</sub> [τ:υ] ℱ(τ ◁ υ)( Σ<sub>σ ◁ τ</sub> [σ:τ] ℱ(σ ◁ τ)(x<sub>σ</sub>) ).</div>
+<p>Since ℱ(τ ◁ υ) is a homomorphism it passes through the inner sum, and the double sum may be reordered over pairs (σ, τ) with σ ◁ τ ◁ υ:</p>
+<div class="math-block">(d²x)<sub>υ</sub> = Σ<sub>σ</sub> Σ<sub>τ : σ◁τ◁υ</sub> [σ:τ][τ:υ] · ( ℱ(τ ◁ υ) ∘ ℱ(σ ◁ τ) )(x<sub>σ</sub>).</div>
+<p><strong>(2) Factor, using (9.1).</strong> The obstruction to simplifying is that the operator in the summand still depends on the intermediate cell τ. This is exactly what the composition rule removes: σ ◁ τ ◁ υ gives ℱ(τ ◁ υ) ∘ ℱ(σ ◁ τ) = ℱ(σ ◁ υ), which does not mention τ. So the operator is constant across the inner sum and factors out:</p>
+<div class="math-block">(d²x)<sub>υ</sub> = Σ<sub>σ</sub> ( Σ<sub>τ : σ◁τ◁υ</sub> [σ:τ][τ:υ] ) · ℱ(σ ◁ υ)(x<sub>σ</sub>).</div>
+<p>The bracketed scalar is the incidence sum of cellular cohomology, which vanishes for every pair σ ◁ υ of codimension 2. Every term is therefore ℱ(σ ◁ υ)(x<sub>σ</sub>) multiplied by 0, so (d²x)<sub>υ</sub> = 0 for every υ, and d² = 0. ∎</p>
+<p><strong>(3) Without (9.1).</strong> Drop the composition rule and the summand keeps its τ-dependence. One would be summing operators ℱ(τ ◁ υ) ∘ ℱ(σ ◁ τ) that differ from one τ to the next, weighted by [σ:τ][τ:υ]; those weights sum to zero, but a zero-sum combination of <em>different</em> operators is not the zero operator. Concretely, on a square with two paths from a vertex to the 2-cell, the two composites could be any two homomorphisms whatever, and their difference would be an arbitrary element of ℱ(υ). So d² would not vanish, (9.3) would not be a cochain complex, and there would be no cohomology to compute.</p>
+<p><em>What this does and does not license.</em> It shows (9.1) is load-bearing, not hygiene: it is precisely the hypothesis that makes the incidence numbers separate from the algebra. It does not say the sheaf axioms are the weakest possible — one only needs the composites to agree along codimension-2 pairs — but agreement for all faces of faces is the clean statement, and it is what Ghrist takes as the definition.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which statement about the constant sheaf is correct?</p>
+<button onclick="check(this,true)" data-ok>Its cochain complex is literally the cellular cochain complex, since C<sup>n</sup> is a product of copies of 𝐆 and the identity restrictions reduce (9.4) to the cellular coboundary — so H<sup>•</sup>(X; 𝐆<sub>X</sub>) ≅ H<sup>•</sup><sub>cell</sub>(X; 𝐆)</button>
+<button onclick="check(this,false)">Its cohomology agrees with cellular cohomology only in grading zero</button>
+<button onclick="check(this,false)">It is isomorphic to the sum of skyscrapers over the vertices of X</button>
+<div class="explain">Identical complexes have identical cohomology in every grading, so the agreement is not confined to H<sup>0</sup> — this is the precise sense in which at2-03's theory is the special case of the present one in which the coefficients do not vary. The third option is the prediction gate's trap: those two sheaves have the same stalks and different restriction maps, and Ghrist writes the inequality out.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> H<sup>0</sup>(X, A; ℱ) = 0 for some subcomplex A. What does that say?</p>
+<button onclick="check(this,true)" data-ok>No nonzero global section of ℱ vanishes on A — so any section is detected by its restriction to A</button>
+<button onclick="check(this,false)">ℱ has no global sections at all</button>
+<button onclick="check(this,false)">A is empty, since otherwise the relative complex has a nonzero kernel</button>
+<div class="explain">Corollary 9.7 identifies H<sup>0</sup>(X, A; ℱ) with the sections vanishing on A, so its vanishing says only that no nonzero section does — equivalently that the restriction map to A is injective on global sections. It says nothing about whether sections exist: the faded example has H<sup>0</sup>(X; ℱ) ≅ ℝ and H<sup>0</sup>(X, A; ℱ) = 0 simultaneously. And for A empty the relative cohomology is the absolute one, which was ℝ, not 0.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Flow sheaves, cuts, and network coding</h2>
+
+<p>Even a sheaf over a network — a 1-dimensional complex — has real applications. Take a directed acyclic network X from a source s to a target t with capacities cap(e) ∈ ℕ. A flow φ : E(X) → ℕ assigns rates 0 ≤ φ(e) ≤ cap(e) conservatively: at each node v,</p>
+<div class="math-block">Σ<sub>e→v</sub> φ(e) = Σ<sub>v→e′</sub> φ(e′) =: φ<sub>v</sub>, &nbsp;&nbsp;(9.7)</div>
+<p>and the <strong>flow value</strong> val(φ) is the net flow out of s, equivalently into t.</p>
+
+<p>To turn this into a sheaf, fix a capacity-respecting φ and choose a consistent <strong>routing protocol</strong>: at each vertex v a binary matrix Ψ<sub>v</sub> : ⊕<sub>e→v</sub> ℝ<sup>cap(e)</sup> → ⊕<sub>v→e′</sub> ℝ<sup>cap(e′)</sup> in which (Ψ<sub>v</sub>)<sub>i,j</sub> = 1 means the jth unit of incoming flow is sent to the ith unit of outgoing flow, conservation being imposed by requiring Ψ<sub>v</sub> to be a permutation matrix padded with zero rows and columns. Then subdivide X to X̃: split each edge in two with an extra middle vertex, give each such vertex trivial routing Ψ<sub>v</sub> = Id, and add a single feedback edge from t to s of sufficiently large capacity.</p>
+
+<p>The <strong>flow sheaf</strong> ℱ on X̃ has ℱ(e) = ℝ<sup>cap(e)</sup> on each edge and ℱ(v) = ℝ<sup>cap(v)</sup> at each vertex, where cap(v) is the sum of cap(e′) over incoming edges e′ → v. The restrictions enforce conservation: for an incoming e → v, ℱ(v ◁ e) is the projection to the ℝ<sup>cap(e)</sup>-factor of ℱ(v); for an outgoing v → e, it is the projection of the image of Ψ<sub>v</sub> to the ℝ<sup>cap(e)</sup>-factor.</p>
+
+<div class="theorem">
+<p><strong>Lemma 9.8.</strong> For a flow-sheaf ℱ as above, H<sup>0</sup>(X̃; ℱ) ≅ H<sup>1</sup>(X̃; ℱ) and dim H<sup>0</sup>(X̃; ℱ) equals the net flow value val(φ). <span class="cite">— Ghrist §9.4, Lemma 9.8, p. 187</span></p>
+</div>
+
+<p><em>Ghrist's proof.</em> The simplest proof of this duality is by counting: C<sup>0</sup>(X̃; ℱ) ≅ C<sup>1</sup>(X̃; ℱ), since each vertex has stalk isomorphic to the sum of the stalks of its incoming edges, and this enumeration exhausts all cells of X̃. Passing to cohomology, the isomorphism comes from exactness — dim ker d = dim coker d. For the second clause, Lemma 9.5 identifies H<sup>0</sup>(X̃; ℱ) with the space of global sections, and by conservation each independent section counts a unit of flow circulating from source to target. ∎ <span class="cite">(Ghrist's sentence reads "dim H<sup>0</sup> equals the number of global sections"; the dimension of the space of global sections is what is meant, and is what Lemma 9.5 supplies.)</span></p>
+
+<div class="warn">
+<p><strong>What "Poincaré duality" is doing in that sentence.</strong> Ghrist introduces Lemma 9.8 by saying the flow sheaf "satisfies a type of Poincaré duality", and the phrase deserves care. The manifold duality theorem of at2-07 needs a closed R-orientable n-manifold and produces its isomorphism via cap product with a fundamental class. Lemma 9.8 needs none of that — no manifold, no orientation, no fundamental class — and its isomorphism is not induced by any pairing; it is a dimension count on a two-term complex. What the two share is the shape H<sup>k</sup> ≅ H<sup>n−k</sup>, not a mechanism. Note also where the counting step gets its force: X̃ is one-dimensional, so the complex stops at C<sup>1</sup> and dim H<sup>0</sup> − dim H<sup>1</sup> = dim C<sup>0</sup> − dim C<sup>1</sup> by rank–nullity. For a longer complex, equal dimensions in two gradings would say nothing about their cohomology, because the missing terms could absorb the difference.</p>
+</div>
+
+<h3>Max-flow min-cut, read off a long exact sequence</h3>
+
+<p>Let C ⊂ E(X) be a putative cut-set. C is not a subcomplex, so take instead C̃ ⊂ X̃, the subcomplex of refined midpoint vertices of C. The long exact sequence of the pair (X̃, C̃) in ℱ-cohomology is</p>
+<div class="math-block">0 ⟶ H<sup>0</sup>(X̃, C̃) ⟶ H<sup>0</sup>(X̃) ⟶ H<sup>0</sup>(C̃) —<sup>δ</sup>→ H<sup>1</sup>(X̃, C̃) ⟶ H<sup>1</sup>(X̃) ⟶ 0.</div>
+<p>By definition dim H<sup>0</sup>(C̃; ℱ) = Σ<sub>e∈C</sub> cap(e) =: val(C), the net capacity of C; and by Lemma 9.8 both H<sup>0</sup>(X̃; ℱ) and H<sup>1</sup>(X̃; ℱ) have dimension val(φ). By Corollary 9.7, H<sup>0</sup>(X̃, C̃) measures how much of the flow does <em>not</em> pass through C — so if C is a cut then H<sup>0</sup>(X̃, C̃) = 0, and this relative cohomology is the obstruction to being a cut. For C a cut the map H<sup>0</sup>(X̃) → H<sup>0</sup>(C̃) is injective by exactness, giving val(φ) ≤ val(C) for any flow and cut: the weak form of max-flow min-cut. Ghrist's summary is worth memorising as a table:</p>
+
+<div class="theorem">
+<p>(1) dim H<sup>0</sup>(X̃; ℱ) = val(φ) is the flow value; (2) dim H<sup>0</sup>(C̃; ℱ) = val(C) is the cut value; (3) H<sup>0</sup>(X̃, C̃; ℱ) is the obstruction to being a cut; and (4) δ is the obstruction to val(φ) = val(C). <span class="cite">— Ghrist §9.4, p. 188</span></p>
+</div>
+
+<p>When δ ≠ 0 the cut is not minimal or the flow is not maximal; when both obstructions vanish, dim H<sup>0</sup>(X̃; ℱ) = dim H<sup>0</sup>(C̃; ℱ) — maxflow equals mincut. Ghrist concedes that flow sheaves may look like an over-complicated restatement of "net inputs equal net outputs", and gives the reason to bother: adapting sheaves to this elementary setting is what lets one generalise properly. §9.5 is the generalisation.</p>
+
+<h3>Network coding</h3>
+
+<p><strong>Example 9.9 (butterfly network).</strong> One source s, two targets t<sub>1</sub>, t<sub>2</sub>, every edge of unit capacity, and the goal of sending two packets a, b ∈ 𝔽<sub>q</sub> to both targets. If the nodes merely route — redirecting data unchanged — at least five time units are needed, since one central node must switch from transmitting a to transmitting b. If instead the central node receives both and transmits a + b, then in four steps t<sub>1</sub> receives a and a + b while t<sub>2</sub> receives b and a + b, and the originals are decoded algebraically at the targets.</p>
+
+<p>In general, to each node v is associated a <strong>local coding map</strong> Ψ<sub>v</sub> : ⊕<sub>e→v</sub> 𝔽<sup>cap(e)</sup> → ⊕<sub>v→e′</sub> 𝔽<sup>cap(e′)</sup> taking the data entering v to the data leaving it; routing protocols are the zero-padded permutation matrices of §9.4, and the butterfly's central node has Ψ<sub>v</sub> = [1|1]. Decoding at t<sub>i</sub> is given by a decoding edge t<sub>i</sub> → s with map Ψ<sub>t<sub>i</sub></sub>. Building X̃ by subdividing and adding the decoding edges, the <strong>network coding sheaf</strong> is defined exactly as the flow sheaf was, with 𝔽 in place of ℝ.</p>
+
+<div class="theorem">
+<p><strong>Theorem 9.10.</strong> With a network coding sheaf ℱ for single-source-multi-target networks with decoding edges as above, H<sup>∗</sup>(X̃; ℱ) has the following interpretations: (1) the net information flow rate equals dim H<sup>0</sup>(X̃; ℱ); (2) the net information flow rate which persists if a subnetwork A becomes inoperative equals dim H<sup>0</sup>(X̃, Ã; ℱ); (3) the obstruction to extending an information flow on a subnetwork A to all of X respecting the coding and capacity constraints is δ : H<sup>1</sup>(X̃, Ã; ℱ) → H<sup>1</sup>(X̃; ℱ), and if δ = 0 all information flows on A are extendable to X. <span class="cite">— Ghrist §9.5, Theorem 9.10, p. 189</span></p>
+</div>
+
+<p>Read clause (2) against clause (3). The first is a robustness statement — how much throughput survives losing part of the network — and it is a <em>dimension</em>, computable. The second is an extension statement, and it is a <em>map</em>: not a number but the connecting homomorphism itself, whose vanishing is the condition. That is the general shape of an obstruction theory, and it is why Corollary 9.7's gloss about extension and restriction was worth stating in Segment 2.</p>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Let X be the cycle graph with vertices v<sub>1</sub>, v<sub>2</sub>, v<sub>3</sub> and edges e<sub>1</sub> = v<sub>1</sub>v<sub>2</sub>, e<sub>2</sub> = v<sub>2</sub>v<sub>3</sub>, e<sub>3</sub> = v<sub>3</sub>v<sub>1</sub>, with every stalk ℝ. (i) Take the constant sheaf ℝ<sub>X</sub>. Write C<sup>0</sup> and C<sup>1</sup>, compute H<sup>0</sup> and H<sup>1</sup>, and check your answer against the fact that the constant sheaf computes cellular cohomology. (ii) Now change one single restriction map, ℱ(v<sub>1</sub> ◁ e<sub>3</sub>), from the identity to multiplication by 2, leaving the other five alone. Using (9.2), determine ℱ(X) directly, then give H<sup>0</sup> and — using dim H<sup>0</sup> − dim H<sup>1</sup> = dim C<sup>0</sup> − dim C<sup>1</sup> — give H<sup>1</sup>. (iii) Finally compute H<sup>0</sup> for the sum of skyscrapers over all six cells of X. You now have three sheaves with identical stalks and H<sup>0</sup> of dimension 1, 0 and 3 respectively; say in one sentence what that shows. (iv) Back in the constant sheaf, take A = {v<sub>1</sub>} and compute H<sup>0</sup>(X, A; ℱ), checking against Corollary 9.7.</p>
+<p><em>Hint:</em> for (ii), chase a global section round the cycle: two of the constraints force x<sub>1</sub> = x<sub>2</sub> = x<sub>3</sub>, and the third forces something incompatible with that.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In Lemma 9.8's proof, which feature of X̃ makes the passage from cochain groups to cohomology valid?</p>
+<button onclick="check(this,true)" data-ok>That X̃ is one-dimensional, so the complex has only two nonzero terms and dim H<sup>0</sup> − dim H<sup>1</sup> = dim C<sup>0</sup> − dim C<sup>1</sup> by rank–nullity</button>
+<button onclick="check(this,false)">That the restriction maps are projections, so d is surjective</button>
+<button onclick="check(this,false)">That the flow φ is capacity-respecting, which makes d injective</button>
+<div class="explain">An isomorphism of cochain groups does not in general give an isomorphism of cohomology — for a longer complex the terms above could absorb the difference. Here the complex stops at C<sup>1</sup>, so the alternating sums of cochain and cohomology dimensions agree and equal cochain dimensions force equal cohomology dimensions. Surjectivity of d would make H<sup>1</sup> = 0, which is not claimed; and capacity-respecting flow is a hypothesis on φ, not a statement about d.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> In the max-flow min-cut sequence, what is δ measuring?</p>
+<button onclick="check(this,false)">Whether C is a cut at all</button>
+<button onclick="check(this,true)" data-ok>The obstruction to val(φ) = val(C); a nonzero class in its image is a local section on C̃ coming from no global flow on X̃</button>
+<button onclick="check(this,false)">The dimension of H<sup>0</sup>(C̃; ℱ), which is the cut value</button>
+<div class="explain">Ghrist's four-item summary assigns the roles precisely: H<sup>0</sup>(X̃, C̃; ℱ) is the obstruction to being a cut, and δ is the obstruction to the flow and cut values agreeing. He adds the reading of a nonzero image class: it is a local section on C̃ that comes from no global flow. The cut value is a dimension already named in item (2), not something δ measures.</div>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What a cellular sheaf is, and which part of the data does the work the stalks cannot.</li>
+<li>How the cochain complex is built, why it is a complex at all, and what H<sup>0</sup> turns out to be.</li>
+<li>What a flow sheaf makes computable, and which of its results is a genuine duality theorem.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) a group on each cell and a homomorphism for each incidence, subject to the composition rule (9.1), with the global sections ℱ(X) of (9.2) the compatible assignments — and the restriction maps carrying everything, since the constant sheaf and the city of skyscrapers have identical stalks and utterly different sections; (2) C<sup>n</sup> is the product of stalks over n-cells and d(σ) = Σ[σ:τ]ℱ(σ ◁ τ), which squares to zero precisely because (9.1) lets the restriction maps factor out of the incidence sum; the constant sheaf recovers at2-03's cellular cohomology, a skyscraper gives rank one in its own grading, Lemma 9.5 says H<sup>0</sup> = ℱ(X), Example 9.6 makes H<sup>0</sup> = ker A and H<sup>1</sup> = coker A, and Corollary 9.7 reads relative H<sup>0</sup> as the sections vanishing on A; (3) the flow sheaf on the subdivided X̃ has dim H<sup>0</sup> = val(φ) by Lemma 9.8 — a counting argument valid because the complex is two-term, and a duality only by analogy of shape — with the long exact sequence of (X̃, C̃) giving the weak max-flow min-cut theorem and δ as the obstruction to equality, and Theorem 9.10 generalising all of it to network coding — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Ghrist, <em>Elementary Applied Topology</em> — §9.1 "Cellular sheaves": the corridor-and-junction motivation, the definition of a cellular sheaf with the composition rule (9.1) and the footnote on the word "restriction", the identity on trivial faces, local sections, the global sections ℱ(X) of (9.2), and the stalk (pp. 180–181). §9.2 "Examples of cellular sheaves": the constant sheaf and the skyscraper sheaf with 𝐆<sub>v</sub>(X) ≅ 𝐆 for a vertex (p. 181); the sum of sheaves, the inequality ⊕<sub>σ</sub>𝐆<sub>σ</sub> ≠ 𝐆<sub>X</sub> with its "city full of skyscrapers" reading, and the ℤ-stalk discussion in which nonzero multipliers on a connected X give a ℤ's worth of global sections while local sections still need not patch (p. 182); Example 9.1 on recurrence equations (p. 182); Example 9.2 on local cohomology with the orientation sheaf and the finite-graph stalk dimensions (pp. 182–183); Example 9.3 on fibre homology (p. 183); Example 9.4 on the XOR gate, with the projections and addition as restriction maps and the failure for AND, NOT, OR, NOR and NAND (p. 183). §9.3 "Cellular sheaf cohomology": the coefficient-system reading, the complex (9.3), the coboundary (9.4), the remark that d² = 0 because the incidence numbers factor from the restriction maps, and the constant-sheaf and skyscraper computations (p. 184); Lemma 9.5 with the tiling analogy answering why higher cells are not ignored (pp. 184–185); Example 9.6 with H<sup>0</sup> ≅ ker A, H<sup>1</sup> ≅ coker A and the two-vertex version with d = [A | −B] (p. 185); the short exact sequence of sheaves and the long exact sequence (9.6), ℱ<sub>A</sub> and ℱ<sub>X−A</sub>, and the long exact sequence of the pair (pp. 185–186); Corollary 9.7 with its obstruction gloss (p. 186). §9.4 "Flow sheaves and obstructions": the flow network, conservation (9.7) and val(φ), the routing protocol Ψ<sub>v</sub> and the three-step subdivision to X̃ (p. 186); the flow sheaf's stalks and restriction maps, Lemma 9.8 with the phrase "a type of Poincaré duality" and the counting proof, and the long exact sequence of the pair (X̃, C̃) with dim H<sup>0</sup>(C̃; ℱ) = val(C) and the weak max-flow min-cut conclusion (p. 187); the four-item summary and the maxflow-equals-mincut condition (p. 188). §9.5 "Information flows and network coding": Example 9.9's butterfly network with the five-versus-four time-step comparison (p. 188); the local coding map, the network coding sheaf, and Theorem 9.10's three interpretations (p. 189). Supplied here, not in the source: the full computation behind Ghrist's one-sentence remark that d² = 0, which the guided proof carries out, together with the observation that the composition rule is exactly what permits the factoring. Deferred: §9.6's passage from cellular to topological sheaves and Example 9.11; §9.7's operations on sheaves with Theorem 9.13 and Examples 9.12, 9.14 and 9.15; §9.8's sampling and reconstruction; §9.9's Euler integration; and §9.10's cosheaves, which are tda2-11's subject.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
