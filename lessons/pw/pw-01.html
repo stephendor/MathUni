@@ -23,6 +23,11 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 .gap{color:var(--acc);font-style:italic}
 svg text{font-family:Segoe UI,system-ui,sans-serif}
 .heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
 </style></head><body>
 <p class="cite">Proof Workshop · Nexus College</p>
 <h1>Direct proof, contrapositive, contradiction <span class="cite">(pw-01)</span></h1>
@@ -31,6 +36,14 @@ svg text{font-family:Segoe UI,system-ui,sans-serif}
 Three ways to corner a truth — and how mathematicians pick locks.
 <p>Picture a locked room holding a theorem. Three burglars, three methods. The first walks straight in the front door: assume the hypothesis, follow the corridor of definitions and algebra, arrive at the conclusion. The second refuses the front door — instead, they start from "the conclusion is false" and work <em>backwards</em> until they've shown the hypothesis must be false too, which (by a sleight of logic) proves the same thing. The third is the strangest of all: they break in, plant a small bomb of absurdity somewhere inside — a false statement, guaranteed by their own assumptions — and let the explosion prove the room was locked the way they said all along.</p>
 <p>Same theorem, same room, three different lock-picks. The rest of this lesson is about learning which pick fits which lock — and, for one theorem, watching all three keys jam in different ways before one turns.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction Gate:</strong> Commit before Segment 1. Here is the theorem this lesson keeps returning to: <em>if <var>n</var>² is even, then <var>n</var> is even.</em> Try the front door in your head — assume <var>n</var>² = 2<var>k</var> and push toward "<var>n</var> = 2<var>j</var>". Predict what happens.</p>
+<button onclick="check(this,false)">It works cleanly — take square roots of both sides and read off <var>j</var></button>
+<button onclick="check(this,true)" data-ok>It stalls: the hypothesis is about <var>n</var>², nothing lets you un-square back to <var>n</var> inside the integers</button>
+<button onclick="check(this,false)">It fails because the statement is false — <var>n</var> = 6 is a counterexample</button>
+<div class="explain">It stalls, and the stall is informative rather than fatal. √(2<var>k</var>) is not integer algebra, so the direct route has nowhere to go. Segment 1 walks you into that wall on purpose; Segment 2 shows the contrapositive turning the same theorem into "<var>n</var> odd ⇒ <var>n</var>² odd", where the algebra runs the way you need it to. (The statement is certainly true — 6² = 36 is even and 6 is even, no counterexample there.)</div>
+</div>
 </div>
 
 <p class="mission">Why this matters for the mission: Every TDA paper you'll verify is built from these moves.</p>
@@ -202,6 +215,38 @@ Three ways to corner a truth — and how mathematicians pick locks.
 <div class="explain">Assuming ¬Q and deriving ¬P, then invoking the contrapositive at the end, is precisely the contrapositive shape — not contradiction, which would assume P ∧ ¬Q together and chase an absurdity rather than cleanly deriving ¬P. (Cummings §6.2, Proposition 6.3 part 2, p. 202)</div>
 </div>
 
+<div class="guided-proof">
+<h3>Guided Proof Practice</h3>
+<p><strong>Prompt:</strong> Prove the following, and — before you write a line of algebra — say in one sentence which of the three techniques you are using and what made you pick it.</p>
+<p style="text-align:center"><em>Let <var>n</var> be an integer. If <var>n</var>² + 3 is odd, then <var>n</var> is even.</em></p>
+<p><em>Hint:</em> run the compass above over the statement. The conclusion is hard to attack head-on (what does "<var>n</var> is even" give you to work <em>with</em>?), while its negation hands you a concrete algebraic form to substitute. Write the full proof, including the closing sentence that connects what you proved to what you were asked.</p>
+<textarea class="proof-input" placeholder="State your technique and why, then write the proof..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Technique, and why.</strong> Contrapositive. Assuming the hypothesis "<var>n</var>² + 3 is odd" gives <var>n</var>² + 3 = 2<var>k</var> + 1, which is a fact about <var>n</var>² — and as Segment 1 established, there is no way to un-square that into a fact about <var>n</var>. Negating the conclusion instead hands us "<var>n</var> is odd", i.e. <var>n</var> = 2<var>a</var> + 1, a concrete form we can substitute and expand. The algebra then runs the same direction as the implication.</p>
+<p><strong>Proof.</strong> We prove the contrapositive: if <var>n</var> is not even, then <var>n</var>² + 3 is not odd.</p>
+<p>Assume <var>n</var> is not even, so <var>n</var> is odd, and by Definition 2.2, <var>n</var> = 2<var>a</var> + 1 for some integer <var>a</var>. Then</p>
+<p>&emsp;<var>n</var>² + 3 = (2<var>a</var> + 1)² + 3 = 4<var>a</var>² + 4<var>a</var> + 1 + 3 = 4<var>a</var>² + 4<var>a</var> + 4 = 2(2<var>a</var>² + 2<var>a</var> + 2).</p>
+<p>Since 2<var>a</var>² + 2<var>a</var> + 2 is an integer, we have written <var>n</var>² + 3 = 2<var>k</var> with <var>k</var> = 2<var>a</var>² + 2<var>a</var> + 2 an integer, so <var>n</var>² + 3 is even by Definition 2.2 — that is, <var>n</var>² + 3 is not odd.</p>
+<p>We have shown ¬<var>Q</var> ⇒ ¬<var>P</var>. By Theorem 5.14, an implication is logically equivalent to its contrapositive, so <var>P</var> ⇒ <var>Q</var>: if <var>n</var>² + 3 is odd, then <var>n</var> is even. ∎</p>
+<p><strong>Two things to check in your own write-up.</strong> First, "not even" was converted to "odd" explicitly — for integers those coincide, but the proof should say so rather than silently swap them. Second, the closing sentence is present. Cummings is blunt that without it you have proved a <em>different</em> statement from the one you were asked for (§6.2, footnote 6, p. 203); a grader is entitled to mark its absence.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit Ritual: Blank-Page Reconstruction</h3>
+<p>Close the page and reconstruct the three load-bearing claims of this lesson from nothing — the skeletons, not the examples:</p>
+<ol>
+<li>The opening line of each of the three techniques: what a direct proof, a contrapositive proof, and a proof by contradiction each <em>assume</em> first, and what each aims to reach.</li>
+<li>Why the direct route stalls on "<var>n</var>² even ⇒ <var>n</var> even", and exactly what the contrapositive changes about the direction the algebra has to run.</li>
+<li>The compass: the signal in a statement that points you at each technique — and the one sentence a contrapositive proof must not omit at the end.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can state: (1) direct assumes <var>P</var> and reaches <var>Q</var>; contrapositive assumes ¬<var>Q</var> and reaches ¬<var>P</var>; contradiction assumes <var>P</var> ∧ ¬<var>Q</var> and reaches an absurdity ⊥; (2) the hypothesis is about <var>n</var>² and there is no integer un-squaring move, whereas the contrapositive starts from <var>n</var> = 2<var>a</var> + 1 and squares <em>forwards</em>; (3) same kind of object on both sides ⇒ direct, negative or hard-to-attack conclusion ⇒ contrapositive, a "there is no…" / non-existence claim ⇒ contradiction, and the closing "by the contrapositive, <var>P</var> ⇒ <var>Q</var>" is mandatory — then you have every move pw-02's induction proofs will assume you already own.</p>
+</details>
 </div>
 
 <footer>Sources: Cummings, <em>Proofs: A Long-Form Mathematics Textbook</em> — §2.1 "Working From Definitions" (Definition 2.2, Proposition 2.4), p. 37–38; §2.1 (Proposition 2.6), pp. 38–39; §2.2 "Proofs by Cases" (Proposition 2.7), pp. 41–43; §5 (Theorem 5.14, the contrapositive equivalence), p. 198; §6.2 "Proofs Using the Contrapositive" (Proposition 6.2, Proposition 6.3), pp. 201–203; §7 "Contradiction" (general form, Proposition 7.1), pp. 213–216; §7.3 "The Most Famous Proof in History" (Theorem 7.6, √2 irrational), pp. 225–226.
