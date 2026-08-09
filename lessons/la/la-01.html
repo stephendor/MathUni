@@ -22,6 +22,11 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 .break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
 .gap{color:var(--acc);font-style:italic}
 .heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
 </style></head><body>
 <p class="cite">Linear Algebra · Nexus College</p>
 <h1>Vector spaces <span class="cite">(la-01)</span></h1>
@@ -30,6 +35,14 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 Polynomials, sequences, and functions are all secretly the same thing.
 <p>Here is a small conjuring trick. Take a polynomial like 3<var>x</var>² − <var>x</var> + 5, a sequence like (1, −1, 2, 0, 0, …), and a wobbling function <var>f</var>(<var>t</var>) = sin <var>t</var>. On the surface these look like three different species of mathematical object — one lives in algebra, one in number theory, one in analysis. But strip away the costumes and each is doing exactly the same two things: you can add two of them to get another of the same kind, and you can scale one of them by a number to get another of the same kind. Nothing else about "what they are" matters for this trick to work.</p>
 <p>That is the entire idea of a <strong>vector space</strong>, and it is one of the most quietly radical ideas in undergraduate mathematics: forget what the objects <em>are</em>, and axiomatise only what you can <em>do</em> to them. Once you see it, arrows in the plane, lists of numbers, infinite sequences, and functions on an interval all become residents of the same house.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction Gate:</strong> Commit to an answer before Segment 1. In any vector space, multiplying a vector <var>v</var> by the <em>scalar</em> 0 gives the <em>zero vector</em>: 0<var>v</var> = 0. Where does that fact come from?</p>
+<button onclick="check(this,false)">It is one of the axioms — the definition has to say so, or it could fail</button>
+<button onclick="check(this,true)" data-ok>It is a theorem: the axioms already force it, so the definition never mentions it</button>
+<button onclick="check(this,false)">It is true in F<var>ⁿ</var> but can fail in exotic spaces such as function spaces</button>
+<div class="explain">A theorem. When you meet Definition 1.19 in Segment 2, check the list: nothing in it connects the scalar 0 to the vector 0. The link is forced anyway, by a two-line argument from the distributive law — which is the faded example you will complete. Notice how natural the wrong answer feels: the axiom list is shorter than your intuition expects, and knowing exactly which facts are <em>assumed</em> versus <em>derived</em> is most of what the problem set will test.</div>
+</div>
 </div>
 
 <p class="mission">Why this matters for the mission: Homology groups over a field are vector spaces — this is their home.</p>
@@ -223,6 +236,34 @@ draw();
 <div class="explain">Axler notes this explicitly: the simplest vector space contains only one point. With the only possible addition (0+0=0) and scalar multiplication (λ·0=0), every axiom in Definition 1.19 holds trivially.</div>
 </div>
 
+<div class="guided-proof">
+<h3>Guided Proof Practice</h3>
+<p><strong>Prompt:</strong> The "You try" above told you to "invoke uniqueness of the additive inverse" — but Definition 1.19 only promises that <em>at least one</em> inverse exists for each vector, never that there is only one. Close that gap yourself: prove that every element of a vector space <var>V</var> has exactly one additive inverse. <em>Hint:</em> suppose <var>w</var> and <var>w</var>′ are both additive inverses of <var>v</var>, and build a chain of equalities from <var>w</var> to <var>w</var>′. Start by adding 0 to <var>w</var>, then replace that 0 with something more useful. Name the axiom justifying every single step — the whole exercise is noticing how few tools you actually have.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model Answer:</strong> Let <var>v</var> ∈ <var>V</var> and suppose <var>w</var>, <var>w</var>′ ∈ <var>V</var> are both additive inverses of <var>v</var>, so <var>v</var> + <var>w</var> = 0 and <var>v</var> + <var>w</var>′ = 0. Then</p>
+<p>&emsp;<var>w</var> = <var>w</var> + 0 = <var>w</var> + (<var>v</var> + <var>w</var>′) = (<var>w</var> + <var>v</var>) + <var>w</var>′ = (<var>v</var> + <var>w</var>) + <var>w</var>′ = 0 + <var>w</var>′ = <var>w</var>′ + 0 = <var>w</var>′.</p>
+<p>Justifying each step in order: additive identity; <var>v</var> + <var>w</var>′ = 0 since <var>w</var>′ is an inverse of <var>v</var>; associativity of addition; commutativity; <var>v</var> + <var>w</var> = 0 since <var>w</var> is an inverse of <var>v</var>; commutativity again; additive identity. Hence <var>w</var> = <var>w</var>′, so the additive inverse of <var>v</var> is unique. ∎ <span class="cite">— Axler §1.B, Theorem 1.26, p. 15</span></p>
+<p><strong>Why the two commutativity steps are not padding.</strong> Definition 1.19 states the additive identity axiom in only one order (<var>v</var> + 0 = <var>v</var>) and the inverse axiom in only one order (<var>v</var> + <var>w</var> = 0). Every time you need the other order you owe a commutativity citation. Being fussy about this now is what makes the later proofs — where commutativity is genuinely unavailable — readable.</p>
+<p>With uniqueness in hand, the notation −<var>v</var> finally makes sense: it names <em>the</em> additive inverse, not merely <em>an</em> inverse. That is what licenses the "You try" above to conclude (−1)<var>v</var> = −<var>v</var> from <var>v</var> + (−1)<var>v</var> = 0.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit Ritual: Blank-Page Reconstruction</h3>
+<p>Shut the page and reconstruct the three load-bearing claims of this lesson from nothing:</p>
+<ol>
+<li>Definition 1.19 in full — the six families of requirement (commutativity, associativity, additive identity, additive inverse, multiplicative identity, distributivity) and, just as important, what the definition pointedly does <em>not</em> say about what the elements of <var>V</var> are.</li>
+<li>Why <strong>F</strong><var>ⁿ</var> and <strong>F</strong><sup>∞</sup> are both special cases of <strong>F</strong><sup><var>S</var></sup> — what set <var>S</var> is in each case, and what a list "really is" under that reading.</li>
+<li>The three facts the axioms hand you for free: the additive identity is unique, the additive inverse is unique, and 0<var>v</var> = 0 (scalar zero, vector zero). Recall which axiom opens each proof.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can state: (1) the six axiom families, with nothing anywhere about arrows or tuples; (2) <strong>F</strong><var>ⁿ</var> = <strong>F</strong><sup>{1,…,<var>n</var>}</sup> and <strong>F</strong><sup>∞</sup> = <strong>F</strong><sup>{1,2,…}</sup>, a list being the function sending <var>j</var> to its <var>j</var>th coordinate; (3) 0′ = 0′ + 0 = 0 + 0′ = 0 for the identity, the <var>w</var> = <var>w</var>′ chain for the inverse, and 0<var>v</var> = (0 + 0)<var>v</var> = 0<var>v</var> + 0<var>v</var> then cancel — then you are ready for la-02, where subspaces ask you to check exactly this list against a candidate subset.</p>
+</details>
 </div>
 
 <footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §1.A "R<sup>n</sup> and C<sup>n</sup>" (Notation 1.6 F, Definition 1.8 list, Definition 1.10 F<sup>n</sup>, Definitions 1.12/1.17 addition and scalar multiplication, Theorem 1.13, "Digression on Fields"), pp. 4–11; §1.B "Definition of Vector Space" (Definition 1.19 vector space, Definitions 1.20–1.21, Example 1.22 F<sup>∞</sup>, Notation 1.23 and Example 1.24 F<sup>S</sup>, Theorem 1.25 unique additive identity, Theorem 1.29 0v = 0, Theorem 1.31 (−1)v = −v), pp. 12–17.

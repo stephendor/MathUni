@@ -22,6 +22,11 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 .break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
 .gap{color:var(--acc);font-style:italic}
 .heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
 </style></head><body>
 <p class="cite">Real Analysis I · Nexus College</p>
 <h1>Reals, completeness, sup and inf <span class="cite">(an-01)</span></h1>
@@ -30,6 +35,14 @@ canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
 √2 punched a hole in the rationals; completeness is the patch.
 <p>Around 500 BC, someone in Pythagoras' school proved that the diagonal of a unit square has no rational length — no fraction, however finely tuned, squares to exactly 2. Legend says the discoverer was drowned for it. The reason the murder (apocryphal or not) makes sense is that the result was genuinely wounding: the Pythagoreans had built a whole cosmology on the idea that any two lengths share a common rational measure. The diagonal of a square broke that promise using nothing but the Pythagorean theorem itself — their own tool, turned against them.</p>
 <p>You can approximate √2 with rationals as closely as you like — 1.4, 1.41, 1.414, 1.4142, each squaring a little nearer to 2 — and the approximations never stop getting better. But there is nowhere on the rational number line where √2 actually <em>sits</em>. It is a hole. This lesson is about the axiom that patches every hole like it at once, and the two numbers — supremum and infimum — that axiom hands you as tools.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction Gate:</strong> Commit to an answer before Segment 1. Live strictly inside ℚ for a moment — pretend ℝ has not been invented. Let <var>A</var> = {<var>r</var> ∈ ℚ : <var>r</var> &gt; 0 and <var>r</var>² &lt; 2}. It is certainly bounded above (2 is an upper bound). Does <var>A</var> have a <em>least</em> rational upper bound?</p>
+<button onclick="check(this,false)">Yes — every set bounded above has a least upper bound; that's what "bounded above" means</button>
+<button onclick="check(this,true)" data-ok>No — every rational upper bound you name can be shaved down to a smaller one, and the search never terminates</button>
+<button onclick="check(this,false)">No — because A is not actually bounded above in ℚ</button>
+<div class="explain">The candidate least upper bound would have to square to exactly 2, and Theorem 1.1.1 says no rational does. So each rational upper bound admits a strictly smaller one, forever. That failure is the precise deficiency the Axiom of Completeness repairs — Segment 2 states the axiom, and the faded example runs this same search for <var>r</var>² &lt; 3 so you can watch it fail with your own hands.</div>
+</div>
 </div>
 
 <p class="mission">Why this matters for the mission: Persistence values are reals; inf/sup define birth and death.</p>
@@ -198,6 +211,33 @@ setInterval(function(){step=(step+1)%approx.length;draw();},900);
 <div class="explain">This is precisely the distinction between supremum and maximum. A maximum must belong to the set by definition; a supremum need not. When it does belong, it's also the maximum — but that's a bonus, not a requirement. (Abbott §1.3, Definition 1.3.4 and Example 1.3.5, p. 15)</div>
 </div>
 
+<div class="guided-proof">
+<h3>Guided Proof Practice</h3>
+<p><strong>Prompt:</strong> Prove the working characterisation of the supremum that every later proof in this course actually uses. Let <var>A</var> ⊆ ℝ be nonempty and bounded above, and let <var>s</var> = sup <var>A</var>. Show that for every &epsilon; &gt; 0 there exists an element <var>a</var> ∈ <var>A</var> satisfying <var>a</var> &gt; <var>s</var> − &epsilon;. (In words: you cannot back off from the supremum by any positive amount, however small, without leaving some element of <var>A</var> above you.) <em>Hint:</em> suppose no such <var>a</var> exists, and ask what that makes <var>s</var> − &epsilon;. Then use part (ii) of Definition 1.3.2 — the half that says nothing smaller than <var>s</var> can be an upper bound.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model Answer:</strong> Let &epsilon; &gt; 0 be arbitrary, and suppose for contradiction that no element of <var>A</var> satisfies <var>a</var> &gt; <var>s</var> − &epsilon;. Then every <var>a</var> ∈ <var>A</var> satisfies <var>a</var> ≤ <var>s</var> − &epsilon;, which is precisely the statement that <var>s</var> − &epsilon; is an upper bound for <var>A</var> (Definition 1.3.1).</p>
+<p>But <var>s</var> = sup <var>A</var>, so by part (ii) of Definition 1.3.2, <var>s</var> is less than or equal to <em>every</em> upper bound of <var>A</var>. Applying this to the upper bound <var>s</var> − &epsilon; gives <var>s</var> ≤ <var>s</var> − &epsilon;, hence &epsilon; ≤ 0 — contradicting &epsilon; &gt; 0.</p>
+<p>So the supposition fails, and some <var>a</var> ∈ <var>A</var> does satisfy <var>a</var> &gt; <var>s</var> − &epsilon;. Since &epsilon; &gt; 0 was arbitrary, this holds for every &epsilon; &gt; 0. ∎ <span class="cite">— Abbott §1.3, Lemma 1.3.8, p. 18</span></p>
+<p><strong>Why this is the load-bearing form.</strong> Definition 1.3.2 part (ii) is a statement about <em>all upper bounds</em>, which is awkward to use: upper bounds are not objects you have in your hands. This lemma converts it into a statement that hands you an actual element of <var>A</var> for each &epsilon; you name — exactly the shape an &epsilon;-argument can consume. When Abbott proves α² = 2 for α = sup <var>T</var> (§1.4, Theorem 1.4.5), this is the tool doing the work.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit Ritual: Blank-Page Reconstruction</h3>
+<p>Close the page and reconstruct the three load-bearing claims of this lesson from nothing — the shape of each argument, not every symbol:</p>
+<ol>
+<li>Why no rational squares to 2 (Theorem 1.1.1): the contradiction shape, and the exact step where "lowest terms" is violated.</li>
+<li>The Axiom of Completeness, word for word, including <em>both</em> hypotheses on the set — and the two-part definition of supremum it depends on (Definition 1.3.2 (i) and (ii)).</li>
+<li>The difference between supremum and maximum, with the one example that separates them — and why the axiom needs no separate clause for infima.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can state: (1) <var>p</var>/<var>q</var> in lowest terms with <var>p</var>² = 2<var>q</var>² forces <var>p</var> even, then <var>q</var> even, contradicting lowest terms; (2) <em>every nonempty set of reals that is bounded above has a least upper bound</em>, where least upper bound means (i) an upper bound, and (ii) below every other upper bound; (3) sup(0,2) = 2 but 2 ∉ (0,2), so a supremum need not be attained — and inf <var>A</var> = −sup(−<var>A</var>) delivers infima for free — then you have everything an-03 will build the &epsilon;-<var>N</var> machinery on top of.</p>
+</details>
 </div>
 
 <footer>Sources: Abbott, <em>Understanding Analysis</em> — §1.1 "Discussion: The Irrationality of √2" (Theorem 1.1.1), pp. 1–4; §1.3 "The Axiom of Completeness" (Axiom of Completeness, Definitions 1.3.1–1.3.2, Examples 1.3.3, 1.3.5, 1.3.6, Definition 1.3.4), pp. 14–17; §1.4 "Consequences of Completeness" (Theorem 1.4.5, existence of √2 as sup T), pp. 18–22.
