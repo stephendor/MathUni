@@ -20,6 +20,7 @@ import re
 import sys
 from collections import Counter
 from html.entities import html5
+from html.parser import HTMLParser
 
 for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console (cf. srs/scheduler.py)
     try:
@@ -31,6 +32,11 @@ _NAMED = re.compile(r"&([a-zA-Z][a-zA-Z0-9]*);")   # &name;  (numeric &#...; is 
 _LATEX = re.compile(r"\\(?:left|right|frac|mathbb|mathbf|mathcal|cdot|times|sqrt"
                     r"|begin|end|leq|geq|neq|infty|sum|int|forall|exists)\b"
                     r"|\\\(|\\\)|\\\[|\\\]|\$\$")   # LaTeX that leaked as text
+_BALANCED_TAGS = {
+    "sup", "sub", "em", "strong", "div", "details", "summary", "table",
+    "tr", "td", "th", "ol", "ul", "li", "span", "footer", "textarea",
+    "canvas", "svg", "h1", "h2", "h3", "button",
+}
 
 
 def _strip_code(html):
@@ -49,6 +55,31 @@ def invalid_entities(html):
 
 def latex_leaks(html):
     return Counter(_LATEX.findall(_strip_code(html)))
+
+
+def tag_imbalances(html):
+    """Return explicit open/close mismatches for governed non-void tags.
+
+    ``p`` is deliberately excluded because HTML permits its end tag to be
+    omitted. Browser recovery and ``HTMLParser.feed`` do not prove balance.
+    """
+    counts = {tag: [0, 0] for tag in _BALANCED_TAGS}
+
+    class CounterParser(HTMLParser):
+        def handle_starttag(self, tag, attrs):
+            if tag in counts:
+                counts[tag][0] += 1
+
+        def handle_endtag(self, tag):
+            if tag in counts:
+                counts[tag][1] += 1
+
+    CounterParser(convert_charrefs=False).feed(_strip_code(html))
+    return {
+        tag: tuple(value)
+        for tag, value in sorted(counts.items())
+        if value[0] != value[1]
+    }
 
 
 def structure(html):
@@ -83,6 +114,11 @@ def lint(html):
     leaks = latex_leaks(html)
     out.append(("render: no LaTeX leak", not leaks,
                 "" if not leaks else ", ".join("%s x%d" % (k, v) for k, v in leaks.most_common(6))))
+    imbalances = tag_imbalances(html)
+    out.append(("render: tags balanced", not imbalances,
+                "" if not imbalances else ", ".join(
+                    "%s open=%d close=%d" % (tag, value[0], value[1])
+                    for tag, value in imbalances.items())))
     c = structure(html)
     out += [
         ("structure: >=4 self-checks", c["self_checks"] >= 4, "found %d" % c["self_checks"]),
@@ -143,6 +179,12 @@ def selftest():
     check("structure signal inside <script> is ignored",
           fired(good.replace('<textarea></textarea>', '')
                 + "<script>var t='<textarea></textarea>';</script>", "guided proof"))
+    check("fires on mismatched sup/sub tags",
+          fired(good + "<sup>x</sub>", "tags balanced"))
+    check("clean lesson has balanced governed tags",
+          not fired(good, "tags balanced"))
+    check("optional p end tags are outside the strict balance gate",
+          not fired(good + "<p>optional end", "tags balanced"))
 
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0

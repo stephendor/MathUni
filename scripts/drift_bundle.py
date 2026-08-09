@@ -216,8 +216,9 @@ def check(args):
         if pset.exists():
             r = subprocess.run([sys.executable, str(repo / "scripts/check_lesson_coverage.py"),
                                 str(pset), str(c)], capture_output=True, text=True)
-            cov = "PASS" if r.returncode == 0 else \
-                  ("FAIL missing: " + ", ".join(r.stdout.split()) if r.returncode == 1 else "ERROR")
+            report = r.stdout.strip()
+            cov = report if r.returncode in {0, 1} and report else \
+                  ("ERROR " + r.stderr.strip()).strip()
         else:
             cov = "SKIP (no problem set)"
         # parse

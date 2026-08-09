@@ -19,11 +19,11 @@ Model-agnostic, free, run before a human looks. Any FAIL ⇒ reject, do not scor
 
 | # | Check | Command / method | Pass? |
 |---|-------|------------------|:---:|
-| 0.1 | Coverage: every theorem/def id the problem set names appears in the lesson | `python scripts/check_lesson_coverage.py problems/sets/<u>.md lessons/<m>/<u>.html` → "no missing refs" | ☐ |
-| 0.2 | HTML parses clean | `python -c "from html.parser import HTMLParser; HTMLParser().feed(open(PATH,encoding='utf-8').read())"` | ☐ |
+| 0.1 | Coverage: every theorem/def id the problem set names appears in the lesson; the checked-ref denominator must be reported | `python scripts/check_lesson_coverage.py problems/sets/<u>.md lessons/<m>/<u>.html` → `PASS checked N refs, 0 missing`; `UNCHECKED checked 0 refs` requires an explicit source-gap disposition, while `--min-refs N` enforces a non-zero expectation | ☐ |
+| 0.2 | HTML tokenises without an exception; this is not a tag-balance guarantee | `python -c "from html.parser import HTMLParser; HTMLParser().feed(open(PATH,encoding='utf-8').read())"` | ☐ |
 | 0.3 | Self-contained: zero external requests | grep the file for `http://`, `https://`, `src=`, `cdn`, `<link`, external `<script src>` → none | ☐ |
 | 0.4 | Zero browser console errors on load | open in browser pane, read console | ☐ |
-| 0.5 | Renders faithfully + structural counts: no invalid HTML entities or LaTeX leak (render as literal text yet raise no error), and the countable structure items are present in sufficient number (>=4 self-checks, 2-3 segments, breaks, >=1 faded, guided proof, visual, blank-page, mission, footer) | `python scripts/lesson_lint.py lessons/<m>/<u>.html` | ☐ |
+| 0.5 | Renders faithfully + structural counts: no invalid HTML entities or LaTeX leak, governed non-void tags balance (`p` excluded because its end tag is optional), and countable structure items are sufficient (>=4 self-checks, 2-3 segments, breaks, >=1 faded, guided proof, visual, blank-page, mission, footer) | `python scripts/lesson_lint.py lessons/<m>/<u>.html` | ☐ |
 
 > ⚠️ Gate 0 proves **form and mention**, never truth. 0.1-0.4 confirm a ref is
 > *present*, parses, and does not error; **0.5** (added after the aa-01 drift test)
