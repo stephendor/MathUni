@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-06 — Reeb graphs and their distances</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Reeb graphs and their distances <span class="cite">(tda2-06)</span></h1>
+
+<div class="hook">
+Stand a doughnut on its end and slice it horizontally. Squash each slice to a point and watch a solid become a wire.
+<p>Almost every horizontal cut of the standing torus is one circle or two, depending on whether the knife is inside the hole. Collapse each circle to a single point and the whole surface shrinks to a loop of wire whose shape records exactly where the cuts split and rejoined. That wire is the Reeb graph, and it is a quotient in the sense of top-12 — you are dividing X by the relation "lies in the same connected component of the same level set".</p>
+<p>What makes this more than a picture is the arithmetic. The torus has β<sub>1</sub> = 2. The wire is a single loop. Something was lost and something was kept, and Dey and Wang say precisely which is which.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Let X be a torus and f the height function with X standing on end, so that β<sub>1</sub>(X) = 2. Predict β<sub>1</sub> of the Reeb graph R<sub>f</sub>.</p>
+<button onclick="check(this,false)">2 — the quotient is continuous and surjective, so every loop of X survives in R<sub>f</sub></button>
+<button onclick="check(this,true)" data-ok>1 — exactly half, and "half" is a theorem for orientable surfaces, not a coincidence</button>
+<button onclick="check(this,false)">0 — quotienting by connected level sets kills all one-dimensional homology</button>
+<div class="explain">Correct, and the halving is Theorem 7.3(a): for a Morse function on a connected compact orientable 2-manifold, β<sub>1</sub>(R<sub>f</sub>) = β<sub>1</sub>(X)/2. The reason a loop can die is that some loops of X lie inside level sets — the meridian circle of the standing torus is a single contour, and a contour is collapsed to a point by construction. The reason a loop can live is that the other generator climbs through the level sets and cannot be collapsed. Segment 3 turns that intuition into the horizontal/vertical decomposition and Theorem 7.4, which explains the factor of two rather than merely reporting it.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The Reeb graph is the quotient of X by the relation "lies in the same connected component of a level set of f" — top-12's quotient topology applied to a scalar field. It retains branching information that tda1-08's sublevel-set barcode discards, and it carries its own interleaving and functional-distortion distances.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The quotient, and reading the graph it produces</h2>
+
+<div class="definition">
+<p><strong>Definition 7.1 (Reeb graph).</strong> Define an equivalence relation ∼ on X by asserting x ∼ y if and only if (i) f(x) = f(y) = α and (ii) x and y belong to the same connected component of the levelset f<sup>−1</sup>(α). Let [x] denote the equivalence class to which a point x ∈ X belongs. The Reeb graph R<sub>f</sub> of f : X → ℝ is the quotient space X/∼, that is, the set of equivalence classes equipped with the quotient topology. Let Φ : X → R<sub>f</sub>, x ↦ [x], denote the quotient map. <span class="cite">— Dey &amp; Wang §7.1, Definition 7.1, pp. 208–209</span></p>
+</div>
+
+<p>Each connected component of a levelset is called a <em>contour</em>, and the quotient collapses every contour to a single point. Two structures come with it for free. First, since f is constant on each contour, it descends: define f̃ : R<sub>f</sub> → ℝ by f̃(z) = f(x) for any pre-image x ∈ Φ<sup>−1</sup>(z). Any two pre-images of z are equivalent, and clause (i) of ∼ says equivalent points share an f-value, so the choice of x does not matter. Dey and Wang usually drop the tilde and write f(z), keeping f̃ only to stress the change of domain.</p>
+
+<p>Second — and this is the hypothesis the word "graph" is resting on — Definition 7.1 by itself does not produce a graph. Quotient a pathological X by a pathological relation and you get a pathological space. So from here on Dey and Wang tacitly assume f is <em>levelset tame</em>: (i) each levelset f<sup>−1</sup>(a) has finitely many components, each of them path connected; and (ii) f is of Morse type, in the sense of Definition 4.14, which tda2-01 stated in full. Morse functions on a compact smooth manifold and PL-functions on finite simplicial complexes are both levelset tame, and under the hypothesis R<sub>f</sub> is a finite one-dimensional regular CW complex.</p>
+
+<h3>Visual: the sweep, and the wire it leaves behind</h3>
+
+<canvas id="reebCanvas" width="640" height="300" role="img" aria-label="Left: the front silhouette of a torus standing on end with a horizontal sweep line; right: the Reeb graph of the height function, a single loop with a minimum, an up-fork, a down-fork and a maximum, with markers at the current height"></canvas>
+<p style="text-align:center"><button onclick="toggleSweep()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Pause / resume the sweep</button></p>
+<script>
+(function(){
+const cv=document.getElementById('reebCanvas'), ctx=cv.getContext('2d');
+const CX=160, CY=150, RO=100, RI=40, GX=440, TOP=CY-RO, BOT=CY+RO;
+let y=BOT, dir=-1, run=true;
+function ring(r,col){ctx.strokeStyle=col;ctx.lineWidth=1.6;ctx.beginPath();ctx.arc(CX,CY,r,0,2*Math.PI);ctx.stroke();}
+function dot(px,py,col,r){ctx.fillStyle=col;ctx.beginPath();ctx.arc(px,py,r||5,0,2*Math.PI);ctx.fill();}
+function graph(){                              // Reeb graph: min, up-fork, down-fork, max
+  ctx.strokeStyle='#8ab4f8';ctx.lineWidth=2.4;
+  ctx.beginPath();ctx.moveTo(GX,BOT);ctx.lineTo(GX,CY+RI);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(GX,TOP);ctx.lineTo(GX,CY-RI);ctx.stroke();
+  for(const s of [-1,1]){ctx.beginPath();ctx.moveTo(GX,CY+RI);
+    ctx.bezierCurveTo(GX+s*46,CY+RI,GX+s*46,CY-RI,GX,CY-RI);ctx.stroke();}
+  for(const p of [[GX,BOT],[GX,CY+RI],[GX,CY-RI],[GX,TOP]]) dot(p[0],p[1],'#d8a657',6);
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ring(RO,'#2a333d'); ring(RI,'#2a333d'); graph();
+  const d=Math.abs(y-CY), inHole=d<RI, two=inHole;
+  ctx.strokeStyle='#4caf82';ctx.lineWidth=1.8;
+  ctx.beginPath();ctx.moveTo(CX-RO-24,y);ctx.lineTo(CX+RO+24,y);ctx.stroke();
+  const wo=Math.sqrt(Math.max(RO*RO-d*d,0)), wi=inHole?Math.sqrt(RI*RI-d*d):0;
+  for(const s of [-1,1]){ dot(CX+s*wo,y,'#4caf82'); if(inHole) dot(CX+s*wi,y,'#4caf82'); }
+  if(two){ for(const s of [-1,1]){ const t=(CY-y)/RI;
+      dot(GX+s*34.5*(1-t*t),y,'#4caf82'); } }
+  else dot(GX,y,'#4caf82');
+  ctx.font='13px Segoe UI';ctx.textAlign='left';
+  ctx.fillStyle='#9aa5b1';ctx.fillText('X: a torus standing on end (front silhouette)',20,24);
+  ctx.fillText('the Reeb graph of the height function',GX-90,24);
+  ctx.fillStyle='#d8a657';ctx.fillText('gold: critical nodes — min, up-fork, down-fork, max',20,282);
+  ctx.fillStyle='#4caf82';
+  ctx.fillText(two?'levelset = 2 contours → 2 points of the graph'
+                  :'levelset = 1 contour → 1 point of the graph',20,262);
+}
+function step(){ if(run){ y+=dir*1.1; if(y<TOP){y=TOP;dir=1;} if(y>BOT){y=BOT;dir=-1;} draw(); }
+  requestAnimationFrame(step); }
+window.toggleSweep=function(){run=!run;};
+draw(); step();
+})();
+</script>
+
+<p>The picture is Dey and Wang's Figure 7.2 in miniature, and it also fixes the vocabulary. Treat R<sub>f</sub> as a graph (V, E) with f̃ monotone along each edge — if monotonicity fails somewhere along a 1-cell, insert a node there, and tameness guarantees only finitely many such insertions are needed. Then for a node x, let the <em>up-degree</em> (resp. <em>down-degree</em>) be the number of incident edges with higher (resp. lower) f̃-value than x. A node is <em>regular</em> when both are 1, and <em>critical</em> otherwise: a minimum when the down-degree is 0, a maximum when the up-degree is 0, a <em>down-fork</em> when the down-degree exceeds 1, an <em>up-fork</em> when the up-degree exceeds 1. Criticality can be mixed — down-degree 0 with up-degree 2 is both a minimum and an up-fork.</p>
+
+<p>Monotonicity at the regular points has a consequence worth pausing on: the Reeb graph together with its function is completely described, up to homeomorphisms preserving the function, by the function values at the critical points. Along an arc of regular points f̃ climbs without turning, so a function-preserving homeomorphism may reparametrise that arc however it likes; nothing there is data. All the information sits at the forks and the extrema — which is exactly why sweeping X in increasing f and recording where components appear, vanish, merge and split reconstructs the whole object.</p>
+
+<div class="definition">
+<p><strong>Definition 7.2 (merge tree; split tree).</strong> Define x ∼<sub>M</sub> y if and only if f(x) = f(y) = a and x is connected to y within the sublevel set f<sup>−1</sup>((−∞, a]). Then the quotient space T<sub>M</sub> = X/∼<sub>M</sub> is the merge tree with respect to f. Alternatively, if we define x ∼<sub>S</sub> y if and only if f(x) = f(y) = a and x is connected to y within the superlevel set f<sup>−1</sup>([a, +∞)), then the quotient space T<sub>S</sub> = X/∼<sub>S</sub> is the split tree with respect to f. <span class="cite">— Dey &amp; Wang §7.1, Definition 7.2, p. 211</span></p>
+</div>
+
+<p>Same recipe, different set to be connected in: levelset for the Reeb graph, sublevel set for the merge tree, superlevel set for the split tree. For levelset tame f both T<sub>M</sub> and T<sub>S</sub> are finite trees. A loop-free Reeb graph is called a <em>contour tree</em>, and when R<sub>f</sub> is loop-free it is uniquely decided by, and computable from, the merge and split trees of f. Finally, run Definition 7.1 with a map f : X → Z into a general metric space instead of ℝ and the quotient is called the <em>Reeb space</em> — the object §9.3 works with, and the one tda2-07 will meet under the name mapper.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does f̃(z) = f(x) for x ∈ Φ<sup>−1</sup>(z) define a function at all?</p>
+<button onclick="check(this,true)" data-ok>Because clause (i) of ∼ forces all points of a class to share one f-value, so the value does not depend on the representative</button>
+<button onclick="check(this,false)">Because Φ is injective on each contour</button>
+<button onclick="check(this,false)">Because levelset tameness makes each class a single point</button>
+<div class="explain">Well-definedness is exactly clause (i): x ∼ y already requires f(x) = f(y). Clause (ii) does something else — it decides how many points of R<sub>f</sub> sit over a given value. The second option is false in the strongest way: Φ collapses each contour, so it is as far from injective on a contour as a map can be. The third is false too — a class is a whole contour, which is generally not a point; it is a point of the quotient, which is not the same thing.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A node of a Reeb graph has down-degree 2 and up-degree 2. How is it classified?</p>
+<button onclick="check(this,false)">Regular, since up-degree and down-degree agree</button>
+<button onclick="check(this,true)" data-ok>Critical, and degenerate: it is both a down-fork and an up-fork</button>
+<button onclick="check(this,false)">Critical, but only a down-fork, since down-forks take precedence</button>
+<div class="explain">Regular means both degrees equal 1, not merely equal to each other. Down-degree 2 exceeds 1 and up-degree 2 exceeds 1, so the node is a down-fork and an up-fork at once. Dey and Wang say explicitly that a critical point can be degenerate, carrying more than one type of criticality, and give down-degree 0 with up-degree 2 — a minimum that is also an up-fork — as the example. There is no precedence rule.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Computing it, and where the log factor comes from</h2>
+
+<p>Take K a simplicial complex and f : |K| → ℝ piecewise linear. Since R<sub>f</sub> depends only on the connectivity of each levelset, for a generic f — no two vertices sharing a function value — the Reeb graph depends only on the 2-skeleton of K. So assume K = (V, E, T) is a simplicial 2-complex with m = n<sub>v</sub> + n<sub>e</sub> + n<sub>t</sub> simplices in all.</p>
+
+<p>The levelset f<sup>−1</sup>(a) meets edges of E in points and triangles of T in segments, so it is itself a graph: the <em>pre-image graph</em> G<sub>a</sub> = (W<sub>a</sub>, F<sub>a</sub>), where each vertex of W<sub>a</sub> corresponds to an edge of E cut by the levelset, and each edge of F<sub>a</sub> joins two of them and corresponds to a pair of edges of E adjoining a triangle of T. Connected components of G<sub>a</sub> correspond to connected components of f<sup>−1</sup>(a), and Φ sends each to one point of R<sub>f</sub> — so maintaining the components of G<sub>a</sub> is literally maintaining the points of the Reeb graph. Because f is piecewise linear, the combinatorial structure of G<sub>a</sub> can change only as the sweep passes a vertex v ∈ V, and then only simplices incident to v are involved: O(s<sub>v</sub>) insertions and deletions, where s<sub>v</sub> counts the simplices incident on v.</p>
+
+<div class="definition">
+<p><strong>Definition 7.3 (augmented Reeb graph).</strong> Given a PL-function f : |K| → ℝ defined on a simplicial complex K = (V, E, T), let R<sub>f</sub> be its Reeb graph and Φ<sub>f</sub> : |K| → R<sub>f</sub>(K) be the associated quotient map. The augmented Reeb graph of f, denoted R̂<sub>f</sub>, is obtained by inserting each point in Φ<sub>f</sub>(V) := {Φ<sub>f</sub>(v) | v ∈ V} as graph nodes to R<sub>f</sub> (if it is not already in). <span class="cite">— Dey &amp; Wang §7.2, Definition 7.3, p. 212</span></p>
+</div>
+
+<p>For a PL-function every critical point of R<sub>f</sub> is necessarily the image of some vertex of K, so the critical points already form a subset of Φ<sub>f</sub>(V); augmentation adds the remaining images as degree-two nodes. Nothing topological changes — you are subdividing arcs — but the algorithms find it convenient to carry a node for every input vertex.</p>
+
+<div class="theorem">
+<p><strong>Theorem 7.1.</strong> Given a PL-function f : |K| → ℝ, let m denote the total number of simplices in the 2-skeleton of K. One can compute the (augmented) Reeb graph R<sub>f</sub> of f in O(m log m) time. <span class="cite">— Dey &amp; Wang §7.2.1, Theorem 7.1, p. 217</span></p>
+</div>
+
+<p>The algorithm is REEB-SWEEPALG: sort V by f-value, and for each v in turn collect the components of the pre-image graph in the lower star, update the pre-image graph, collect the components in the upper star, and attach arcs in R accordingly. The whole cost is O(m) operations on a data structure that must maintain connectivity of G<sub>a</sub> under insertions and deletions. Dynamic connectivity under deletions is the expensive half of that problem in general — and the following is where the log factor is actually won.</p>
+
+<h3>Worked example 1: why deletions are free here</h3>
+
+<div class="worked">
+<p><strong>The set-up.</strong> Dey and Wang observe that this is an <em>offline</em> dynamic connectivity problem: every insertion and deletion is known in advance, because the sweep order is known in advance. They exploit it by giving each pre-image edge a weight — the time, that is the f-value, at which it will be deleted from G<sub>a</sub> — and maintaining a <em>maximum</em> spanning forest under those weights. Their claim is that a deleted tree edge then never requires the search for a replacement edge that makes deletion costly: it simply breaks its tree.</p>
+<p><strong>Step 1 — state what has to be shown.</strong> Deleting a non-tree edge is free. The expensive case is deleting an edge e = (u, v) of the maximum spanning forest, because u and v may still be connected by some other path, in which case a replacement must be found. So the claim to establish is: at the moment e is deleted, no such path survives.</p>
+<p><strong>Step 2 — the lemma that does it.</strong> Dey and Wang assert the consequence rather than deriving it, so we supply the standard exchange argument, stated as Lemma A below.</p>
+<div class="lemma">
+<p><strong>Lemma A (cycle property, maximum-weight version).</strong> Let G be a weighted graph and C a cycle in G on which some edge e has strictly smaller weight than every other edge of C. Then e lies in no maximum spanning forest of G.</p>
+<p><em>Proof.</em> Suppose e = (u, v) belongs to a maximum spanning forest F. Removing e splits its tree in two; let S be the vertex set of the part containing u, so that v ∉ S. The path C − e runs from u ∈ S to v ∉ S, so some edge g of it has exactly one endpoint in S. Adding g to F − e joins S to a different component of F − e and so creates no cycle: F − e + g is acyclic, spans the same vertices and has the same number of edges as F, hence is again a spanning forest. Its total weight exceeds that of F, since w(g) &gt; w(e) by hypothesis. That contradicts maximality of F. ∎</p>
+</div>
+<p><strong>Step 3 — apply it.</strong> Suppose, at the moment e is deleted, that u and v were still joined by a path P in G<sub>a</sub>. Every edge g of P is still alive at that moment, so g is deleted no earlier than e — and since the offline schedule is a sequence of operations, reading the weight off an edge's position in that sequence rather than off the raw f-value makes the comparison strict, w(g) &gt; w(e), even when several pre-image edges leave at one vertex. Then e is the strict minimum on the cycle e + P, so by Lemma A e cannot belong to a maximum spanning forest — contradicting the assumption that e was a tree edge. Hence no replacement path exists, and the deletion merely breaks the tree.</p>
+<p><strong>Step 4 — read off the bound.</strong> With replacement searches eliminated, a standard dynamic tree structure — Dey and Wang name link-cut trees — maintains the maximum spanning forest in O(log m) amortised time per find, insert or delete. The sweep performs O(m) such operations and the initial sort costs O(n log n). Total: O(m log m), which is Theorem 7.1.</p>
+<p><strong>Step 5 — what the argument needed.</strong> Only one thing, and it is worth naming: the weights had to be the <em>deletion times</em>, and those are knowable only because the problem is offline. Run the same sweep with adversarially arriving updates and the weighting is unavailable, the cycle argument evaporates, and one is back to general dynamic connectivity.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 7.2.</strong> Given a PL-function f : |K| → ℝ defined on a simplicial 2-complex K with m simplices, one can compute the (augmented) Reeb graph in O(m log m) expected time. <span class="cite">— Dey &amp; Wang §7.2.2, Theorem 7.2, p. 220</span></p>
+</div>
+
+<p>The randomised algorithm REEB-RANDOMALG reaches the same bound by a different route: rather than sweeping, it models the quotient map directly. Take a random permutation of V; for i = 1 to n<sub>v</sub>, collapse the contour of f<sub>i−1</sub> passing through v<sub>i</sub> and let f<sub>i</sub> be the induced PL-function on the collapsed complex K<sub>i</sub>. The collapse is performed triangle by triangle on those triangles having v<sub>i</sub> as <em>mid-vertex</em> — the vertex whose height ranks second of the three — splitting neighbouring triangles as needed, until none is left.</p>
+
+<p>Two things are then true. First, the output is a graph: no vertex of K<sub>n<sub>v</sub></sub> is the mid-vertex of a triangle, and under the standing genericity assumption a triangle's three vertices have distinct heights and so it always has a mid-vertex, so there are no triangles left at all, and the complex is a simplicial 1-complex — the augmented Reeb graph by construction. Second, the cost for v is proportional to the number of triangles the contour through v meets, which in the worst case is n<sub>t</sub>, giving a worst-case O(n<sub>v</sub>n<sub>t</sub>) that Dey and Wang say is tight. Randomising the order defeats the worst case: an input triangle is split O(log n<sub>v</sub>) times in expectation — the argument is in the spirit of the path length in a randomly built binary search tree — so each collapse costs O(log m) expected time and the total is O(m log m) in expectation.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which feature of the Reeb-graph sweep licenses the maximum-spanning-forest weighting in Worked example 1?</p>
+<button onclick="check(this,false)">That the pre-image graph is planar, so its spanning forest has linear size</button>
+<button onclick="check(this,true)" data-ok>That the problem is offline: the deletion time of every pre-image edge is known before the sweep starts, and those times are the weights</button>
+<button onclick="check(this,false)">That the levelset is a 1-manifold, so the pre-image graph is a disjoint union of loops</button>
+<div class="explain">The weights are the deletion times, so knowing them in advance is precisely what makes the scheme definable — that is Dey and Wang's own emphasis on the offline character. Planarity plays no role in the argument. The third option describes a genuine special case they mention in the notes — for a triangulated 2-manifold the pre-image graph is a collection of disjoint loops at a generic value, which is how the earlier O(m log m) algorithm for surfaces worked — but §7.2.1's algorithm is stated for a general simplicial complex and does not assume it.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>What survives the collapse, and how far apart two graphs are</h2>
+
+<p>Homology of a graph is nontrivial only in dimensions 0 and 1, so for a Reeb graph there is exactly one question in each: how many components, and how many independent loops.</p>
+
+<div class="theorem">
+<p><strong>Fact 7.1.</strong> For a tame function f : X → ℝ, β<sub>0</sub>(X) = β<sub>0</sub>(R<sub>f</sub>) and β<sub>1</sub>(X) ≥ β<sub>1</sub>(R<sub>f</sub>). <span class="cite">— Dey &amp; Wang §7.2.3, Fact 7.1, p. 220</span></p>
+</div>
+
+<p>The β<sub>0</sub> equality holds because R<sub>f</sub> is the quotient X/∼ and each equivalence class is itself connected, being a component of a levelset — collapsing connected sets cannot merge or create components. The β<sub>1</sub> inequality can be proved directly, and it is also a byproduct of Theorem 7.4 combined with Fact 7.2 below; the guided proof asks you to run that deduction. One consequence Dey and Wang draw immediately: if X is simply connected then R<sub>f</sub> is loop-free.</p>
+
+<div class="theorem">
+<p><strong>Theorem 7.3.</strong> Let f : X → ℝ be a Morse function defined on a connected and compact 2-manifold. Then (a) if X is orientable, β<sub>1</sub>(R<sub>f</sub>) = β<sub>1</sub>(X)/2; and (b) if X is non-orientable, β<sub>1</sub>(R<sub>f</sub>) ≤ β<sub>1</sub>(X)/2. <span class="cite">— Dey &amp; Wang §7.2.3, Theorem 7.3, p. 220</span></p>
+</div>
+
+<p>That is the prediction gate settled: the standing torus has β<sub>1</sub>(X) = 2 and an orientable X, so its Reeb graph has β<sub>1</sub> = 1, exactly the loop in the canvas. Note how much more Theorem 7.3 assumes than Fact 7.1 — Morse rather than merely tame, and a connected compact 2-manifold rather than an arbitrary triangulable space — and note what it buys: an exact count instead of a bound. The next construction explains the halving instead of merely recording it.</p>
+
+<div class="definition">
+<p><strong>Horizontal and vertical homology.</strong> Write X<sub>=a</sub> := f<sup>−1</sup>(a). A class h ∈ H<sub>p</sub>(X) is <em>horizontal</em> if there is a finite set of values {a<sub>i</sub>}<sub>i∈A</sub> such that h has a pre-image under the inclusion-induced map H<sub>p</sub>(⋃<sub>i∈A</sub> X<sub>=a<sub>i</sub></sub>) → H<sub>p</sub>(X). The horizontal classes form a subgroup H̄<sub>p</sub>(X) — the trivial class is horizontal and a sum of horizontal classes is horizontal — the <em>horizontal homology group of X with respect to f</em>. The <em>vertical homology group</em> is the quotient</p>
+<div class="math-block">Ȟ<sub>p</sub>(X) := H<sub>p</sub>(X) / H̄<sub>p</sub>(X).</div>
+<p><span class="cite">— Dey &amp; Wang §7.2.3, pp. 220–221</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Fact 7.2.</strong> By definition, rank(H<sub>p</sub>(X)) = rank(H̄<sub>p</sub>(X)) + rank(Ȟ<sub>p</sub>(X)). <span class="cite">— Dey &amp; Wang §7.2.3, Fact 7.2, p. 221</span></p>
+</div>
+
+<p>The words are chosen for the picture in which f is height: a horizontal class can be represented inside finitely many level sets, so it lies flat; a vertical class cannot, so it must climb. The meridian of the standing torus is horizontal — it <em>is</em> a contour — and the longitude is not. Collapsing contours is precisely killing the horizontal part, and the theorem says that is all it kills.</p>
+
+<div class="theorem">
+<p><strong>Theorem 7.4.</strong> Given a levelset tame function f : X → ℝ, let Φ̌ : Ȟ<sub>1</sub>(X) → H<sub>1</sub>(R<sub>f</sub>(X)) be the homomorphism induced by the surjection Φ : X → R<sub>f</sub>(X). Then the map Φ̌ is an isomorphism. Furthermore, for any vertical homology class h ∈ Ȟ<sub>1</sub>(X), we have that height(h) = height(Φ̌(h)). <span class="cite">— Dey &amp; Wang §7.2.3, Theorem 7.4, p. 222</span></p>
+</div>
+
+<p>Two remarks on the statement. Φ<sub>∗</sub> sends H̄<sub>1</sub>(X) to 0, so it descends to the quotient; and the target needs no quotient of its own because H̄<sub>1</sub>(R<sub>f</sub>(X)) = 0 — levelset tameness makes every levelset of the Reeb graph a finite set of disjoint points, and a finite point set supports no nonzero 1-cycle. The height clause is the quantitative half: the height of a class h is the infimum of heights of closed intervals I whose interval set X<sub>I</sub> already contains a cycle of h, and the collapse changes none of it.</p>
+
+<div class="theorem">
+<p><strong>Proposition 7.5.</strong> One has Dgm<sub>0</sub>(f<sup>X</sup>) = Dgm<sub>0</sub>(f<sup>R</sup>) where the diagrams are for the zeroth levelset zigzag persistence. <span class="cite">— Dey &amp; Wang §7.2.3, Proposition 7.5, p. 223</span></p>
+</div>
+
+<p>This is tda2-01's levelset zigzag reappearing as a computational shortcut. The proof is a ladder between the two levelset zigzag modules whose vertical maps are isomorphisms, because X<sub>i</sub><sup>j</sup> and R<sub>i</sub><sup>j</sup> = X<sub>i</sub><sup>j</sup>/∼ have the same number of components; the horizontal maps are induced by inclusions, every square commutes, so the modules are isomorphic. The payoff is stated plainly by Dey and Wang: processing the underlying space of a simplicial complex is much harder than processing a graph, so compute the Reeb graph first and read the zeroth diagram off it.</p>
+
+<div class="warn">
+<p><strong>What the mission strip claims, and what §7.1–7.3 establish.</strong> The strip says the Reeb graph "retains branching information that tda1-08's sublevel-set barcode discards". What this unit's sources actually license is narrower and worth stating exactly. Dey and Wang open the chapter by contrasting the two summaries in kind — persistence produces barcodes as a simplified signature of the function, whereas the Reeb graph is a one-dimensional skeleton representing a simplification of the domain with the function taken into account, and "the summarizations produced by the two differ in a fundamental way". The branching is then made explicit as the up-fork and down-fork classification of §7.1, and Proposition 7.5 gives the determination in one direction: the graph is enough to recover the zeroth levelset zigzag diagram. What is <em>not</em> proved anywhere in §7.1–7.3 is a converse — no theorem here says a barcode fails to determine the graph — and the sublevel-set barcode itself belongs to tda1-08's sources, not to Dey's Chapter 7; the sublevel-set object appearing here is the merge tree of Definition 7.2. Fact 7.1 also records loss in the other direction: β<sub>1</sub>(X) ≥ β<sub>1</sub>(R<sub>f</sub>), so the graph is not a complete invariant of X either.</p>
+</div>
+
+<h3>Distances: two of them, and they agree up to a constant</h3>
+
+<p>Rename R<sub>f</sub> as 𝔽 with function f, and let 𝔾 with g be a second Reeb graph; both are finite simplicial 1-complexes with the function strictly monotone on each edge. If they were "the same" there would be a function-preserving isomorphism. Both distances measure deviation from that, differently.</p>
+
+<div class="definition">
+<p><strong>Definition 7.4 (ε-smoothing).</strong> Given a Reeb graph (𝔽, f), its ε-smoothing, denoted S<sub>ε</sub>(𝔽, f), is the Reeb graph of the function f<sub>ε</sub> : 𝔽<sub>ε</sub> → ℝ where f<sub>ε</sub>(x, t) = f(x) + t for x ∈ 𝔽 and t ∈ [−ε, ε], with 𝔽<sub>ε</sub> := 𝔽 × [−ε, ε]. In other words S<sub>ε</sub>(𝔽, f) = 𝔽<sub>ε</sub>/∼<sub>f<sub>ε</sub></sub>, where x ∼<sub>f<sub>ε</sub></sub> y if and only if x, y ∈ 𝔽<sub>ε</sub> are from the same contour of f<sub>ε</sub>. <span class="cite">— Dey &amp; Wang §7.3.1, Definition 7.4, p. 224</span></p>
+</div>
+
+<p>Smoothing thickens the graph by ε in the function direction and then takes the Reeb graph again; the quotiented inclusion ι(x) = [x, 0] embeds the original into it. The two limits are what motivate the definition. For ε large enough, S<sub>ε</sub>(A, f<sub>a</sub>) is a single segment with monotone function values, whatever A was — so interleaved maps always exist for large ε and the infimum below is over a nonempty set. At ε = 0 the conditions force ψ = φ<sup>−1</sup>, an honest function-preserving isomorphism.</p>
+
+<div class="definition">
+<p><strong>Definition 7.5 (Reeb graph interleaving).</strong> A pair of continuous maps φ : (𝔽, f) → S<sub>ε</sub>(𝔾, g) and ψ : (𝔾, g) → S<sub>ε</sub>(𝔽, f) are ε-interleaved if (i) both of them are function-preserving, and (ii) the diagram built from ι, ι<sub>ε</sub>, φ<sub>ε</sub> and ψ<sub>ε</sub> commutes. <span class="cite">— Dey &amp; Wang §7.3.1, Definition 7.5, p. 225</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 7.6 (interleaving distance).</strong> d<sub>I</sub>(𝔽, 𝔾) = inf{ε | there exists a pair of ε-interleaved maps between (𝔽, f) and (𝔾, g)}. <span class="cite">— Dey &amp; Wang §7.3.1, Definition 7.6, p. 226</span></p>
+</div>
+
+<p>The commutativity splits into two halves that mirror the rectangular and triangular commutativity of persistence-module interleaving in Definition 3.16, and tda1-06's interleaving distance is the same idea one category over. Rectangular commutativity is the easy half — Dey and Wang say it is easy to verify — and it constrains φ alone, or ψ alone. The triangular half is the key technicality, because it is the only place where φ and ψ interact: it is what says going out by φ and back by ψ returns you to where you started, up to a shift of 2ε.</p>
+
+<div class="definition">
+<p><strong>Definition 7.7 (function-induced metric).</strong> Given a path π from u to v in a Reeb graph (A, f<sub>a</sub>), the height of π is height(π) = max<sub>x∈π</sub> f<sub>a</sub>(x) − min<sub>x∈π</sub> f<sub>a</sub>(x). Let Π(u, v) denote the set of all paths between u, v ∈ A. The function-induced metric d<sub>f<sub>a</sub></sub> : A × A → ℝ induced by f<sub>a</sub> is d<sub>f<sub>a</sub></sub>(u, v) = min<sub>π∈Π(u,v)</sub> height(π). <span class="cite">— Dey &amp; Wang §7.3.2, Definition 7.7, p. 226</span></p>
+</div>
+
+<p>Equivalently, d<sub>f<sub>a</sub></sub>(u, v) is the minimum length of a closed interval I ⊂ ℝ such that u and v lie in the same path component of f<sub>a</sub><sup>−1</sup>(I). For a finite Reeb graph it is a proper metric, so (A, d<sub>f<sub>a</sub></sub>) is a metric space — and once a Reeb graph is a metric space, the Gromov–Hausdorff machinery becomes available.</p>
+
+<div class="definition">
+<p><strong>Definition 7.8 (functional distortion distance).</strong> Given Reeb graphs (𝔽, f) and (𝔾, g) and continuous maps Φ : 𝔽 → 𝔾 and Ψ : 𝔾 → 𝔽, set C(Φ, Ψ) = {(x, y) ∈ 𝔽 × 𝔾 | Φ(x) = y, or x = Ψ(y)} and D(Φ, Ψ) = sup<sub>(x,y),(x′,y′)∈C(Φ,Ψ)</sub> ½|d<sub>f</sub>(x, x′) − d<sub>g</sub>(y, y′)|. Then</p>
+<div class="math-block">d<sub>FD</sub>(𝔽, 𝔾) = inf<sub>Φ,Ψ</sub> max{ D(Φ, Ψ), ‖f − g∘Φ‖<sub>∞</sub>, ‖g − f∘Ψ‖<sub>∞</sub> }.</div>
+<p><span class="cite">— Dey &amp; Wang §7.3.2, Definition 7.8, p. 227</span></p>
+</div>
+
+<p>Note that Φ and Ψ are <em>not</em> required to preserve function values here; the two sup-norm terms are what bound the discrepancy instead. Drop those two terms and drop the continuity requirement on Φ and Ψ, and what remains is exactly the Gromov–Hausdorff distance between the metric spaces (𝔽, d<sub>f</sub>) and (𝔾, d<sub>g</sub>). Definition 7.8 is that distance, function-adapted.</p>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded): reading β<sub>1</sub> of the standing torus twice.</strong> X is a torus, f the height function with X standing on end, so β<sub>1</sub>(X) = 2 with generators the meridian (a single level circle) and the longitude (which climbs).</p>
+<p><strong>Route one — the theorem.</strong> X is a connected compact orientable 2-manifold and f is Morse, so Theorem 7.3(a) applies and gives β<sub>1</sub>(R<sub>f</sub>) = <span class="gap">⟨your step: what number?⟩</span>.</p>
+<p><strong>Route two — the decomposition, run as a bound.</strong> The meridian is a whole level circle, so taking the single value a at which it sits exhibits its class in the image of H<sub>1</sub>(X<sub>=a</sub>) → H<sub>1</sub>(X): its class is <span class="gap">⟨your step: horizontal or vertical?⟩</span>, and it is nonzero, so rank(H̄<sub>1</sub>(X)) ≥ 1. Fact 7.2 then gives rank(Ȟ<sub>1</sub>(X)) = 2 − rank(H̄<sub>1</sub>(X)) ≤ 1, and Theorem 7.4, being an isomorphism, transports that to β<sub>1</sub>(R<sub>f</sub>) = rank(Ȟ<sub>1</sub>(X)) ≤ <span class="gap">⟨your step: what bound?⟩</span>.</p>
+<p><strong>The two routes together.</strong> Route one gives the exact value 1 and route two gives the upper bound 1, so the bound is attained and, reading Fact 7.2 backwards, rank(H̄<sub>1</sub>(X)) = 1 exactly. That is more than either route alone: it says <em>which</em> generator died and why — the horizontal one, because a contour is collapsed to a point by construction — and it identifies the surviving loop in the canvas as the image of the longitude, the generator that climbs through the level sets and so cannot be horizontal.</p>
+<p class="cite">Gap solutions: β<sub>1</sub>(R<sub>f</sub>) = 2/2 = 1; the meridian's class is horizontal; and the bound is β<sub>1</sub>(R<sub>f</sub>) ≤ 1.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 7.6 (bi-Lipschitz equivalence).</strong> One has d<sub>FD</sub> ≤ 3d<sub>I</sub> ≤ 3d<sub>FD</sub>. <span class="cite">— Dey &amp; Wang §7.3.2, Theorem 7.6, p. 227</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 7.9 (stable distance).</strong> Given f, g : X → ℝ, let (𝔽, f̃) and (𝔾, g̃) be the Reeb graphs of f and g respectively. A Reeb graph distance d<sub>R</sub> is stable if d<sub>R</sub>((𝔽, f̃), (𝔾, g̃)) ≤ ‖f − g‖<sub>∞</sub>. <span class="cite">— Dey &amp; Wang §7.3.2, Definition 7.9, pp. 227–228</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 7.7.</strong> One has d<sub>b</sub>(Dgm<sub>0</sub>(f), Dgm<sub>0</sub>(g)) ≤ 2d<sub>I</sub>(𝔽, 𝔾) ≤ 2d<sub>FD</sub>(𝔽, 𝔾). <span class="cite">— Dey &amp; Wang §7.3.2, Theorem 7.7, p. 228</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 7.10 (universal Reeb graph distance).</strong> A Reeb graph distance d<sub>U</sub> is universal if and only if (i) d<sub>U</sub> is stable, and (ii) for any other stable Reeb graph distance d<sub>S</sub>, we have d<sub>S</sub> ≤ d<sub>U</sub>. <span class="cite">— Dey &amp; Wang §7.3, Definition 7.10, p. 228</span></p>
+</div>
+
+<p>Universality picks out the most discriminative distance among the stable ones — the one that separates whatever any stable distance can separate. Neither d<sub>I</sub> nor d<sub>FD</sub> is universal. For Reeb graphs of PL-functions on compact triangulable spaces a universal distance does exist, constructed by pulling back to a common space, and two edit-like universal distances have been proposed; whether d<sub>I</sub> is within a constant factor of it is open. Dey and Wang also note that for merge trees specifically, d<sub>I</sub> and d<sub>FD</sub> are not merely equivalent but equal.</p>
+
+<div class="warn">
+<p><strong>The pattern to carry out of this unit.</strong> Every distance in §7.3 is defined by an infimum over maps and none of them is computable in practice: apart from the bottleneck distance d<sub>b</sub>, computing any of these is at least as hard as graph isomorphism, and even for merge trees the interleaving distance is NP-hard, though a fixed-parameter tractable algorithm exists in that case. What survives contact with a dataset is the chain d<sub>b</sub> ≤ 2d<sub>I</sub> ≤ 2d<sub>FD</sub> of Theorem 7.7, whose left-hand end is computable — and by Proposition 7.5 computable on the graphs themselves. So the honest report is a lower bound, labelled as one, together with the stability guarantee of Definition 7.9: perturb the field by δ in sup-norm and either distance moves by at most δ.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Let X be a genus-2 orientable surface, standing so that the height function f is Morse, and let R<sub>f</sub> be its Reeb graph. (i) Use Theorem 7.3(a) to compute β<sub>1</sub>(R<sub>f</sub>) from β<sub>1</sub>(X) = 4. (ii) Using Fact 7.2 and Theorem 7.4, say what rank(H̄<sub>1</sub>(X)) must be, and describe geometrically which cycles account for it. (iii) Now suppose instead someone hands you a simply connected X. What does Fact 7.1 force about R<sub>f</sub>, and what does Definition 7.2 then tell you about the relationship between R<sub>f</sub> and the pair (T<sub>M</sub>, T<sub>S</sub>)?</p>
+<p><em>Hint:</em> for (ii), Theorem 7.4 makes rank(Ȟ<sub>1</sub>(X)) equal to β<sub>1</sub>(R<sub>f</sub>), and Fact 7.2 supplies the rest.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why is no quotient needed on the target of Φ̌ in Theorem 7.4?</p>
+<button onclick="check(this,true)" data-ok>Because H̄<sub>1</sub>(R<sub>f</sub>(X)) = 0: levelset tameness makes each levelset of the Reeb graph a finite set of disjoint points, which supports no nonzero 1-cycle</button>
+<button onclick="check(this,false)">Because H<sub>1</sub> of a graph is always free, and free groups have no proper quotients</button>
+<button onclick="check(this,false)">Because Φ is surjective, so the induced map is already onto</button>
+<div class="explain">The quotient by the horizontal subgroup is invisible on the target precisely because that subgroup is trivial there, and it is trivial for the stated reason. The second option is false as an argument, whatever one thinks of free groups. The third confuses surjectivity with the vanishing of a subgroup: Φ being surjective is what gives a map at all, but it says nothing about H̄<sub>1</sub> of the target.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In Definition 7.8, why are the two sup-norm terms there?</p>
+<button onclick="check(this,false)">To make d<sub>FD</sub> symmetric in 𝔽 and 𝔾</button>
+<button onclick="check(this,true)" data-ok>Because Φ and Ψ are not required to be function-preserving, so something has to bound how far they move function values</button>
+<button onclick="check(this,false)">To force Φ and Ψ to be continuous, which the Gromov–Hausdorff definition does not require</button>
+<div class="explain">Dey and Wang say it directly: the maps need not preserve function values, and the terms ‖f − g∘Φ‖<sub>∞</sub> and ‖g − f∘Ψ‖<sub>∞</sub> bound the difference. Symmetry comes from taking both directions in C(Φ, Ψ) and in the max, not from these terms specifically. Continuity is imposed separately as a hypothesis on Φ and Ψ; dropping it, along with the two terms, is what returns you to Gromov–Hausdorff.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Two Reeb graphs are known to satisfy d<sub>I</sub> = 0.4. What may be asserted about d<sub>FD</sub>?</p>
+<button onclick="check(this,false)">d<sub>FD</sub> = 0.4, since Theorem 7.6 says the distances are equivalent</button>
+<button onclick="check(this,true)" data-ok>0.4 ≤ d<sub>FD</sub> ≤ 1.2 — the two inequalities of Theorem 7.6 read in opposite directions</button>
+<button onclick="check(this,false)">Nothing, since Theorem 7.6 compares the distances only for merge trees</button>
+<div class="explain">Theorem 7.6 is d<sub>FD</sub> ≤ 3d<sub>I</sub> ≤ 3d<sub>FD</sub>. The first inequality gives d<sub>FD</sub> ≤ 3(0.4) = 1.2. The second, after cancelling the 3, is d<sub>I</sub> ≤ d<sub>FD</sub>, so d<sub>FD</sub> ≥ 0.4 — note that this half is an honest comparison, not a factor-3 one. Bi-Lipschitz equivalence bounds a ratio; it does not assert equality. Equality is what Dey and Wang note separately for the special case of merge trees, which is exactly why the third option inverts the truth: the general bound is the theorem, the merge-tree equality is the special case.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove the two halves of Fact 7.1 that the chapter leaves to the reader. (1) Show β<sub>0</sub>(X) = β<sub>0</sub>(R<sub>f</sub>). (2) Show H̄<sub>1</sub>(R<sub>f</sub>(X)) = 0 for levelset tame f. (3) Deduce β<sub>1</sub>(X) ≥ β<sub>1</sub>(R<sub>f</sub>) from Theorem 7.4 together with Fact 7.2, and say exactly when the inequality is strict.</p>
+<p><em>Hint:</em> for (1), the load-bearing observation is that each equivalence class is a component of a levelset and is therefore connected — so ∼ never relates points lying in different components of X.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) The component count.</strong> Write X = ⨆<sub>i</sub> X<sub>i</sub> as the disjoint union of its connected components. Each equivalence class of ∼ is a connected component of some levelset, hence a connected subset of X, hence entirely contained in a single X<sub>i</sub>; so ∼ never relates a point of X<sub>i</sub> to a point of X<sub>j</sub> for i ≠ j. Consequently R<sub>f</sub> = X/∼ is the disjoint union of the quotients X<sub>i</sub>/∼, and these are open and closed in R<sub>f</sub> because their preimages under Φ are. Each X<sub>i</sub>/∼ is the continuous image of the connected space X<sub>i</sub> under Φ, hence connected. So the components of R<sub>f</sub> are exactly the X<sub>i</sub>/∼, one for each component of X, and β<sub>0</sub>(X) = β<sub>0</sub>(R<sub>f</sub>). ∎</p>
+<p><strong>(2) No horizontal 1-classes upstairs.</strong> Let h ∈ H̄<sub>1</sub>(R<sub>f</sub>(X)), so there is a finite set of values {a<sub>i</sub>}<sub>i∈A</sub> with h in the image of the inclusion-induced map H<sub>1</sub>(⋃<sub>i∈A</sub> (R<sub>f</sub>)<sub>=a<sub>i</sub></sub>) → H<sub>1</sub>(R<sub>f</sub>). By levelset tameness each levelset f<sup>−1</sup>(a<sub>i</sub>) of X has finitely many components, and each is collapsed by Φ to one point, so the levelset (R<sub>f</sub>)<sub>=a<sub>i</sub></sub> is a finite set of points. A finite union of finite point sets is a finite discrete space, whose first homology is 0. So h lies in the image of the zero group, that is h = 0, and H̄<sub>1</sub>(R<sub>f</sub>(X)) = 0. ∎</p>
+<p><strong>(3) The inequality.</strong> Theorem 7.4 says Φ̌ : Ȟ<sub>1</sub>(X) → H<sub>1</sub>(R<sub>f</sub>(X)) is an isomorphism, so rank(Ȟ<sub>1</sub>(X)) = rank(H<sub>1</sub>(R<sub>f</sub>)) = β<sub>1</sub>(R<sub>f</sub>). Fact 7.2 with p = 1 gives</p>
+<div class="math-block">β<sub>1</sub>(X) = rank(H<sub>1</sub>(X)) = rank(H̄<sub>1</sub>(X)) + rank(Ȟ<sub>1</sub>(X)) = rank(H̄<sub>1</sub>(X)) + β<sub>1</sub>(R<sub>f</sub>).</div>
+<p>Ranks are non-negative, so β<sub>1</sub>(X) ≥ β<sub>1</sub>(R<sub>f</sub>), and the inequality is strict exactly when rank(H̄<sub>1</sub>(X)) &gt; 0 — that is, exactly when X carries a nonzero horizontal 1-class, a cycle representable inside finitely many level sets. Note also the special case Dey and Wang record: if X is simply connected then H<sub>1</sub>(X) = 0, so β<sub>1</sub>(R<sub>f</sub>) = 0 and R<sub>f</sub> is loop-free. ∎</p>
+<p><em>What this does and does not license.</em> The computation identifies the defect β<sub>1</sub>(X) − β<sub>1</sub>(R<sub>f</sub>) exactly, as the rank of the horizontal subgroup — that is more than the inequality alone says, and it is what makes Theorem 7.3(a)'s factor of two intelligible rather than magical: on a connected compact orientable 2-manifold carrying a Morse function, the horizontal and vertical parts have equal rank, since β<sub>1</sub>(R<sub>f</sub>) = β<sub>1</sub>(X)/2 forces rank(H̄<sub>1</sub>(X)) = β<sub>1</sub>(X) − β<sub>1</sub>(X)/2 = rank(Ȟ<sub>1</sub>(X)). It licenses nothing about H<sub>p</sub> for p &gt; 1, where the Reeb graph has nothing to say at all, since a graph has no homology above dimension one — the loss Dey and Wang acknowledge in the chapter's opening paragraph.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>The relation defining the Reeb graph, the hypothesis that makes the quotient a graph, and how a node is classified as regular or critical.</li>
+<li>What the sweep maintains, and the one property of the problem that makes its deletions cheap.</li>
+<li>Which part of H<sub>1</sub>(X) survives the collapse, and what is provable — and computable — about the distance between two Reeb graphs.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) x ∼ y iff same value and same component of that levelset, quotient topology, levelset tameness plus Morse type (Definition 4.14) to make it a finite 1-complex, up-degree and down-degree giving minimum, maximum, up-fork, down-fork, with the merge and split trees of Definition 7.2 as the sublevel and superlevel cousins; (2) the pre-image graph's components are the Reeb graph's points, its structure changes only at vertices, and weighting each pre-image edge by its deletion time — legitimate because the problem is offline — makes a maximum spanning forest need no replacement search, giving Theorem 7.1's O(m log m), matched in expectation by the randomised collapse of Theorem 7.2; (3) H̄<sub>1</sub> dies and Ȟ<sub>1</sub> survives isomorphically by Theorem 7.4, so β<sub>1</sub>(X) ≥ β<sub>1</sub>(R<sub>f</sub>) with the defect equal to rank(H̄<sub>1</sub>(X)) and equality of halves on an orientable surface by Theorem 7.3, while d<sub>I</sub> and d<sub>FD</sub> agree to a factor of 3 by Theorem 7.6, are stable by Definition 7.9, are bounded below by the computable d<sub>b</sub> by Theorem 7.7, and are otherwise as hard as graph isomorphism — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — chapter opening on how barcodes and Reeb graphs differ as summaries, and the loss of higher-dimensional homological information (p. 207). §7.1 "Reeb Graph: Definitions and Properties": Definition 7.1 with the quotient map Φ and the induced function f̃, and the levelset-tameness hypothesis with its two clauses and the reference to Morse type in Definition 4.14 (pp. 208–209); contours, the sweep narrative, up-degree and down-degree, the regular/minimum/maximum/down-fork/up-fork classification with degenerate points, and the remark that critical values determine the pair up to function-preserving homeomorphism (p. 210); "Variants of Reeb Graphs", contour trees, Definition 7.2 on merge and split trees, and the Reeb space with its forward reference to §9.3 (pp. 210–211). §7.2 "Algorithms in the PL-Setting": the generic PL setting and the 2-skeleton reduction, Definition 7.3 on the augmented Reeb graph and the fact that critical points lie in Φ<sub>f</sub>(V) (p. 212); the pre-image graph G<sub>a</sub> and the O(s<sub>v</sub>) update at a vertex (pp. 212–213); Algorithm 12 REEB-SWEEPALG with LOWERCOMPS, UPDATEPREIMAGE and UPDATEREEBGRAPH, the DYNSF operations, the deletion-time weighting, the maximum spanning forest and link-cut trees (pp. 214–216); Theorem 7.1 (p. 217); Algorithm 16 REEB-RANDOMALG, the mid-vertex collapse, the tight worst case and the expected-time argument (pp. 217–219); Theorem 7.2 (p. 220). §7.2.3 "Homology Groups of Reeb Graphs": Fact 7.1 with the β<sub>0</sub> reason and the simply connected consequence, and Theorem 7.3 for orientable and non-orientable 2-manifolds (p. 220); horizontal and vertical homology, Fact 7.2, and the height of a class (pp. 220–221); the construction of Φ̌ and Theorem 7.4 (p. 222); Proposition 7.5 with its commuting ladder of levelset zigzag modules (p. 223). §7.3 "Distances for Reeb Graphs": Definition 7.4 on ε-smoothing and the quotiented inclusion (p. 224); Definition 7.5 with the rectangular and triangular commutativity and their parallel to Definition 3.16 (p. 225); Definition 7.6 and Definition 7.7 (p. 226); Definition 7.8 and its relation to the Gromov–Hausdorff distance, and Theorem 7.6 (p. 227); Definition 7.9 (pp. 227–228); Theorem 7.7, Definition 7.10, the non-universality of d<sub>I</sub> and d<sub>FD</sub>, the existence of a universal distance by pullback, the merge-tree equality, and the graph-isomorphism and NP-hardness remarks (p. 228). §7.4 "Notes and Exercises", for two facts used in the body: that on a triangulated 2-manifold the pre-image graph is a collection of disjoint loops at a generic value, which is how the earlier surface algorithm maintained connectivity (p. 229), and that whether d<sub>I</sub> is within a constant factor of the universal Reeb graph distance is open (p. 230). Supplied here, not in the source: Lemma A, the maximum-weight cycle property with its exchange proof — Dey and Wang assert that a deleted maximum-spanning-forest edge needs no replacement search but do not derive it, and Worked example 1 supplies the derivation. Not established here: any converse to Proposition 7.5 — nothing in §7.1–7.3 proves that a barcode fails to determine the Reeb graph, so the mission strip's contrast with tda1-08's sublevel-set barcode is licensed only in the weaker forms recorded in the body. Deferred: §7.2.3's O(n log n + mα(n)) algorithm for Dgm<sub>1</sub> of f on R<sub>f</sub> and the mergeable-tree levelset zigzag algorithm (p. 222); the pseudocode of Algorithms 13 to 15 line by line; the edit distance literature of §7.4; and the universal distance construction by pullback (p. 228), which is cited rather than built.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
