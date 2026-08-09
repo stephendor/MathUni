@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-11 — Cosheaves, categorification, and interleaving revisited</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Cosheaves, categorification, and interleaving revisited <span class="cite">(tda2-11)</span></h1>
+
+<div class="hook">
+"These two persistence modules are within ε of each other" is an inequality. Category theory replaces it with a pair of actual maps — and the inequality becomes a theorem about them.
+<p>That substitution is the move the whole subject has been making. A number becomes an object; a comparison becomes a morphism; a claim that two things are close becomes a diagram that commutes. tda1-06 defined the interleaving distance by writing down shifted homomorphisms and checking their composites; Ghrist's §10.6 shows those homomorphisms were the components of natural transformations all along, and that the definition never needed persistence modules in the first place.</p>
+<p>Before that, one piece of unfinished business from tda2-10. Sheaves are built for cohomology. Turn every arrow round and you get cosheaves, which are built for homology — and the skyscrapers, which behaved so simply for sheaves, flip over in a way worth watching.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> §10.6 recasts the ε-interleaving as a pair of natural transformations. Predict how far that reformulation generalises, as §10.6 actually states it.</p>
+<button onclick="check(this,false)">Completely: both the index and the target are arbitrary categories, which is why the same definition already covers multiparameter modules indexed by ℝ<sup>d</sup></button>
+<button onclick="check(this,true)" data-ok>In the target only: ℂ is an arbitrary category, but the index is fixed at (ℝ, ≤) with the specific shift functor T<sub>ε</sub> — so Top-valued and Vect-valued persistence are one definition, and an ℝ<sup>d</sup>-indexed module is not covered without changing the index</button>
+<button onclick="check(this,false)">Hardly at all: the definition needs homomorphisms, so it only makes sense for functors valued in vector spaces</button>
+<div class="explain">Ghrist asks "what is the interleaving distance of arbitrary functors (ℝ, ≤) → ℂ for ℂ a category?" — the quantifier is on ℂ, and (ℝ, ≤) sits fixed on the left of the arrow, as it must, since the shift T<sub>ε</sub> and its natural transformation τ<sub>ε</sub> of Example 10.10 are constructions in (ℝ, ≤). That freedom in the target is exactly what the third option denies and is the substance of the reformulation: it is what lets the proof of Theorem 10.15 interleave <em>spaces</em> and then push the interleaving through H<sub>k</sub>. The first option is the over-reach, and the warn block in Segment 3 says what would actually have to change.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Cosheaves dualise sheaves and recover homology-flavoured local-to-global statements. Recast categorically, an epsilon-interleaving is a pair of natural transformations (cat-04) between functors shifted by epsilon, which is what makes tda1-06's interleaving distance a definition rather than a construction — and it then generalises unchanged to sheaves, Reeb graphs and multiparameter modules.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Cosheaves: every arrow the other way</h2>
+
+<p>Ghrist opens §9.10 with the obvious suspicion: sheaf theory is built for cohomology, so the homological counterpart should exist and be by no means unimportant. That dual is the cosheaf.</p>
+
+<div class="definition">
+<p><strong>Cosheaf.</strong> For a cell complex X, a cosheaf ℱ̂ assigns to each cell σ an abelian group ℱ̂(σ) and to each face pair σ ◁ τ an <strong>extension map</strong> — a homomorphism ℱ̂(σ ◁ τ) which sends ℱ̂(τ) → ℱ̂(σ) and composes properly: for ρ ◁ σ ◁ τ, ℱ̂(ρ ◁ τ) = ℱ̂(ρ ◁ σ) ∘ ℱ̂(σ ◁ τ). The data ℱ̂(σ) over a cell is the <strong>costalk</strong>. <span class="cite">— Ghrist §9.10, p. 198</span></p>
+</div>
+
+<p>One imagines extending data from cells down to faces; note how this flips the directions in the definition of a sheaf, and that the <em>co</em>- prefix is connoting exactly that contravariance. The value on all of X is the analogue of tda2-10's Eq. (9.2):</p>
+<div class="math-block">ℱ̂(X) := ⊕<sub>τ</sub> ℱ̂(τ) / ∼ &nbsp;: &nbsp; s<sub>ρ</sub> ∼ ℱ̂(ρ ◁ σ)(s<sub>σ</sub>). &nbsp;&nbsp;(9.14)</div>
+
+<p>Ghrist concedes this is much harder to parse than the global-sections intuition for a sheaf, and the reason is structural rather than notational. A sheaf's ℱ(X) is a <em>subgroup</em> of the product ∏<sub>τ</sub>ℱ(τ), cut out by equations. A cosheaf's ℱ̂(X) is a <em>quotient</em> of the direct sum, cut out by an equivalence: an equivalence class of data assignments to cells, where the equivalence is up to compatible extensions that fall from higher-dimensional to lower-dimensional cells. Sub-of-a-product versus quotient-of-a-sum is the same dualisation that separates cohomology from homology, and it is worth carrying that sentence forward.</p>
+
+<div class="worked fade">
+<p><strong>Worked example (faded): the skyscrapers flip.</strong> Recall tda2-10's skyscraper <em>sheaf</em> 𝐆<sub>σ</sub> — the group 𝐆 on σ, zero elsewhere, all restrictions zero. Its nonzero global sections exist only when σ is a <span class="gap">⟨your step: which extreme of the face poset?⟩</span>, that is a vertex, and 𝐆<sub>v</sub>(X) ≅ 𝐆.</p>
+<p><strong>Now the skyscraper cosheaf.</strong> ℱ̂ = 𝐆̂<sub>σ</sub> assigns 𝐆 to σ and 0 to all other cells. Its value over X is zero unless σ has no cofaces — unless it is locally top-dimensional — in which case 𝐆̂<sub>σ</sub>(X) ≅ 𝐆.</p>
+<p><strong>Why the flip.</strong> For a sheaf, a global section must restrict <em>upward</em> consistently, and a nonzero value on σ is forced to land in the zero stalks above it unless there is nothing above; for a cosheaf the extension maps run <em>downward</em>, so the same argument runs in the opposite direction of the poset. In one sentence: for skyscraper sheaves only <span class="gap">⟨your step: which extrema?⟩</span> of the face poset contribute globally, and for skyscraper cosheaves only maxima.</p>
+<p class="cite">Gap solutions: a minimum of the face poset; and minima.</p>
+</div>
+
+<h3>Homology, as promised</h3>
+
+<p>The cellular cosheaf chain complex is the obvious one:</p>
+<div class="math-block">⋯ —<sup>∂</sup>→ ⊕<sub>dim σ=2</sub> ℱ̂(σ) —<sup>∂</sup>→ ⊕<sub>dim σ=1</sub> ℱ̂(σ) —<sup>∂</sup>→ ⊕<sub>dim σ=0</sub> ℱ̂(σ) ⟶ 0 &nbsp;&nbsp;(9.15)</div>
+<p>with boundary map</p>
+<div class="math-block">∂(τ) = Σ<sub>σ ≤ τ</sub> [σ : τ] ℱ̂(σ ≤ τ). &nbsp;&nbsp;(9.16)</div>
+<p>Here ∂ decreases the grading by one and ∂² = 0, as a boundary operator must — the same factoring argument as in tda2-10's guided proof, now with the composition rule read the other way. The resulting <strong>cosheaf homology</strong> H<sub>•</sub>(X; ℱ̂) gives a collation and classification of homological features in the data structure.</p>
+
+<p>The two calibration cases behave as they should. For the constant cosheaf 𝐆<sub>X</sub>, cosheaf homology agrees with cellular homology with 𝐆 coefficients. For a skyscraper cosheaf ℱ̂<sub>σ</sub>, the homology vanishes unless σ is a maximal cell in the face poset, in which case it is 𝐆 in grading dim σ. Ghrist's comment on the pair is worth keeping: this duality between dimensions and sheaf cohomology / cosheaf homology on skyscrapers is reminiscent of the delicacies of duality between homology and compactly supported cohomology.</p>
+
+<div class="definition">
+<p><strong>Example 9.18 (precosheaves).</strong> In the topological setting a <strong>precosheaf</strong> assigns data to open sets U ⊂ X, with extension map ℱ̂(V) → ℱ̂(U) for V ⊂ U. To be a cosheaf it must behave well under limits of covers: the sequence</p>
+<div class="math-block">⊕<sub>i,j</sub> ℱ̂(U<sub>ij</sub>) —<sup>∂</sup>→ ⊕<sub>k</sub> ℱ̂(U<sub>k</sub>) ⟶ ℱ̂(U) ⟶ 0 &nbsp;&nbsp;(9.17)</div>
+<p>must be exact for any finite open cover 𝒰 = {U<sub>i</sub>} of U — equivalently, ℱ̂(U) agrees with the cellular cosheaf homology H<sub>0</sub>(𝒩(𝒰); ℱ̂) for any cover 𝒰. <span class="cite">— Ghrist §9.10, Example 9.18, p. 200</span></p>
+</div>
+
+<p>Ghrist attaches a warning that a practitioner should not skip: in practice this agreement <em>cannot</em> be assumed and can be challenging to confirm. It is the same shape of caution as tda2-07's good-cover hypothesis — the condition that makes the local-to-global machine work is exactly the one nobody checks.</p>
+
+<p>Where do cosheaves come from? Taking a hint from Poincaré duality, from functions of <em>compact support</em>. On a manifold M the precosheaf ℱ̂(U) = C<sub>c</sub>(U, ℝ) of compactly supported continuous functions, with extension-by-zero from V to U ⊃ V, is a cosheaf; and the sheaf of differential p-forms Ω<sup>p</sup> is complemented by the cosheaf of p-currents Ω<sub>p</sub>. Example 9.19 gives another: for f : X → Y with Y locally connected, the precosheaf assigning H<sub>k</sub>(f<sup>−1</sup>(U)) to U ⊂ Y is a cosheaf, with extension from the induced homomorphism on H<sub>k</sub> — the homological twin of tda2-10's fibre homology sheaf.</p>
+
+<p>Finally, the example that names the duality. <strong>Example 9.17 (sensing and inference).</strong> For sensors x<sub>i</sub> ∈ 𝒬 each returning attributes S(x<sub>i</sub>) about a fixed object, take the simplex X on the sensor nodes. The <em>sheaf</em> assigns to each vertex the vector space with basis S(x<sub>i</sub>) — the target is grey and large; the target has a long nose — with restriction maps the inclusions into the unions over the vertices of a simplex, and its global sections give the full sensorium. Dually, the <em>cosheaf</em> assigns to each vertex the vector space whose basis is all objects consistent with S(x<sub>i</sub>) — rhinoceros, elephant, whale; anteater, elephant — with extension maps the projections onto the subbasis generated by intersection: elephant. Its global sections return the constraint satisfactions consistent with the sensing. Sensing yields a sheaf; inference is a cosheaf.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> What is the structural difference between Eq. (9.2) and Eq. (9.14)?</p>
+<button onclick="check(this,true)" data-ok>ℱ(X) is a subgroup of a product, cut out by compatibility equations; ℱ̂(X) is a quotient of a direct sum, by an equivalence generated by the extension maps</button>
+<button onclick="check(this,false)">They are the same construction, written once with restrictions and once with extensions</button>
+<button onclick="check(this,false)">ℱ(X) uses all cells while ℱ̂(X) uses only the top-dimensional ones</button>
+<div class="explain">Sub-of-a-product versus quotient-of-a-sum is the whole difference, and it is why Ghrist says (9.14) is harder to parse: there is no "the global sections are the tuples that agree" reading, only "data assignments up to compatible extension". The second option loses exactly the content. The third confuses a computation about skyscrapers with the definition — both formulas range over all cells τ.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does ∂ in (9.16) lower the grading where the sheaf coboundary raised it?</p>
+<button onclick="check(this,true)" data-ok>Because the extension maps run from a cell to its faces, so the algebra must follow the data — the direction of the maps dictates the direction of the differential</button>
+<button onclick="check(this,false)">Because homology is by convention graded downwards, independently of the coefficient structure</button>
+<button onclick="check(this,false)">Because the incidence numbers [σ : τ] change sign for cosheaves</button>
+<div class="explain">A differential can only compose the maps it has. ℱ̂(σ ≤ τ) goes from ℱ̂(τ) to ℱ̂(σ), so summing over the faces of τ produces something in the lower grading. The convention in the second option is downstream of that fact, not a substitute for it, and the incidence numbers are the same combinatorial data in both settings.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Categories, and maps between functors</h2>
+
+<div class="definition">
+<p><strong>Category.</strong> A category ℂ consists of: (1) a collection of objects 𝒪; (2) for each ordered pair (a,b) in 𝒪, a set of morphisms ℳ(a,b); and (3) for each ordered triple (a,b,c) a composition ∘ : ℳ(a,b) × ℳ(b,c) → ℳ(a,c). These satisfy <em>associativity</em> — composition of morphisms is associative — and <em>identity</em>: for each a ∈ 𝒪 there is Id ∈ ℳ(a,a) with f ∘ Id = f for all f ∈ ℳ(a,b) and Id ∘ g = g for all g ∈ ℳ(b,a). <span class="cite">— Ghrist §10.1, p. 208</span></p>
+</div>
+
+<p>Ghrist warns that the word is so generic as to be uninformative, is unrelated to the LS category of his Chapter 7, and was chosen to evoke an Aristotelian organisation — "deceptively unexciting". The redeeming picture is combinatorial: a small category is a directed graph whose vertices are objects and whose arrows from a to b are the elements of ℳ(a,b), with a loop-like identity at each vertex. Composition is then visualised by a 2-simplex whose boundary is the commutative triangle, and associativity by the wireframe of a 3-simplex. Seeing the algebraic laws in their simplicial guise is, as he puts it, the subject's first hint at its relevance to topology. The limitation is honest: very small categories are easily visualised, but singular chain complexes demand too much of the Apollonian seer.</p>
+
+<p>The standard examples — Vect, Grp, Ab, GrAb, Top, hTop, Man, Set, FinSet, ChCo, Pos — are too large to draw. The smaller ones are the ones this semester has been using without saying so:</p>
+
+<ul>
+<li><strong>Op<sub>X</sub></strong>: objects the open sets of a space X, including the empty set, with morphisms V → U the inclusions V ⊂ U.</li>
+<li><strong>Face<sub>X</sub></strong>: for a regular cell complex X, objects the cells, with a morphism σ → τ iff σ is a face of τ. <em>This is tda2-10's index.</em> A cellular sheaf is a functor Face<sub>X</sub> → Ab, and the composition rule (9.1) that made d² = 0 possible is precisely functoriality; a cosheaf is a functor on the opposite category.</li>
+<li>Any <strong>poset</strong> (P, ≤) is a category, with a morphism a → b iff a ≤ b — and the previous two are special cases. <em>This is where (ℝ, ≤) is going to come from in Segment 3.</em></li>
+<li>A <strong>group 𝐆</strong> is a category with one object ⋆ whose morphisms ⋆ → ⋆ are the elements of 𝐆, composition being the group operation, with every morphism invertible. A <strong>groupoid</strong> is a category with invertible morphisms and a <strong>monoid</strong> is a category with a single object — so a group is a single-object groupoid, equally a monoid-with-inverses.</li>
+</ul>
+
+<p>Example 10.1 supplies one more that will look familiar: the categorical n-simplex is the category [n] := 0 → 1 → 2 → ⋯ → n−1 → n, whose objects are the ordinals through n and whose morphisms come from the total order. There are more morphisms than the displayed generators, since composition must be applied.</p>
+
+<h3>Natural transformations</h3>
+
+<p>Ghrist says the reader may suspect a joke when told that the truly interesting objects of category theory are neither morphisms nor functors but correspondences between functors. It is asserted in all seriousness — such a construction was the original impetus for creating category theory at all.</p>
+
+<div class="definition">
+<p><strong>Natural transformation.</strong> η : ℱ ⇒ ℱ′ connects a pair of functors ℱ, ℱ′ : ℂ → ℂ′ by sending each object a ∈ ℂ to a morphism η(a) : ℱ(a) → ℱ′(a) so that for each morphism h : a → b in ℂ the square</p>
+<div class="math-block">ℱ(a) —<sup>ℱ(h)</sup>→ ℱ(b) &nbsp;&nbsp; with &nbsp;&nbsp; η(a) ↓ &nbsp; η(b) ↓ &nbsp;&nbsp; over &nbsp;&nbsp; ℱ′(a) —<sup>ℱ′(h)</sup>→ ℱ′(b)</div>
+<p>commutes. <span class="cite">— Ghrist §10.5, p. 217</span></p>
+</div>
+
+<p>His better formulation: a natural transformation is a functor in the Category of categories. Categories themselves are the Objects of a Category whose Morphisms are functors, under functor composition and with the identity functor playing the obvious role; the Functors of that Category relate a pair of Morphisms, and in the original category that is precisely a natural transformation. Natural transformations are composable, and one may also compose a natural transformation η with a functor ℋ on the left, ℋ·η, or on the right, η·ℋ — a fact Segment 3 will need in the very statement of an interleaving.</p>
+
+<div class="worked">
+<p><strong>Worked example: four naturalities, and one failure.</strong></p>
+<p><strong>Example 10.10 (translation).</strong> Regard (ℝ, ≤) as a category: one morphism a → b whenever a ≤ b. Translation by ε is a functor T<sub>ε</sub> : ℝ → ℝ sending a ↦ a + ε and preserving the order, hence morphisms. It does very little — just a shift in objects — so it is no surprise that there is a natural transformation τ<sub>ε</sub> : Id ⇒ T<sub>ε</sub> taking (a ≤ b) to (a + ε ≤ b + ε). Naturality here is the indifference to whether one ≤-compares objects before or after the translation. <em>Keep this example; it is the whole of Segment 3's machinery.</em></p>
+<p><strong>Example 10.11 (snakes).</strong> The Snake Lemma gives a connecting homomorphism δ : H<sub>•</sub>(𝒞) → H<sub>•−1</sub>(𝒜) from a short exact sequence. What makes it powerful is the naturality of the resulting long exact sequence — and that is exactly the statement that δ is a natural transformation, on the category ChCoSES of short exact sequences of chain complexes, between the two homology functors to GrAb.</p>
+<p><strong>Example 10.12 (co/homology equivalences).</strong> The several homology theories are not merely isomorphic but <em>naturally</em> so: maps between cell complexes induce the same homomorphism whichever theory is used. A <strong>natural isomorphism</strong> between functors is an inverse pair of natural transformations whose composites both ways are the identity natural transformation. Ghrist: natural isomorphisms are fundamental.</p>
+<p><strong>Example 10.14 (duals and isomorphisms).</strong> The failure that makes the notion sharp. On FinVect the dual-space functor 𝒟 sends V ↦ V<sup>∨</sup>. Although V and V<sup>∨</sup> are isomorphic as vector spaces, that isomorphism is <em>not natural</em> — and "not natural" is a precise statement, not a complaint about bases: there is no natural isomorphism 𝒟 ⇒ Id at all. It is true, however, that every V is naturally isomorphic to its double dual: there is a natural isomorphism η : 𝒟² ⇒ Id.</p>
+<p><strong>The payoff.</strong> Categories are <em>isomorphic</em>, ℂ ≅ 𝔻, when there are functors both ways whose composites <em>equal</em> the identities. Ghrist notes this is rarely satisfied even for categories that seem very closely related. More common and more useful is that there are not equalities but natural transformations 𝒢·ℱ ⇒ Id<sub>ℂ</sub> and ℱ·𝒢 ⇒ Id<sub>𝔻</sub>, in which case ℂ ≈ 𝔻 are <em>equivalent</em> categories — analogous to the way homotopic spaces are topologically equivalent though not necessarily homeomorphic. That downgrade from equality to a natural transformation is the same move Segment 3 makes to define a distance.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A cellular sheaf on X is a functor. From which category, and to which?</p>
+<button onclick="check(this,true)" data-ok>From Face<sub>X</sub>, the cells with a morphism σ → τ iff σ is a face of τ, to Ab — and the composition rule (9.1) is exactly functoriality</button>
+<button onclick="check(this,false)">From Op<sub>X</sub> to Ab, since sheaves are defined on open sets</button>
+<button onclick="check(this,false)">From Ab to Face<sub>X</sub>, since the sheaf assigns cells to groups</button>
+<div class="explain">Ghrist lists Face<sub>X</sub> among the smaller categories, and the cellular sheaves of Chapter 9 are exactly functors on it — the composition rule (9.1) is the functor axiom, though Ghrist words it as a sheaf being "a representation of the face structure" rather than using the term. Op<sub>X</sub> is the right index for a <em>topological</em> sheaf, which is his §9.6, not the cellular case. The third option has the arrow backwards: a sheaf assigns a group to each cell.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why is Example 10.14's failure the right way to understand naturality?</p>
+<button onclick="check(this,true)" data-ok>Because V ≅ V<sup>∨</sup> holds objectwise and still fails to be natural, showing that naturality constrains the whole family of isomorphisms at once, not each one separately</button>
+<button onclick="check(this,false)">Because V ≅ V<sup>∨</sup> is false in infinite dimensions, so no natural transformation could exist</button>
+<button onclick="check(this,false)">Because the dual functor is contravariant, and natural transformations require covariant functors</button>
+<div class="explain">The example is instructive exactly because the objectwise statement is true — every finite-dimensional V is isomorphic to its dual — and the natural statement is nonetheless false. That is what a naturality square demands: one choice per object, compatible with every morphism simultaneously. The second option changes the example, since Ghrist states it on FinVect; the third is beside the point, and 𝒟² is covariant and does admit a natural isomorphism to Id.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Interleaving, said twice</h2>
+
+<p>Consider persistence over ℝ: a family {X<sub>t</sub> : t ∈ ℝ} of spaces with inclusions X<sub>a</sub> ⊂ X<sub>b</sub> for a ≤ b, thought of as the lower excursion sets X<sub>t</sub> = {h ≤ t} of a height function h : X → ℝ. The stability question is: for h′ close to h, how much can the topology of the excursion sets change? Any individual X<sub>t</sub> can change dramatically under a small perturbation; the content of the Stability Theorem is that the impact on <em>persistent</em> homology is small. That needs a notion of proximity.</p>
+
+<div class="definition">
+<p><strong>ε-interleaving (the concrete version).</strong> Given two ℝ-indexed homology sequences H<sub>k</sub>(X<sub>t</sub>) and H<sub>k</sub>(X′<sub>t</sub>), they are <em>ε-interleaved</em> if there exist homomorphisms φ<sub>t</sub> : H<sub>k</sub>(X<sub>t</sub>) → H<sub>k</sub>(X′<sub>t+ε</sub>) and φ′<sub>t</sub> : H<sub>k</sub>(X′<sub>t</sub>) → H<sub>k</sub>(X<sub>t+ε</sub>) such that φ′<sub>t</sub> ∘ φ<sub>t</sub> and φ<sub>t</sub> ∘ φ′<sub>t</sub> are each the inclusion maps on homology induced by the shift +2ε. <span class="cite">— Ghrist §10.6, p. 219</span></p>
+</div>
+
+<h3>Visual: the two triangles that make an interleaving</h3>
+
+<canvas id="ilCanvas" width="640" height="300" role="img" aria-label="Two horizontal parameter lines, one for each persistence module, with an arrow up-right by epsilon, an arrow back down-right by epsilon, and the composite shown as the internal map of the first module by two epsilon"></canvas>
+<p style="text-align:center"><button onclick="toggleIl()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Pause / resume</button></p>
+<script>
+(function(){
+const cv=document.getElementById('ilCanvas'), ctx=cv.getContext('2d');
+const X0=64, SC=48, TOP=110, BOT=222, T0=1;
+let eps=0.6, dir=1, run=true;
+function px(t){ return X0+t*SC; }
+function arrow(p,q,col,dash){
+  ctx.strokeStyle=col; ctx.lineWidth=2.2; ctx.setLineDash(dash||[]);
+  const a=Math.atan2(q[1]-p[1], q[0]-p[0]);
+  ctx.beginPath(); ctx.moveTo(p[0],p[1]);
+  ctx.lineTo(q[0]-9*Math.cos(a), q[1]-9*Math.sin(a)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(q[0],q[1]);
+  ctx.lineTo(q[0]-11*Math.cos(a-0.38), q[1]-11*Math.sin(a-0.38));
+  ctx.lineTo(q[0]-11*Math.cos(a+0.38), q[1]-11*Math.sin(a+0.38));
+  ctx.closePath(); ctx.fill();
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#2a333d'; ctx.lineWidth=1.4;
+  [TOP,BOT].forEach(function(y){ ctx.beginPath(); ctx.moveTo(X0-20,y); ctx.lineTo(600,y); ctx.stroke(); });
+  ctx.fillStyle='#4a5661';
+  for(let t=0;t<=11;t++){ [TOP,BOT].forEach(function(y){
+    ctx.beginPath(); ctx.arc(px(t),y,2.5,0,2*Math.PI); ctx.fill(); }); }
+  const a=[px(T0),TOP], b=[px(T0+eps),BOT], c=[px(T0+2*eps),TOP];
+  ctx.fillStyle='#e8e8e8';
+  [a,b,c].forEach(function(p){ ctx.beginPath(); ctx.arc(p[0],p[1],5.5,0,2*Math.PI); ctx.fill(); });
+  arrow(a,b,'#8ab4f8'); arrow(b,c,'#4caf82'); arrow(a,c,'#d8a657',[6,5]);
+  ctx.font='13px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle='#9aa5b1';
+  ctx.fillText('ℱ  (index t)', 14, TOP-46); ctx.fillText('ℱ′ (index t)', 14, BOT+26);
+  ctx.fillStyle='#8ab4f8'; ctx.fillText('η : ℱ ⇒ ℱ′·Tε', px(T0)-6, TOP-16);
+  ctx.fillStyle='#4caf82'; ctx.fillText("η′ : ℱ′ ⇒ ℱ·Tε", px(T0+eps)-16, BOT+26);
+  ctx.fillStyle='#d8a657';
+  ctx.fillText('composite = ℱ·τ(2ε)', px(T0+2*eps)+12, TOP-16);
+  ctx.fillStyle='#9aa5b1'; ctx.textAlign='center';
+  ctx.fillText('ε = '+eps.toFixed(2)+'  —  as ε shrinks the two triangles close up; at ε = 0 the maps are mutually inverse', 320, 282);
+}
+function step(){ if(run){ eps+=dir*0.007; if(eps>2.2){eps=2.2;dir=-1;} if(eps<0.25){eps=0.25;dir=1;} draw(); }
+  requestAnimationFrame(step); }
+window.toggleIl=function(){run=!run;};
+draw(); step();
+})();
+</script>
+
+<p>The gold arrow is not extra data: it is the map ℱ already had from t to t + 2ε. An interleaving is the demand that going up-and-over by η and back-and-over by η′ reproduces it exactly, and the same in the other order. Watch ε shrink: the two triangles flatten, and in the limit the two families are identified.</p>
+
+<p>An ε-interleaving implies the homologies of the two sequences can differ substantially only over short parameter intervals, which motivates defining the distance d(H<sub>k</sub>(X<sub>t</sub>), H<sub>k</sub>(X′<sub>t</sub>)) to be the infimum of ε over all ε-interleavings.</p>
+
+<div class="warn">
+<p><strong>It is not a metric, for two separate reasons.</strong> Ghrist gives both and they are worth keeping apart. First, it may take the value +∞, when no interleaving exists at any ε. Second, two persistence diagrams at interleaving distance zero need not be identical, since the infimum may be 0 without a 0-interleaving existing — an infimum that is not attained. Reflexivity and the triangle inequality do hold, so what one has is a pseudometric. Neither defect is repaired by the stability theorem below; a bound on a pseudometric is a bound on a pseudometric.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 10.15.</strong> Given h, h′ : X → ℝ, the interleaving distance between the sublevel set persistent homology sequences is bounded by the L<sub>∞</sub> norm of the difference of the height functions:</p>
+<div class="math-block">d(H<sub>k</sub>(X<sub>t</sub>), H<sub>k</sub>(X′<sub>t</sub>)) ≤ ‖h − h′‖<sub>∞</sub>.</div>
+<p><span class="cite">— Ghrist §10.6, Theorem 10.15, p. 220</span></p>
+</div>
+
+<h3>The same thing, categorically</h3>
+
+<p>For a function h : X → ℝ and a ≤ b, the inclusion X<sub>a</sub> → X<sub>b</sub> of sublevel sets defines an <strong>excursion-set functor</strong> ℰ<sub>h</sub> : (ℝ, ≤) → Top, and the sublevel set persistent homology is the composition of this functor with H<sub>•</sub>. The prevalence of functors motivates Ghrist's question: what is the interleaving distance of arbitrary functors (ℝ, ≤) → ℂ for ℂ a category? The answer involves natural transformations, and Example 10.10 supplies the ingredient — translation is a functor T<sub>ε</sub> with a natural transformation τ<sub>ε</sub> from the identity.</p>
+
+<div class="definition">
+<p><strong>ε-interleaving (the categorical version).</strong> An ε-interleaving of two functors ℱ, ℱ′ : ℝ → ℂ is a pair of natural transformations η : ℱ ⇒ ℱ′·T<sub>ε</sub> and η′ : ℱ′ ⇒ ℱ·T<sub>ε</sub> such that</p>
+<div class="math-block">(η′·T<sub>ε</sub>) ∘ η = ℱ·τ<sub>2ε</sub> &nbsp;&nbsp; and &nbsp;&nbsp; (η·T<sub>ε</sub>) ∘ η′ = ℱ′·τ<sub>2ε</sub>.</div>
+<p>The interleaving distance on functors, d(ℱ, ℱ′), is the infimal ε for an ε-interleaving — again a pseudometric that may take the value ∞ for non-interleavable functors. <span class="cite">— Ghrist §10.6, p. 220</span></p>
+</div>
+
+<p>Every piece of the concrete definition has been replaced by a categorical one, and nothing has been added. The shifted homomorphisms φ<sub>t</sub> became the components of a natural transformation; the requirement that the composites be "the maps induced by the shift +2ε" became the equation with ℱ·τ<sub>2ε</sub> on the right, where τ<sub>2ε</sub> is Example 10.10's translation natural transformation; and composing a natural transformation with a functor — η′·T<sub>ε</sub> — is the operation §10.5 introduced for no apparent reason two pages earlier.</p>
+
+<div class="warn">
+<p><strong>What the mission strip claims, and what §10.6 establishes.</strong> The strip says the categorical definition "generalises unchanged to sheaves, Reeb graphs and multiparameter modules". Read the quantifier in Ghrist's own question: <em>arbitrary functors (ℝ, ≤) → ℂ for ℂ a category</em>. What is arbitrary is the <strong>target</strong>. That is a real and substantial generalisation — it is what lets the proof below interleave <em>spaces</em> in Top and then push the interleaving through H<sub>k</sub> to Vect, and it is what makes tda1-06's interleaving distance a definition rather than a construction, exactly as the strip says. But the <strong>index</strong> is not arbitrary: it is (ℝ, ≤) throughout, and the shift is the specific T<sub>ε</sub> of Example 10.10 with its τ<sub>ε</sub>. A multiparameter module is indexed by (ℝ<sup>d</sup>, ≤), so reaching it requires replacing the index category and replacing the one-parameter shift by translation along a vector — a change to the definition, not an instance of it; tda2-04's Definition 12.8 is where that version is actually set up. As for sheaves and Reeb graphs: §10.6 mentions neither. tda2-06's Definition 7.6 is a genuine interleaving distance and Dey's §7.4 notes an equivalent cosheaf-theoretic formulation of it, so the claim is true of the literature — but it is not established by the sections this unit reads, and the Reeb-graph case needs its own ε-smoothing functor to even state.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (i) Take ℂ = Vect and let ℱ be the functor (ℝ, ≤) → Vect that is 𝕜 on [0, 4) and 0 elsewhere, with identity maps where both ends are nonzero — the interval module 𝕜<sub>[0,4)</sub>. Let ℱ′ = 𝕜<sub>[0,4+δ)</sub>. Write down an ε-interleaving for the smallest ε you can, and check both composite identities. (ii) Now let 𝒢 be the constant functor 𝕜 on all of ℝ — the interval module 𝕜<sub>ℝ</sub> — and 𝒢′ = 0. Show that no ε works at all, so d(𝒢, 𝒢′) = +∞, and name which of the two "not a metric" defects this exhibits. Then say why this example cannot exhibit the <em>other</em> defect, and what kind of example would be needed for that one. (iii) Take h, h′ : [0,1] → ℝ with h(x) = x and h′(x) = x + 0.1sin(20πx). Bound d(H<sub>0</sub>(X<sub>t</sub>), H<sub>0</sub>(X′<sub>t</sub>)) using Theorem 10.15, and say why the bound is insensitive to the number of oscillations.</p>
+<p><em>Hint:</em> for (ii), the composite (η′·T<sub>ε</sub>) ∘ η must equal 𝒢·τ<sub>2ε</sub>, which is the identity on 𝕜 at every index — and it factors through 𝒢′(t + ε) = 0.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove Theorem 10.15 in the categorical form. (1) With ε := ‖h − h′‖<sub>∞</sub>, prove the two set inclusions relating the excursion sets of h and h′, being explicit about where the sup-norm is used. (2) Check that the resulting inclusions really do satisfy the composite identity (η′·T<sub>ε</sub>) ∘ η = ℰ<sub>h</sub>·τ<sub>2ε</sub> — this is the step Ghrist compresses to a single clause. (3) Complete the proof by pushing the interleaving through H<sub>k</sub>, naming the property of functors that licenses it, and say why the theorem does not upgrade the pseudometric to a metric.</p>
+<p><em>Hint:</em> for (2), every map in sight is an inclusion of subsets of X; ask what a composite of inclusions is.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) The inclusions.</strong> Put ε = ‖h − h′‖<sub>∞</sub> = sup<sub>x</sub>|h(x) − h′(x)|. Fix t and let x ∈ ℰ<sub>h</sub>(t) = {h ≤ t}, so h(x) ≤ t. By definition of the sup-norm, |h(x) − h′(x)| ≤ ε for <em>every</em> x — this is the only place the sup is used, and it is used pointwise — so h′(x) ≤ h(x) + ε ≤ t + ε. Hence x ∈ {h′ ≤ t + ε} = ℰ<sub>h′</sub>(t + ε), giving</p>
+<div class="math-block">ℰ<sub>h</sub>(t) = {h ≤ t} ⊂ {h′ ≤ t + ε} = ℰ<sub>h′</sub>(t + ε),</div>
+<p>and by the symmetric argument ℰ<sub>h′</sub>(t) ⊂ ℰ<sub>h</sub>(t + ε). Both hold for every t.</p>
+<p><strong>(2) The composite identity.</strong> Let η(t) : ℰ<sub>h</sub>(t) → ℰ<sub>h′</sub>(t + ε) and η′(t) : ℰ<sub>h′</sub>(t) → ℰ<sub>h</sub>(t + ε) be the inclusions just produced. Each is natural: for s ≤ t the square built from η and the inclusions ℰ<sub>h</sub>(s) ⊂ ℰ<sub>h</sub>(t), ℰ<sub>h′</sub>(s+ε) ⊂ ℰ<sub>h′</sub>(t+ε) commutes, because all four maps are inclusions of subsets of X and any two composites agree as functions.</p>
+<p>Now compute the composite at an index t. The transformation η′·T<sub>ε</sub> has component at t equal to η′(t + ε) : ℰ<sub>h′</sub>(t + ε) → ℰ<sub>h</sub>(t + 2ε). So</p>
+<div class="math-block">((η′·T<sub>ε</sub>) ∘ η)(t) = η′(t + ε) ∘ η(t) : ℰ<sub>h</sub>(t) ⟶ ℰ<sub>h</sub>(t + 2ε),</div>
+<p>a composite of two inclusions of subsets of X, which is the inclusion ℰ<sub>h</sub>(t) ⊂ ℰ<sub>h</sub>(t + 2ε). And that inclusion is exactly the component at t of ℰ<sub>h</sub>·τ<sub>2ε</sub>, since τ<sub>2ε</sub> : Id ⇒ T<sub>2ε</sub> has component the morphism t ≤ t + 2ε and ℰ<sub>h</sub> takes that morphism to the inclusion of sublevel sets. Hence (η′·T<sub>ε</sub>) ∘ η = ℰ<sub>h</sub>·τ<sub>2ε</sub>, and symmetrically for the other. So η, η′ are an ε-interleaving of ℰ<sub>h</sub> and ℰ<sub>h′</sub>. ∎</p>
+<p><strong>(3) Push through homology.</strong> If ℱ and ℱ′ are ε-interleaved and 𝒢 is any functor, then 𝒢·ℱ and 𝒢·ℱ′ are ε-interleaved — the property is <em>functoriality</em>: applying 𝒢 to every component of η and η′ gives natural transformations again, and applying 𝒢 to the two composite identities gives the corresponding identities for 𝒢·ℱ, since a functor preserves composition. Taking 𝒢 = H<sub>k</sub> turns the interleaving of excursion-set functors into an interleaving of the persistent homology sequences, at the same ε = ‖h − h′‖<sub>∞</sub>. Since d is the infimum over ε for which an interleaving exists, d ≤ ‖h − h′‖<sub>∞</sub>. ∎</p>
+<p>Why this does not make d a metric: the theorem produces an upper bound and says nothing about the two defects. It does not exclude the case of no interleaving at any ε — for that, d = +∞ and the bound is vacuous unless the two functions are both defined and finitely far apart. And it does not exclude an infimum being attained by no interleaving, so d = 0 still fails to force ℱ = ℱ′. Reflexivity and the triangle inequality are the properties that do hold, and they hold independently of Theorem 10.15.</p>
+<p><em>What this does and does not license.</em> The proof interleaves <em>spaces</em> and only then applies homology, which is possible precisely because the definition was stated for an arbitrary target category. That is the payoff of the reformulation, and it is a genuine simplification: the geometry is one line of set inclusions and the algebra is one appeal to functoriality. It licenses nothing about index categories other than (ℝ, ≤).</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In the categorical definition, what is ℱ·τ<sub>2ε</sub>?</p>
+<button onclick="check(this,true)" data-ok>The natural transformation whose component at t is ℱ applied to the morphism t ≤ t + 2ε — that is, ℱ's own internal map by the shift 2ε</button>
+<button onclick="check(this,false)">A second interleaving, at parameter 2ε rather than ε</button>
+<button onclick="check(this,false)">The composite of τ<sub>ε</sub> with itself, which is why the constant is 2ε</button>
+<div class="explain">τ<sub>2ε</sub> : Id ⇒ T<sub>2ε</sub> lives in (ℝ, ≤) and has as its component at t the morphism t ≤ t + 2ε; composing with ℱ on the left applies ℱ to that morphism, giving ℱ's own structure map. The condition therefore says the round trip reproduces the map the functor already had — which is what the gold arrow in the visual was. The second option confuses a condition with an interleaving, and while τ<sub>2ε</sub> is indeed related to τ<sub>ε</sub> twice over, that observation does not say what ℱ·τ<sub>2ε</sub> <em>is</em>.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Which step of the proof of Theorem 10.15 uses that the target category is arbitrary?</p>
+<button onclick="check(this,true)" data-ok>The whole strategy: the interleaving is constructed in Top, between excursion-set functors, and only then pushed to Vect by applying H<sub>k</sub> — which needs the definition to make sense for a Top-valued functor</button>
+<button onclick="check(this,false)">The set inclusions, which are statements about subsets rather than about vector spaces</button>
+<button onclick="check(this,false)">None — the proof works entirely in Vect and the generality is decorative</button>
+<div class="explain">The concrete definition of §10.6 was stated for homology sequences; had that been the only definition available, one would have had to build the interleaving maps on homology directly. Because the categorical definition quantifies over the target, an interleaving of Top-valued functors is a legitimate object and functoriality transports it. The inclusions in the second option are indeed set-theoretic, but they are the raw material, not the step where the generality is spent.</div>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What a cosheaf is, and the two places its reversal of arrows shows up.</li>
+<li>What a natural transformation is, and which two examples this lesson needed it for.</li>
+<li>The categorical definition of an ε-interleaving, and the exact scope of its generality.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) a group on each cell with extension maps running from cofaces down to faces, global value a quotient of a sum by Eq. (9.14) rather than a subgroup of a product, chain complex (9.15) with boundary (9.16) lowering the grading, constant cosheaf giving cellular homology, and skyscraper cosheaves supported at maxima of the face poset where skyscraper sheaves sat at minima; (2) η : ℱ ⇒ ℱ′ is one morphism per object making every square commute, with Example 10.10's translation T<sub>ε</sub> and τ<sub>ε</sub> the case that matters and Example 10.14's V ≇ V<sup>∨</sup>-naturally the case that sharpens the notion; (3) an ε-interleaving is a pair η : ℱ ⇒ ℱ′·T<sub>ε</sub>, η′ : ℱ′ ⇒ ℱ·T<sub>ε</sub> with (η′·T<sub>ε</sub>)∘η = ℱ·τ<sub>2ε</sub> and its mirror, the distance is the infimal such ε and is a pseudometric for two separate reasons, Theorem 10.15 bounds it by ‖h − h′‖<sub>∞</sub> by interleaving excursion sets in Top and applying H<sub>k</sub> — and the target category is arbitrary while the index (ℝ, ≤) is not — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Ghrist, <em>Elementary Applied Topology</em> — §9.10 "Cosheaves": the motivation from sheaf theory being built for cohomology, the definition of a cosheaf with extension maps and the composition rule, the costalk, and the value over X in Eq. (9.14) with the remark that it is harder to parse than global sections (p. 198); the skyscraper cosheaf with its value 𝐆 exactly when the cell has no cofaces, and the contrast with the skyscraper sheaf in terms of minima and maxima of the face poset; Example 9.17 on sensing as a sheaf and inference as a cosheaf; the chain complex (9.15), the boundary (9.16) with ∂² = 0, and the constant and skyscraper cosheaf homology computations (p. 199); the remark relating this duality to that between homology and compactly supported cohomology, Example 9.18 on precosheaves with the exactness condition (9.17) and the warning that it cannot be assumed in practice, the compactly supported function and p-current examples, and Example 9.19 on homology fibre cosheaves (p. 200). §10.1 "Categories": the definition with associativity and identity, and the remarks on the word "category" (p. 208); the arrow-diagram visualisation with composition as a 2-simplex and associativity as a 3-simplex wireframe, the eleven standard categories, Op<sub>X</sub>, Face<sub>X</sub>, poset categories, a group as a one-object category, groupoids and monoids, and Example 10.1's categorical n-simplex (p. 209). §10.5 "Natural transformations": the definition with its commutative square, the slogan that a natural transformation is a functor in the Category of categories, and composability with functors on either side; Example 10.10 on translation in (ℝ, ≤) with T<sub>ε</sub> and τ<sub>ε</sub> (p. 217); Example 10.11 on the Snake Lemma's δ as a natural transformation and Example 10.12 on natural isomorphisms between homology theories (p. 218); Example 10.14 on the dual-space functor, the non-naturality of V ≅ V<sup>∨</sup> and the natural isomorphism 𝒟² ⇒ Id, and the distinction between isomorphic and equivalent categories with the homotopy analogy (p. 219). §10.6 "Interleaving and stability in persistence": the ℝ-indexed setting of excursion sets, the concrete ε-interleaving of homology sequences with the +2ε composite condition, and the pseudometric with both reasons it is not a metric (p. 219); Theorem 10.15, the excursion-set functor ℰ<sub>h</sub> : (ℝ, ≤) → Top, the question of the interleaving distance of arbitrary functors (ℝ, ≤) → ℂ, the categorical ε-interleaving with (η′·T<sub>ε</sub>)∘η = ℱ·τ<sub>2ε</sub>, the interleaving distance on functors, and the proof of Theorem 10.15 (p. 220). Supplied here, not in the source: the verification that the composite of the excursion-set inclusions equals ℰ<sub>h</sub>·τ<sub>2ε</sub> and that η, η′ are natural — Ghrist compresses both to the clause "This implies an ε-interleaving η, η′", and the guided proof supplies them; and the reading of a cellular sheaf as a functor Face<sub>X</sub> → Ab, which combines §10.1's list with §9.1's composition rule (9.1) and is not stated as such in either place. Not established here: that the categorical definition covers multiparameter modules indexed by ℝ<sup>d</sup>, or interleavings of sheaves or of Reeb graphs. §10.6 quantifies over the target category ℂ and fixes the index at (ℝ, ≤) with the shift T<sub>ε</sub> of Example 10.10; an ℝ<sup>d</sup>-indexed version requires a different index category and a vector-valued shift, and is set up in tda2-04 as Definition 12.8, while the Reeb-graph case needs tda2-06's ε-smoothing to state. Deferred: §9.11 on Bézier curves and splines and §9.12 on barcodes; §10.2 on morphisms, §10.3 on functors and Examples 10.5 to 10.7, §10.4 on clustering functors, Example 10.13; §10.7 and §10.8 on limits and colimits; §10.9's sheaf-theoretic redux; and §10.10 and §10.11 on categorification and "Bring out number".
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
