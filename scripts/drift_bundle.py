@@ -221,6 +221,10 @@ def check(args):
                   ("ERROR " + r.stderr.strip()).strip()
         else:
             cov = "SKIP (no problem set)"
+        source_gap_disposition = getattr(args, "source_gap_disposition", None)
+        unchecked = cov.startswith("UNCHECKED")
+        source_gap_ok = not unchecked or source_gap_disposition == "accept-no-checkable-refs"
+        source_gap = source_gap_disposition or "SOURCE GAP UNDISPOSITIONED"
         # parse
         ok, err = _parses(html)
         parse = "PASS" if ok else f"FAIL {err}"
@@ -229,11 +233,13 @@ def check(args):
         selfc = "PASS" if not ext else f"FAIL external: {', '.join(ext[:3])}"
         lint_results = lesson_lint.lint(html)
         lfails = [(nm, d) for nm, ok, d in lint_results if not ok]
-        failed = (cov.startswith(("FAIL", "ERROR")) or parse.startswith("FAIL")
-                  or selfc.startswith("FAIL") or bool(lfails))
+        failed = (cov.startswith(("FAIL", "ERROR")) or not source_gap_ok
+                  or parse.startswith("FAIL") or selfc.startswith("FAIL") or bool(lfails))
         any_fail = any_fail or failed
         print(f"\n{c.name}  [{'BOUNCE' if failed else 'ready to score'}]")
         print(f"  coverage        : {cov}")
+        if unchecked:
+            print(f"  source gap      : {source_gap}")
         print(f"  html parses     : {parse}")
         print(f"  self-contained  : {selfc}")
         if lfails:
@@ -269,6 +275,11 @@ def main():
     ap.add_argument("--ref", default="main", help="git ref for the held-out reference & exemplar (default main)")
     ap.add_argument("--workspace", default=None, help="override workspace dir (default <repo>-drift/)")
     ap.add_argument("--check", action="store_true", help="run the free pre-filter on candidates instead of building")
+    ap.add_argument(
+        "--source-gap-disposition",
+        choices=("accept-no-checkable-refs", "block-for-source-repair"),
+        help="required decision when coverage reports UNCHECKED",
+    )
     args = ap.parse_args()
     (check if args.check else build)(args)
 
