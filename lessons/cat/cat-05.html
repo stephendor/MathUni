@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cat-05 — Limits and colimits</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body><p class="cite">Category Theory · Nexus College</p>
+<h1>Limits and colimits <span class="cite">(cat-05)</span></h1>
+
+<div class="hook">
+<p>Spivak opens §3.5 with a question: what do products of sets, the results of Π<sub>!</sub>-operations on databases, and meets in a preorder have in common? They look nothing alike. The answer is that all three are <em>limits</em> — and once you have the definition, terminal objects, products, intersections and inverse limits stop being separate constructions and become the same construction over different indexing categories. Then reverse every arrow and the whole thing happens again on the other side, where it is called a colimit and where disjoint unions, quotients and gluings live.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Limits and colimits are dual: a colimit in C is a limit in C<sup>op</sup>. Predict: does it follow that a category with all limits also has all colimits?</p>
+<button onclick="check(this,false)">Yes — that is what duality means</button>
+<button onclick="check(this,true)" data-ok>No. Duality relates C to C<sup>op</sup>, and says nothing about C having the properties of its own opposite</button>
+<button onclick="check(this,false)">Yes, but only for finite diagrams</button>
+<div class="explain">No, and the slip is easy. Duality is a translation: every statement about colimits in C becomes a statement about limits in C<sup>op</sup>. To conclude that C has all colimits you would need C<sup>op</sup> to have all limits — which is a fact about a different category. A theorem proved for all categories does transfer, because it applies to C<sup>op</sup> too; a property of one particular C does not. Keep the two apart; Problem 5(e) turns on it.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Quotient and gluing moves from la, aa, and top are all colimits — dual to the limits behind products and intersections; one categorical idea seen from both sides.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires. Its last clause — "one categorical idea seen from both sides" — is exactly Spivak's Definition 3.102 and is established here. The rest needs care, and one part of the care is about the sources themselves.</p>
+<p><strong>Spivak gives limits in full and colimits in one line, and says so.</strong> §3.5 builds terminal objects, products, cones, the category Cone(D), the limit as its terminal object, and pullbacks. Then Definition 3.102 says a cocone in C is a cone in C<sup>op</sup> — and Spivak immediately adds that this "is like a compressed file: useful for transmitting quickly, but completely useless for working with, unless you can successfully unpack it. We will unpack it later in Chapter 6." Chapter 6 is not in this unit's resources. So the colimit half of a unit titled "Limits and colimits" arrives, from its first-named source, as a dualisation with the working-out deliberately withheld.</p>
+<p><strong>Aluffi §I.5 is what fills that gap, and it is the reason the split matters.</strong> He works coproducts concretely — disjoint union in Set by Proposition 5.6, max in the ≤ category — and treats the quotient as an <em>initial</em> object in Claim 5.5, which is the colimit side. Segment 3 therefore does the unpacking Spivak declines, for the smallest indexing category, and takes its concrete colimits from Aluffi. The section title "Bonus: An introduction to limits and colimits" is accurate and should be read as the warning it is.</p>
+<p><strong>"Quotient and gluing moves from la, aa, and top are <em>all</em> colimits" is not established.</strong> Neither source mentions linear algebra, abstract algebra or topology in this connection, and neither proves a general statement about quotients. Aluffi shows one quotient is an initial object; that is one construction, not a class of them. The claim is true and standard, and it is not on these pages. Problem 5(e) asks the reader to audit it construction by construction and to report which cases they can exhibit from the sources and which they are recognising from elsewhere.</p>
+<p><strong>Also not established: that intersections are limits, in the generality the strip implies.</strong> What <em>is</em> here is Spivak's Example 3.99: the pullback over a cospan, which in Set selects the pairs agreeing in the base — and for two subsets with their inclusions is their intersection. That is one case, worked, and Segment 2 does it.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The smallest limits</h2>
+
+<div class="definition">
+<p><strong>Definition 3.79 (Spivak).</strong> An object Z of C is <em>terminal</em> if for each object C there exists a unique morphism ! : C → Z. <span class="cite">— Spivak §3.5.1, p. 108</span></p>
+</div>
+
+<p>This is Aluffi's <em>final</em> object from cat-02 under a different name — and cat-02 recorded Aluffi's advice against using "terminal" without saying which end you mean. Spivak uses it for this end only. In Set, any one-element set is terminal: for any C there is exactly one function C → {•}, the one that does the only thing available.</p>
+
+<div class="theorem">
+<p><strong>Proposition 3.84.</strong> All terminal objects in a category are isomorphic. <span class="cite">— Spivak §3.5.1, p. 108</span></p>
+<p><strong>Proof.</strong> Let Z, Z′ be terminal. There are unique a : Z → Z′ and b : Z′ → Z. The composite a ; b : Z → Z must be unique since Z is terminal, and id<sub>Z</sub> is such a map, so a ; b = id<sub>Z</sub>. Similarly b ; a = id<sub>Z′</sub>. So a is an isomorphism with inverse b. ∎</p>
+</div>
+
+<p>That is cat-02's Proposition 5.4 again, argued identically. Spivak's Remark 3.85 adds the refinement Aluffi put inside the proposition: not only are terminal objects isomorphic, the isomorphism between any two is unique — "we hence say 'terminal objects are unique up to unique isomorphism'. To a category theorist, this is very nearly the same thing as saying 'all terminal objects are equal'." The word <em>nearly</em> is load-bearing, and cat-02's Self-check 5 is where it bites: in Set every singleton is terminal and ∅ is initial and unique on the nose, so "equal" is false while "unique up to unique isomorphism" is exactly right.</p>
+
+<div class="definition">
+<p><strong>Definition 3.86 (Spivak).</strong> A <em>product</em> of X and Y is an object X × Y with morphisms p<sub>X</sub>, p<sub>Y</sub> such that for every object C with f : C → X and g : C → Y there is a unique morphism ⟨f, g⟩ : C → X × Y making the diagram commute. <span class="cite">— Spivak §3.5.1, pp. 108–109</span></p>
+</div>
+
+<p>The same universal property cat-02 took from Aluffi §5.4, notation aside. And the same collapse in a preorder: the product of two elements is their meet, which for ≤ on ℤ is min, exactly as Aluffi computed.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Remark 3.85 says unique-up-to-unique-isomorphism is "very nearly" the same as equality. What is the <em>nearly</em> protecting against?</p>
+<button onclick="check(this,false)">Nothing — it is a rhetorical hedge</button>
+<button onclick="check(this,true)" data-ok>That the objects genuinely are distinct: Set has many terminal objects, one for each singleton, and they are not equal</button>
+<button onclick="check(this,false)">That the isomorphism might fail to exist</button>
+<button onclick="check(this,false)">That the isomorphism might not be unique</button>
+<div class="explain">Genuine distinctness. Every singleton is terminal in Set and no two are the same set, so equality is simply false while the unique isomorphism exists and is canonical. The point of the remark is that nothing a categorical argument can see distinguishes them, so speaking of "the" terminal object costs nothing — but the objects have not become equal. cat-02's Proposition 5.4 makes the same claim from the other source.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Cones, and the definition that subsumes the rest</h2>
+
+<div class="definition">
+<p><strong>Definition 3.92 (Spivak).</strong> Let D : 𝒥 → C be a diagram — that is, a functor from an indexing category, in the sense of Definition 3.51 met in cat-04. A <em>cone</em> (C, c<sub>∗</sub>) over D consists of an object C and, for each object j of 𝒥, a morphism c<sub>j</sub> : C → D(j), such that for each f : j → k in 𝒥 we have c<sub>k</sub> = c<sub>j</sub> ; D(f). A morphism of cones (C, c<sub>∗</sub>) → (C′, c′<sub>∗</sub>) is a morphism a : C → C′ with c<sub>j</sub> = a ; c′<sub>j</sub> for all j. Cones over D and their morphisms form a category <strong>Cone</strong>(D). The <em>limit</em> of D is the terminal object of <strong>Cone</strong>(D). <span class="cite">— Spivak §3.5.2, p. 111</span></p>
+</div>
+
+<p>That <strong>Cone</strong>(D) really is a category — identities, composition, and the clauses of cat-01's Definition 3.1, disjointness included — is the routine verification Problem 3(b) asks for, and it has to be done before the last sentence means anything.</p>
+
+<p>Read that last sentence again, because it is doing a great deal of work in eight words. Terminality says: for every cone there is <em>exactly one</em> morphism of cones into the limit. "At least one" is the comparison morphism whose existence the usual formulation asserts; "at most one" is its uniqueness; and being a morphism <em>of cones</em> is the requirement that every triangle commutes. Three clauses, one word.</p>
+
+<p>Everything from Segment 1 is now a special case, obtained by varying the indexing category alone.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the small indexing categories.</strong> <span class="cite">— Spivak Examples 3.93, 3.94 and 3.99, §3.5, pp. 111–112</span></p>
+<p><strong>𝒥 empty (Example 3.93).</strong> A functor ∅ → C carries no data, so a cone over it is an object C with no components and no conditions to satisfy. Then <strong>Cone</strong>(D) has one object per object of C and one morphism per morphism, so it <em>is</em> C, and its terminal object is a terminal object of C. Terminal objects are limits over the empty diagram.</p>
+<p><strong>𝒥 two objects, no non-identity arrows (Example 3.94).</strong> A functor picks out two objects X, Y. A cone is an object C with morphisms to each — and the cone condition is vacuous, since ⟨ why? ⟩. So a cone is a pair (f, g), and the terminal one is ⟨ … ⟩. Products are limits over the discrete two-object category.</p>
+<p><strong>𝒥 the cospan • → • ← • (Example 3.99).</strong> A functor picks out X → A ← Y. A cone is an object C with maps to X, to Y and to A, and the cone condition forces the map to A to be ⟨ what, in terms of the other two? ⟩ — which is why Spivak says "the diagonal arrow c<sub>a</sub> is in some sense superfluous" and drops it from the picture. The limit is called a <em>pullback</em>, written X ×<sub>A</sub> Y.</p>
+<p>In Set the pullback is {(x, y) ∈ X × Y : f(x) = g(y)}. Now specialise: let X and Y be subsets of A with f and g the inclusions. Then f(x) = g(y) says ⟨ … ⟩, so the pullback is ⟨ which familiar set? ⟩. Intersection is a limit.</p>
+<p>Spivak's Remark 3.100 warns that this use of "pullback" is not the one in his Definition 3.68, where pullback meant precomposing a set-valued functor along a functor. Two concepts, one word, and for now best kept apart.</p>
+</div>
+
+<canvas id="cones" width="640" height="330" aria-label="On the left a cone: an apex object with morphisms down to three objects of a diagram, with the diagram's own morphisms between them. On the right the same picture with every arrow reversed, forming a cocone. Beneath, a table matching indexing categories to the limit and colimit they produce: empty gives terminal and initial, two points give product and coproduct, a cospan gives pullback."></canvas>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does "the limit is the terminal object of Cone(D)" contain the uniqueness clause of the usual definition?</p>
+<button onclick="check(this,false)">It does not; uniqueness has to be added separately</button>
+<button onclick="check(this,true)" data-ok>Because terminal means <em>exactly</em> one morphism in — "at least one" is existence and "at most one" is uniqueness</button>
+<button onclick="check(this,false)">Because Cone(D) has at most one object</button>
+<button onclick="check(this,false)">Because morphisms of cones are unique by construction</button>
+<div class="explain">Exactly one. Definition 3.79 says a terminal object receives a unique morphism from every object, and "unique" decomposes into existence and uniqueness — precisely the two clauses the elementary formulation of a universal property states separately. The third and fourth options are both false: Cone(D) generally has many objects and many morphisms between them.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>The other side, and how far the sources go</h2>
+
+<div class="definition">
+<p><strong>Definition 3.102 (Spivak).</strong> Given a category C, a <em>cocone</em> in C is a cone in C<sup>op</sup>. <span class="cite">— Spivak §3.5, p. 113</span></p>
+</div>
+
+<div class="warn">
+<p><strong>And here Spivak stops.</strong> His next sentence: Definition 3.102 "is like a compressed file: useful for transmitting quickly, but completely useless for working with, unless you can successfully unpack it. We will unpack it later in Chapter 6 when we discuss electric circuits." Chapter 6 is not among this unit's resources. So the colimit half of this unit arrives from its first-named source as a one-line dualisation with the working-out explicitly withheld — which is why §3.5 is titled a <em>Bonus</em> and an <em>introduction</em>, and why Aluffi does the rest of the work below.</p>
+</div>
+
+<p>Unpacking it is not hard, and doing it is the point. Reversing every arrow of C turns a cone into: an object C together with, for each j, a morphism c<sub>j</sub> : D(j) → C — running <em>into</em> the apex — such that c<sub>j</sub> = D(f) ; c<sub>k</sub> for each f : j → k. And the terminal object of a cone category in C<sup>op</sup> is an <em>initial</em> object of the cocone category in C. So: <strong>the colimit of D is the initial cocone.</strong></p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Do the unpacking Spivak defers, for the smallest interesting case, and check it against a source that does work colimits concretely. Take 𝒥 to be the two-object discrete category and show that the colimit of D : 𝒥 → C is exactly the coproduct of cat-02. Then verify the two instances Aluffi gives. Write your argument before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Unpacking.</strong> Let 𝒥 have two objects and only identities, and let D pick out A and B. A cocone under D is an object Z with morphisms i<sub>A</sub> : A → Z and i<sub>B</sub> : B → Z; the cocone condition is vacuous, since the only morphisms of 𝒥 are identities and D sends them to identities. A morphism of cocones (Z, i) → (Z′, i′) is σ : Z → Z′ with i′<sub>A</sub> = i<sub>A</sub> ; σ and i′<sub>B</sub> = i<sub>B</sub> ; σ.</p>
+<p><strong>The colimit is the coproduct.</strong> The colimit is the <em>initial</em> cocone: an object A ∐ B with i<sub>A</sub>, i<sub>B</sub> such that for every other cocone (Z, f<sub>A</sub>, f<sub>B</sub>) there is exactly one σ : A ∐ B → Z with f<sub>A</sub> = i<sub>A</sub> ; σ and f<sub>B</sub> = i<sub>B</sub> ; σ. That is, word for word, cat-02's universal property of the coproduct from Aluffi §5.5.</p>
+<p><strong>Instance one: Set.</strong> Aluffi's Proposition 5.6 gives A ∐ B = ({0} × A) ∪ ({1} × B) with i<sub>A</sub>(a) = (0, a) and i<sub>B</sub>(b) = (1, b); given f<sub>A</sub>, f<sub>B</sub> into Z, define σ by cases, which is forced by the commutativity. So disjoint union is the colimit over the discrete two-object category.</p>
+<p><strong>Instance two: the ≤ category on ℤ.</strong> A cocone under a and b is an integer z with a ≤ z and b ≤ z; the initial such is the least upper bound, max(a, b) — which is Aluffi's answer. Uniqueness of σ is automatic because Hom-sets there have at most one element, the collapse cat-01 recorded.</p>
+<p><strong>Duality, stated carefully.</strong> Everything above is the limit story with every arrow reversed, and that is what Definition 3.102 asserts. But note what has <em>not</em> been shown: that a category with all limits has all colimits. Duality relates C to C<sup>op</sup>; it says nothing about C resembling its own opposite. In the ≤ category on ℤ both exist and are min and max; in other categories one may exist without the other. ∎</p>
+<p><em>What to notice.</em> The unpacking took a paragraph. Spivak's reason for deferring it is not that it is hard but that the compressed form is unusable until you have done it once — which is exactly why doing it here, rather than reading it, is the exercise.</p>
+</details>
+</div>
+
+<p>Aluffi's other colimit is the quotient, and it is worth seeing that it <em>is</em> one. cat-02 proved Claim 5.5: the pair (π, A/∼) is an <em>initial</em> object of the category of pairs (φ, Z) with φ : A → Z collapsing equivalent elements. Initial, not final — the colimit side. What the sources do not quite give is the diagram it is a colimit <em>of</em>; the natural candidate is a coequalizer of two parallel arrows, and neither Aluffi's §I.5 nor Spivak's §3.5 constructs one. Problem 4(e) asks for that gap to be stated rather than papered over.</p>
+
+<div class="you-try">
+<p><strong>You try.</strong> Fill in the table for a preorder category. A cone over a diagram there is an element below every object in it; say what the limit is in order-theoretic language, and what the colimit is. Then say why the general definition collapses so completely — the answer is one sentence and cat-01 supplied it.</p>
+<p>Then the harder half: do Spivak's Exercise 3.83 and find a category with no terminal object. Aluffi's Example 5.2 hands you one; having found it, say whether that category nonetheless has products, and reconcile your two answers.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In a preorder category, what is the limit of a diagram?</p>
+<button onclick="check(this,true)" data-ok>The meet — the greatest lower bound of the objects appearing in the diagram</button>
+<button onclick="check(this,false)">The join</button>
+<button onclick="check(this,false)">The smallest object of the preorder</button>
+<button onclick="check(this,false)">There are none, since preorders have few morphisms</button>
+<div class="explain">The meet. A cone is an element below every object of the diagram — a lower bound — and the terminal cone is the greatest such. The general definition collapses because Hom-sets have at most one element, so the "exactly one morphism" clause is automatic and only existence of the bound is at issue. Aluffi's min for the two-object case is the instance you have already seen; the colimit is dually the join, his max.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Spivak defers unpacking Definition 3.102 to his Chapter 6. What does that mean for this unit?</p>
+<button onclick="check(this,false)">Nothing — the definition is complete as stated</button>
+<button onclick="check(this,true)" data-ok>The first-named source gives colimits only by dualisation, so the concrete colimits here come from Aluffi §I.5, and Segment 3 does the unpacking itself</button>
+<button onclick="check(this,false)">That colimits are outside this unit's scope</button>
+<button onclick="check(this,false)">That Chapter 6 should be read instead</button>
+<div class="explain">The gap is real and is filled from the other source. Definition 3.102 <em>is</em> complete as a definition — that is why the first option is tempting — but Spivak himself says it is "completely useless for working with" until unpacked, and Chapter 6 is not in this unit's resources. So the unpacking is done here for the two-object case, and the worked colimits (disjoint union, max, the quotient) are Aluffi's. The section title "Bonus: An introduction" is accurate and worth taking at face value.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> The mission strip says quotient and gluing moves from la, aa and top are "all" colimits. What have this unit's sources shown?</p>
+<button onclick="check(this,false)">All of it — every quotient construction is a colimit</button>
+<button onclick="check(this,true)" data-ok>That one quotient is an initial object (Aluffi's Claim 5.5) and that coproducts are colimits. Neither source mentions la, aa or top, and neither proves a general statement about quotients</button>
+<button onclick="check(this,false)">Nothing about colimits at all</button>
+<button onclick="check(this,false)">That gluings are limits rather than colimits</button>
+<div class="explain">One case, not a class. Aluffi shows the set-quotient is initial in a category he constructs for the purpose, and shows disjoint union and max are coproducts. That is genuine colimit content. The strip's "all", ranging over three earlier modules, is true and standard and is not on these pages — and Problem 5(e) asks you to audit it construction by construction, reporting which you can exhibit and which you are recognising from elsewhere. The distinction between those two is what the module is for.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Terminal objects and products are the two smallest limits, and both are unique up to unique isomorphism.</strong> Definition 3.79: exactly one morphism in, from every object. Proposition 3.84 proves any two are isomorphic by composing the two unique maps — cat-02's Proposition 5.4 again. Remark 3.85 adds that the isomorphism is unique, so one may say "the" terminal object; the word <em>nearly</em> in "nearly the same as equal" is protecting against Set, where every singleton is terminal and no two are equal. Definition 3.86 gives products, which in a preorder are meets, hence min for ≤ on ℤ.</p>
+<p><strong>2. A cone over a diagram, and the limit as the terminal cone, subsumes all of it.</strong> Definition 3.92: an apex with a morphism to each object of the diagram, commuting with the diagram's own arrows; morphisms of cones; the category Cone(D); and lim(D) as its terminal object — eight words carrying existence, uniqueness and commutativity. Varying only the indexing category gives terminal objects (𝒥 empty), products (two objects, no arrows) and pullbacks (a cospan), and the pullback of two subset inclusions in Set is their intersection.</p>
+<p><strong>3. Colimits are the same idea reversed, and the sources divide over them.</strong> Definition 3.102: a cocone in C is a cone in C<sup>op</sup>, so the colimit is the initial cocone. Spivak calls that "a compressed file … completely useless for working with" and defers unpacking to Chapter 6, outside this unit; the unpacking is done here for the two-object case and recovers cat-02's coproduct, with Aluffi supplying the concrete instances — disjoint union in Set, max in the ≤ category, and the quotient as an initial object. Duality relates C to C<sup>op</sup> and does <em>not</em> imply that a category with all limits has all colimits.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Spivak, <em>Seven Sketches in Compositionality</em>, §3.5 "Bonus: An introduction to limits and colimits". The opening question about products of sets, Π<sub>!</sub>-operations and meets in a preorder, and the statement that a limit turns a functor F : C → D into an object of D (p. 107). §3.5.1: Definition 3.79 of a terminal object with the remark that this is a universal property, Example 3.80 on singletons in Set, Exercise 3.81 identifying terminal objects of a preorder category with top elements, Exercises 3.82 and 3.83, Proposition 3.84 with its proof, and Remark 3.85 on "the" versus "a" limit including the observation that unique-up-to-unique-isomorphism is "very nearly the same thing as" equality (p. 108); Definition 3.86 of a product with the notation ⟨f, g⟩ and its commuting diagram (pp. 108–109). §3.5.2: Definition 3.92 of a cone over a diagram, of morphisms of cones, of the category Cone(D), and of the limit as its terminal object with the projection maps, together with the five-object illustration and the note that parallel paths from the apex are identified; Example 3.93 identifying terminal objects as limits over the empty indexing category and Example 3.94 identifying products as limits over the two-object discrete category (p. 111). §3.5.3: Example 3.99 on the cospan indexing category and the pullback X ×<sub>A</sub> Y, with the observation that the diagonal arrow is superfluous and the Set description selecting pairs that agree in the base, and Remark 3.100 distinguishing this pullback from the one in Definition 3.68 (p. 112); Definition 3.102, that a cocone in C is a cone in C<sup>op</sup>, with the "compressed file" remark and the deferral to Chapter 6 (p. 113).
+<p>Aluffi, <em>Algebra: Chapter 0</em>, §I.5: Definition 5.1 and Proposition 5.4 with the uniqueness of the isomorphism, Example 5.2 that the ≤ category on ℤ has no initial or final object, and Example 5.3 on ∅ and the singletons in Set (pp. 31–32); §5.3 with Claim 5.5, that (π, A/∼) is an <em>initial</em> object, and its proof (pp. 33–34); §5.4 products with the computation that the product in the ≤ category is min (pp. 35–36); §5.5 coproducts, Proposition 5.6 that disjoint union is the coproduct in Set with its explicit model, and the remark that the coproduct in the ≤ category is max (pp. 36–38). Every folio was read off the page cited; the Spivak offset is PDF = printed + 12 and the Aluffi offset PDF = printed + 23.</p>
+<p><strong>A source limitation, recorded rather than worked around.</strong> Spivak is this unit's first-named resource and gives limits in full, but supplies colimits only as Definition 3.102's one-line dualisation, saying in his own words that it is "completely useless for working with, unless you can successfully unpack it" and deferring the unpacking to Chapter 6 — which is not in this unit's resources. Segment 3 therefore does the unpacking itself for the two-object discrete indexing category, and every concrete colimit in this lesson is Aluffi's: the coproduct in Set, the coproduct in the ≤ category, and the quotient as an initial object. This matches, for a different reason than anticipated, the branch plan's decision to treat Aluffi as the substantive source for this unit.</p>
+<p><strong>Not established here.</strong> That quotient and gluing constructions from la, aa and top are "all" colimits. Neither source mentions those modules, and neither proves a general statement about quotients; Aluffi exhibits one quotient as an initial object, which is one construction and not a class of them. The claim is standard and is not on these pages, and Problem 5(e) asks for it to be audited construction by construction with an honest report of which cases can be exhibited from the sources. Nor is the general claim about intersections established: what is here is Example 3.99's pullback over a cospan, which in Set for two subset inclusions is their intersection — one worked case. Also not established, and easy to assume: that a category with all limits has all colimits. Duality relates C to C<sup>op</sup> and asserts nothing about C having its opposite's properties; the prediction gate and the guided proof both make the point.</p>
+<p><strong>Stated but not proved.</strong> That the quotient of Claim 5.5 is a colimit of a specific diagram. The natural candidate is a coequalizer of two parallel arrows, and neither Aluffi's §I.5 nor Spivak's §3.5 constructs one, so the identification is flagged in Problem 4(e) as beyond what the sources give. Spivak's Exercises 3.81, 3.82 and 3.83, set and not worked here. The claim that products of arbitrary families are limits over discrete indexing categories, which Spivak states for two objects only. Π<sub>!</sub> and Σ<sub>!</sub>, named in Spivak's opening as motivating examples and belonging to his data-migration material, which this unit does not cover.</p>
+<p><strong>Deferred.</strong> Colimits worked in earnest, Spivak's Chapter 6. Aluffi's own general treatment of limits and colimits, §VIII.1.4, which is cat-03's and cat-06's resource range and not this unit's — it is not drawn on here even though it would fit, because source discipline binds to the unit's own <code>resources</code>. Adjunctions and Lemma 1.17 that right adjoints commute with limits, cat-06's. Equalizers, kernels and cokernels, which Aluffi treats in §VIII.1.4 by the same token.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('cones');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82';
+  g.textAlign='center';
+
+  function arrow(x1,y1,x2,y2,col,w){
+    g.strokeStyle=col;g.lineWidth=w||1.7;
+    g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+    var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy);dx/=L;dy/=L;
+    g.beginPath();
+    g.moveTo(x2,y2);
+    g.lineTo(x2-8*dx-4*dy,y2-8*dy+4*dx);
+    g.lineTo(x2-8*dx+4*dy,y2-8*dy-4*dx);
+    g.closePath();g.fillStyle=col;g.fill();
+  }
+
+  // ---- left: cone ----
+  g.fillStyle=acc;g.font='14px Segoe UI, sans-serif';
+  g.fillText('cone — apex maps OUT',160,30);
+  var ax=160,ay=64, d1=[72,168], d2=[160,190], d3=[248,168];
+  g.fillStyle=ink;g.font='15px Georgia, serif';
+  g.fillText('C',ax,ay);
+  g.fillText('D1',d1[0],d1[1]);
+  g.fillText('D2',d2[0],d2[1]);
+  g.fillText('D3',d3[0],d3[1]);
+  arrow(ax-8,ay+10,d1[0]+6,d1[1]-14,acc);
+  arrow(ax,ay+10,d2[0],d2[1]-14,acc);
+  arrow(ax+8,ay+10,d3[0]-6,d3[1]-14,acc);
+  g.strokeStyle=dim;g.lineWidth=1.4;
+  arrow(d1[0]+18,d1[1]+6,d2[0]-18,d2[1]-4,dim,1.4);
+  arrow(d2[0]+18,d2[1]-4,d3[0]-18,d3[1]+6,dim,1.4);
+  g.fillStyle=good;g.font='12px Segoe UI, sans-serif';
+  g.fillText('limit = terminal cone',160,216);
+
+  // divider
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(320,44);g.lineTo(320,230);g.stroke();
+
+  // ---- right: cocone ----
+  g.fillStyle=good;g.font='14px Segoe UI, sans-serif';
+  g.fillText('cocone — apex maps IN',480,30);
+  var bx=480,by=64, e1=[392,168], e2=[480,190], e3=[568,168];
+  g.fillStyle=ink;g.font='15px Georgia, serif';
+  g.fillText('C',bx,by);
+  g.fillText('D1',e1[0],e1[1]);
+  g.fillText('D2',e2[0],e2[1]);
+  g.fillText('D3',e3[0],e3[1]);
+  arrow(e1[0]+6,e1[1]-14,bx-8,by+10,good);
+  arrow(e2[0],e2[1]-14,bx,by+10,good);
+  arrow(e3[0]-6,e3[1]-14,bx+8,by+10,good);
+  arrow(e1[0]+18,e1[1]+6,e2[0]-18,e2[1]-4,dim,1.4);
+  arrow(e2[0]+18,e2[1]-4,e3[0]-18,e3[1]+6,dim,1.4);
+  g.fillStyle=acc;g.font='12px Segoe UI, sans-serif';
+  g.fillText('colimit = initial cocone',480,216);
+
+  // table
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(40,240);g.lineTo(600,240);g.stroke();
+  g.font='12px Segoe UI, sans-serif';
+  g.textAlign='left';
+  g.fillStyle=dim;g.fillText('indexing category',56,262);
+  g.fillStyle=acc;g.fillText('limit',290,262);
+  g.fillStyle=good;g.fillText('colimit',440,262);
+  var rows=[['empty','terminal object','initial object'],
+            ['two points, no arrows','product','coproduct'],
+            ['cospan  /  span','pullback','the dual (unnamed here)']];
+  for(var i=0;i<3;i++){
+    var yy=282+i*16;
+    g.fillStyle=dim;g.fillText(rows[i][0],56,yy);
+    g.fillStyle=acc;g.fillText(rows[i][1],290,yy);
+    g.fillStyle=good;g.fillText(rows[i][2],440,yy);
+  }
+})();
+</script>
+</body></html>
