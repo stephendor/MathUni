@@ -187,6 +187,11 @@ draw();
 <p><span class="cite">— Dey &amp; Wang §12.3, pp. 370–371</span></p>
 </div>
 
+<div class="warn">
+<p><strong>The λ above is quoted exactly, and it is loose.</strong> Two things are off, and noticing them is good practice. First, as literally written λ does not land on ℓ at all unless t = 0: the point (x/(1+s²), (sx+t)/(1+s²)) satisfies y = sx + t only when t/(1+s²) = t. The scaling has been applied to the intercept as well as to the direction. Second, the factor is not the one that makes the parameterisation unit-speed. The direction vector of ℓ is (1, s) with norm √(1+s²), so the arc-length parameterisation is λ(x) = (0,t) + (x/√(1+s²))(1,s) — the square root, applied to the direction only, with the intercept added unscaled. The tell is on the page itself: the weight w(ℓ) directly below uses 1/√(1+s²), and it would be a strange design for the parameterisation and the weight that corrects it to disagree by a square root.</p>
+<p>Nothing downstream in this unit turns on it. Definition 12.9 takes a supremum of w(ℓ)·d<sub>I</sub>(M|<sub>ℓ</sub>, N|<sub>ℓ</sub>), and what carries the stability claim is the weight; the restriction only has to name the same one-parameter module, which any faithful parameterisation of ℓ does. The reason to flag it rather than quietly print the repaired formula is that you will meet the printed one when you read §12.3, and a reader who "corrects" it to 1/√(1+s²) without also moving the intercept out of the scaling has fixed the square root and kept the real error.</p>
+</div>
+
 <div class="definition">
 <p><strong>Definition 12.9 (matching distance).</strong> d<sub>m</sub>(M,N) = sup<sub>ℓ∈Λ</sub>{w(ℓ) · d<sub>I</sub>(M|<sub>ℓ</sub>, N|<sub>ℓ</sub>)}, the supremum over all lines of positive slope. The weight w(ℓ) is introduced to make the matching distance stable with respect to the interleaving distance. <span class="cite">— Dey &amp; Wang §12.3, Definition 12.9, p. 371</span></p>
 </div>

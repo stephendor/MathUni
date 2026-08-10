@@ -195,6 +195,10 @@ Raw data in, defensible topological claim out — with every parameter choice on
 <p><strong>Definition 13.2 (positive, negative semidefinite kernel).</strong> k : X × X → ℝ is positive semidefinite if symmetric and Σ<sub>i,j</sub>a<sub>i</sub>a<sub>j</sub>k(x<sub>i</sub>,x<sub>j</sub>) ≥ 0 for any n, any x<sub>1</sub>,…,x<sub>n</sub> and any a<sub>1</sub>,…,a<sub>n</sub> with Σa<sub>i</sub> = 0; negative semidefinite with the inequality reversed. <span class="cite">— Dey &amp; Wang §13.1.2, Definition 13.2, p. 393</span></p>
 </div>
 
+<div class="warn">
+<p><strong>The book's Definition 13.2 is quoted above exactly, and it is not the standard convention.</strong> Dey and Wang impose Σa<sub>i</sub> = 0 on <em>both</em> halves. In the usual terminology a <em>positive semidefinite</em> kernel requires Σ<sub>i,j</sub>a<sub>i</sub>a<sub>j</sub>k(x<sub>i</sub>,x<sub>j</sub>) ≥ 0 for <em>every</em> real coefficient vector, with no constraint; restricting to vectors summing to zero gives the weaker <em>conditionally</em> semidefinite notion, which is the natural hypothesis on the <em>negative</em> side, where it is what makes the Gaussian construction work. Two reasons to keep the quotation and flag it rather than silently repair it. First, this is the wording you will meet when you read §13.1.2, and recognising it is part of reading the source. Second, the distinction is load-bearing here: the RKHS correspondence the section goes on to use — a unique H<sub>k</sub> with k(x,y) = ⟨k(·,x), k(·,y)⟩ — needs the <em>unrestricted</em> property. The PSSK has it, and for a reason the text gives on the same page: k<sub>σ</sub> is defined as ⟨Φ<sub>σ</sub>(D), Φ<sub>σ</sub>(E)⟩ in ℒ²(Ω), and any kernel that is an inner product under a feature map is positive semidefinite in the unrestricted sense. So nothing downstream in this unit is affected; what would be affected is a reader who took the printed definition as a general test and certified a kernel that fails the unrestricted inequality.</p>
+</div>
+
 <p>Four vectorisations, four stability statements — and the differences between them are the whole content of this segment.</p>
 
 <div class="theorem">

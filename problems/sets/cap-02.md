@@ -260,10 +260,16 @@ $\mathrm{Dgm}_k\mathcal{R}(P)$ at log scale; (b) the total number of
 $k$-simplices ever appearing is $\Theta((1/\varepsilon)^{kd}n)$. For
 $n = 10^5$, $d = 3$, $\varepsilon = 0.1$, $k = 2$: the error is
 $\log(1/0.9) \approx 0.105$ at log scale, and the size is
-$\Theta(10^{6}\cdot 10^{5}) = \Theta(10^{11})$ triangles. Compare the exact
-filtration, whose $d$-skeleton is $\Theta(n^{d+1}) = \Theta(10^{20})$ once the
-scale passes the diameter: nine orders of magnitude saved, and still an enormous
-number. "Linear in $n$" is true and hides a constant exponential in $kd$.
+$\Theta(10^{6}\cdot 10^{5}) = \Theta(10^{11})$ triangles. Compare like with like:
+that is a count of *triangles*, so the exact figure to set beside it is the number
+of triangles in the full complex once the scale passes the diameter, which is
+$\binom{n}{3} = \Theta(n^3) \approx 1.7 \times 10^{14}$ — about **three** orders of
+magnitude saved before hidden constants. (Do not compare it against
+$\Theta(n^{d+1}) = \Theta(10^{20})$: that is the size of the whole $d$-skeleton for
+$d = 3$, dominated by tetrahedra, and setting a triangle count against it inflates
+the saving by six orders of magnitude. If you want the $H_2$ computation, take
+$k = 3$ on both sides.) "Linear in $n$" is true and hides a constant exponential
+in $kd$.
 (c) Definition 6.6: two vector space towers are *weakly $\varepsilon$-interleaved*
 if the interleaving maps exist and the diagrams commute only at the discrete
 indices $a_0 + i\varepsilon$. Theorem 6.8: the simplicial-tower sparsification
@@ -317,9 +323,17 @@ Theorem 6.4(a)'s bound is multiplicative and at log scale; Theorem 6.3's is
 additive.
 </details>
 <details><summary>Worked start</summary>
-(a) Definition 13.2: $\mathbf{k}$ is a *positive semidefinite kernel* if symmetric
-and $\sum_{i,j}a_ia_j\mathbf{k}(x_i,x_j) \geq 0$ for all $n$, all $x_i$ and all
-$a_i$ summing to zero; *negative semidefinite* with the inequality reversed.
+(a) Definition 13.2, quoted as the book has it: $\mathbf{k}$ is a *positive
+semidefinite kernel* if symmetric and $\sum_{i,j}a_ia_j\mathbf{k}(x_i,x_j) \geq 0$
+for all $n$, all $x_i$ and all $a_i$ summing to zero; *negative semidefinite* with
+the inequality reversed. Flag this as you copy it: the standard convention puts no
+constraint on the $a_i$ for the *positive* case, and the $\sum_i a_i = 0$
+restriction is the *conditional* notion, which belongs on the negative side. Keep
+the book's wording, since it is what §13.1.2 says, but note that the RKHS
+correspondence used later needs the unrestricted property — which the PSSK has, and
+for the reason given on the same page: $k_\sigma$ is an inner product
+$\langle \Phi_\sigma(D), \Phi_\sigma(E)\rangle$, and an inner-product kernel is
+unrestrictedly positive semidefinite.
 Definition 13.3: the PSSK feature map
 $\Phi_\sigma(D)(x) = \frac{1}{4\pi\sigma}\sum_{y\in D}[e^{-\|x-y\|^2/4\sigma} - e^{-\|x-\bar y\|^2/4\sigma}]$
 with $\bar y$ the reflection across the diagonal, inducing $k_\sigma$.

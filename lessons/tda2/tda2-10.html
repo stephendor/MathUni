@@ -104,6 +104,8 @@ function draw(){
   ctx.fillText('input edge: proj₁ → '+s[0], 26, 60);
   ctx.fillStyle='#4caf82'; ctx.fillText('input edge: proj₂ → '+s[1], 26, 252);
   ctx.fillStyle='#d8a657'; ctx.fillText('output edge: + → '+out, 452, 118);
+  // Two-column caption rows: left column starts at x=26, right column at x=300,
+  // both left-aligned by design. The right column runs to x≈589 of 640.
   ctx.fillStyle='#9aa5b1'; ctx.font='13px Segoe UI';
   ctx.fillText('stalk at the centre: 𝔽₂ × 𝔽₂   (dimension 2)', 26, 30);
   ctx.fillText('stalk on each edge: 𝔽₂   (dimension 1)', 26, 284);

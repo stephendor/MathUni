@@ -157,7 +157,7 @@ known, it should say that in the same paragraph rather than a later one.
 ## Problem 3 (medium — the guarantee that does not hold, and the number that is missing)
 
 (a) `03_ph.json` records `n_landmarks = 5000` and a `maxmin_vr` summary. Read
-`trajectory_tda/topology/trajectory_ph.py`, function `maxmin_landmarks`. Does the
+`TDL/trajectory_tda/topology/trajectory_ph.py`, function `maxmin_landmarks`. Does the
 routine compute the covering radius? Does it return it? Does `03_ph.json` record
 it? Answer all three, then say what follows for Problem 2's paragraph.
 (b) The same repository records a covering radius elsewhere. Find where, and say
@@ -202,7 +202,7 @@ for Problem 2's paragraph is severe and simple: the one hypothesis on which the
 whole guarantee turns is a number this pipeline computed and discarded, so the
 paragraph cannot be completed as written. Write it conditionally, in ε, and record
 that ε is one line of code away.
-(b) `trajectory_tda/topology/permutation_nulls.py` computes and records
+(b) `TDL/trajectory_tda/topology/permutation_nulls.py` computes and records
 `covering_radius_at_n_perm` on the deduplication path, choosing the permutation
 count via `compute_greedy_dedup_count` so that — its docstring's words — "the
 covering radius is at or below" a documented tolerance. That changes the finding from a criticism into a request: the project already has
@@ -280,18 +280,32 @@ $\mathsf{H}_0$ and 0.538 in $\mathsf{H}_1$.
 
 | Failure mode | What would produce it | What rules it out | Status |
 |---|---|---|---|
-| Label leakage — the effect is an artefact of the cohort labels | Structure in the labels rather than the trajectories | `04_nulls_wasserstein.json`, label_shuffle: p = 0.452 (H<sub>0</sub>), 0.538 (H<sub>1</sub>); `04_nulls.json`, label_shuffle: 0.69, 0.63 | Ruled out |
-| The test rejects because the null is degenerate, not because the data has structure | A null whose draws are so unlike anything that any observation looks extreme | `positive_control/positive_control_markov1_L5000_20260502.json`: a cloud drawn *from* the Markov-1 null is not rejected against it, p = 0.588 and 0.822 | Ruled out |
+| Label leakage — the effect is an artefact of the cohort labels | Structure in the labels rather than the trajectories | Nothing yet. `04_nulls_wasserstein.json` label_shuffle p = 0.452 (H<sub>0</sub>), 0.538 (H<sub>1</sub>) and `04_nulls.json` 0.69, 0.63 record that it was **not detected** | **Open — not detected** |
+| The test rejects because the null is degenerate, not because the data has structure | A null whose draws are so unlike anything that any observation looks extreme | `positive_control/positive_control_markov1_L5000_20260502.json`: a cloud drawn *from* the Markov-1 null is not rejected against it, p = 0.588 and 0.822 | **Partly closed** — see below |
 | Low power — the test could not detect a real effect | Any non-rejection, including markov2 in H<sub>1</sub> at p = 0.078 | Nothing. No artifact plants a signal of known size | **Open** |
 
-The second row is the one to get right. That file is named `positive_control/`, and
-cap-03 established what it actually does: its "observed" cloud is generated from the
-fitted Markov-1 chain, so a non-rejection is the expected result and the check
-passes. What it establishes is specificity. Specificity is exactly what the second
-row needs — so the row is genuinely ruled out, by that file, for that reason. What
-it does not establish is power, so the third row stays open and the same file cannot
-be cited in both. A ledger that cites `positive_control/` against the power row has
-made the error the file's name invites.
+Rows one and two are where the discipline bites, and the first is the trap. It is
+tempting to write "ruled out": the label-shuffle null was run, it did not reject,
+and leakage is exactly what it perturbs. But apply this problem's own rule from
+part (d) — a row reads "ruled out" when a named artifact *would have shown the
+failure mode had it been present*, and did not. That the test would have shown it
+is precisely what row three says is unestablished. A non-rejection from a test of
+unknown power records that nothing was detected, not that nothing is there, and
+the ledger cannot say in row one what it denies in row three. Write **not
+detected** and cite the p-values as the record of the attempt.
+
+Row two needs splitting rather than downgrading. `positive_control/` shows that
+when the observed cloud genuinely *is* a Markov-1 draw, the test does not reject
+it — so a whole mechanical class of degeneracy is excluded: the obs-null and
+null-null distances are not computed in some asymmetric way, and landmark
+selection is not biasing one side. That much is closed, and it is worth having.
+What is not closed is the modelling case: the control substitutes a *synthetic*
+observed cloud, so it says nothing about whether a rejection on the *real* data is
+attributable to topological structure rather than to the Markov-1 model being a
+poor description of the trajectories in some non-topological respect. Split the
+row in two and give each half its own status. What it does not establish either
+way is power, so the same file cannot also be cited in row three — the error the
+file's name invites.
 (c) A failure mode of the defence itself. Row: *the defence is read as a prosecution
 of its own work and discounted.* What would produce it: findings written without
 their "does not imply" lines, or a limits section longer than the results section

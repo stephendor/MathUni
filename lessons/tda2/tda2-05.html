@@ -87,7 +87,9 @@ Morse theory with no calculus at all: pair each cell with a neighbour, and whate
 
 <h3>Visual: a matching, its V-paths, and what breaks</h3>
 
-<canvas id="dmCanvas" width="640" height="270" role="img" aria-label="A small triangulated square with matching arrows from edges to triangles and vertices to edges, showing critical cells, with a toggle producing a cyclic V-path"></canvas>
+<p>Press the button and watch which of the two conditions fails. Both states are matchings in the sense of Definition 10.2 — every simplex sits in at most one pair — and only the second violates the acyclicity of Definition 10.3. That is the whole distinction, so the picture is built to keep the two apart: the cyclic state drops the edge–triangle pairs, because retaining them would put the edge 01 in both (v<sub>0</sub>, e<sub>01</sub>) and (e<sub>01</sub>, T<sub>0</sub>) and the configuration would fail to be a matching at all — a different and duller failure.</p>
+
+<canvas id="dmCanvas" width="640" height="270" role="img" aria-label="A small triangulated square with matching arrows from edges to triangles and vertices to edges, the critical vertices and the critical diagonal edge in gold, and a toggle producing a cyclic V-path"></canvas>
 <p style="text-align:center"><button onclick="toggleCyc()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Make it cyclic</button></p>
 <script>
 (function(){
@@ -110,13 +112,27 @@ function draw(){
   ctx.clearRect(0,0,cv.width,cv.height);
   ctx.strokeStyle='#2a333d'; ctx.lineWidth=1.6;
   for(const e of E){ctx.beginPath(); ctx.moveTo(V[e[0]][0],V[e[0]][1]); ctx.lineTo(V[e[1]][0],V[e[1]][1]); ctx.stroke();}
-  // matched pairs: edge -> triangle
-  arrow(mid(V[0],V[1]),cen(T[0]),'#4caf82');
-  arrow(mid(V[2],V[3]),cen(T[1]),'#4caf82');
+  // Both states must be genuine matchings (Definition 10.2: every simplex in at
+  // most one pair), so the edge->triangle pairs are drawn ONLY in the acyclic
+  // state. Keeping them under `cyc` would put e01 in both (v0,e01) and (e01,T0),
+  // which is not a matching at all — a different failure from cyclicity.
+  if(!cyc){
+    arrow(mid(V[0],V[1]),cen(T[0]),'#4caf82');
+    arrow(mid(V[2],V[3]),cen(T[1]),'#4caf82');
+  }
   // matched pairs: vertex -> edge
   arrow(V[1],mid(V[1],V[3]),'#8ab4f8');
   arrow(V[2],mid(V[0],V[2]),'#8ab4f8');
   if(cyc){ arrow(V[3],mid(V[2],V[3]),'#e06c75'); arrow(V[0],mid(V[0],V[1]),'#e06c75'); }
+  // Acyclic state: unpaired simplices are v0, v3 AND the diagonal edge 03.
+  // Marking only the vertices would read c0=2, c1=0 and give an alternating sum
+  // of 2 instead of the disk's Euler characteristic 2 - 1 = 1.
+  if(!cyc){
+    const d=mid(V[0],V[3]);
+    ctx.fillStyle='#d8a657'; ctx.beginPath(); ctx.arc(d[0],d[1],6,0,2*Math.PI); ctx.fill();
+    ctx.strokeStyle='#d8a657'; ctx.lineWidth=2.4; ctx.beginPath();
+    ctx.moveTo(V[0][0],V[0][1]); ctx.lineTo(V[3][0],V[3][1]); ctx.stroke();
+  }
   const crit = cyc ? [] : [V[0],V[3]];
   for(const v of V){
     const isCrit = crit.some(c=>c[0]===v[0]&&c[1]===v[1]);
@@ -124,11 +140,12 @@ function draw(){
     ctx.beginPath(); ctx.arc(v[0],v[1],isCrit?7:5,0,2*Math.PI); ctx.fill();
   }
   ctx.font='13px Segoe UI'; ctx.textAlign='left';
-  ctx.fillStyle='#4caf82'; ctx.fillText('green: edge paired with triangle',24,34);
+  ctx.fillStyle='#4caf82'; ctx.fillText(cyc?'':'green: edge paired with triangle',24,34);
   ctx.fillStyle='#8ab4f8'; ctx.fillText('blue: vertex paired with edge',24,54);
-  ctx.fillStyle='#d8a657'; ctx.fillText(cyc?'':'gold: critical, left unpaired',24,74);
+  ctx.fillStyle='#d8a657';
+  ctx.fillText(cyc?'':'gold: critical (unpaired) — v0, v3 and the diagonal edge',24,74);
   ctx.fillStyle=cyc?'#e06c75':'#9aa5b1'; ctx.font='14px Segoe UI';
-  ctx.fillText(cyc?'a V-path now closes a loop — the matching is cyclic, so not a Morse matching'
+  ctx.fillText(cyc?'still a matching — but a V-path closes a loop, so not a Morse matching'
                   :'acyclic: every V-path strictly descends, so this is a Morse matching',24,250);
 }
 window.toggleCyc=function(){cyc=!cyc; draw();};
@@ -144,6 +161,8 @@ draw();
 </div>
 
 <p>Note the asymmetry between (a)(i) and (a)(ii). The first is an inequality — critical cells are at least as numerous as the homology they must generate. The second is an <em>equality</em>, because both alternating sums compute the Euler characteristic, a topological invariant that cannot change when cells are cancelled in pairs of adjacent dimension.</p>
+
+<p>Count it on the acyclic state above, and count <em>every</em> gold cell. The matched pairs are (e<sub>01</sub>, T<sub>0</sub>), (e<sub>23</sub>, T<sub>1</sub>), (v<sub>1</sub>, e<sub>13</sub>) and (v<sub>2</sub>, e<sub>02</sub>), so the unpaired simplices are v<sub>0</sub>, v<sub>3</sub> and the diagonal e<sub>03</sub>: c<sub>0</sub> = 2, c<sub>1</sub> = 1, c<sub>2</sub> = 0. Then (a)(ii) reads c<sub>0</sub> − c<sub>1</sub> + c<sub>2</sub> = 2 − 1 + 0 = 1, which is the Euler characteristic of the disk, and β<sub>0</sub> − β<sub>1</sub> + β<sub>2</sub> = 1 − 0 + 0 = 1 agrees. Missing the critical <em>edge</em> and counting only the two gold vertices would give 2, and the equality would appear to fail — the commonest way to misread a picture like this one.</p>
 
 <div class="theorem">
 <p><strong>Ghrist's Theorem 7.23.</strong> For any discrete gradient field V, MH<sub>•</sub>(V) ≅ H<sup>cell</sup><sub>•</sub>(X). <span class="cite">— Ghrist §7.8, Theorem 7.23, p. 150</span></p>

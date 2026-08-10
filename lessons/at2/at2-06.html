@@ -139,6 +139,8 @@ draw();
 <p><strong>Which manifolds are R-orientable.</strong> An orientable manifold is R-orientable for every R. A nonorientable manifold is R-orientable iff R contains a unit of order 2, which is equivalent to 2 = 0 in R. In particular every manifold is ℤ<sub>2</sub>-orientable, so the two cases to keep in mind are R = ℤ and R = ℤ<sub>2</sub>. <span class="cite">— Hatcher §3.3, p. 235</span></p>
 </div>
 
+<p><strong>Read "order 2" additively.</strong> Hatcher's phrase is the one above, and the sentence before it fixes the sense: <em>if r has order 2 in R then r = −r</em>. So the condition on the unit u is <strong>2u = 0</strong>, equivalently u = −u — its order in the additive group (R, +). It is emphatically not the multiplicative condition u² = 1, which is what "order 2" suggests to most readers and which gives the wrong answer: in ℤ<sub>3</sub> the unit 2 satisfies 2² = 4 = 1, so the multiplicative reading would make every manifold ℤ<sub>3</sub>-orientable, while 2 ≠ 0 in ℤ<sub>3</sub> and the Klein bottle is not. Nothing here requires u² = 1, and nothing implies it: in 𝔽<sub>4</sub> every non-zero element satisfies 2u = 0, but only u = 1 squares to 1.</p>
+
 <div class="selfcheck">
 <p><strong>Self-check 1.</strong> Proposition 3.25 says M is orientable if π<sub>1</sub>(M) has no subgroup of index two. What does it tell you about ℝP<sup>2</sup>, whose fundamental group is ℤ<sub>2</sub>?</p>
 <button onclick="check(this,false)">That ℝP<sup>2</sup> is orientable, since ℤ<sub>2</sub> is abelian</button>
