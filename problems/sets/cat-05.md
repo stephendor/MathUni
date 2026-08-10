@@ -139,8 +139,10 @@ sentence carries all three.
 (e) In **Set**, the pullback of $X \xrightarrow{f} A \xleftarrow{g} Y$ is
 $\{(x,y) \in X \times Y : f(x) = g(y)\}$. If $X, Y \subseteq A$ and both maps
 are inclusions, the condition $f(x) = g(y)$ says $x = y$, so the pullback is
-(a copy of) $X \cap Y$. ⟨your step: say which of the two projections is which,
-and what the universal property then asserts about intersections.⟩
+$\{(x,x) : x \in X \cap Y\}$ — a set of pairs, hence canonically isomorphic to
+$X \cap Y$ rather than equal to it. ⟨your step: exhibit the isomorphism, say
+which of the two projections is which, and say what the universal property then
+asserts about intersections.⟩
 </details>
 
 ---
