@@ -28,6 +28,12 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
+          # Without this the step fails outright: `cache: pip` globs for
+          # requirements.txt / pyproject.toml, and this repo has neither —
+          # only requirements-dev.txt. Every run of this workflow, on every
+          # branch including main, has been failing at setup since it landed,
+          # so none of the gates below has ever actually executed.
+          cache-dependency-path: requirements-dev.txt
       - run: pip install -r requirements-dev.txt
       - run: python scripts/validate_syllabus.py
       - run: python scripts/validate_syllabus.py --selftest
