@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at1-08 — Cellular homology and degree</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology I · Nexus College</p>
+<h1>Cellular homology and degree <span class="cite">(at1-08)</span></h1>
+
+<div class="hook">
+<p>at1-07 left you with a definition that computes nothing. Singular homology is defined for every space and depends on no choices, and its chain groups are free on <em>all</em> maps Δ<sup>n</sup> → X — usually uncountably many, in every degree at once. Theorem 2.27 rescued the situation for Δ-complexes. This unit does much better. For a CW complex the chain group in degree n is free abelian on the <em>n-cells</em>, of which there are typically a handful, and the boundary maps are integers you get by counting how many times one sphere wraps around another. ℝP<sup>4</sup> has five cells. Its entire homology falls out of a chain of five copies of ℤ.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> ℝP<sup>4</sup> will turn out to have H<sub>∗</sub> = (ℤ, ℤ<sub>2</sub>, 0, ℤ<sub>2</sub>, 0). A one-point space has H<sub>∗</sub> = (ℤ, 0, 0, 0, 0). Predict: is there any degree in which the <em>rank</em> of H<sub>n</sub>(ℝP<sup>4</sup>) differs from the rank of H<sub>n</sub>(point)?</p>
+<button onclick="check(this,false)">Yes, in degrees 1 and 3</button>
+<button onclick="check(this,true)" data-ok>No — the ranks agree in every degree</button>
+<button onclick="check(this,false)">Yes, in degree 4</button>
+<div class="explain">No. ℤ<sub>2</sub> is finite, so it contributes no ℤ summand and has rank 0. The ranks are 1, 0, 0, 0, 0 on both sides, and the Euler characteristics are both 1. Everything that distinguishes ℝP<sup>4</sup> from a point lives in the torsion, which the ranks do not see. Hold on to that; it is the last thing this unit does, and it is the reason the mission strip below needs qualifying.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Cellular homology is the hand-computable engine; Betti numbers are free ranks, exactly aa-22's invariants.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires. Its first clause is this unit exactly, and is Hatcher's own claim: cellular homology is, in his words, "a very efficient tool for computing the homology groups of CW complexes, based on degree calculations" (p. 137). The second clause is true and sourced, but not from §2.2 — Hatcher defines the n<sup>th</sup> <em>Betti number</em> as the number of ℤ summands of H<sub>n</sub>(X), on p. 130, at the tail of §2.1, which is at1-07's range and not this unit's. Theorem 2.44 uses the same notion under the name <em>rank</em>. Both are cited where used.</p>
+<p><strong>"Exactly aa-22's invariants" is a claim neither source makes, and it is a simplification in a direction this unit can correct on the spot.</strong> Betti numbers are half of an invariant, not all of one. In the same sentence in which he defines them, Hatcher defines the other half: the <em>torsion coefficients</em>, the orders of the finite cyclic summands. This matters here because the unit's headline computation is entirely torsion. ℝP<sup>4</sup> has Betti numbers 1, 0, 0, 0, 0 and Euler characteristic 1 — those of a one-point space — while its homology is (ℤ, ℤ<sub>2</sub>, 0, ℤ<sub>2</sub>, 0). Reporting free ranks would report nothing whatever about ℝP<sup>4</sup>. Whether the free ranks are "exactly" the invariants of aa-22 is a cross-semester identification the syllabus makes and Hatcher does not; take it as a pointer, not a result.</p>
+<p><strong>One hypothesis in the strip that is silent and should not be.</strong> "Rank" is defined for <em>finitely generated</em> abelian groups; Hatcher says so explicitly when stating Theorem 2.44, and the theorem is stated for finite CW complexes. Finite generation is not free in general — it is bought here by Lemma 2.34(a), which makes each cellular chain group free abelian on finitely many cells.</p>
+<p><strong>Machinery borrowed from §2.1.</strong> This unit's resources name Hatcher §2.2 only, but Lemma 2.34 cannot be proved without relative homology, the long exact sequence of a pair (Theorem 2.16), excision (Theorem 2.20), good pairs (Proposition 2.22) and Corollary 2.25 on wedge sums — all §2.1, all listed in at1-07's range and none in this unit's. They are used, cited by number at each use, and itemised in the footer. The syllabus gap is recorded in the branch plan rather than hidden by pretending the proofs are self-contained.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Degree: reading an induced map as an integer</h2>
+
+<div class="definition">
+<p><strong>Degree.</strong> For n &gt; 0 and a map f : S<sup>n</sup> → S<sup>n</sup>, the induced map f<sub>∗</sub> : H<sub>n</sub>(S<sup>n</sup>) → H<sub>n</sub>(S<sup>n</sup>) is an endomorphism of an infinite cyclic group, so it must be f<sub>∗</sub>(α) = dα for a single integer d depending only on f. That integer is the <em>degree</em> of f, written deg f. <span class="cite">— Hatcher §2.2, p. 134</span></p>
+</div>
+
+<p>Notice what has and has not happened. No new construction has been made. Degree is a <em>reading</em> of f<sub>∗</sub>, and it is available only because the target group happens to be ℤ. Two facts are doing the work: H<sub>n</sub>(S<sup>n</sup>) is infinite cyclic, and f<sub>∗</sub> is a homomorphism from that group to itself. Drop either and the definition collapses — at n = 0, for instance, H<sub>0</sub>(S<sup>0</sup>) ≅ ℤ ⊕ ℤ, and "multiplication by d" is not forced.</p>
+
+<p>Hatcher's seven properties are all one line each, and it is worth seeing how little they cost.</p>
+
+<div class="theorem">
+<p><strong>Properties of degree.</strong> <span class="cite">— Hatcher §2.2, pp. 134–135</span></p>
+<p>(a) deg 𝟙 = 1, since 𝟙<sub>∗</sub> = 𝟙.<br>
+(b) deg f = 0 if f is not surjective: choose x<sub>0</sub> outside the image and factor f through S<sup>n</sup> − {x<sub>0</sub>}, which is contractible, so H<sub>n</sub> of it is 0 and f<sub>∗</sub> = 0.<br>
+(c) f ≃ g ⇒ deg f = deg g, since f<sub>∗</sub> = g<sub>∗</sub>. The converse is Hopf's theorem, proved much later, and is <em>not</em> formal.<br>
+(d) deg fg = deg f · deg g, since (fg)<sub>∗</sub> = f<sub>∗</sub>g<sub>∗</sub>. Hence a homotopy equivalence has degree ±1.<br>
+(e) A reflection of S<sup>n</sup>, fixing an S<sup>n−1</sup> and swapping the complementary hemispheres, has degree −1: give S<sup>n</sup> a Δ-structure with the two hemispheres as its n-simplices, so that Δ<sup>n</sup><sub>1</sub> − Δ<sup>n</sup><sub>2</sub> generates H<sub>n</sub>(S<sup>n</sup>), and the reflection swaps them.<br>
+(f) The antipodal map has degree (−1)<sup>n+1</sup>, being a composite of n+1 reflections.<br>
+(g) If f has no fixed points then deg f = (−1)<sup>n+1</sup>, because f is then homotopic to the antipodal map along the straight line from f(x) to −x, which misses the origin.</p>
+</div>
+
+<p>Property (c) is the one to be careful with, and property (d) is the one that does the most work later. (c) runs one way only: equal degrees do not by themselves give a homotopy, and the fact that they do is a theorem of Hopf from around 1925 that Hatcher does not reach until Corollary 4.25. When you find in Segment 3 that two attaching maps have the same degree, you have learnt something about the boundary map and nothing yet about the maps.</p>
+
+<div class="theorem">
+<p><strong>Theorem 2.28.</strong> S<sup>n</sup> has a continuous field of nonzero tangent vectors if and only if n is odd. <span class="cite">— Hatcher §2.2, p. 135</span></p>
+<p><strong>Proof.</strong> Given such a field v, normalise so |v(x)| = 1. Tangency means x and v(x) are orthogonal in ℝ<sup>n+1</sup>, so f<sub>t</sub>(x) = (cos t)x + (sin t)v(x) has |f<sub>t</sub>(x)|<sup>2</sup> = cos<sup>2</sup>t + sin<sup>2</sup>t = 1 — the cross term 2 cos t sin t ⟨x, v(x)⟩ vanishing is exactly where orthogonality is spent. Letting t run from 0 to π gives a homotopy from 𝟙 to the antipodal map, so (−1)<sup>n+1</sup> = 1 and n is odd. Conversely for n = 2k−1, v(x<sub>1</sub>, …, x<sub>2k</sub>) = (−x<sub>2</sub>, x<sub>1</sub>, …, −x<sub>2k</sub>, x<sub>2k−1</sub>) is orthogonal to x and of unit length. ∎</p>
+</div>
+
+<p>That is the hairy ball theorem, and the whole proof is one homotopy and one parity. Proposition 2.29 is the same trick with a homomorphism instead of a homotopy: an action of a group G on S<sup>n</sup> gives a degree function d : G → {±1}, which is a homomorphism by property (d); if the action is free, property (g) sends every non-trivial element to (−1)<sup>n+1</sup>. For n even that is −1, so d has trivial kernel and G embeds in ℤ<sub>2</sub>. Note carefully what happens for n odd: the same computation sends everything to +1 and tells you nothing at all. That is not a gap in the proof — the lens spaces of Example 2.43 are quotients of odd-dimensional spheres by free ℤ<sub>m</sub> actions for every m, so the conclusion is genuinely false there.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Property (b) says a non-surjective map has degree 0. Does it follow that a degree-0 map is non-surjective?</p>
+<button onclick="check(this,false)">Yes, the two conditions are equivalent</button>
+<button onclick="check(this,true)" data-ok>No — the implication is stated in one direction and the converse is false</button>
+<button onclick="check(this,false)">No, but only for n = 1</button>
+<button onclick="check(this,false)">Yes, by property (c)</button>
+<div class="explain">No. Example 2.31 builds a map of any prescribed degree by collapsing the complement of k disjoint balls and choosing signs on the local degrees; choosing them to cancel gives a surjective map of degree 0. Property (b) is a sufficient condition for degree 0, not a characterisation of it — and the habit of asking "does this implication reverse?" is the same habit property (c) needs.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Property (g) says a fixed-point-free map has degree (−1)<sup>n+1</sup>. Use it to prove the following: every map f : S<sup>2</sup> → S<sup>2</sup> of degree 1 has a fixed point. Then decide whether the same argument works on S<sup>3</sup>, and if not, produce a fixed-point-free map of S<sup>3</sup> of degree 1.</p>
+<p>Then the harder half: Theorem 2.28's forward direction and property (g) both build a homotopy to the antipodal map. Compare the two constructions and say what each one needs that the other does not.</p>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~30 min</span>
+<h2>Local degree, and the chain complex made of cells</h2>
+
+<p>Degree so far is defined but not computed. The tool that computes it is local, and it is the technical heart of the unit. Suppose f<sup>−1</sup>(y) is a finite set x<sub>1</sub>, …, x<sub>m</sub>. Choose disjoint neighbourhoods U<sub>i</sub> of the x<sub>i</sub>, all mapped into a neighbourhood V of y. Hatcher's diagram on p. 136 has four isomorphisms in it: the upper two come from excision (Theorem 2.20, §2.1), cutting the pair (S<sup>n</sup>, S<sup>n</sup> − x<sub>i</sub>) down to (U<sub>i</sub>, U<sub>i</sub> − x<sub>i</sub>), and the lower two from the long exact sequence of a pair (Theorem 2.16, §2.1) together with the contractibility of a punctured sphere. Under all four, the two groups at the top become H<sub>n</sub>(S<sup>n</sup>) ≅ ℤ, and the top map f<sub>∗</sub> becomes multiplication by an integer: the <em>local degree</em> deg f|x<sub>i</sub>.</p>
+
+<div class="theorem">
+<p><strong>Proposition 2.30.</strong> deg f = Σ<sub>i</sub> deg f|x<sub>i</sub>. <span class="cite">— Hatcher §2.2, p. 136</span></p>
+<p><strong>Proof sketch.</strong> Excision splits the central group H<sub>n</sub>(S<sup>n</sup>, S<sup>n</sup> − f<sup>−1</sup>(y)) as the direct sum of the H<sub>n</sub>(U<sub>i</sub>, U<sub>i</sub> − x<sub>i</sub>) ≅ ℤ, with k<sub>i</sub> the inclusion of the i<sup>th</sup> summand and p<sub>i</sub> the projection onto it — p<sub>i</sub>k<sub>j</sub> = 0 for j ≠ i because that composite factors through H<sub>n</sub>(U<sub>j</sub>, U<sub>j</sub>) = 0. The lower triangle gives p<sub>i</sub>j(1) = 1 for every i, which pins j(1) = (1, …, 1) = Σ<sub>i</sub>k<sub>i</sub>(1). The upper square sends each k<sub>i</sub>(1) to deg f|x<sub>i</sub>, and the lower square reads the total off as deg f. ∎</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: deg(z ↦ z<sup>k</sup>) on S<sup>1</sup> is k.</strong> <span class="cite">— Example 2.32, Hatcher p. 137</span></p>
+<p>Take k &gt; 0 and any y ∈ S<sup>1</sup>. Then f<sup>−1</sup>(y) is k points x<sub>1</sub>, …, x<sub>k</sub>, and near each one f is a local homeomorphism that stretches a circular arc by a factor of k. Stretching is not degree: a deformation of f near x<sub>i</sub> removes it without changing the local degree, leaving a map that looks locally like a rotation. A rotation is a homeomorphism, so its local degree at any point equals its global degree; and a rotation is homotopic to the identity, so that global degree is +1. Hence deg f|x<sub>i</sub> = 1 for each i, and Proposition 2.30 gives deg f = k.</p>
+<p>Now k = 0: f is constant, so it is not surjective, so property ⟨ … ⟩ gives deg f = 0 immediately.</p>
+<p>And k &lt; 0: write z ↦ z<sup>k</sup> as the composite of z ↦ z<sup>|k|</sup> with z ↦ z<sup>−1</sup>. The second map is a reflection of S<sup>1</sup> — it fixes ⟨ how many points? name them ⟩ and swaps the two open arcs between them — so by property (e) its degree is ⟨ … ⟩. Property (d) then multiplies, giving deg f = ⟨ … ⟩.</p>
+</div>
+
+<p>Proposition 2.33 completes the picture: deg Sf = deg f for the suspension Sf : S<sup>n+1</sup> → S<sup>n+1</sup>, by naturality of the boundary map in the long exact sequence of the pair (CS<sup>n</sup>, S<sup>n</sup>). Suspending z ↦ z<sup>k</sup> repeatedly therefore produces a map S<sup>n</sup> → S<sup>n</sup> of degree k for every n ≥ 1. Hatcher then observes something easy to read past: Sf sends exactly one point to each pole of S<sup>n+1</sup>, so its <em>local</em> degree at a pole equals its global degree. Since the global degree can be any integer, so can a local degree, once n ≥ 2.</p>
+
+<h3>Cells instead of simplices</h3>
+
+<div class="theorem">
+<p><strong>Lemma 2.34.</strong> If X is a CW complex, then <span class="cite">— Hatcher §2.2, p. 137</span></p>
+<p>(a) H<sub>k</sub>(X<sup>n</sup>, X<sup>n−1</sup>) is 0 for k ≠ n, and for k = n is free abelian with a basis in one-to-one correspondence with the n-cells of X;<br>
+(b) H<sub>k</sub>(X<sup>n</sup>) = 0 for k &gt; n — so H<sub>k</sub>(X) = 0 above dim X when X is finite-dimensional;<br>
+(c) the inclusion X<sup>n</sup> ↪ X induces an isomorphism on H<sub>k</sub> for k &lt; n and a surjection for k = n.</p>
+</div>
+
+<p>Part (a) is the one that changes everything, and it is where the §2.1 machinery is spent. The pair (X<sup>n</sup>, X<sup>n−1</sup>) is a good pair (Proposition 2.22), so its relative homology is the reduced homology of the quotient X<sup>n</sup>/X<sup>n−1</sup>; and that quotient is a wedge of n-spheres, one per n-cell, whose homology is given by Corollary 2.25. Parts (b) and (c) then follow by running along the long exact sequences of the pairs (X<sup>n</sup>, X<sup>n−1</sup>) and reading off where the maps H<sub>k</sub>(X<sup>n−1</sup>) → H<sub>k</sub>(X<sup>n</sup>) are forced to be surjective (k ≠ n) or injective (k ≠ n−1). The infinite-dimensional case of (c) is harder and Hatcher gives two proofs, the second via a mapping telescope; neither is reproduced here.</p>
+
+<p>Compare part (a) with at1-07's singular chain groups. There C<sub>n</sub>(X) was free on every map Δ<sup>n</sup> → X. Here the group in degree n is free on the n-cells. For ℝP<sup>4</sup> that is a single generator per degree, and there are five degrees.</p>
+
+<div class="definition">
+<p><strong>The cellular chain complex.</strong> Take the groups H<sub>n</sub>(X<sup>n</sup>, X<sup>n−1</sup>), free abelian on the n-cells, and the maps d<sub>n</sub> = j<sub>n−1</sub>∂<sub>n</sub>, where ∂<sub>n</sub> : H<sub>n</sub>(X<sup>n</sup>, X<sup>n−1</sup>) → H<sub>n−1</sub>(X<sup>n−1</sup>) is the boundary map of the pair and j<sub>n−1</sub> : H<sub>n−1</sub>(X<sup>n−1</sup>) → H<sub>n−1</sub>(X<sup>n−1</sup>, X<sup>n−2</sup>). Then d<sub>n</sub>d<sub>n+1</sub> = j<sub>n−1</sub>(∂<sub>n</sub>j<sub>n</sub>)∂<sub>n+1</sub> = 0, because ∂<sub>n</sub>j<sub>n</sub> is two consecutive maps of a long exact sequence. The homology of this complex is the <em>cellular homology</em> H<sub>n</sub><sup>CW</sup>(X). <span class="cite">— Hatcher §2.2, pp. 139–140</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 2.35.</strong> H<sub>n</sub><sup>CW</sup>(X) ≅ H<sub>n</sub>(X). <span class="cite">— Hatcher §2.2, p. 140; see the footer on how this statement was read</span></p>
+<p><strong>Proof.</strong> From the diagram, H<sub>n</sub>(X) is identified with H<sub>n</sub>(X<sup>n</sup>)/Im ∂<sub>n+1</sub>. Since j<sub>n</sub> is injective it carries Im ∂<sub>n+1</sub> isomorphically onto Im d<sub>n+1</sub>, and H<sub>n</sub>(X<sup>n</sup>) isomorphically onto Im j<sub>n</sub> = Ker ∂<sub>n</sub>. Since j<sub>n−1</sub> is injective, Ker ∂<sub>n</sub> = Ker d<sub>n</sub>. So j<sub>n</sub> induces an isomorphism from H<sub>n</sub>(X<sup>n</sup>)/Im ∂<sub>n+1</sub> onto Ker d<sub>n</sub>/Im d<sub>n+1</sub>. ∎</p>
+</div>
+
+<p>Three consequences are immediate, and Hatcher lists them as (i)–(iii) on p. 140. (i) No n-cells means H<sub>n</sub>(X) = 0. (ii) With k n-cells, H<sub>n</sub>(X) is generated by at most k elements — a bound on generators, <em>not</em> on the group: one 1-cell gives a cyclic H<sub>1</sub>, and ℝP<sup>2</sup>'s is ℤ<sub>2</sub>, not ℤ. (iii) If no two cells sit in adjacent dimensions, every d<sub>n</sub> vanishes and H<sub>n</sub>(X) is free abelian on the n-cells. That last one settles ℂP<sup>n</sup> in a line — one cell in each even dimension up to 2n, so H<sub>i</sub>(ℂP<sup>n</sup>) is ℤ for i = 0, 2, …, 2n and 0 otherwise — and settles S<sup>n</sup> × S<sup>n</sup> for n &gt; 1 just as fast.</p>
+
+<div class="theorem">
+<p><strong>Cellular Boundary Formula.</strong> d<sub>n</sub>(e<sup>n</sup><sub>α</sub>) = Σ<sub>β</sub> d<sub>αβ</sub> e<sup>n−1</sup><sub>β</sub>, where d<sub>αβ</sub> is the degree of the composite S<sup>n−1</sup><sub>α</sub> → X<sup>n−1</sup> → S<sup>n−1</sup><sub>β</sub>: the attaching map of e<sup>n</sup><sub>α</sub>, followed by the quotient map collapsing X<sup>n−1</sup> minus the cell e<sup>n−1</sup><sub>β</sub> to a point. <span class="cite">— Hatcher §2.2, p. 140</span></p>
+</div>
+
+<p>Hatcher states this one without a number, and it is the payoff of the whole segment: the boundary maps of the cellular complex are <em>degrees</em>, and degrees are computed by Proposition 2.30. The sum is finite because an attaching map has compact image and so meets only finitely many cells. For n = 1 no degree theory is needed — d<sub>1</sub> is the simplicial boundary map Δ<sub>1</sub>(X) → Δ<sub>0</sub>(X), and if X is connected with a single 0-cell then d<sub>1</sub> = 0, since otherwise H<sub>0</sub>(X) would not be ℤ.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Application (ii) says a complex with one n-cell has H<sub>n</sub> generated by at most one element. What does that tell you about H<sub>1</sub>(ℝP<sup>2</sup>), which at1-07 computed to be ℤ<sub>2</sub>?</p>
+<button onclick="check(this,false)">That the computation in at1-07 must be wrong, since one generator gives ℤ</button>
+<button onclick="check(this,true)" data-ok>That H<sub>1</sub> is cyclic — which ℤ<sub>2</sub> is; "cyclic" does not mean "infinite cyclic"</button>
+<button onclick="check(this,false)">Nothing, because ℝP<sup>2</sup> has two 1-cells</button>
+<button onclick="check(this,false)">That H<sub>1</sub> must be free abelian of rank 1</button>
+<div class="explain">Cyclic. The bound is on the number of generators, because Ker d<sub>n</sub> sits inside a free abelian group of rank k and H<sub>n</sub> is a quotient of that kernel — and a quotient of a cyclic group is cyclic. Freeness is lost in the quotient, which is exactly how torsion arises. Application (iii) is the special case where no quotienting happens at all.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why is d<sub>n</sub>d<sub>n+1</sub> = 0?</p>
+<button onclick="check(this,false)">Because degrees multiply, and one of the two degrees is always 0</button>
+<button onclick="check(this,true)" data-ok>Because d<sub>n</sub>d<sub>n+1</sub> contains the composite ∂<sub>n</sub>j<sub>n</sub> of two consecutive maps in a long exact sequence</button>
+<button onclick="check(this,false)">Because it inherits ∂∂ = 0 from the singular chain complex</button>
+<button onclick="check(this,false)">Because j<sub>n</sub> is injective</button>
+<div class="explain">Exactness. Writing d<sub>n</sub>d<sub>n+1</sub> = j<sub>n−1</sub>(∂<sub>n</sub>j<sub>n</sub>)∂<sub>n+1</sub>, the bracketed composite runs H<sub>n</sub>(X<sup>n</sup>) → H<sub>n</sub>(X<sup>n</sup>, X<sup>n−1</sup>) → H<sub>n−1</sub>(X<sup>n−1</sup>), two consecutive maps of the long exact sequence of the pair, so it is zero. Nothing is inherited from the singular complex: the cellular groups are not subgroups of the singular ones, which is why Theorem 2.35 has content.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Computing, and what the computation throws away</h2>
+
+<p>The surfaces first, because they are quick and they show both outcomes. M<sub>g</sub>, the closed orientable surface of genus g, has one 0-cell, 2g 1-cells and one 2-cell attached along [a<sub>1</sub>, b<sub>1</sub>]···[a<sub>g</sub>, b<sub>g</sub>]. So the complex is 0 → ℤ → ℤ<sup>2g</sup> → ℤ → 0. Here d<sub>1</sub> = 0 (one 0-cell) and d<sub>2</sub> = 0 as well, because every generator occurs in the commutator word together with its inverse, so each Δ<sub>αβ</sub> has total exponent zero and is homotopic to a constant map, of degree 0. Both boundary maps vanish, so the homology <em>is</em> the chain complex: ℤ, ℤ<sup>2g</sup>, ℤ.</p>
+
+<p>N<sub>g</sub>, the non-orientable surface, has one 0-cell, g 1-cells and one 2-cell along a<sub>1</sub><sup>2</sup>a<sub>2</sub><sup>2</sup>···a<sub>g</sub><sup>2</sup>. Again d<sub>1</sub> = 0. But now each a<sub>i</sub> appears with total exponent 2, so each Δ<sub>αβ</sub> is homotopic to z ↦ z<sup>2</sup> and has degree 2 by Example 2.32: d<sub>2</sub>(1) = (2, …, 2). That is injective, so H<sub>2</sub>(N<sub>g</sub>) = 0; and replacing the last basis vector of ℤ<sup>g</sup> by (1, …, 1) gives H<sub>1</sub>(N<sub>g</sub>) ≅ ℤ<sup>g−1</sup> ⊕ ℤ<sub>2</sub>. At g = 1 that is ℝP<sup>2</sup> and H<sub>1</sub> = ℤ<sub>2</sub>, agreeing with at1-07's simplicial computation, as Theorem 2.27 and Theorem 2.35 between them require.</p>
+
+<p>The contrast is not an accident of the two words. H<sub>n</sub> of a closed connected n-manifold is ℤ if it is orientable and 0 if not — Hatcher notes this on p. 142 and proves it in Theorem 3.26, well outside this module.</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Derive the cellular boundary map of ℝP<sup>n</sup>. Recall from at1-02 the CW structure with one cell e<sup>k</sup> in each dimension k ≤ n, the attaching map of e<sup>k</sup> being the double cover φ : S<sup>k−1</sup> → ℝP<sup>k−1</sup>. Show that d<sub>k</sub> is multiplication by 1 + (−1)<sup>k</sup>. Use the Cellular Boundary Formula, Proposition 2.30, and property (f) of degree. Write your argument before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p>By the Cellular Boundary Formula, d<sub>k</sub> is multiplication by the degree of the composite qφ : S<sup>k−1</sup> → ℝP<sup>k−1</sup> → ℝP<sup>k−1</sup>/ℝP<sup>k−2</sup> = S<sup>k−1</sup>, where q is the quotient map. There is only one (k−1)-cell, so the sum over β has a single term.</p>
+<p>Now compute deg qφ by local degrees. The map qφ restricts to a homeomorphism from each of the two components of S<sup>k−1</sup> − S<sup>k−2</sup> onto ℝP<sup>k−1</sup> − ℝP<sup>k−2</sup>. So a generic point of the target has exactly two preimages, one in each component, and the local degree at each is ±1 because qφ is a local homeomorphism there.</p>
+<p>The two restrictions are not independent: each is obtained from the other by precomposing with the antipodal map of S<sup>k−1</sup>, which by property (f) has degree (−1)<sup>k</sup>. So if one local degree is 1, the other is (−1)<sup>k</sup>. Proposition 2.30 adds them: deg qφ = deg 𝟙 + deg(−𝟙) = 1 + (−1)<sup>k</sup>.</p>
+<p>Hence d<sub>k</sub> = 2 for k even and d<sub>k</sub> = 0 for k odd. ∎</p>
+<p><em>What to notice.</em> The whole computation is one application of Proposition 2.30 to a two-point fibre, and the entire content is the parity of the antipodal map's degree. The ℤ<sub>2</sub>'s that appear in ℝP<sup>n</sup>'s homology — the first torsion in at1-07, and now the general case — trace back to that single sign.</p>
+</details>
+</div>
+
+<p>Assembling: the cellular chain complex of ℝP<sup>n</sup> is a copy of ℤ in each degree 0 through n, with boundary maps alternating 0 and 2, starting from d<sub>1</sub> = 0. The picture below is the case n = 4.</p>
+
+<canvas id="rp4" width="640" height="330" aria-label="The cellular chain complex of real projective 4-space: five copies of the integers in degrees 0 to 4, with boundary maps alternately 0 and 2, the resulting homology groups beneath, and the Betti numbers beneath those, all zero except in degree 0."></canvas>
+
+<p>Read the homology straight off. H<sub>0</sub> = ℤ/Im d<sub>1</sub> = ℤ. H<sub>1</sub> = Ker d<sub>1</sub>/Im d<sub>2</sub> = ℤ/2ℤ = ℤ<sub>2</sub>. H<sub>2</sub> = Ker d<sub>2</sub>/Im d<sub>3</sub> = 0/0 = 0, since d<sub>2</sub> is injective. H<sub>3</sub> = Ker d<sub>3</sub>/Im d<sub>4</sub> = ℤ/2ℤ = ℤ<sub>2</sub>. H<sub>4</sub> = Ker d<sub>4</sub> = 0. In general H<sub>k</sub>(ℝP<sup>n</sup>) is ℤ for k = 0 and for k = n odd, ℤ<sub>2</sub> for k odd with 0 &lt; k &lt; n, and 0 otherwise.</p>
+
+<div class="you-try">
+<p><strong>You try.</strong> Before the last theorem, do two things with the picture. First, redraw it for ℝP<sup>5</sup> — one more ℤ on the left — and check that the odd top dimension changes the answer in degree 5, and say why. Second, predict the Euler characteristic of ℝP<sup>4</sup> from the cell counts, and separately from the homology, before reading on.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 2.44.</strong> For a finite CW complex X, χ(X) = Σ<sub>n</sub>(−1)<sup>n</sup> rank H<sub>n</sub>(X), where χ(X) = Σ<sub>n</sub>(−1)<sup>n</sup>c<sub>n</sub> is the alternating sum of the numbers of cells. <span class="cite">— Hatcher §2.2, p. 146</span></p>
+<p>The rank of a finitely generated abelian group is its number of ℤ summands. The proof is purely algebraic and rests on the fact — Hatcher leaves it as an exercise — that rank is additive on short exact sequences of finitely generated abelian groups.</p>
+</div>
+
+<p>So χ is computable from a cell structure and yet depends only on the homology, hence only on the homotopy type: the alternating sum cannot tell which CW structure produced it. For ℝP<sup>4</sup>, the cells give 1 − 1 + 1 − 1 + 1 = 1, and the homology gives 1 − 0 + 0 − 0 + 0 = 1, since ℤ<sub>2</sub> has rank 0.</p>
+
+<h3>What the ranks do not see</h3>
+
+<p>Now put the two computations side by side. ℝP<sup>4</sup> has homology (ℤ, ℤ<sub>2</sub>, 0, ℤ<sub>2</sub>, 0). Its Betti numbers — the ranks, in the sense Hatcher defines on p. 130 — are 1, 0, 0, 0, 0. A one-point space has homology (ℤ, 0, 0, 0, 0) and Betti numbers 1, 0, 0, 0, 0. The Betti numbers agree in every degree. So do the Euler characteristics, both 1. Every free-rank invariant this unit has built is blind to the difference between ℝP<sup>4</sup> and a point.</p>
+
+<p>The difference is entirely in the torsion, and Hatcher names the missing data in the same sentence in which he names the Betti numbers: the <em>torsion coefficients</em>, the orders of the finite cyclic summands. Two integers, 2 and 2, in degrees 1 and 3. That is the whole of what makes ℝP<sup>4</sup> interesting, and it is the whole of what a report of free ranks discards.</p>
+
+<p>Two cautions, since this is the kind of observation that is easy to overstate. First, this is a statement about one space and one pair of degrees, not a claim that Betti numbers are generally useless — for M<sub>g</sub> the Betti numbers 1, 2g, 1 carry the entire homology, because there is no torsion to lose. Second, it does not follow that ℝP<sup>4</sup> and a point cannot be distinguished by rank data of <em>any</em> kind: at1-09 will change the coefficient ring, and over 𝔽<sub>2</sub> the picture is completely different. What is established here is narrower and sharper: integral Betti numbers, and the Euler characteristic built from them, do not distinguish these two spaces.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Theorem 2.44 says χ(X) can be computed from homology. What does that buy you that the cell-count definition does not?</p>
+<button onclick="check(this,false)">A faster computation, since homology is easier to find than a cell structure</button>
+<button onclick="check(this,true)" data-ok>Independence of the CW structure, hence of the homotopy type — two cell structures on the same space must give the same alternating sum</button>
+<button onclick="check(this,false)">That χ determines the homology groups</button>
+<button onclick="check(this,false)">That χ is always non-negative</button>
+<div class="explain">Invariance. The cell-count definition is manifestly computable and manifestly dependent on a choice; the homology formula is manifestly independent of the choice and much harder to compute. Having both is the point, and it is the same move Theorem 2.27 made in at1-07 for simplicial versus singular homology: one definition to compute with, one to reason with, and a theorem identifying them.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Application (iii) says that if no two cells are in adjacent dimensions, H<sub>n</sub>(X) is free abelian on the n-cells. Why does ℝP<sup>4</sup> not qualify?</p>
+<button onclick="check(this,true)" data-ok>It has a cell in every dimension 0 to 4, so every pair of consecutive dimensions is occupied</button>
+<button onclick="check(this,false)">Because it is non-orientable</button>
+<button onclick="check(this,false)">Because its cells are attached by covering maps rather than homeomorphisms</button>
+<button onclick="check(this,false)">Because 4 is even</button>
+<div class="explain">Adjacency. (iii) works by making every d<sub>n</sub> vanish for want of anywhere to go; ℝP<sup>4</sup> has a cell in each of the five dimensions, so nothing is forced and the boundary maps have to be computed — which is what the guided proof did. ℂP<sup>n</sup>, with cells only in even dimensions, is the case where (iii) applies and the answer is free in every degree. That is exactly the difference between a space with torsion and a space without.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Example 2.38 builds a complex X from S<sup>1</sup> ∨ S<sup>1</sup> with two 2-cells attached along a<sup>5</sup>b<sup>−3</sup> and b<sup>3</sup>(ab)<sup>−2</sup>; the matrix of d<sub>2</sub> has determinant −1, so all reduced homology vanishes. Does it follow that X is contractible?</p>
+<button onclick="check(this,false)">Yes — a space with vanishing reduced homology is contractible</button>
+<button onclick="check(this,true)" data-ok>No: π₁(X) is non-trivial, in fact of order 120, so X is not even simply-connected</button>
+<button onclick="check(this,false)">Yes, by Corollary 2.11 from at1-07</button>
+<button onclick="check(this,false)">No, but only because X is 2-dimensional</button>
+<div class="explain">Not contractible. Hatcher exhibits a surjection from π₁(X) = ⟨a, b | a<sup>5</sup>b<sup>−3</sup>, b<sup>3</sup>(ab)<sup>−2</sup>⟩ onto the rotation group of the dodecahedron, of order 60, with kernel ℤ<sub>2</sub>; so π₁(X) has order 120. Such an X is called <em>acyclic</em>. The lesson is the converse direction of Corollary 2.11: homotopy equivalences induce isomorphisms on homology, but isomorphic homology does not give a homotopy equivalence — not even when the homology is that of a point.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Degree turns an induced map into an integer, and local degree computes it.</strong> f<sub>∗</sub> on H<sub>n</sub>(S<sup>n</sup>) ≅ ℤ is multiplication by deg f. The properties are one line each from functoriality, except (e) and (f), which need a Δ-structure and a count of reflections. Proposition 2.30 breaks the degree into a sum of local degrees over a finite fibre, using excision (Theorem 2.20) and the long exact sequence of a pair (Theorem 2.16) to identify the local groups with ℤ. Theorem 2.28 and Proposition 2.29 are what this alone already buys.</p>
+<p><strong>2. Cells make the chain groups small, and the Cellular Boundary Formula makes the maps computable.</strong> Lemma 2.34(a) — via good pairs and Corollary 2.25 — says H<sub>n</sub>(X<sup>n</sup>, X<sup>n−1</sup>) is free abelian on the n-cells. With d<sub>n</sub> = j<sub>n−1</sub>∂<sub>n</sub> this is a chain complex, because ∂<sub>n</sub>j<sub>n</sub> is two consecutive maps of an exact sequence; Theorem 2.35 identifies its homology with singular homology. The boundary entries d<sub>αβ</sub> are degrees of attaching maps composed with collapses, so Segment 1 computes Segment 2.</p>
+<p><strong>3. The computations are cheap, and the cheapest summary of them is the one that loses the most.</strong> M<sub>g</sub> has both boundary maps zero; N<sub>g</sub> has d<sub>2</sub>(1) = (2, …, 2) and picks up a ℤ<sub>2</sub>; ℝP<sup>n</sup> has d<sub>k</sub> = 1 + (−1)<sup>k</sup>, straight from the antipodal map's degree. Theorem 2.44 makes χ a homotopy invariant. But χ and the Betti numbers are built from ranks alone, and ℝP<sup>4</sup> has the Betti numbers and the Euler characteristic of a point while having ℤ<sub>2</sub> in degrees 1 and 3. The torsion coefficients are the other half of the invariant, and this unit's best example is entirely torsion.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em>, §2.2 "Computing Homology". §"Degree": the definition of deg f for f : S<sup>n</sup> → S<sup>n</sup>, n &gt; 0, and properties (a) through (g) with their arguments, including the Δ-structure argument for reflections and the straight-line homotopy for fixed-point-free maps (pp. 134–135); Theorem 2.28 on tangent vector fields with both directions of the proof, and Proposition 2.29 on free group actions, with the remark that the antipodal map has no fixed points (p. 135); the local degree diagram and its four isomorphisms, Proposition 2.30 with its proof, and Example 2.31 constructing a map of arbitrary degree (p. 136); Example 2.32 on z ↦ z<sup>k</sup>, Proposition 2.33 on suspension with the remark about local degrees at the poles (p. 137). §"Cellular Homology": Hatcher's opening description of cellular homology as an efficient tool based on degree calculations, and Lemma 2.34 in three parts (p. 137); the proof of Lemma 2.34 from the long exact sequences of the skeleta, and the mapping-telescope argument for the infinite-dimensional case of (c), cited but not reproduced (pp. 138–139); the proof that cellular and singular homology agree, the applications (i)–(iii), the computation of H<sub>i</sub>(ℂP<sup>n</sup>) and the remark on S<sup>n</sup> × S<sup>n</sup>, the observation that d<sub>1</sub> is the simplicial boundary map, and the Cellular Boundary Formula (p. 140); the derivation of the Cellular Boundary Formula from the commutative diagram, Example 2.36 on M<sub>g</sub> and Example 2.37 on N<sub>g</sub> (p. 141); the remark that orientability of a closed n-manifold is detected by H<sub>n</sub>, referred forward to Theorem 3.26, and Example 2.38 on the acyclic space with π₁ of order 120 (p. 142); Example 2.42 on ℝP<sup>n</sup> with the full boundary computation and the resulting homology (p. 144). §"Euler Characteristic": the definition of χ(X) and Theorem 2.44 with the rank convention and the short-exact-sequence fact left as an exercise (p. 146). The definitions of <em>Betti number</em> and <em>torsion coefficient</em> are Hatcher's, from the tail of §2.1 (p. 130), which is at1-07's range and not this unit's. Every folio was read off the page cited; the extraction's page images carry the printed number, and the Hatcher offset used throughout the branch was re-verified against p. 106 for this unit.
+<p><strong>How Theorem 2.35 was read.</strong> The numbered statement of the cellular homology theorem, together with the diagram of long exact sequences it refers to, sits inside a typeset figure that the text extraction does not capture: no page of the corpus contains the string "2.35", and the notation H<sub>n</sub><sup>CW</sup> does not appear anywhere in printed pp. 138–141. Three things are nevertheless read rather than recalled. The <em>content</em> is fixed by the proof, which is present in full on p. 140 and states each step; the <em>notation</em> H<sub>n</sub><sup>CW</sup>(X) and the phrase "the cellular homology groups H<sub>n</sub><sup>CW</sup>(X) agree with singular homology H<sub>n</sub>(X)" are read off p. 153, where Hatcher refers back to the theorem in the coefficients discussion; and the definition of the cellular chain group as H<sub>n</sub>(X<sup>n</sup>, X<sup>n−1</sup>) is read off the same page. The <em>number</em> 2.35 is the one item not read: it is fixed between Lemma 2.34 on p. 137 and Example 2.36 on p. 141, with no other numbered item in between. That inference is recorded here rather than presented as a citation.</p>
+<p><strong>Borrowed from §2.1, outside this unit's resources.</strong> Relative homology and the long exact sequence of a pair (Theorem 2.16), excision (Theorem 2.20), good pairs (Proposition 2.22) and Corollary 2.25 on the homology of wedge sums. Lemma 2.34 and the local degree diagram both consume them and neither can be proved without them. They are cited by number at each use and stated, not proved, here; the exact-sequence toolkit is at1-09's. This unit's <code>resources</code> line names Hatcher §2.2 alone, which is a syllabus gap recorded in the branch plan and left for a separate syllabus pass rather than fixed on a content branch.</p>
+<p><strong>Not established here.</strong> That the Betti numbers are "exactly aa-22's invariants" — the identification is the syllabus's, not Hatcher's, and the correction made in the warn block above stands: Betti numbers are the free ranks only, and the torsion coefficients defined alongside them on p. 130 are the other half. ℝP<sup>4</sup> is the unit's own counterexample to treating ranks as the whole story, having the Betti numbers and Euler characteristic of a point. Also not established: any statement about coefficients other than ℤ, which is at1-09's; Hopf's converse to property (c) of degree, which Hatcher defers to Corollary 4.25; and the orientability criterion of Theorem 3.26, quoted for context only.</p>
+<p><strong>Stated but not proved.</strong> Lemma 2.34(c) in the infinite-dimensional case, whose two proofs — the compactness argument and the mapping telescope of §3.F — are described and not reproduced. Theorem 2.44's rank identity for short exact sequences, which Hatcher himself leaves as an exercise. Proposition 2.33, whose proof by naturality of the boundary map is quoted in outline. The CW structure on ℝP<sup>n</sup> with one cell per dimension is at1-02's, taken as given here, as is Example 0.6's structure on ℂP<sup>n</sup>.</p>
+<p><strong>Deferred.</strong> Example 2.39 on T<sup>3</sup> and K × S<sup>1</sup> and the computation of d<sub>3</sub>; Examples 2.40 and 2.41 on Moore spaces; Example 2.43 on lens spaces, mentioned only for its bearing on Proposition 2.29 in odd dimensions; split exact sequences and the homology of groups (pp. 147–148); and Mayer–Vietoris sequences, which begin on p. 149 and are at1-09's opening.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('rp4');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82',bad='#e06c75';
+  // five chain groups, degree 4 on the left down to degree 0 on the right
+  var xs=[70,185,300,415,530], yChain=95, yHom=195, yBetti=262;
+  var degs=[4,3,2,1,0];
+  var dmaps=[2,0,2,0];                       // d_4, d_3, d_2, d_1
+  var hom=['0','ℤ2','0','ℤ2','ℤ'];   // H_4 .. H_0
+  var betti=['0','0','0','0','1'];
+
+  g.font='16px Georgia, serif';
+  g.textAlign='center';
+
+  // chain groups
+  for(var i=0;i<5;i++){
+    g.strokeStyle='#2a333d';g.lineWidth=1.5;
+    g.strokeRect(xs[i]-30,yChain-24,60,42);
+    g.fillStyle=ink;g.fillText('ℤ',xs[i],yChain+3);
+    g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+    g.fillText('C'+degs[i],xs[i],yChain-32);
+    g.font='16px Georgia, serif';
+  }
+
+  // arrows between them, labelled with the boundary map
+  for(var j=0;j<4;j++){
+    var x1=xs[j]+32,x2=xs[j+1]-32;
+    var lab=dmaps[j];
+    g.strokeStyle=(lab===2)?bad:good;g.lineWidth=2;
+    g.beginPath();g.moveTo(x1,yChain-3);g.lineTo(x2,yChain-3);g.stroke();
+    g.beginPath();g.moveTo(x2,yChain-3);g.lineTo(x2-8,yChain-8);g.lineTo(x2-8,yChain+2);g.closePath();
+    g.fillStyle=(lab===2)?bad:good;g.fill();
+    g.fillText(String(lab),(x1+x2)/2,yChain-14);
+    g.fillStyle=dim;g.font='11px Segoe UI, sans-serif';
+    g.fillText('d'+degs[j],(x1+x2)/2,yChain+16);
+    g.font='16px Georgia, serif';
+  }
+
+  // homology row
+  g.fillStyle=dim;g.font='13px Segoe UI, sans-serif';
+  g.textAlign='left';g.fillText('homology',18,yHom-32);
+  g.textAlign='center';g.font='17px Georgia, serif';
+  for(var k=0;k<5;k++){
+    g.fillStyle=(hom[k]==='0')?dim:acc;
+    g.fillText(hom[k],xs[k],yHom+4);
+    g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+    g.fillText('H'+degs[k],xs[k],yHom-22);
+    g.font='17px Georgia, serif';
+  }
+
+  // Betti row
+  g.fillStyle=dim;g.font='13px Segoe UI, sans-serif';
+  g.textAlign='left';g.fillText('Betti number (rank)',18,yBetti-28);
+  g.textAlign='center';g.font='17px Georgia, serif';
+  for(var m=0;m<5;m++){
+    g.fillStyle=dim;
+    g.fillText(betti[m],xs[m],yBetti+4);
+  }
+
+  // the punchline strip
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(40,yBetti+26);g.lineTo(600,yBetti+26);g.stroke();
+  g.fillStyle=dim;g.font='13px Segoe UI, sans-serif';
+  g.fillText('same Betti numbers as a point; χ = 1 either way',320,yBetti+46);
+})();
+</script>
+</body></html>
