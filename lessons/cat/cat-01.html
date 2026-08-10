@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cat-01 — Categories and morphisms</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Category Theory · Nexus College</p>
+<h1>Categories and morphisms <span class="cite">(cat-01)</span></h1>
+
+<div class="hook">
+<p>Aluffi opens by quoting Norman Steenrod's name for this material: <em>abstract nonsense</em>. He accepts the label. Categories are about structure and not meaning — about "things, and things that go from things to things" without being explicit about what the things are. The discipline that buys is severe and it starts immediately: in a general category, objects have no elements. You cannot say a morphism is injective, because there is nothing to be injective on. Everything you want to say has to be said with arrows, and §4 shows that when you do say it with arrows, some of what you believed turns out to be false.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> In <strong>Set</strong>, a function is a bijection exactly when it is both injective and surjective. §4 defines monomorphism and epimorphism so that in <strong>Set</strong> they mean exactly injective and surjective. Predict: in an arbitrary category, is a morphism that is both a monomorphism and an epimorphism necessarily an isomorphism?</p>
+<button onclick="check(this,false)">Yes — the definitions were built to make that work</button>
+<button onclick="check(this,true)" data-ok>No, and there is a two-line counterexample in this unit's own examples</button>
+<button onclick="check(this,false)">Yes, but only in small categories</button>
+<div class="explain">No. In the category built from ≤ on ℤ there is at most one morphism between any two objects, so the cancellation conditions defining mono and epi are satisfied vacuously by <em>every</em> morphism — while the only isomorphisms are the identities. That is Example 4.10 against Example 4.5, and it is the sharpest thing in the unit. Aluffi's comment is that this property is "a special feature of Set", not a general fact.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Persistence lives in a category — objects are homology groups, arrows are the maps a filtration induces.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires. Aluffi §I.3–I.4 contains no persistence, no homology and no filtration, so every clause of the strip is a forward pointer. What the unit supplies is the definition against which those clauses would have to be checked, and one piece of the check is genuinely available now.</p>
+<p><strong>Functors are not in this unit's sources at all.</strong> Aluffi says so in a footnote on p. 18: "we will not consider functors until later chapters: our first formal encounter with functors will be in Chapter VIII." Chapter VIII is cat-03's resource, not this unit's. That matters because the strip's picture — a family of homology groups with the maps between them — is the <em>image of a functor</em>, and the fact that such an image is closed under composition and contains the identities is a consequence of functoriality, which nothing here may use. at1-10 did establish that H<sub>n</sub> is a functor, from Hatcher §2.3, so the claim is established somewhere in the programme; it is not established <em>here</em>, and this lesson does not lean on it.</p>
+<p><strong>One clause can be sharpened now, and in a direction the strip does not anticipate.</strong> The index of a filtration is a set of parameter values with an order, and Aluffi's Example 3.3 turns exactly that into a category — but it requires only that the relation be <em>reflexive and transitive</em>. Antisymmetry is not assumed, so the index of a filtration need not be a partially ordered set; a preorder is enough. at1-10, following Hatcher, used a poset. Aluffi's version is strictly more general, and Segment 3 shows what antisymmetry would have added: nothing about the arrows, and everything about whether distinct objects can be isomorphic.</p>
+<p><strong>Also not established: that the strip's description defines a category.</strong> "Objects are homology groups, arrows are the maps a filtration induces" is a proposal, and Definition 3.1 is the list of things a proposal must satisfy — identities, composition, associativity, units, and the disjointness clause that people forget. Checking it is cat-03's work, because the check runs through functoriality. This unit's contribution is the checklist, not the verdict.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The definition, and the clause everyone skips</h2>
+
+<p>Before the definition, one honest difficulty. Aluffi writes that the objects form a <em>class</em>, not a set, and explains why: we want a category of sets, and there is no set of all sets — that is what Russell's paradox tells us. A class is the technical device for collections too big to be sets. He then defuses it: nothing in the book depends on the distinction, and in many examples the collection genuinely is a set, in which case the category is called <em>small</em>. Take the word "class" as a promise that the difficulty has been dealt with elsewhere.</p>
+
+<div class="definition">
+<p><strong>Definition 3.1.</strong> A category C consists of a class Obj(C) of <em>objects</em>, and for every two objects A, B a <em>set</em> Hom<sub>C</sub>(A, B) of <em>morphisms</em>, such that: <span class="cite">— Aluffi §I.3, p. 19</span></p>
+<p>· for every object A there is at least one morphism 1<sub>A</sub> ∈ Hom<sub>C</sub>(A, A), the identity on A;<br>
+· morphisms compose: for every triple A, B, C there is a function Hom<sub>C</sub>(A, B) × Hom<sub>C</sub>(B, C) → Hom<sub>C</sub>(A, C), sending (f, g) to gf;<br>
+· composition is associative: (hg)f = h(gf);<br>
+· identities are identities for composition: f1<sub>A</sub> = f and 1<sub>B</sub>f = f for all f ∈ Hom<sub>C</sub>(A, B);<br>
+· and the sets Hom<sub>C</sub>(A, B) and Hom<sub>C</sub>(C, D) are <em>disjoint</em> unless A = C and B = D.</p>
+</div>
+
+<p>Aluffi's advice for remembering all this is to think of sets and functions, and his prototype is exactly that: objects are sets, morphisms are functions. But he also makes a remark worth taking seriously — that 90% of the definition goes into the properties of the morphisms, and that "it is fair to say that the morphisms <em>are</em> the important constituents of a category". The objects are nearly placeholders. Every axiom above is about arrows.</p>
+
+<div class="warn">
+<p><strong>The disjointness clause is not bookkeeping.</strong> It says a morphism remembers its source and its target: the same f cannot live in two different Hom-sets. Aluffi notes this holds for ordinary set-functions, where "source and target are part of the datum of a set-function" — a point that usually goes unnoticed because we never write a function without knowing where it goes. Drop the clause and composition breaks: gf would no longer be determined by f and g, because f alone would not say which Hom-set it came from, and the composition function is indexed by the triple (A, B, C). Problem 1(c) asks you to build the ambiguity explicitly.</p>
+</div>
+
+<p>Two pieces of vocabulary come straight out of the definition. A morphism from A to itself is an <em>endomorphism</em>, and Hom<sub>C</sub>(A, A) is written End<sub>C</sub>(A). One of the axioms makes it a <em>pointed</em> set, since 1<sub>A</sub> lives in it; and composition is an operation on it, because the composite of two endomorphisms of A is again one. Notation relaxes too: drop the subscript C when the category is understood, write f : A → B, and draw diagrams. A diagram <em>commutes</em> when all ways of traversing it compose to the same morphism.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Definition 3.1 say the objects form a class but the morphisms between any two objects form a set?</p>
+<button onclick="check(this,false)">Because there are always fewer morphisms than objects</button>
+<button onclick="check(this,true)" data-ok>Because we want a category of all sets, and there is no set of all sets — while Hom(A, B) for fixed A and B is small enough to be one</button>
+<button onclick="check(this,false)">Because morphisms are functions and functions form sets</button>
+<button onclick="check(this,false)">Because the category would otherwise fail associativity</button>
+<div class="explain">Russell. The motivating example is Set itself, whose objects are all sets, and there is no set of all sets. Hom(A, B) for fixed A and B is a different matter — for sets it is a set of functions, and it is part of the definition that it always be a set. A category whose object class is a set is called <em>small</em>; Examples 3.3 and 3.4 are both small, which is why they feel comfortable.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Categories that are not sets and functions</h2>
+
+<p>Example 3.2 is Set, and Aluffi says that if it is not crystal clear the reader should stop and go no further. Example 3.3 is where the subject actually starts, because in it the morphisms are not functions and nothing is applied to anything.</p>
+
+<div class="theorem">
+<p><strong>Example 3.3.</strong> Let S be a set and ∼ a relation on S that is <em>reflexive</em> and <em>transitive</em>. Then: objects are the elements of S; and for a, b ∈ S, Hom(a, b) is the one-element set {(a, b)} if a ∼ b, and ∅ otherwise. <span class="cite">— Aluffi §I.3, pp. 20–21</span></p>
+<p>Reflexivity supplies the identities: a ∼ a gives 1<sub>a</sub> = (a, a). Transitivity supplies composition: a ∼ b and b ∼ c give a ∼ c. Associativity and the unit laws are automatic, because there is at most one morphism in any Hom-set and so any two parallel morphisms are equal.</p>
+</div>
+
+<p>Aluffi's own comment: "unlike in Set there are very few morphisms: at most one for any pair of objects, and no morphisms at all between 'unrelated' objects." Note what is <em>not</em> required — antisymmetry. The relation need only be a preorder. Take S = ℤ with ≤ and you get a partial order; take a relation where a ∼ b and b ∼ a can both hold with a ≠ b, and you get a category in which two distinct objects have arrows both ways. Segment 3 says exactly what that difference amounts to.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: Example 3.4, the power set.</strong> <span class="cite">— Aluffi §I.3, p. 22</span></p>
+<p>Let S be a set. Define Ŝ by: Obj(Ŝ) = 𝒫(S), the power set; and for A, B ⊆ S, let Hom<sub>Ŝ</sub>(A, B) be the pair (A, B) if A ⊆ B, and ∅ otherwise.</p>
+<p>The identity 1<sub>A</sub> is the pair (A, A), which exists because A ⊆ A, and is the only morphism A → A. Composition is stringing inclusions: given A → B and B → C we have A ⊆ B and B ⊆ C, hence A ⊆ C and a morphism A → C.</p>
+<p>Now check the rest. Associativity holds because ⟨ what is true of any two morphisms with the same source and target here? ⟩. The unit laws hold for the same reason. Disjointness holds because a morphism is literally the pair (A, B), so it ⟨ … ⟩.</p>
+<p>Aluffi's footnote says Ŝ is really an instance of Example 3.3. It is: take the set to be ⟨ … ⟩ and the reflexive transitive relation to be ⟨ … ⟩. That is his Exercise 3.5.</p>
+<p>He adds that examples in this style, with more sophisticated structures — "such as the family of open subsets of a topological space" — are hugely important in algebraic geometry.</p>
+</div>
+
+<p>Example 3.5 is the construction to sit with, because variations of it recur throughout the subject. Fix a category C and an object A. The <em>slice category</em> C<sub>A</sub> has as its objects all morphisms f : Z → A, for every object Z of C — drawn as arrows pointing down into A. Aluffi then stops and invites the reader to work out the morphisms independently, remarking that "there really is only one sensible way" to do it. There is: a morphism from f : Z → A to g : W → A is a morphism σ : Z → W making the triangle over A commute, that is, gσ = f.</p>
+
+<p>Example 3.6 makes it concrete with C the ≤-on-ℤ category and A = 3: objects of C<sub>3</sub> are the pairs (n, 3) with n ≤ 3. Example 3.7 flips the arrows to get <em>coslice</em> categories, and Example 3.8 takes C = Set with A a singleton — whose objects are sets with a chosen element, that is, pointed sets, and whose morphisms are the functions preserving the chosen point.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In Example 3.3, why is associativity automatic?</p>
+<button onclick="check(this,true)" data-ok>Because any two morphisms with the same source and target are equal, there being at most one</button>
+<button onclick="check(this,false)">Because ∼ is transitive</button>
+<button onclick="check(this,false)">Because the category is small</button>
+<button onclick="check(this,false)">Because composition is defined by pairs</button>
+<div class="explain">Uniqueness of parallel morphisms. Both (hg)f and h(gf) are morphisms from the source of f to the target of h. Transitivity is what guarantees they <em>exist</em>; the fact that Hom-sets have at most one element is what makes them <em>equal</em>. Distinguishing existence from uniqueness here is the whole verification, and the same observation makes every mono and epi check in Segment 3 collapse.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>Morphisms, and where set intuition fails</h2>
+
+<p>Aluffi opens §4 with the methodological point: we would like to single out kinds of morphisms the way we single out injective, surjective and bijective functions, but "defining qualities of morphisms by their actions on 'elements' is not an option in the general setting, because objects of an arbitrary category do not (in general) have 'elements'." So every definition below is a statement about composition only.</p>
+
+<div class="definition">
+<p><strong>Definition 4.1.</strong> A morphism f ∈ Hom<sub>C</sub>(A, B) is an <em>isomorphism</em> if it has a two-sided inverse under composition: some g ∈ Hom<sub>C</sub>(B, A) with gf = 1<sub>A</sub> and fg = 1<sub>B</sub>. <span class="cite">— Aluffi §I.4, p. 27</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 4.2.</strong> The inverse of an isomorphism is unique. <span class="cite">— Aluffi §I.4, p. 28</span></p>
+<p><strong>Proof.</strong> If g<sub>1</sub> and g<sub>2</sub> both invert f, compose f on the left by one and on the right by the other, then apply associativity: g<sub>1</sub> = g<sub>1</sub>1<sub>B</sub> = g<sub>1</sub>(fg<sub>2</sub>) = (g<sub>1</sub>f)g<sub>2</sub> = 1<sub>A</sub>g<sub>2</sub> = g<sub>2</sub>. ∎</p>
+<p>Aluffi points out that the argument proves more than it states: if f has a left-inverse g<sub>1</sub> and a right-inverse g<sub>2</sub>, then f is an isomorphism and g<sub>1</sub> = g<sub>2</sub>. Since the inverse is unique, writing f<sup>−1</sup> is unambiguous.</p>
+</div>
+
+<p>Proposition 4.3 collects the consequences: each 1<sub>A</sub> is an isomorphism and is its own inverse; if f is an isomorphism then so is f<sup>−1</sup>, with (f<sup>−1</sup>)<sup>−1</sup> = f; and a composite of isomorphisms is an isomorphism, with (gf)<sup>−1</sup> = f<sup>−1</sup>g<sup>−1</sup>. Aluffi flags the reversal explicitly. Two objects are <em>isomorphic</em>, written A ≅ B, when an isomorphism between them exists, and the three parts of Proposition 4.3 are precisely reflexivity, symmetry and transitivity of that relation.</p>
+
+<p>One consequence deserves its own line. An <em>automorphism</em> of A is an isomorphism A → A, and Aut<sub>C</sub>(A) is the set of them. Composition is associative on it, 1<sub>A</sub> is in it, it is closed under composition, and every element has an inverse in it. So Aut<sub>C</sub>(A) is a <em>group</em> — for every object of every category. Aluffi's next line is "We will soon devote all our attention to groups!"</p>
+
+<div class="definition">
+<p><strong>Definition 4.7.</strong> f ∈ Hom<sub>C</sub>(A, B) is a <em>monomorphism</em> if for all objects Z and all α′, α″ ∈ Hom<sub>C</sub>(Z, A), fα′ = fα″ implies α′ = α″.</p>
+<p><strong>Definition 4.8.</strong> f is an <em>epimorphism</em> if for all objects Z and all β′, β″ ∈ Hom<sub>C</sub>(B, Z), β′f = β″f implies β′ = β″. <span class="cite">— Aluffi §I.4, p. 29</span></p>
+</div>
+
+<p>Cancellation on the left, cancellation on the right. Example 4.9 records that in Set these are exactly the injections and the surjections, so the definitions do generalise what they were built to generalise. And that success is the trap.</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Let C be the category built from ≤ on ℤ, as in Example 3.3. Prove that every morphism of C is both a monomorphism and an epimorphism, and that the only isomorphisms of C are the identities. Conclude that "monomorphism and epimorphism together imply isomorphism" is false. Write your argument before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Every morphism is a monomorphism.</strong> Let f : a → b and suppose α′, α″ : z → a satisfy fα′ = fα″. Both α′ and α″ lie in Hom(z, a), which has at most one element. So α′ = α″, and the implication holds. Note that f played no part in the argument: the condition is satisfied <em>vacuously</em>.</p>
+<p><strong>Every morphism is an epimorphism.</strong> The same argument with the arrows reversed: β′, β″ ∈ Hom(b, z) and that Hom-set has at most one element.</p>
+<p><strong>The only isomorphisms are the identities.</strong> Suppose f : a → b is an isomorphism, so there is g : b → a. Then a ≤ b and b ≤ a, hence a = b by antisymmetry of ≤. So an isomorphism goes from an object to itself; and Hom(a, a) contains only 1<sub>a</sub>. That is Example 4.5.</p>
+<p><strong>Conclusion.</strong> C has non-identity morphisms — 2 → 5, for instance. Each is both a monomorphism and an epimorphism and is not an isomorphism. So the implication fails. ∎</p>
+<p><em>What to notice.</em> The two halves fail for opposite reasons. Mono and epi hold for <em>too few</em> morphisms in the Hom-sets, making the conditions empty; iso fails because there are too few morphisms to build an inverse. Aluffi's comment is that the coincidence in Set "is a special feature of Set, and we should not expect it to hold automatically in every category". He names Ring as a respectable category where it also fails, and says it does hold in every <em>abelian</em> category — with the sting that Set is not one.</p>
+<p><em>And notice where antisymmetry entered.</em> Only in the third paragraph, and nowhere else. The mono and epi arguments never used it. That is the whole difference between a preorder and a poset, seen categorically.</p>
+</details>
+</div>
+
+<canvas id="preorder" width="640" height="330" aria-label="The category built from the relation less-than-or-equal on the integers: five objects in a row with identity loops above them and arrows running left to right, annotated to show that every arrow is both a monomorphism and an epimorphism while only the identity loops are isomorphisms."></canvas>
+
+<p>The picture is the whole counterexample. Every arrow in it is a monomorphism and an epimorphism. Only the loops are isomorphisms.</p>
+
+<div class="you-try">
+<p><strong>You try.</strong> Example 4.6 defines a <em>groupoid</em>: a category in which every morphism is an isomorphism. Aluffi says the reader already knows many examples. Find two. Then decide, for a relation ∼ that is reflexive and transitive, exactly which extra property makes Example 3.3's category a groupoid — this is his Exercise 4.2 — and check your answer against the ≤-on-ℤ case, where the answer had better be that it is <em>not</em> a groupoid.</p>
+<p>Then the harder half: at1-10 built a category from a partially ordered set and Aluffi builds one from a preorder. Using the guided proof, say in one sentence what antisymmetry contributes, phrased entirely in the language of this unit — no mention of ≤.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In the ≤-on-ℤ category, why do the definitions of monomorphism and epimorphism hold vacuously?</p>
+<button onclick="check(this,false)">Because there are no morphisms between unrelated objects</button>
+<button onclick="check(this,true)" data-ok>Because every Hom-set has at most one element, so the hypothesis α′ ≠ α″ can never be met</button>
+<button onclick="check(this,false)">Because ≤ is antisymmetric</button>
+<button onclick="check(this,false)">Because the category is small</button>
+<div class="explain">At most one element per Hom-set. Both cancellation conditions say "if two parallel morphisms become equal after composing with f, they were equal" — and here any two parallel morphisms are equal to begin with, so there is nothing to prove and nothing being said about f. The first option is true of the category but is not the reason: even between <em>related</em> objects there is only one arrow, and that is what does the work.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Aluffi proves Aut<sub>C</sub>(A) is a group for every object A of every category C. What does that tell you about where groups come from?</p>
+<button onclick="check(this,false)">That every group is an automorphism group of some object</button>
+<button onclick="check(this,true)" data-ok>That groups arise automatically from the categorical axioms alone — symmetry of an object is a consequence of composition and inverses, not an extra structure</button>
+<button onclick="check(this,false)">That Set is the only category with interesting automorphism groups</button>
+<button onclick="check(this,false)">That every category is a groupoid</button>
+<div class="explain">They fall out of the axioms. No structure is added: associativity is a category axiom, 1<sub>A</sub> is a category axiom, closure and inverses come from Proposition 4.3. So "the symmetries of an object" is not a notion one has to define separately for each kind of object — it is a consequence of being in a category at all. The first option is a genuine theorem in some settings but is not what has been proved here, and Aluffi does not claim it.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which of these is Aluffi's stated reason for defining monomorphism by cancellation instead of by injectivity?</p>
+<button onclick="check(this,false)">Cancellation is easier to check in practice</button>
+<button onclick="check(this,true)" data-ok>Objects of an arbitrary category have no elements, so there is nothing for a morphism to be injective on</button>
+<button onclick="check(this,false)">Injectivity is not preserved by composition</button>
+<button onclick="check(this,false)">Because monomorphisms and injections differ in Set</button>
+<div class="explain">No elements. Aluffi says it directly in the opening paragraph of §4, and adds that this is why §§2.4–2.6 spent time analysing injectivity from several viewpoints: the element-free viewpoints are the ones that transfer. The last option is the opposite of the truth — Example 4.9 says mono and injective coincide in Set exactly, which is what makes the definition a reasonable generalisation in the first place.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. A category is objects, Hom-sets and composition, and nearly all of it is about arrows.</strong> Definition 3.1: a class of objects, a set Hom(A, B) for each pair, identities, composition, associativity, unit laws, and disjointness of Hom-sets — the last saying that a morphism remembers its source and target, without which composition is not well defined. Objects form a class rather than a set because there is no set of all sets; a category whose objects do form a set is <em>small</em>. End(A) is a pointed set closed under composition.</p>
+<p><strong>2. The important examples are not sets with functions.</strong> Example 3.3 turns any reflexive transitive relation into a category: morphisms are bare pairs, Hom-sets have at most one element, reflexivity gives identities and transitivity gives composition, and associativity is free because parallel morphisms coincide. Antisymmetry is not assumed. Example 3.4 is the power set under inclusion, an instance of 3.3. Example 3.5 builds slice categories, whose objects are arrows into a fixed A and whose morphisms are commuting triangles — with Example 3.8 giving pointed sets as a special case.</p>
+<p><strong>3. Arrow-only definitions generalise the set notions and then break the relations between them.</strong> Isomorphism is a two-sided inverse; the inverse is unique by a five-step computation using only associativity and the unit laws; Aut(A) is therefore a group, for every object of every category. Mono and epi are left and right cancellation, and in Set they are exactly injective and surjective. But in the ≤-on-ℤ category every morphism is both, vacuously, while the only isomorphisms are the identities. Mono plus epi does not give iso — a special feature of Set, failing also in Ring, holding in abelian categories, of which Set is not one.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Aluffi, <em>Algebra: Chapter 0</em>, §I.3 "Categories" and §I.4 "Morphisms". §I.3: Steenrod's phrase <em>abstract nonsense</em> and the description of categories as being about structure rather than meaning; §3.1 on the class-versus-set difficulty, Russell's paradox, the alternative of a universe, and the term <em>small</em>; and the footnote deferring functors to Chapter VIII (p. 18). Definition 3.1 with all five clauses including disjointness of Hom-sets, the prototype of sets and functions, endomorphisms and End<sub>C</sub>(A) as a pointed set closed under composition, the relaxation to arrow notation, and commutative diagrams (p. 19). §3.2's remark that 90% of the definition concerns morphisms and that the morphisms are the important constituents, Example 3.2 on Set, and Example 3.3 on a reflexive transitive relation (p. 20); the verification of identities in Example 3.3 and the observation that there are at most one morphism per pair and none between unrelated objects (p. 21); Example 3.4 on the power set under inclusion with its footnote reducing it to Example 3.3, the remark on families of open subsets in algebraic geometry, and Example 3.5 introducing slice categories with the invitation to define the morphisms independently (p. 22); Example 3.6 applying the construction to ≤ on ℤ with A = 3, Example 3.7 on coslice categories, Example 3.8 on Set<sup>∗</sup>, and Example 3.9 (p. 24); Example 3.10 on the fibered version (p. 25); Exercises 3.3, 3.4, 3.5 and 3.7 (pp. 26–27). §I.4: the opening remark that objects of a general category have no elements and the reference back to §§2.4–2.6, and Definition 4.1 of an isomorphism (p. 27); Proposition 4.2 with its one-line proof and the observation that a left-inverse plus a right-inverse already forces an isomorphism, Proposition 4.3 in three parts with the reversal (gf)<sup>−1</sup> = f<sup>−1</sup>g<sup>−1</sup>, the definition of isomorphic objects, and Examples 4.4 and 4.5 (p. 28); Example 4.6 on groupoids, automorphisms and the four bullet points making Aut<sub>C</sub>(A) a group, §4.2's motivation, Definitions 4.7 and 4.8, and Example 4.9 identifying monomorphisms and epimorphisms in Set with injections and surjections (p. 29); Example 4.10 on the categories of Example 3.3, and the paragraph observing that mono plus epi gives iso in Set but not in Ring, that it holds in abelian categories, that Set is not one, and that a surjection having a right-inverse can also fail in general (p. 30). Every folio was read off the page cited; the offset for this text is PDF = printed + 23, verified directly against printed pp. 18, 27 and 30.
+<p><strong>Not established here.</strong> Anything about persistence, homology or filtrations — none appears in Aluffi §I.3–I.4, so every clause of the mission strip is a forward pointer. <strong>In particular, functors are not available in this unit at all</strong>: Aluffi's footnote on p. 18 defers them to Chapter VIII, which is cat-03's resource. The strip's picture of homology groups with induced maps is the image of a functor, and the fact that such an image contains the identities and is closed under composition is a consequence of functoriality; at1-10 established that H<sub>n</sub> is a functor from Hatcher §2.3, so the claim holds elsewhere in the programme, but nothing in this lesson uses or re-proves it. Also not established: that the strip's proposal defines a category. Definition 3.1 is the checklist a proposal must meet; running the check is cat-03's work.</p>
+<p><strong>Sharpened rather than deferred.</strong> One clause can be improved now. Example 3.3 requires only reflexivity and transitivity, so the index of a filtration need not be a partially ordered set — a preorder suffices, and Aluffi's construction is strictly more general than the poset version at1-10 took from Hatcher. The guided proof isolates the difference: antisymmetry is used nowhere in the monomorphism and epimorphism arguments and only in showing the isomorphisms are the identities, so categorically it says exactly that no two distinct objects are isomorphic. This also confirms, from a second source, the correction recorded in at1-10, where Hatcher's compressed sentence about antisymmetry needed the unordered reading of "between".</p>
+<p><strong>Stated but not proved.</strong> The class-versus-set apparatus, which Aluffi describes and then sets aside with the assurance that it affects no proof in the book. Proposition 2.3 and Exercise 2.5 of §I.2, quoted through Example 4.9 for the identification of monomorphisms and epimorphisms in Set with injections and surjections. Lemma IX.1.9 on abelian categories and §III.2.3 on Ring, both named in the paragraph after Example 4.10 and both far outside this module.</p>
+<p><strong>Deferred.</strong> Examples 3.9 and 3.10, the two-object and fibered variations on slice categories, described in Aluffi and left to Exercise 3.11. Universal properties, initial and final objects, quotients, products and coproducts, all in §I.5, which is cat-02's resource. Functors, natural transformations and the Yoneda lemma, Chapter VIII, cat-03's and cat-04's.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('preorder');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82',bad='#e06c75';
+  var xs=[100,205,310,415,520], y=150, r=20;
+  var labs=['1','2','3','4','5'];
+
+  g.textAlign='center';
+  g.font='15px Segoe UI, sans-serif';
+  g.fillStyle=ink;
+  g.fillText('the category from  ≤  on  ℤ   (Example 3.3)',320,32);
+
+  // objects
+  for(var i=0;i<5;i++){
+    g.strokeStyle='#2a333d';g.lineWidth=1.5;
+    g.beginPath();g.arc(xs[i],y,r,0,Math.PI*2);g.stroke();
+    g.fillStyle=ink;g.font='16px Georgia, serif';
+    g.fillText(labs[i],xs[i],y+5);
+  }
+
+  // consecutive arrows
+  function arrow(x1,x2,yy,col){
+    g.strokeStyle=col;g.lineWidth=2;
+    g.beginPath();g.moveTo(x1,yy);g.lineTo(x2,yy);g.stroke();
+    g.beginPath();g.moveTo(x2,yy);g.lineTo(x2-8,yy-5);g.lineTo(x2-8,yy+5);g.closePath();
+    g.fillStyle=col;g.fill();
+  }
+  for(var j=0;j<4;j++){ arrow(xs[j]+r+3,xs[j+1]-r-3,y,acc); }
+
+  // one skip arrow, arcing below, to show non-consecutive relations
+  g.strokeStyle=acc;g.lineWidth=1.5;
+  g.beginPath();
+  g.moveTo(xs[0],y+r+2);
+  g.quadraticCurveTo((xs[0]+xs[3])/2,y+72,xs[3],y+r+2);
+  g.stroke();
+  g.beginPath();g.moveTo(xs[3],y+r+2);g.lineTo(xs[3]-9,y+r+12);g.lineTo(xs[3]+2,y+r+14);g.closePath();
+  g.fillStyle=acc;g.fill();
+  g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+  g.fillText('1 ≤ 4',(xs[0]+xs[3])/2,y+66);
+
+  // identity loops above each object
+  for(var k=0;k<5;k++){
+    g.strokeStyle=good;g.lineWidth=2;
+    g.beginPath();g.arc(xs[k],y-r-11,11,0.7*Math.PI,2.5*Math.PI);g.stroke();
+    g.beginPath();g.moveTo(xs[k]+8,y-r-4);g.lineTo(xs[k]+13,y-r-13);g.lineTo(xs[k]+2,y-r-12);g.closePath();
+    g.fillStyle=good;g.fill();
+  }
+  g.fillStyle=good;g.font='12px Segoe UI, sans-serif';
+  g.fillText('identities — the only isomorphisms',320,y-r-32);
+
+  // annotations
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(50,y+96);g.lineTo(590,y+96);g.stroke();
+  g.fillStyle=acc;g.font='13px Segoe UI, sans-serif';
+  g.fillText('every arrow is a monomorphism AND an epimorphism — vacuously',320,y+118);
+  g.fillStyle=dim;
+  g.fillText('at most one morphism per Hom-set, so parallel arrows are already equal',320,y+140);
+})();
+</script>
+</body></html>
