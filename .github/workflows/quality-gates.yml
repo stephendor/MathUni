@@ -33,4 +33,18 @@ jobs:
       - run: python scripts/validate_syllabus.py --selftest
       - run: python scripts/check_id_consistency.py
       - run: python scripts/lesson_lint.py --selftest
+      - name: Lint the committed lesson corpus (obs 150)
+        # lesson_lint.py was only ever invoked with an explicit path or via
+        # --selftest, so it never re-validated the lessons already on disk
+        # when it landed — a lesson nobody regenerates is a lesson nobody
+        # checks. This ran non-blocking while six pre-existing lessons failed;
+        # PR #11 repaired those and la-01's Markdown leaks are fixed here, so
+        # the whole corpus now passes and this is a hard gate as intended.
+        run: |
+          status=0
+          for f in lessons/*/*.html; do
+            echo "--- $f ---"
+            python scripts/lesson_lint.py "$f" || status=1
+          done
+          exit "$status"
       - run: python -m pytest -q
