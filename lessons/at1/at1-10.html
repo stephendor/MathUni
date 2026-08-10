@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at1-10 — The formal viewpoint: axioms and functoriality</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology I · Nexus College</p>
+<h1>The formal viewpoint: axioms and functoriality <span class="cite">(at1-10)</span></h1>
+
+<div class="hook">
+<p>This unit proves almost nothing new, and that is the point. Nine units built one homology theory out of chains, degrees, exact sequences and coefficients. Hatcher now steps back and asks what was essential. The answer comes in two halves. First: three axioms, from which the whole Mayer–Vietoris machinery of at1-09 can be rederived without ever mentioning a chain. Second: the observation that H<sub>n</sub> is a <em>functor</em>, and that so is almost everything else you have built — the singular chain complex, the long exact sequence of a pair, the passage to homology. It is the last unit of at1, and its job is to say what the previous nine were.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A partially ordered set is a category. A functor from it into Top is a family of spaces with maps between comparable ones. Compose with H<sub>n</sub> and you get a group for each index and a homomorphism for each comparison — which is what a persistence module is. Predict: how many of the two functors in that composite does this module actually construct?</p>
+<button onclick="check(this,false)">Both — that is what "the bridge to tda1" means</button>
+<button onclick="check(this,true)" data-ok>One. H<sub>n</sub> : Top → Ab is this module's; the functor from the poset into Top is not built here at all</button>
+<button onclick="check(this,false)">Neither — Hatcher never mentions posets</button>
+<div class="explain">One. Hatcher does give the poset-as-category on p. 163 and the composition rule for functors on the same page, so the <em>composite</em> can be formed here honestly. But the functor from the index poset into Top — a filtration — is nowhere in either source, and Hatcher never uses the word persistence. Keep the count in mind when you read the mission strip below: a composite needs both arrows, and this module supplies one of them.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Homology as a functor Top -> Ab is what makes persistence a functor too — the bridge to cat and tda1.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires, and this time the mathematics in it is right while the causal word is loose.</p>
+<p><strong>What is right.</strong> H<sub>n</sub> really is a functor Top → Ab; Hatcher opens the second half of §2.3 by saying so. And a persistence module really is a functor: Hatcher gives the poset-as-category example on p. 163, functor composition on the same page, and from those two facts alone Segment 3 constructs the composite P → Top → Ab — a group for every index and a homomorphism for every comparison. That construction is done here, from the source, and it is genuinely the shape of a persistence module.</p>
+<p><strong>What is loose is the word "makes".</strong> A composite of two functors needs both factors. This module built exactly one of them. The other — the functor from a filtration parameter into Top — is nowhere in Hatcher and nowhere in at1; it is tda1's to construct, and it is where all the analytic content of persistence lives, including stability, which has no counterpart anywhere in this module. So homology being a functor is a <em>necessary ingredient</em> of persistence being one, not the reason for it. That distinction is small in words and large in practice, and Problem 5(d) is built around it.</p>
+<p><strong>The hook overstates too, and is corrected in Segment 1.</strong> "Forget the construction — homology is pinned down by a handful of axioms" is the standard slogan and it is not what §2.3 proves. Hatcher is careful: homology theories are in general <em>not</em> determined by their coefficient groups. Singular homology is, but only under the dimension axiom, and only by Theorem 4.59, which is in Chapter 4 and outside this module entirely. What §2.3 establishes is the weaker and still substantial claim that a great deal — all of Mayer–Vietoris, for one — follows from the axioms without the construction.</p>
+<p><strong>Machinery from elsewhere.</strong> The algebraic lemma finishing the axiomatic Mayer–Vietoris derivation is Exercise 38 of §2.1 and is quoted, not proved. Theorem 4.59 and Theorem 2A.1 are named and not used. The classifying space material at the end of §2.3 leans on Example 1B.7 and on the subdivision of Δ<sup>n</sup> × I, neither in this module.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Three axioms</h2>
+
+<div class="definition">
+<p><strong>A reduced homology theory</strong> on CW complexes assigns to each non-empty CW complex X a sequence of abelian groups h̃<sub>n</sub>(X), and to each map f : X → Y a sequence of homomorphisms f<sub>∗</sub>, with (fg)<sub>∗</sub> = f<sub>∗</sub>g<sub>∗</sub> and 𝟙<sub>∗</sub> = 𝟙, subject to: <span class="cite">— Hatcher §2.3, p. 160</span></p>
+<p><strong>(1) Homotopy.</strong> If f ≃ g : X → Y then f<sub>∗</sub> = g<sub>∗</sub>.</p>
+<p><strong>(2) Exactness.</strong> There are boundary homomorphisms ∂ : h̃<sub>n</sub>(X/A) → h̃<sub>n−1</sub>(A) for each CW pair (X, A), fitting into an exact sequence ··· → h̃<sub>n</sub>(A) → h̃<sub>n</sub>(X) → h̃<sub>n</sub>(X/A) →<sup>∂</sup> h̃<sub>n−1</sub>(A) → ···, and these ∂ are <em>natural</em>: a map of pairs f : (X, A) → (Y, B) gives a commuting square with the induced f̄ : X/A → Y/B.</p>
+<p><strong>(3) Additivity.</strong> For a wedge sum X = ⋁<sub>α</sub> X<sub>α</sub>, the direct sum map ⊕<sub>α</sub> i<sub>α∗</sub> : ⊕<sub>α</sub> h̃<sub>n</sub>(X<sub>α</sub>) → h̃<sub>n</sub>(X) is an isomorphism for each n.</p>
+</div>
+
+<p>Singular reduced homology satisfies all three, and you proved every case: (1) is Theorem 2.10 from at1-07, (2) is the long exact sequence of §2.1 in the good-pair form used throughout at1-08, and (3) is Corollary 2.25, which at1-08 consumed inside Lemma 2.34.</p>
+
+<p>Two remarks that are easy to read past. First, negative subscripts are permitted. Singular homology is zero in negative degrees by definition, but Hatcher notes that theories with non-trivial groups in negative dimensions exist. Second — and this is the trap — axiom (3) looks like a technicality and is not. For <em>finite</em> wedge sums it follows from the first two axioms. For infinite ones it does not, and Hatcher points to an example in the exercises. An axiom that is redundant on every finite complex and independent in general is exactly the kind that gets quietly dropped.</p>
+
+<p>It was, in fact, dropped. The Eilenberg–Steenrod list of 1952 omitted axiom (3), because the focus there was on finite complexes; axiom (3) seems to have appeared first in Milnor in 1962. What that list <em>did</em> include was a <em>dimension axiom</em>: h<sub>n</sub>(point) = 0 for n ≠ 0.</p>
+
+<div class="warn">
+<p><strong>The dimension axiom is a normalisation, and the reason matters.</strong> Hatcher's argument is one line: set h<sub>n</sub>(X, A) = H<sub>n+k</sub>(X, A) for a fixed non-zero k. That is a homology theory in which the dimension axiom fails, produced by shifting degrees and doing nothing else. So the failure of the axiom carries, by itself, no information at all. But shortly after 1952 topologists found <em>bordism</em>, whose coefficient groups are non-zero in infinitely many dimensions — a theory for which the axiom fails substantively rather than by relabelling. The axiom went from being an obvious truth to being a choice.</p>
+</div>
+
+<p>Reduced and unreduced theories are equivalent, and Hatcher gives both directions: from unreduced h, set h̃<sub>n</sub>(X) = Ker(h<sub>n</sub>(X) → h<sub>n</sub>(point)); from reduced h̃, set h<sub>n</sub>(X) = h̃<sub>n</sub>(X<sub>+</sub>) where X<sub>+</sub> is X with a disjoint point added. The groups h<sub>n</sub>(x<sub>0</sub>) ≅ h̃<sub>n</sub>(S<sup>0</sup>) are called the <em>coefficients</em> of the theory, by analogy with at1-09.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Hatcher writes that homology theories are not in general determined by their coefficient groups. Does that contradict the slogan that homology is pinned down by its axioms?</p>
+<button onclick="check(this,false)">Yes — the slogan is simply false</button>
+<button onclick="check(this,true)" data-ok>No, but it sharply limits it: singular homology is determined by its coefficients, and only under the dimension axiom, by a theorem in Chapter 4</button>
+<button onclick="check(this,false)">No — the axioms determine every homology theory uniquely</button>
+<button onclick="check(this,false)">Yes, because bordism satisfies the axioms too</button>
+<div class="explain">Limited, not contradicted. Hatcher's statement is precise: if h is a homology theory on CW pairs whose coefficient groups h<sub>n</sub>(x<sub>0</sub>) vanish for n ≠ 0, then h<sub>n</sub>(X, A) ≅ H<sub>n</sub>(X, A; G) naturally, with G = h<sub>0</sub>(x<sub>0</sub>). That is Theorem 4.59, proved in Chapter 4 and not available here. The dimension axiom is a hypothesis of it, and bordism is exactly a theory satisfying the three axioms without satisfying that hypothesis — so the axioms alone do <em>not</em> pin down a theory. Keep both halves.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Mayer–Vietoris again, with no chains at all</h2>
+
+<p>Here is the best evidence that the axioms carry real weight. at1-09 built the Mayer–Vietoris sequence out of a short exact sequence of chain complexes, and needed Proposition 2.21 and barycentric subdivision to do it. The same sequence follows from the axioms alone.</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Let X = A ∪ B be a CW complex with A and B subcomplexes. Derive the Mayer–Vietoris sequence from the axioms, using no chains. The one algebraic input you may quote is Exercise 38 of §2.1: a ladder of exact sequences in which every third vertical map is an isomorphism yields a long exact sequence in the remaining terms. Write your argument before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p>The inclusion (B, A ∩ B) ↪ (X, A) induces a map between the two long exact sequences supplied by axiom (2), giving a commuting ladder</p>
+<p>··· → h<sub>n+1</sub>(B, A ∩ B) → h<sub>n</sub>(A ∩ B) → h<sub>n</sub>(B) → h<sub>n</sub>(B, A ∩ B) → ···<br>
+··· → h<sub>n+1</sub>(X, A) → h<sub>n</sub>(A) → h<sub>n</sub>(X) → h<sub>n</sub>(X, A) → ···</p>
+<p>with vertical maps induced by the inclusion. Commutativity is exactly the naturality clause of axiom (2) — that is what naturality was for.</p>
+<p>Now the key observation: B/(A ∩ B) = X/A. Collapsing A ∩ B inside B gives the same space as collapsing A inside X, because everything outside B in X lies in A. Axiom (2) expresses the relative groups in terms of that quotient, so the vertical maps between the relative terms are isomorphisms.</p>
+<p>Those relative terms are every third entry of the ladder. Quoting Exercise 38, a ladder of exact sequences with every third vertical map an isomorphism yields a long exact sequence in the remaining, non-isomorphic terms. In this case that sequence is</p>
+<p>··· → h<sub>n</sub>(A ∩ B) →<sup>Φ</sup> h<sub>n</sub>(A) ⊕ h<sub>n</sub>(B) →<sup>Ψ</sup> h<sub>n</sub>(X) →<sup>∂</sup> h<sub>n−1</sub>(A ∩ B) → ··· ∎</p>
+<p><em>What to notice.</em> No chains, no subdivision, no Proposition 2.21 — and the conclusion holds for <em>every</em> homology theory, not just singular. The cost is the hypothesis: A and B must be subcomplexes of a CW complex, where at1-09's derivation only needed their interiors to cover. Two proofs of one theorem, with different hypotheses and different reach. If someone hands you a black box satisfying the three axioms, this is the derivation you have.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which axiom does the derivation above depend on most heavily?</p>
+<button onclick="check(this,false)">Axiom (1), homotopy invariance</button>
+<button onclick="check(this,true)" data-ok>Axiom (2) — twice: for the two long exact sequences, and for the naturality that makes the ladder commute</button>
+<button onclick="check(this,false)">Axiom (3), additivity</button>
+<button onclick="check(this,false)">All three equally</button>
+<div class="explain">Axiom (2), and specifically its naturality clause. Without the long exact sequences there is no ladder; without naturality the ladder does not commute and Exercise 38 does not apply. This is why Hatcher builds naturality into axiom (2) rather than listing it separately — the clause that looks like fine print is the one the derivation turns on. Axioms (1) and (3) are not used here at all.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>Categories, functors, and one composite</h2>
+
+<div class="definition">
+<p><strong>Category.</strong> A category 𝒞 is: a collection Ob(𝒞) of <em>objects</em>; for each pair X, Y a set Mor(X, Y) of <em>morphisms</em>, including a distinguished 𝟙<sub>X</sub> ∈ Mor(X, X); and a composition Mor(X, Y) × Mor(Y, Z) → Mor(X, Z) satisfying f ∘ 𝟙 = f, 𝟙 ∘ f = f and associativity. <span class="cite">— Hatcher §2.3, p. 162</span></p>
+</div>
+
+<p>The obvious examples are the ones you want: spaces and continuous maps; CW complexes and continuous maps; groups and homomorphisms; abelian groups and homomorphisms; modules over a fixed ring; sets and functions. Hatcher then gives four that are less obvious and more instructive, and two of them matter for the rest of this lesson.</p>
+
+<p>A <em>group</em> G is a category with one object whose morphisms are the elements of G — composition is the multiplication, and the category axioms reduce to two of the three group axioms. Drop invertibility and you have a monoid, which is to say: a monoid <em>is</em> a category with one object. The <em>homotopy category</em> has spaces as objects and homotopy <em>classes</em> of maps as morphisms; this is well defined because f<sub>0</sub>g<sub>0</sub> ≃ f<sub>1</sub>g<sub>1</sub> whenever f<sub>0</sub> ≃ f<sub>1</sub> and g<sub>0</sub> ≃ g<sub>1</sub>. And chain complexes with chain maps form a category, with subcategories obtained by restricting to exact sequences, to short exact sequences, or to complexes vanishing outside a range.</p>
+
+<div class="theorem">
+<p><strong>Posets are categories.</strong> A partially ordered set (X, ≤) is a category whose objects are the elements of X, with a unique morphism from x to y whenever x ≤ y. Reflexivity x ≤ x supplies 𝟙; transitivity supplies composition; and antisymmetry says there is at most one morphism between any two objects. <span class="cite">— Hatcher §2.3, p. 163</span></p>
+</div>
+
+<p>Hold on to that one. It is the shape a filtration parameter has, and Segment 3 ends with it.</p>
+
+<div class="definition">
+<p><strong>Functor.</strong> A functor F : 𝒞 → 𝒟 assigns to each object X of 𝒞 an object F(X) of 𝒟, and to each morphism f ∈ Mor(X, Y) a morphism F(f) ∈ Mor(F(X), F(Y)), such that F(𝟙) = 𝟙 and F(f ∘ g) = F(f) ∘ F(g). A <em>contravariant</em> functor instead sends f ∈ Mor(X, Y) to F(f) ∈ Mor(F(Y), F(X)), with F(f ∘ g) = F(g) ∘ F(f). <span class="cite">— Hatcher §2.3, p. 163</span></p>
+</div>
+
+<p>For H<sub>n</sub> the two conditions are literally the two properties of induced maps you proved in at1-07: 𝟙<sub>∗</sub> = 𝟙 and (fg)<sub>∗</sub> = f<sub>∗</sub>g<sub>∗</sub>. Nothing new is being asserted; a name is being given. The classical contravariant example is the dual vector space V ↦ V<sup>∗</sup>, with f : V → W going to f<sup>∗</sup> : W<sup>∗</sup> → V<sup>∗</sup>; the contravariant version of homology is cohomology, and it is Chapter 3.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: singular homology is a composite of functors.</strong> <span class="cite">— Hatcher §2.3, pp. 163–164</span></p>
+<p>The <em>singular chain complex functor</em> sends a space X to its complex of singular chains, and a map f : X → Y to the induced chain map. Domain: spaces and continuous maps. Codomain: chain complexes and chain maps.</p>
+<p>The <em>algebraic homology functor</em> sends a chain complex to its sequence of homology groups, and a chain map to the induced homomorphisms. Domain: chain complexes and chain maps. Codomain: sequences of abelian groups and sequences of homomorphisms.</p>
+<p>Their composite is the functor assigning to a space its singular homology. And the first factor itself factors: X ↦ S(X), the singular complex as a Δ-complex, followed by ⟨ what does the second functor do to a Δ-complex? ⟩. On morphisms, f : X → Y induces a map S(X) → S(Y) by composing singular simplices with f, which is a Δ-map, and a Δ-map induces a chain map ⟨ taking what to what? ⟩.</p>
+<p>One more, and you should fill it in: the long exact sequence of a pair is also a functor, from pairs of spaces to exact sequences. It too is a composite of two — the first assigning to (X, A) ⟨ … ⟩, the second assigning to that ⟨ … ⟩.</p>
+</div>
+
+<p>Finally, <em>natural transformations</em>. Given functors F, G : 𝒞 → 𝒟, a natural transformation T assigns a morphism T<sub>X</sub> : F(X) → G(X) to each object X, such that for every f : X → Y the evident square commutes. Two you have already met: the boundary maps H<sub>n</sub>(X, A) → H<sub>n−1</sub>(A) in any homology theory, and the change-of-coefficient homomorphisms H<sub>n</sub>(X; G<sub>1</sub>) → H<sub>n</sub>(X; G<sub>2</sub>) induced by a homomorphism G<sub>1</sub> → G<sub>2</sub> — whose naturality you proved in at1-09, as the preliminary observation in the proof of Lemma 2.49.</p>
+
+<h3>Where the mission strip actually lands</h3>
+
+<p>Now put the pieces together, using only what is on the page. A poset P is a category. A functor 𝒳 : P → Top is therefore a space X<sub>p</sub> for each p, and a continuous map X<sub>p</sub> → X<sub>q</sub> for each p ≤ q, with identities and composites matching. A nested family of subspaces with their inclusions is exactly such a functor. And H<sub>n</sub> is a functor Top → Ab. Functors compose, so H<sub>n</sub> ∘ 𝒳 : P → Ab is a functor: an abelian group for every index, and a homomorphism for every comparison, compatible under composition.</p>
+
+<canvas id="compose" width="640" height="330" aria-label="Three categories in a row: a poset P, the category of topological spaces, and the category of abelian groups, joined by two functors. The first arrow, a filtration, is marked as not built in this module; the second, homology, is marked as built here. A composite arrow beneath them is labelled as the shape of a persistence module."></canvas>
+
+<p>That composite is the shape of a persistence module, and the derivation above is honest: every ingredient is Hatcher's, on pages 163 of §2.3. But look at the picture and count the arrows. This module constructed the right-hand one. The left-hand one — a filtration, regarded as a functor out of an index poset — appears in neither source, and Hatcher never uses the word persistence. All of the analytic content that makes persistence a subject rather than an observation, stability above all, lives on that left arrow and in tda1.</p>
+
+<p>So the strip's mathematics is right and its causal word is loose. Homology being a functor is a necessary ingredient of persistence being one. It is not the reason, because a composite requires both factors, and half of this one has not been built.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Theorem 2.10 says homotopic maps induce the same homomorphism. What does that add to "H<sub>n</sub> is a functor on Top"?</p>
+<button onclick="check(this,false)">Nothing — it is one of the two functor conditions</button>
+<button onclick="check(this,true)" data-ok>That the functor factors through the homotopy category: H<sub>n</sub> does not distinguish maps that hTop has already identified</button>
+<button onclick="check(this,false)">That H<sub>n</sub> is contravariant</button>
+<button onclick="check(this,false)">That H<sub>n</sub> is a natural transformation</button>
+<div class="explain">It factors. The functor conditions are 𝟙<sub>∗</sub> = 𝟙 and (fg)<sub>∗</sub> = f<sub>∗</sub>g<sub>∗</sub>, and neither mentions homotopy. Theorem 2.10 says more: H<sub>n</sub> is constant on homotopy classes, so it is the composite of the quotient functor Top → hTop with a functor hTop → Ab. Corollary 2.11 is then immediate — a functor sends isomorphisms to isomorphisms, and an isomorphism in hTop is precisely a homotopy equivalence. The formal viewpoint turns a corollary that needed a proof into one that needs a sentence.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In the composite P → Top → Ab, which factor did this module build?</p>
+<button onclick="check(this,false)">Both</button>
+<button onclick="check(this,true)" data-ok>Only H<sub>n</sub> : Top → Ab. The functor out of the poset is a filtration, and neither source constructs one</button>
+<button onclick="check(this,false)">Only the functor out of the poset</button>
+<button onclick="check(this,false)">Neither; the composite is not a functor</button>
+<div class="explain">Only the right-hand one. Hatcher gives the poset-as-category and functor composition, which is why the composite can be formed here at all — that part is not being borrowed on credit. But the filtration itself is tda1's, and so is everything that makes persistence useful. The general habit worth taking from this: when a slogan says one thing "makes" another, count the ingredients, and check which of them you actually have.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Hatcher runs the bridge in the other direction too. To a category 𝒞 he associates a Δ-complex B𝒞, the <em>classifying space</em>, whose n-simplices are strings X<sub>0</sub> → X<sub>1</sub> → ··· → X<sub>n</sub> of morphisms, with faces obtained by deleting an X<sub>i</sub> and composing the two adjacent morphisms when i ≠ 0, n. Work out the three faces of the 2-simplex X<sub>0</sub> → X<sub>1</sub> → X<sub>2</sub> and check them against Hatcher's list. Then take 𝒞 to be the face poset of a Δ-complex X, ordered by inclusion, and convince yourself that B𝒞 is the barycentric subdivision of X.</p>
+<p>Then the harder half: a functor 𝒞 → 𝒟 induces a map B𝒞 → B𝒟, and a natural transformation induces a <em>homotopy</em> between the induced maps. Say what that correspondence suggests about the relationship between category theory and homotopy theory — and then say honestly how much of it this unit has proved.</p>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Three axioms, and one of them is sneakier than it looks.</strong> Homotopy invariance; a natural long exact sequence for each CW pair; additivity over wedge sums. Singular homology satisfies all three — Theorem 2.10, the §2.1 sequences, Corollary 2.25. Axiom (3) is redundant for finite wedges and independent in general, which is why Eilenberg–Steenrod omitted it and Milnor restored it. Their dimension axiom is a normalisation, since regrading gives a theory violating it for free — but bordism violates it substantively, so the axioms do not pin down a theory. Singular homology is determined by its coefficients, under the dimension axiom, by Theorem 4.59 in Chapter 4.</p>
+<p><strong>2. The axioms have real reach: Mayer–Vietoris, with no chains.</strong> The inclusion (B, A ∩ B) ↪ (X, A) gives a ladder of the two long exact sequences, commuting by the naturality clause of axiom (2). Since B/(A ∩ B) = X/A, every third vertical map is an isomorphism, and the algebraic fact of Exercise 38 extracts a long exact sequence from the rest — which is Mayer–Vietoris. It holds for every homology theory, at the cost of requiring CW subcomplexes where at1-09 needed only that the interiors cover.</p>
+<p><strong>3. Functoriality names what was already there, and composes.</strong> A category is objects, morphism sets and composition; groups, monoids, posets, hTop and chain complexes are all examples. A functor's two conditions are literally 𝟙<sub>∗</sub> = 𝟙 and (fg)<sub>∗</sub> = f<sub>∗</sub>g<sub>∗</sub>. H<sub>n</sub> is a functor Top → Ab, and by Theorem 2.10 it factors through hTop, which makes Corollary 2.11 a one-line consequence. Since posets are categories and functors compose, P → Top → Ab is a functor: a group per index, a map per comparison. That is the shape of a persistence module — and this module built the second arrow only.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em>, §2.3 "The Formal Viewpoint". §"Axioms for Homology": the definition of a reduced homology theory on CW complexes with the three axioms, including the naturality of the boundary maps inside axiom (2), and the remark that negative subscripts are permitted and that axiom (3) is deducible from the first two for finite wedge sums only (p. 160); the unreduced form of the axioms, the attribution to Eilenberg and Steenrod 1952 with axiom (3) omitted there and traced to Milnor 1962, the dimension axiom with Hatcher's regrading argument that it is a normalisation and the citation of bordism as a theory violating it substantively, the equivalence of reduced and unreduced theories in both directions, the definition of the coefficients h<sub>n</sub>(x<sub>0</sub>) ≅ h̃<sub>n</sub>(S<sup>0</sup>), and the statement that homology theories are in general not determined by their coefficients while singular homology is, referred forward to Theorem 4.59 (p. 161); the derivation of Mayer–Vietoris from the axioms via the ladder induced by (B, A ∩ B) ↪ (X, A), the observation B/(A ∩ B) = X/A, and the appeal to Exercise 38 of §2.1 (pp. 161–162). §"Categories and Functors": the definition of a category in three clauses, and the examples of spaces, CW complexes, groups, abelian groups, modules and sets (p. 162); the examples where morphisms are not functions — a group or monoid as a one-object category, a partially ordered set with a unique morphism for each relation, the homotopy category with its well-definedness check, and chain complexes with chain maps — together with the definition of a functor, covariance and contravariance, and the dual vector space example (p. 163); the list of functors met in Chapter 2, including the singular chain complex functor, the algebraic homology functor, their composite, the factorisation through Δ-complexes and Δ-maps, and the long exact sequence of a pair as a functor (p. 164); natural transformations with the commuting square, the two examples of boundary maps and change-of-coefficient homomorphisms, and the classifying space B𝒞 with its simplices, its faces, its identification with BG in the one-object case and with barycentric subdivision for a face poset (p. 165). Every folio was read off the page cited.
+<p><strong>Not established here.</strong> That homology is "pinned down by a handful of axioms" in the strong sense the hook suggests. Hatcher states the opposite for homology theories in general, and the uniqueness that does hold for singular homology needs the dimension axiom and is Theorem 4.59, in Chapter 4 and outside this module. Bordism, cited as the substantive counterexample, is not constructed here. That homology being a functor "makes persistence a functor": the composite P → Top → Ab is constructed in Segment 3 from Hatcher's poset-as-category and his composition rule, and it is genuinely the shape of a persistence module, but the left-hand factor — a filtration as a functor out of an index poset — is in neither source, and neither source uses the word persistence or contains a stability statement. This unit supplies one of two necessary arrows and claims no more. Also not established: that H<sub>1</sub> is the abelianisation of π₁, which is Theorem 2A.1 on printed p. 166, immediately after this section and outside every at1 unit's resources — the same gap recorded in at1-03, at1-07 and at1-09.</p>
+<p><strong>Stated but not proved.</strong> Exercise 38 of §2.1, the algebraic fact that a ladder of exact sequences with every third vertical map an isomorphism yields a long exact sequence in the remaining terms; it is the engine of Segment 2's derivation and Hatcher leaves it as an exercise in the previous section. Theorem 4.59. The claim that the two transformations between reduced and unreduced theories are mutually inverse, which Hatcher also leaves as an exercise. The classifying-space material of the "You try" block: that a functor induces a map of classifying spaces is described, and that a natural transformation induces a homotopy is left to the reader by Hatcher himself, using a subdivision of Δ<sup>n</sup> × I and Example 1B.7, neither in this module.</p>
+<p><strong>Deferred.</strong> Cohomology, the contravariant theory named here and built in Chapter 3. The Borsuk–Ulam applications of §2.B. §2.A in its entirety, including Theorem 2A.1. And the axioms for unreduced theories, which are described in outline and not used, since every derivation in this unit is carried out in the reduced setting.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('compose');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82',bad='#e06c75';
+  var xs=[110,320,530], y=120;
+
+  g.textAlign='center';
+  g.font='15px Segoe UI, sans-serif';
+  g.fillStyle=ink;
+  g.fillText('persistence as a composite of two functors',320,34);
+
+  // three category boxes
+  var labs=['poset P','Top','Ab'];
+  var subs=['the index','spaces','abelian groups'];
+  for(var i=0;i<3;i++){
+    g.strokeStyle='#2a333d';g.lineWidth=1.5;
+    g.strokeRect(xs[i]-62,y-26,124,52);
+    g.fillStyle=ink;g.font='18px Georgia, serif';
+    g.fillText(labs[i],xs[i],y-2);
+    g.fillStyle=dim;g.font='11px Segoe UI, sans-serif';
+    g.fillText(subs[i],xs[i],y+16);
+  }
+
+  // two arrows
+  function arrow(x1,x2,yy,col){
+    g.strokeStyle=col;g.lineWidth=2;
+    g.beginPath();g.moveTo(x1,yy);g.lineTo(x2,yy);g.stroke();
+    g.beginPath();g.moveTo(x2,yy);g.lineTo(x2-9,yy-5);g.lineTo(x2-9,yy+5);g.closePath();
+    g.fillStyle=col;g.fill();
+  }
+  arrow(xs[0]+64,xs[1]-64,y,bad);
+  arrow(xs[1]+64,xs[2]-64,y,good);
+
+  g.font='14px Georgia, serif';
+  g.fillStyle=bad;g.fillText('filtration',215,y-14);
+  g.fillStyle=good;g.fillText('H n',425,y-14);
+
+  g.font='11px Segoe UI, sans-serif';
+  g.fillStyle=bad;g.fillText('NOT built here — tda1',215,y+22);
+  g.fillStyle=good;g.fillText('built here',425,y+22);
+
+  // composite arrow beneath
+  g.strokeStyle=acc;g.lineWidth=2;
+  g.beginPath();
+  g.moveTo(xs[0],y+34);g.lineTo(xs[0],y+96);
+  g.lineTo(xs[2]-10,y+96);
+  g.stroke();
+  g.beginPath();g.moveTo(xs[2],y+96);g.lineTo(xs[2]-12,y+90);g.lineTo(xs[2]-12,y+102);g.closePath();
+  g.fillStyle=acc;g.fill();
+  g.beginPath();g.moveTo(xs[2],y+96);g.lineTo(xs[2],y+34);g.stroke();
+
+  g.fillStyle=acc;g.font='14px Georgia, serif';
+  g.fillText('H n ∘ filtration : P → Ab',320,y+88);
+
+  // punchline
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(60,y+126);g.lineTo(580,y+126);g.stroke();
+  g.fillStyle=dim;g.font='13px Segoe UI, sans-serif';
+  g.fillText('a group for every index, a map for every comparison',320,y+148);
+  g.fillText('a composite needs both arrows; this module supplies one',320,y+168);
+})();
+</script>
+</body></html>
