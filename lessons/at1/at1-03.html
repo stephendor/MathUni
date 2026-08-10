@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at1-03 — The fundamental group</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology I · Nexus College</p>
+<h1>The fundamental group <span class="cite">(at1-03)</span></h1>
+
+<div class="hook">
+Loops you can't shrink detect holes you can't see — and they compose into a group.
+<p>Stand in a room with a pillar in the middle, holding one end of a rope whose other end is nailed to your feet. Walk a circuit round the pillar and back. Now try to reel the rope in without lifting it over the pillar or letting go of either end. You cannot. Walk two circuits and you can reel in even less. Walk one circuit clockwise and one anticlockwise and the whole thing comes free.</p>
+<p>Circuits that cancel; circuits that accumulate; a circuit that does nothing. Adding, inverting, an identity — that is a group, and it was there in the room the whole time. at1-01 gave you homotopy of maps; this unit points it at loops and reads off the algebra. What makes the construction delicate is that the elements are not loops but <em>classes</em> of loops, and every group axiom has to be checked at the level of classes.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Let f, g, h be three paths that compose. The product path f · g traverses f on the first half of the time interval and g on the second. Is (f · g) · h equal to f · (g · h)?</p>
+<button onclick="check(this,false)">Yes — concatenation of paths is obviously associative</button>
+<button onclick="check(this,true)" data-ok>No, they are different maps I → X — but they are homotopic, which is all the group needs</button>
+<button onclick="check(this,false)">No, and this is why π₁ is only a monoid</button>
+<button onclick="check(this,false)">Yes, provided all three are loops at the same basepoint</button>
+<div class="explain">They are genuinely different functions. In (f · g) · h the path f is traversed during [0, 1/4], g during [1/4, 1/2] and h during [1/2, 1]; in f · (g · h) the timings are [0, 1/2], [1/2, 3/4], [3/4, 1]. At time s = 1/3 the two maps are at different points. So concatenation is <em>not</em> associative on the nose, and that is not a technicality to be waved away — it is the reason π₁ is defined on homotopy classes rather than on loops. The two products differ by a reparametrisation of the time interval, and Hatcher's proof of Proposition 1.3 shows reparametrisation never changes a homotopy class. Every group axiom in this unit is bought the same way.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Pi_1 is the first algebraic invariant of shape; H_1 is its abelianisation, whose rank is the Betti-1 you will compute.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires. Its first clause is this unit's business. Its second and third are not, and one of them lands outside the whole module.</p>
+<p><strong>That H₁ is the abelianisation of π₁</strong> is Hatcher's Theorem 2A.1, in §2.A, printed p. 166: regarding loops as singular 1-cycles gives a homomorphism h : π₁(X, x<sub>0</sub>) → H₁(X), and for path-connected X this h is surjective with kernel the commutator subgroup, so it induces an isomorphism from the abelianisation of π₁(X) onto H₁(X). Neither of this unit's sources contains it: Hatcher §1.1 has no homology, and Dexter §2.3 has none either. It is worth being exact about where it does live, because §2.A is not among the resources of any at1 unit — at1-07 reads §2.1, at1-08 and at1-09 read §2.2, at1-10 reads §2.3. So on the syllabus as written, the abelianisation theorem is asserted by this unit's mission strip and proved by no unit of the degree. That is a resource gap rather than a mathematical one, and it is recorded for the syllabus pass; this lesson simply does not claim the theorem.</p>
+<p><strong>That its rank is a Betti number you will compute</strong> is further off still. Ranks of homology groups are at1-08, and computing them from data is tda1-02's matrix reduction over 𝔽₂ — a different coefficient field, in which "rank" means dimension. Nothing here computes anything: as Hatcher says on p. 28, "It is not so easy to show that a space has a nontrivial fundamental group since one must somehow demonstrate the nonexistence of homotopies between certain loops." This unit builds the group and proves it is a group. The first space with a proven non-trivial π₁ arrives in at1-04, with Theorem 1.7.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Paths up to homotopy</h2>
+
+<p>Hatcher begins one notch more general than loops, because the extra generality costs nothing and the change-of-basepoint argument in Segment 3 needs it.</p>
+
+<div class="definition">
+<p><strong>Path; homotopy of paths.</strong> By a path in a space X we mean a continuous map f : I → X, where I is the unit interval [0,1]. A homotopy of paths in X is a family f<sub>t</sub> : I → X, 0 ≤ t ≤ 1, such that</p>
+<p>(1) the endpoints f<sub>t</sub>(0) = x<sub>0</sub> and f<sub>t</sub>(1) = x<sub>1</sub> are independent of t;</p>
+<p>(2) the associated map F : I × I → X defined by F(s, t) = f<sub>t</sub>(s) is continuous.</p>
+<p>When two paths f<sub>0</sub> and f<sub>1</sub> are connected in this way by a homotopy f<sub>t</sub>, they are said to be homotopic, written f<sub>0</sub> ≃ f<sub>1</sub>. <span class="cite">— Hatcher §1.1, p. 25</span></p>
+</div>
+
+<p>Clause (2) is at1-01's joint-continuity clause again, now on the square I × I. Clause (1) is new and is the whole point. Without it the notion is worthless: in Problem 1 you will show that if endpoints are free to move, every path in S<sup>1</sup> is homotopic to a constant one, so nothing is detected. Nailing the endpoints is what turns homotopy into an instrument.</p>
+
+<p>Two conventions worth keeping straight. The letter s is the position along the path; t is the time of the deformation. F(s, t) = f<sub>t</sub>(s). Hatcher's pictures always have s horizontal and t vertical.</p>
+
+<h3>Worked example: linear homotopies and convexity</h3>
+
+<div class="worked">
+<p><strong>Claim (Example 1.1).</strong> Any two paths f<sub>0</sub>, f<sub>1</sub> in ℝ<sup>n</sup> with the same endpoints x<sub>0</sub>, x<sub>1</sub> are homotopic, via f<sub>t</sub>(s) = (1 − t)f<sub>0</sub>(s) + t f<sub>1</sub>(s).</p>
+<p><strong>Step 1 — what the formula does.</strong> During this homotopy each point f<sub>0</sub>(s) travels along the line segment to f<sub>1</sub>(s) at constant speed. The line through f<sub>0</sub>(s) and f<sub>1</sub>(s) is linearly parametrised as f<sub>0</sub>(s) + t[f<sub>1</sub>(s) − f<sub>0</sub>(s)] = (1 − t)f<sub>0</sub>(s) + t f<sub>1</sub>(s), with the segment covered by t running from 0 to 1.</p>
+<p><strong>Step 2 — clause (1), the endpoints.</strong> At s = 0 we get f<sub>t</sub>(0) = (1 − t)x<sub>0</sub> + t x<sub>0</sub> = x<sub>0</sub>, for every t; likewise f<sub>t</sub>(1) = x<sub>1</sub>. So the endpoints are independent of t, and each f<sub>t</sub> is a path from x<sub>0</sub> to x<sub>1</sub>. Hatcher notes the mechanism: if f<sub>1</sub>(s) happens to equal f<sub>0</sub>(s), the segment degenerates to a point and f<sub>t</sub>(s) = f<sub>0</sub>(s) for all t — which is exactly what happens at s = 0 and s = 1.</p>
+<p><strong>Step 3 — clause (2), continuity.</strong> Continuity of f<sub>t</sub> as a map I × I → ℝ<sup>n</sup> follows from continuity of f<sub>0</sub> and f<sub>1</sub>, since the algebraic operations of vector addition and scalar multiplication in the formula are continuous.</p>
+<p><strong>Step 4 — the generalisation, and where it is used.</strong> For a convex subspace X ⊆ ℝ<sup>n</sup>, all paths in X with given endpoints are homotopic — because if f<sub>0</sub> and f<sub>1</sub> lie in X then so does the whole homotopy f<sub>t</sub>, each f<sub>t</sub>(s) being a convex combination of two points of X. Convexity is doing precisely one job: keeping the homotopy inside the space. Take the same two paths in ℝ<sup>2</sup> ∖ {0} and the formula may push a point straight through the puncture.</p>
+<p><strong>Consequence (Example 1.4).</strong> For a convex set X in ℝ<sup>n</sup> with basepoint x<sub>0</sub>, π₁(X, x<sub>0</sub>) = 0, the trivial group: any two loops at x<sub>0</sub> are homotopic by the same linear formula.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 1.2.</strong> The relation of homotopy on paths with fixed endpoints in any space is an equivalence relation. The equivalence class of a path f is denoted [f] and called the homotopy class of f. <span class="cite">— Hatcher §1.1, p. 26</span></p>
+<p><strong>Proof.</strong> Reflexivity is evident, since f ≃ f by the constant homotopy f<sub>t</sub> = f. Symmetry is easy: if f<sub>0</sub> ≃ f<sub>1</sub> via f<sub>t</sub>, then f<sub>1</sub> ≃ f<sub>0</sub> via the inverse homotopy f<sub>1−t</sub>. For transitivity, if f<sub>0</sub> ≃ f<sub>1</sub> via f<sub>t</sub> and f<sub>1</sub> = g<sub>0</sub> with g<sub>0</sub> ≃ g<sub>1</sub> via g<sub>t</sub>, then f<sub>0</sub> ≃ g<sub>1</sub> via the homotopy h<sub>t</sub> equal to f<sub>2t</sub> for 0 ≤ t ≤ 1/2 and g<sub>2t−1</sub> for 1/2 ≤ t ≤ 1. The two definitions agree at t = 1/2 because f<sub>1</sub> = g<sub>0</sub>.</p>
+<p>Continuity of H(s,t) = h<sub>t</sub>(s) comes from the elementary fact — which Hatcher says will be used frequently without explicit mention — that <strong>a function defined on the union of two closed sets is continuous if it is continuous when restricted to each of the closed sets separately</strong>. Here H(s,t) = F(s, 2t) on I × [0, 1/2] and H(s,t) = G(s, 2t−1) on I × [1/2, 1]; both pieces are closed and H is continuous on each, so H is continuous on I × I. ∎</p>
+<p>That gluing lemma is worth flagging, because it is the workhorse of the entire unit. Every construction below is defined piecewise on the time interval, and every continuity check is this same appeal.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does the transitivity argument reparametrise the two homotopies to run on [0, 1/2] and [1/2, 1] rather than simply writing "do f<sub>t</sub> then g<sub>t</sub>"?</p>
+<button onclick="check(this,false)">To make the concatenated homotopy continuous, which it otherwise would not be</button>
+<button onclick="check(this,true)" data-ok>Because a homotopy is by definition indexed by t ∈ [0,1], so two of them in succession must be squeezed into one unit interval</button>
+<button onclick="check(this,false)">Because f<sub>1</sub> and g<sub>0</sub> need not agree</button>
+<button onclick="check(this,false)">To keep the endpoints fixed</button>
+<div class="explain">The reparametrisation is bookkeeping forced by the definition: the time parameter of a homotopy runs over [0,1], so running two homotopies one after the other requires rescaling each to half the interval. Continuity is then a separate matter, settled by the closed-sets gluing lemma — and it works precisely because f<sub>1</sub> = g<sub>0</sub> makes the two formulas agree on the overlap I × {1/2}. The same squeeze reappears immediately in the product path f · g, where it is applied to the position variable s instead of the time variable t.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Example 1.4 shows π₁ of a convex set is trivial. Which step of the argument fails for the annulus {1 ≤ |x| ≤ 2} in ℝ<sup>2</sup>?</p>
+<button onclick="check(this,false)">The endpoints move under the linear homotopy</button>
+<button onclick="check(this,true)" data-ok>The straight-line homotopy between two loops can leave the annulus, so f<sub>t</sub> is no longer a homotopy <em>in</em> the space</button>
+<button onclick="check(this,false)">The linear homotopy is not continuous there</button>
+<button onclick="check(this,false)">Loops in the annulus have no well-defined product</button>
+<div class="explain">Steps 1 to 3 of the worked example never mention the ambient space and go through unchanged; only Step 4 uses convexity, and only for one purpose — to guarantee that each f<sub>t</sub>(s), being a convex combination of two points of X, lies in X. For the annulus that fails: the segment joining a point on the inner circle to the diametrically opposite point passes through the hole. Note carefully what this does and does not show. It shows the <em>argument</em> breaks, not that π₁ of the annulus is non-trivial — proving that needs the non-existence of <em>every</em> homotopy, which is at1-04's Theorem 1.7.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The group</h2>
+
+<div class="definition">
+<p><strong>Product path; loop; basepoint; π₁.</strong> Given paths f, g : I → X with f(1) = g(0), the composition or product path f · g traverses first f and then g:</p>
+<p style="text-align:center">(f · g)(s) = f(2s) for 0 ≤ s ≤ 1/2, and (f · g)(s) = g(2s − 1) for 1/2 ≤ s ≤ 1.</p>
+<p>Paths f : I → X with f(0) = f(1) = x<sub>0</sub> are called loops, and x<sub>0</sub> is the basepoint. The set of all homotopy classes [f] of loops at x<sub>0</sub> is denoted π₁(X, x<sub>0</sub>). <span class="cite">— Hatcher §1.1, p. 26</span></p>
+</div>
+
+<p>The product respects homotopy classes: if f<sub>0</sub> ≃ f<sub>1</sub> and g<sub>0</sub> ≃ g<sub>1</sub> via f<sub>t</sub>, g<sub>t</sub>, and f<sub>0</sub>(1) = g<sub>0</sub>(0) so that f<sub>0</sub> · g<sub>0</sub> is defined, then f<sub>t</sub> · g<sub>t</sub> is defined for every t and provides a homotopy f<sub>0</sub> · g<sub>0</sub> ≃ f<sub>1</sub> · g<sub>1</sub>. So [f][g] = [f · g] is unambiguous.</p>
+
+<div class="theorem">
+<p><strong>Proposition 1.3.</strong> π₁(X, x<sub>0</sub>) is a group with respect to the product [f][g] = [f · g]. This group is called the fundamental group of X at the basepoint x<sub>0</sub>. <span class="cite">— Hatcher §1.1, p. 26</span></p>
+</div>
+
+<p>Restricting to a fixed basepoint is what makes the product of any two elements defined at all — for general paths, f · g exists only when f ends where g begins, so the collection of all paths is not a group but something looser. The proof has one preliminary and then three axioms.</p>
+
+<div class="definition">
+<p><strong>Reparametrisation.</strong> A reparametrisation of a path f is a composition fφ where φ : I → I is any continuous map with φ(0) = 0 and φ(1) = 1. <span class="cite">— Hatcher §1.1, p. 27</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Lemma R (reparametrisation preserves the class).</strong> fφ ≃ f, for any reparametrisation.</p>
+<p><strong>Proof.</strong> Put φ<sub>t</sub>(s) = (1 − t)φ(s) + ts, so φ<sub>0</sub> = φ and φ<sub>1</sub>(s) = s. Since (1 − t)φ(s) + ts is a convex combination of φ(s) ∈ I and s ∈ I, it lies between them and hence lies in I — so the composition fφ<sub>t</sub> is defined. It is jointly continuous, and φ<sub>t</sub>(0) = 0, φ<sub>t</sub>(1) = 1 for every t, so the endpoints do not move. Hence fφ<sub>t</sub> is a homotopy of paths from fφ to f. ∎</p>
+<p>This is Hatcher's preliminary step, stated here as a named lemma because both the associativity and the identity axioms are corollaries of it and the problem set uses it directly.</p>
+</div>
+
+<h3>Worked example: associativity and the identity, from Lemma R alone</h3>
+
+<div class="worked">
+<p><strong>Associativity.</strong> Given f, g, h with f(1) = g(0) and g(1) = h(0), both (f · g) · h and f · (g · h) are defined. Tabulate when each path is traversed:</p>
+<p style="text-align:center">(f · g) · h : &nbsp; f on [0, 1/4], &nbsp; g on [1/4, 1/2], &nbsp; h on [1/2, 1]<br>
+f · (g · h) : &nbsp; f on [0, 1/2], &nbsp; g on [1/2, 3/4], &nbsp; h on [3/4, 1]</p>
+<p>The two traverse the same three paths in the same order, differing only in how the time is apportioned. So f · (g · h) is a reparametrisation of (f · g) · h by the piecewise-linear φ that sends 1/2 ↦ 1/4 and 3/4 ↦ 1/2, linearly on each of [0, 1/2], [1/2, 3/4], [3/4, 1]:</p>
+<p style="text-align:center">φ(s) = s/2 on [0, 1/2]; &nbsp; φ(s) = s − 1/4 on [1/2, 3/4]; &nbsp; φ(s) = 2s − 1 on [3/4, 1].</p>
+<p>Check the joins: at s = 1/2 the first two give 1/4 and 1/4; at s = 3/4 the last two give 1/2 and 1/2; and φ(0) = 0, φ(1) = 1. By Lemma R, (f · g) · h ≃ f · (g · h). Restricting to loops at x<sub>0</sub>, the product in π₁(X, x<sub>0</sub>) is associative. <em>(Hatcher gives only the graph of φ; the formula is worked out here because the problem set asks for it.)</em></p>
+<p><strong>Identity.</strong> Let c be the constant path at f(1), c(s) = f(1) for all s. Then f · c traverses f at double speed on [0, 1/2] and stands still on [1/2, 1] — which is f reparametrised by φ(s) = min(2s, 1). That φ is continuous with φ(0) = 0, φ(1) = 1, so Lemma R gives f · c ≃ f. Similarly c · f ≃ f with c the constant path at f(0), using φ(s) = max(2s − 1, 0). Taking f to be a loop, the class of the constant path at x<sub>0</sub> is a two-sided identity in π₁(X, x<sub>0</sub>).</p>
+</div>
+
+<h3>Faded example: the inverse</h3>
+
+<div class="worked fade">
+<p>Reparametrisation cannot produce inverses — a reparametrisation of f · f̄ still traverses f and comes back, and no φ turns that into a constant. Hatcher's construction retracts the path along itself instead.</p>
+<p>For a path f from x<sub>0</sub> to x<sub>1</sub>, the inverse path is f̄(s) = f(1 − s). Define h<sub>t</sub> = f<sub>t</sub> · g<sub>t</sub>, where f<sub>t</sub> equals f on [0, 1 − t] and is stationary at f(1 − t) on [1 − t, 1], and g<sub>t</sub> is the inverse path of f<sub>t</sub>.</p>
+<p><strong>Step 1 — a closed formula.</strong> f<sub>t</sub>(s) = f(min(s, 1 − t)). This is f composed with (s,t) ↦ min(s, 1 − t), continuous as a minimum of two continuous functions.</p>
+<p><strong>Step 2 — the ends.</strong> At t = 0, f<sub>0</sub> = f and g<sub>0</sub> = f̄, so h<sub>0</sub> = f · f̄. At t = 1, f<sub>1</sub> is the constant path c at x<sub>0</sub>. ⟨your step: so h<sub>1</sub> = c · c̄ — why is that the constant path rather than a longer journey?⟩</p>
+<p><strong>Step 3 — the other side.</strong> ⟨your step: replacing f by f̄ gives f̄ · f ≃ c for c the constant path at x<sub>1</sub>. Why does the same argument apply verbatim?⟩</p>
+<p><strong>Step 4 — read off the axiom.</strong> ⟨your step: take f to be a loop at x<sub>0</sub> and state what has been proved about [f̄]⟩</p>
+</div>
+
+<h3>Visual: the inverse homotopy, both of Hatcher's pictures</h3>
+
+<p>Left, the retraction: at time t the journey runs out only as far as f(1 − t) and comes straight back, so at t = 1 nothing is left. Right, the same homotopy as a map on the square I × I, with s horizontal and t vertical. The bottom edge carries f · f̄. Below the "V", H is independent of t; above it, H is independent of s. The "V" is where the outward and return journeys meet.</p>
+
+<canvas id="piCanvas" width="640" height="300" role="img" aria-label="Left: a path from the basepoint traversed out to an intermediate point and back, with the turning point retreating towards the basepoint as time increases. Right: the unit square I by I with a V-shaped division, showing where the homotopy is independent of t and where it is independent of s."></canvas>
+<p style="text-align:center"><button onclick="togglePi()" id="piBtn" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Pause</button></p>
+<script>
+(function(){
+  var cv = document.getElementById('piCanvas');
+  var ctx = cv.getContext('2d');
+  var t = 0, dir = 1, playing = true;
+
+  var bx0 = 390, bx1 = 570, byTop = 95, byBot = 245;
+
+  function curve(u){
+    var x = 70 + 180 * u;
+    var y = 215 - 110 * Math.sin(Math.PI * u * 0.86);
+    return [x, y];
+  }
+
+  function drawLeft(){
+    ctx.strokeStyle = '#2a333d'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (var i = 0; i <= 60; i++){
+      var p = curve(i / 60);
+      if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+    }
+    ctx.stroke();
+    var lim = 1 - t;
+    ctx.strokeStyle = '#8ab4f8'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (var j = 0; j <= 60; j++){
+      var p2 = curve(lim * j / 60);
+      if (j === 0) ctx.moveTo(p2[0], p2[1]); else ctx.lineTo(p2[0], p2[1]);
+    }
+    ctx.stroke();
+    var a = curve(0), b = curve(lim);
+    ctx.fillStyle = '#4caf82';
+    ctx.beginPath(); ctx.arc(a[0], a[1], 5, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = '#d8a657';
+    ctx.beginPath(); ctx.arc(b[0], b[1], 5, 0, 2 * Math.PI); ctx.fill();
+    ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#4caf82'; ctx.fillText('x₀', a[0], a[1] + 20);
+    ctx.fillStyle = '#d8a657'; ctx.fillText('f(1−t)', b[0], b[1] - 12);
+    ctx.fillStyle = '#9aa5b1';
+    ctx.fillText('out to f(1−t), then straight back', 160, 26);
+    ctx.fillText('t = ' + t.toFixed(2), 160, 272);
+  }
+
+  function drawRight(){
+    ctx.strokeStyle = '#2a333d'; ctx.lineWidth = 1;
+    ctx.strokeRect(bx0, byTop, bx1 - bx0, byBot - byTop);
+    var mid = (bx0 + bx1) / 2;
+    ctx.strokeStyle = '#d8a657'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(bx0, byTop); ctx.lineTo(mid, byBot); ctx.lineTo(bx1, byTop);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(138,180,248,0.14)';
+    ctx.beginPath();
+    ctx.moveTo(bx0, byTop); ctx.lineTo(mid, byBot); ctx.lineTo(bx1, byTop);
+    ctx.closePath(); ctx.fill();
+    var yline = byBot - (byBot - byTop) * t;
+    ctx.strokeStyle = '#4caf82'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(bx0, yline); ctx.lineTo(bx1, yline); ctx.stroke();
+    ctx.font = '11px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#8ab4f8';
+    ctx.fillText('independent of s', mid, byTop + 34);
+    ctx.fillStyle = '#9aa5b1';
+    ctx.fillText('indep. of t', bx0 + 36, byBot - 18);
+    ctx.fillText('indep. of t', bx1 - 36, byBot - 18);
+    ctx.fillText('bottom edge: f · f̄', mid, byBot + 20);
+    ctx.fillText('the square I × I', mid, 26);
+    ctx.textAlign = 'right';
+    ctx.fillText('t', bx0 - 8, byTop + 6);
+    ctx.textAlign = 'left';
+    ctx.fillText('s', bx1 + 6, byBot + 4);
+  }
+
+  function frame(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    drawLeft();
+    drawRight();
+    if (playing){
+      t += 0.005 * dir;
+      if (t >= 1){ t = 1; dir = -1; }
+      if (t <= 0){ t = 0; dir = 1; }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  window.togglePi = function(){
+    playing = !playing;
+    document.getElementById('piBtn').textContent = playing ? 'Pause' : 'Play';
+  };
+
+  frame();
+})();
+</script>
+
+<div class="you-try">
+<p><strong>You try.</strong> Dexter's notes define the fundamental group in one stroke — "the set of homotopy classes of loops in X based at x<sub>0</sub>", with operations [γ₀][γ₁] = [γ₀ · γ₁], inverses [γ]<sup>−1</sup> = [γ<sup>−1</sup>], identity e = [c<sub>x₀</sub>] — and then states the theorem "the fundamental group is a group" with the proof "Immediate from our previous lemmas". Write out which lemmas those must be, by matching each group axiom to the result in this segment that supplies it. Then say what Dexter gains and loses by defining the inverse as part of the structure rather than proving it exists.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why can reparametrisation prove associativity and the identity axiom but not the inverse axiom?</p>
+<button onclick="check(this,false)">Because reparametrisation functions are not invertible</button>
+<button onclick="check(this,true)" data-ok>Because a reparametrisation only changes the schedule, never the image — and f · f̄ and a constant path have different images</button>
+<button onclick="check(this,false)">Because φ(0) = 0 and φ(1) = 1 forces φ to be increasing</button>
+<button onclick="check(this,false)">Because the inverse path f̄ is not a reparametrisation of f</button>
+<div class="explain">A reparametrisation is fφ: the same map f, read at different times. So fφ and f have exactly the same image in X. Associativity and the identity are both instances of "same journey, different schedule", which is why Lemma R settles them. But f · f̄ sweeps out the whole image of f, while the constant path sweeps out a single point, so no reparametrisation can connect them. Hatcher's inverse homotopy therefore has to do something genuinely different — it shortens the journey, moving through paths with progressively smaller images until nothing is left.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Losing the basepoint, and gaining a functor</h2>
+
+<p>The definition required a choice, and a good invariant should not depend on one. Hatcher's answer is that it does not, up to isomorphism — with a caveat worth chasing down.</p>
+
+<p>Since π₁(X, x<sub>0</sub>) involves only the path-component of X containing x<sub>0</sub>, one can hope to relate π₁(X, x<sub>0</sub>) and π₁(X, x<sub>1</sub>) only when x<sub>0</sub> and x<sub>1</sub> lie in the same path-component. So let h be a path from x<sub>0</sub> to x<sub>1</sub>, with inverse h̄(s) = h(1 − s), and associate to each loop f at x<sub>1</sub> the loop h · f · h̄ at x<sub>0</sub>.</p>
+
+<div class="definition">
+<p><strong>Change of basepoint.</strong> β<sub>h</sub> : π₁(X, x<sub>1</sub>) → π₁(X, x<sub>0</sub>), β<sub>h</sub>[f] = [h · f · h̄]. This is well defined: if f<sub>i</sub> is a homotopy of loops based at x<sub>1</sub>, then h · f<sub>i</sub> · h̄ is a homotopy of loops based at x<sub>0</sub>. <span class="cite">— Hatcher §1.1, p. 28</span></p>
+<p>Hatcher notes the triple product needs no bracketing convention, since the two choices are homotopic and only classes matter; alternatively one may define an n-fold product f<sub>1</sub> · ⋯ · f<sub>n</sub> in which f<sub>i</sub> is traversed on [(i−1)/n, i/n].</p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 1.5.</strong> The map β<sub>h</sub> : π₁(X, x<sub>1</sub>) → π₁(X, x<sub>0</sub>) is an isomorphism. <span class="cite">— Hatcher §1.1, p. 28</span></p>
+<p><strong>Proof.</strong> It is a homomorphism, since β<sub>h</sub>[f · g] = [h · f · g · h̄] = [h · f · h̄ · h · g · h̄] = β<sub>h</sub>[f]β<sub>h</sub>[g] — the middle equality inserting the class of h̄ · h, which is the identity by Proposition 1.3. And it is an isomorphism with inverse β<sub>h̄</sub>, since β<sub>h</sub>β<sub>h̄</sub>[f] = β<sub>h</sub>[h̄ · f · h] = [h · h̄ · f · h · h̄] = [f], and similarly β<sub>h̄</sub>β<sub>h</sub>[f] = [f]. ∎</p>
+</div>
+
+<p>So if X is path-connected, π₁(X, x<sub>0</sub>) is independent of the basepoint up to isomorphism, and one writes π₁(X). The caveat is in those last three words. The isomorphism depends on the chosen path h, and Problem 4 asks you to compute the discrepancy: two paths h, h′ give isomorphisms differing by conjugation by the class of the loop h̄′ · h. So the isomorphism is canonical exactly when π₁ is abelian. This is a real limitation, not pedantry — it is why basepoints persist in the subject rather than being quietly dropped.</p>
+
+<div class="definition">
+<p><strong>Simply-connected.</strong> A space is simply-connected if it is path-connected and has trivial fundamental group. <span class="cite">— Hatcher §1.1, p. 28</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 1.6.</strong> A space X is simply-connected if and only if there is a unique homotopy class of paths connecting any two points in X. <span class="cite">— Hatcher §1.1, p. 28</span></p>
+<p><strong>Proof.</strong> Path-connectedness is the existence of paths connecting every pair of points, so only uniqueness is at issue. Suppose π₁(X) = 0 and let f, g be two paths from x<sub>0</sub> to x<sub>1</sub>. Then f ≃ f · ḡ · g ≃ g: the first step because ḡ · g is homotopic to a constant, the second because f · ḡ is a loop at x<sub>0</sub> and so is nullhomotopic by the assumption π₁(X, x<sub>0</sub>) = 0. Conversely, if there is only one homotopy class of paths from x<sub>0</sub> to itself, all loops at x<sub>0</sub> are homotopic to the constant loop and π₁(X, x<sub>0</sub>) = 0. ∎</p>
+</div>
+
+<h3>π₁ as a functor</h3>
+
+<p>Dexter's notes add the structural statement that Hatcher defers. First the setting.</p>
+
+<div class="definition">
+<p><strong>Based space (Dexter).</strong> A based space is a pair (X, x<sub>0</sub>) of a space and a point, the basepoint. A map of based spaces f : (X, x<sub>0</sub>) → (Y, y<sub>0</sub>) is a continuous map f : X → Y with f(x<sub>0</sub>) = y<sub>0</sub>. A based homotopy is a homotopy rel {x<sub>0</sub>}. <span class="cite">— Dexter, <em>Algebraic Topology</em>, §2.3, Defn (Based space)</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Functoriality of π₁ (Dexter).</strong> To a based map f : (X, x<sub>0</sub>) → (Y, y<sub>0</sub>) there is an associated function f<sub>∗</sub> = π₁(f) : π₁(X, x<sub>0</sub>) → π₁(Y, y<sub>0</sub>), defined by [γ] ↦ [f ∘ γ], satisfying: (i) π₁(f) is a homomorphism of groups; (ii) if f ≃ f′ then π₁(f) = π₁(f′); (iii) π₁(k ∘ h) = π₁(k) ∘ π₁(h); (iv) π₁(id<sub>X</sub>) = id. In category-theoretic language, π₁ is a <em>functor</em>. <span class="cite">— Dexter, §2.3, the functoriality Prop</span></p>
+<p><strong>Dexter states this and leaves all four clauses as an exercise</strong> — the proof in the notes reads, in its entirety, "Exercise." So it is not proved in either source for this unit, and the problem set sets three of the four clauses as work for you. It is recorded here because the word <em>functor</em> is the bridge out of this module: cat-03 defines functors properly, at1-10 shows homology is one, and cat-07 shows persistence is one too.</p>
+</div>
+
+<p>Two housekeeping notes on reading the two sources together. Dexter runs the change of basepoint in the opposite direction to Hatcher, sending a loop γ at x<sub>0</sub> to u<sup>−1</sup> · γ · u for a path u from x<sub>0</sub> to x<sub>1</sub>; that is Hatcher's β<sub>ū</sub>, and Problem 4 asks you to say so precisely. And Dexter writes γ<sup>−1</sup> where Hatcher writes f̄ for the reverse path.</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Write it out before revealing the model answer.</p>
+<p>Prove clause (i) of the functoriality proposition — that π₁(f) is a group homomorphism — including the well-definedness that the statement takes for granted. Then prove clause (iii).</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Well-definedness.</strong> First, f ∘ γ is a loop at y<sub>0</sub> whenever γ is a loop at x<sub>0</sub>, since (f ∘ γ)(0) = f(x<sub>0</sub>) = y<sub>0</sub> = (f ∘ γ)(1) — this is where the based condition on f is used. Next, suppose γ ≃ γ′ via a homotopy of loops γ<sub>t</sub>, with associated continuous Γ : I × I → X. Then f ∘ Γ : I × I → Y is continuous as a composite, and its restrictions to the two ends are f ∘ γ and f ∘ γ′; its endpoint values are f(x<sub>0</sub>) = y<sub>0</sub>, independent of t. So f ∘ Γ is a homotopy of loops and [f ∘ γ] = [f ∘ γ′]. Hence [γ] ↦ [f ∘ γ] is well defined on homotopy classes.</p>
+<p><strong>Clause (i).</strong> Let γ₀, γ₁ be loops at x<sub>0</sub>. Directly from the definition of the product path,</p>
+<p style="text-align:center">(f ∘ (γ₀ · γ₁))(s) = f(γ₀(2s)) for s ≤ 1/2, &nbsp; = f(γ₁(2s − 1)) for s ≥ 1/2,</p>
+<p>which is precisely the formula for (f ∘ γ₀) · (f ∘ γ₁). The two maps are equal — not merely homotopic — so</p>
+<p style="text-align:center">f<sub>∗</sub>([γ₀][γ₁]) = f<sub>∗</sub>[γ₀ · γ₁] = [(f ∘ γ₀) · (f ∘ γ₁)] = f<sub>∗</sub>[γ₀] f<sub>∗</sub>[γ₁].</p>
+<p>So f<sub>∗</sub> is a homomorphism. ∎</p>
+<p><strong>Clause (iii).</strong> Let h : (A, a) → (B, b) and k : (B, b) → (C, c). For any loop γ at a,</p>
+<p style="text-align:center">π₁(k ∘ h)[γ] = [(k ∘ h) ∘ γ] = [k ∘ (h ∘ γ)] = π₁(k)[h ∘ γ] = π₁(k)(π₁(h)[γ]),</p>
+<p>using only associativity of composition of functions. Hence π₁(k ∘ h) = π₁(k) ∘ π₁(h). ∎</p>
+<p><em>Remark.</em> Clause (iv) is the same one-liner with the identity map, and clause (ii) is the one with real content — it needs the homotopy f ≃ f′ to be a <em>based</em> homotopy, since an unbased one moves f(x<sub>0</sub>) and the two induced maps would not even share a target group.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Proposition 1.5 says any two basepoints in one path-component give isomorphic π₁. Why does the subject nonetheless keep writing the basepoint?</p>
+<button onclick="check(this,false)">Because the isomorphism may fail to be a homomorphism</button>
+<button onclick="check(this,true)" data-ok>Because the isomorphism depends on the chosen path, two choices differing by an inner automorphism — so it is canonical only when π₁ is abelian</button>
+<button onclick="check(this,false)">Because π₁(X, x₀) can be non-trivial while π₁(X, x₁) is trivial</button>
+<button onclick="check(this,false)">Purely by convention, inherited from the definition</button>
+<div class="explain">β<sub>h</sub> is always an isomorphism, so the group is determined up to isomorphism. But for two paths h and h′ from x<sub>0</sub> to x<sub>1</sub>, the composite β<sub>h′</sub><sup>−1</sup>β<sub>h</sub> = β<sub>h̄′</sub>β<sub>h</sub> sends [f] to [h̄′ · h · f · h̄ · h′], which is conjugation by the class of the loop h̄′ · h at x<sub>1</sub> — an inner automorphism. Inner automorphisms are trivial exactly when the group is abelian (aa-23), so only then is there a single preferred isomorphism. This is also why the functoriality of Dexter's proposition is stated for maps of <em>based</em> spaces.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> After all of this, which spaces have you proved to have non-trivial fundamental group?</p>
+<button onclick="check(this,false)">The circle, by the loop that goes round once</button>
+<button onclick="check(this,false)">The annulus, since the linear homotopy fails there</button>
+<button onclick="check(this,true)" data-ok>None — every technique here constructs homotopies, and non-triviality requires proving that no homotopy exists</button>
+<button onclick="check(this,false)">All non-convex subsets of ℝ<sup>n</sup></button>
+<div class="explain">This is the honest accounting, and Hatcher makes it himself on p. 28: "It is not so easy to show that a space has a nontrivial fundamental group since one must somehow demonstrate the nonexistence of homotopies between certain loops." Every tool in this unit — linear homotopies, reparametrisation, the retraction of a path along itself, β<sub>h</sub> — <em>builds</em> a homotopy, and so can only ever prove a group element is trivial or two elements equal. Ruling out all homotopies at once needs a genuinely different device, the covering space ℝ → S<sup>1</sup>, which is why Theorem 1.7 waits for at1-04.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Fixing the endpoints is what makes homotopy informative.</strong> A homotopy of paths keeps f<sub>t</sub>(0) and f<sub>t</sub>(1) independent of t, with F(s,t) jointly continuous. Drop that and everything becomes homotopic to a constant. Proposition 1.2 makes it an equivalence relation, so classes [f] exist; the proof runs on the gluing lemma for two closed sets, which is then used everywhere.</p>
+<p><strong>2. The classes form a group, and reparametrisation buys most of the axioms.</strong> Concatenation is not associative on the nose — only after reparametrising the schedule — so π₁ must be defined on classes. Lemma R says reparametrisation preserves the class, which gives associativity and the two-sided identity. Inverses need more, because a reparametrisation cannot change the image: Hatcher retracts the path along itself, f<sub>t</sub>(s) = f(min(s, 1−t)), shrinking f · f̄ to a point.</p>
+<p><strong>3. The basepoint is almost removable, and π₁ is a functor.</strong> β<sub>h</sub>[f] = [h · f · h̄] is an isomorphism (Proposition 1.5), so π₁ is basepoint-independent up to isomorphism — but only up to conjugation by the choice of h, hence canonically only in the abelian case. Based maps induce homomorphisms functorially (Dexter, stated as an exercise), which is the bridge to cat-03 and at1-10. What is still missing is any example of a non-trivial π₁, because every method here constructs homotopies and none rules them out; that is at1-04's Theorem 1.7.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em>, §1.1 "Basic Constructions". §"Paths and Homotopy": the definition of a path and of a homotopy of paths with its two clauses, the notation f<sub>0</sub> ≃ f<sub>1</sub>, and Example 1.1 on linear homotopies with the extension to a convex subspace of ℝ<sup>n</sup> (p. 25); Proposition 1.2 with its proof and the closed-sets gluing lemma, the product path f · g, the fact that the product respects homotopy classes, loops and basepoints, π₁(X, x<sub>0</sub>), and Proposition 1.3 with the remark that π₁ is the first of the homotopy groups π<sub>n</sub> (p. 26); the proof of Proposition 1.3 — reparametrisation, associativity via a piecewise-linear φ, the two-sided identity, and the inverse via f<sub>t</sub> stationary on [1−t, 1] with the "V" description of H on I × I — together with Example 1.4 on convex sets (p. 27); the remark on the difficulty of exhibiting a non-trivial fundamental group, the change-of-basepoint map β<sub>h</sub> with the bracketing and n-fold-product remarks, Proposition 1.5 with its proof, the abbreviation π₁(X) for path-connected X, simply-connectedness, and Proposition 1.6 with its proof (p. 28). Cited as a forward reference only: Theorem 1.7, that π₁(S<sup>1</sup>) is infinite cyclic (p. 29), which at1-04 proves.
+<p>Dexter, <em>Algebraic Topology</em> (Cambridge lecture notes), §2.3 "The fundamental group": Defn (Fundamental group), giving π₁ with its operation, inverse and identity in one definition; Thm (the fundamental group is a group), whose proof in the notes reads "Immediate from our previous lemmas"; Defn (Based space), covering based spaces, based maps and based homotopy as homotopy rel {x<sub>0</sub>}; and the Prop giving the four functoriality clauses with the remark that π₁ is a functor — <strong>stated and left as an exercise</strong>, the proof in the notes reading "Exercise." These notes carry no printed folios and their theorem environments are unnumbered in the source, so they are cited by subsection and environment name rather than by page or number.</p>
+<p>Lemma R (reparametrisation preserves the homotopy class) is Hatcher's unnamed preliminary step in the proof of Proposition 1.3, isolated and named here because the problem set applies it three times. The explicit piecewise-linear formula for the associativity reparametrisation, and the closed form f<sub>t</sub>(s) = f(min(s, 1−t)) for the inverse homotopy, are worked out in the body; Hatcher gives the first only as a graph and the second only in words.</p>
+<p><strong>Not established here.</strong> That H₁ is the abelianisation of π₁: this is Hatcher's Theorem 2A.1 in §2.A, printed p. 166, quoted in the warn block above and read off that page rather than recalled; neither source for this unit contains any homology. Note that §2.A is not among the resources of any at1 unit — at1-07 reads §2.1, at1-08 and at1-09 read §2.2, at1-10 reads §2.3 — so on the syllabus as written this theorem is named by a mission strip and proved by no unit; flagged for the syllabus pass rather than papered over. That the rank of H₁ is a Betti number you will compute: ranks are at1-08, and the computation is tda1-02's boundary-matrix reduction over 𝔽₂, where the invariant is a dimension over a field rather than a rank over ℤ. That any space has non-trivial π₁: nothing in this unit exhibits one, for the reason Hatcher gives on p. 28.</p>
+<p><strong>Deferred.</strong> §1.1's "The Fundamental Group of the Circle" (pp. 29–33) — Theorem 1.7, Theorem 1.10 and Corollary 1.11 — is at1-04's, as are Proposition 1.12 on π₁ of a product, Example 1.13 on the torus, and §"Induced Homomorphisms" (pp. 34–37) with Proposition 1.18 and Lemma 1.19, which need π₁(S<sup>1</sup>) in hand to be worth stating. The higher homotopy groups π<sub>n</sub>, which Hatcher mentions on p. 26 as defined analogously on I<sup>n</sup>, are chapter 4 and outside this degree.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
