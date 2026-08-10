@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-05 — Discrete Morse theory and graph reconstruction</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Discrete Morse theory and graph reconstruction <span class="cite">(tda2-05)</span></h1>
+
+<div class="hook">
+Morse theory with no calculus at all: pair each cell with a neighbour, and whatever is left unpaired is critical.
+<p>Smooth Morse theory needs a manifold, a smooth function, non-degenerate critical points and a gradient flow. Forman's observation is that almost none of that machinery was load-bearing. What actually did the work was the flow's ability to cancel cells in pairs, and a purely combinatorial pairing of each simplex with a neighbouring one reproduces it.</p>
+<p>The payoff is not aesthetic. A complex with a million simplices can carry a Morse vector field with a handful of critical cells, and those critical cells compute the same homology. That is a preprocessing step that runs before tda1-09's reduction ever starts — and, run in reverse with persistence choosing what to cancel, it becomes an algorithm for pulling road networks out of GPS traces.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> A discrete Morse vector field pairs simplices with neighbours and leaves the rest critical. Suppose someone hands you a pairing in which some closed chain of arrows runs round a loop and returns to its start. Predict what breaks.</p>
+<button onclick="check(this,false)">Nothing — the pairing is still a valid matching, so the theory applies</button>
+<button onclick="check(this,true)" data-ok>Everything downstream: no Morse function induces such a pairing, and the critical cells no longer compute the homology</button>
+<button onclick="check(this,false)">Only the complexity bound; correctness survives but the algorithm becomes exponential</button>
+<div class="explain">Correct. Acyclicity is not a technical convenience — it is the entire content. Along a V-path the function values on the facets of matched pairs strictly decrease, so a cyclic path would require a value to be strictly less than itself. That is why Fact 10.1 holds, and why a matching is only called a <em>Morse</em> matching when it is acyclic. Drop it and Fact 10.2 fails, so there is no Morse function behind the pairing, and Ghrist's Theorem 7.23 — that Morse homology equals cellular homology — has no discrete gradient field to apply to.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A discrete Morse vector field pairs cells so the unpaired critical cells generate a much smaller complex with the same homology — a preprocessing step that shrinks a filtration before tda1-09's reduction ever runs. Persistence-guided cancellation then reconstructs graphs, such as road networks and neuron traces, from noisy density fields.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Morse functions, matchings, and what the critical cells compute</h2>
+
+<div class="definition">
+<p><strong>Definition 10.1 (discrete Morse function).</strong> A function f : K → ℝ on a simplicial complex K is a discrete Morse function if for every p-simplex σ<sup>p</sup>:</p>
+<p>#{σ<sup>p−1</sup> : σ<sup>p−1</sup> is a facet of σ<sup>p</sup> and f(σ<sup>p−1</sup>) ≥ f(σ<sup>p</sup>)} ≤ 1, and<br>
+#{σ<sup>p+1</sup> : σ<sup>p+1</sup> is a coface of σ<sup>p</sup> and f(σ<sup>p+1</sup>) ≤ f(σ<sup>p</sup>)} ≤ 1.</p>
+<p><span class="cite">— Dey &amp; Wang §10.1, Definition 10.1, p. 290</span></p>
+</div>
+
+<p>In words: f is supposed to increase with dimension, and it is allowed to fail in at most one direction downwards and at most one direction upwards at each simplex. Dey and Wang note that by a result of Chari the two conditions force the two sets to be <em>disjoint</em> — a simplex cannot be the exceptional facet of one pair and the exceptional cofacet of another. That disjointness is exactly what makes the induced pairing well defined.</p>
+
+<div class="definition">
+<p><strong>Definition 10.2 (matching).</strong> A set of ordered pairs M = {(σ, τ)} is a matching in K if σ is a facet of τ in every pair, and any simplex appears in at most one pair. Such an M defines disjoint subsets L, U ⊆ K with a bijection μ : L → U. <span class="cite">— Dey &amp; Wang §10.1, Definition 10.2, p. 291</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 10.3 (V-path and Morse matching).</strong> Given a matching M and k &gt; 0, a V-path is a sequence π : σ<sub>0</sub> ≺ σ<sub>1</sub> ≺ ⋯ ≺ σ<sub>k</sub> where for 0 &lt; i &lt; k, σ<sub>i</sub> ≠ μ(σ<sub>i−1</sub>) implies σ<sub>i+1</sub> = μ(σ<sub>i</sub>) — an alternating sequence of facets and cofacets whose consecutive pairs alternate between matched and unmatched. It is <em>cyclic</em> if σ<sub>0</sub> is a facet of σ<sub>k</sub> or σ<sub>0</sub> = μ(σ<sub>k</sub>); M is cyclic if it contains such a path and <em>acyclic</em> otherwise. An acyclic matching is a <strong>Morse matching</strong>. <span class="cite">— Dey &amp; Wang §10.1, Definition 10.3, pp. 291–292</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Fact 10.1.</strong> The matching induced by a Morse function on K is acyclic, thus is a Morse matching. <span class="cite">— Dey &amp; Wang §10.1, Fact 10.1, p. 292</span></p>
+</div>
+
+<p><em>Why.</em> Dey and Wang's observation is that along a sequence like a V-path, the function values on the facets of the matched pairs strictly decrease. A cyclic path returns to its own starting simplex, which would force that value to be strictly less than itself. So no cyclic path can exist. ∎</p>
+
+<div class="theorem">
+<p><strong>Fact 10.2.</strong> A Morse matching M in K defines a Morse function on K. <span class="cite">— Dey &amp; Wang §10.1, Fact 10.2, p. 292</span></p>
+</div>
+
+<p>Facts 10.1 and 10.2 together are the reason the subject is usable. The two notions determine each other, so one may define the theory with functions and compute with matchings — and matchings are finite combinatorial data, which functions are not.</p>
+
+<div class="definition">
+<p><strong>Definition 10.4 (discrete Morse vector field).</strong> A DMVF V in K is a partition V = C ⊔ L ⊔ U where L is the set of facets paired with a unique cofacet in U under a Morse matching M with μ(L) = U, and C is the set of unpaired simplices, called <em>critical simplices</em>. Each pair (σ, μ(σ)) is drawn as an arrow with tail in σ and head in μ(σ); the critical simplices are the critical points of the field. <span class="cite">— Dey &amp; Wang §10.1.1, Definition 10.4, p. 293</span></p>
+</div>
+
+<h3>Visual: a matching, its V-paths, and what breaks</h3>
+
+<p>Press the button and watch which of the two conditions fails. Both states are matchings in the sense of Definition 10.2 — every simplex sits in at most one pair — and only the second violates the acyclicity of Definition 10.3. That is the whole distinction, so the picture is built to keep the two apart: the cyclic state drops the edge–triangle pairs, because retaining them would put the edge 01 in both (v<sub>0</sub>, e<sub>01</sub>) and (e<sub>01</sub>, T<sub>0</sub>) and the configuration would fail to be a matching at all — a different and duller failure.</p>
+
+<canvas id="dmCanvas" width="640" height="270" role="img" aria-label="A small triangulated square with matching arrows from edges to triangles and vertices to edges, the critical vertices and the critical diagonal edge in gold, and a toggle producing a cyclic V-path"></canvas>
+<p style="text-align:center"><button onclick="toggleCyc()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Make it cyclic</button></p>
+<script>
+(function(){
+const cv=document.getElementById('dmCanvas'), ctx=cv.getContext('2d');
+let cyc=false;
+const V=[[200,60],[420,60],[200,210],[420,210]];   // 4 vertices of a square
+const E=[[0,1],[0,2],[1,3],[2,3],[0,3]];           // 5 edges incl. diagonal
+const T=[[0,1,3],[0,3,2]];                          // 2 triangles
+function mid(a,b){return [(a[0]+b[0])/2,(a[1]+b[1])/2];}
+function cen(t){return [(V[t[0]][0]+V[t[1]][0]+V[t[2]][0])/3,(V[t[0]][1]+V[t[1]][1]+V[t[2]][1])/3];}
+function arrow(p,q,col){
+  ctx.strokeStyle=col; ctx.lineWidth=2.4;
+  const a=Math.atan2(q[1]-p[1],q[0]-p[0]);
+  ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(q[0]-8*Math.cos(a),q[1]-8*Math.sin(a)); ctx.stroke();
+  ctx.fillStyle=col; ctx.beginPath();
+  ctx.moveTo(q[0],q[1]); ctx.lineTo(q[0]-10*Math.cos(a-0.4),q[1]-10*Math.sin(a-0.4));
+  ctx.lineTo(q[0]-10*Math.cos(a+0.4),q[1]-10*Math.sin(a+0.4)); ctx.closePath(); ctx.fill();
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#2a333d'; ctx.lineWidth=1.6;
+  for(const e of E){ctx.beginPath(); ctx.moveTo(V[e[0]][0],V[e[0]][1]); ctx.lineTo(V[e[1]][0],V[e[1]][1]); ctx.stroke();}
+  // Both states must be genuine matchings (Definition 10.2: every simplex in at
+  // most one pair), so the edge->triangle pairs are drawn ONLY in the acyclic
+  // state. Keeping them under `cyc` would put e01 in both (v0,e01) and (e01,T0),
+  // which is not a matching at all — a different failure from cyclicity.
+  if(!cyc){
+    arrow(mid(V[0],V[1]),cen(T[0]),'#4caf82');
+    arrow(mid(V[2],V[3]),cen(T[1]),'#4caf82');
+  }
+  // matched pairs: vertex -> edge
+  arrow(V[1],mid(V[1],V[3]),'#8ab4f8');
+  arrow(V[2],mid(V[0],V[2]),'#8ab4f8');
+  if(cyc){ arrow(V[3],mid(V[2],V[3]),'#e06c75'); arrow(V[0],mid(V[0],V[1]),'#e06c75'); }
+  // Acyclic state: unpaired simplices are v0, v3 AND the diagonal edge 03.
+  // Marking only the vertices would read c0=2, c1=0 and give an alternating sum
+  // of 2 instead of the disk's Euler characteristic 2 - 1 = 1.
+  if(!cyc){
+    const d=mid(V[0],V[3]);
+    ctx.fillStyle='#d8a657'; ctx.beginPath(); ctx.arc(d[0],d[1],6,0,2*Math.PI); ctx.fill();
+    ctx.strokeStyle='#d8a657'; ctx.lineWidth=2.4; ctx.beginPath();
+    ctx.moveTo(V[0][0],V[0][1]); ctx.lineTo(V[3][0],V[3][1]); ctx.stroke();
+  }
+  const crit = cyc ? [] : [V[0],V[3]];
+  for(const v of V){
+    const isCrit = crit.some(c=>c[0]===v[0]&&c[1]===v[1]);
+    ctx.fillStyle=isCrit?'#d8a657':'#5a6b7a';
+    ctx.beginPath(); ctx.arc(v[0],v[1],isCrit?7:5,0,2*Math.PI); ctx.fill();
+  }
+  ctx.font='13px Segoe UI'; ctx.textAlign='left';
+  ctx.fillStyle='#4caf82'; ctx.fillText(cyc?'':'green: edge paired with triangle',24,34);
+  ctx.fillStyle='#8ab4f8'; ctx.fillText('blue: vertex paired with edge',24,54);
+  ctx.fillStyle='#d8a657';
+  ctx.fillText(cyc?'':'gold: critical (unpaired) — v0, v3 and the diagonal edge',24,74);
+  ctx.fillStyle=cyc?'#e06c75':'#9aa5b1'; ctx.font='14px Segoe UI';
+  ctx.fillText(cyc?'still a matching — but a V-path closes a loop, so not a Morse matching'
+                  :'acyclic: every V-path strictly descends, so this is a Morse matching',24,250);
+}
+window.toggleCyc=function(){cyc=!cyc; draw();};
+draw();
+})();
+</script>
+
+<div class="theorem">
+<p><strong>Proposition 10.1 (Morse inequalities).</strong> For a Morse function f on K with induced Morse matching M, writing c<sub>i</sub> for the number of critical i-simplices and β<sub>i</sub> for the Betti numbers:</p>
+<p>(a) <em>weak</em>: (i) c<sub>i</sub> ≥ β<sub>i</sub> for all i ≥ 0; (ii) c<sub>p</sub> − c<sub>p−1</sub> + ⋯ ± c<sub>0</sub> = β<sub>p</sub> − β<sub>p−1</sub> + ⋯ ± β<sub>0</sub> where K is p-dimensional.<br>
+(b) <em>strong</em>: c<sub>i</sub> − c<sub>i−1</sub> + ⋯ ± c<sub>0</sub> ≥ β<sub>i</sub> − β<sub>i−1</sub> + ⋯ ± β<sub>0</sub> for all i ≥ 0.</p>
+<p><span class="cite">— Dey &amp; Wang §10.1, Proposition 10.1, p. 293</span></p>
+</div>
+
+<p>Note the asymmetry between (a)(i) and (a)(ii). The first is an inequality — critical cells are at least as numerous as the homology they must generate. The second is an <em>equality</em>, because both alternating sums compute the Euler characteristic, a topological invariant that cannot change when cells are cancelled in pairs of adjacent dimension.</p>
+
+<p>Count it on the acyclic state above, and count <em>every</em> gold cell. The matched pairs are (e<sub>01</sub>, T<sub>0</sub>), (e<sub>23</sub>, T<sub>1</sub>), (v<sub>1</sub>, e<sub>13</sub>) and (v<sub>2</sub>, e<sub>02</sub>), so the unpaired simplices are v<sub>0</sub>, v<sub>3</sub> and the diagonal e<sub>03</sub>: c<sub>0</sub> = 2, c<sub>1</sub> = 1, c<sub>2</sub> = 0. Then (a)(ii) reads c<sub>0</sub> − c<sub>1</sub> + c<sub>2</sub> = 2 − 1 + 0 = 1, which is the Euler characteristic of the disk, and β<sub>0</sub> − β<sub>1</sub> + β<sub>2</sub> = 1 − 0 + 0 = 1 agrees. Missing the critical <em>edge</em> and counting only the two gold vertices would give 2, and the equality would appear to fail — the commonest way to misread a picture like this one.</p>
+
+<div class="theorem">
+<p><strong>Ghrist's Theorem 7.23.</strong> For any discrete gradient field V, MH<sub>•</sub>(V) ≅ H<sup>cell</sup><sub>•</sub>(X). <span class="cite">— Ghrist §7.8, Theorem 7.23, p. 150</span></p>
+</div>
+
+<p>This is strictly stronger than the inequalities. Proposition 10.1 bounds the counts; Theorem 7.23 says the small complex built on the critical cells computes the homology <em>exactly</em>. Ghrist's framing is worth having alongside Dey and Wang's: a discrete vector field partitions the cells into pairs (σ<sub>α</sub> ◁ τ<sub>α</sub>) with σ<sub>α</sub> a codimension-1 face, the leftover cells are Cr(V), a discrete flowline is a chain of such pairs, and a discrete <em>gradient</em> field is one devoid of periodic flowlines. Lifting to the chain complex, V induces a map C<sub>k</sub> → C<sub>k+1</sub> and the flow is</p>
+<div class="math-block">Φ := Id + ∂V + V∂.</div>
+<p>The property that makes all of this computational is that, unlike a continuous-time flow, the discrete flow terminates: Φ<sup>∞</sup> = lim<sub>n→∞</sub>Φ<sup>n</sup> is constant for n sufficiently large. A limit reached in finitely many steps can be computed rather than approximated.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why is part (a)(ii) of Proposition 10.1 an equality rather than an inequality?</p>
+<button onclick="check(this,true)" data-ok>Because both alternating sums compute the Euler characteristic, which is a topological invariant and so cannot change under pairwise cancellation of adjacent-dimensional cells</button>
+<button onclick="check(this,false)">Because in the top dimension there is nothing left to cancel</button>
+<button onclick="check(this,false)">Because the strong inequality holds in both directions when i = p</button>
+<div class="explain">Cancelling a pair removes one i-cell and one (i−1)-cell, which changes the alternating sum by (+1) + (−1) = 0. So the alternating count is invariant under the whole cancellation process, and at the two extremes — all cells critical, and a minimal field — it must give the same number. That number is the Euler characteristic, computable either from cells or from Betti numbers.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> What is the practical content of Facts 10.1 and 10.2 taken together?</p>
+<button onclick="check(this,true)" data-ok>Morse functions and Morse matchings determine each other, so one may reason with functions and compute with matchings — which are finite combinatorial data</button>
+<button onclick="check(this,false)">Every simplicial complex admits a Morse function with exactly β<sub>i</sub> critical i-simplices</button>
+<button onclick="check(this,false)">Acyclicity is automatic, so it need not be checked</button>
+<div class="explain">The pair of facts is an equivalence of two descriptions, and the value is that one description is computable. The second option is false and is precisely what the Morse inequalities <em>fail</em> to promise — c<sub>i</sub> ≥ β<sub>i</sub> is a bound, and achieving equality is a hard optimisation problem in general. The third is a misreading of Fact 10.1: acyclicity is automatic for a matching that <em>came from</em> a Morse function, not for an arbitrary matching, which is exactly what the prediction gate was about.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Cancellation, and pulling a graph out of a density field</h2>
+
+<p>Start from the trivial DMVF in which every simplex is critical — the field induced by f(σ) = dim σ, whose matching is empty. Then reduce the number of critical cells by cancelling them in pairs.</p>
+
+<div class="definition">
+<p><strong>Definition 10.5 (critical V-path).</strong> Given a DMVF V = C ⊔ L ⊔ U induced by M, a V-path π : σ<sub>0</sub> ≺ ⋯ ≺ σ<sub>k</sub> is <em>critical</em> if both σ<sub>0</sub> and σ<sub>k</sub> are critical. <span class="cite">— Dey &amp; Wang §10.2, Definition 10.5, p. 295</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 10.6 (cancellation).</strong> Let (σ<sub>0</sub>, σ<sub>k</sub>) be a pair of critical simplices joined by a critical V-path π. The pair is <em>cancelled</em> by modifying the matching along π — shifting the matched pairs so that σ<sub>0</sub> and σ<sub>k</sub> become paired and the interior simplices re-pair accordingly. <span class="cite">— Dey &amp; Wang §10.2, Definition 10.6, pp. 295–296</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 10.2.</strong> Given a Morse matching M, suppose we cancel a pair of critical simplices σ and σ′ in a DMVF V via a critical V-path to obtain a new matching M′. Then M′ remains a Morse matching if and only if this V-path is the only critical V-path connecting σ and σ′ in V. <span class="cite">— Dey &amp; Wang §10.2, Proposition 10.2, p. 296</span></p>
+</div>
+
+<p>The uniqueness hypothesis is doing real work, and the failure mode is easy to see. Cancelling reverses the arrows along one path. If a second critical V-path already ran between the same two simplices, it now runs the opposite way to the reversed one, and the two together close a loop — a cyclic V-path. By Definition 10.3 the matching is then no longer a Morse matching, and everything in Segment 1 stops applying.</p>
+
+<h3>Which pairs to cancel: persistence decides</h3>
+
+<div class="theorem">
+<p><strong>Proposition 10.3.</strong> Let (v<sub>1</sub>,e<sub>1</sub>), …, (v<sub>n</sub>,e<sub>n</sub>) be the sequence of all non-essential persistence pairs of vertices and edges, sorted in increasing order of the appearance of the edges e<sub>i</sub> in a filtration of a 1-complex K. Let V<sub>0</sub> be the DMVF in K with all simplices critical. Then the cancellations may be performed in that order. <span class="cite">— Dey &amp; Wang §10.2.1, Proposition 10.3, pp. 297–298</span></p>
+</div>
+
+<p>Persistence pairs are the natural cancellation order because a persistence pair is exactly a creator paired with its destroyer — which is the relation a critical V-path realises. The persistence computation hands over a ready-made list of cancellable pairs, ordered by significance, and a threshold δ on persistence becomes a dial controlling how much gets cancelled.</p>
+
+<div class="theorem">
+<p><strong>Theorem 10.5.</strong> Let K be a finite simplicial 2-complex whose underlying space is a 2-manifold without boundary, and let 𝓕 be a simplex-wise filtration of K. Starting from the trivial DMVF where each simplex is critical, one can obtain a DMVF in K by cancelling the vertex–edge and edge–triangle persistence pairs given by 𝓕. <span class="cite">— Dey &amp; Wang §10.2, Theorem 10.5, p. 301</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 10.6.</strong> Given a simplicial 1-complex or a simplicial 2-manifold K with n simplices, one can compute (a) a DMVF by cancelling all persistence pairs resulting from a given filtration of K in O(nα(n)) time; (b) a DMVF as above when the filtration is induced by a given PL-function on K in O(n log n) time. <span class="cite">— Dey &amp; Wang §10.2.2, Theorem 10.6, p. 303</span></p>
+</div>
+
+<p>Note the hypotheses in Theorem 10.5. It is a statement about 2-manifolds without boundary, extended by duality to filtrations of a simplicial d-complex in which each (d−1)-simplex has at most two d-simplices as cofacets. It is not a statement about arbitrary complexes, and the reason is Proposition 10.2: uniqueness of the critical V-path is what a manifold's local structure supplies.</p>
+
+<h3>Worked example 1: reconstructing a graph</h3>
+
+<div class="worked">
+<p><strong>The problem.</strong> A density field ρ over a region Ω — GPS traces over a city, or an image of neuron fluorescence — is concentrated near an unknown embedded graph G. Recover G.</p>
+<p><strong>Step 1 — the noise model must be stated first.</strong> Definition 10.7: ρ is a (β, ν, ω)-approximation of a connected graph G if (C-1) there is an ω-neighbourhood G<sup>ω</sup> of G that deformation retracts to G; and (C-2) ρ(x) ∈ [β, β+ν] for x ∈ G<sup>ω</sup> and ρ(x) ∈ [0, ν] otherwise, with β &gt; 2ν.</p>
+<p><strong>Step 2 — read the conditions.</strong> (C-1) says the neighbourhood has the same topology as the hidden graph — without it there is no sense in which recovering G<sup>ω</sup> recovers G. (C-2) says the density concentrates: significantly higher inside than outside, with only small fluctuation on either side. The separation β &gt; 2ν is what makes "significantly" precise; Dey and Wang's illustration is an ideal field f<sub>G</sub> equal to β on G<sup>ω</sup> and 0 elsewhere, plus a perturbation g bounded in [0, ν].</p>
+<p><strong>Step 3 — the algorithm.</strong> Build a DMVF on a triangulation of Ω by cancelling persistence pairs, keep the critical edges whose persistence exceeds a threshold δ, and take the union of their 1-unstable manifolds — the descending paths traced out by the vector field. Theorem 10.9: the time complexity of MORSERECON is O(Pert(K)), where Pert(K) is the time to compute persistence pairings for K. The reconstruction is free relative to the persistence computation it consumes.</p>
+<p><strong>Step 4 — what is guaranteed.</strong> Theorem 10.12: under the input assumption, the output satisfies Ĝ ⊆ G<sup>ω</sup>. Proposition 10.13: under the same assumption, Ĝ is homotopy equivalent to G. And Theorem 10.14: for any deformation retraction H : G<sup>ω</sup> × [0,1] → G<sup>ω</sup> with H(G<sup>ω</sup>,1) = G, the restriction H|<sub>Ĝ</sub> is a homotopy from the embedded Ĝ to some G′ ⊆ G, where G and G′ have the same first Betti number.</p>
+<p><strong>Step 5 — what is not.</strong> None of these says Ĝ = G. The output lies within ω of the truth and has the right topology; it is not claimed to be metrically accurate beyond ω, and individual output edges are not claimed to correspond to individual true edges. §10.5 applies exactly this to road networks and neuron networks, which is where the distinction matters.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded): why cancellation cannot be done greedily.</strong> Two critical simplices σ and σ′ are joined by two distinct critical V-paths.</p>
+<p><strong>What cancellation does.</strong> Cancelling along one path reverses the matched pairs along it, so that arrows which pointed one way now point <span class="gap">⟨your step⟩</span>.</p>
+<p><strong>The collision.</strong> The second critical V-path still runs between σ and σ′ in its original direction. Following the reversed first path out and the untouched second path back produces a V-path from σ<sub>0</sub> to itself — that is, a <span class="gap">⟨your step: what kind of path?⟩</span>.</p>
+<p><strong>The consequence.</strong> By Definition 10.3 the matching is now cyclic, so it is not a Morse matching; Fact 10.2 no longer supplies a Morse function, and the critical cells no longer compute the homology. This is exactly the content of Proposition 10.2's "if and only if".</p>
+<p class="cite">Gap solutions: the arrows now point the other way; and the composite is a cyclic V-path.</p>
+</div>
+
+<div class="warn">
+<p><strong>The pattern to carry out of this unit.</strong> Every guarantee in §10.4 is conditional on the input assumption — the (β, ν, ω) noise model. That model is a hypothesis about the data, not a property the algorithm can establish, and MORSERECON returns an answer whether or not it holds. The checkable part is the model; the claim licensed is containment in G<sup>ω</sup> plus homotopy equivalence; and the parameter δ that decides which critical edges survive is a choice the analyst makes and must report.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Take a triangulated annulus and the trivial DMVF in which every simplex is critical. (i) Using Proposition 10.1(a)(i), give a lower bound on the number of critical cells any DMVF on it can have, in each dimension. (ii) Using (a)(ii), check that your bound is consistent with the Euler characteristic of an annulus. (iii) If a persistence-guided cancellation leaves exactly the number of critical cells your bound allows, what does Ghrist's Theorem 7.23 then tell you about the resulting Morse complex?</p>
+<p><em>Hint:</em> an annulus is homotopy equivalent to a circle, so β<sub>0</sub> = β<sub>1</sub> = 1 and χ = 0.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Theorem 10.5 assume the underlying space is a 2-manifold without boundary?</p>
+<button onclick="check(this,true)" data-ok>Because the manifold's local structure is what guarantees the uniqueness of critical V-paths that Proposition 10.2 requires for cancellation to preserve acyclicity</button>
+<button onclick="check(this,false)">Because persistence pairs are only defined for manifolds</button>
+<button onclick="check(this,false)">Because the Morse inequalities fail on complexes with boundary</button>
+<div class="explain">Cancellation is legitimate exactly when the critical V-path is unique, and what supplies that uniqueness is the local structure — Dey and Wang extend the theorem by duality to complexes in which each (d−1)-simplex has at most two d-simplices as cofacets, which is precisely the manifold condition made combinatorial. Persistence pairs are defined for any filtration, and the Morse inequalities hold for any complex.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> MORSERECON is run and returns a graph Ĝ. What has been proved?</p>
+<button onclick="check(this,false)">Ĝ = G, provided the persistence threshold δ was chosen correctly</button>
+<button onclick="check(this,true)" data-ok>Under the input assumption, Ĝ ⊆ G<sup>ω</sup> and Ĝ is homotopy equivalent to G — containment and topology, not equality</button>
+<button onclick="check(this,false)">Nothing, since the noise model cannot be verified in practice</button>
+<div class="explain">Theorem 10.12 gives containment in the ω-neighbourhood and Proposition 10.13 gives homotopy equivalence, with Theorem 10.14 exhibiting the homotopy explicitly and matching first Betti numbers. Equality is never claimed and would be the wrong thing to want from a density field. The third option overcorrects: the model is a hypothesis about the data, and hypotheses about data can be argued for from the acquisition process even when they cannot be certified.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Theorem 10.9 gives complexity O(Pert(K)). What is the practical reading?</p>
+<button onclick="check(this,true)" data-ok>The reconstruction costs no more than the persistence computation it consumes, so persistence is the bottleneck rather than the Morse machinery</button>
+<button onclick="check(this,false)">The algorithm is linear in the number of simplices</button>
+<button onclick="check(this,false)">Persistence must be recomputed once per critical edge</button>
+<div class="explain">Expressing complexity relative to Pert(K) is a deliberate statement about where the cost lives: whatever the persistence algorithm costs, the reconstruction adds only lower-order work. It is not a claim of linearity — persistence itself is not linear in general — and it certainly does not imply repeated recomputation, which would defeat the point.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove Fact 10.1: the matching induced by a discrete Morse function is acyclic. Then prove that cancelling a pair of critical simplices of dimensions p−1 and p leaves the alternating sum Σ<sub>i</sub>(−1)<sup>i</sup>c<sub>i</sub> unchanged, and deduce that Proposition 10.1(a)(ii) is consistent with performing any number of cancellations.</p>
+<p><em>Hint:</em> for the first part, use Dey and Wang's observation that along a V-path the function values on the facets of matched pairs strictly decrease. For the second, count what a single cancellation removes.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Fact 10.1.</strong> Let f be a discrete Morse function on K and M the matching it induces, so that (σ, τ) ∈ M exactly when σ is the unique facet of τ with f(σ) ≥ f(τ), equivalently τ the unique cofacet of σ with f(τ) ≤ f(σ). Consider a V-path π : σ<sub>0</sub> ≺ σ<sub>1</sub> ≺ ⋯ ≺ σ<sub>k</sub> and look at the facets of its matched pairs — the terms of even index, say. Dey and Wang's observation is that these values strictly decrease along π: at each step the path leaves a matched pair, where f does not increase, and enters an unmatched incidence, where by Definition 10.1's counting condition f must strictly decrease, since the exceptional facet has already been used by the match.</p>
+<p>Now suppose π were cyclic, so that σ<sub>0</sub> is a facet of σ<sub>k</sub> or σ<sub>0</sub> = μ(σ<sub>k</sub>). Then the sequence of values returns to the value at σ<sub>0</sub>. But it strictly decreased at every step, so f(σ<sub>0</sub>) &lt; f(σ<sub>0</sub>), a contradiction. Hence no cyclic V-path exists and M is acyclic — that is, a Morse matching. ∎</p>
+<p><strong>Invariance of the alternating sum.</strong> A cancellation as in Definition 10.6 removes exactly one critical simplex of dimension p−1 and one of dimension p from C, since σ<sub>0</sub> and σ<sub>k</sub> become paired with each other and the interior simplices merely re-pair among themselves — they were already in L ⊔ U and remain there. So c<sub>p−1</sub> drops by 1 and c<sub>p</sub> drops by 1, and the alternating sum changes by</p>
+<div class="math-block">−(−1)<sup>p−1</sup> − (−1)<sup>p</sup> = (−1)<sup>p</sup> − (−1)<sup>p</sup> = 0.</div>
+<p>The two contributions have opposite signs precisely because the dimensions are adjacent. Hence Σ<sub>i</sub>(−1)<sup>i</sup>c<sub>i</sub> is unchanged by any single cancellation, and by induction by any finite sequence of them. ∎</p>
+<p><strong>Consistency with Proposition 10.1(a)(ii).</strong> Begin at the trivial DMVF, where every simplex is critical and the alternating sum is Σ<sub>i</sub>(−1)<sup>i</sup>(number of i-simplices) — the Euler characteristic computed from the cells. Cancellation preserves that number, so every DMVF obtained by cancelling has the same alternating sum. Proposition 10.1(a)(ii) identifies it with the alternating sum of Betti numbers, so the identity holds at every stage of the process and no sequence of cancellations can contradict it. ∎</p>
+<p><em>What this does and does not license.</em> Invariance of the alternating sum is a conservation law, not an optimality statement: it says cancellation cannot cheat the Euler characteristic, but says nothing about how far c<sub>i</sub> can be driven towards β<sub>i</sub>. That gap — between what the inequalities permit and what an algorithm achieves — is exactly what persistence-guided cancellation is trying to close, and Theorem 10.5's hypotheses are the price of a guarantee that it does.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What a discrete Morse function is, why it induces a matching, and the single condition that makes a matching a Morse matching.</li>
+<li>What the critical cells give you: the two Morse inequalities and the theorem that upgrades them from bounds to an isomorphism.</li>
+<li>Cancellation, the uniqueness hypothesis it needs, and the exact form of the graph-reconstruction guarantee.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) at most one facet not below and at most one cofacet not above, disjoint by Chari, hence a matching; acyclic V-paths make it a Morse matching, and Facts 10.1 and 10.2 make functions and matchings interchangeable; (2) c<sub>i</sub> ≥ β<sub>i</sub>, the alternating sums agree because both are the Euler characteristic, and Ghrist's Theorem 7.23 says the Morse complex computes cellular homology exactly, with Φ = Id + ∂V + V∂ terminating in finite time; (3) cancel a critical pair along a critical V-path, legitimate iff that path is unique (Proposition 10.2), order the cancellations by persistence (Proposition 10.3, Theorem 10.5), and under the (β,ν,ω) model the reconstruction satisfies Ĝ ⊆ G<sup>ω</sup> and Ĝ ≃ G — containment and topology, never equality — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §10.1 "Discrete Morse Function": Definition 10.1 with Chari's disjointness remark, Definition 10.2 on matchings, Definition 10.3 on V-paths and Morse matchings, Facts 10.1 and 10.2, and Proposition 10.1's weak and strong Morse inequalities (pp. 290–293); §10.1.1, Definition 10.4 on discrete Morse vector fields and the arrow picture (pp. 293–294). §10.2 "Persistence-Based Discrete Morse Vector Fields": Definition 10.5 on critical V-paths, Definition 10.6 on cancellation, Proposition 10.2's uniqueness criterion (pp. 295–296); Proposition 10.3 on cancelling in persistence order (pp. 297–298); Theorem 10.5 for 2-manifolds without boundary and its extension by duality (p. 301); Theorem 10.6's O(nα(n)) and O(n log n) bounds (p. 303). §10.4 "Graph Reconstruction": Theorem 10.9 on the O(Pert(K)) complexity of MORSERECON (p. 309); Definition 10.7's (β, ν, ω)-approximation with conditions (C-1) and (C-2) and the illustrative construction ρ = f<sub>G</sub> + g (pp. 309–310); Theorem 10.12's Ĝ ⊆ G<sup>ω</sup>, Proposition 10.13's homotopy equivalence, and Theorem 10.14's explicit homotopy with matching first Betti numbers (pp. 310–313); §10.5's road network and neuron network applications (pp. 313–316). Ghrist, <em>Elementary Applied Topology</em> — §7.8 "Discrete Morse theory": discrete vector fields and critical cells, discrete flowlines and periodicity, the chain-level flow Φ = Id + ∂V + V∂ and its finite-time limit, and Theorem 7.23 (pp. 149–150). Deferred: §10.3's stable and unstable manifolds in full, the algorithms PARTIALPERSDMVF and COLLECTG with Propositions 10.7, 10.8 and 10.11 and Corollary 10.10, and Proposition 10.4's edge–triangle duality.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

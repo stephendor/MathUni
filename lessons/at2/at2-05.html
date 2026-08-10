@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at2-05 — The Künneth formula and products of spaces</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+ol.props{color:var(--ink)}ol.props li{margin:.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology II · Nexus College</p>
+<h1>The Künneth formula and products of spaces <span class="cite">(at2-05)</span></h1>
+
+<div class="hook">
+If you know the cohomology of X and of Y, what is the cohomology of X × Y? Usually the tensor product — usually.
+<p>You have a product of two spaces and you know each factor completely. The honest expectation is that nothing new can happen: the answer ought to be assembled from the parts. It very nearly is, and the assembly instructions are a tensor product with one sign in the multiplication.</p>
+<p>The interesting part is the word "usually". Theorem 3.15 carries a freeness hypothesis, and Hatcher says outright that it cannot always be dispensed with. Knowing which hypothesis is load-bearing is the difference between a formula and a habit.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> The cross product a × b = p<sub>1</sub><sup>∗</sup>(a) ⌣ p<sub>2</sub><sup>∗</sup>(b) is defined on H<sup>∗</sup>(X;R) × H<sup>∗</sup>(Y;R) and is linear in each variable separately. Predict: can such a map be an isomorphism of groups onto H<sup>∗</sup>(X × Y;R)?</p>
+<button onclick="check(this,false)">Yes — linearity in each variable is exactly what an isomorphism needs</button>
+<button onclick="check(this,true)" data-ok>No — a bilinear map is almost never even a homomorphism out of the direct product, so it cannot be an isomorphism</button>
+<button onclick="check(this,false)">Only when X and Y are CW complexes</button>
+<div class="explain">Correct, and the failure is elementary rather than topological. A homomorphism out of A × B must send (a + a′, b + b′) to the sum of two values; a bilinear map sends it to a sum of four. Ordinary multiplication ℤ × ℤ → ℤ is bilinear, yet doubling the input quadruples the output. The fix is not to weaken the claim but to change the source: replace the direct product by the tensor product, whose entire purpose is to convert bilinear maps into homomorphisms.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Künneth computes the cohomology of a product (top-05's product topology) from its factors as a tensor product, with a Tor correction that vanishes over a field. It is how the topology of a product feature space decomposes into the topology of its parts.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Cross product, tensor product, and the sign</h2>
+
+<div class="definition">
+<p><strong>Cross product.</strong> The cross product, or external cup product, is the map H<sup>∗</sup>(X;R) × H<sup>∗</sup>(Y;R) → H<sup>∗</sup>(X × Y;R) given by a × b = p<sub>1</sub><sup>∗</sup>(a) ⌣ p<sub>2</sub><sup>∗</sup>(b), where p<sub>1</sub> and p<sub>2</sub> are the projections of X × Y onto X and Y. Since cup product is distributive, the cross product is bilinear — linear in each variable separately. <span class="cite">— Hatcher §3.2, p. 214</span></p>
+</div>
+
+<p>The prediction gate has already told you the difficulty. Hatcher's phrasing is exact: a bilinear map is rarely a homomorphism, so it could hardly be an isomorphism. The algebraic solution is to replace H<sup>∗</sup>(X;R) × H<sup>∗</sup>(Y;R) by the tensor product H<sup>∗</sup>(X;R) ⊗<sub>R</sub> H<sup>∗</sup>(Y;R).</p>
+
+<div class="definition">
+<p><strong>Tensor product.</strong> For abelian groups A and B, A ⊗ B is the abelian group with generators a ⊗ b for a ∈ A, b ∈ B, and relations (a + a′) ⊗ b = a ⊗ b + a′ ⊗ b and a ⊗ (b + b′) = a ⊗ b + a ⊗ b′. Its zero element is 0 ⊗ 0 = 0 ⊗ b = a ⊗ 0, and n(a ⊗ b) = na ⊗ b = a ⊗ nb for all n ∈ ℤ. <span class="cite">— Hatcher §3.2, p. 215</span></p>
+</div>
+
+<p>Seven properties do all the work, and the first five are the whole of the arithmetic:</p>
+
+<ol class="props">
+<li>A ⊗ B ≅ B ⊗ A;</li>
+<li>(⊕<sub>i</sub>A<sub>i</sub>) ⊗ B ≅ ⊕<sub>i</sub>(A<sub>i</sub> ⊗ B);</li>
+<li>(A ⊗ B) ⊗ C ≅ A ⊗ (B ⊗ C);</li>
+<li>ℤ ⊗ A ≅ A;</li>
+<li>ℤ<sub>n</sub> ⊗ A ≅ A/nA;</li>
+<li>homomorphisms f : A → A′ and g : B → B′ induce f ⊗ g : A ⊗ B → A′ ⊗ B′ by (f ⊗ g)(a ⊗ b) = f(a) ⊗ g(b);</li>
+<li>a bilinear map φ : A × B → C induces a homomorphism A ⊗ B → C sending a ⊗ b to φ(a,b).</li>
+</ol>
+
+<p>Properties (1), (2), (4) and (5) between them compute the tensor product of any two finitely generated abelian groups, and property (7) is precisely the fix for the prediction gate's problem. For modules over a commutative ring R one defines A ⊗<sub>R</sub> B as the quotient of A ⊗ B by the further relations ra ⊗ b = a ⊗ rb; this makes A ⊗<sub>R</sub> B an R-module, and (1)–(3), (6) and (7) survive, with (4) becoming R ⊗<sub>R</sub> A ≅ A. The two constructions agree when R is ℤ or ℤ<sub>m</sub>, and also when R is ℚ or any subring of ℚ; they differ in general — for R = ℤ[√2] one has R ⊗<sub>R</sub> R = R of rank 2 while R ⊗ R is free of rank 4.</p>
+
+<p>Property (7) now supplies the map we actually want:</p>
+<div class="math-block">H<sup>∗</sup>(X;R) ⊗<sub>R</sub> H<sup>∗</sup>(Y;R) &nbsp;<sup>×</sup>⟶&nbsp; H<sup>∗</sup>(X × Y;R), &emsp; a ⊗ b ↦ a × b,</div>
+<p>also called the cross product. For this to be a ring homomorphism the tensor product of graded rings must be given the right multiplication, and "right" here means one sign:</p>
+
+<div class="definition">
+<p><strong>Multiplication in a graded tensor product.</strong> (a ⊗ b)(c ⊗ d) = (&minus;1)<sup>|b||c|</sup> ac ⊗ bd, where |x| denotes the dimension of x. <span class="cite">— Hatcher §3.2, p. 216</span></p>
+</div>
+
+<h3>Worked example 1: why that sign and no other</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Write μ for the cross product map and verify that it is a ring homomorphism for the multiplication just defined.</p>
+<p><strong>Left-hand side.</strong> μ((a ⊗ b)(c ⊗ d)) = (&minus;1)<sup>|b||c|</sup> μ(ac ⊗ bd) = (&minus;1)<sup>|b||c|</sup> (a ⌣ c) × (b ⌣ d), by the definition of the multiplication and then of μ.</p>
+<p><strong>Unfold the cross product.</strong> That equals (&minus;1)<sup>|b||c|</sup> p<sub>1</sub><sup>∗</sup>(a ⌣ c) ⌣ p<sub>2</sub><sup>∗</sup>(b ⌣ d), and since p<sub>1</sub><sup>∗</sup> and p<sub>2</sub><sup>∗</sup> are ring homomorphisms by Proposition 3.10 of at2-04, this is</p>
+<div class="math-block">(&minus;1)<sup>|b||c|</sup> p<sub>1</sub><sup>∗</sup>(a) ⌣ p<sub>1</sub><sup>∗</sup>(c) ⌣ p<sub>2</sub><sup>∗</sup>(b) ⌣ p<sub>2</sub><sup>∗</sup>(d).</div>
+<p><strong>The one non-formal step.</strong> Commute p<sub>1</sub><sup>∗</sup>(c) past p<sub>2</sub><sup>∗</sup>(b). By Theorem 3.11 this costs (&minus;1)<sup>|b||c|</sup>, which cancels the sign already present, leaving</p>
+<div class="math-block">p<sub>1</sub><sup>∗</sup>(a) ⌣ p<sub>2</sub><sup>∗</sup>(b) ⌣ p<sub>1</sub><sup>∗</sup>(c) ⌣ p<sub>2</sub><sup>∗</sup>(d) = (a × b)(c × d) = μ(a ⊗ b) μ(c ⊗ d).</div>
+<p><strong>Read the moral.</strong> The sign in the definition is not decoration: it is placed exactly so as to be consumed by the graded commutativity of cup product. Delete it and the two sides differ by (&minus;1)<sup>|b||c|</sup> — equal only when |b||c| is even or 2 = 0 in R.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded).</strong> Compute ℤ<sub>4</sub> ⊗ ℤ<sub>6</sub> and ℤ<sub>m</sub> ⊗ ℤ<sub>n</sub>, using only properties (1)–(5).</p>
+<p><strong>Apply (5).</strong> ℤ<sub>4</sub> ⊗ ℤ<sub>6</sub> ≅ ℤ<sub>6</sub>/4ℤ<sub>6</sub>. Now 4ℤ<sub>6</sub> = {0, 4, 2} as a subset, which is the subgroup <span class="gap">⟨your step: name it⟩</span> of order <span class="gap">⟨your step⟩</span>.</p>
+<p><strong>Quotient.</strong> ℤ<sub>6</sub> has order 6, so the quotient has order 6/3 and ℤ<sub>4</sub> ⊗ ℤ<sub>6</sub> ≅ ℤ<sub>2</sub>.</p>
+<p><strong>Generalise.</strong> In ℤ<sub>n</sub> the subgroup mℤ<sub>n</sub> is generated by the residue of m, which generates the same subgroup as gcd(m,n); that subgroup has index gcd(m,n). Hence ℤ<sub>m</sub> ⊗ ℤ<sub>n</sub> ≅ ℤ<sub>gcd(m,n)</sub>. In particular the tensor product of two cyclic groups of coprime order is zero.</p>
+<p class="cite">Gap solutions: 4ℤ<sub>6</sub> = 2ℤ<sub>6</sub>, of order 3.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which property of the tensor product is doing the essential work in passing from the bilinear cross product to a homomorphism?</p>
+<button onclick="check(this,false)">Property (2), distributivity over direct sums</button>
+<button onclick="check(this,true)" data-ok>Property (7): a bilinear map A × B → C induces a homomorphism A ⊗ B → C</button>
+<button onclick="check(this,false)">Property (4), ℤ ⊗ A ≅ A</button>
+<div class="explain">Property (7) is the universal property that defines what a tensor product is for: it converts bilinearity into linearity by moving the difficulty into the source object. Properties (2) and (4) are computational conveniences used later to evaluate the answer, not to construct the map.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In the graded tensor product, why is the sign (&minus;1)<sup>|b||c|</sup> — with b and c, rather than any other pair?</p>
+<button onclick="check(this,true)" data-ok>Because b and c are precisely the two factors that must swap past each other when (a ⊗ b)(c ⊗ d) is rewritten as ac ⊗ bd</button>
+<button onclick="check(this,false)">Because b and c are the middle two symbols, and the convention is to sign the middle</button>
+<button onclick="check(this,false)">Because a and d always have even dimension</button>
+<div class="explain">Line the four factors up as a, b, c, d and ask what it takes to reach the order a, c, b, d: only c and b cross. In the verification this appears as commuting p<sub>1</sub><sup>∗</sup>(c) past p<sub>2</sub><sup>∗</sup>(b), which Theorem 3.11 charges at (&minus;1)<sup>|b||c|</sup>. The convention answer describes the formula correctly but explains nothing; the third option is simply false.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Theorem 3.15, and what it computes</h2>
+
+<div class="theorem">
+<p><strong>Theorem 3.15 (Künneth formula).</strong> The cross product H<sup>∗</sup>(X;R) ⊗<sub>R</sub> H<sup>∗</sup>(Y;R) → H<sup>∗</sup>(X × Y;R) is an isomorphism of rings if X and Y are CW complexes and H<sup>k</sup>(Y;R) is a finitely generated free R-module for all k. <span class="cite">— Hatcher §3.2, Theorem 3.15, p. 216</span></p>
+</div>
+
+<p>Two remarks Hatcher attaches are worth as much as the statement. The CW hypothesis is removable — §4.1 does it, by CW approximation of arbitrary spaces. The freeness hypothesis is not: it cannot always be dispensed with, and §3.B obtains a completely general Künneth formula for the homology of a product, with a correction term for the non-free case. That correction is the Tor term named in this unit's mission strip; it lies outside §3.2 and so outside this lesson's source, and this lesson does not prove anything about it. What §3.2 does establish is the clean case, and the clean case covers every example below.</p>
+
+<p>The proof strategy, for orientation: fix Y and consider the two functors h<sup>n</sup>(X,A) = ⊕<sub>i</sub>(H<sup>i</sup>(X,A;R) ⊗<sub>R</sub> H<sup>n−i</sup>(Y;R)) and k<sup>n</sup>(X,A) = H<sup>n</sup>(X × Y, A × Y;R). A relative cross product defines μ : h<sup>n</sup> → k<sup>n</sup>, and the task is to show it is an isomorphism. Proposition 3.17 is the engine: a natural transformation between unreduced cohomology theories on CW pairs which is an isomorphism on the pair (point, ∅) is an isomorphism for all CW pairs. Theorem 3.18 then records the relative version, that H<sup>∗</sup>(X,A;R) ⊗<sub>R</sub> H<sup>∗</sup>(Y,B;R) → H<sup>∗</sup>(X × Y, A × Y ∪ X × B;R) is a ring isomorphism under the same freeness hypothesis on H<sup>k</sup>(Y,B;R).</p>
+
+<h3>Visual: reading a Künneth answer off a grid</h3>
+
+<p>The additive content of the theorem is a grid. Put the ranks of H<sup>i</sup>(X) along one axis and H<sup>j</sup>(Y) along the other; the rank of H<sup>n</sup>(X × Y) is the sum of the products along the anti-diagonal i + j = n. The button walks n upwards.</p>
+
+<canvas id="kCanvas" width="640" height="250" role="img" aria-label="A grid whose rows are cohomology degrees of Y and columns degrees of X, with the anti-diagonal summing to the cohomology of the product in one degree"></canvas>
+<p style="text-align:center"><button onclick="nextDiag()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Next degree</button></p>
+<script>
+(function(){
+const cv=document.getElementById('kCanvas'), ctx=cv.getContext('2d');
+const rx=[1,0,1],       // ranks of H^i(X) for X = S^2 : 1,0,1
+      ry=[1,1];         // ranks of H^j(Y) for Y = S^1 : 1,1
+let n=0; const nmax=rx.length+ry.length-2;
+function draw(){
+  const w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h);
+  const ox=120, oy=60, cs=52;
+  ctx.font='13px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  let total=0;
+  for(let j=ry.length-1;j>=0;j--) for(let i=0;i<rx.length;i++){
+    const x=ox+i*cs, y=oy+(ry.length-1-j)*cs, on=(i+j===n), v=rx[i]*ry[j];
+    ctx.fillStyle=on?'#1d2a1f':'#1a2027';
+    ctx.strokeStyle=on?'#4caf82':'#2a333d';
+    ctx.beginPath(); ctx.rect(x,y,cs-6,cs-6); ctx.fill(); ctx.stroke();
+    ctx.fillStyle=v?(on?'#c3e88d':'#e8e8e8'):'#4a555f';
+    ctx.fillText(String(v),x+(cs-6)/2,y+(cs-6)/2);
+    if(on) total+=v;
+  }
+  ctx.fillStyle='#9aa5b1'; ctx.textAlign='right';
+  for(let j=ry.length-1;j>=0;j--) ctx.fillText('H'+j+'(S1) rank '+ry[j], ox-10, oy+(ry.length-1-j)*cs+(cs-6)/2);
+  ctx.textAlign='center';
+  for(let i=0;i<rx.length;i++) ctx.fillText('H'+i+'(S2)', ox+i*cs+(cs-6)/2, oy-16);
+  ctx.textAlign='left'; ctx.fillStyle='#c3e88d'; ctx.font='14px Segoe UI';
+  ctx.fillText('anti-diagonal i + j = '+n+'  gives  rank H'+n+'(S2 × S1) = '+total, 24, oy+ry.length*cs+18);
+  ctx.fillStyle='#9aa5b1'; ctx.font='13px Segoe UI';
+  ctx.fillText('each cell is rank H'+'i'+'(S2) × rank H'+'j'+'(S1)', 24, oy+ry.length*cs+42);
+}
+window.nextDiag=function(){n=(n+1)%(nmax+1); draw();};
+draw();
+})();
+</script>
+
+<h3>Worked example 3: products of spheres</h3>
+
+<div class="worked">
+<p><strong>Example 3.16.</strong> The exterior algebra Λ<sub>R</sub>[α<sub>1</sub>,…,α<sub>n</sub>] is the graded tensor product over R of the one-variable exterior algebras Λ<sub>R</sub>[α<sub>i</sub>] with the α<sub>i</sub> odd-dimensional. So Theorem 3.15 gives</p>
+<div class="math-block">H<sup>∗</sup>(S<sup>k<sub>1</sub></sup> × ⋯ × S<sup>k<sub>n</sub></sup>; ℤ) ≅ Λ<sub>ℤ</sub>[α<sub>1</sub>,…,α<sub>n</sub>] &emsp; when every k<sub>i</sub> is odd.</div>
+<p>With some k<sub>i</sub> even, one gets the tensor product of an exterior algebra for the odd-dimensional spheres and truncated polynomial rings ℤ[α]/(α²) for the even-dimensional ones. As ungraded rings Λ<sub>ℤ</sub>[α] and ℤ[α]/(α²) are isomorphic; as <em>graded</em> rings they must be kept apart, α being odd-dimensional in the first and even-dimensional in the second — and the tensor product's sign reads exactly that dimension. Over ℤ<sub>2</sub> the distinction evaporates, signs being irrelevant.</p>
+<p><strong>Instance: T<sup>3</sup>.</strong> All three circles are odd, so H<sup>∗</sup>(T<sup>3</sup>;ℤ) ≅ Λ<sub>ℤ</sub>[α<sub>1</sub>,α<sub>2</sub>,α<sub>3</sub>] with each |α<sub>i</sub>| = 1, of ranks 1, 3, 3, 1 in degrees 0 to 3.</p>
+<p><strong>Instance: S<sup>2</sup> × S<sup>2</sup>.</strong> Both factors are even, giving ℤ[α]/(α²) ⊗ ℤ[β]/(β²) with |α| = |β| = 2, of ranks 1, 0, 2, 0, 1. Note that α² = β² = 0 but (α + β)² = 2αβ ≠ 0 — Theorem 3.11 said nothing here, the dimensions being even.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 4 (faded): the mission's pair.</strong> Compare S<sup>2</sup> × S<sup>1</sup> with S<sup>2</sup> ∨ S<sup>1</sup> ∨ S<sup>3</sup>.</p>
+<p><strong>The product.</strong> By Theorem 3.15, H<sup>∗</sup>(S<sup>2</sup> × S<sup>1</sup>;ℤ) ≅ ℤ[β]/(β²) ⊗ Λ<sub>ℤ</sub>[α] with |β| = 2, |α| = 1 — the freeness hypothesis holding since each H<sup>k</sup>(S<sup>1</sup>;ℤ) is free of finite rank. Additively this is ℤ in degrees 0, 1, 2, 3, spanned by 1, α, β and <span class="gap">⟨your step: the degree-3 basis element⟩</span>. In particular the product of the 1-dimensional class with the 2-dimensional class is <span class="gap">⟨your step: zero or a generator?⟩</span>.</p>
+<p><strong>The wedge.</strong> By Example 3.14 of at2-04, the reduced cohomology ring of a wedge is a product ring with coordinatewise multiplication. Each sphere factor has non-zero reduced cohomology in one degree only, so a product of two positive-dimensional classes lands either in a degree where the relevant factor vanishes or in a coordinate where one of the factors was already zero. Every such product is therefore <span class="gap">⟨your step⟩</span>. Additively the ring is again ℤ in degrees 0, 1, 2, 3.</p>
+<p><strong>The conclusion.</strong> Same groups in every degree, different rings. Since a homotopy equivalence induces a graded ring isomorphism (at2-04), the two spaces are not homotopy equivalent.</p>
+<p class="cite">Gap solutions: the degree-3 basis element is αβ; the product α ⌣ β = αβ is a generator of H<sup>3</sup>, hence non-zero; and every product of positive-dimensional classes in the wedge is zero.</p>
+</div>
+
+<div class="lemma">
+<p><strong>Lemma K (reading homology back from free cohomology).</strong> Let C be a chain complex of free abelian groups with all H<sub>n</sub>(C) finitely generated, and suppose H<sup>n</sup>(C;ℤ) is free of finite rank r<sub>n</sub> for every n, with H<sup>n</sup>(C;ℤ) = 0 for n greater than some N. Then every H<sub>n</sub>(C) is free of rank r<sub>n</sub>.</p>
+</div>
+
+<p><em>Proof.</em> Corollary 3.3 of at2-02 gives H<sup>n</sup>(C;ℤ) ≅ (H<sub>n</sub>/T<sub>n</sub>) ⊕ T<sub>n−1</sub>, where T<sub>n</sub> is the torsion subgroup of H<sub>n</sub>. Work downwards from the top. For n &gt; N both sides vanish, so T<sub>n</sub> = 0 there. Suppose T<sub>n</sub> is not known yet but T<sub>n+1</sub> = 0 has been established; the group H<sup>n+1</sup>(C;ℤ) ≅ (H<sub>n+1</sub>/T<sub>n+1</sub>) ⊕ T<sub>n</sub> is free by hypothesis, and a direct summand of a free abelian group is torsion-free, so the finite group T<sub>n</sub> must be zero. By downward induction T<sub>n</sub> = 0 for every n, and then H<sup>n</sup>(C;ℤ) ≅ H<sub>n</sub>/T<sub>n</sub> = H<sub>n</sub> has rank r<sub>n</sub>. ∎</p>
+
+<p>This is the step that lets a Künneth computation settle the homology as well: both spaces of worked example 4 have free cohomology concentrated in degrees 0 to 3, so both have H<sub>n</sub> ≅ ℤ there and zero elsewhere — identical homology, different rings. The hypothesis that matters is finite generation; drop it and Corollary 3.3 does not apply at all.</p>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Compute H<sup>∗</sup>(S<sup>1</sup> × S<sup>3</sup>;ℤ) and H<sup>∗</sup>(S<sup>1</sup> × S<sup>1</sup> × S<sup>2</sup>;ℤ) as graded rings, listing the rank in each degree, and in each case check the freeness hypothesis of Theorem 3.15 explicitly before using it.</p>
+<p><em>Hint:</em> use Example 3.16's rule — exterior generators for odd-dimensional spheres, truncated polynomial generators for even-dimensional ones — and multiply the two graded rings with the sign convention.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Theorem 3.15 requires H<sup>k</sup>(Y;R) to be finitely generated and free for all k. Which of these is the correct status of that hypothesis?</p>
+<button onclick="check(this,false)">It is a technical convenience and can always be removed, like the CW hypothesis</button>
+<button onclick="check(this,true)" data-ok>It cannot always be dispensed with; the general case needs a correction term, obtained in §3.B</button>
+<button onclick="check(this,false)">It is needed only to make the ring structure work; the additive statement holds regardless</button>
+<div class="explain">Hatcher separates the two hypotheses explicitly. The CW hypothesis is removable by CW approximation in §4.1. The freeness hypothesis is not: §3.B derives a completely general Künneth formula precisely because the naive statement fails without it. The third option inverts the situation — it is the additive statement that acquires the correction term.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Using the grid picture, what is the rank of H<sup>2</sup>(S<sup>2</sup> × S<sup>2</sup>;ℤ)?</p>
+<button onclick="check(this,false)">1, since S<sup>2</sup> × S<sup>2</sup> has one 2-dimensional hole</button>
+<button onclick="check(this,true)" data-ok>2, from the two cells on the anti-diagonal i + j = 2: (i,j) = (2,0) and (0,2)</button>
+<button onclick="check(this,false)">4, the product of the total ranks of the two factors</button>
+<div class="explain">The ranks of H<sup>∗</sup>(S<sup>2</sup>;ℤ) are 1, 0, 1 in degrees 0, 1, 2. On the anti-diagonal i + j = 2 the contributing cells are (2,0) with 1 × 1 = 1 and (0,2) with 1 × 1 = 1; the cell (1,1) contributes 0 × 0 = 0. Total 2, spanned by α and β. The last option computes the total rank of the whole ring, which is 4 and is spread over degrees 0, 2 and 4.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why must Λ<sub>ℤ</sub>[α] and ℤ[α]/(α²) be distinguished as graded rings even though they are isomorphic as rings?</p>
+<button onclick="check(this,true)" data-ok>Because the graded tensor product's multiplication reads the dimension of each factor through the sign (&minus;1)<sup>|b||c|</sup>, so the two behave differently inside a product</button>
+<button onclick="check(this,false)">Because one has an identity element and the other does not</button>
+<button onclick="check(this,false)">Because they have different underlying additive groups</button>
+<div class="explain">Both are the free module R ⊕ Rα with α² = 0, so as ungraded rings they are the same object. The difference is the declared dimension of α — odd in the exterior algebra, even in the truncated polynomial ring — and the tensor product multiplication consults exactly that. Over ℤ<sub>2</sub>, where signs vanish, the distinction genuinely stops mattering, which is a good check that it is the sign and nothing else at stake.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove that ℤ<sub>m</sub> ⊗ ℤ<sub>n</sub> ≅ ℤ<sub>gcd(m,n)</sub> using only properties (1)–(5), and deduce that the tensor product of two finite cyclic groups of coprime order is zero. Then use the result to explain, in two or three sentences, why a Künneth-style answer over ℤ can lose information that the same computation over a field would keep.</p>
+<p><em>Hint:</em> property (5) turns the question into identifying the subgroup mℤ<sub>n</sub> of ℤ<sub>n</sub>.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> By property (5), ℤ<sub>m</sub> ⊗ ℤ<sub>n</sub> ≅ ℤ<sub>n</sub>/mℤ<sub>n</sub>. So it suffices to identify mℤ<sub>n</sub>, the subgroup of ℤ<sub>n</sub> generated by the residue of m. Write d = gcd(m,n). Since d divides m, every multiple of m in ℤ<sub>n</sub> is a multiple of d, so mℤ<sub>n</sub> ⊆ dℤ<sub>n</sub>. Conversely, by Bézout there are integers s, t with d = sm + tn, so modulo n we have d ≡ sm, putting d ∈ mℤ<sub>n</sub> and hence dℤ<sub>n</sub> ⊆ mℤ<sub>n</sub>. Therefore mℤ<sub>n</sub> = dℤ<sub>n</sub>, which is the unique subgroup of ℤ<sub>n</sub> of order n/d, and so</p>
+<div class="math-block">ℤ<sub>m</sub> ⊗ ℤ<sub>n</sub> ≅ ℤ<sub>n</sub>/dℤ<sub>n</sub> ≅ ℤ<sub>d</sub> = ℤ<sub>gcd(m,n)</sub>. ∎</div>
+<p>If gcd(m,n) = 1 then d = 1 and the quotient is trivial, so the tensor product is the zero group.</p>
+<p><em>The consequence for computation.</em> Tensoring can annihilate torsion outright: two non-zero groups can have zero tensor product, so a Künneth-type answer over ℤ may show nothing in a degree where each factor separately had something. Over a field every module is free, all the groups in sight are vector spaces, and the tensor product of non-zero vector spaces is never zero — the dimensions simply multiply, degree by degree along the anti-diagonal. That is the same reason at2-02 gave for Ext vanishing over a field, and it is why a persistence computation fixes a coefficient field before anything else.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What the cross product is, why it cannot be an isomorphism as defined, and the exact algebraic manoeuvre that repairs it.</li>
+<li>The multiplication rule on a graded tensor product, and the single step of the verification where its sign is consumed.</li>
+<li>The statement of Theorem 3.15 with both hypotheses, which one is removable and which is not, and how to read the ranks off a grid.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) a × b = p<sub>1</sub><sup>∗</sup>(a) ⌣ p<sub>2</sub><sup>∗</sup>(b) is bilinear, and bilinear maps are not homomorphisms out of a direct product, so replace the product by the tensor product and invoke property (7); (2) (a ⊗ b)(c ⊗ d) = (&minus;1)<sup>|b||c|</sup>ac ⊗ bd, the sign being exactly what Theorem 3.11 charges for commuting p<sub>1</sub><sup>∗</sup>(c) past p<sub>2</sub><sup>∗</sup>(b); (3) the cross product is a ring isomorphism for CW complexes when H<sup>k</sup>(Y;R) is finitely generated and free — CW removable in §4.1, freeness not, with §3.B supplying the general formula — and rank H<sup>n</sup>(X × Y) is the anti-diagonal sum Σ<sub>i+j=n</sub> rank H<sup>i</sup>(X) · rank H<sup>j</sup>(Y) — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em> — §3.2 "A Künneth Formula": the cross product and its bilinearity (p. 214); the definition of the tensor product with properties (1)–(7), the R-module version, and the ℤ[√2] example (pp. 215–216); the graded tensor product multiplication and the verification that the cross product is a ring homomorphism (p. 216); Theorem 3.15 with its two hypotheses and Hatcher's remarks on which is removable (pp. 216–217); Example 3.16 on products of spheres and the exterior-versus-truncated-polynomial distinction (p. 217); the proof strategy via the functors h<sup>n</sup> and k<sup>n</sup>, Proposition 3.17, and the relative Theorem 3.18 (pp. 217–219). Assumed from at2-04: Proposition 3.10, Theorem 3.11, and Example 3.14's product ring structure for a wedge. Deferred: the general Künneth formula for homology of a product and its correction term, which Hatcher obtains in §3.B, not in §3.2 — this lesson proves nothing about it. Deferred to at2-06: orientation and the fundamental class (Hatcher §3.3).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at2-03 — Cohomology of spaces and cellular cohomology</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology II · Nexus College</p>
+<h1>Cohomology of spaces and cellular cohomology <span class="cite">(at2-03)</span></h1>
+
+<div class="hook">
+The same CW machinery as at1-08, run backwards: transpose the boundary matrices and read cohomology off by hand.
+<p>Two units of algebra have bought us a theorem about chain complexes. Now we spend it. Attach the singular chain complex of a space, dualise, and every structural feature of homology comes back — long exact sequences, homotopy invariance, excision — with the arrows pointing the other way.</p>
+<p>The payoff is concrete. If you computed a CW complex's cellular boundary matrices in at1-08, you already hold everything needed for its cohomology. You transpose them. That is not an analogy; it is a theorem, and the last part of this lesson proves it.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> A CW complex has cellular chain complex 0 → ℤ →<sup>2</sup> ℤ →<sup>0</sup> ℤ → 0 in degrees 2, 1, 0. Its boundary matrices are 1 × 1, and a 1 × 1 matrix equals its own transpose. Predict: what can possibly change when you dualise?</p>
+<button onclick="check(this,false)">Nothing changes — cohomology will equal homology in every degree</button>
+<button onclick="check(this,true)" data-ok>The arrows reverse, so at each spot the roles of kernel and image are taken by different maps</button>
+<button onclick="check(this,false)">The matrix entries change sign, since dualising is a kind of negation</button>
+<div class="explain">Correct, and this is the whole content of the transposition slogan. The numbers are unchanged; what changes is which map arrives at a given group and which leaves it. In the original complex, degree 1 has the map ×2 arriving (giving image 2ℤ) and the map 0 leaving (giving kernel ℤ), so H<sub>1</sub> = ℤ<sub>2</sub>. After reversal, degree 1 has 0 arriving and ×2 leaving, so H<sup>1</sup> = 0 — and the ℤ<sub>2</sub> reappears in degree 2. Transposition is invisible in a 1 × 1 matrix; reversal never is.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Cellular cohomology computes H<sup>∗</sup> from a CW structure by transposing at1-08's cellular boundary maps — the finite linear algebra a persistence implementation actually performs.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Cohomology of spaces</h2>
+
+<p>Everything so far has been algebra about an abstract chain complex C. Now take C to be the singular chain complex of a space and turn the handle.</p>
+
+<div class="definition">
+<p><strong>Singular cochains.</strong> Given a space X and an abelian group G, the group C<sup>n</sup>(X;G) of singular n-cochains with coefficients in G is the dual group Hom(C<sub>n</sub>(X), G). An n-cochain φ assigns to each singular n-simplex σ : Δ<sup>n</sup> → X a value φ(σ) ∈ G, and since the singular n-simplices form a basis for C<sub>n</sub>(X) these values may be chosen arbitrarily — n-cochains are exactly the functions from singular n-simplices to G. <span class="cite">— Hatcher §3.1, p. 197</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Coboundary and cohomology.</strong> The coboundary map δ : C<sup>n</sup>(X;G) → C<sup>n+1</sup>(X;G) is the dual ∂<sup>∗</sup>, so for a singular (n+1)-simplex σ,</p>
+<div class="math-block">δφ(σ) = Σ<sub>i</sub> (&minus;1)<sup>i</sup> φ(σ | [v<sub>0</sub>, …, v̂<sub>i</sub>, …, v<sub>n+1</sub>]).</div>
+<p>Since δ<sup>2</sup> is the dual of ∂<sup>2</sup> = 0, it is automatic that δ<sup>2</sup> = 0, and H<sup>n</sup>(X;G) is defined as Ker δ / Im δ at C<sup>n</sup>(X;G). Elements of Ker δ are cocycles and elements of Im δ are coboundaries. <span class="cite">— Hatcher §3.1, pp. 197–198</span></p>
+</div>
+
+<p>For a cochain φ to be a cocycle means δφ = φ∂ = 0 — φ vanishes on boundaries. That is the same sentence as in at2-01, and deliberately so: nothing about the topology has entered yet.</p>
+
+<p>Because the singular chain groups C<sub>n</sub>(X) are free, Theorem 3.2 applies verbatim and puts on topological clothing:</p>
+
+<div class="theorem">
+<p><strong>The universal coefficient theorem, topological form.</strong> There are split short exact sequences</p>
+<div class="math-block">0 ⟶ Ext(H<sub>n−1</sub>(X), G) ⟶ H<sup>n</sup>(X;G) ⟶ Hom(H<sub>n</sub>(X), G) ⟶ 0,</div>
+<p>describing how cohomology with arbitrary coefficients is determined purely algebraically by homology with ℤ coefficients. When the homology groups of X are finitely generated, Corollary 3.3 computes H<sup>n</sup>(X;ℤ) from them. <span class="cite">— Hatcher §3.1, p. 198</span></p>
+</div>
+
+<p>Two degrees come out by hand, and both are worth doing because they show what the abstract machinery is actually saying.</p>
+
+<h3>Worked example 1: H<sup>0</sup> and H<sup>1</sup> without machinery</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Identify H<sup>0</sup>(X;G) directly from the definitions, and then H<sup>1</sup>(X;G) from the universal coefficient sequence.</p>
+<p><strong>Degree 0, from the definition.</strong> Singular 0-simplices are just points of X, so a cochain in C<sup>0</sup>(X;G) is an arbitrary function φ : X → G — not necessarily continuous. For φ to be a cocycle means that for each singular 1-simplex σ : [v<sub>0</sub>,v<sub>1</sub>] → X,</p>
+<div class="math-block">δφ(σ) = φ(∂σ) = φ(σ(v<sub>1</sub>)) &minus; φ(σ(v<sub>0</sub>)) = 0,</div>
+<p>which says exactly that φ is constant on path-components. There are no coboundaries in degree 0, so H<sup>0</sup>(X;G) is all functions from path-components of X to G.</p>
+<p><strong>Degree 0, from the theorem.</strong> When n = 0 there is no Ext term, so the sequence collapses to H<sup>0</sup>(X;G) ≅ Hom(H<sub>0</sub>(X), G). Since H<sub>0</sub>(X) is free abelian on the path-components, that is the same group. The two routes agree, as they must.</p>
+<p><strong>Degree 1.</strong> Here the Ext term is Ext(H<sub>0</sub>(X), G), which vanishes because H<sub>0</sub>(X) is free. So H<sup>1</sup>(X;G) ≅ Hom(H<sub>1</sub>(X), G) with no correction at all. If X is path-connected, H<sub>1</sub>(X) is the abelianisation of π<sub>1</sub>(X), and since G is abelian we may identify Hom(H<sub>1</sub>(X), G) with Hom(π<sub>1</sub>(X), G).</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded).</strong> Describe the reduced group H̃<sup>0</sup>(X;G) explicitly.</p>
+<p><strong>Set-up.</strong> Reduced cohomology dualises the augmented chain complex ⋯ → C<sub>0</sub>(X) →<sup>ε</sup> ℤ → 0. As with homology, H̃<sup>n</sup>(X;G) = H<sup>n</sup>(X;G) for n &gt; 0, so only degree 0 is at issue.</p>
+<p><strong>What ε<sup>∗</sup> does.</strong> The augmentation sends every singular 0-simplex σ to 1, so ε<sup>∗</sup> sends a homomorphism φ : ℤ → G to the function σ ↦ φ(1) — that is, to a <span class="gap">⟨your step: what kind of function X → G?⟩</span>. As φ(1) ranges over G, the image of ε<sup>∗</sup> is <span class="gap">⟨your step: which subgroup of C<sup>0</sup>(X;G)?⟩</span>.</p>
+<p><strong>Conclusion.</strong> H̃<sup>0</sup>(X;G) is the functions X → G that are constant on path-components, modulo the functions that are constant on all of X. For path-connected X this is the zero group, exactly as it should be.</p>
+<p class="cite">Gap solutions: a constant function; the subgroup of all constant functions X → G.</p>
+</div>
+
+<h3>Field coefficients: the correction term disappears</h3>
+
+<p>Take a field F for both homology and cohomology. The dual complex Hom<sub>F</sub>(C<sub>n</sub>(X;F), F) of F-module homomorphisms is the same as Hom(C<sub>n</sub>(X), F), since both may be identified with the functions from singular n-simplices to F. In the principal-ideal-domain generalisation of the universal coefficient theorem, the Ext<sub>F</sub> terms vanish because F is a field, and one obtains isomorphisms</p>
+<div class="math-block">H<sup>n</sup>(X;F) ≅ Hom<sub>F</sub>(H<sub>n</sub>(X;F), F).</div>
+<p>With field coefficients, cohomology is the exact dual of homology. This is the sentence the whole of TDA leans on, and it is worth noticing how little it costs once at2-02 is done.</p>
+
+<h3>Everything else, dualised</h3>
+
+<p>The remaining structure carries over by dualising the corresponding argument for homology, and we shall need two pieces of it in Segment 2.</p>
+
+<p><strong>Relative groups and the long exact sequence of a pair.</strong> Applying Hom(&minus;, G) to 0 → C<sub>n</sub>(A) → C<sub>n</sub>(X) → C<sub>n</sub>(X,A) → 0 gives a sequence of cochain groups which is exact by a direct argument: the restriction map i<sup>∗</sup> is surjective because a function on the singular simplices in A extends to all of X by taking the value 0 elsewhere, and its kernel is the cochains vanishing on simplices in A, which are exactly the homomorphisms C<sub>n</sub>(X,A) → G. So relative cochains sit <em>inside</em> the absolute ones as a subgroup — Hatcher notes that this makes relative cohomology conceptually a little simpler than relative homology, where the relative chains are a quotient instead. Since i<sup>∗</sup> and j<sup>∗</sup> commute with δ, one gets the long exact sequence</p>
+<div class="math-block">⋯ → H<sup>n</sup>(X,A;G) → H<sup>n</sup>(X;G) → H<sup>n</sup>(A;G) →<sup>δ</sup> H<sup>n+1</sup>(X,A;G) → ⋯</div>
+
+<p><strong>Induced homomorphisms and contravariance.</strong> Dual to the chain maps f<sub>♯</sub> induced by f : X → Y are cochain maps f<sup>♯</sup> : C<sup>n</sup>(Y;G) → C<sup>n</sup>(X;G). The relation f<sub>♯</sub>∂ = ∂f<sub>♯</sub> dualises to δf<sup>♯</sup> = f<sup>♯</sup>δ, so f<sup>♯</sup> induces f<sup>∗</sup> : H<sup>n</sup>(Y;G) → H<sup>n</sup>(X;G). From (fg)<sup>♯</sup> = g<sup>♯</sup>f<sup>♯</sup> and 𝟙<sup>♯</sup> = 𝟙 we get (fg)<sup>∗</sup> = g<sup>∗</sup>f<sup>∗</sup> and 𝟙<sup>∗</sup> = 𝟙: cohomology is a contravariant functor, the induced maps running backwards. Homotopy invariance follows by dualising the chain homotopy: g<sub>♯</sub> &minus; f<sub>♯</sub> = ∂P + P∂ becomes g<sup>♯</sup> &minus; f<sup>♯</sup> = P<sup>∗</sup>δ + δP<sup>∗</sup>, so f<sup>∗</sup> = g<sup>∗</sup> whenever f ≃ g.</p>
+
+<p>One asymmetry is worth flagging because it will not go away. The wedge axiom for cohomology involves a direct <em>product</em> where the homology version has a direct sum, because Hom(⊕<sub>α</sub>A<sub>α</sub>, G) ≅ ∏<sub>α</sub>Hom(A<sub>α</sub>,G). This is the same product-versus-sum phenomenon that appeared for graphs in at2-01, and it is a fact about Hom rather than a convention.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why is a 0-cochain allowed to be a discontinuous function X → G?</p>
+<button onclick="check(this,false)">Because G carries the discrete topology, so every function is continuous anyway</button>
+<button onclick="check(this,true)" data-ok>Because C<sup>0</sup>(X;G) is Hom(C<sub>0</sub>(X),G) and C<sub>0</sub>(X) is free on the points of X, so values may be assigned to points completely arbitrarily</button>
+<button onclick="check(this,false)">Because continuity is imposed later, by the cocycle condition</button>
+<div class="explain">Cochains are algebraic objects: homomorphisms out of a free abelian group, whose basis happens to be the points of X. Freeness is exactly the licence to assign values arbitrarily. The cocycle condition then imposes something much weaker than continuity — constancy on path-components — which is why H<sup>0</sup> sees only π<sub>0</sub>.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> For which n does the universal coefficient sequence give H<sup>n</sup>(X;G) ≅ Hom(H<sub>n</sub>(X),G) for every space X and every G?</p>
+<button onclick="check(this,true)" data-ok>n = 0 and n = 1, because Ext(H<sub>−1</sub>,G) is not there and Ext(H<sub>0</sub>(X),G) = 0 with H<sub>0</sub>(X) free</button>
+<button onclick="check(this,false)">All n, since the sequence always splits</button>
+<button onclick="check(this,false)">Only n = 0; in degree 1 the Ext term is Ext(H<sub>1</sub>(X),G)</button>
+<div class="explain">The Ext term in degree n involves H<sub>n−1</sub>. In degree 0 there is no such group; in degree 1 it is Ext(H<sub>0</sub>(X),G), and H<sub>0</sub>(X) is free abelian on the path-components, so that Ext vanishes. From degree 2 on, torsion one dimension down can and does contribute. Splitting is not the point — a split sequence with a non-zero left term is still not an isomorphism.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Cellular cohomology: transposing at1-08</h2>
+
+<p>For a CW complex X, cellular cohomology is built from the groups H<sup>n</sup>(X<sup>n</sup>, X<sup>n−1</sup>; G), with cellular coboundary maps d<sub>n</sub> defined as the composites δ<sub>n</sub>j<sub>n</sub> coming from the long exact sequences of the skeletal pairs. These satisfy d<sub>n</sub>d<sub>n−1</sub> = 0, because j<sub>n</sub>δ<sub>n−1</sub> = 0 — two consecutive maps in a long exact sequence.</p>
+
+<div class="theorem">
+<p><strong>Theorem 3.5.</strong> H<sup>n</sup>(X;G) ≅ Ker d<sub>n</sub> / Im d<sub>n−1</sub>. Furthermore, the cellular cochain complex {H<sup>n</sup>(X<sup>n</sup>, X<sup>n−1</sup>; G), d<sub>n</sub>} is isomorphic to the dual of the cellular chain complex, obtained by applying Hom(&minus;, G). <span class="cite">— Hatcher §3.1, Theorem 3.5, p. 203</span></p>
+</div>
+
+<p><em>Proof of the first statement.</em> The universal coefficient theorem implies H<sup>k</sup>(X<sup>n</sup>, X<sup>n−1</sup>; G) = 0 for k ≠ n, since H<sub>k</sub>(X<sup>n</sup>,X<sup>n−1</sup>) is free and concentrated in degree n, making both outer terms of the sequence vanish. The long exact sequence of the pair (X<sup>n</sup>, X<sup>n−1</sup>) then gives isomorphisms H<sup>k</sup>(X<sup>n</sup>;G) ≅ H<sup>k</sup>(X<sup>n−1</sup>;G) for k ≠ n, n−1, so by induction on n we obtain H<sup>k</sup>(X<sup>n</sup>;G) = 0 for k &gt; n; hence the diagonal sequences in the cellular diagram are exact. The universal coefficient theorem also gives H<sup>k</sup>(X, X<sup>n+1</sup>; G) = 0 for k ≤ n+1, so H<sup>n</sup>(X;G) ≅ H<sup>n</sup>(X<sup>n+1</sup>;G). The diagram then yields</p>
+<div class="math-block">H<sup>n</sup>(X;G) ≅ H<sup>n</sup>(X<sup>n+1</sup>;G) ≅ Ker δ<sub>n</sub> ≅ Ker d<sub>n</sub> / Im δ<sub>n−1</sub> ≅ Ker d<sub>n</sub> / Im d<sub>n−1</sub>. ∎</div>
+
+<p><em>Proof of the second statement.</em> Consider the diagram whose top row is</p>
+<div class="math-block">H<sup>k</sup>(X<sup>k</sup>, X<sup>k−1</sup>; G) ⟶ H<sup>k</sup>(X<sup>k</sup>; G) &nbsp;<sup>δ</sup>⟶&nbsp; H<sup>k+1</sup>(X<sup>k+1</sup>, X<sup>k</sup>; G),</div>
+<p>whose bottom row is the corresponding sequence of Hom groups obtained from the cellular chain complex, and whose three vertical maps are h. The cellular coboundary map is the composite across the top; the dual of the cellular boundary map is the composite across the bottom. The first and third verticals are isomorphisms by the universal coefficient theorem — the relevant homology groups being free, the Ext terms vanish and h is an isomorphism — so it suffices that the diagram commutes. The first square commutes by naturality of h, and the second by the duality between the connecting homomorphisms δ and ∂ established when the long exact sequence of a pair was set up. ∎</p>
+
+<p>That second statement is the licence for the slogan. Once the cellular cochain complex <em>is</em> Hom(&minus;, G) applied to the cellular chain complex, and the cellular chain groups are free with the cells as a basis, the dual of a map is represented by the transposed matrix in the dual bases. Computing cohomology is therefore a purely mechanical rerun of at1-08 with the matrices flipped.</p>
+
+<h3>Visual: what transposition does to a boundary matrix</h3>
+
+<p>Below, a cellular boundary matrix (rows indexed by cells of one dimension, columns by cells of the next) and the transpose that becomes the coboundary. Watch the entry positions swap across the diagonal while the values stay put — and note that the shape changes, which is what makes the arrow point the other way.</p>
+
+<canvas id="tCanvas" width="640" height="220" role="img" aria-label="A three by two boundary matrix animating into its two by three transpose, the coboundary matrix"></canvas>
+<p style="text-align:center"><button onclick="toggleT()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Transpose</button></p>
+<script>
+(function(){
+const cv=document.getElementById('tCanvas'), ctx=cv.getContext('2d');
+const M=[[1,-1],[0,2],[-1,1]], rows=3, cols=2, cell=44;
+let t=0, target=0;
+function pos(r,c,tt){
+  const ox=180, oy=48;
+  const x0=ox+c*cell, y0=oy+r*cell;         // original layout
+  const x1=ox+r*cell, y1=oy+c*cell;         // transposed layout
+  return [x0+(x1-x0)*tt, y0+(y1-y0)*tt];
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.font='15px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    const p=pos(r,c,t);
+    ctx.fillStyle='#1a2027'; ctx.strokeStyle=M[r][c]===0?'#2a333d':'#8ab4f8';
+    ctx.beginPath(); ctx.roundRect(p[0]-19,p[1]-17,38,34,6); ctx.fill(); ctx.stroke();
+    ctx.fillStyle=M[r][c]===0?'#9aa5b1':'#e8e8e8';
+    ctx.fillText(String(M[r][c]),p[0],p[1]);
+  }
+  ctx.fillStyle='#9aa5b1'; ctx.font='13px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText(t<0.5?'boundary  d : C2 → C1   (3 rows × 2 columns)':'coboundary  d* : C1* → C2*   (2 rows × 3 columns)',24,196);
+  ctx.fillText(t<0.5?'rows: 1-cells   columns: 2-cells':'rows: 2-cells   columns: 1-cells',24,176);
+}
+function step(){ if(Math.abs(t-target)>0.005){ t+=(target-t)*0.18; draw(); requestAnimationFrame(step);} else {t=target; draw();} }
+window.toggleT=function(){ target=target?0:1; step(); };
+draw();
+})();
+</script>
+
+<h3>Worked example 3: cohomology by transposition</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Let X be a CW complex whose cellular chain complex is</p>
+<div class="math-block">0 ⟶ ℤ &nbsp;<sup>d<sub>2</sub> = 2</sup>⟶&nbsp; ℤ &nbsp;<sup>d<sub>1</sub> = 0</sup>⟶&nbsp; ℤ ⟶ 0 &emsp; (degrees 2, 1, 0).</div>
+<p>Compute H<sub>n</sub>(X;ℤ) and H<sup>n</sup>(X;ℤ).</p>
+<p><strong>Homology.</strong> H<sub>0</sub> = ℤ / Im d<sub>1</sub> = ℤ; H<sub>1</sub> = Ker d<sub>1</sub> / Im d<sub>2</sub> = ℤ / 2ℤ = ℤ<sub>2</sub>; H<sub>2</sub> = Ker d<sub>2</sub> = 0, multiplication by 2 being injective.</p>
+<p><strong>Dualise, by Theorem 3.5.</strong> The cellular cochain complex is the transpose, which for these 1 × 1 matrices means the same multipliers with the arrows reversed:</p>
+<div class="math-block">0 ⟶ ℤ &nbsp;<sup>d<sub>1</sub><sup>∗</sup> = 0</sup>⟶&nbsp; ℤ &nbsp;<sup>d<sub>2</sub><sup>∗</sup> = 2</sup>⟶&nbsp; ℤ ⟶ 0 &emsp; (degrees 0, 1, 2).</div>
+<p><strong>Cohomology.</strong> H<sup>0</sup> = Ker(0) = ℤ; H<sup>1</sup> = Ker(×2) / Im(0) = 0; H<sup>2</sup> = ℤ / Im(×2) = ℤ<sub>2</sub>.</p>
+<p><strong>Cross-check with Corollary 3.3.</strong> T<sub>0</sub> = 0, T<sub>1</sub> = ℤ<sub>2</sub>, T<sub>2</sub> = 0, and the free parts are ℤ, 0, 0. So H<sup>0</sup> ≅ ℤ, H<sup>1</sup> ≅ 0 ⊕ T<sub>0</sub> = 0, H<sup>2</sup> ≅ 0 ⊕ T<sub>1</sub> = ℤ<sub>2</sub>. Two independent routes, one answer — which is the practical value of having both Theorem 3.5 and Corollary 3.3 available.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 4 (faded).</strong> The same X, now with G = ℤ<sub>3</sub>.</p>
+<p><strong>Dual complex.</strong> Applying Hom(&minus;, ℤ<sub>3</sub>) to each cellular chain group gives ℤ<sub>3</sub> in degrees 0, 1, 2, with maps 0 and multiplication by 2 as before.</p>
+<p><strong>The one thing to decide.</strong> Multiplication by 2 on ℤ<sub>3</sub> is <span class="gap">⟨your step: what kind of map?⟩</span>.</p>
+<p><strong>Read off.</strong> H<sup>0</sup>(X;ℤ<sub>3</sub>) = ℤ<sub>3</sub>; H<sup>1</sup>(X;ℤ<sub>3</sub>) = Ker(×2) = <span class="gap">⟨your step⟩</span>; H<sup>2</sup>(X;ℤ<sub>3</sub>) = ℤ<sub>3</sub>/Im(×2) = <span class="gap">⟨your step⟩</span>.</p>
+<p><strong>Contrast.</strong> Over ℤ<sub>2</sub> the map ×2 is the zero map, so H<sup>0</sup> = H<sup>1</sup> = H<sup>2</sup> = ℤ<sub>2</sub>. Same space, same matrices, three different answers — the coefficient group is part of the question, not part of the apparatus.</p>
+<p class="cite">Gap solutions: multiplication by 2 is an isomorphism of ℤ<sub>3</sub>; hence H<sup>1</sup> = 0 and H<sup>2</sup> = 0.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Let Y be a CW complex with cellular chain complex 0 → ℤ<sup>2</sup> →<sup>d<sub>2</sub></sup> ℤ<sup>2</sup> →<sup>d<sub>1</sub></sup> ℤ → 0 where d<sub>2</sub> has matrix [[1, &minus;1], [0, 3]] and d<sub>1</sub> = [0, 0]. Compute H<sub>n</sub>(Y;ℤ), then transpose and compute H<sup>n</sup>(Y;ℤ), then check against Corollary 3.3.</p>
+<p><em>Hint:</em> the Smith normal form of [[1, &minus;1], [0, 3]] is diag(1, 3), so d<sub>2</sub> is injective with cokernel ℤ<sub>3</sub> inside Ker d<sub>1</sub> = ℤ<sup>2</sup>. The transpose is [[1, 0], [&minus;1, 3]].</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In the proof of Theorem 3.5, why does the universal coefficient theorem give H<sup>k</sup>(X<sup>n</sup>, X<sup>n−1</sup>; G) = 0 for k ≠ n?</p>
+<button onclick="check(this,true)" data-ok>Because H<sub>k</sub>(X<sup>n</sup>,X<sup>n−1</sup>) is free and non-zero only for k = n, so both the Hom and the Ext term of the sequence vanish when k ≠ n</button>
+<button onclick="check(this,false)">Because relative cohomology of a CW pair always vanishes outside the top degree</button>
+<button onclick="check(this,false)">Because δ<sup>2</sup> = 0 forces all but one group to be zero</button>
+<div class="explain">The input is the homology of the skeletal pair, which is free abelian on the n-cells in degree n and zero elsewhere. Feeding that into Theorem 3.2, the Hom term vanishes for k ≠ n because H<sub>k</sub> = 0, and the Ext term vanishes because H<sub>k−1</sub> is either zero or free. Nothing here is a general fact about CW pairs; it is a fact about the skeletal pairs specifically.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> A CW complex has cellular boundary matrix d<sub>2</sub> = [3] and d<sub>1</sub> = [0]. Which statement about H<sup>2</sup>(X;ℤ) is right?</p>
+<button onclick="check(this,false)">H<sup>2</sup>(X;ℤ) = 0, because the transpose of an injective map is injective</button>
+<button onclick="check(this,true)" data-ok>H<sup>2</sup>(X;ℤ) = ℤ<sub>3</sub>, since after reversal the map ×3 <em>arrives</em> at degree 2 and the quotient ℤ/3ℤ is what is left</button>
+<button onclick="check(this,false)">H<sup>2</sup>(X;ℤ) = ℤ, since dualising a free group of rank 1 gives a free group of rank 1</button>
+<div class="explain">This is the prediction gate again with a different number. Transposition leaves the entry 3 alone; reversal changes which side of degree 2 the map sits on. In homology, ×3 leaves degree 2, so H<sub>2</sub> = Ker(×3) = 0. In cohomology it arrives, so H<sup>2</sup> = ℤ/3ℤ = ℤ<sub>3</sub>. The first option is true about the map and irrelevant to the question; the third forgets to quotient.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where exactly does freeness of the cellular chain groups enter the transposition slogan?</p>
+<button onclick="check(this,false)">It is not needed; Hom(&minus;,G) turns any map into its transpose</button>
+<button onclick="check(this,true)" data-ok>Freeness with the cells as a basis is what provides dual bases, in which the dual map is represented by the transposed matrix</button>
+<button onclick="check(this,false)">It guarantees that the cellular coboundary maps satisfy d<sub>n</sub>d<sub>n−1</sub> = 0</button>
+<div class="explain">A homomorphism has a matrix only relative to chosen bases, and its dual has the transposed matrix only relative to the dual bases — both of which require freeness of finite rank. The relation d<sub>n</sub>d<sub>n−1</sub> = 0 comes from exactness of the long exact sequences (j<sub>n</sub>δ<sub>n−1</sub> = 0) and holds regardless.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove that for every space X and every abelian group G there is an isomorphism H<sup>1</sup>(X;G) ≅ Hom(H<sub>1</sub>(X), G), and that when X is path-connected this may be identified with Hom(π<sub>1</sub>(X), G). Say exactly where each hypothesis is used, and why the corresponding statement in degree 2 can fail.</p>
+<p><em>Hint:</em> the universal coefficient sequence in degree 1 has an Ext term you can evaluate; and a homomorphism from a group to an abelian group factors through the abelianisation.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> By the universal coefficient theorem there is a split short exact sequence</p>
+<div class="math-block">0 ⟶ Ext(H<sub>0</sub>(X), G) ⟶ H<sup>1</sup>(X;G) &nbsp;<sup>h</sup>⟶&nbsp; Hom(H<sub>1</sub>(X), G) ⟶ 0.</div>
+<p>Now H<sub>0</sub>(X) is free abelian, with basis the path-components of X. By the second of the three Ext rules, Ext(H,G) = 0 whenever H is free, so the left-hand term vanishes and h is an isomorphism H<sup>1</sup>(X;G) ≅ Hom(H<sub>1</sub>(X), G).</p>
+<p>Suppose further that X is path-connected. Then H<sub>1</sub>(X) is the abelianisation of π<sub>1</sub>(X), say H<sub>1</sub>(X) = π<sub>1</sub>(X)<sup>ab</sup> with quotient map q : π<sub>1</sub>(X) → H<sub>1</sub>(X). Since G is abelian, every homomorphism π<sub>1</sub>(X) → G kills every commutator and hence factors uniquely through q; conversely composition with q turns any homomorphism H<sub>1</sub>(X) → G into one on π<sub>1</sub>(X). These two constructions are mutually inverse, so Hom(H<sub>1</sub>(X),G) ≅ Hom(π<sub>1</sub>(X),G), and combining with the isomorphism above gives H<sup>1</sup>(X;G) ≅ Hom(π<sub>1</sub>(X),G). ∎</p>
+<p><em>Where the hypotheses were used, and why degree 2 differs.</em> Freeness of H<sub>0</sub>(X) — which holds for every space — is what kills the Ext term; commutativity of G is what makes homomorphisms out of π<sub>1</sub>(X) factor through the abelianisation; path-connectedness is what makes H<sub>1</sub>(X) the abelianisation of a single fundamental group. In degree 2 the Ext term is Ext(H<sub>1</sub>(X),G), and H<sub>1</sub>(X) may perfectly well have torsion, in which case that term is non-zero and h is not injective: worked example 3 is exactly such a case, with H<sub>1</sub> = ℤ<sub>2</sub> and H<sup>2</sup>(X;ℤ) = ℤ<sub>2</sub> mapping to Hom(H<sub>2</sub>(X),ℤ) = 0.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What a singular cochain is, why it may be any function on singular simplices, and the two degrees in which H<sup>n</sup>(X;G) is simply Hom(H<sub>n</sub>(X),G).</li>
+<li>Which structural features of homology survive dualisation, and the one place the answer changes shape — direct product in place of direct sum.</li>
+<li>Both halves of Theorem 3.5, and precisely which half licenses "transpose the boundary matrices".</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) C<sup>n</sup>(X;G) = Hom(C<sub>n</sub>(X),G) with C<sub>n</sub>(X) free on the singular simplices; H<sup>0</sup> = functions on path-components = Hom(H<sub>0</sub>,G); H<sup>1</sup> ≅ Hom(H<sub>1</sub>,G) because Ext(H<sub>0</sub>,G) = 0; (2) long exact sequence of a pair, contravariant induced maps, homotopy invariance by dualising the chain homotopy — but wedge sums give a product because Hom takes sums to products; (3) H<sup>n</sup>(X;G) ≅ Ker d<sub>n</sub>/Im d<sub>n−1</sub>, <em>and</em> the cellular cochain complex is Hom(&minus;,G) of the cellular chain complex — it is the second half, plus freeness giving dual bases, that turns cohomology into a transposition — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em> — §3.1 "Cohomology of Spaces": singular cochains, the coboundary formula, cocycles and coboundaries, and the topological universal coefficient sequence (pp. 197–198); H<sup>0</sup> and H<sup>1</sup> computed directly, field coefficients giving H<sup>n</sup>(X;F) ≅ Hom<sub>F</sub>(H<sub>n</sub>(X;F),F), and reduced groups (pp. 198–199); relative groups, exactness of the dualised sequence and the long exact sequence of a pair (pp. 199–200); induced homomorphisms, contravariance, homotopy invariance, and the wedge axiom's direct product (pp. 201–202); Theorem 3.5 on cellular cohomology and its proof (pp. 202–203). Assumed from at2-02: Theorem 3.2 and Corollary 3.3, and the three computational rules for Ext (Hatcher §3.1, pp. 195–196). Deferred: excision, the axioms for a cohomology theory, simplicial cohomology, and Mayer–Vietoris sequences (Hatcher §3.1, pp. 201–204); the cup product (at2-04, Hatcher §3.2).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

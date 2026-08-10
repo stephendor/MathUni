@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-04 — Distances for multiparameter persistence</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+table.rel{margin:1rem auto;border-collapse:collapse;font-family:Segoe UI,sans-serif;font-size:.95rem}
+table.rel td,table.rel th{border:1px solid #2a333d;padding:.35rem .8rem;text-align:center}
+table.rel th{color:var(--acc)}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Distances for multiparameter persistence <span class="cite">(tda2-04)</span></h1>
+
+<div class="hook">
+Stability needs a metric. Interleaving generalises to d parameters word for word; actually computing it is another matter entirely.
+<p>Every stability theorem in tda1 had the same shape: perturb the input a little, and the barcode moves a little, measured in the bottleneck distance. That whole apparatus rested on the barcode existing. tda2-02 removed it.</p>
+<p>So which of the two ingredients survives? Remarkably, the distance does. The interleaving definition never mentions intervals, never mentions barcodes, and never mentions the number of parameters — it is a statement about two families of maps and two commuting diagrams, and it reads identically for d = 1 and d = 7. What does not survive is the ability to compute it.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> In one parameter, the interleaving distance is computable because it coincides with a bottleneck distance between barcodes, which is a matching problem. With no barcode available for d ≥ 2, predict how hard computing the interleaving distance becomes.</p>
+<button onclick="check(this,false)">Harder, but still polynomial — one can approximate it by sampling pairs of maps</button>
+<button onclick="check(this,true)" data-ok>NP-hard, and not merely to compute exactly: even a 3-approximation is NP-hard</button>
+<button onclick="check(this,false)">Undecidable, since there are infinitely many candidate interleavings</button>
+<div class="explain">Correct. Theorem 12.1 says that computing a real r with d<sub>I</sub>(M,N) ≤ r &lt; 3 d<sub>I</sub>(M,N) is NP-hard, for modules given by graded matrix representations. That is an approximation-hardness statement, strictly stronger than hardness of exact computation, and it is what forces the rest of the chapter: the matching distance and the bottleneck distance both exist because this one cannot be computed. Note it is hardness, not undecidability — the problem is perfectly decidable, just not tractably.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The interleaving distance is defined categorically (cat-07's functor viewpoint) and extends verbatim to d parameters, but unlike tda1-06's one-parameter case it is not obtained from a matching of intervals. The matching distance is a tractable lower bound, and bottleneck distance returns only for interval-decomposable modules.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The categorical definition, and why it does not care about d</h2>
+
+<p>Dey and Wang restate persistence in categorical language before defining any distance, and the reason becomes clear immediately: the definition that generalises is the one that never mentioned intervals in the first place.</p>
+
+<div class="definition">
+<p><strong>Definition 12.1 (category).</strong> A category 𝓒 is a set of objects Obj 𝓒 with a set of morphisms hom(x,y) for every pair x, y ∈ Obj 𝓒, where for every x there is an identity morphism 𝟙<sub>x</sub> ∈ hom(x,x), and if f ∈ hom(x,y) and g ∈ hom(y,z) then the composite lies in hom(x,z). <span class="cite">— Dey &amp; Wang §12.1, Definition 12.1, pp. 367–368</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 12.2 (functor).</strong> A functor F : 𝓒 → 𝓓 assigns F(x) ∈ Obj 𝓓 to every x ∈ Obj 𝓒 and F(f) ∈ hom(F(x),F(y)) to every f ∈ hom(x,y), respecting composition and identities. <span class="cite">— Dey &amp; Wang §12.1, Definition 12.2, p. 368</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 12.3 (natural transformation).</strong> Given functors F, G : 𝓒 → 𝓓, a natural transformation η : F ⟹ G is a family of morphisms {η<sub>x</sub> : F(x) → G(x)} for every object x making the evident square commute. <span class="cite">— Dey &amp; Wang §12.1, Definition 12.3, pp. 368–369</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 12.4 (persistence module).</strong> Let ℙ be a poset category. A ℙ-indexed persistence module is a functor M : ℙ → <strong>Vec</strong>. If M takes values in <strong>vec</strong>, M is pointwise finite-dimensional. The ℙ-indexed persistence modules form a category in which the natural transformations are the morphisms. <span class="cite">— Dey &amp; Wang §12.1, Definition 12.4, p. 369</span></p>
+</div>
+
+<p>Unpack that for a filtration. The poset category has one morphism x → y exactly when x ≤ y, so a functor to vector spaces assigns a space to each parameter value and a linear map to each comparison, with the map for x ≤ z equal to the composite through any intermediate y. That is precisely the compatibility a filtration's induced maps satisfy — and stating it as functoriality is what makes the number of parameters irrelevant, since ℙ can be ℝ, ℝ<sup>d</sup>, or anything else.</p>
+
+<div class="definition">
+<p><strong>Definition 12.5 (finite type).</strong> A ℙ-indexed persistence module M has finite type if it is pointwise finite-dimensional and all morphisms M(x ≤ y) are isomorphisms outside a finite subset of ℙ. Throughout, the poset category is ℝ<sup>d</sup> with the standard partial order and all modules are of finite type. <span class="cite">— Dey &amp; Wang §12.1, Definition 12.5, p. 369</span></p>
+</div>
+
+<h3>Interleaving</h3>
+
+<div class="definition">
+<p><strong>Definition 12.6 (shift).</strong> For δ ∈ ℝ write δ⃗ = (δ, …, δ) = δ · e⃗. The shift functor (·)<sub>→δ</sub> on ℝ<sup>d</sup>-modules produces M<sub>→δ</sub>, the module translated diagonally by δ in every coordinate at once. <span class="cite">— Dey &amp; Wang §12.2, Definition 12.6, p. 369</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 12.7 (interleaving).</strong> For d-parameter modules M and N and δ ≥ 0, a δ-interleaving is a pair of families of linear maps φ = {φ<sub>x</sub> : M<sub>x</sub> → N<sub>x+δ⃗</sub>} and ψ = {ψ<sub>x</sub> : N<sub>x</sub> → M<sub>x+δ⃗</sub>} satisfying two conditions. <em>Triangular commutativity</em>: the two composites return the module's own structure map shifted by 2δ. <em>Rectangular commutativity</em>: φ<sub>y</sub> ∘ ρ<sup>M</sup><sub>x→y</sub> = ρ<sup>N</sup><sub>x+δ⃗→y+δ⃗</sub> ∘ φ<sub>x</sub>, and the same for ψ. <span class="cite">— Dey &amp; Wang §12.2, Definition 12.7, pp. 369–370</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 12.8 (interleaving distance).</strong> d<sub>I</sub>(M,N) = inf<sub>δ</sub>{M and N are δ-interleaved}. If they are not δ-interleaved for any δ ∈ ℝ<sup>+</sup> we call them ∞-interleaved and set d<sub>I</sub>(M,N) = ∞. <span class="cite">— Dey &amp; Wang §12.2, Definition 12.8, p. 370</span></p>
+</div>
+
+<p>Now look back at what was just written and count the places d appears. In the shift, which is a vector rather than a scalar; and in the index poset. Nowhere else. Both commutativity conditions are word for word the one-parameter conditions of tda1-06. That is what "extends verbatim" means, and it is a direct consequence of having defined the distance in terms of maps rather than in terms of a decomposition.</p>
+
+<h3>Visual: the two commuting conditions</h3>
+
+<canvas id="ilCanvas" width="640" height="250" role="img" aria-label="A triangular diagram showing the composite of the two interleaving maps returning the module's own structure map shifted by twice delta, and a rectangular diagram showing each interleaving map commuting with the structure maps"></canvas>
+<p style="text-align:center"><button onclick="toggleDiag()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Switch condition</button></p>
+<script>
+(function(){
+const cv=document.getElementById('ilCanvas'), ctx=cv.getContext('2d');
+let tri=true;
+function node(x,y,label,col){
+  ctx.fillStyle='#1a2027'; ctx.strokeStyle=col; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.roundRect(x-42,y-17,84,34,8); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='#e8e8e8'; ctx.font='13px Segoe UI'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(label,x,y);
+}
+function arrow(x1,y1,x2,y2,label,col){
+  ctx.strokeStyle=col; ctx.lineWidth=2;
+  const a=Math.atan2(y2-y1,x2-x1), sx=x1+46*Math.cos(a), sy=y1+22*Math.sin(a);
+  const ex=x2-46*Math.cos(a), ey=y2-22*Math.sin(a);
+  ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey); ctx.stroke();
+  ctx.fillStyle=col; ctx.beginPath();
+  ctx.moveTo(ex,ey); ctx.lineTo(ex-9*Math.cos(a-0.4),ey-9*Math.sin(a-0.4));
+  ctx.lineTo(ex-9*Math.cos(a+0.4),ey-9*Math.sin(a+0.4)); ctx.closePath(); ctx.fill();
+  ctx.font='12px Segoe UI'; ctx.textAlign='center';
+  ctx.fillText(label,(sx+ex)/2+(tri?12:0),(sy+ey)/2-8);
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='#9aa5b1'; ctx.font='14px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText(tri?'triangular commutativity':'rectangular commutativity',24,28);
+  if(tri){
+    node(150,90,'Mx','#8ab4f8'); node(430,90,'Nx+δ','#4caf82'); node(290,190,'Mx+2δ','#8ab4f8');
+    arrow(150,90,430,90,'φx','#8ab4f8');
+    arrow(430,90,290,190,'ψx+δ','#4caf82');
+    arrow(150,90,290,190,'ρM','#d8a657');
+    ctx.fillStyle='#9aa5b1'; ctx.font='12px Segoe UI';
+    ctx.fillText('going out and back returns the module’s own structure map, shifted by 2δ',24,232);
+  } else {
+    node(150,80,'Mx','#8ab4f8'); node(150,180,'My','#8ab4f8');
+    node(440,80,'Nx+δ','#4caf82'); node(440,180,'Ny+δ','#4caf82');
+    arrow(150,80,150,180,'ρM','#d8a657');
+    arrow(440,80,440,180,'ρN','#d8a657');
+    arrow(150,80,440,80,'φx','#8ab4f8');
+    arrow(150,180,440,180,'φy','#8ab4f8');
+    ctx.fillStyle='#9aa5b1'; ctx.font='12px Segoe UI';
+    ctx.fillText('φ is itself a map of modules, up to the shift — and the same for ψ',24,232);
+  }
+}
+window.toggleDiag=function(){tri=!tri; draw();};
+draw();
+})();
+</script>
+
+<div class="theorem">
+<p><strong>Theorem 12.1.</strong> Given two modules M and N given by graded matrix representations, the problem of computing a real r so that d<sub>I</sub>(M,N) ≤ r &lt; 3 d<sub>I</sub>(M,N) is NP-hard. <span class="cite">— Dey &amp; Wang §12.2, Theorem 12.1, p. 370</span></p>
+</div>
+
+<p>Read the quantifier structure carefully, because the theorem is stronger than it first appears. It does not say the exact value is hard to compute; it says that <em>any</em> value within a factor of 3 is hard to compute, and exact computation is the special case r = d<sub>I</sub>. It also does not say the problem is undecidable — it is perfectly decidable, just not tractably so. And the statement is tied to an encoding: the modules are given by graded matrix representations as in Chapter 11, which Dey and Wang note coincide with the modules of finite type. A complexity claim without an encoding would be empty.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which part of Definition 12.7 changes when d increases from 1 to 2?</p>
+<button onclick="check(this,true)" data-ok>Only the shift: δ⃗ becomes a vector and the index poset becomes ℝ<sup>2</sup>. Both commutativity conditions are unchanged</button>
+<button onclick="check(this,false)">Rectangular commutativity gains extra squares, one per coordinate direction</button>
+<button onclick="check(this,false)">Triangular commutativity is replaced by a condition on interval matchings</button>
+<div class="explain">Rectangular commutativity is a single condition quantified over all comparable pairs x ≤ y — increasing d increases how many such pairs there are, but adds no clause to the definition. The third option gets the situation exactly backwards: the interleaving definition never mentioned matchings, which is precisely why it survives. It is the <em>bottleneck</em> distance that needs a matching, and that is what fails to generalise.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Theorem 12.1 rules out which of the following?</p>
+<button onclick="check(this,false)">Any algorithm that computes d<sub>I</sub> at all</button>
+<button onclick="check(this,true)" data-ok>A polynomial-time algorithm returning any value within a factor of 3 of d<sub>I</sub>, unless P = NP</button>
+<button onclick="check(this,false)">Polynomial-time computation of d<sub>I</sub> on every restricted class of modules</button>
+<div class="explain">Hardness is not undecidability, so the first option is too strong. The third is also too strong, and its falsity is the whole architecture of §12.4: restricting to interval decomposable modules is exactly the escape route the chapter takes. What is ruled out is a general polynomial-time 3-approximation.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Two computable substitutes</h2>
+
+<h3>Matching distance: slice into lines</h3>
+
+<p>The matching distance takes the restrictions of M and N over lines of positive slope and forms the supremum of weighted interleaving distances on those restrictions. Each restriction is a <em>one-parameter</em> module, so each carries a barcode and each interleaving distance is computable.</p>
+
+<div class="definition">
+<p><strong>Restriction and weight.</strong> For a line ℓ : y = sx + t with s &gt; 0, parameterise by λ(x) = (1/(1+s²))(x, sx+t) and set M|<sub>ℓ</sub>(x) = M(λ(x)) with the induced maps, a one-parameter persistence module. Define</p>
+<div class="math-block">w(ℓ) = 1/√(1+s²) for s ≥ 1, &emsp; w(ℓ) = 1/√(1+1/s²) for 0 &lt; s &lt; 1.</div>
+<p><span class="cite">— Dey &amp; Wang §12.3, pp. 370–371</span></p>
+</div>
+
+<div class="warn">
+<p><strong>The λ above is quoted exactly, and it is loose.</strong> Two things are off, and noticing them is good practice. First, as literally written λ does not land on ℓ at all unless t = 0: the point (x/(1+s²), (sx+t)/(1+s²)) satisfies y = sx + t only when t/(1+s²) = t. The scaling has been applied to the intercept as well as to the direction. Second, the factor is not the one that makes the parameterisation unit-speed. The direction vector of ℓ is (1, s) with norm √(1+s²), so the arc-length parameterisation is λ(x) = (0,t) + (x/√(1+s²))(1,s) — the square root, applied to the direction only, with the intercept added unscaled. The tell is on the page itself: the weight w(ℓ) directly below uses 1/√(1+s²), and it would be a strange design for the parameterisation and the weight that corrects it to disagree by a square root.</p>
+<p>Nothing downstream in this unit turns on it. Definition 12.9 takes a supremum of w(ℓ)·d<sub>I</sub>(M|<sub>ℓ</sub>, N|<sub>ℓ</sub>), and what carries the stability claim is the weight; the restriction only has to name the same one-parameter module, which any faithful parameterisation of ℓ does. The reason to flag it rather than quietly print the repaired formula is that you will meet the printed one when you read §12.3, and a reader who "corrects" it to 1/√(1+s²) without also moving the intercept out of the scaling has fixed the square root and kept the real error.</p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 12.9 (matching distance).</strong> d<sub>m</sub>(M,N) = sup<sub>ℓ∈Λ</sub>{w(ℓ) · d<sub>I</sub>(M|<sub>ℓ</sub>, N|<sub>ℓ</sub>)}, the supremum over all lines of positive slope. The weight w(ℓ) is introduced to make the matching distance stable with respect to the interleaving distance. <span class="cite">— Dey &amp; Wang §12.3, Definition 12.9, p. 371</span></p>
+</div>
+
+<div class="warn">
+<p><strong>What §12.3 states, and what it does not.</strong> Dey and Wang say the weight makes d<sub>m</sub> stable with respect to d<sub>I</sub>, and go on to give a polynomial-time algorithm computing d<sub>m</sub> for two-parameter modules. They do not display an inequality between d<sub>m</sub> and d<sub>I</sub> in either direction in this section. This unit's mission strip describes d<sub>m</sub> as a tractable lower bound; the tractability is established here, the precise comparison is not, and this lesson does not supply it. Where the algorithm comes from is §12.3.1's point-line duality and its arrangement of O(n⁴) lines, deferred here.</p>
+</div>
+
+<p>The idea is worth weighing on its own terms. What is gained is decisive: a supremum over a suitably chosen finite family of lines is computable in polynomial time, which Theorem 12.1 says d<sub>I</sub> itself is not. What can be lost is anything invisible along every single line — the module is probed only on one-dimensional slices, and slices are exactly the kind of summary tda2-03 warned may fail to separate non-isomorphic modules.</p>
+
+<h3>Bottleneck distance: restrict the modules instead</h3>
+
+<div class="definition">
+<p><strong>Definition 12.12 (matching).</strong> A matching μ : A → B between two multisets is a partial bijection, that is μ : A′ → B′ for some A′ ⊆ A and B′ ⊆ B; we write im μ = B′ and coim μ = A′. <span class="cite">— Dey &amp; Wang §12.4, Definition 12.12, pp. 374–375</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 12.13 (bottleneck distance).</strong> Let M ≅ ⊕<sub>i=1</sub><sup>m</sup>M<sub>i</sub> and N ≅ ⊕<sub>j=1</sub><sup>n</sup>N<sub>j</sub> be decompositions into indecomposables, with I = {1,…,m} and J = {1,…,n}. M and N are δ-matched for δ ≥ 0 if there is a matching μ : I → J under which matched summands are δ-interleaved and unmatched summands are δ-interleaved with the zero module; d<sub>b</sub> is the infimum of such δ. <span class="cite">— Dey &amp; Wang §12.4, Definition 12.13, p. 375</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Fact 12.2.</strong> One has d<sub>I</sub> ≤ d<sub>b</sub>. <span class="cite">— Dey &amp; Wang §12.4, Fact 12.2, p. 375</span></p>
+</div>
+
+<p>The direction is the intuitive one. A matching exhibits the interleaving summand by summand, so any δ-matching gives a δ-interleaving and the infimum over matchings can only be larger. The converse fails because a genuine interleaving of the whole modules is free to mix summands, and no matching need exist realising it. So the bottleneck distance is the coarser measurement, and it bounds the interleaving distance from above.</p>
+
+<h3>Worked example 1: where a matching can even be attempted</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Definition 12.13 presumes decompositions into indecomposables. tda2-03 established that these exist and are essentially unique by Krull–Schmidt, but that the indecomposables are not classified. Why does §12.4 nevertheless get an algorithm?</p>
+<p><strong>Step 1 — the obstacle.</strong> A matching pairs summands of M with summands of N and then asks whether each matched pair is δ-interleaved. Both operations need the summands to be objects one can name, store and compare. Unclassified indecomposables are none of those things.</p>
+<p><strong>Step 2 — the restriction.</strong> Definition 12.14: an interval is a non-empty I ⊂ ℝ̄<sup>d</sup> that is order-convex — p, q ∈ I and p ≤ r ≤ q imply r ∈ I — and order-connected, any two of its points being joined by a finite chain inside I whose consecutive terms are comparable. Definition 12.15: a d-parameter interval module has M<sub>x</sub> = 𝐤 for x ∈ I<sub>M</sub> and 𝟎 otherwise, with identity structure maps within I<sub>M</sub>. Definition 12.16: a module is interval decomposable if it decomposes into interval modules.</p>
+<p><strong>Step 3 — why that is the right class.</strong> An interval module is determined by a subset of ℝ̄<sup>d</sup>, which is nameable, storable and comparable. So on this class the summands are exactly the kind of object a matching needs, and the algorithm becomes possible — at the cost of a hypothesis on the input.</p>
+<p><strong>Step 4 — the simplest intervals.</strong> Definition 12.17: a k-rectangle in ℝ<sup>d</sup> is a product [a<sub>1</sub>,b<sub>1</sub>] × ⋯ × [a<sub>d</sub>,b<sub>d</sub>] in which exactly k of the factors are non-degenerate, a 0-rectangle being a point. Rectangles are order-convex and order-connected automatically, so rectangle-decomposable modules form a subclass of the interval decomposable ones — the multiparameter analogue of tda1-04's intervals.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded): what a bottleneck computation entitles you to say.</strong> Two two-parameter modules are computed from two data sets, both verified interval decomposable, and an algorithm returns d<sub>b</sub>(M,N) = 0.4.</p>
+<p><strong>The bound.</strong> By Fact 12.2, d<sub>I</sub> ≤ d<sub>b</sub>, so the interleaving distance is at most <span class="gap">⟨your step: what value?⟩</span>. The two modules are therefore genuinely close in the interleaving distance.</p>
+<p><strong>The non-bound.</strong> Now suppose instead the algorithm returns d<sub>b</sub>(M,N) = 12. Since Fact 12.2 bounds d<sub>I</sub> only from <span class="gap">⟨your step: above or below?⟩</span>, this says <span class="gap">⟨your step: what about d<sub>I</sub>?⟩</span>.</p>
+<p><strong>The hypothesis.</strong> Both readings assume interval decomposability, which is a property of the modules and not of the algorithm. It has to be verified on the input, not inferred from the output — an algorithm handed a non-decomposable module will still return a number.</p>
+<p class="cite">Gap solutions: at most 0.4; from above only; so a large d<sub>b</sub> is not by itself evidence that d<sub>I</sub> is large.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Let M be the interval module on the rectangle [0,2] × [0,2] and N the interval module on [1,3] × [1,3] in ℝ². (i) For which δ does the diagonal shift by δ⃗ carry I<sub>M</sub> into I<sub>N</sub> and back? (ii) Use that to give an upper bound on d<sub>I</sub>(M,N) directly from Definition 12.7, saying which maps you take as φ and ψ. (iii) Now consider N′, the interval module on [1,3] × [0,2] — shifted in one coordinate only — and explain why the diagonal shift of Definition 12.6 makes this case less comfortable.</p>
+<p><em>Hint:</em> for (iii), note that δ⃗ moves every coordinate by the same amount, so a purely horizontal displacement must be absorbed by a diagonal shift large enough to cover it.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 12.7.</strong> One has d<sub>I</sub>(M,N) = d<sub>I</sub>(M̄, N̄). <span class="cite">— Dey &amp; Wang §12.4.1, Proposition 12.7, p. 379</span></p>
+</div>
+
+<p>Taken with Fact 12.2, this is the shape of §12.4's whole strategy: trade generality for computability. On the interval decomposable class the summands are nameable, so a matching makes sense and a polynomial-time algorithm becomes possible; Fact 12.2 then relates the computed number back to the interleaving distance, from above. The algorithmic machinery that follows — intersection modules, valid and trivialisable components, the candidate set and Theorem 12.16 — is §12.4.2 and §12.4.3, and is deferred.</p>
+
+<table class="rel">
+<tr><th>distance</th><th>defined for</th><th>computability</th><th>relation to d<sub>I</sub></th></tr>
+<tr><td>d<sub>I</sub></td><td>any d-parameter modules</td><td>NP-hard even to 3-approximate (Theorem 12.1)</td><td>—</td></tr>
+<tr><td>d<sub>m</sub></td><td>any (defined here for d = 2)</td><td>polynomial time for two-parameter modules</td><td>stability asserted; no inequality displayed in §12.3</td></tr>
+<tr><td>d<sub>b</sub></td><td>modules with a decomposition</td><td>polynomial time on interval decomposable modules</td><td>d<sub>I</sub> ≤ d<sub>b</sub> (Fact 12.2)</td></tr>
+</table>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why is the bottleneck distance at least as large as the interleaving distance?</p>
+<button onclick="check(this,true)" data-ok>Because a δ-matching exhibits a δ-interleaving summand by summand, so every matching is an interleaving but not conversely — an interleaving may mix summands</button>
+<button onclick="check(this,false)">Because bottleneck distance uses the supremum norm and interleaving uses the infimum</button>
+<button onclick="check(this,false)">Because the bottleneck distance counts unmatched summands twice</button>
+<div class="explain">The inequality is a statement about which set of witnesses is larger. Every δ-matching yields a δ-interleaving, so the set of δ that work for interleaving contains the set that work for matching, and its infimum is therefore no larger. The freedom an interleaving has and a matching lacks is to send one summand's content into several summands at once.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> A practitioner reports d<sub>b</sub>(M,N) = 12 between two two-parameter modules. What follows?</p>
+<button onclick="check(this,false)">The two modules are far apart in the interleaving distance</button>
+<button onclick="check(this,true)" data-ok>Nothing about d<sub>I</sub> being large: Fact 12.2 bounds d<sub>I</sub> from above only, so d<sub>I</sub> could be anything from 0 to 12</button>
+<button onclick="check(this,false)">The modules are not interval decomposable, since a large value indicates the algorithm's hypothesis failed</button>
+<div class="explain">One-sided bounds are one-sided. A small d<sub>b</sub> certifies closeness; a large d<sub>b</sub> certifies nothing, because the matching may simply have failed to find the mixing that a genuine interleaving would exploit. The third option is a category error — the algorithm's hypothesis is a property of the input to be verified beforehand, and it produces a number either way.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> What does §12.3 actually establish about the matching distance?</p>
+<button onclick="check(this,true)" data-ok>That it is defined as a weighted supremum over lines, that the weight is there to make it stable with respect to d<sub>I</sub>, and that it is computable in polynomial time for two-parameter modules</button>
+<button onclick="check(this,false)">That d<sub>m</sub> ≤ d<sub>I</sub>, displayed as an inequality</button>
+<button onclick="check(this,false)">That d<sub>m</sub> is a complete invariant for two-parameter modules</button>
+<div class="explain">The section states stability and gives an algorithm; it does not display a comparison inequality, and this lesson does not supply one. The third option contradicts tda2-03 outright — no finite computable complete invariant exists for d ≥ 2, so no computable distance can separate all non-isomorphic modules.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove that d<sub>I</sub> is symmetric and satisfies d<sub>I</sub>(M,M) = 0, directly from Definitions 12.7 and 12.8. Then prove the triangle inequality in the following form: if M and N are δ<sub>1</sub>-interleaved and N and P are δ<sub>2</sub>-interleaved, then M and P are (δ<sub>1</sub>+δ<sub>2</sub>)-interleaved. Conclude d<sub>I</sub>(M,P) ≤ d<sub>I</sub>(M,N) + d<sub>I</sub>(N,P).</p>
+<p><em>Hint:</em> for the triangle inequality, compose the interleaving maps and check that the composite families still satisfy both commutativity conditions, tracking the shifts.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Symmetry.</strong> Definition 12.7 is symmetric in M and N by construction: a δ-interleaving is an unordered pair of families (φ, ψ), and swapping their roles exchanges M with N while preserving both conditions. So the set of δ witnessing an interleaving is the same for (M,N) as for (N,M), and the infima agree. ∎</p>
+<p><strong>Vanishing on the diagonal.</strong> Take δ = 0. Then δ⃗ = 0⃗, and the identity families φ<sub>x</sub> = ψ<sub>x</sub> = 𝟙 : M<sub>x</sub> → M<sub>x</sub> are a 0-interleaving of M with itself: triangular commutativity holds because the composite is the identity, which is the structure map ρ<sup>M</sup><sub>x→x</sub>; rectangular commutativity is the statement 𝟙 ∘ ρ<sup>M</sup> = ρ<sup>M</sup> ∘ 𝟙. So 0 belongs to the set over which the infimum is taken, and d<sub>I</sub>(M,M) = 0. ∎</p>
+<p><strong>Triangle inequality.</strong> Let (φ, ψ) be a δ<sub>1</sub>-interleaving of M and N, and (φ′, ψ′) a δ<sub>2</sub>-interleaving of N and P. Write δ = δ<sub>1</sub> + δ<sub>2</sub> and define</p>
+<div class="math-block">Φ<sub>x</sub> = φ′<sub>x+δ⃗<sub>1</sub></sub> ∘ φ<sub>x</sub> : M<sub>x</sub> → P<sub>x+δ⃗</sub>, &emsp; Ψ<sub>x</sub> = ψ<sub>x+δ⃗<sub>2</sub></sub> ∘ ψ′<sub>x</sub> : P<sub>x</sub> → M<sub>x+δ⃗</sub>.</div>
+<p><em>Rectangular commutativity for Φ.</em> For x ≤ y, apply rectangular commutativity of φ to get φ<sub>y</sub> ∘ ρ<sup>M</sup><sub>x→y</sub> = ρ<sup>N</sup><sub>x+δ⃗<sub>1</sub>→y+δ⃗<sub>1</sub></sub> ∘ φ<sub>x</sub>, then rectangular commutativity of φ′ at the shifted indices to move φ′ across ρ<sup>N</sup>. Composing, Φ<sub>y</sub> ∘ ρ<sup>M</sup><sub>x→y</sub> = ρ<sup>P</sup><sub>x+δ⃗→y+δ⃗</sub> ∘ Φ<sub>x</sub>. The argument for Ψ is identical with the roles reversed.</p>
+<p><em>Triangular commutativity.</em> Compute Ψ<sub>x+δ⃗</sub> ∘ Φ<sub>x</sub>. Inserting the definitions and using triangular commutativity of (φ′, ψ′) to collapse the inner pair into ρ<sup>N</sup> shifted by 2δ<sub>2</sub>, then rectangular commutativity of ψ to move that structure map out, and finally triangular commutativity of (φ, ψ), the composite becomes ρ<sup>M</sup><sub>x→x+2δ⃗</sub>. Symmetrically for Φ ∘ Ψ.</p>
+<p>Hence M and P are (δ<sub>1</sub>+δ<sub>2</sub>)-interleaved. Taking infima, for any δ<sub>1</sub> &gt; d<sub>I</sub>(M,N) and δ<sub>2</sub> &gt; d<sub>I</sub>(N,P) we get d<sub>I</sub>(M,P) ≤ δ<sub>1</sub> + δ<sub>2</sub>, and letting both tend to their infima gives d<sub>I</sub>(M,P) ≤ d<sub>I</sub>(M,N) + d<sub>I</sub>(N,P). ∎</p>
+<p><em>What was not proved.</em> That d<sub>I</sub>(M,N) = 0 implies M ≅ N. That is a genuine separation axiom and it does not follow from the above — which is why d<sub>I</sub> is in general called an extended pseudometric until further hypotheses are imposed. Notice also that nothing in the argument mentioned d: the proof reads identically for any number of parameters, which is the same robustness the definition itself displayed.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>Why the categorical definition of a persistence module makes the interleaving distance indifferent to the number of parameters, and what the two commutativity conditions say.</li>
+<li>Theorem 12.1's exact statement, and what kind of hardness it is.</li>
+<li>The two substitutes, what each requires of its input, and exactly what each entitles you to conclude.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) a persistence module is a functor ℙ → <strong>Vec</strong>, morphisms are natural transformations, and a δ-interleaving is a pair of families φ, ψ into the δ-shift satisfying triangular and rectangular commutativity — with d appearing only in the shift vector and the index poset; (2) computing r with d<sub>I</sub> ≤ r &lt; 3 d<sub>I</sub> is NP-hard for graded matrix representations, which is approximation-hardness, not undecidability; (3) d<sub>m</sub> is a weighted supremum over lines, polynomial for two parameters, stated stable with respect to d<sub>I</sub> without a displayed inequality; d<sub>b</sub> needs a decomposition into nameable summands, so it lives on the interval decomposable class, and Fact 12.2 gives d<sub>I</sub> ≤ d<sub>b</sub> — a small d<sub>b</sub> certifies closeness and a large one certifies nothing — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §12.1 "Persistence Modules from Categorical Viewpoint": Definitions 12.1 to 12.5 on categories, functors, natural transformations, persistence modules as functors, and finite type (pp. 367–369). §12.2 "Interleaving Distance": Definition 12.6 on the shift functor, Definition 12.7 on δ-interleaving with triangular and rectangular commutativity, Definition 12.8 on the interleaving distance, and Theorem 12.1's NP-hardness of 3-approximation for graded matrix representations (pp. 369–370). §12.3 "Matching Distance": the restriction to lines of positive slope, the weight w(ℓ), and Definition 12.9, together with the statement that the weight makes d<sub>m</sub> stable with respect to d<sub>I</sub> and that a polynomial-time algorithm exists for two-parameter modules (pp. 370–371). §12.4 "Bottleneck Distance": Definition 12.12 on matchings, Definition 12.13 on δ-matching and the bottleneck distance, Fact 12.2's d<sub>I</sub> ≤ d<sub>b</sub> (pp. 374–375); §12.4.1's Definitions 12.14 to 12.17 on intervals, interval modules, interval decomposability and rectangles, and Proposition 12.7 (pp. 376–379). Not established here: any inequality between d<sub>m</sub> and d<sub>I</sub> — §12.3 asserts stability without displaying a direction, and this lesson does not supply one. Deferred: §12.3.1's point-line duality and arrangement construction with Propositions 12.2 to 12.4 and Theorems 12.5 and 12.6; §12.4.2 and §12.4.3's intersection modules, valid and trivialisable components, Theorem 12.14, the candidate set and Theorem 12.16.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

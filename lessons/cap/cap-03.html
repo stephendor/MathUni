@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cap-03 — Reading and verifying a research paper</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table{border-collapse:collapse;margin:1rem 0;width:100%}
+th,td{border:1px solid #2a333d;padding:.4rem .6rem;text-align:left;font-size:.95rem}
+th{background:#1a2027;font-family:Segoe UI,sans-serif}
+</style></head><body>
+<p class="cite">Capstone · Nexus College</p>
+<h1>Reading and verifying a research paper <span class="cite">(cap-03)</span></h1>
+
+<div class="hook">
+Take a TDA result and try to break it. Which theorem is doing the work, and does its hypothesis actually hold on their data?
+<p>Everything in this curriculum has been building one skill, and this is it. Not computing a barcode — a library does that — but standing between a barcode and a conclusion and asking which result carries the weight, what that result requires, and whether the requirement is met, assumed, or unmeetable in principle.</p>
+<p>The object here is the TDL project's own <code>trajectory_tda_integration</code> results. Verifying your own work is the harder version and the one the capstone requires: with someone else's paper you have no stake in the answer, which makes you a worse test of the protocol, not a better one.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> The same persistence diagrams, four null models, and two different summary statistics — total persistence, and a Wasserstein distance between diagrams. Predict whether the two summaries can disagree about which nulls are rejected.</p>
+<button onclick="check(this,false)">No: they summarise the same diagrams, so a real effect shows up in both and a spurious one in neither</button>
+<button onclick="check(this,true)" data-ok>Yes, and in this data they do — in both directions — because a sum of bar lengths and an optimal matching between diagrams are sensitive to different things</button>
+<button onclick="check(this,false)">Only if one of the two computations contains a bug, since correct statistics of the same object must agree</button>
+<div class="explain">Total persistence collapses a diagram to one number, the sum of the bar lengths; a Wasserstein distance compares diagrams as objects through a matching, so it sees <em>where</em> the bars are and not only how much length there is. Two diagrams can share a total persistence and be far apart in Wasserstein distance, and conversely. In the artifacts you are about to read, the order-shuffle null is rejected in H<sub>0</sub> by total persistence and not by Wasserstein, and the Markov null is rejected by Wasserstein and not by total persistence — each statistic rejecting a null the other does not, with no computation wrong. Segment 3 works out what follows, and one of the two has a stability theorem behind it while the other has none.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Verification means locating the load-bearing theorem and checking its hypotheses against the data at hand — tameness for a barcode, a good cover for a nerve claim, closed and orientable for a duality claim, interval-decomposability for a multiparameter distance (tda2-04). This is the skill the whole curriculum was aimed at.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The protocol, and the four hypotheses</h2>
+
+<p><code>MISSION.md</code> sets the standard: "I can read a current TDA paper (e.g. on multiparameter persistence) and verify its main argument." Here is what that operation consists of.</p>
+
+<div class="definition">
+<p><strong>The verification protocol.</strong> <strong>1.</strong> Locate the load-bearing theorem — the result whose failure would remove the conclusion. <strong>2.</strong> Extract its hypotheses, one line each, in the form the theorem states them. <strong>3.</strong> Classify each hypothesis: <em>verified</em> from the reported artifacts, <em>assumed</em> on grounds the authors give, or <em>unverifiable</em> in principle from the data at hand. <strong>4.</strong> Check that the stated conclusion is the one the theorem licenses, not a stronger one. <strong>5.</strong> Check that the statistic actually computed is the quantity the theorem is stated in. <span class="cite">— this unit's own protocol; the standard it answers to is MathUni <code>MISSION.md</code></span></p>
+</div>
+
+<div class="warn">
+<p><strong>Where the protocol comes from, and what tdlbook.org supplies.</strong> The five steps are this unit's own; no source states them. This unit's second-named resource is tdlbook.org, which is <em>Topological Deep Learning: Going Beyond Graph Data</em> — combinatorial complexes, combinatorial complex neural networks, higher-order message passing. It contains no persistent homology, no filtrations, no stability theorems, no study design and no null models, so it supplies none of the verification methodology below and none of the four hypotheses. What it does supply, as cap-02 records, is Mapper in the role of a pooling operation (§7.4, §9.4, Appendix E) — a useful contrast, not a method. Everything else here binds to theorems this curriculum has proved, cited to their texts with verified pages, and to the artifact files as they stand.</p>
+</div>
+
+<p>Step 1 has an operational test: for each cited result, ask what would remain of the conclusion if that result were false. If the conclusion survives, the result is context; if it collapses, the result is load-bearing. Most papers have one or two, and the rest is furniture. A paper with none is reporting an observation rather than making an argument — itself a finding.</p>
+
+<p>Step 4 has three outcomes and only one of them is a defect. A conclusion <em>weaker</em> than the theorem licenses is a virtue: the authors left margin. <em>Equal</em> is neither good nor bad; it is what theorems are for, though it means any weakening of a hypothesis is fatal. <em>Stronger</em> is the defect to hunt, because the citation is genuine and the inference from it is not, so a reader who checks the reference will find a real theorem and be misled anyway.</p>
+
+<h3>The four hypotheses the mission strip names</h3>
+
+<div class="definition">
+<p><strong>Definition 4.14 (regular interval; Morse type).</strong> An open interval I ⊆ ℝ is a <em>regular interval</em> if there is a space Y and a homeomorphism Φ : Y × I → X<sub>I</sub> with f ∘ Φ the projection onto I, extending continuously to the closure. f is <em>of Morse type</em> if each levelset has finitely generated homology and there are finitely many critical values, the complementary open intervals being regular. <span class="cite">— Dey &amp; Wang §4.5, Definition 4.14, p. 138</span></p>
+</div>
+
+<p><strong>Tameness for a barcode.</strong> For the <em>computed</em> object it is free: a PL-function on a finite simplicial complex is levelset tame, so a barcode exists. For the <em>hidden</em> function on the hidden space it is an assumption, and no sample settles it, because the object named in the hypothesis is not the sample.</p>
+
+<div class="theorem">
+<p><strong>Theorem 2.1 (Nerve Theorem).</strong> Given a finite cover 𝒰 (open or closed) of a metric space M, the underlying space |N(𝒰)| is homotopy equivalent to M if every non-empty intersection of cover elements is homotopy equivalent to a point, that is, contractible. §9.1 restates it for the nerve map: if the elements of 𝒰 intersect only in contractible spaces then φ<sub>𝒰</sub> is a homotopy equivalence, so φ<sub>𝒰∗</sub> is an isomorphism H<sub>∗</sub>(X) → H<sub>∗</sub>(N(𝒰)). <span class="cite">— Dey &amp; Wang §2.2, Theorem 2.1, p. 31; restated §9.1, p. 259</span></p>
+</div>
+
+<p><strong>A good cover for a nerve claim.</strong> This is the one tda2-07 corrected, and it is the model of what step 4 catches. Nothing supplies contractibility for a Mapper pullback cover, and Dey and Wang say so in the same breath as quoting the theorem. What holds instead is weaker and provable: the pullback cover consists of path connected components by construction, so <strong>Theorem 9.5</strong> gives that φ̄<sub>𝒰∗</sub> : H<sub>1</sub>(X) → H<sub>1</sub>(N(𝒰)) is a surjection, and <strong>Theorem 9.9</strong> extends it to simplicial maps between nerves induced by cover maps. Reading: loops in the picture come from loops in the data, and loops in the data may vanish. A paper claiming its Mapper graph is homotopy equivalent to the data has made the step-4 error.</p>
+
+<div class="theorem">
+<p><strong>Theorem 3.30 (Poincaré Duality).</strong> If M is a closed R-orientable n-manifold with fundamental class [M] ∈ H<sub>n</sub>(M; R), then the map D : H<sup>k</sup>(M; R) → H<sub>n−k</sub>(M; R) defined by D(α) = [M] ⌢ α is an isomorphism for all k. <span class="cite">— Hatcher §3.3, Theorem 3.30, p. 241</span></p>
+</div>
+
+<p><strong>Closed and orientable for a duality claim.</strong> Note also the trap tda2-10 flagged: Ghrist introduces <strong>Lemma 9.8</strong> — H<sup>0</sup>(X̃; ℱ) ≅ H<sup>1</sup>(X̃; ℱ) for a flow sheaf — as "a type of Poincaré duality". It is not an instance of Theorem 3.30. There is no manifold, no orientation, no fundamental class, and the isomorphism is induced by no pairing. Ghrist's own proof says so: it is a count — C<sup>0</sup>(X̃; ℱ) ≅ C<sup>1</sup>(X̃; ℱ) because each vertex stalk is the sum of the stalks of its incoming edges and that enumeration exhausts the cells of X̃, after which the isomorphism on cohomology comes from exactness, dim ker d = dim coker d. The shared name records an analogy of shape. A verification sheet that accepts "by Poincaré duality" without asking <em>which</em> theorem has skipped step 1.</p>
+
+<div class="definition">
+<p><strong>Definition 12.15 and Definition 12.16.</strong> A d-parameter <em>interval module</em> is a persistence module supported on an interval in the sense of Definition 12.14, with identity maps within it. A d-parameter <em>interval decomposable module</em> is a persistence module that can be decomposed into interval modules. <span class="cite">— Dey &amp; Wang §12.4.1, Definition 12.15 p. 376, Definition 12.16 p. 377</span></p>
+</div>
+
+<p><strong>Interval-decomposability for a multiparameter distance.</strong> <strong>Definition 12.13</strong> defines the bottleneck distance for modules M ≅ ⊕<sub>i</sub>M<sub>i</sub> and N ≅ ⊕<sub>j</sub>N<sub>j</sub> written in terms of their indecomposables, so a multiparameter bottleneck distance presumes a decomposition, and the clean case is interval decomposability. <strong>Fact 12.2</strong> records d<sub>I</sub> ≤ d<sub>b</sub>. Unlike the first three, this hypothesis is about the <em>computed</em> module, so it can in principle be checked — and for d ≥ 2 it is not automatic, which is why Definition 12.16 exists as a named condition.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which of the four hypotheses could a finite point sample settle?</p>
+<button onclick="check(this,true)" data-ok>Only interval-decomposability, because it is a property of the computed module — the other three name the hidden space or a cover of it</button>
+<button onclick="check(this,false)">All four, since each is a mathematical property and mathematics is checkable</button>
+<button onclick="check(this,false)">None, since every hypothesis in applied topology concerns a hidden object</button>
+<div class="explain">The distinguishing question is what object the hypothesis quantifies over. Tameness of the hidden function, contractibility of intersections of a cover of the hidden space, and closedness and orientability of a hidden manifold all name something the sample only approximates. Interval decomposability names the module you computed, so it is checkable in principle. The third option overshoots — tameness of the computed filtration is also verifiable, and that distinction is what the classification column is for.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A paper writes "the Mapper graph is homotopy equivalent to the data by the Nerve Theorem". Which protocol step catches this?</p>
+<button onclick="check(this,true)" data-ok>Step 4 — the conclusion is stronger than the available theorem licenses, since contractibility of intersections is not supplied and what holds is Theorem 9.5's H<sub>1</sub> surjection</button>
+<button onclick="check(this,false)">Step 5 — the statistic computed is not the one the theorem is stated in</button>
+<button onclick="check(this,false)">Step 2 — the theorem has no hypotheses to extract</button>
+<div class="explain">The citation is genuine and Theorem 2.1 says what they say it says; the failure is that its hypothesis is not met and the conclusion asserted is the strong one. That is exactly the "stronger than licensed" case of step 4, and it is the most common defect because the reference checks out. Step 5 is about statistics rather than conclusions, and Theorem 2.1 certainly has a hypothesis — the contractibility that is missing.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Reading the artifacts</h2>
+
+<p>Open <code>TDL/results/trajectory_tda_integration/</code>. Three files carry the argument.</p>
+
+<p><code>03_ph.json</code> records <code>n_landmarks = 5000</code> and one summary block keyed <code>maxmin_vr</code> — a Vietoris–Rips filtration on a maxmin landmark subsample. H<sub>0</sub>: 5000 features, 4999 finite, 1 infinite, total persistence 20411.13, max persistence 15.809, persistence entropy 8.447. H<sub>1</sub>: 5962 features, 5961 finite, 1 infinite, total persistence 2224.68, max persistence 3.213, persistence entropy 8.354.</p>
+
+<div class="warn">
+<p><strong>Step 5, immediately.</strong> Three summary numbers are reported. Ask, for each, which theorem in this curriculum bounds its behaviour under a perturbation of the data. §13.1 gives stability for the persistence landscape (<strong>Theorem 13.1</strong>, against d<sub>B</sub>, constant 1), the persistence scale space kernel (<strong>Theorem 13.2</strong>, against d<sub>W,1</sub>, constant 1/(2πσ)) and persistence images (<strong>Theorem 13.3</strong>). Total persistence, maximum persistence and persistence entropy appear in none of them. So the entry for all three is <em>none</em> — which is not a claim that they are unstable, but the accurate statement that this curriculum has proved nothing about them, and cap-02's ledger records the row as unconstrained.</p>
+</div>
+
+<h3>Visual: sixteen p-values, and where the two statistics part company</h3>
+
+<canvas id="pvCanvas" width="640" height="300" role="img" aria-label="A grid of p-values for four null models in two homology dimensions under two statistics, with cells shaded by significance and two disagreeing pairs outlined"></canvas>
+<p style="text-align:center"><button onclick="togglePv()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Highlight the disagreements</button></p>
+<script>
+(function(){
+const cv=document.getElementById('pvCanvas'), ctx=cv.getContext('2d');
+const ROWS=[
+ {n:'label_shuffle',  tp:[0.69,0.63],  w:[0.452,0.538]},
+ {n:'cohort_shuffle', tp:[0.66,0.54],  w:[null,null]},
+ {n:'order_shuffle',  tp:[0.0,0.25],   w:[0.058,0.854]},
+ {n:'markov',         tp:[0.148,0.652],w:[0.002,0.086]},
+ {n:'markov2',        tp:[null,null],  w:[0.546,0.078]}];
+const COLS=[['tp',0,'total pers H0'],['tp',1,'total pers H1'],['w',0,'wasserstein H0'],['w',1,'wasserstein H1']];
+let hi=false;
+function cell(v){ if(v===null) return '#1a2027'; return v<0.05 ? '#1e3a2c' : '#241a1c'; }
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const X0=140, W=118, Y0=64, H=40;
+  ctx.font='12px Segoe UI'; ctx.textAlign='center'; ctx.fillStyle='#9aa5b1';
+  COLS.forEach(function(c,j){ ctx.fillText(c[2], X0+j*W+W/2, Y0-12); });
+  ctx.textAlign='right';
+  ROWS.forEach(function(r,i){ ctx.fillStyle='#9aa5b1';
+    ctx.fillText(r.n, X0-10, Y0+i*H+25); });
+  ctx.textAlign='center';
+  ROWS.forEach(function(r,i){ COLS.forEach(function(c,j){
+    const v=r[c[0]][c[1]], x=X0+j*W, y=Y0+i*H;
+    ctx.fillStyle=cell(v); ctx.fillRect(x+2,y+2,W-4,H-4);
+    ctx.strokeStyle='#2a333d'; ctx.lineWidth=1; ctx.strokeRect(x+2,y+2,W-4,H-4);
+    ctx.fillStyle = v===null ? '#4a5661' : (v<0.05 ? '#4caf82' : '#e8e8e8');
+    ctx.fillText(v===null ? '—' : v.toFixed(3), x+W/2, y+25); }); });
+  if(hi){ ctx.strokeStyle='#d8a657'; ctx.lineWidth=2.5;
+    [[2,0],[2,2],[3,0],[3,2]].forEach(function(p){
+      ctx.strokeRect(X0+p[1]*W+2, Y0+p[0]*H+2, W-4, H-4); }); }
+  ctx.font='13px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle='#9aa5b1';
+  ctx.fillText('p-values from 04_nulls.json and 04_nulls_wasserstein.json', 20, 26);
+  ctx.fillStyle = hi ? '#d8a657' : '#5a6b7a';
+  ctx.fillText(hi ? 'gold: same null, same dimension, opposite verdicts'
+                  : 'green cell = flagged significant at 0.05', 20, 44);
+  ctx.fillStyle='#5a6b7a'; ctx.font='12px Segoe UI';
+  ctx.fillText('cohort_shuffle was not run under the Wasserstein statistic; markov2 was not run under total persistence', 20, 288);
+}
+window.togglePv=function(){ hi=!hi; draw(); };
+draw();
+})();
+</script>
+
+<p>Press the button. In H<sub>0</sub>, the order-shuffle null is rejected by total persistence (p = 0.0) and not by Wasserstein (p = 0.058); the Markov null is rejected by Wasserstein (p = 0.002) and not by total persistence (p = 0.148). Each statistic rejects a null the other does not, and no computation need be wrong: total persistence collapses a diagram to one number, while a Wasserstein distance compares diagrams through a matching and therefore sees where the bars are. They are different tests of the same data.</p>
+
+<div class="definition">
+<p><strong>Definition 13.8 ((p,q)-Wasserstein distance).</strong> For persistence diagrams P and Q, d<sub>W,q</sub><sup>p</sup>(P,Q) := inf<sub>Π : P→Q</sub> [ Σ<sub>x∈P</sub> ‖x − Π(x)‖<sub>p</sub><sup>q</sup> ]<sup>1/q</sup>, over bijections Π. <span class="cite">— Dey &amp; Wang §13.3, Definition 13.8, p. 406</span></p>
+</div>
+
+<p>Which of the two is easier to defend? The Wasserstein statistic is at least the currency §13.1 speaks in: Definition 13.8 gives it, and Theorem 13.2 and Theorem 13.3 bound their vectorisations against d<sub>W,1</sub>. Total persistence appears in no theorem read here at all. That is a reason to prefer it — and now step 4, turned on the sentence you just read.</p>
+
+<div class="warn">
+<p><strong>Step 4 on our own claim.</strong> It is tempting to upgrade "stated in the right metric" to "covered by a stability theorem". It is not. The only bound this curriculum has from a perturbation of the point cloud to a movement of the diagrams is <strong>Theorem 6.3</strong>: d<sub>Rips</sub>(P,Q) ≤ d<sub>H</sub>(P,Q). And <strong>Definition 6.1</strong> defines that left-hand side as a <em>bottleneck</em> distance, max<sub>k</sub> d<sub>B</sub>(Dgm<sub>k</sub>ℛ(P), Dgm<sub>k</sub>ℛ(Q)). A bound in d<sub>B</sub> is not a bound in d<sub>W,1</sub> — §13.1.4 remarks in passing that bottleneck stability is the harder property to obtain for a vectorisation, which is the same fact seen from the other side. So nothing read here bounds this test's Wasserstein statistic by a perturbation of the data. This is cap-02's junction 2 reappearing in a new place: the chain from data to statistic closes for <em>neither</em> of the two. One statistic is written in the metric the apparatus uses and the other is not, which is a reason for preference and not a guarantee, and a verification sheet should say exactly that rather than treating the two rows as interchangeable evidence.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> What does the disagreement between the two statistics establish?</p>
+<button onclick="check(this,false)">That one of the two computations is wrong</button>
+<button onclick="check(this,true)" data-ok>That they are different tests, sensitive to different features of the same diagrams — which is information about what each null perturbs, not evidence against either result</button>
+<button onclick="check(this,false)">That the effect is absent, since a real effect would show up in both</button>
+<div class="explain">Two functionals of the same object can order two datasets differently without either being miscomputed, and that is exactly what a sum of bar lengths and an optimal matching do. Nor does disagreement argue against the effect: it says the nulls destroy structure that the two statistics weigh differently, which is a finding worth reporting rather than a contradiction to resolve.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Persistence entropy is reported in <code>03_ph.json</code>. What goes in its "constrained by" column?</p>
+<button onclick="check(this,true)" data-ok>"None" — §13.1's stability results cover landscapes, the PSSK and persistence images, and persistence entropy appears in none of them</button>
+<button onclick="check(this,false)">Theorem 13.2, since persistence entropy is computed from the same diagram as the PSSK</button>
+<button onclick="check(this,false)">Theorem 13.1, since entropy is a functional on the landscape</button>
+<div class="explain">Being computed from the same diagram is not being covered by the same theorem — Theorem 13.2 is a statement about the feature map Φ<sub>σ</sub> of Definition 13.3 and about nothing else. Nor is persistence entropy a functional of the landscape in any sense §13.1 establishes. "None" is the accurate entry, and writing it is what makes the row visible in cap-02's ledger.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Findings, and what they do not imply</h2>
+
+<div class="guided-proof">
+<h3>Guided derivation</h3>
+<p><strong>Prompt.</strong> In <code>04_nulls_wasserstein.json</code> every entry records <code>n_permutations = 100</code>, an <code>obs_null_distribution</code> of length 100, and <code>n_null_null_pairs = 500</code>. The Markov H<sub>0</sub> p-value is 0.002. (1) Show that 0.002 cannot be a permutation p-value computed from B = 100 permutations in the usual way, and say what the finest attainable value would be. (2) Identify what the reference distribution must therefore be, and check the arithmetic. (3) State what the protocol requires you to do with this, and write the finding — including the line saying what it does not imply.</p>
+<p><em>Hint:</em> a permutation p-value computed as (#{null ≥ obs} + 1)/(B + 1) has a minimum. And 1/500 is a familiar-looking number.</p>
+<textarea class="proof-input" placeholder="Write your derivation here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) The impossibility.</strong> The standard permutation p-value with B draws is (#{null ≥ obs} + 1)/(B + 1). Its numerator is at least 1, so the value is at least 1/(B + 1). With B = 100 that is 1/101 ≈ 0.0099. Since 0.002 &lt; 0.0099, the reported value cannot have been produced this way — no count of 100 permutations yields it.</p>
+<p><strong>(2) The reference distribution.</strong> Note 1/500 = 0.002 exactly, and the same entry records <code>n_null_null_pairs = 500</code>. So the p-value is being computed against the distribution of 500 <em>null-to-null</em> distances, not against 100 permutations. That is a coherent and sensible design: the test asks whether the 100 observed-to-null distances sit outside the distribution of distances between nulls, which is the right question when the statistic is a distance between diagrams rather than a scalar summary — you need a reference for "how far apart are two things that both lack the structure". The resolution of such a test is 1/500 = 0.002, which is exactly the reported value, so the arithmetic is consistent.</p>
+<p><strong>(3) What the protocol requires, and the finding.</strong> Not a correction — nothing here is shown to be wrong. Step 5 requires establishing <em>which</em> quantity was computed, and the finding is that the p-values in this file are resolved against 500 null-null pairs rather than 100 permutations, so their finest attainable value is 0.002 and not 0.0099.</p>
+<p><em>Finding.</em> <strong>Checked:</strong> the denominator of the reported p-values in <code>04_nulls_wasserstein.json</code>. <strong>Observed:</strong> <code>n_permutations = 100</code> with an observed-to-null distribution of length 100, but <code>n_null_null_pairs = 500</code> and a reported minimum p of 0.002 = 1/500. <strong>Implies:</strong> the denominator of the reported p is 500, and the only 500 in the file is <code>n_null_null_pairs</code>, so the reference is the null-to-null pair distribution; a reader assuming B = 100 will misjudge the resolution by a factor of five. <strong>Does not imply:</strong> that any p-value is wrong, that the design is inappropriate, or that the significance flags are miscomputed — only that the file does not state which reference is used, and that the intended design should be recorded where a reader will find it. <strong>What would settle it:</strong> a line in the artifact naming the reference distribution and the p-value formula.</p>
+<p><em>Why this is the shape of a good finding.</em> It is checkable arithmetic, it is stated without accusation, it names precisely what a reader would get wrong, and its "does not imply" line is longer than its "implies" line. Most defects found by verification are of exactly this kind: not errors, but places where a reader's reasonable default differs from what was done.</p>
+</details>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example (faded): the family of tests.</strong> Across the two null files there are four null types under total persistence and four under the Wasserstein statistic, each reported in two homology dimensions.</p>
+<p><strong>Step 1 — count.</strong> That is <span class="gap">⟨your step: how many p-values?⟩</span>, each carrying its own <code>significant_at_005</code> flag.</p>
+<p><strong>Step 2 — locate the issue.</strong> The problem is not that several tests were run; cap-01 asks for several nulls that destroy different structure, and these do. The problem is that the flags are computed per test with no record of the family they belong to.</p>
+<p><strong>Step 3 — say what a reader cannot tell.</strong> Whether "significant at 0.05" means significant <em>among these</em> or significant <span class="gap">⟨your step: in what state?⟩</span> — and the two support very different claims.</p>
+<p><strong>Step 4 — say what would fix it.</strong> A record of the family fixed in advance, a statement of which test the headline claim depends on, and either a correction or an explicit statement that the level is per-test and the family was pre-registered.</p>
+<p class="cite">Gap solutions: sixteen; and in isolation.</p>
+</div>
+
+<h3>Two more findings, and one thing done right</h3>
+
+<p><strong>The embedding is unconstrained, and the artifacts measure it.</strong> <code>07_umap_sensitivity.json</code> reports <code>pca_k = 7</code>, <code>umap_k = 6</code> and an adjusted Rand index of about 0.310 between the two labellings — the same data, embedded two ways, clustered substantially differently. cap-02's ledger has "none" in the embedding row's "constrained by" column, and this file is what that empty cell looks like once it is measured. The finding is not that the analysis is wrong; it is that any conclusion depending on the cluster structure is conditional on the embedding, and by a measured amount. That belongs in the claim.</p>
+
+<p><strong>The audit trail.</strong> <code>post_audit/</code> holds an alpha sweep at four values across two cohorts at B = 1000, plus re-runs at doubled sample size. Those are the parameter sweeps cap-02's ledger asks for on the rows that can afford them, and a report should cite them against that requirement by name rather than as general diligence.</p>
+
+<p><strong>The control does what it says in the code, not what it says on the tin.</strong> <code>positive_control/</code> holds one file. Open it before crediting it. It records <code>null_type</code> markov, <code>statistic</code> wasserstein, <code>n_permutations</code> 100, and p = 0.588 in H<sub>0</sub> and p = 0.822 in H<sub>1</sub>, neither flagged significant. That is not a control that failed. The script behind it states the design in its own docstring: the "observed" cloud is <em>itself generated</em> from the fitted Markov-1 chain, and p ≈ 0.5 in both dimensions is the expected result, because the null model reproduces the topology of data it generated. So the check ran, and it returned its known answer.</p>
+
+<p>What it is, then, is a specificity check — the test does not reject when the null is literally true — and it passes. What it is not is the check cap-01 requires, which is a synthetic dataset with a planted signal <em>of known size</em> pushed through the identical pipeline, establishing that the test can find one. Nothing in the directory supplies that. The consequence is concrete: the power question is still open, so a non-rejection elsewhere — markov2 in H<sub>1</sub> at p = 0.078, say — cannot yet be read as a negative result.</p>
+
+<p>This is step 5 at its sharpest, and the reason it is worth the space: the quantity computed is not the quantity the name promises, and a reader who trusts the directory listing draws the opposite of the truth. Its "does not imply" line matters as much as any: it does not imply the check is worthless — it rules out a whole class of false positive, and it is exactly the check a reviewer asked for — nor that anyone is confused, since the docstring states design and expectation precisely. Only that the requirement cap-01 names is not the requirement this file meets.</p>
+
+<div class="warn">
+<p><strong>The temptation this unit exists to resist.</strong> Every finding above is of the same kind: a place where a reader's reasonable default differs from what was done, or where a conclusion is conditional on something not stated in the conclusion. None of them shows the main claim is false, and a verification report that reads as a prosecution has failed — it will be discounted, and rightly. The discipline is the "does not imply" line: write it for every finding, make it at least as long as the "implies" line, and be as rigorous about the limits of your criticism as about the limits of the work. Verifying your own results makes this harder in both directions, which is why the capstone asks for it.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (i) Using the protocol, write down the load-bearing theorem for the claim "the H<sub>1</sub> structure of the embedded trajectories is not reproduced by a second-order Markov null", and extract its hypotheses. (ii) Build the hypothesis table with the four columns, classifying each row. At least one row should be <em>unverifiable</em> and at least one <em>verified</em>. (iii) The <code>markov2</code> H<sub>1</sub> entry reports p = 0.078 with mean observed-to-null distance 129.71 (sd 2.75) against mean null-to-null 123.21 (sd 4.71). State what that licenses and what it does not — in particular, whether it is evidence <em>for</em> the null. (iv) Write this segment's four findings in the finding format — the p-value denominator, the sixteen per-test flags, the embedding sensitivity, and what <code>positive_control/</code> establishes — each with its "does not imply" line. (v) Close with the paragraph stating what you would need to see before the main claim could be reported as established.</p>
+<p><em>Hint:</em> for (iii), a p-value above threshold is a failure to reject, and cap-01's positive control is what decides whether that is a negative result or an uninformative one.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> The markov2 H<sub>1</sub> test reports p = 0.078. What does that license?</p>
+<button onclick="check(this,false)">Evidence that the second-order Markov null explains the observed H<sub>1</sub> structure</button>
+<button onclick="check(this,true)" data-ok>A failure to reject at the pre-registered level, and nothing more — whether it counts as a negative result or an uninformative one depends on the positive control</button>
+<button onclick="check(this,false)">Evidence for the claim, since 0.078 is close to 0.05 and the observed distance exceeds the null-null mean</button>
+<div class="explain">Failing to reject is not evidence for the null; it is the absence of evidence against it, and cap-01's pattern applies — without a control showing the test can detect a planted signal of comparable size, a non-rejection is ambiguous between "no effect" and "no power". The directory's <code>positive_control/</code> file does not settle this, for the reason worked out above: it plants no signal, so it says nothing about power. The third option is the other direction of the same error: proximity to a threshold and a difference in the right direction are not a result, and treating them as one is exactly what the pre-registered level exists to prevent.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> The file in <code>positive_control/</code> reports p = 0.588 and p = 0.822. What has it established?</p>
+<button onclick="check(this,true)" data-ok>Specificity — the test does not reject when the data was drawn from the null it is tested against, which is the stated expected result — and nothing about power, since no signal of known size is planted</button>
+<button onclick="check(this,false)">That the pipeline lacks the power to detect topological structure, since the control did not reject</button>
+<button onclick="check(this,false)">That cap-01's requirement is met, since a control was run on the same statistic and null as the headline test</button>
+<div class="explain">The script generates its "observed" cloud from the fitted Markov-1 chain and states p ≈ 0.5 as the expected outcome, so a non-rejection is the check passing, not failing — which rules out the second option. It also rules out the third: matching the headline test's statistic and null is not the same as planting a signal, and cap-01's requirement is specifically about detecting one of known size. This is step 5 on a control rather than a theorem — the quantity computed is not the quantity the directory name promises.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 7.</strong> What makes a verification finding usable rather than merely correct?</p>
+<button onclick="check(this,true)" data-ok>That it names what was checked, what was observed, what it implies, what it does <em>not</em> imply, and what would settle it — so the author can act on it and a reader can weigh it</button>
+<button onclick="check(this,false)">That it identifies an outright error, since anything less is a matter of taste</button>
+<button onclick="check(this,false)">That it is stated without reference to the theorems, so it is accessible to a non-specialist reader</button>
+<div class="explain">Most findings in a competent piece of work are not errors — they are unstated conditions, defaults that differ from a reader's, and conclusions carrying more weight than the cited result licenses. A format that only accommodates errors will report nothing on good work, which is the wrong output. And a finding stripped of its theorem references is unactionable: the theorem is where the requirement comes from and where the fix is found.</div>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>The five steps of the protocol, and the operational test for step 1.</li>
+<li>The four named hypotheses, their theorems, and which of the four a sample could settle.</li>
+<li>What the artifacts showed, and the format that makes a finding usable.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) locate the load-bearing theorem — the one whose failure removes the conclusion — extract its hypotheses, classify each as verified, assumed or unverifiable, check the conclusion is not stronger than licensed, and check the statistic is the quantity the theorem is stated in; (2) tameness by Definition 4.14, free for a finite complex and unverifiable for the hidden function; a good cover by Theorem 2.1, unavailable for a Mapper pullback where Theorem 9.5 and Theorem 9.9 give an H<sub>1</sub> surjection instead; closed and R-orientable by Theorem 3.30, with Ghrist's Lemma 9.8 a namesake and not an instance; and interval decomposability by Definition 12.15 and Definition 12.16, needed by Definition 12.13's bottleneck distance and the only one of the four a computation could settle; (3) two statistics disagreeing in both directions, with only the Wasserstein one even written in the metric §13.1 uses and neither reachable from a perturbation of the data, since Theorem 6.3 bounds a bottleneck distance by Definition 6.1; three reported summaries with no stability theorem between them; p-values resolved against 500 null-null pairs rather than 100 permutations; sixteen per-test flags with no recorded family; an embedding whose choice moves the clustering to ARI 0.31; and a control whose "observed" cloud was drawn from the null it is tested against, so it checks specificity and not power — and a finding format whose "does not imply" line is the part that makes it usable — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources. This unit has no textbook. <strong>Theorems already proved in this curriculum, cited to their texts:</strong> Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — Definition 4.14 on regular intervals and Morse type (§4.5, p. 138); Theorem 2.1, the Nerve Theorem, as quoted in §9.1 (§2.2, p. 31; quoted p. 259); Theorem 9.5 and Theorem 9.9 on the H<sub>1</sub> surjection for path connected covers and for simplicial maps between nerves (§9.1, pp. 262 and 265); Definition 6.1, which defines the Čech and Rips distances as maxima over k of the bottleneck distance between the corresponding diagrams, and Definition 6.2 on the Hausdorff distance (§6.1, p. 181); Theorem 6.3 on the stability of those distances (§6.1, p. 182), together with §13.1.4's remark that bottleneck stability is usually harder to obtain than Wasserstein stability for a vectorisation (§13.1.4, p. 397); Definition 12.13 on the bottleneck distance for decomposed modules and Fact 12.2's d<sub>I</sub> ≤ d<sub>b</sub> (§12.4, p. 375); Definition 12.14 on intervals and Definition 12.15 on interval modules (§12.4.1, p. 376); Definition 12.16 on interval decomposable modules (§12.4.1, p. 377); Theorem 13.1 on the landscape's bottleneck stability (§13.1.1, p. 393); Theorem 13.2 on the PSSK's 1-Wasserstein stability (§13.1.2, p. 394); Theorem 13.3 on persistence images (§13.1.3, p. 395); Definition 13.8 on the (p,q)-Wasserstein distance (§13.3, p. 406). Ghrist, <em>Elementary Applied Topology</em> — Lemma 9.8, the flow-sheaf duality introduced as "a type of Poincaré duality" (§9.4, p. 187). Hatcher, <em>Algebraic Topology</em> — Theorem 3.30, Poincaré Duality, with its closed R-orientable hypothesis and the cap product with the fundamental class (§3.3, p. 241). <strong>The artifacts:</strong> <code>TDL/results/trajectory_tda_integration/03_ph.json</code> (landmark count, construction, and the H<sub>0</sub> and H<sub>1</sub> feature counts and summary statistics quoted in Segment 2); <code>04_nulls.json</code> and <code>04_nulls_wasserstein.json</code> (the sixteen p-values, the permutation counts, and the <code>n_null_null_pairs</code> field); <code>07_umap_sensitivity.json</code> (<code>pca_k</code>, <code>umap_k</code> and the adjusted Rand index, 0.3097); <code>positive_control/positive_control_markov1_L5000_20260502.json</code> (its <code>null_type</code>, <code>statistic</code>, <code>n_permutations</code> and the two p-values), together with the docstring of <code>TDL/trajectory_tda/scripts/run_positive_control.py</code> in the TDL repository, which is the source for the stated design and the expected p ≈ 0.5; <code>post_audit/</code>'s alpha sweep at four values across two cohorts at B = 1000 and its doubled-sample re-runs. All figures are read from the files as they stand. <strong>tdlbook.org</strong>, this unit's second-named resource, <em>Topological Deep Learning: Going Beyond Graph Data</em> — cited for what it contains, which includes none of this unit's methodology. <strong>Repository artifacts:</strong> MathUni <code>MISSION.md</code>, for the verification standard the protocol answers to; cap-01's falsifiability requirements and cap-02's parameter ledger. Supplied here, not in any source: the five-step protocol, the finding format, and the arithmetic of the guided derivation showing that a p-value of 0.002 is unattainable from 100 permutations and matches 1/500 exactly. Not established here: that any result in the artifacts is incorrect. Every finding in Segment 3 is of one kind — an unstated condition, a default a reader would reasonably get wrong, or a conclusion conditional on something not stated in it — and none of them bears on whether the main claim is true. In particular, the disagreement between the two statistics is not evidence against either, the p-value denominator finding shows no p-value to be miscomputed, and the failure to reject at p = 0.078 is not evidence for the null. Also not established here: any bound from a perturbation of the point cloud to either test statistic. Theorem 6.3 bounds a distance that Definition 6.1 defines through d<sub>B</sub>, and §13.1's vectorisation results are stated against d<sub>W,1</sub>; no read section supplies an inequality joining the two in the direction needed, which is cap-02's junction 2. The preference stated for the Wasserstein statistic is therefore a preference and not a guarantee. And nothing here is a claim about the pipeline's power: the reading of <code>positive_control/</code> is that it plants no signal, from which it follows that it says nothing about power in either direction — not that the pipeline lacks it.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

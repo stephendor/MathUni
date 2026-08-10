@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at2-04 — Cup product and the cohomology ring</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+table.rel{margin:1rem auto;border-collapse:collapse;font-family:Segoe UI,sans-serif;font-size:.95rem}
+table.rel td,table.rel th{border:1px solid #2a333d;padding:.35rem .8rem;text-align:center}
+table.rel th{color:var(--acc)}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology II · Nexus College</p>
+<h1>Cup product and the cohomology ring <span class="cite">(at2-04)</span></h1>
+
+<div class="hook">
+Cohomology classes multiply. Two spaces with identical Betti numbers can now be told apart.
+<p>Homology has an addition and nothing else. You can say that two spaces have the same Betti numbers, and if they do, homology has nothing further to offer. Cohomology has a multiplication — and the reason is a piece of luck we can now name: contravariance. A product needs a map X → X × X to pull back along, and the diagonal x ↦ (x,x) is sitting right there.</p>
+<p>The multiplication is defined by an embarrassingly concrete formula on cochains: cut a simplex at a vertex, evaluate one cochain on the front piece, the other on the back, and multiply in R. Everything in this lesson follows from that formula and one Leibniz rule.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> The formula (φ ⌣ ψ)(σ) = φ(σ|[v<sub>0</sub>,…,v<sub>k</sub>]) · ψ(σ|[v<sub>k</sub>,…,v<sub>k+ℓ</sub>]) obviously depends on the order of the vertices. Predict what that costs us: is the induced product on cohomology commutative?</p>
+<button onclick="check(this,false)">Yes — the ordering washes out once we pass to cohomology classes</button>
+<button onclick="check(this,true)" data-ok>Almost: it is commutative up to a sign (&minus;1)<sup>kℓ</sup> depending only on the dimensions</button>
+<button onclick="check(this,false)">No, and nothing can be said — the product is genuinely lawless</button>
+<div class="explain">Correct, and the sign is not a blemish but the whole character of the subject. Theorem 3.11 says α ⌣ β = (&minus;1)<sup>kℓ</sup> β ⌣ α for a commutative coefficient ring, which for two 1-dimensional classes means α ⌣ β = &minus;β ⌣ α. You will see this happen concretely on a genus-2 surface in Segment 1, and the immediate consequence — that odd-dimensional classes satisfy 2α² = 0 — is what makes the whole theory usable.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The cup product makes H<sup>∗</sup>(X;R) a graded ring (aa-05's structure, now on a topological invariant), and it is strictly finer than homology: S<sup>2</sup> × S<sup>1</sup> and S<sup>2</sup> ∨ S<sup>1</sup> ∨ S<sup>3</sup> have isomorphic homology groups but non-isomorphic cohomology rings.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The formula, the Leibniz rule, and three computations</h2>
+
+<p>Hatcher notes that the introduction to the chapter sketched cup product via a cross product, but that defining the cross product from scratch takes work, so we go the other way: an elementary formula first, cross product afterwards. Throughout, coefficients live in a ring R — most commonly ℤ, ℤ<sub>n</sub> or ℚ.</p>
+
+<div class="definition">
+<p><strong>Cup product of cochains.</strong> For φ ∈ C<sup>k</sup>(X;R) and ψ ∈ C<sup>ℓ</sup>(X;R), the cup product φ ⌣ ψ ∈ C<sup>k+ℓ</sup>(X;R) is the cochain whose value on a singular simplex σ : Δ<sup>k+ℓ</sup> → X is</p>
+<div class="math-block">(φ ⌣ ψ)(σ) = φ(σ | [v<sub>0</sub>, ⋯, v<sub>k</sub>]) · ψ(σ | [v<sub>k</sub>, ⋯, v<sub>k+ℓ</sub>]),</div>
+<p>the product on the right being taken in R. <span class="cite">— Hatcher §3.2, p. 206</span></p>
+</div>
+
+<p>Read the formula geometrically. The simplex is cut at the single vertex v<sub>k</sub>: φ eats the front face spanned by v<sub>0</sub> through v<sub>k</sub>, ψ eats the back face spanned by v<sub>k</sub> through v<sub>k+ℓ</sub>, and the two faces share exactly that one vertex. The picture below is worth more than the formula.</p>
+
+<canvas id="cupCanvas" width="640" height="200" role="img" aria-label="The vertices of a simplex in a row, with one arc spanning the front face read by phi and another spanning the back face read by psi, overlapping at the cut vertex"></canvas>
+<p style="text-align:center"><button onclick="nextCut()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Move the cut</button></p>
+<script>
+(function(){
+const cv=document.getElementById('cupCanvas'), ctx=cv.getContext('2d');
+const n=5; let k=2;
+function draw(){
+  const w=cv.width,h=cv.height; ctx.clearRect(0,0,w,h);
+  const x0=70, dx=(w-140)/n, y=130;
+  ctx.strokeStyle='#2a333d'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x0+n*dx,y); ctx.stroke();
+  function arc(a,b,col,lab,up){
+    ctx.strokeStyle=col; ctx.lineWidth=3; ctx.beginPath();
+    const xa=x0+a*dx, xb=x0+b*dx, r=(xb-xa)/2, cxm=(xa+xb)/2;
+    ctx.ellipse(cxm,y,r,up,0,Math.PI,0,false); ctx.stroke();
+    ctx.fillStyle=col; ctx.font='15px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText(lab,cxm,y-up-10);
+  }
+  arc(0,k,'#8ab4f8','φ  on  [v0 … v'+k+']',54);
+  arc(k,n,'#4caf82','ψ  on  [v'+k+' … v'+n+']',26);
+  for(let i=0;i<=n;i++){
+    const x=x0+i*dx;
+    ctx.fillStyle=(i===k)?'#d8a657':'#e8e8e8';
+    ctx.beginPath(); ctx.arc(x,y,(i===k)?7:5,0,2*Math.PI); ctx.fill();
+    ctx.fillStyle='#9aa5b1'; ctx.font='13px Segoe UI'; ctx.textAlign='center';
+    ctx.fillText('v'+i,x,y+22);
+  }
+  ctx.fillStyle='#d8a657'; ctx.font='13px Segoe UI'; ctx.textAlign='left';
+  ctx.fillText('cut vertex v'+k+' belongs to both faces — k = '+k+', ℓ = '+(n-k),24,180);
+  ctx.fillStyle='#9aa5b1';
+  ctx.fillText('σ : Δ'+n+' → X',24,28);
+}
+window.nextCut=function(){k=k%(n-1)+1; draw();};
+draw();
+})();
+</script>
+
+<p>To know that this descends to cohomology we need one identity relating it to δ.</p>
+
+<div class="lemma">
+<p><strong>Lemma 3.6.</strong> δ(φ ⌣ ψ) = δφ ⌣ ψ + (&minus;1)<sup>k</sup> φ ⌣ δψ, for φ ∈ C<sup>k</sup>(X;R) and ψ ∈ C<sup>ℓ</sup>(X;R). <span class="cite">— Hatcher §3.2, Lemma 3.6, p. 206</span></p>
+</div>
+
+<p><em>Proof.</em> For σ : Δ<sup>k+ℓ+1</sup> → X, expanding the two terms gives</p>
+<div class="math-block">(δφ ⌣ ψ)(σ) = Σ<sub>i=0..k+1</sub> (&minus;1)<sup>i</sup> φ(σ|[v<sub>0</sub>,⋯,v̂<sub>i</sub>,⋯,v<sub>k+1</sub>]) ψ(σ|[v<sub>k+1</sub>,⋯,v<sub>k+ℓ+1</sub>]),</div>
+<div class="math-block">(&minus;1)<sup>k</sup>(φ ⌣ δψ)(σ) = Σ<sub>i=k..k+ℓ+1</sub> (&minus;1)<sup>i</sup> φ(σ|[v<sub>0</sub>,⋯,v<sub>k</sub>]) ψ(σ|[v<sub>k</sub>,⋯,v̂<sub>i</sub>,⋯,v<sub>k+ℓ+1</sub>]).</div>
+<p>Adding them, the last term of the first sum cancels the first term of the second, and what remains is exactly (φ ⌣ ψ)(∂σ) = δ(φ ⌣ ψ)(σ), since ∂σ = Σ<sub>i</sub> (&minus;1)<sup>i</sup> σ|[v<sub>0</sub>,⋯,v̂<sub>i</sub>,⋯,v<sub>k+ℓ+1</sub>]. ∎</p>
+
+<p>Everything now follows in three lines. The cup product of two cocycles is a cocycle. The cup product of a cocycle and a coboundary is a coboundary in either order: if δφ = 0 then φ ⌣ δψ = ±δ(φ ⌣ ψ), and if δψ = 0 then δφ ⌣ ψ = δ(φ ⌣ ψ). Hence there is an induced product</p>
+<div class="math-block">H<sup>k</sup>(X;R) × H<sup>ℓ</sup>(X;R) &nbsp;⌣⟶&nbsp; H<sup>k+ℓ</sup>(X;R),</div>
+<p>associative and distributive because the cochain-level product visibly is, and with identity the class 1 ∈ H<sup>0</sup>(X;R) of the 0-cocycle taking the value 1 on every singular 0-simplex. The same formula defines a cup product for simplicial cohomology, and the canonical isomorphism between simplicial and singular cohomology respects it — which is what makes hand computation possible.</p>
+
+<h3>Worked example 1: the genus-g surface</h3>
+
+<div class="worked">
+<p><strong>Example 3.7.</strong> Let M be the closed orientable surface of genus g ≥ 1, with the Δ-complex structure Hatcher draws for g = 2. The product of interest is H<sup>1</sup>(M) × H<sup>1</sup>(M) → H<sup>2</sup>(M), with ℤ coefficients.</p>
+<p><strong>Step 1 — a basis, and its dual.</strong> A basis for H<sub>1</sub>(M) is formed by the edges a<sub>i</sub> and b<sub>i</sub>. Since H<sup>1</sup>(M) ≅ Hom(H<sub>1</sub>(M), ℤ) — by cellular cohomology or by the universal coefficient theorem of at2-02 — the basis determines a dual basis: α<sub>i</sub> assigns 1 to a<sub>i</sub> and 0 to the other basis elements, and β<sub>i</sub> is dual to b<sub>i</sub>.</p>
+<p><strong>Step 2 — represent by cocycles, geometrically.</strong> To represent α<sub>i</sub> by a simplicial cocycle φ<sub>i</sub> we must choose values on the edges radiating from the central vertex so that δφ<sub>i</sub> = 0. This is the cocycle condition from at2-01, which there acquired a geometric reading in terms of curves transverse to the edges. Take the arc labelled α<sub>i</sub>, a loop meeting a<sub>i</sub> in one point and disjoint from the other basis loops, and let φ<sub>i</sub> have value 1 on edges meeting that arc and 0 elsewhere: φ<sub>i</sub> counts intersections with the arc. Similarly ψ<sub>i</sub> counts intersections with the arc β<sub>i</sub>.</p>
+<p><strong>Step 3 — apply the definition.</strong> Keeping the vertex ordering of each 2-simplex compatible with the indicated edge orientations, φ<sub>1</sub> ⌣ ψ<sub>1</sub> takes the value 0 on every 2-simplex except the one with outer edge b<sub>1</sub>, where it takes the value 1. So φ<sub>1</sub> ⌣ ψ<sub>1</sub> evaluates to 1 on the 2-chain c formed by the signed sum of all the 2-simplices, and ∂c = 0. With no 3-simplices present, c is not a boundary, so it represents a non-zero element of H<sub>2</sub>(M).</p>
+<p><strong>Step 4 — read off the class.</strong> That (φ<sub>1</sub> ⌣ ψ<sub>1</sub>)(c) generates ℤ shows both that c generates H<sub>2</sub>(M) ≅ ℤ and that φ<sub>1</sub> ⌣ ψ<sub>1</sub> represents the dual generator γ of H<sup>2</sup>(M) ≅ ℤ. So α<sub>1</sub> ⌣ β<sub>1</sub> = γ, and in the same fashion:</p>
+<table class="rel">
+<tr><th>product</th><th>value</th></tr>
+<tr><td>α<sub>i</sub> ⌣ β<sub>j</sub></td><td>γ if i = j, and 0 if i ≠ j</td></tr>
+<tr><td>β<sub>i</sub> ⌣ α<sub>j</sub></td><td>&minus;(α<sub>i</sub> ⌣ β<sub>j</sub>)</td></tr>
+<tr><td>α<sub>i</sub> ⌣ α<sub>j</sub></td><td>0</td></tr>
+<tr><td>β<sub>i</sub> ⌣ β<sub>j</sub></td><td>0</td></tr>
+</table>
+<p>Distributivity extends this table to the whole of H<sup>1</sup>(M) × H<sup>1</sup>(M). Note that the product is <em>not</em> commutative here: α<sub>i</sub> ⌣ β<sub>i</sub> = &minus;(β<sub>i</sub> ⌣ α<sub>i</sub>). Hatcher's remark is that this is the worst that can happen, and Theorem 3.11 below says so precisely. Note also the geometry: non-zero products occur exactly when the corresponding loops intersect.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded): Example 3.9.</strong> Let X be the 2-complex obtained by attaching a 2-cell to S<sup>1</sup> by the degree m map z ↦ z<sup>m</sup>, with the Δ-complex structure of an m-gon of triangles T<sub>i</sub> around a central vertex, outer edges identified by rotations. Compute α² for the generator α of H<sup>1</sup>(X;ℤ<sub>m</sub>).</p>
+<p><strong>Why ℤ<sub>m</sub> coefficients.</strong> With ℤ coefficients H<sup>n</sup>(X;ℤ) is ℤ for n = 0 and ℤ<sub>m</sub> for n = 2, so there is nothing in dimension 1 to multiply. With ℤ<sub>m</sub> coefficients H<sup>i</sup>(X;ℤ<sub>m</sub>) ≅ ℤ<sub>m</sub> for i = 0, 1, 2, so a product of two 1-dimensional classes can be non-zero.</p>
+<p><strong>The cocycle.</strong> A generator α is represented by φ with φ(e) = 1 on the edge e generating H<sub>1</sub>(X). The cocycle condition reads φ(e<sub>i</sub>) + φ(e) = φ(e<sub>i+1</sub>) with subscripts mod m, so we may take φ(e<sub>i</sub>) = <span class="gap">⟨your step: which value?⟩</span>.</p>
+<p><strong>The square.</strong> By the cup product formula, (φ ⌣ φ)(T<sub>i</sub>) = φ(e<sub>i</sub>)φ(e) = i. Evaluating on the generator Σ<sub>i</sub>T<sub>i</sub> of H<sub>2</sub>(X;ℤ<sub>m</sub>) gives 0 + 1 + ⋯ + (m&minus;1), which in ℤ<sub>m</sub> equals <span class="gap">⟨your step: for m odd? for m = 2k?⟩</span>.</p>
+<p><strong>Conclusion.</strong> Writing β for a generator of H<sup>2</sup>(X;ℤ<sub>m</sub>): α² = 0 when m is odd, and α² = kβ when m = 2k. For m = 2 the space is ℝP<sup>2</sup> and α² = β, agreeing with Example 3.8, where the nonorientable surface of genus g is treated with ℤ<sub>2</sub> coefficients and α<sub>i</sub> ⌣ α<sub>i</sub> comes out as the non-zero element of H<sup>2</sup>(N;ℤ<sub>2</sub>).</p>
+<p class="cite">Gap solutions: φ(e<sub>i</sub>) = i; and 0 + 1 + ⋯ + (m&minus;1) is 0 in ℤ<sub>m</sub> for odd m, and k for m = 2k, since 1 cancels with m&minus;1, 2 with m&minus;2, and so on.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Run Example 3.9's computation for m = 5 and for m = 8, giving α² explicitly in terms of β each time. Then say, without further computation, what Theorem 3.11 would have told you about each case in advance.</p>
+<p><em>Hint:</em> the answer depends only on 0 + 1 + ⋯ + (m&minus;1) evaluated in ℤ<sub>m</sub>, and the parity of m decides it.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does the cup product formula produce a cochain of degree exactly k + ℓ?</p>
+<button onclick="check(this,false)">Because φ and ψ are evaluated on the same simplex, and degrees add by convention</button>
+<button onclick="check(this,true)" data-ok>Because a k-face and an ℓ-face sharing exactly one vertex together span k + ℓ + 1 vertices, which is a (k + ℓ)-simplex</button>
+<button onclick="check(this,false)">Because Lemma 3.6 forces the degree to be additive</button>
+<div class="explain">Count vertices. The front face uses v<sub>0</sub> through v<sub>k</sub>, which is k + 1 vertices; the back face uses v<sub>k</sub> through v<sub>k+ℓ</sub>, which is ℓ + 1; they overlap in the single vertex v<sub>k</sub>, so the total is k + ℓ + 1 vertices, spanning Δ<sup>k+ℓ</sup>. The overlap of exactly one vertex is what makes the degrees add rather than adding with an error term.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In Lemma 3.6, why is the sign (&minus;1)<sup>k</sup> attached to the second term rather than the first?</p>
+<button onclick="check(this,false)">By convention; the identity holds with the sign on either term</button>
+<button onclick="check(this,true)" data-ok>Because the coboundary terms that must cancel are the last of the first sum and the first of the second, and they only cancel with that sign</button>
+<button onclick="check(this,false)">Because δ has degree +1, so a sign appears whenever δ passes a symbol</button>
+<div class="explain">The proof is a cancellation: the term of (δφ ⌣ ψ)(σ) omitting v<sub>k+1</sub> and the term of (φ ⌣ δψ)(σ) omitting v<sub>k</sub> are the same expression, and the factor (&minus;1)<sup>k</sup> is exactly what makes them appear with opposite signs. Move the sign and the cancellation fails. The third option is a serviceable mnemonic — it is the graded Leibniz pattern — but it is not the reason the identity is true here.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The ring, its commutativity, and what it can distinguish</h2>
+
+<p>Two structural facts turn the product into an algebraic invariant worth carrying about.</p>
+
+<div class="theorem">
+<p><strong>Proposition 3.10.</strong> For a map f : X → Y, the induced maps f<sup>∗</sup> : H<sup>n</sup>(Y;R) → H<sup>n</sup>(X;R) satisfy f<sup>∗</sup>(α ⌣ β) = f<sup>∗</sup>(α) ⌣ f<sup>∗</sup>(β), and similarly in the relative case. <span class="cite">— Hatcher §3.2, Proposition 3.10, p. 210</span></p>
+</div>
+
+<p><em>Proof.</em> Everything happens at cochain level. Evaluating on σ,</p>
+<div class="math-block">(f<sup>♯</sup>φ ⌣ f<sup>♯</sup>ψ)(σ) = φ(fσ|[v<sub>0</sub>,…,v<sub>k</sub>]) ψ(fσ|[v<sub>k</sub>,…,v<sub>k+ℓ</sub>]) = (φ ⌣ ψ)(fσ) = f<sup>♯</sup>(φ ⌣ ψ)(σ),</div>
+<p>so f<sup>♯</sup>(φ) ⌣ f<sup>♯</sup>(ψ) = f<sup>♯</sup>(φ ⌣ ψ); as f<sup>♯</sup> is a cochain map, this descends to classes. ∎</p>
+
+<div class="theorem">
+<p><strong>Theorem 3.11.</strong> The identity α ⌣ β = (&minus;1)<sup>kℓ</sup> β ⌣ α holds for all α ∈ H<sup>k</sup>(X,A;R) and β ∈ H<sup>ℓ</sup>(X,A;R), when R is commutative. <span class="cite">— Hatcher §3.2, Theorem 3.11, p. 210</span></p>
+</div>
+
+<p><em>Sketch of the proof, and why it is not a formality.</em> The cochains φ ⌣ ψ and ψ ⌣ φ differ by a permutation of the vertices of Δ<sup>k+ℓ</sup>, and the trick is to use the one permutation that reverses their order totally — because that also reverses the ordering of vertices in every face. For a singular n-simplex σ, let σ̄ be σ precomposed with the linear homeomorphism reversing the vertex order, and set ρ(σ) = ε<sub>n</sub>σ̄ with ε<sub>n</sub> = (&minus;1)<sup>n(n+1)/2</sup>, the sign accounting for the n(n+1)/2 adjacent transpositions involved. Hatcher verifies that ρ is a chain map, using ε<sub>n</sub> = (&minus;1)<sup>n</sup>ε<sub>n−1</sub>, and constructs an explicit chain homotopy P from ρ to the identity, modelled on the prism operator. Granting that, the two displayed formulas for ρ<sup>∗</sup>φ ⌣ ρ<sup>∗</sup>ψ and ρ<sup>∗</sup>(ψ ⌣ φ) give ε<sub>k</sub>ε<sub>ℓ</sub>(ρ<sup>∗</sup>φ ⌣ ρ<sup>∗</sup>ψ) = ε<sub>k+ℓ</sub>ρ<sup>∗</sup>(ψ ⌣ φ), and the arithmetic identity ε<sub>k+ℓ</sub> = (&minus;1)<sup>kℓ</sup>ε<sub>k</sub>ε<sub>ℓ</sub> finishes it once the ρ<sup>∗</sup>'s disappear on cohomology. The proof also covers A ≠ ∅, since ρ and P take chains in A to chains in A. ∎</p>
+
+<p>The consequence that gets used constantly: taking α = β with k odd gives α² = &minus;α², so <strong>2α² = 0</strong>. Hence if H<sup>2k</sup>(X,A;R) has no element of order two, then α² = 0 outright. For the space of Example 3.9 this says the square of a generator of H<sup>1</sup>(X;ℤ<sub>m</sub>) is zero when m is odd, and is either zero or the unique element of order two when m is even — and the explicit computation showed it is the latter.</p>
+
+<h3>The cohomology ring</h3>
+
+<div class="definition">
+<p><strong>H<sup>∗</sup>(X;R) as a graded ring.</strong> Define H<sup>∗</sup>(X;R) to be the direct sum of the groups H<sup>n</sup>(X;R); elements are finite sums Σ<sub>i</sub>α<sub>i</sub> with α<sub>i</sub> ∈ H<sup>i</sup>(X;R), multiplied by (Σ<sub>i</sub>α<sub>i</sub>)(Σ<sub>j</sub>β<sub>j</sub>) = Σ<sub>i,j</sub>α<sub>i</sub>β<sub>j</sub>. This is a ring, with identity if R has one, and an R-algebra once scalar multiplication is taken into account. A <em>graded ring</em> is a ring A with a decomposition ⊕<sub>k≥0</sub>A<sub>k</sub> into additive subgroups such that multiplication takes A<sub>k</sub> × A<sub>ℓ</sub> into A<sub>k+ℓ</sub>; for a ∈ A<sub>k</sub> we write |a| = k and call it the dimension. <span class="cite">— Hatcher §3.2, pp. 212–213</span></p>
+</div>
+
+<p>A graded ring satisfying ab = (&minus;1)<sup>|a||b|</sup>ba is called simply <em>commutative</em> in algebraic topology, in spite of the potential for misunderstanding; older sources say graded commutative, anticommutative or skew commutative. Adding classes of different dimensions has little topological significance on its own — the point is the economy: H<sup>∗</sup>(X;R) often has a far more compact description than the list of groups H<sup>n</sup>(X;R).</p>
+
+<p>Two families of graded rings account for most of the examples one meets first.</p>
+
+<ul>
+<li><strong>Polynomial rings</strong> (Example 3.12). R[α] and its truncations R[α]/(α<sup>n</sup>). The instance already computed is H<sup>∗</sup>(ℝP<sup>2</sup>;ℤ<sub>2</sub>) ≅ ℤ<sub>2</sub>[α]/(α<sup>3</sup>) with |α| = 1. Hatcher notes a constraint worth internalising: a polynomial ring R[α] is strictly commutative, so for it to be commutative in the graded sense we need |α| even or 2 = 0 in R — which is exactly why the real projective spaces need ℤ<sub>2</sub> coefficients while the complex ones do not.</li>
+<li><strong>Exterior algebras</strong> (Example 3.13). Λ<sub>R</sub>[α<sub>1</sub>,…,α<sub>n</sub>] is the free R-module with basis the products α<sub>i<sub>1</sub></sub>⋯α<sub>i<sub>k</sub></sub> with i<sub>1</sub> &lt; ⋯ &lt; i<sub>k</sub>, multiplication determined by α<sub>i</sub>α<sub>j</sub> = &minus;α<sub>j</sub>α<sub>i</sub> for i ≠ j and α<sub>i</sub>² = 0, the empty product giving the identity. It is a commutative graded ring once the generators are declared odd-dimensional. The instance already in hand is the torus: H<sup>∗</sup>(T<sup>2</sup>;ℤ) ≅ Λ<sub>ℤ</sub>[α,β] with |α| = |β| = 1, by the g = 1 case of Example 3.7.</li>
+</ul>
+
+<h3>Worked example 3: telling two spaces apart</h3>
+
+<div class="worked">
+<p><strong>Example 3.14.</strong> The isomorphism H<sup>∗</sup>(⨿<sub>α</sub>X<sub>α</sub>;R) ≅ ∏<sub>α</sub>H<sup>∗</sup>(X<sub>α</sub>;R), with coordinates induced by the inclusions, is a ring isomorphism for coordinatewise multiplication, because each i<sub>α</sub><sup>∗</sup> is a ring homomorphism by Proposition 3.10. The same holds for a wedge sum: H̃<sup>∗</sup>(⋁<sub>α</sub>X<sub>α</sub>;R) ≅ ∏<sub>α</sub>H̃<sup>∗</sup>(X<sub>α</sub>;R), taking reduced cohomology to be cohomology relative to a basepoint and using relative cup products — assuming the basepoints are deformation retracts of neighbourhoods, so that the isomorphism does hold.</p>
+<p><strong>The application.</strong> ℂP<sup>2</sup> is S<sup>2</sup> with a cell e<sup>4</sup> attached by a map f : S<sup>3</sup> → S<sup>2</sup>. Homology cannot distinguish it from S<sup>2</sup> ∨ S<sup>4</sup>, and neither can the additive structure of cohomology. Cup products can. In the wedge, the ring is a product ring, so a class in H<sup>2</sup> has its square computed coordinatewise: in the S<sup>2</sup> coordinate the square lands in H̃<sup>4</sup>(S<sup>2</sup>;ℤ) = 0, and in the S<sup>4</sup> coordinate the class itself is zero. Every square in H<sup>2</sup>(S<sup>2</sup> ∨ S<sup>4</sup>;ℤ) therefore vanishes. But H<sup>∗</sup>(ℂP<sup>2</sup>;ℤ) ≅ ℤ[α]/(α<sup>3</sup>), so the square of a generator of H<sup>2</sup> is non-zero.</p>
+<p><strong>The conclusion, and why it is legitimate.</strong> A homotopy equivalence induces an isomorphism of graded rings, by Proposition 3.10 applied to it and to its homotopy inverse. So ℂP<sup>2</sup> is not homotopy equivalent to S<sup>2</sup> ∨ S<sup>4</sup> — and in particular the attaching map f is not homotopic to a constant, a fact no amount of homology could have delivered.</p>
+</div>
+
+<p>The mission strip's own example, S<sup>2</sup> × S<sup>1</sup> against S<sup>2</sup> ∨ S<sup>1</sup> ∨ S<sup>3</sup>, has exactly this shape, and half of it is available now: Example 3.14 shows every product of positive-dimensional classes in the wedge vanishes. The other half — that the product space has a non-zero product of a 1-dimensional with a 2-dimensional class — needs the cohomology of a product, which is Theorem 3.15, the Künneth formula, and that is at2-05.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Hatcher notes that H<sup>∗</sup>(ℝP<sup>n</sup>;R) cannot be the polynomial ring R[α] with |α| = 1 for arbitrary R. What is the obstruction?</p>
+<button onclick="check(this,true)" data-ok>A polynomial ring is strictly commutative, so for it to be graded commutative with an odd-dimensional generator we need 2 = 0 in R</button>
+<button onclick="check(this,false)">ℝP<sup>n</sup> is not a CW complex, so its cohomology is not a ring at all</button>
+<button onclick="check(this,false)">Polynomial rings are infinite-dimensional and H<sup>∗</sup>(ℝP<sup>n</sup>;R) is finite-dimensional</button>
+<div class="explain">Graded commutativity forces α² = &minus;α² for |α| odd, that is 2α² = 0. In a genuine polynomial ring R[α] the element α² is a basis element, so 2α² = 0 requires 2 = 0 in R. That is why the real projective spaces are computed with ℤ<sub>2</sub> coefficients while ℂP<sup>n</sup>, whose generator has |α| = 2, is fine over ℤ. The third option confuses R[α]/(α<sup>n+1</sup>) with R[α]; truncation is a separate matter.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which fact makes the wedge-sum argument of Example 3.14 work?</p>
+<button onclick="check(this,false)">That homology of a wedge is a direct sum</button>
+<button onclick="check(this,true)" data-ok>That the reduced cohomology ring of a wedge is a <em>product ring</em>, so multiplication is coordinatewise and cross-factor products vanish</button>
+<button onclick="check(this,false)">That every cup product in a simply connected space is zero</button>
+<div class="explain">The additive statement — cohomology of a wedge splits — is true but useless here, since ℂP<sup>2</sup> and S<sup>2</sup>∨S<sup>4</sup> have the same additive cohomology. What does the work is that the splitting is a <em>ring</em> isomorphism onto a product ring, in which a product of elements supported in different coordinates is zero and a square is computed within one coordinate. The third option is simply false: ℂP<sup>2</sup> is simply connected and has a non-zero square.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> On the genus-2 surface, what is (α<sub>1</sub> + β<sub>2</sub>) ⌣ (β<sub>1</sub> + α<sub>2</sub>)?</p>
+<button onclick="check(this,false)">2γ</button>
+<button onclick="check(this,true)" data-ok>0</button>
+<button onclick="check(this,false)">γ</button>
+<div class="explain">Expand by distributivity into four terms: α<sub>1</sub> ⌣ β<sub>1</sub> = γ; α<sub>1</sub> ⌣ α<sub>2</sub> = 0; β<sub>2</sub> ⌣ β<sub>1</sub> = 0; and β<sub>2</sub> ⌣ α<sub>2</sub> = &minus;(α<sub>2</sub> ⌣ β<sub>2</sub>) = &minus;γ. The total is γ &minus; γ = 0. Answering 2γ is the characteristic slip: it treats the ring as ordinarily commutative, so that the two surviving terms add rather than cancel.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove that the cup product structure is a homotopy invariant: if f : X → Y is a homotopy equivalence then f<sup>∗</sup> : H<sup>∗</sup>(Y;R) → H<sup>∗</sup>(X;R) is an isomorphism of graded rings. Then use this, with Example 3.14, to prove that ℝP<sup>2</sup> is not homotopy equivalent to a wedge S<sup>1</sup> ∨ S<sup>2</sup>, working with ℤ<sub>2</sub> coefficients.</p>
+<p><em>Hint:</em> for the first part you need Proposition 3.10 twice and homotopy invariance of induced maps from at2-03. For the second, recall from Example 3.8 that the square of a generator of H<sup>1</sup>(ℝP<sup>2</sup>;ℤ<sub>2</sub>) is the non-zero element of H<sup>2</sup>(ℝP<sup>2</sup>;ℤ<sub>2</sub>).</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer, first part.</strong> Let g : Y → X be a homotopy inverse, so gf ≃ 𝟙<sub>X</sub> and fg ≃ 𝟙<sub>Y</sub>. By homotopy invariance of induced maps (at2-03), (gf)<sup>∗</sup> = 𝟙<sup>∗</sup> = 𝟙 on H<sup>∗</sup>(X;R) and (fg)<sup>∗</sup> = 𝟙 on H<sup>∗</sup>(Y;R). By contravariance, (gf)<sup>∗</sup> = f<sup>∗</sup>g<sup>∗</sup> and (fg)<sup>∗</sup> = g<sup>∗</sup>f<sup>∗</sup>. Hence f<sup>∗</sup> and g<sup>∗</sup> are mutually inverse additive isomorphisms. Each preserves dimension, and each is multiplicative by Proposition 3.10. A dimension-preserving multiplicative bijection with multiplicative inverse is an isomorphism of graded rings, so f<sup>∗</sup> is one. ∎</p>
+<p><strong>Second part.</strong> Work with ℤ<sub>2</sub> coefficients throughout. By Example 3.8, taking N to be the nonorientable surface of genus 1, which is ℝP<sup>2</sup>, the cup product of a generator α of H<sup>1</sup>(ℝP<sup>2</sup>;ℤ<sub>2</sub>) with itself is a generator of H<sup>2</sup>(ℝP<sup>2</sup>;ℤ<sub>2</sub>) ≅ ℤ<sub>2</sub>; in particular α² ≠ 0.</p>
+<p>Now suppose, for contradiction, that ℝP<sup>2</sup> ≃ S<sup>1</sup> ∨ S<sup>2</sup>. By Example 3.14 the reduced cohomology ring of the wedge is the product ring H̃<sup>∗</sup>(S<sup>1</sup>;ℤ<sub>2</sub>) × H̃<sup>∗</sup>(S<sup>2</sup>;ℤ<sub>2</sub>) with coordinatewise multiplication. Let x be any element of H<sup>1</sup>(S<sup>1</sup> ∨ S<sup>2</sup>;ℤ<sub>2</sub>). Its S<sup>2</sup>-coordinate lies in H̃<sup>1</sup>(S<sup>2</sup>;ℤ<sub>2</sub>) = 0, so x is carried by the S<sup>1</sup> coordinate alone; and its square is computed in that coordinate, landing in H̃<sup>2</sup>(S<sup>1</sup>;ℤ<sub>2</sub>) = 0. So every element of H<sup>1</sup> of the wedge squares to zero.</p>
+<p>But by the first part a homotopy equivalence would give a graded ring isomorphism carrying α to some x ∈ H<sup>1</sup> with x² = f<sup>∗</sup>(α)² = f<sup>∗</sup>(α²) ≠ 0, since f<sup>∗</sup> is injective and α² ≠ 0. This contradicts the previous paragraph. Hence ℝP<sup>2</sup> is not homotopy equivalent to S<sup>1</sup> ∨ S<sup>2</sup>. ∎</p>
+<p><em>What did the work.</em> Additively the two spaces are indistinguishable with ℤ<sub>2</sub> coefficients — both have ℤ<sub>2</sub> in dimensions 0, 1, 2. The entire argument lives in the multiplication, and the only inputs were Proposition 3.10 (multiplicativity), homotopy invariance, and the product-ring structure of a wedge.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>The cup product formula, what it does to a simplex, and the Leibniz rule that makes it descend to cohomology classes.</li>
+<li>Theorem 3.11 and its one indispensable consequence for odd-dimensional classes, together with the case it settles outright and the case it merely restricts.</li>
+<li>Why H<sup>∗</sup>(X;R) is a graded ring, why induced maps are ring homomorphisms, and the shape of the argument that separates two spaces with the same homology.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) (φ ⌣ ψ)(σ) = φ(front face) · ψ(back face) cut at v<sub>k</sub>, and δ(φ ⌣ ψ) = δφ ⌣ ψ + (&minus;1)<sup>k</sup>φ ⌣ δψ, whence cocycle ⌣ cocycle is a cocycle, and a <em>cocycle</em> ⌣ coboundary is a coboundary — the cocycle hypothesis is needed, since for arbitrary φ the δφ ⌣ ψ term survives; (2) α ⌣ β = (&minus;1)<sup>kℓ</sup>β ⌣ α, so 2α² = 0 for |α| odd, and α² = 0 whenever the target has no element of order two; (3) H<sup>∗</sup> = ⊕H<sup>n</sup> with multiplication landing in the sum of dimensions, f<sup>∗</sup> multiplicative by Proposition 3.10, so a homotopy equivalence gives a graded ring isomorphism — and the reduced cohomology of a wedge is the product of the summands' with no cross terms, so a square is computed inside its own summand: in S<sup>2</sup> ∨ S<sup>4</sup> the degree-2 class squares into H<sup>4</sup>(S<sup>2</sup>) = 0 and dies, while ℂP<sup>2</sup> has ℤ[α]/(α<sup>3</sup>), in which it does not — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em> — §3.2: the cup product formula and Lemma 3.6 with proof (p. 206); the induced product on cohomology, associativity, distributivity and the identity class (p. 207); Example 3.7 on the closed orientable surface of genus g and its relation table (pp. 207–208); Example 3.8 on the nonorientable surface and ℝP<sup>2</sup> with ℤ<sub>2</sub> coefficients (p. 208); Example 3.9 on the degree m attachment (pp. 208–209); relative cup products (pp. 209–210); Proposition 3.10 with proof and Theorem 3.11 with its consequence 2α² = 0 (p. 210); the proof of Theorem 3.11 via the vertex-reversing chain map ρ and its chain homotopy (pp. 210–212); the cohomology ring, graded rings and the commutativity convention (pp. 212–213); Example 3.12 on polynomial rings, Example 3.13 on exterior algebras, Example 3.14 on product and wedge rings and the ℂP<sup>2</sup> against S<sup>2</sup> ∨ S<sup>4</sup> argument (pp. 213–214). Assumed from at2-02 and at2-03: the universal coefficient theorem, contravariance and homotopy invariance. Deferred to at2-05: the cross product and Theorem 3.15, the Künneth formula, which is what computes the cohomology ring of a product (Hatcher §3.2, pp. 214–219). Deferred to later reading: Theorem 3.19 on the cohomology rings of projective spaces (Hatcher §3.2, p. 220).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

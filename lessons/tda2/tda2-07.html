@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda2-07 — Cover, nerve, and multiscale Mapper</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA II · Nexus College</p>
+<h1>Cover, nerve, and multiscale Mapper <span class="cite">(tda2-07)</span></h1>
+
+<div class="hook">
+In lab-08 you ran Mapper and it drew you a graph. Here is the awkward question: which theorem says that graph is not lying?
+<p>The obvious candidate is the Nerve Theorem — cover a space so that every intersection of cover elements is contractible, and the nerve of the cover is homotopy equivalent to the space. That is a magnificent guarantee. It is also, for a Mapper cover, essentially never available: the cover you actually get is the pullback of intervals through your lens function, and nobody checked that its intersections are contractible. Dey and Wang say so in the second paragraph of the chapter and then spend two sections working out what survives.</p>
+<p>What survives is one-sided, and it is enough to make Mapper honest: every loop in the picture came from a loop in the data. Loops can die on the way up; they cannot be born.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> A Mapper graph, built from a pullback cover with no contractibility hypothesis whatsoever. Predict which statement about H<sub>1</sub> is actually provable.</p>
+<button onclick="check(this,false)">H<sub>1</sub> of the picture is isomorphic to H<sub>1</sub> of the data — the pullback construction supplies the missing hypothesis</button>
+<button onclick="check(this,true)" data-ok>H<sub>1</sub>(X) surjects onto H<sub>1</sub> of the picture: every loop you see is the image of a real loop, though real loops may vanish</button>
+<button onclick="check(this,false)">Nothing at all — without contractible intersections the nerve carries no information about X</button>
+<div class="explain">Correct, and the surjection is Theorem 9.5, upgraded to maps between nerves by Theorem 9.9. The hypothesis it needs is not contractibility but mere path connectedness of the cover elements — and a pullback cover consists of path connected components by construction, so Mapper gets it for free. The first option is what the Nerve Theorem would give if you had a good cover, and Dey and Wang exhibit a map from the sphere whose pullback nerve fails even surjectivity in H<sub>2</sub>. The third option overcorrects: it is exactly the surjection that stops Mapper inventing features, which is the guarantee a practitioner most needs.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The nerve theorem says that for a good cover the nerve is homotopy equivalent to the covered space — the guarantee lab-08's Mapper output was implicitly leaning on. Multiscale Mapper makes the cover a parameter and recovers stability in tda1-06's interleaving distance, turning a heuristic visualisation into a summary with an error bar.</p>
+
+<p class="cite">Notation. Following Dey and Wang, 𝓤, 𝓥, 𝓦 denote covers and 𝐔, 𝐕, 𝐖 denote towers of covers. (Dey and Wang set towers in fraktur; the letters differ, the objects do not.) N(𝓤) is the nerve, and |N(𝓤)| its geometric realisation.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Covers, nerves, and the guarantee you actually have</h2>
+
+<p>Let X be a path connected topological space and 𝓤 = {U<sub>α</sub>}<sub>α∈A</sub> an open cover. Dey and Wang assume throughout §9.1 that each cover element is path connected — not required in general, but free in the application to come.</p>
+
+<div class="definition">
+<p><strong>Map of covers.</strong> For covers 𝓤 = {U<sub>α</sub>}<sub>α∈A</sub> and 𝓥 = {V<sub>β</sub>}<sub>β∈B</sub> of the same space X, a <em>map of covers</em> from 𝓤 to 𝓥 is a set map ξ : A → B such that U<sub>α</sub> ⊆ V<sub>ξ(α)</sub> for every α ∈ A. <span class="cite">— Dey &amp; Wang §9.1, p. 257</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 9.1.</strong> Given a map of covers ξ : 𝓤 → 𝓥, there is an induced simplicial map N(ξ) : N(𝓤) → N(𝓥) given on vertices by the map ξ. <span class="cite">— Dey &amp; Wang §9.1, Proposition 9.1, p. 257</span></p>
+</div>
+
+<p><em>Proof.</em> Take σ ∈ N(𝓤). Then</p>
+<div class="math-block">⋂<sub>β∈ξ(σ)</sub> V<sub>β</sub> = ⋂<sub>α∈σ</sub> V<sub>ξ(α)</sub> ⊇ ⋂<sub>α∈σ</sub> U<sub>α</sub> ≠ ∅,</div>
+<p>the last step because σ is a simplex of N(𝓤). So ξ(σ) spans a simplex of N(𝓥). ∎</p>
+
+<div class="theorem">
+<p><strong>Proposition 9.2 (induced maps are contiguous).</strong> Let ζ, ξ : 𝓤 → 𝓥 be any two maps of covers. Then the simplicial maps N(ζ) and N(ξ) are contiguous. <span class="cite">— Dey &amp; Wang §9.1, Proposition 9.2, p. 258</span></p>
+</div>
+
+<p><em>Proof.</em> For every α we have both U<sub>α</sub> ⊆ V<sub>ζ(α)</sub> and U<sub>α</sub> ⊆ V<sub>ξ(α)</sub>, hence U<sub>α</sub> ⊆ V<sub>ζ(α)</sub> ∩ V<sub>ξ(α)</sub>. So for σ ∈ N(𝓤),</p>
+<div class="math-block">⋂<sub>β∈ζ(σ)∪ξ(σ)</sub> V<sub>β</sub> = ⋂<sub>α∈σ</sub> (V<sub>ζ(α)</sub> ∩ V<sub>ξ(α)</sub>) ⊇ ⋂<sub>α∈σ</sub> U<sub>α</sub> ≠ ∅,</div>
+<p>so ζ(σ) ∪ ξ(σ) spans a simplex of N(𝓥). ∎</p>
+
+<p>Contiguous maps induce identical maps on homology (Dey and Wang's Fact 2.11), so the homomorphism H<sub>∗</sub>(N(𝓤)) → H<sub>∗</sub>(N(𝓥)) does not depend on <em>which</em> map of covers you chose — it depends only on the pair of covers. Dey and Wang call it canonical for that reason. Keep this proposition in view: it is what will make interleaving of cover towers, which requires nothing to commute, produce interleaving of simplicial towers, which does.</p>
+
+<div class="theorem">
+<p><strong>The Nerve Theorem, as quoted here (Theorem 2.1).</strong> If every intersection of cover elements in a cover 𝓤 is contractible, then the nerve N(𝓤) is homotopy equivalent to the space X = ⋃𝓤; more precisely the nerve map φ<sub>𝓤</sub> is a homotopy equivalence and φ<sub>𝓤∗</sub> an isomorphism between H<sub>∗</sub>(X) and H<sub>∗</sub>(N(𝓤)). <span class="cite">— Dey &amp; Wang, quoted in the chapter opening and again in §9.1, pp. 256 and 259; the theorem itself is Chapter 2's, not this chapter's</span></p>
+</div>
+
+<p>Dey and Wang add two remarks in the same breath, and they set the agenda. First, contractibility may be weakened to a homology-ball condition and the isomorphism survives. Second, and decisively: "we cannot hope for such a good cover all the time and need to investigate what happens if the cover is not good." Without it, φ<sub>𝓤∗</sub> need be neither injective nor surjective — their Figure 9.3 has a map 𝕊<sup>2</sup> → ℝ<sup>2</sup> whose pullback of one cover element is a band around the equator, pinching the nerve in the middle into two 2-cycles, so surjectivity fails in H<sub>2</sub>.</p>
+
+<h3>The apparatus: blow-up space and partitions of unity</h3>
+
+<p>To say anything at all one needs an actual map from X to the nerve. Hatcher's proof of the Nerve Theorem routes through a <em>blow-up space</em> X<sub>𝓤</sub>, and Dey and Wang reuse the construction without the contractibility hypothesis. For each nonempty finite intersection U<sub>α<sub>0</sub>…α<sub>n</sub></sub> = ⋂<sub>i</sub>U<sub>α<sub>i</sub></sub> take the product U<sub>α<sub>0</sub>…α<sub>n</sub></sub> × Δ<sup>n</sup><sub>α<sub>0</sub>…α<sub>n</sub></sub> with the n-simplex on the corresponding vertices, take the disjoint union over all such tuples, and glue along the face identifications coming from the inclusions U<sub>α<sub>0</sub>…α<sub>n</sub></sub> ⊂ U<sub>α<sub>0</sub>…α̂<sub>i</sub>…α<sub>n</sub></sub>. The quotient is X<sub>𝓤</sub>, and there are maps ζ : X → X<sub>𝓤</sub>, π : X<sub>𝓤</sub> → |N(𝓤)| with φ<sub>𝓤</sub> = π ∘ ζ the <em>nerve map</em>.</p>
+
+<div class="definition">
+<p><strong>Definition 9.1 (locally finite).</strong> An open cover {U<sub>α</sub>, α ∈ A} of X is a <em>refinement</em> of another open cover {V<sub>β</sub>, β ∈ B} if every U<sub>α</sub> is contained in some V<sub>β</sub>. 𝓤 is <em>locally finite</em> if every x ∈ X has a neighbourhood contained in finitely many elements of 𝓤. <span class="cite">— Dey &amp; Wang §9.1, Definition 9.1, p. 260</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 9.2 (partition of unity).</strong> A collection of continuous φ<sub>α</sub> : X → [0,1], α ∈ A, is a <em>partition of unity</em> if (i) Σ<sub>α∈A</sub> φ<sub>α</sub>(x) = 1 for all x ∈ X, and (ii) for every x only finitely many α have φ<sub>α</sub>(x) &gt; 0. It is <em>subordinate</em> to 𝓤 if supp(φ<sub>α</sub>) ⊆ U<sub>α</sub> for each α. <span class="cite">— Dey &amp; Wang §9.1, Definition 9.2, p. 260</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Fact 9.1.</strong> For any open cover 𝓤 = {U<sub>α</sub>, α ∈ A} of a compact space X, there exists a partition of unity {φ<sub>α</sub>, α ∈ A} subordinate to 𝓤. <span class="cite">— Dey &amp; Wang §9.1, Fact 9.1, p. 261</span></p>
+</div>
+
+<p>This is the whole reason X is assumed compact. With a subordinate partition of unity in hand one defines ζ(x) := Σ<sub>α</sub> φ<sub>α</sub>(x)x<sub>α</sub>, lets π be induced by the projections onto the simplex factors, and obtains the nerve map in barycentric coordinates:</p>
+<div class="math-block">φ<sub>𝓤</sub>(x) = Σ<sub>α∈A</sub> φ<sub>α</sub>(x) u<sub>α</sub>.</div>
+
+<div class="theorem">
+<p><strong>Fact 9.2.</strong> The map ζ is a homotopy equivalence. <span class="cite">— Dey &amp; Wang §9.1, Fact 9.2, p. 261</span></p>
+</div>
+
+<p>Note what Fact 9.2 does and does not say. Under the standing assumption that X is compact, the map from X into the blow-up is a homotopy equivalence whatever the cover; it is π, the collapse of the blow-up onto the nerve, that a good cover is needed to control. All the loss happens there.</p>
+
+<h3>Worked example 1: what a path connected cover buys, in full</h3>
+
+<div class="worked">
+<p><strong>Step 1 — reduce to simplicial cycles.</strong> Proposition 9.3: every 1-cycle γ in |N(𝓤)| has a 1-cycle γ′ in N(𝓤) with [γ] = [|γ′|]. So a class of the realisation may always be represented in the 1-skeleton of the nerve itself.</p>
+<p><strong>Step 2 — lift the cycle.</strong> Proposition 9.4: if 𝓤 is path connected then φ<sub>𝓤∗</sub> : H<sub>1</sub>(X) → H<sub>1</sub>(|N(𝓤)|) is a surjection. The construction is concrete. Given an edge cycle e<sub>0</sub>, e<sub>1</sub>, …, e<sub>r−1</sub> of γ′, with e<sub>i</sub> spanned by u<sub>α<sub>i</sub></sub> and u<sub>α<sub>i+1</sub></sub>, choose a point x<sub>i</sub> in the nonempty intersection U<sub>α<sub>i</sub></sub> ∩ U<sub>α<sub>i+1</sub></sub>. The edge path ẽ<sub>i</sub> = e<sub>i</sub> × x<sub>i</sub> lies in X<sub>𝓤</sub>, and consecutive lifts are joined by a <em>vertex path</em> x<sub>α<sub>i</sub></sub> ⇝ x<sub>α<sub>i+1</sub></sub> running inside the lifted U<sub>α<sub>i</sub></sub>. Concatenating gives a cycle γ<sub>𝓤</sub> in X<sub>𝓤</sub> with π(γ<sub>𝓤</sub>) = γ.</p>
+<p><strong>Step 3 — where path connectedness is used, and only there.</strong> Exactly one step needs it: the vertex path inside the lifted U<sub>α<sub>i</sub></sub> exists because U<sub>α<sub>i</sub></sub> is path connected. Everything else is formal — ζ<sub>∗</sub> is an isomorphism by Fact 9.2, so some [γ<sub>X</sub>] ∈ H<sub>1</sub>(X) has ζ<sub>∗</sub>[γ<sub>X</sub>] = [γ<sub>𝓤</sub>], and φ<sub>𝓤∗</sub> = π<sub>∗</sub> ∘ ζ<sub>∗</sub> gives φ<sub>𝓤∗</sub>[γ<sub>X</sub>] = [γ].</p>
+<p><strong>Step 4 — move to simplicial homology.</strong> Composing with the isomorphism ι<sub>𝓤</sub> : H<sub>p</sub>(|N(𝓤)|) → H<sub>p</sub>(N(𝓤)) gives φ̄<sub>𝓤∗</sub> : H<sub>1</sub>(X) → H<sub>1</sub>(N(𝓤)), and Theorem 9.5: if 𝓤 is path connected then φ̄<sub>𝓤∗</sub> is a surjection.</p>
+<p><strong>Step 5 — upgrade to maps between nerves.</strong> Proposition 9.6 supplies <em>coherent</em> partitions of unity: given a cover map θ : 𝓤 → 𝓥 on a compact X there is a partition of unity {φ<sub>α</sub>} subordinate to 𝓤 whose pushforward ψ<sub>β</sub> = Σ<sub>α∈θ<sup>−1</sup>(β)</sub> φ<sub>α</sub> (and 0 off the image of θ) is subordinate to 𝓥. Claim 9.1 then gives τ̂(φ<sub>𝓤</sub>(x)) = φ<sub>𝓥</sub>(x) for the linear extension τ̂ of the induced simplicial map, whence Corollary 9.7: φ<sub>𝓥∗</sub> = τ̂<sub>∗</sub> ∘ φ<sub>𝓤∗</sub>; and passing to simplicial homology, Proposition 9.8: φ̄<sub>𝓥∗</sub> = τ<sub>∗</sub> ∘ φ̄<sub>𝓤∗</sub>.</p>
+<p><strong>Step 6 — the conclusion.</strong> Theorem 9.9: if τ : N(𝓤) → N(𝓥) is induced by a cover map between path connected covers, then τ<sub>∗</sub> : H<sub>1</sub>(N(𝓤)) → H<sub>1</sub>(N(𝓥)) is a surjection. In persistence language: along a tower of nerves connected by cover maps, one-dimensional classes may die, but they cannot be born. That is the guarantee the prediction gate was about, and it is the one Mapper actually has.</p>
+</div>
+
+<h3>Visual: the circle, its cover, and the nerve that coarsens</h3>
+
+<canvas id="mapCanvas" width="640" height="330" role="img" aria-label="Left: a circle whose height function pulls back a cover of the line into arcs; right: the nerve of that pullback cover, a cycle that collapses as the cover coarsens"></canvas>
+<p style="text-align:center"><button onclick="coarsen()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Coarsen the cover</button></p>
+<script>
+(function(){
+const cv=document.getElementById('mapCanvas'), ctx=cv.getContext('2d');
+const CX=170, CY=175, R=105, GX=470, N=720;
+const COL=['#8ab4f8','#4caf82','#d8a657','#e06c75','#c3e88d'];
+let n=4;
+function bands(){                    // n overlapping intervals covering the range of f
+  const lo=CY-R-4, hi=CY+R+4, h=(hi-lo)/n, o=h*0.28, b=[];
+  for(let i=0;i<n;i++) b.push([lo+i*h-o, lo+(i+1)*h+o]);
+  return b;
+}
+function comps(band){                // path components of the pullback: runs of sampled angles
+  const inB=[]; for(let k=0;k<N;k++){const y=CY+R*Math.sin(2*Math.PI*k/N); inB.push(y>=band[0]&&y<=band[1]);}
+  const runs=[]; let k=0;
+  while(k<N){ if(inB[k]){let s=k; while(k<N&&inB[k])k++; runs.push([s,k-1]);} else k++; }
+  if(runs.length>1 && inB[0] && inB[N-1]){ runs[0][0]=runs[runs.length-1][0]-N; runs.pop(); }
+  return runs;
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#2a333d'; ctx.lineWidth=1.2;
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,2*Math.PI); ctx.stroke();
+  let total=0; const B=bands();
+  B.forEach(function(band,i){
+    const rs=comps(band); total+=rs.length;
+    ctx.strokeStyle=COL[i%COL.length]; ctx.lineWidth=5;
+    rs.forEach(function(r){
+      ctx.beginPath();
+      for(let k=r[0];k<=r[1];k++){const t=2*Math.PI*k/N, x=CX+R*Math.cos(t), y=CY+R*Math.sin(t);
+        if(k===r[0])ctx.moveTo(x,y); else ctx.lineTo(x,y);}
+      ctx.stroke();
+    });
+    ctx.strokeStyle=COL[i%COL.length]; ctx.lineWidth=4;   // the interval itself, on the Z axis
+    ctx.beginPath(); ctx.moveTo(320+i*7, band[0]); ctx.lineTo(320+i*7, band[1]); ctx.stroke();
+  });
+  ctx.strokeStyle='#8ab4f8'; ctx.lineWidth=2.2; ctx.fillStyle='#8ab4f8';
+  const pts=[];
+  for(let j=0;j<total;j++){const a=2*Math.PI*j/total - Math.PI/2;
+    pts.push([GX+72*Math.cos(a), CY+72*Math.sin(a)]);}
+  if(total>=3){ ctx.beginPath();
+    pts.forEach(function(p,j){ if(j===0)ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); });
+    ctx.closePath(); ctx.stroke(); }
+  else if(total===2){ ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]); ctx.lineTo(pts[1][0],pts[1][1]); ctx.stroke(); }
+  pts.forEach(function(p){ ctx.beginPath(); ctx.arc(p[0],p[1],6,0,2*Math.PI); ctx.fill(); });
+  ctx.font='13px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle='#9aa5b1';
+  ctx.fillText('X, arcs coloured by which pullback element they lie in',18,22);
+  ctx.fillText('Z and its cover',300,22); ctx.fillText('the nerve = the mapper',GX-72,22);
+  ctx.fillText(n+' intervals  →  '+total+' pullback elements  →  '+(total>=3?'a cycle, β₁ = 1':(total===2?'an edge, β₁ = 0':'a point, β₁ = 0')),18,315);
+}
+window.coarsen=function(){ n = n>1 ? n-1 : 4; draw(); };
+draw();
+})();
+</script>
+
+<p>The button shows the mapper of one fixed map under successively coarser covers. With three or more intervals the nerve is a cycle — Dey and Wang's Figure 9.7 is exactly this situation, a map from a circle to a subset of ℝ whose mapper they describe as quadrangle-shaped — and once the cover is coarse enough it collapses to an edge and then a point. Two cautions on reading the picture. It is a sequence of separate covers, not yet a tower: linking them by cover maps, so that each refines into the next, is Definition 9.5's job and the subject of Segment 2. And Theorem 9.9 is what turns "no loop ever appears out of nowhere" from an observation about this animation into a theorem about any such tower. What the picture does make vivid is the complaint §9.3.1 answers: the output depends on a parameter you chose.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Proposition 9.2 matter beyond tidiness?</p>
+<button onclick="check(this,true)" data-ok>Because it makes the induced map on homology independent of which map of covers was chosen, which is what later lets non-commuting cover diagrams produce genuine interleavings of simplicial towers</button>
+<button onclick="check(this,false)">Because it shows the nerve construction is a functor on the category of covers</button>
+<button onclick="check(this,false)">Because contiguity implies the two simplicial maps are equal</button>
+<div class="explain">The payoff arrives in §9.4: Definition 9.7 asks nothing to commute at the level of covers, and Proposition 9.2 is exactly what repairs the gap, since two composites that are both maps of covers with the same source and target induce contiguous — hence homologically identical — simplicial maps. Functoriality is a separate observation, recorded as N(ζ ∘ ξ) = N(ζ) ∘ N(ξ). And contiguity is strictly weaker than equality of maps; it gives equality only after applying homology.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Where in the proof of Proposition 9.4 is path connectedness of the cover used?</p>
+<button onclick="check(this,false)">In Proposition 9.3, to replace a singular cycle by a simplicial one</button>
+<button onclick="check(this,true)" data-ok>In joining consecutive lifted points by a vertex path inside a single lifted cover element</button>
+<button onclick="check(this,false)">In Fact 9.2, to make ζ a homotopy equivalence</button>
+<div class="explain">The lifted cycle alternates edge paths e<sub>i</sub> × x<sub>i</sub> with vertex paths x<sub>α<sub>i</sub></sub> ⇝ x<sub>α<sub>i+1</sub></sub>, and the latter must run inside the lifted U<sub>α<sub>i</sub></sub> — which requires that cover element to be path connected. Proposition 9.3 is the singular-to-simplicial transition and holds for any cover; Fact 9.2 is quoted for compact X and makes no path connectedness demand on the cover elements. This is worth pinning down, because it is the single hypothesis Mapper will supply for free.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Mapper, and making the cover a parameter</h2>
+
+<p>Now let the cover of X come from somewhere. Given a continuous f : X → Z and an open cover 𝓤 = {U<sub>α</sub>} of Z, the sets f<sup>−1</sup>(U<sub>α</sub>) cover X. Decompose each into path connected components, f<sup>−1</sup>(U<sub>α</sub>) = ⋃<sub>i=1</sub><sup>j<sub>α</sub></sup> V<sub>α,i</sub>, and call the resulting collection the <em>pullback cover</em> f<sup>∗</sup>𝓤. Every element of it is a path connected component of something, hence path connected — so Theorem 9.5 and Theorem 9.9 apply, with no hypothesis on f or 𝓤 beyond the next one.</p>
+
+<p>The exception to guard against: some f shatter a pre-image into infinitely many path components. Call f <em>well behaved</em> if for every path connected open U ⊆ Z the pre-image f<sup>−1</sup>(U) has finitely many open path connected components; then all nerves of pullbacks of finite covers are finite.</p>
+
+<div class="definition">
+<p><strong>Definition 9.4 (mapper).</strong> Let X and Z be topological spaces and f : X → Z a well-behaved continuous map. Let 𝓤 = {U<sub>α</sub>}<sub>α∈A</sub> be a finite open cover of Z. The <em>mapper</em> arising from these data is the nerve of the pullback cover f<sup>∗</sup>(𝓤) of X; that is, M(𝓤, f) := N(f<sup>∗</sup>(𝓤)). <span class="cite">— Dey &amp; Wang §9.3, Definition 9.4, p. 269</span></p>
+</div>
+
+<p>Dey and Wang's Remark 9.1 is the reason tda2-06 was the right unit to come before this one. Allow 𝓤 infinite and take f : X → ℝ. Choosing U<sub>α</sub> = (−∞, α) for α ∈ ℝ gives sublevel sets, which lead to <em>merge trees</em> — tda2-06's Definition 7.2. Choosing U<sub>α</sub> = (α − ε, α + ε) for fixed ε &gt; 0 gives ε-thick level sets, which induce a relaxed notion of <em>Reeb graph</em> — tda2-06's Definition 7.1. Mapper is the same collapse with the cover promoted to an input.</p>
+
+<p>For data the construction is entirely finite. Given a finite metric space (P, d<sub>P</sub>) and r ≥ 0, build the graph G<sup>r</sup>(P) with vertex set P and an edge (p, p′) whenever d<sub>P</sub>(p, p′) ≤ r. For f : P → ℝ and a set 𝓤 of intervals covering ℝ, put P<sub>(a,b)</sub> = f<sup>−1</sup>((a,b)) and split it into the vertex sets of the connected components of the subgraph of G<sup>r</sup>(P) spanned by P<sub>(a,b)</sub>. These sets over all intervals form a cover of P, and its nerve is the mapper M(P, f), intersections being intersections of finite sets. Taking intervals U<sub>i</sub> = (i − ε, i + ε) with ε ∈ (0,1), so only consecutive ones overlap, gives a discretised approximation of the Reeb graph of the function f approximates; in the limit as each interval degenerates to a point, the discretised Reeb graph converges to the Reeb graph.</p>
+
+<h3>Worked example 2 (faded): the cover becomes an index</h3>
+
+<div class="worked fade">
+<p><strong>The complaint.</strong> M(𝓤, f) is one snapshot at one scale, the scale of 𝓤. Fix that by replacing the cover with a tower of covers 𝐔 = {𝓤<sub>a</sub>}, coarsening as the index grows.</p>
+<p><strong>Step 1 — pullbacks respect cover maps.</strong> Proposition 9.13: for f : X → Z and covers 𝓤, 𝓥 of Z with a cover map ξ, there is an induced cover map f<sup>∗</sup>(ξ) : f<sup>∗</sup>(𝓤) → f<sup>∗</sup>(𝓥). The proof is one observation: U ⊆ V gives f<sup>−1</sup>(U) ⊆ f<sup>−1</sup>(V), and each path connected component of f<sup>−1</sup>(U) lies in <span class="gap">⟨your step: how many?⟩</span> component(s) of f<sup>−1</sup>(V) — because a connected set cannot straddle two components. Send it there.</p>
+<p><strong>Step 2 — hence towers pull back.</strong> Composition is respected, f<sup>∗</sup>(ζ ∘ ξ) = f<sup>∗</sup>(ζ) ∘ f<sup>∗</sup>(ξ), so applying Step 1 all along a tower gives Proposition 9.14: if 𝐔 is a cover tower of Z and f is continuous, f<sup>∗</sup>(𝐔) is a cover tower of X.</p>
+<p><strong>Step 3 — take nerves.</strong> Definition 9.5: the <em>multiscale mapper</em> is the simplicial tower MM(𝐔, f) := N(f<sup>∗</sup>(𝐔)), the simplicial maps being those induced by the cover maps — Proposition 9.1 supplies them. For indices a<sub>1</sub> &lt; ⋯ &lt; a<sub>n</sub> above the resolution this reads N(f<sup>∗</sup>(𝓤<sub>a<sub>1</sub></sub>)) → ⋯ → N(f<sup>∗</sup>(𝓤<sub>a<sub>n</sub></sub>)).</p>
+<p><strong>Step 4 — apply homology.</strong> With field coefficients one gets H<sub>p</sub>(N(f<sup>∗</sup>(𝓤<sub>a<sub>1</sub></sub>))) → ⋯ → H<sub>p</sub>(N(f<sup>∗</sup>(𝓤<sub>a<sub>n</sub></sub>))). The covers are finite and f is well behaved, so every nerve is finite and every term is <span class="gap">⟨your step: what property of the module?⟩</span> — hence there is a persistence diagram Dgm<sub>p</sub>MM(𝐔, f), a topological summary of f through the lens 𝐔.</p>
+<p class="cite">Gap solutions: exactly one component; and the module is pointwise finite dimensional.</p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 9.6 (pullback metric).</strong> Given a metric space (Z, d<sub>Z</sub>), define the pseudometric d<sub>f</sub> on X by d<sub>f</sub>(x, x′) := inf<sub>γ∈Γ<sub>X</sub>(x,x′)</sub> diam<sub>Z</sub>(f ∘ γ), the infimum over continuous paths γ from x to x′ in X. <span class="cite">— Dey &amp; Wang §9.3.2, Definition 9.6, p. 273</span></p>
+</div>
+
+<p>This is the size notion Segment 3 needs, and it is the exact analogue of tda2-06's function-induced metric with a general codomain in place of ℝ. Proposition 9.15 records that it behaves: if 𝓤′ is the restriction of 𝓤 to f(X), then the pullback cover has the same Lebesgue number, λ(f<sup>∗</sup>𝓤) = λ(𝓤′).</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does a mapper automatically satisfy the hypothesis of Theorem 9.5?</p>
+<button onclick="check(this,false)">Because the pre-images f<sup>−1</sup>(U<sub>α</sub>) are open and X is compact</button>
+<button onclick="check(this,true)" data-ok>Because the pullback cover consists of path connected components by construction, and path connectedness is the only hypothesis Theorem 9.5 asks for</button>
+<button onclick="check(this,false)">Because the nerve of a pullback cover is always contractible on intersections</button>
+<div class="explain">The whole force of §9.1 is that it demands nothing but path connectedness, and the pullback cover is built by splitting pre-images into path components — so it is path connected by definition, not by assumption. Openness and compactness are used elsewhere, for Fact 9.1; they are not what Theorem 9.5 keys on. The third option is the good-cover hypothesis, and the chapter exists because it is not available.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Remark 9.1 recovers merge trees and a relaxed Reeb graph as mappers. What does that tell you about the role of the cover?</p>
+<button onclick="check(this,true)" data-ok>The cover is the lens: fixing sublevel sets gives Definition 7.2's merge tree, fixing thickened level sets gives a relaxed version of Definition 7.1's Reeb graph, and the choice is the analyst's</button>
+<button onclick="check(this,false)">Mapper is a strict generalisation of the Reeb graph, computing it exactly for any cover</button>
+<button onclick="check(this,false)">Merge trees and Reeb graphs are special cases only when X is a simplicial complex</button>
+<div class="explain">Remark 9.1's point is that varying 𝓤 varies which summary you build from the same f — which is precisely why leaving the cover unexamined, as a fixed heuristic choice, is unsatisfactory. The second option overstates: thickened level sets give a <em>relaxed</em> notion, and Dey and Wang record the exact Reeb graph only as a limit as the intervals degenerate to points. The third is invented; Remark 9.1 assumes nothing about X being simplicial.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Stability: where the error bar comes from</h2>
+
+<div class="definition">
+<p><strong>Definition 9.7 (interleaving of cover towers).</strong> Let 𝐔 = {𝓤<sub>a</sub>} and 𝐕 = {𝓥<sub>a</sub>} be cover towers of a topological space X with res(𝐔) = res(𝐕) = r. Given η ≥ 0, 𝐔 and 𝐕 are <em>η-interleaved</em> if one can find cover maps ζ<sub>a</sub> : 𝓤<sub>a</sub> → 𝓥<sub>a+η</sub> and ξ<sub>a′</sub> : 𝓥<sub>a′</sub> → 𝓤<sub>a′+η</sub> for all a, a′ ≥ r. Replacing "+" by "·" gives <em>multiplicatively η-interleaved</em>. <span class="cite">— Dey &amp; Wang §9.4.1, Definition 9.7, p. 275</span></p>
+</div>
+
+<p>Nothing is required to commute — which is the whole subtlety, since interleaving of simplicial towers does require it. Proposition 9.2 pays the debt, as promised in Segment 1: the composite ξ<sub>a+η</sub> ∘ ζ<sub>a</sub> and the tower map u<sub>a,a+2η</sub> are both maps of covers from 𝓤<sub>a</sub> to 𝓤<sub>a+2η</sub>, so the simplicial maps they induce are contiguous, hence identical on homology, which is all the simplicial definition actually needs.</p>
+
+<div class="theorem">
+<p><strong>Proposition 9.17.</strong> (a) If 𝐔 and 𝐕 are (multiplicatively) η<sub>1</sub>-interleaved and 𝐕 and 𝐖 are (multiplicatively) η<sub>2</sub>-interleaved, then 𝐔 and 𝐖 are (multiplicatively η<sub>1</sub>η<sub>2</sub>-) (η<sub>1</sub> + η<sub>2</sub>)-interleaved. (b) If f : X → Z is continuous and 𝐔, 𝐕 are (multiplicatively) η-interleaved cover towers of Z, then f<sup>∗</sup>(𝐔) and f<sup>∗</sup>(𝐕) are also (multiplicatively) η-interleaved. <span class="cite">— Dey &amp; Wang §9.4.1, Proposition 9.17, p. 275</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 9.18.</strong> Let 𝐔 and 𝐕 be two (multiplicatively) η-interleaved cover towers of X with res(𝐔) = res(𝐕). Then N(𝐔) and N(𝐕) are also (multiplicatively) η-interleaved. <span class="cite">— Dey &amp; Wang §9.4.1, Proposition 9.18, p. 275</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 9.19.</strong> For η ≥ 0, let 𝐔 and 𝐕 be two finite cover towers of Z with res(𝐔) = res(𝐕) &gt; 0. Let f : X → Z be well behaved and let 𝐔 and 𝐕 be η-interleaved. Then MM(𝐔, f) and MM(𝐕, f) are η-interleaved. In particular, the bottleneck distance between the persistence diagrams Dgm<sub>p</sub>MM(𝐔, f) and Dgm<sub>p</sub>MM(𝐕, f) is at most η for all p ∈ ℕ. <span class="cite">— Dey &amp; Wang §9.4.1, Corollary 9.19, p. 276</span></p>
+</div>
+
+<p>That is the first error bar, and it is worth reading its scope precisely: f is held fixed and only the lens is perturbed. Dey and Wang say at once that the diagram is <em>not</em> necessarily stable under perturbations of f, and introduce a restricted family of covers to fix it.</p>
+
+<div class="definition">
+<p><strong>Definition 9.8 ((c,s)-good cover tower).</strong> Given a cover tower 𝐔 = {𝓤<sub>ε</sub>}<sub>ε≥s&gt;0</sub>, it is <em>(c,s)-good</em> if for any ε ≥ s &gt; 0, (i) s<sub>max</sub>(𝓤<sub>ε</sub>) ≤ ε and (ii) λ(𝓤<sub>cε</sub>) ≥ ε. <span class="cite">— Dey &amp; Wang §9.4.2, Definition 9.8, p. 277</span></p>
+</div>
+
+<p>Two notions here are §9.2's, and Definition 9.8 does not parse without them. By Definition 9.3 the <em>size</em> s(X′) of a subset of a pseudometric space is its diameter, the size of a homology class is the infimum of the sizes of its cycles, and a cycle basis is <em>optimal</em> when the sum of the sizes of its cycles is minimal. From these, s<sub>max</sub>(𝓤) := max<sub>U∈𝓤</sub> s(U) is the maximum cover size, and the <em>Lebesgue number</em> λ(𝓤) is the largest real such that any subset of size at most λ(𝓤) lies inside at least one element of 𝓤. So (i) says cover elements at scale ε are no bigger than ε, and (ii) says that scaling the index up by c buys a cover coarse enough to swallow anything of size ε. Dey and Wang's example: 𝓤<sub>ε</sub> := {B<sub>ε/2</sub>(z) | z ∈ Z} is a (2,s)-good cover tower.</p>
+
+<div class="theorem">
+<p><strong>Theorem 9.20.</strong> Given a map f : X → Z, let 𝐔 and 𝐕 be two (c,s)-good cover towers of Z. Then the corresponding multiscale mappers MM(𝐔, f) and MM(𝐕, f) are multiplicatively c-interleaved. <span class="cite">— Dey &amp; Wang §9.4.2, Theorem 9.20, p. 277</span></p>
+</div>
+
+<p>The content is Claim 9.2 — any two (c,s)-good cover towers are multiplicatively c-interleaved — and the guided proof below asks you to produce it. The reading Dey and Wang draw is the important one: the persistence diagrams induced by any two (c,s)-good cover towers contain roughly the same information, so the arbitrariness of the analyst's cover has been bounded rather than merely deplored.</p>
+
+<div class="definition">
+<p><strong>Definition 9.9 (truncation).</strong> Given a tower of covers 𝐔 = {𝓤<sub>ε</sub>} and ε<sub>0</sub> ≥ res(𝐔), the <em>ε<sub>0</sub>-truncation</em> of 𝐔 is Tr<sub>ε<sub>0</sub></sub>(𝐔) := {𝓤<sub>ε</sub>}<sub>ε<sub>0</sub>≤ε</sub>, of resolution ε<sub>0</sub>. <span class="cite">— Dey &amp; Wang §9.4.2, Definition 9.9, p. 277</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 9.21.</strong> Let X be compact, (Z, d<sub>Z</sub>) a compact path connected metric space, and f, g : X → Z continuous with δ = max<sub>x∈X</sub> d<sub>Z</sub>(f(x), g(x)). Let 𝐖 be any (c,s)-good cover tower of Z and ε<sub>0</sub> = max(1, s). Then the ε<sub>0</sub>-truncations of f<sup>∗</sup>(𝐖) and g<sup>∗</sup>(𝐖) are multiplicatively (2c·max(δ,s) + c)-interleaved. <span class="cite">— Dey &amp; Wang §9.4.2, Proposition 9.21, pp. 277–278</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 9.22.</strong> Let 𝐖 be a (c,s)-good cover tower of the compact connected metric space Z and f, g : X → Z any two well-behaved continuous functions with max<sub>x∈X</sub> d<sub>Z</sub>(f(x), g(x)) = δ. Then</p>
+<div class="math-block">d<sub>b</sub>(Dgm<sub>log</sub>MM(𝐖, f), Dgm<sub>log</sub>MM(𝐖, g)) ≤ log(2c·max(s,δ) + c) + max(0, log(1/s)).</div>
+<p><span class="cite">— Dey &amp; Wang §9.4.2, Corollary 9.22, p. 278</span></p>
+</div>
+
+<p>The second term is the price of the truncation, and its provenance is worth knowing rather than memorising. Proposition 9.21 controls the two towers only from index max(1, s) upwards. When s &lt; 1 the missing initial stretch can do two things at log scale: a class born in [s, 1) either dies at or before index 1, contributing a bar of length at most log(1/s), or survives to index 1 and merely stretches an existing bar leftwards by at most log(1/s). Either way the bottleneck distance moves by at most that.</p>
+
+<div class="definition">
+<p><strong>Definition 9.10 (intrinsic Čech complex).</strong> Given a (pseudo)metric space (Y, d<sub>Y</sub>), its intrinsic Čech complex ℂ<sup>r</sup>(Y) at scale r is the nerve complex of the set of intrinsic r-balls {B(y; r)}<sub>y∈Y</sub>. <span class="cite">— Dey &amp; Wang §9.4.3, Definition 9.10, p. 280</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 9.11 (intrinsic Čech filtration).</strong> The intrinsic Čech filtration of (Y, d<sub>Y</sub>) is 𝓒(Y) = {ℂ<sup>r</sup>(Y) ↪ ℂ<sup>r′</sup>(Y)}<sub>0&lt;r&lt;r′</sub>; at resolution s it is 𝓒<sub>s</sub>(Y) = {ℂ<sup>r</sup>(Y) ↪ ℂ<sup>r′</sup>(Y)}<sub>s≤r&lt;r′</sub>. <span class="cite">— Dey &amp; Wang §9.4.3, Definition 9.11, p. 280</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 9.23.</strong> Let 𝓒<sub>s</sub>(X) be the intrinsic Čech filtration of (X, d<sub>f</sub>) starting with resolution s, and 𝐔 a (c,s)-good cover tower of the compact connected metric space Z. Then MM(𝐔, f) and 𝓒<sub>s</sub>(X) are multiplicatively 2c-interleaved. <span class="cite">— Dey &amp; Wang §9.4.3, Theorem 9.23, p. 280</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 9.24.</strong> Given a continuous f : X → Z and a (c,s)-good cover tower 𝐔 of Z, d<sub>b</sub>(Dgm<sub>log</sub>MM(𝐔, f), Dgm<sub>log</sub>𝓒<sub>s</sub>) ≤ 2c. <span class="cite">— Dey &amp; Wang §9.4.3, Corollary 9.24, p. 280</span></p>
+</div>
+
+<p>The comparison is with an object you might reasonably have built instead. Given the pullback pseudometric d<sub>f</sub> of Definition 9.6 you could skip the nerve of the pullback covers entirely and take the intrinsic Čech filtration of (X, d<sub>f</sub>), which is connected by inclusions rather than by simplicial maps and is easier to handle computationally. Theorem 9.23 says the two are within a factor 2c of each other, so nothing essential turns on the choice.</p>
+
+<h3>Paying only for the 1-skeleton</h3>
+
+<p>Computing a pullback cover exactly means shattering f<sup>−1</sup>(W) into connected components, which for a general map produces partial edges, partial triangles and worse. §9.6 sidesteps that by insisting each component consist only of vertices.</p>
+
+<div class="definition">
+<p><strong>Definition 9.13 (G-induced connected component).</strong> Given a graph G and a set of vertices O ⊆ V(G), the set of connected components of O induced by G, denoted cc<sub>G</sub>(O), is the partition of O into maximal subsets of vertices connected in the subgraph G<sub>O</sub> spanned by O. <span class="cite">— Dey &amp; Wang §9.6.1, Definition 9.13, p. 284</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 9.14 (G-induced multiscale mapper).</strong> The G-induced mapper is the nerve complex M<sub>G</sub>(𝓦, f) := N(f<sup>∗</sup><sub>G</sub>(𝓦)), and for a cover tower 𝐖 of Z the G-induced multiscale mapper MM<sub>G</sub>(𝐖, f) is the tower of these nerves. Taking G = K<sup>1</sup>, the 1-skeleton of a simplicial complex K, and f<sub>V</sub> the restriction of f to V(K), gives the <em>combinatorial multiscale mapper</em>. <span class="cite">— Dey &amp; Wang §9.6.1, Definition 9.14, p. 285</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 9.28.</strong> Assume (Z, d<sub>Z</sub>) is a compact and connected metric space. Given f : |K| → Z with f<sub>V</sub> its restriction to V(K), and a (c,s)-good cover tower 𝐖 of Z such that (K, f, 𝐖) satisfies the minimum diameter condition (Condition 9.1), the bottleneck distance between Dgm<sub>log</sub>MM(𝐖, f) and Dgm<sub>log</sub>MM<sub>K<sup>1</sup></sub>(𝐖, f<sub>V</sub>) is at most 3·log(3c) + 3·max(0, log(1/s)). <span class="cite">— Dey &amp; Wang §9.6.2, Theorem 9.28, p. 286</span></p>
+</div>
+
+<p>Condition 9.1 belongs to §9.5: writing κ(𝐖) for the minimum diameter of any element of any cover in the tower, the triple (K, f, 𝐖) satisfies the <em>minimum diameter condition</em> if diam(f(σ)) ≤ κ(𝐖) for every simplex σ ∈ K — for a real-valued PL f, simply |f(u) − f(v)| ≤ κ(𝐖) on every edge. The factor 3 in the bound is not decoration either: the two towers interleave only in the weak sense of Definition 6.6, from a chapter this unit does not read, and that weakening costs exactly a factor of three. Algorithm 17, MMAPPER, is the resulting procedure: for each cover in the tower, collect V<sub>W</sub> ⊆ V(K) with f(V<sub>W</sub>) = f(V(K)) ∩ W, split it by cc<sub>K<sup>1</sup></sub>, build the nerve, then compute the diagram of the resulting filtration.</p>
+
+<div class="warn">
+<p><strong>What the mission strip claims, and what §9.1–9.6 establish.</strong> The strip calls the nerve theorem "the guarantee lab-08's Mapper output was implicitly leaning on". That is the one thing this chapter is at pains to deny. Dey and Wang quote the Nerve Theorem from Theorem 2.1 — a result of Chapter 2, not proved here — and immediately write that we cannot hope for such a good cover all the time; nothing establishes that a Mapper pullback cover has contractible intersections, and Figure 9.3 exhibits a pullback nerve failing even surjectivity in H<sub>2</sub>. What Mapper's output actually leans on is weaker and provable: the pullback cover is path connected by construction, so Theorem 9.5 and Theorem 9.9 give surjectivity in H<sub>1</sub> — loops in the picture come from loops in the data, and loops in the data may vanish. Everything in the strip's second sentence does hold: Definition 9.5 makes the cover a parameter and Corollaries 9.19, 9.22 and 9.24 are the error bars, in bottleneck distance, obtained from interleaving.</p>
+</div>
+
+<div class="warn">
+<p><strong>The pattern to carry out of this unit.</strong> Every bound after Corollary 9.19 is conditional on the cover tower being (c,s)-good. That is a property of an object the analyst designs, not of the data — balls of radius ε/2 give c = 2 — so unlike a noise model it can actually be checked, and c is then the error bar. Perturb the lens and Corollary 9.19 bounds the bottleneck distance by the interleaving parameter η; perturb the map by δ in sup-norm and Corollary 9.22 bounds it by log(2c·max(s,δ) + c) + max(0, log(1/s)); compare against the Čech filtration you might have built instead and Corollary 9.24 bounds it by 2c; compute on the 1-skeleton only and Theorem 9.28 costs a factor of 3 plus Condition 9.1. A Mapper picture reported without naming which of these applies is still a heuristic.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Take Z = [0,1] ⊂ ℝ with the usual metric — compact and connected, as Proposition 9.21 and Corollary 9.22 require — and the tower 𝓤<sub>ε</sub> = {B<sub>ε/2</sub>(z) : z ∈ Z}, that is, intervals of length ε centred everywhere. (i) Verify both clauses of Definition 9.8 directly and confirm c = 2. (ii) Two analysts use this tower with lens functions f and g differing by at most δ = 0.1 in sup-norm, and take s = 1. Write down the bound Corollary 9.22 gives on the bottleneck distance between their log-scaled diagrams, and evaluate it. (iii) A third analyst instead computes the intrinsic Čech filtration of (X, d<sub>f</sub>) from Definition 9.11. By Corollary 9.24, how far can their diagram be from the first analyst's, and does that bound depend on δ?</p>
+<p><em>Hint:</em> for (ii), with s = 1 the term max(0, log(1/s)) vanishes; for (iii), read the constant in Corollary 9.24 and note which quantities it does not mention.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Corollary 9.19 holds for arbitrary interleaved cover towers, but Corollary 9.22 requires the tower to be (c,s)-good. What is the difference in what is being perturbed?</p>
+<button onclick="check(this,true)" data-ok>Corollary 9.19 perturbs the cover tower with f fixed; Corollary 9.22 perturbs f with the tower fixed, and stability in f is what needs the goodness hypothesis</button>
+<button onclick="check(this,false)">Corollary 9.19 is additive and Corollary 9.22 multiplicative, which is the only difference</button>
+<button onclick="check(this,false)">Corollary 9.22 needs goodness because bottleneck distance is undefined for non-good covers</button>
+<div class="explain">Dey and Wang state the split explicitly: the diagram is stable under perturbation of the covers, but not necessarily under perturbation of the map, and (c,s)-good covers are introduced to address exactly that. The additive-versus-multiplicative distinction is real but secondary — it is why Corollary 9.22 is stated at log scale. The third option is invented: bottleneck distance is defined for the diagrams of any pointwise finite dimensional module here.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Why does Theorem 9.28 carry a factor of 3 that Theorem 9.23 does not?</p>
+<button onclick="check(this,false)">Because the 1-skeleton has three times fewer simplices than K</button>
+<button onclick="check(this,true)" data-ok>Because the two towers interleave only in the weak sense of Definition 6.6 rather than the strong one, and that weakening costs a factor of three</button>
+<button onclick="check(this,false)">Because the minimum diameter condition is checked on vertices, edges and triangles separately</button>
+<div class="explain">Dey and Wang say it plainly: the towers arising here interleave not in the strong sense but in a weaker one, and this limitation worsens the approximation by a factor of 3. The first option confuses a size saving with an error bound — the 1-skeleton being smaller is the <em>benefit</em>, not the cost. The third misreads Condition 9.1, which is a single requirement, diam(f(σ)) ≤ κ(𝐖) for every simplex.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> (1) Prove Theorem 9.9 from Proposition 9.8 and Theorem 9.5, and state carefully what it says about the birth and death of one-dimensional classes along a tower of nerves. (2) Prove Claim 9.2: any two (c,s)-good cover towers are multiplicatively c-interleaved. (3) Deduce Theorem 9.20 from Claim 9.2 using Proposition 9.17 and Proposition 9.18, naming which part of Proposition 9.17 you use.</p>
+<p><em>Hint:</em> for (1), a composite that is surjective forces the last map in the composite to be surjective. For (2), read the two clauses of Definition 9.8 against each other, one for each tower.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) Theorem 9.9.</strong> Let τ : N(𝓤) → N(𝓥) be induced by a cover map 𝓤 → 𝓥 with both covers path connected. Consider</p>
+<div class="math-block">H<sub>1</sub>(X) →<sup> φ̄<sub>𝓤∗</sub></sup> H<sub>1</sub>(N(𝓤)) →<sup> τ<sub>∗</sub></sup> H<sub>1</sub>(N(𝓥))   and   H<sub>1</sub>(X) →<sup> φ̄<sub>𝓥∗</sub></sup> H<sub>1</sub>(N(𝓥)).</div>
+<p>By Proposition 9.8, τ<sub>∗</sub> ∘ φ̄<sub>𝓤∗</sub> = φ̄<sub>𝓥∗</sub>. Since 𝓥 is path connected, Theorem 9.5 says φ̄<sub>𝓥∗</sub> is surjective. Now take any h ∈ H<sub>1</sub>(N(𝓥)); surjectivity gives some c ∈ H<sub>1</sub>(X) with φ̄<sub>𝓥∗</sub>(c) = h, and then τ<sub>∗</sub>(φ̄<sub>𝓤∗</sub>(c)) = h, so h is in the image of τ<sub>∗</sub>. Hence τ<sub>∗</sub> is surjective. ∎</p>
+<p>What it says: along a tower of nerves whose maps come from cover maps between path connected covers, every class of a later nerve is the image of a class of the earlier one. In persistence terms, a one-dimensional class can die as the cover coarsens, but no class is ever born. Note the direction — this is not stability, and it says nothing about how much dies; it says that whatever you see was there.</p>
+<p><strong>(2) Claim 9.2.</strong> Let 𝐔 and 𝐕 be (c,s)-good cover towers. Fix ε ≥ s and take any U ∈ 𝓤<sub>ε</sub>. By clause (i) of Definition 9.8 for 𝐔, s<sub>max</sub>(𝓤<sub>ε</sub>) ≤ ε, so diam(U) ≤ ε. By clause (ii) for 𝐕, λ(𝓥<sub>cε</sub>) ≥ ε, and by the definition of the Lebesgue number any set of size at most λ(𝓥<sub>cε</sub>) lies inside some element of 𝓥<sub>cε</sub>. Since size is diameter, U qualifies, so there is V ∈ 𝓥<sub>cε</sub> with U ⊆ V; set ζ<sub>ε</sub>(U) = V, choosing arbitrarily if several V work. Doing this for every U ∈ 𝓤<sub>ε</sub> gives a map of covers ζ<sub>ε</sub> : 𝓤<sub>ε</sub> → 𝓥<sub>cε</sub>, since a map of covers is exactly an assignment with U ⊆ V<sub>ζ(U)</sub>. The same argument with the roles of 𝐔 and 𝐕 exchanged gives ξ<sub>ε′</sub> : 𝓥<sub>ε′</sub> → 𝓤<sub>cε′</sub>. By Definition 9.7 in its multiplicative form, 𝐔 and 𝐕 are multiplicatively c-interleaved. ∎</p>
+<p><strong>(3) Theorem 9.20.</strong> Let 𝐔 and 𝐕 be (c,s)-good cover towers of Z and f : X → Z. By (2) they are multiplicatively c-interleaved as cover towers of Z. Apply Proposition 9.17(b), which says pullback along a continuous map preserves interleaving: f<sup>∗</sup>(𝐔) and f<sup>∗</sup>(𝐕) are multiplicatively c-interleaved cover towers of X. Now apply Proposition 9.18, which passes interleaving of cover towers to interleaving of their nerve towers: N(f<sup>∗</sup>(𝐔)) and N(f<sup>∗</sup>(𝐕)) are multiplicatively c-interleaved. By Definition 9.5 those are precisely MM(𝐔, f) and MM(𝐕, f). ∎</p>
+<p><em>What this does and does not license.</em> The chain uses Proposition 9.17(b) only; part (a), which composes two interleavings, is what one needs when chaining perturbations of the cover with perturbations of the map. Note also what is <em>not</em> concluded: the two multiscale mappers are not isomorphic and their diagrams are not equal — Theorem 9.20 bounds their discrepancy by the single constant c of the goodness hypothesis, and Dey and Wang's gloss, that any two (c,s)-good towers carry roughly the same information, should be read with that constant attached.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>Which hypothesis on a cover the Nerve Theorem wants, which one is actually available to Mapper, and what the weaker one still buys.</li>
+<li>How the cover stops being a fixed choice and becomes an index, and what object that produces.</li>
+<li>Which perturbation each stability result controls, and the hypothesis every one of them shares.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) the Nerve Theorem (Theorem 2.1) wants contractible intersections and gives homotopy equivalence, Mapper's pullback cover gives only path connectedness, and Theorem 9.5 with Theorem 9.9 turn that into surjectivity in H<sub>1</sub> — loops die, never born — with the blow-up space, Fact 9.1's partition of unity and Fact 9.2 as the apparatus; (2) Proposition 9.13 pulls back cover maps, Proposition 9.14 pulls back whole towers, Definition 9.5 takes nerves to get the multiscale mapper, and the homology of that tower is a pointwise finite dimensional persistence module with a diagram; (3) Corollary 9.19 controls perturbation of the cover tower with no goodness needed, Corollary 9.22 controls perturbation of the map and Corollary 9.24 the comparison with the intrinsic Čech filtration, both requiring Definition 9.8's (c,s)-goodness, with Theorem 9.28 charging a factor of 3 for computing on the 1-skeleton alone — and Proposition 9.2's contiguity is the hinge that lets non-commuting cover diagrams give honest interleavings — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — chapter opening: mapper as a lens, and the Nerve Theorem quoted from Theorem 2.1 with the warning that a good cover cannot be hoped for (pp. 255–256). §9.1 "Covers and Nerves": path connected covers as a standing assumption, maps of covers and Proposition 9.1 with proof, and functoriality N(ζ ∘ ξ) = N(ζ) ∘ N(ξ) (p. 257); Proposition 9.2 with proof and the canonicality of the induced homology map (p. 258); the Nerve Theorem restated, the homology-ball weakening, and Figure 9.3's failure of surjectivity in H<sub>2</sub> for a map 𝕊<sup>2</sup> → ℝ<sup>2</sup> (p. 259); the blow-up space X<sub>𝓤</sub> and the maps ζ, π, φ<sub>𝓤</sub> (pp. 259–261); Definition 9.1 and Definition 9.2 (p. 260); Fact 9.1, the nerve map in barycentric coordinates, and Fact 9.2 (p. 261); Proposition 9.3 (p. 261); Proposition 9.4 with its lifting construction, and Theorem 9.5 (p. 262); Proposition 9.6 on coherent partitions of unity (p. 263); Claim 9.1, Corollary 9.7 and Proposition 9.8 (p. 264); Figure 9.5, that a sequence of cover maps induces a simplicial tower in which H<sub>1</sub>-classes can only die (p. 263); Theorem 9.9 with proof (p. 265), and the persistence reading that H<sub>1</sub>-classes can die but not be born (p. 265). §9.3 "Mapper and Multiscale Mapper": the pullback cover and well-behavedness (p. 268); Definition 9.4 and Remark 9.1's sublevel-set and thick-levelset covers giving merge trees and a relaxed Reeb graph (p. 269); mapper for point cloud data with the graph G<sup>r</sup>(P) and the convergence remark (p. 270); Proposition 9.13 with proof (p. 271); Proposition 9.14 and Definition 9.5 (p. 272); the induced persistence module, its pointwise finite dimensionality and Dgm<sub>p</sub>MM(𝐔, f), Definition 9.6 and Proposition 9.15 (p. 273). §9.4 "Stability": Definition 9.7, Proposition 9.17 and Proposition 9.18 with the contiguity argument (pp. 275–276); Corollary 9.19 (p. 276); Definition 9.8 with the (2,s)-good example, Theorem 9.20, Claim 9.2 and Definition 9.9 (p. 277); Proposition 9.21 (pp. 277–278); Corollary 9.22 with the log(1/s) truncation argument (pp. 278–279); Definition 9.10, Definition 9.11, Theorem 9.23 and Corollary 9.24, with the motivation for comparing against a filtration connected by inclusions (pp. 279–280). §9.6 "Approximating Multiscale Mapper for General Maps": the partial-simplex problem, Definition 9.13 (p. 284), Definition 9.14 and the combinatorial multiscale mapper (p. 285); Algorithm 17 MMAPPER and Theorem 9.28 with its factor of 3 from weak interleaving in the sense of Definition 6.6 (p. 286). Imported by name from sections this unit does not otherwise read, because §9.4 and §9.6 do not parse without them: §9.2's Definition 9.3 on size and optimal cycle bases, the Lebesgue number λ(𝓤) and the maximum cover size s<sub>max</sub>(𝓤) (pp. 265–267), and §9.5's Condition 9.1, the minimum diameter condition (pp. 281–282). Cited but not restated, being Chapter 2, 4 and 6 material: Theorem 2.1; Definition 4.1 on towers, Definition 4.2 on interleaving of simplicial towers, Theorem 4.3 and Corollary 4.4, which convert interleaving into bottleneck bounds; and Definition 6.6 on weak interleaving. Not established here: that a Mapper cover satisfies the Nerve Theorem's hypothesis — the chapter denies it, and this lesson teaches the H<sub>1</sub>-surjection that replaces it. Deferred: §9.2's analysis of which persistent H<sub>1</sub>-classes survive, including Theorem 9.10 and Proposition 9.12, and with it §9.3.2's Theorem 9.16, whose statement is built on that machinery; §9.5's exact computation for PL-functions with Theorem 9.25 and Propositions 9.26 and 9.27; Claim 9.4; and §9.7's notes on the convergence of mapper to the Reeb graph.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

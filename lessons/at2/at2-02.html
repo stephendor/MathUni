@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at2-02 — The Universal Coefficient Theorem</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+svg{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology II · Nexus College</p>
+<h1>The Universal Coefficient Theorem <span class="cite">(at2-02)</span></h1>
+
+<div class="hook">
+Cohomology is not quite the dual of homology — there is a correction term, and it is exactly the torsion you met in aa-20.
+<p>At the end of at2-01 we had a map h : H<sup>n</sup>(C;G) → Hom(H<sub>n</sub>(C), G), knew it was surjective and split, and had one uncomfortable example: the little complex 0 → ℤ → ℤ → ℤ → ℤ → 0 with maps 0, 2, 0, where H<sub>2</sub>(C) = 0 and yet H<sup>2</sup>(C;ℤ) = ℤ<sub>2</sub>. The target of h was the zero group; the source was not. Something is unaccounted for.</p>
+<p>That something has a name, a construction, and — the point of this lesson — a completely computable answer for finitely generated groups. It also has a habit of disappearing the moment you work over a field, which is why nobody computing persistence over 𝔽<sub>p</sub> ever mentions it.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> In that complex, H<sub>1</sub>(C) = ℤ<sub>2</sub>, H<sub>2</sub>(C) = 0, and H<sup>2</sup>(C;ℤ) = ℤ<sub>2</sub>. Predict where the ℤ<sub>2</sub> in H<sup>2</sup> comes from.</p>
+<button onclick="check(this,false)">From H<sub>2</sub>(C), which must secretly be non-zero</button>
+<button onclick="check(this,true)" data-ok>From the torsion of H<sub>1</sub>(C) — the homology one dimension down</button>
+<button onclick="check(this,false)">From the coefficient group ℤ, which has 2-torsion</button>
+<div class="explain">Correct. H<sub>2</sub>(C) really is zero, and ℤ really is torsion-free; the only ℤ<sub>2</sub> anywhere in sight is the torsion of H<sub>1</sub>(C), one dimension below. The Universal Coefficient Theorem makes this precise: H<sup>n</sup>(C;G) is assembled from Hom(H<sub>n</sub>(C),G) — the same degree — together with a group Ext(H<sub>n−1</sub>(C),G) built from the degree below. Everything in this lesson is a way of constructing that second group and proving it is the only correction needed.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The UCT gives a split short exact sequence 0 → Ext(H<sub>n−1</sub>(X), G) → H<sup>n</sup>(X;G) → Hom(H<sub>n</sub>(X), G) → 0. Over a field Ext vanishes and H<sup>n</sup> is simply the dual of H<sub>n</sub> — the reason TDA over 𝔽<sub>p</sub> never has to reason about Ext.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Free resolutions, and why Ext is well defined</h2>
+
+<p>Recall the obstruction from at2-01. We had the short exact sequence 0 → B<sub>n−1</sub> → Z<sub>n−1</sub> → H<sub>n−1</sub>(C) → 0, and the group we could not identify was Coker of its dual. Hatcher's observation is that this sequence has a special feature: both B<sub>n−1</sub> and Z<sub>n−1</sub> are free. That makes it an instance of a general construction.</p>
+
+<div class="definition">
+<p><strong>Free resolution.</strong> A free resolution of an abelian group H is an exact sequence ⋯ → F<sub>2</sub> → F<sub>1</sub> → F<sub>0</sub> → H → 0 with each F<sub>n</sub> free, the maps being written f<sub>2</sub>, f<sub>1</sub>, f<sub>0</sub>. <span class="cite">— Hatcher §3.1, p. 193</span></p>
+</div>
+
+<p>Dualising a free resolution by Hom(&minus;, G) may lose exactness — that is the whole point — but it always leaves a complex ⋯ ← F<sub>2</sub><sup>∗</sup> ← F<sub>1</sub><sup>∗</sup> ← F<sub>0</sub><sup>∗</sup> ← H<sup>∗</sup> ← 0. Write H<sup>n</sup>(F;G) for the homology group Ker f<sub>n+1</sub><sup>∗</sup> / Im f<sub>n</sub><sup>∗</sup> of that dual complex.</p>
+
+<p>Every abelian group has an easy resolution, obtained in two steps. Choose generators for H and let F<sub>0</sub> be free on a basis matching them, giving a surjection f<sub>0</sub> : F<sub>0</sub> → H. The kernel of f<sub>0</sub> is a subgroup of a free abelian group, hence itself free, so we may take F<sub>1</sub> = Ker f<sub>0</sub> with f<sub>1</sub> the inclusion, and F<sub>i</sub> = 0 for i &gt; 1. For this resolution H<sup>n</sup>(F;G) = 0 whenever n &gt; 1, simply because the complex is zero there.</p>
+
+<p>Which raises the obvious worry. Different generating sets give different resolutions. If H<sup>1</sup>(F;G) depended on the resolution, it would be no invariant of H at all. It does not, and the reason is the following lemma — the technical heart of the section.</p>
+
+<div class="lemma">
+<p><strong>Lemma 3.1.</strong> (a) Given free resolutions F and F′ of abelian groups H and H′, every homomorphism α : H → H′ can be extended to a chain map from F to F′; furthermore, any two such chain maps extending α are chain homotopic. (b) For any two free resolutions F and F′ of H, there are canonical isomorphisms H<sup>n</sup>(F;G) ≅ H<sup>n</sup>(F′;G) for all n. <span class="cite">— Hatcher §3.1, Lemma 3.1, p. 194</span></p>
+</div>
+
+<p><em>Proof of (a), existence.</em> The maps α<sub>i</sub> : F<sub>i</sub> → F<sub>i</sub>′ are constructed inductively, and since each F<sub>i</sub> is free it suffices to define α<sub>i</sub> on a basis. For α<sub>0</sub>: given a basis element x of F<sub>0</sub>, surjectivity of f<sub>0</sub>′ provides x′ ∈ F<sub>0</sub>′ with f<sub>0</sub>′(x′) = αf<sub>0</sub>(x); set α<sub>0</sub>(x) = x′. For the inductive step we want α<sub>i</sub>(x) = x′ with f<sub>i</sub>′(x′) = α<sub>i−1</sub>f<sub>i</sub>(x), and such an x′ exists provided α<sub>i−1</sub>f<sub>i</sub>(x) lies in Im f<sub>i</sub>′ = Ker f<sub>i−1</sub>′. It does: f<sub>i−1</sub>′α<sub>i−1</sub>f<sub>i</sub> = α<sub>i−2</sub>f<sub>i−1</sub>f<sub>i</sub> = 0, using the previously built square and exactness of F. ∎</p>
+
+<p><em>Proof of (a), uniqueness up to chain homotopy.</em> If α<sub>i</sub>′ is another such chain map, the differences β<sub>i</sub> = α<sub>i</sub> &minus; α<sub>i</sub>′ form a chain map extending the zero map H → H′, so it suffices to build λ<sub>i</sub> : F<sub>i</sub> → F<sub>i+1</sub>′ with β<sub>i</sub> = f<sub>i+1</sub>′λ<sub>i</sub> + λ<sub>i−1</sub>f<sub>i</sub>. Take λ<sub>−1</sub> = 0; then the required relation at i = 0 is β<sub>0</sub> = f<sub>1</sub>′λ<sub>0</sub>, achievable on a basis because f<sub>0</sub>′β<sub>0</sub>(x) = βf<sub>0</sub>(x) = 0 puts β<sub>0</sub>(x) in Ker f<sub>0</sub>′ = Im f<sub>1</sub>′. Inductively one needs β<sub>i</sub>(x) &minus; λ<sub>i−1</sub>f<sub>i</sub>(x) ∈ Im f<sub>i+1</sub>′ = Ker f<sub>i</sub>′, and indeed f<sub>i</sub>′(β<sub>i</sub> &minus; λ<sub>i−1</sub>f<sub>i</sub>) = β<sub>i−1</sub>f<sub>i</sub> &minus; f<sub>i</sub>′λ<sub>i−1</sub>f<sub>i</sub> = (β<sub>i−1</sub> &minus; f<sub>i</sub>′λ<sub>i−1</sub>)f<sub>i</sub> = λ<sub>i−2</sub>f<sub>i−1</sub>f<sub>i</sub> = 0. ∎</p>
+
+<p><em>How (b) follows.</em> Dualising the α<sub>i</sub> gives a chain map between the dual complexes, hence induced maps α<sup>∗</sup> : H<sup>n</sup>(F′;G) → H<sup>n</sup>(F;G), independent of the choices because chain-homotopic maps dualise to chain-homotopic maps. Taking α to be an isomorphism and β its inverse gives α<sup>∗</sup>β<sup>∗</sup> = (βα)<sup>∗</sup> = 𝟙 and likewise the other way, so α<sup>∗</sup> is an isomorphism. Specialising to α = 𝟙 with two different resolutions of the same H produces the canonical isomorphism. ∎</p>
+
+<p>Now the definition can be made without apology.</p>
+
+<div class="definition">
+<p><strong>Ext.</strong> Since every H has a free resolution with F<sub>i</sub> = 0 for i &gt; 1, and by Lemma 3.1(b) the groups H<sup>n</sup>(F;G) do not depend on the resolution, H<sup>n</sup>(F;G) = 0 for all n &gt; 1 and every free resolution. The only interesting group is H<sup>1</sup>(F;G), which depends only on H and G; its standard notation is Ext(H, G). <span class="cite">— Hatcher §3.1, p. 195</span></p>
+</div>
+
+<p>The name comes from an interpretation of Ext(H,G) as the isomorphism classes of extensions of G by H, that is, short exact sequences 0 → G → J → H → 0. Hatcher records the fact and then says plainly that this interpretation is rarely needed in algebraic topology; we shall not use it either.</p>
+
+<h3>Worked example 1: Ext of a cyclic group</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Compute Ext(ℤ<sub>n</sub>, G) for an arbitrary abelian group G.</p>
+<p><strong>Step 1 — resolve.</strong> ℤ<sub>n</sub> is generated by one element, so take F<sub>0</sub> = ℤ with f<sub>0</sub> the quotient map ℤ → ℤ<sub>n</sub>. Its kernel is nℤ ≅ ℤ, so F<sub>1</sub> = ℤ with f<sub>1</sub> multiplication by n:</p>
+<div class="math-block">0 ⟶ ℤ &nbsp;<sup>n</sup>⟶&nbsp; ℤ ⟶ ℤ<sub>n</sub> ⟶ 0.</div>
+<p><strong>Step 2 — dualise.</strong> Apply Hom(&minus;, G) and delete the H<sup>∗</sup> term, as the definition of H<sup>n</sup>(F;G) requires. Since Hom(ℤ, G) ≅ G and the dual of multiplication by n is again multiplication by n, the dual complex is</p>
+<div class="math-block">0 ⟶ G &nbsp;<sup>n</sup>⟶&nbsp; G ⟶ 0, &emsp; with G in degrees 0 and 1.</div>
+<p><strong>Step 3 — take homology in degree 1.</strong> There is nothing in degree 2, so the kernel is all of G; the image of the incoming map is nG. Hence</p>
+<div class="math-block">Ext(ℤ<sub>n</sub>, G) = G / nG.</div>
+<p><strong>Step 4 — sanity check in degree 0.</strong> H<sup>0</sup>(F;G) = Ker(multiplication by n on G) = {g : ng = 0}, which is Hom(ℤ<sub>n</sub>, G): a homomorphism out of ℤ<sub>n</sub> is exactly a choice of element killed by n. The bookkeeping is consistent.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 2 (faded).</strong> Compute Ext(ℤ<sub>4</sub>, ℤ<sub>6</sub>).</p>
+<p><strong>Apply the formula.</strong> By worked example 1, Ext(ℤ<sub>4</sub>, ℤ<sub>6</sub>) = ℤ<sub>6</sub> / 4ℤ<sub>6</sub>.</p>
+<p><strong>Identify the subgroup.</strong> 4ℤ<sub>6</sub> = {0, 4, 8 mod 6, …} = <span class="gap">⟨your step: list the elements, then name the subgroup⟩</span>.</p>
+<p><strong>Take the quotient.</strong> ℤ<sub>6</sub> has order 6 and the subgroup has order <span class="gap">⟨your step⟩</span>, so the quotient is <span class="gap">⟨your step: which group?⟩</span>.</p>
+<p><strong>Moral.</strong> The answer is neither ℤ<sub>4</sub> nor ℤ<sub>6</sub>. Ext(H,G) is "the torsion of H" only in the special case G = ℤ; with torsion in the coefficient group as well, the two interact.</p>
+<p class="cite">Gap solutions: 4ℤ<sub>6</sub> = {0, 4, 2} = 2ℤ<sub>6</sub>, of order 3; the quotient has order 2, so Ext(ℤ<sub>4</sub>, ℤ<sub>6</sub>) ≅ ℤ<sub>2</sub>.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Compute Ext(ℤ<sub>12</sub>, ℤ<sub>9</sub>) and Hom(ℤ<sub>12</sub>, ℤ<sub>9</sub>) by the same two routes: once from the resolution directly, once from the formulas G/nG and {g : ng = 0}. Check the two agree.</p>
+<p><em>Hint:</em> 12ℤ<sub>9</sub> = 3ℤ<sub>9</sub>, since 12 ≡ 3 mod 9.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Lemma 3.1(b) matter for the definition of Ext, as opposed to being a technical curiosity?</p>
+<button onclick="check(this,false)">It shows that every abelian group has a free resolution</button>
+<button onclick="check(this,true)" data-ok>It shows H<sup>1</sup>(F;G) does not depend on which free resolution was chosen, so Ext(H,G) is an invariant of H and G alone</button>
+<button onclick="check(this,false)">It shows that Ext(H,G) vanishes when H is free</button>
+<div class="explain">Constructing a resolution involves choosing generators, and different choices give genuinely different complexes. Without Lemma 3.1(b) the symbol Ext(H,G) would name a different group for each choice. Existence of resolutions is the easy separate paragraph before the lemma; vanishing for free H is a consequence afterwards.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Where in the proof of Lemma 3.1(a) is freeness of the F<sub>i</sub> used, and where is exactness of F′ used?</p>
+<button onclick="check(this,true)" data-ok>Freeness lets α<sub>i</sub> be defined by arbitrary choices on a basis; exactness (Im f<sub>i</sub>′ = Ker f<sub>i−1</sub>′) guarantees a legitimate choice exists</button>
+<button onclick="check(this,false)">Freeness guarantees the choice exists; exactness lets us define maps on a basis</button>
+<button onclick="check(this,false)">Neither is used; the construction is purely formal</button>
+<div class="explain">The two hypotheses do different jobs and it is worth keeping them apart. Freeness of the source is a licence to define: a homomorphism out of a free abelian group may be prescribed however we like on a basis. Exactness of the target resolution is a guarantee of supply: the element we must hit, α<sub>i−1</sub>f<sub>i</sub>(x), is shown to lie in Ker f<sub>i−1</sub>′, which exactness identifies with Im f<sub>i</sub>′ — so a preimage is available to choose.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The theorem, and how to compute with it</h2>
+
+<p>Everything is now in place. In at2-01 we found a split short exact sequence with an unidentified kernel; Coker of the dual of B<sub>n−1</sub> → Z<sub>n−1</sub> is by definition H<sup>1</sup>(F;G) for the free resolution 0 → B<sub>n−1</sub> → Z<sub>n−1</sub> → H<sub>n−1</sub>(C) → 0, and that is Ext(H<sub>n−1</sub>(C), G).</p>
+
+<div class="theorem">
+<p><strong>Theorem 3.2 (universal coefficient theorem for cohomology).</strong> If a chain complex C of free abelian groups has homology groups H<sub>n</sub>(C), then the cohomology groups H<sup>n</sup>(C;G) of the cochain complex Hom(C<sub>n</sub>, G) are determined by split exact sequences</p>
+<div class="math-block">0 ⟶ Ext(H<sub>n−1</sub>(C), G) ⟶ H<sup>n</sup>(C;G) &nbsp;<sup>h</sup>⟶&nbsp; Hom(H<sub>n</sub>(C), G) ⟶ 0.</div>
+<p><span class="cite">— Hatcher §3.1, Theorem 3.2, p. 195</span></p>
+</div>
+
+<p>It is called <em>universal</em> because it expresses cohomology with any coefficient group in terms of homology with ℤ coefficients — one computation of H<sub>∗</sub>(C) serves for every G at once.</p>
+
+<h3>Visual: what goes where</h3>
+
+<p>The picture below is the whole theorem in one diagram. Each cohomology group in the bottom row receives the free part of the homology group directly above it, and the torsion of the homology group one place to its left.</p>
+
+<svg viewBox="0 0 640 260" width="640" height="260" role="img" aria-label="Diagram showing that H^n receives the free part of H_n from the same degree and the torsion of H_(n-1) from one degree lower">
+<text x="20" y="26" fill="#9aa5b1" font-family="Segoe UI" font-size="13">homology (with ℤ coefficients)</text>
+<g font-family="Segoe UI" font-size="13">
+<rect x="40" y="40" width="120" height="34" rx="7" fill="#1a2027" stroke="#4caf82"/>
+<text x="100" y="62" fill="#e8e8e8" text-anchor="middle">free part of H₁</text>
+<rect x="40" y="78" width="120" height="34" rx="7" fill="#1a2027" stroke="#e06c75"/>
+<text x="100" y="100" fill="#e8e8e8" text-anchor="middle">torsion T₁</text>
+<rect x="250" y="40" width="120" height="34" rx="7" fill="#1a2027" stroke="#4caf82"/>
+<text x="310" y="62" fill="#e8e8e8" text-anchor="middle">free part of H₂</text>
+<rect x="250" y="78" width="120" height="34" rx="7" fill="#1a2027" stroke="#e06c75"/>
+<text x="310" y="100" fill="#e8e8e8" text-anchor="middle">torsion T₂</text>
+<rect x="460" y="40" width="120" height="34" rx="7" fill="#1a2027" stroke="#4caf82"/>
+<text x="520" y="62" fill="#e8e8e8" text-anchor="middle">free part of H₃</text>
+<rect x="460" y="78" width="120" height="34" rx="7" fill="#1a2027" stroke="#e06c75"/>
+<text x="520" y="100" fill="#e8e8e8" text-anchor="middle">torsion T₃</text>
+</g>
+<g stroke="#4caf82" stroke-width="2" fill="none" marker-end="url(#ag)">
+<path d="M100 74 L100 186"/><path d="M310 74 L310 186"/><path d="M520 74 L520 186"/>
+</g>
+<g stroke="#e06c75" stroke-width="2" fill="none" marker-end="url(#ar)">
+<path d="M160 95 C 210 95, 250 140, 292 186"/>
+<path d="M370 95 C 420 95, 460 140, 502 186"/>
+</g>
+<defs>
+<marker id="ag" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#4caf82"/></marker>
+<marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#e06c75"/></marker>
+</defs>
+<g font-family="Segoe UI" font-size="13">
+<rect x="40" y="188" width="120" height="34" rx="7" fill="#1a2027" stroke="#8ab4f8"/>
+<text x="100" y="210" fill="#e8e8e8" text-anchor="middle">H¹</text>
+<rect x="250" y="188" width="120" height="34" rx="7" fill="#1a2027" stroke="#8ab4f8"/>
+<text x="310" y="210" fill="#e8e8e8" text-anchor="middle">H²</text>
+<rect x="460" y="188" width="120" height="34" rx="7" fill="#1a2027" stroke="#8ab4f8"/>
+<text x="520" y="210" fill="#e8e8e8" text-anchor="middle">H³</text>
+</g>
+<text x="20" y="248" fill="#9aa5b1" font-family="Segoe UI" font-size="13">cohomology: green = Hom term, same degree · red = Ext term, one degree up</text>
+</svg>
+
+<p>Three facts make Ext computable for finitely generated groups, and they are all the arithmetic you will ever need:</p>
+
+<div class="theorem">
+<p><strong>Computing Ext.</strong> Ext(H ⊕ H′, G) ≅ Ext(H,G) ⊕ Ext(H′,G); Ext(H,G) = 0 if H is free; and Ext(ℤ<sub>n</sub>, G) ≅ G/nG. <span class="cite">— Hatcher §3.1, p. 195</span></p>
+</div>
+
+<p>The first comes from using the direct sum of free resolutions of H and H′ as a resolution of H ⊕ H′ — you will prove this in the guided proof below. The second follows from the resolution 0 → H → H → 0 available when H is free. The third is worked example 1.</p>
+
+<p>Combining these with the structure theorem for finitely generated abelian groups (aa-20) gives the two facts that turn the theorem into a recipe: for finitely generated H, Ext(H, ℤ) is isomorphic to the torsion subgroup of H, and Hom(H, ℤ) is isomorphic to the free part of H. Hence:</p>
+
+<div class="theorem">
+<p><strong>Corollary 3.3.</strong> If the homology groups H<sub>n</sub> and H<sub>n−1</sub> of a chain complex C of free abelian groups are finitely generated, with torsion subgroups T<sub>n</sub> ⊂ H<sub>n</sub> and T<sub>n−1</sub> ⊂ H<sub>n−1</sub>, then H<sup>n</sup>(C;ℤ) ≅ (H<sub>n</sub>/T<sub>n</sub>) ⊕ T<sub>n−1</sub>. <span class="cite">— Hatcher §3.1, Corollary 3.3, p. 196</span></p>
+</div>
+
+<h3>Worked example 3: running the recipe</h3>
+
+<div class="worked">
+<p><strong>Example.</strong> Let C be a chain complex of free abelian groups with H<sub>0</sub> = ℤ, H<sub>1</sub> = ℤ<sub>2</sub>, H<sub>2</sub> = ℤ ⊕ ℤ<sub>3</sub>, and H<sub>n</sub> = 0 for n ≥ 3. Compute H<sup>n</sup>(C;ℤ) for all n.</p>
+<p><strong>Step 1 — split each homology group.</strong> Free parts: H<sub>0</sub>/T<sub>0</sub> = ℤ, H<sub>1</sub>/T<sub>1</sub> = 0, H<sub>2</sub>/T<sub>2</sub> = ℤ. Torsion: T<sub>0</sub> = 0, T<sub>1</sub> = ℤ<sub>2</sub>, T<sub>2</sub> = ℤ<sub>3</sub>.</p>
+<p><strong>Step 2 — apply Corollary 3.3 degree by degree.</strong></p>
+<div class="math-block">H<sup>0</sup> ≅ ℤ ⊕ 0 = ℤ; &emsp; H<sup>1</sup> ≅ 0 ⊕ T<sub>0</sub> = 0; &emsp; H<sup>2</sup> ≅ ℤ ⊕ T<sub>1</sub> = ℤ ⊕ ℤ<sub>2</sub>; &emsp; H<sup>3</sup> ≅ 0 ⊕ T<sub>2</sub> = ℤ<sub>3</sub>.</div>
+<p><strong>Step 3 — check against Theorem 3.2 in one degree.</strong> For n = 2 the sequence reads 0 → Ext(H<sub>1</sub>, ℤ) → H<sup>2</sup> → Hom(H<sub>2</sub>, ℤ) → 0, that is 0 → ℤ<sub>2</sub> → H<sup>2</sup> → ℤ → 0. It splits, so H<sup>2</sup> ≅ ℤ ⊕ ℤ<sub>2</sub>, agreeing with step 2. Note that Hom(ℤ ⊕ ℤ<sub>3</sub>, ℤ) = ℤ, the ℤ<sub>3</sub> contributing nothing to Hom.</p>
+<p><strong>Read the pattern.</strong> Every torsion summand appears in cohomology one dimension higher than it appeared in homology, and every free summand stays put. The complex has non-zero H<sup>3</sup> even though H<sub>3</sub> = 0 — the same phenomenon as the hook, one dimension along.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example 4 (faded).</strong> The same complex, now with G = ℚ.</p>
+<p><strong>The Ext terms.</strong> Ext(ℤ<sub>m</sub>, ℚ) = ℚ/mℚ, and multiplication by a non-zero integer m is <span class="gap">⟨your step: what kind of map on ℚ?⟩</span>, so mℚ = ℚ and every Ext term is <span class="gap">⟨your step⟩</span>.</p>
+<p><strong>The Hom terms.</strong> Hom(ℤ<sub>m</sub>, ℚ) = {q ∈ ℚ : mq = 0} = 0, so only the free parts survive: Hom(H<sub>0</sub>, ℚ) = ℚ, Hom(H<sub>1</sub>, ℚ) = 0, Hom(H<sub>2</sub>, ℚ) = ℚ.</p>
+<p><strong>Conclusion.</strong> H<sup>0</sup>(C;ℚ) = ℚ, H<sup>1</sup>(C;ℚ) = 0, H<sup>2</sup>(C;ℚ) = ℚ, H<sup>3</sup>(C;ℚ) = 0. The torsion has vanished without trace, and what remains is exactly the sequence of ranks.</p>
+<p class="cite">Gap solutions: multiplication by m is an isomorphism of ℚ, so mℚ = ℚ and every Ext term is 0.</p>
+</div>
+
+<h3>Naturality, and one thing that is not natural</h3>
+
+<p>The sequences of Theorem 3.2 are natural: a chain map α between chain complexes C and C′ of free abelian groups induces a commutative diagram between the two sequences, with the vertical maps (α<sub>∗</sub>)<sup>∗</sup> on the outer terms and α<sup>∗</sup> in the middle. The splitting, however, is <em>not</em> natural — it depends on the choice of the projections p : C<sub>n</sub> → Z<sub>n</sub> from at2-01, and a chain map need not respect such a choice on both sides. Hatcher notes that an exercise at the end of the section gives a topological example proving the splitting cannot be made natural.</p>
+
+<p>Naturality of the sequences alone is enough for the result that gets used most often:</p>
+
+<div class="theorem">
+<p><strong>Corollary 3.4.</strong> If a chain map between chain complexes of free abelian groups induces an isomorphism on homology groups, then it induces an isomorphism on cohomology groups with any coefficient group G. <span class="cite">— Hatcher §3.1, Corollary 3.4, p. 196</span></p>
+</div>
+
+<p><em>Proof.</em> Naturality gives a commutative ladder whose two rows are the universal coefficient sequences for C and C′, padded with zeros to five terms. The outer vertical maps are (α<sub>∗</sub>)<sup>∗</sup> applied to Ext and to Hom; since α<sub>∗</sub> is an isomorphism on homology, both are isomorphisms, and the two outermost maps are the identity of the zero group. The five lemma then forces the middle map α<sup>∗</sup> to be an isomorphism. ∎</p>
+
+<p>Finally, the generalisation that matters for everything downstream. Replace abelian groups by modules over a ring R and Hom by Hom<sub>R</sub>. The single fact the argument needed was that subgroups of free abelian groups are free; submodules of free R-modules are free when R is a principal ideal domain, so for such R one obtains natural split short exact sequences 0 → Ext<sub>R</sub>(H<sub>n−1</sub>(C), G) → H<sup>n</sup>(C;G) → Hom<sub>R</sub>(H<sub>n</sub>(C), G) → 0. And if R is a field, every R-module is free, so one may take free resolutions of the form 0 → F<sub>0</sub> → H → 0 and the Ext<sub>R</sub> term is always zero.</p>
+
+<p>That last sentence is the one to keep. Over a field the correction term disappears, h is an isomorphism, and cohomology is the honest dual of homology — which is why a persistence computation over 𝔽<sub>p</sub> may run on either side and get the same ranks, the fact at2-08 turns into an algorithm.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A chain complex of free abelian groups has H<sub>3</sub> = 0 and H<sub>2</sub> = ℤ<sub>5</sub>. What is H<sup>3</sup>(C;ℤ)?</p>
+<button onclick="check(this,false)">0, because H<sub>3</sub> = 0</button>
+<button onclick="check(this,true)" data-ok>ℤ<sub>5</sub>, since H<sup>3</sup> ≅ (H<sub>3</sub>/T<sub>3</sub>) ⊕ T<sub>2</sub> = 0 ⊕ ℤ<sub>5</sub></button>
+<button onclick="check(this,false)">ℤ, because Ext of a finite group is always free</button>
+<div class="explain">Corollary 3.3 reads off two different degrees: the free part from degree n and the torsion from degree n − 1. Here the free part of H<sub>3</sub> is zero but T<sub>2</sub> = ℤ<sub>5</sub>, so H<sup>3</sup>(C;ℤ) ≅ ℤ<sub>5</sub>. This is precisely the phenomenon the prediction gate asked about, one dimension along.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which of these is the correct reason Ext<sub>R</sub> vanishes when R is a field?</p>
+<button onclick="check(this,false)">Because fields have no torsion elements</button>
+<button onclick="check(this,true)" data-ok>Because every module over a field is free, so H admits a resolution 0 → F<sub>0</sub> → H → 0 with nothing in degree 1</button>
+<button onclick="check(this,false)">Because Hom<sub>R</sub>(H,G) is always zero over a field</button>
+<div class="explain">Ext(H,G) is by definition H<sup>1</sup> of a dualised free resolution. Over a field every module is free, so H itself may serve as F<sub>0</sub> with F<sub>1</sub> = 0, and the dual complex has nothing in degree 1 to take homology of. The first option confuses a property of the ring's elements with a property of its modules, and the third is simply false — Hom<sub>R</sub>(H,G) is the surviving term.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why is Corollary 3.4 not immediate from Theorem 3.2 alone?</p>
+<button onclick="check(this,false)">Because Theorem 3.2 requires the homology groups to be finitely generated</button>
+<button onclick="check(this,true)" data-ok>Because Theorem 3.2 is a statement about one complex at a time; comparing two complexes needs the sequences to be natural, which is a separate claim</button>
+<button onclick="check(this,false)">Because the splitting in Theorem 3.2 is not natural</button>
+<div class="explain">Theorem 3.2 tells you what H<sup>n</sup>(C;G) is built from, for each C separately. To conclude that a map inducing isomorphisms on homology induces one on cohomology, you need the two sequences to sit in a commuting ladder under the chain map — that is the naturality statement, proved separately, and it is what lets the five lemma bite. The non-naturality of the splitting is a real caveat but not the obstruction here: the ladder of sequences is all Corollary 3.4 uses. Theorem 3.2 has no finite-generation hypothesis; that enters only at Corollary 3.3.</div>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof</h3>
+<p><strong>Prompt.</strong> Prove the first of the three computational properties: Ext(H ⊕ H′, G) ≅ Ext(H,G) ⊕ Ext(H′,G). Do it as Hatcher indicates — by exhibiting a free resolution of H ⊕ H′ built from resolutions of the two summands — and be explicit about which lemma licenses you to use that particular resolution.</p>
+<p><em>Hint:</em> you will need Hom(A ⊕ B, G) ≅ Hom(A,G) ⊕ Hom(B,G), and the fact that taking homology commutes with finite direct sums of complexes.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Let F → H and F′ → H′ be free resolutions. Form the degreewise direct sum F ⊕ F′, with maps f<sub>i</sub> ⊕ f<sub>i</sub>′. Each F<sub>i</sub> ⊕ F<sub>i</sub>′ is free, being a direct sum of free abelian groups. Exactness is checked degreewise: an element (x, x′) is killed by f<sub>i</sub> ⊕ f<sub>i</sub>′ iff f<sub>i</sub>(x) = 0 and f<sub>i</sub>′(x′) = 0, so Ker(f<sub>i</sub> ⊕ f<sub>i</sub>′) = Ker f<sub>i</sub> ⊕ Ker f<sub>i</sub>′, and likewise Im(f<sub>i+1</sub> ⊕ f<sub>i+1</sub>′) = Im f<sub>i+1</sub> ⊕ Im f<sub>i+1</sub>′; the two agree summand by summand by exactness of F and F′. So F ⊕ F′ is a free resolution of H ⊕ H′.</p>
+<p>Now dualise. The natural isomorphism Hom(A ⊕ B, G) ≅ Hom(A,G) ⊕ Hom(B,G) identifies the dual complex (F ⊕ F′)<sup>∗</sup> with F<sup>∗</sup> ⊕ F′<sup>∗</sup>, compatibly with the coboundary maps, since the dual of f<sub>i</sub> ⊕ f<sub>i</sub>′ is f<sub>i</sub><sup>∗</sup> ⊕ f<sub>i</sub>′<sup>∗</sup> under that identification. Taking homology in degree 1 and using that kernels and images of a direct sum of maps are the direct sums of the kernels and images,</p>
+<div class="math-block">H<sup>1</sup>(F ⊕ F′; G) ≅ H<sup>1</sup>(F;G) ⊕ H<sup>1</sup>(F′;G).</div>
+<p>Finally, Lemma 3.1(b) says H<sup>1</sup> of a dualised free resolution depends only on the group being resolved and on G, not on the resolution. So the left-hand side is Ext(H ⊕ H′, G) and the right-hand side is Ext(H,G) ⊕ Ext(H′,G). ∎</p>
+<p><em>Where the lemma was indispensable.</em> Without it, the computation above would establish only that <em>this particular</em> resolution of H ⊕ H′ gives that answer, leaving open the possibility that a different resolution gives another. It is Lemma 3.1(b) that turns a computation with one convenient resolution into a statement about Ext.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What a free resolution is, why every abelian group has one that stops after F<sub>1</sub>, and what Lemma 3.1 has to be true for Ext(H,G) to be well defined at all.</li>
+<li>The statement of Theorem 3.2 — both outer terms, which degree each comes from, and the fact that the sequence splits.</li>
+<li>The three Ext rules, how they plus aa-20's structure theorem give Corollary 3.3, and the one line that makes the whole correction term vanish over a field.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) exact ⋯ → F<sub>1</sub> → F<sub>0</sub> → H → 0 with each F<sub>i</sub> free; take generators for F<sub>0</sub> and its kernel for F<sub>1</sub>, which is free as a subgroup of a free abelian group; Lemma 3.1(a) extends maps to chain maps uniquely up to chain homotopy and (b) makes H<sup>n</sup>(F;G) independent of the resolution; (2) 0 → Ext(H<sub>n−1</sub>(C),G) → H<sup>n</sup>(C;G) → Hom(H<sub>n</sub>(C),G) → 0, split, Ext from one degree down and Hom from the same degree; (3) Ext of a direct sum splits, Ext of a free group vanishes, Ext(ℤ<sub>n</sub>,G) = G/nG, hence Corollary 3.3's (H<sub>n</sub>/T<sub>n</sub>) ⊕ T<sub>n−1</sub>; and over a field every module is free so Ext<sub>R</sub> = 0 — then you have the lesson, and Corollary 3.4 is the five lemma applied to the naturality ladder.</p>
+</details>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em> — §3.1: free resolutions and the definition of H<sup>n</sup>(F;G) (p. 193); Lemma 3.1 with both halves of (a) and the deduction of (b) (p. 194); the two-term resolution, the definition of Ext(H,G), Theorem 3.2 and the three computational properties of Ext (p. 195); Corollary 3.3, the naturality of the sequences and the non-naturality of the splitting, Corollary 3.4, and the R-module generalisation with Ext<sub>R</sub> = 0 over a field (p. 196). Assumed from at2-01: the map h and its split short exact sequence (Hatcher §3.1, pp. 191–193). Assumed from aa-20: the structure theorem for finitely generated abelian groups. Deferred to at2-03: singular cochains and the cohomology of spaces (Hatcher §3.1, pp. 197 onwards).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

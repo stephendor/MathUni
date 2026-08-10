@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cap-02 — The TDL pipeline end to end</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table{border-collapse:collapse;margin:1rem 0;width:100%}
+th,td{border:1px solid #2a333d;padding:.4rem .6rem;text-align:left;font-size:.95rem}
+th{background:#1a2027;font-family:Segoe UI,sans-serif}
+</style></head><body>
+<p class="cite">Capstone · Nexus College</p>
+<h1>The TDL pipeline end to end <span class="cite">(cap-02)</span></h1>
+
+<div class="hook">
+Raw data in, defensible topological claim out — with every parameter choice on the record. There are about a dozen of them, and the data fixes none.
+<p>lab-09 let you run an analysis. This unit makes you write down what you ran. The exercise is duller than it sounds for about ten minutes, and then it stops being dull, because the ledger has a column for "which theorem constrains this" and a striking number of rows come back empty.</p>
+<p>The rows that are not empty are the interesting ones. Each carries a constant — log 2 here, log(1/(1−ε)) there, 1/(2πσ) at the end — and the obvious next question is what they add up to. That question has a definite answer, and it is not a number.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Sampling error is bounded by Theorem 6.3, sparsification error by Theorem 6.4, vectorisation error by Theorem 13.2. Predict what you get by chaining the three.</p>
+<button onclick="check(this,false)">The sum of the three constants — errors compose additively along a pipeline, which is what stability theorems are for</button>
+<button onclick="check(this,false)">Their product, since two of the three bounds are multiplicative</button>
+<button onclick="check(this,true)" data-ok>Neither: the three bound different quantities, in different metrics, on different scales, and at two of the junctions the corpus supplies no inequality in the direction needed — so there is no composite</button>
+<div class="explain">Theorem 6.3 bounds a bottleneck distance additively on the linear scale; Theorem 6.4(a) bounds a bottleneck distance multiplicatively at log scale; Theorem 13.2 needs a <em>1-Wasserstein</em> distance as its input. Adding an increment on the linear scale to one on the log scale is adding a length to a ratio, and feeding a bottleneck bound into a theorem that wants a Wasserstein bound requires an inequality this curriculum has not proved and which in general runs the other way. Segment 3 does the analysis properly, and finds one junction that can be repaired by changing a single choice in the ledger.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Running the full pipeline forces the choices lab-09 could leave implicit: metric, filtration, coefficient field, sparsification tolerance (tda2-08), vectorisation and its stability constant (tda2-09). Each one is a place the conclusion can quietly be lost.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The ledger, the metric, the filtration</h2>
+
+<p>Write the pipeline as a chain of objects, not a chain of verbs. Raw observations become a point set; a point set plus a metric becomes a finite metric space; that becomes a filtered complex; that becomes a diagram; that becomes a vector; that becomes a number compared against a reference. Eight stages, and each introduces parameters:</p>
+
+<table>
+<tr><th>Stage</th><th>Parameters introduced</th><th>Constrained by</th></tr>
+<tr><td>Feature construction</td><td>encoding</td><td>none</td></tr>
+<tr><td>Metric</td><td>choice of d</td><td>Theorem 6.3 (once fixed)</td></tr>
+<tr><td>Embedding</td><td>method, dimension, hyperparameters</td><td>none</td></tr>
+<tr><td>Sparsification</td><td>tolerance ε, construction</td><td>Theorem 6.4, Theorem 6.8</td></tr>
+<tr><td>Complex and filtration</td><td>Čech or Rips, max scale</td><td>the log 2 bound</td></tr>
+<tr><td>Persistence</td><td>coefficient field, dimensions</td><td>Theorem 5.21's field requirement</td></tr>
+<tr><td>Vectorisation</td><td>method, its scale σ, weight ω</td><td>Theorem 13.1, 13.2 or 13.3</td></tr>
+<tr><td>Statistic and null</td><td>statistic, null type, permutations, level</td><td>none</td></tr>
+</table>
+
+<p>Count the "none" rows. The encoding, the embedding and the whole statistical stage are bounded by nothing this curriculum has proved — which does not make them wrong, but does make the conclusion conditional on them in a way no stability result softens. That is the ledger's payload, and it is available before any computation runs.</p>
+
+<div class="definition">
+<p><strong>Definition 2.9 (Čech complex).</strong> For a metric space (M, d) and finite P, ℂ<sup>r</sup>(P) contains σ = {p<sub>0</sub>,…,p<sub>k</sub>} whenever ⋂<sub>i</sub> B(p<sub>i</sub>, r) ≠ ∅. <span class="cite">— Dey &amp; Wang §2.2, Definition 2.9, p. 32</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 2.10 (Vietoris–Rips complex).</strong> Let (P, d) be a finite metric space. Given a real r &gt; 0, the Vietoris–Rips complex is the abstract simplicial complex 𝕍ℝ<sup>r</sup>(P) where σ ∈ 𝕍ℝ<sup>r</sup>(P) if and only if d(p, q) ≤ 2r for every pair of vertices of σ. <span class="cite">— Dey &amp; Wang §2.2, Definition 2.10, p. 32</span></p>
+</div>
+
+<p>The Čech complex is the nerve of the union of balls; the Rips complex is determined by its 1-skeleton, which is why it is the one everybody computes. What that convenience costs is a theorem.</p>
+
+<div class="theorem">
+<p><strong>Corollary 6.1.</strong> For a fixed r ≥ 0, if the metric ball B<sub>Z</sub>(x, r) is convex for every x ∈ P, then ℂ<sup>r</sup>(P) is homotopy equivalent to P<sup>r</sup>, and thus H<sub>k</sub>(ℂ<sup>r</sup>(P)) ≅ H<sub>k</sub>(P<sup>r</sup>) for any k ≥ 0. <span class="cite">— Dey &amp; Wang §6.1, Corollary 6.1, p. 180</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 6.2.</strong> If B(x, r) is convex for every x ∈ P and all r ≥ 0, then the persistence module H<sub>k</sub>𝒫 is isomorphic to H<sub>k</sub>𝒞(P), and Dgm<sub>k</sub>𝒫 = Dgm<sub>k</sub>𝒞(P) for any k ≥ 0. <span class="cite">— Dey &amp; Wang §6.1, Proposition 6.2, p. 180</span></p>
+</div>
+
+<p>And the comparison between the two filtrations: they are multiplicatively 2-interleaved, so at log scale</p>
+<div class="math-block">d<sub>b</sub>(Dgm<sub>log</sub>𝒞(P), Dgm<sub>log</sub>ℛ(P)) ≤ log 2 ≈ 0.693.</div>
+<p>That number belongs in the ledger beside the choice. Whether it is cheap depends entirely on the persistence of the features you intend to claim — which cap-01 already made you write down.</p>
+
+<div class="definition">
+<p><strong>Definition 6.2 (Hausdorff distance).</strong> For compact A, B ⊆ (Z, d<sub>Z</sub>), d<sub>H</sub>(A,B) = max{max<sub>a∈A</sub> d<sub>Z</sub>(a,B), max<sub>b∈B</sub> d<sub>Z</sub>(b,A)}. <span class="cite">— Dey &amp; Wang §6.1, Definition 6.2, p. 181</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.3 (Gromov–Hausdorff distance).</strong> For metric spaces (X, d<sub>X</sub>) and (Y, d<sub>Y</sub>), a correspondence C ⊆ X × Y meets every x and every y; its distortion is ½ sup<sub>(x,y),(x′,y′)∈C</sub>|d<sub>X</sub>(x,x′) − d<sub>Y</sub>(y,y′)|; and d<sub>GH</sub>(X,Y) is the infimum of distortions. <span class="cite">— Dey &amp; Wang §6.1, Definition 6.3, p. 182</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 6.3.</strong> (a) For finite P, Q ⊆ (Z, d<sub>Z</sub>): d<sub>Cech</sub>(P,Q) ≤ d<sub>H</sub>(P,Q) and d<sub>Rips</sub>(P,Q) ≤ d<sub>H</sub>(P,Q). (b) For finite metric spaces (P, d<sub>P</sub>) and (Q, d<sub>Q</sub>): d<sub>Cech</sub>(P,Q) ≤ 2d<sub>GH</sub> and d<sub>Rips</sub>(P,Q) ≤ d<sub>GH</sub>. <span class="cite">— Dey &amp; Wang §6.1, Theorem 6.3, p. 182, with Definition 6.1's diagram distances, p. 181</span></p>
+</div>
+
+<p>Which part applies is a fact about your design, not your data. If your surrogates are generated in the same coordinate system as the observation, part (a) applies. If they are embedded independently — a separate UMAP fit, say — the two point sets are not in a common ambient space, part (b) applies, and the Čech bound acquires a factor 2 that Dey and Wang trace to the change in metric balls. A pipeline that runs its embedding separately per surrogate and then quotes part (a) has quoted the wrong theorem.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Your surrogates are each embedded by a separate fit of the dimension-reduction method. Which part of Theorem 6.3 applies?</p>
+<button onclick="check(this,true)" data-ok>Part (b), the Gromov–Hausdorff version — the point sets no longer live in a common ambient space, and the Čech bound picks up a factor 2</button>
+<button onclick="check(this,false)">Part (a), since both are embeddings of the same underlying data</button>
+<button onclick="check(this,false)">Neither, since Theorem 6.3 assumes the two sets have equal cardinality</button>
+<div class="explain">Part (a) is stated for finite P, Q ⊆ (Z, d<sub>Z</sub>) — a common metric space. Separate fits produce separate coordinate systems, so there is no such Z, and the applicable statement is part (b) in terms of d<sub>GH</sub>. Having the same underlying data is not the same as sharing an embedding. And Theorem 6.3 assumes nothing about cardinality; the diagram distances of Definition 6.1 are bottleneck distances, which handle unequal counts by matching to the diagonal.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> What does Proposition 6.2 add to Corollary 6.1, and what does it charge for it?</p>
+<button onclick="check(this,true)" data-ok>It upgrades a scale-by-scale homotopy equivalence to equality of persistence diagrams, and charges convexity of the balls at every radius rather than at one</button>
+<button onclick="check(this,false)">It removes the convexity hypothesis by quantifying over all radii</button>
+<button onclick="check(this,false)">It extends the result from Čech to Rips complexes</button>
+<div class="explain">One isomorphism per radius is not a statement about persistence, which is as much about the maps between scales as about the spaces; Proposition 6.2 asserts the isomorphism of modules and concludes Dgm<sub>k</sub>𝒫 = Dgm<sub>k</sub>𝒞(P). Its hypothesis is strictly stronger, not weaker. And it says nothing about Rips — the Rips comparison is the separate multiplicative 2-interleaving with its log 2 bound.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The field, and the tolerance</h2>
+
+<p>Two stages whose parameters look like implementation detail and are not.</p>
+
+<h3>Why the coefficients must be a field</h3>
+
+<p>Ghrist states it flatly, in the outline of the circular-coordinates method at2-08 studied: <em>"For the Structure Theorem (Theorem 5.21), field coefficients are required; for numerical reasons (to avoid roundoff errors), coefficients in a finite field 𝔽<sub>p</sub> are preferred."</em> Two separate claims. The first is existential: without a field the module need not decompose into intervals, so there is no barcode to report — the output object does not exist. The second is numerical: exact arithmetic in 𝔽<sub>p</sub> removes a class of error that floating-point rank computation introduces.</p>
+
+<p>The interesting part is what happens if your claim needs to leave 𝔽<sub>p</sub>. The short exact sequence of coefficients</p>
+<div class="math-block">0 ⟶ ℤ —<sup>·p</sup>→ ℤ ⟶ 𝔽<sub>p</sub> ⟶ 0</div>
+<p>yields a long exact sequence on cohomology, and the map at issue is ·p : H<sup>2</sup>(X;ℤ) → H<sup>2</sup>(X;ℤ), whose kernel is the p-torsional classes. Ghrist writes that "for p &gt; 2 these would seem to be rare occurrences in <em>organic</em> spaces X living behind data sets". By exactness ker(·p) = im δ, and <em>assuming this is zero</em>, the map H<sup>1</sup>(X;ℤ) → H<sup>1</sup>(X;𝔽<sub>p</sub>) is surjective, so persistent 𝔽<sub>p</sub>-classes lift to integral ones.</p>
+
+<div class="warn">
+<p><strong>Read the hedge.</strong> "Would seem to be rare occurrences in organic spaces" is a judgement about where the data came from, not a theorem — and X is the hidden space, so no amount of sampling settles it. This is the same shape as cap-01's reach and weak feature size: an unverifiable hypothesis that must appear in the claim rather than in a footnote. If your analysis never lifts to integral coefficients, you do not need the assumption, and the coefficient note should say so. Half the value of writing these notes is discovering which assumptions you were not actually using.</p>
+</div>
+
+<h3>The sparsification tolerance</h3>
+
+<div class="definition">
+<p><strong>Definition 6.4 (nets; net-tower).</strong> For finite P ⊂ (ℝ<sup>d</sup>, d), Q ⊆ P is a (γ,γ′)-net if it is a γ-sample (covering: d(p,Q) ≤ γ for every p) and γ′-sparse (packing: d(q,q′) ≥ γ′ for distinct q,q′). A net-tower is a nested family {N<sub>γ</sub>} with N<sub>γ</sub> a (γ, γ/c)-net for a fixed c. <span class="cite">— Dey &amp; Wang §6.2.1, Definition 6.4, pp. 183–184</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 6.5 (sparse Rips).</strong> With weights w<sub>p</sub>(α) from the exit-times and d̂<sub>α</sub>(p,q) = d(p,q) + w<sub>p</sub>(α) + w<sub>q</sub>(α), the open sparse Rips complex is <strong>Q</strong><sup>α</sup> = {σ ⊆ N<sub>ε(1−ε)α</sub> | d̂<sub>α</sub>(p,q) ≤ 2α}; the cumulative complex is 𝕊<sup>α</sup> = ⋃<sub>β≤α</sub><strong>Q̄</strong><sup>β</sup> and the ε-sparse Rips filtration is {𝕊<sup>α</sup>}. <span class="cite">— Dey &amp; Wang §6.2.1, Definition 6.5, pp. 185–186</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 6.4.</strong> For P ⊂ ℝ<sup>d</sup> with |P| = n, d constant and fixed 0 &lt; ε &lt; 1/3: (a) 𝕊(P) and ℛ(P) are multiplicatively 1/(1−ε)-interleaved, so Dgm<sub>k</sub>𝕊(P) is a log(1/(1−ε))-approximation of Dgm<sub>k</sub>ℛ(P) at log scale; (b) the total number of k-simplices ever appearing in 𝕊(P) is Θ((1/ε)<sup>kd</sup>n). <span class="cite">— Dey &amp; Wang §6.2.1, Theorem 6.4, p. 186</span></p>
+</div>
+
+<div class="worked">
+<p><strong>Worked example: putting a number on the tolerance.</strong> Take n = 10<sup>5</sup> points in ℝ<sup>3</sup>, ε = 0.1, and count triangles (k = 2).</p>
+<p><strong>The error.</strong> Theorem 6.4(a): log(1/(1 − 0.1)) = log(1/0.9) ≈ 0.105 at log scale. That is the whole of what sparsification costs the diagram, and it is a number you chose.</p>
+<p><strong>The size.</strong> Theorem 6.4(b): Θ((1/ε)<sup>kd</sup>n) = Θ(10<sup>6</sup> · 10<sup>5</sup>) = Θ(10<sup>11</sup>) triangles. Compare the exact filtration: once the scale passes the diameter of P, every subset spans a simplex and the d-skeleton has Θ(n<sup>d+1</sup>) = Θ(10<sup>20</sup>) simplices. Nine orders of magnitude saved — and still 10<sup>11</sup>.</p>
+<p><strong>The reading.</strong> "Linear in n" is exactly true and hides a constant exponential in kd. What sparsification buys is the removal of the n<sup>d+1</sup> growth, not smallness. And the two quantities move in opposite directions: as ε → 0 the error log(1/(1−ε)) → 0 while the constant (1/ε)<sup>kd</sup> → ∞. No ε makes both small.</p>
+<p><strong>The alternative.</strong> Definition 6.6's <em>weak</em> interleaving of vector space towers — where the maps exist and the diagrams commute only at discrete indices — supports the simpler simplicial-tower sparsification of Theorem 6.8, at 3log(1+ε) with O((1/ε)<sup>O(kd)</sup>n) simplices. For ε = 0.1 that is 3log(1.1) ≈ 0.286 against 0.105: about 2.7 times worse, and the factor 3 is exactly the price of weak rather than strong interleaving. Conceptually simpler, provably worse — and the ledger should record which you chose and why.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why can you not simply take ε very small and stop worrying about the sparsification error?</p>
+<button onclick="check(this,true)" data-ok>Because the size bound Θ((1/ε)<sup>kd</sup>n) blows up as ε → 0 — the two quantities move in opposite directions and ε is a point on that trade, not a free parameter</button>
+<button onclick="check(this,false)">Because Theorem 6.4 requires ε &gt; 1/3</button>
+<button onclick="check(this,false)">Because the error log(1/(1−ε)) does not tend to 0 as ε → 0</button>
+<div class="explain">Both quantities in Theorem 6.4 depend on ε and they oppose each other, which is what makes the choice a genuine decision rather than a formality. The hypothesis is ε &lt; 1/3, not &gt;, and it is used in the packing argument for part (b) to absorb the factor (1 − ε). And log(1/(1−ε)) does tend to 0 — that is precisely why the temptation exists.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Your analysis reports 𝔽<sub>2</sub>-barcodes and never lifts to ℤ. What do you owe the reader about torsion?</p>
+<button onclick="check(this,true)" data-ok>Nothing about the p-torsion condition, which is only needed for the lift — but you do owe the statement that a field was used and why, since the Structure Theorem requires one</button>
+<button onclick="check(this,false)">The full torsion assumption, since 𝔽<sub>2</sub>-coefficients always hide torsion</button>
+<button onclick="check(this,false)">Nothing at all, since coefficient choice is an implementation detail</button>
+<div class="explain">The p-torsion condition enters only when converting an 𝔽<sub>p</sub>-class to an integral one, so an analysis that stays in 𝔽<sub>2</sub> does not use it — and discovering that is one of the reasons to write the note. What is still owed is the field requirement itself, which is existential: without a field there is no barcode. The third option treats as detail the one choice without which the output object does not exist.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Vectorisation, and the budget that does not add up</h2>
+
+<div class="definition">
+<p><strong>Definition 13.2 (positive, negative semidefinite kernel).</strong> k : X × X → ℝ is positive semidefinite if symmetric and Σ<sub>i,j</sub>a<sub>i</sub>a<sub>j</sub>k(x<sub>i</sub>,x<sub>j</sub>) ≥ 0 for any n, any x<sub>1</sub>,…,x<sub>n</sub> and any a<sub>1</sub>,…,a<sub>n</sub> with Σa<sub>i</sub> = 0; negative semidefinite with the inequality reversed. <span class="cite">— Dey &amp; Wang §13.1.2, Definition 13.2, p. 393</span></p>
+</div>
+
+<div class="warn">
+<p><strong>The book's Definition 13.2 is quoted above exactly, and it is not the standard convention.</strong> Dey and Wang impose Σa<sub>i</sub> = 0 on <em>both</em> halves. In the usual terminology a <em>positive semidefinite</em> kernel requires Σ<sub>i,j</sub>a<sub>i</sub>a<sub>j</sub>k(x<sub>i</sub>,x<sub>j</sub>) ≥ 0 for <em>every</em> real coefficient vector, with no constraint; restricting to vectors summing to zero gives the weaker <em>conditionally</em> semidefinite notion, which is the natural hypothesis on the <em>negative</em> side, where it is what makes the Gaussian construction work. Two reasons to keep the quotation and flag it rather than silently repair it. First, this is the wording you will meet when you read §13.1.2, and recognising it is part of reading the source. Second, the distinction is load-bearing here: the RKHS correspondence the section goes on to use — a unique H<sub>k</sub> with k(x,y) = ⟨k(·,x), k(·,y)⟩ — needs the <em>unrestricted</em> property. The PSSK has it, and for a reason the text gives on the same page: k<sub>σ</sub> is defined as ⟨Φ<sub>σ</sub>(D), Φ<sub>σ</sub>(E)⟩ in ℒ²(Ω), and any kernel that is an inner product under a feature map is positive semidefinite in the unrestricted sense. So nothing downstream in this unit is affected; what would be affected is a reader who took the printed definition as a general test and certified a kernel that fails the unrestricted inequality.</p>
+</div>
+
+<p>Four vectorisations, four stability statements — and the differences between them are the whole content of this segment.</p>
+
+<div class="theorem">
+<p><strong>Theorem 13.1.</strong> For persistence diagrams D and D′, Λ<sub>∞</sub>(D, D′) ≤ d<sub>B</sub>(D, D′). <span class="cite">— Dey &amp; Wang §13.1.1, Theorem 13.1, p. 393 — the landscape, stable against the <em>bottleneck</em> distance, constant 1</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Definition 13.3 and Theorem 13.2.</strong> The PSSK feature map Φ<sub>σ</sub>(D)(x) = (1/4πσ)Σ<sub>y∈D</sub>[e<sup>−‖x−y‖²/4σ</sup> − e<sup>−‖x−ȳ‖²/4σ</sup>] satisfies ‖Φ<sub>σ</sub>(D) − Φ<sub>σ</sub>(E)‖<sub>𝓛²(Ω)</sub> ≤ (1/2πσ) d<sub>W,1</sub>(D, E). <span class="cite">— Dey &amp; Wang §13.1.2, p. 394 — stable against the <em>1-Wasserstein</em> distance, constant 1/(2πσ)</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Definition 13.4 and Theorem 13.3.</strong> With persistence surface μ<sub>D</sub>(z) = Σ<sub>u∈T(D)</sub>ω(u)φ<sub>u</sub>(z) and pixel integrals I<sub>D</sub>[𝗉] = ∫<sub>𝗉</sub>μ<sub>D</sub>, the persistence images satisfy ‖I<sub>D</sub> − I<sub>E</sub>‖<sub>1</sub> ≤ (√5|∇ω| + √(10/π)‖ω‖<sub>∞</sub>/σ)·d<sub>W,1</sub>(D, E). <span class="cite">— Dey &amp; Wang §13.1.3, p. 395 — <em>1-Wasserstein</em>, constant in ω and σ</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 13.5 (persistence weighted kernel).</strong> For a C<sub>0</sub>-universal kernel k on Ω and strictly positive ω, Ψ<sub>k,ω</sub>(D) = Σ<sub>x∈D</sub>ω(x)k(·,x) induces K<sub>k,ω</sub>(D,E) = Σ<sub>x∈D;y∈E</sub>ω(x)ω(y)k(x,y). <span class="cite">— Dey &amp; Wang §13.1.4, Definition 13.5, p. 396</span></p>
+</div>
+
+<p>And the two gaps tda2-09 established. For the persistence weighted Gaussian kernel, §13.1.4 says stability results with respect to both d<sub>B</sub> and d<sub>W,1</sub> exist in the cited work and then explicitly omits them — <em>no constant is available here</em>. For the persistence Fisher kernel, §13.1.6 proves positive definiteness (Corollary 13.8) and states no stability result at all. Positive definiteness says the object is a legitimate kernel; it says nothing about robustness to perturbing the diagram. A pipeline choosing either has an unquantified vectorisation stage, and the ledger should say so rather than leaving the row blank.</p>
+
+<h3>Visual: the budget, and where it breaks</h3>
+
+<canvas id="budCanvas" width="640" height="330" role="img" aria-label="A vertical chain of pipeline stages, each with its bound and metric, with red break bands marking the two junctions where the metrics are incompatible; a button swaps the vectorisation and closes one break"></canvas>
+<p style="text-align:center"><button onclick="swapVec()" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Swap the vectorisation</button></p>
+<script>
+(function(){
+const cv=document.getElementById('budCanvas'), ctx=cv.getContext('2d');
+let useLandscape=false;
+function rows(){ return [
+  {s:'sampling',       b:'d_Rips ≤ d_H ≤ ε', fam:'bottleneck', sc:'linear', c:'#8ab4f8', t:'Thm 6.3(a)'},
+  {s:'sparsification', b:'≤ log(1/(1−ε))',    fam:'bottleneck', sc:'log',    c:'#4caf82', t:'Thm 6.4(a)'},
+  useLandscape
+   ? {s:'vectorisation', b:'Λ∞ ≤ d_B', fam:'bottleneck',    sc:'linear', c:'#8ab4f8', t:'Thm 13.1'}
+   : {s:'vectorisation', b:'≤ (1/2πσ)·d_W,1', fam:'1-Wasserstein', sc:'linear', c:'#d8a657', t:'Thm 13.2'},
+  {s:'statistic + null', b:'—',                fam:'none',          sc:'—',  c:'#e06c75', t:'no theorem'} ]; }
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const R=rows(), H=62, X0=26, W=588;
+  R.forEach(function(r,i){
+    const y=42+i*H;
+    ctx.fillStyle='#151b21'; ctx.strokeStyle=r.c; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.rect(X0,y,W,44); ctx.fill(); ctx.stroke();
+    ctx.font='14px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle='#e8e8e8';
+    ctx.fillText(r.s, X0+12, y+19);
+    ctx.font='13px Segoe UI'; ctx.fillStyle='#9aa5b1';
+    ctx.fillText(r.b+'    ('+r.t+')', X0+12, y+37);
+    ctx.textAlign='right'; ctx.fillStyle=r.c;
+    ctx.fillText(r.fam+'  ·  '+r.sc+' scale', X0+W-12, y+28);
+    ctx.textAlign='left';
+  });
+  for(let i=0;i<R.length-1;i++){
+    const y=42+i*H+44;
+    const famOK=(R[i].fam===R[i+1].fam), scOK=(R[i].sc===R[i+1].sc);
+    const col = !famOK ? '#e06c75' : (scOK ? '#4caf82' : '#d8a657');
+    const msg = !famOK ? 'different metric — no inequality available'
+                       : (scOK ? 'metrics agree — composes'
+                               : 'same metric, different scale — no single number');
+    ctx.strokeStyle=col; ctx.lineWidth=2; ctx.setLineDash(col==='#4caf82'?[]:[5,4]);
+    ctx.beginPath(); ctx.moveTo(320,y+2); ctx.lineTo(320,y+16); ctx.stroke(); ctx.setLineDash([]);
+    ctx.font='12px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle=col;
+    ctx.fillText(msg, 332, y+14);
+  }
+  ctx.font='13px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle='#9aa5b1';
+  ctx.fillText(useLandscape ? 'vectorisation: persistence landscape (Theorem 13.1)'
+                            : 'vectorisation: PSSK (Theorem 13.2)', 26, 24);
+}
+window.swapVec=function(){ useLandscape=!useLandscape; draw(); };
+draw();
+})();
+</script>
+
+<p>Press the button. Swapping the PSSK for a persistence landscape changes the vectorisation's metric from 1-Wasserstein to bottleneck, and the junction above it stops being a break — because the upstream bound is a bottleneck bound and Theorem 13.1 is stated against exactly that. One line in the ledger, and a link in the chain that was unavailable becomes available. The junction between sampling and sparsification stays broken whatever you do: the metric there is the same on both sides, but one bound is an increment on the linear scale and the other on the log scale, and no choice of vectorisation touches that.</p>
+
+<div class="guided-proof">
+<h3>Guided derivation</h3>
+<p><strong>Prompt.</strong> This unit's guided block is a derivation rather than a proof, and the thing being derived is a negative. (1) Write out the three bounds — Theorem 6.3(a), Theorem 6.4(a), Theorem 13.2 — naming for each the quantity bounded, the metric, and whether the bound is additive on the linear scale or multiplicative at log scale. (2) Examine each junction in turn and decide whether the quantity bounded by the earlier step is the quantity the later step requires. (3) State what may honestly be reported, and identify the single change to the ledger that closes one of the two junctions.</p>
+<p><em>Hint:</em> at junction 2, ask whether the curriculum has proved any inequality bounding d<sub>W,1</sub> by d<sub>B</sub>.</p>
+<textarea class="proof-input" placeholder="Write your derivation here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>(1) The three bounds.</strong></p>
+<p><em>Sampling.</em> Theorem 6.3(a) with Definition 6.1: d<sub>Rips</sub>(P, X) ≤ d<sub>H</sub>(P, X) ≤ ε<sub>samp</sub>, where d<sub>Rips</sub> is the maximum over k of the <strong>bottleneck</strong> distances between the k-th Rips diagrams. Additive, on the linear scale.</p>
+<p><em>Sparsification.</em> Theorem 6.4(a): 𝕊(P) and ℛ(P) are multiplicatively 1/(1−ε<sub>sp</sub>)-interleaved, giving d<sub>b</sub>(Dgm<sub>log</sub>𝕊, Dgm<sub>log</sub>ℛ) ≤ log(1/(1−ε<sub>sp</sub>)). <strong>Bottleneck</strong> — but multiplicative, and stated at <strong>log scale</strong>.</p>
+<p><em>Vectorisation.</em> Theorem 13.2: ‖Φ<sub>σ</sub>(D) − Φ<sub>σ</sub>(E)‖ ≤ (1/2πσ)·d<sub>W,1</sub>(D, E). Additive on the linear scale, and stated against the <strong>1-Wasserstein</strong> distance.</p>
+<p><strong>(2) The junctions.</strong></p>
+<p><em>Junction 1: sampling → sparsification.</em> Both bound bottleneck distances, so the <em>metric</em> matches. What does not match is the axis. ε<sub>samp</sub> is an increment in the scale parameter; log(1/(1−ε<sub>sp</sub>)) is an increment in the <em>logarithm</em> of the scale parameter, equivalently a multiplicative factor 1/(1−ε<sub>sp</sub>). Adding them is adding a length to a ratio. One may of course convert, but only by fixing where on the scale axis the features sit — a feature at scale s suffers a multiplicative perturbation of absolute size s·(1/(1−ε<sub>sp</sub>) − 1), which depends on s. So there is no single number: the sparsification error, expressed additively, is different for different features, and any composite must be stated per feature or per scale band.</p>
+<p><em>Junction 2: diagrams → vectorisation.</em> Here the mismatch is the metric itself. Theorem 13.2 requires a bound on d<sub>W,1</sub>; everything upstream supplies a bound on d<sub>B</sub>. Nothing in the sections this curriculum has read supplies an inequality bounding d<sub>W,1</sub> above by d<sub>B</sub> — and one should not expect one, since by Definition 13.8 a Wasserstein distance is built from a <em>sum</em> over matched pairs while the bottleneck distance is a <em>maximum</em> over them, so the general relation runs the other way. The upstream bound therefore does not feed the downstream theorem at all. The composite is not loose; it is unavailable.</p>
+<p><strong>(3) What may be reported, and the repair.</strong> Three true statements, each in its own metric between its own pair of objects: the sampled diagram is within ε<sub>samp</sub> of the true diagram in bottleneck distance; the sparse diagram is within log(1/(1−ε<sub>sp</sub>)) of the exact one in log-scale bottleneck distance; and the feature vector moves by at most (1/2πσ) times the 1-Wasserstein distance between whatever two diagrams are actually compared. What may <em>not</em> be reported is a single end-to-end error, because no theorem in the curriculum joins them.</p>
+<p>The repair for Junction 2 is one line of the ledger: choose a vectorisation whose stability is stated against the bottleneck distance. Theorem 13.1 gives exactly that — Λ<sub>∞</sub>(D, D′) ≤ d<sub>B</sub>(D, D′), with constant 1 — so the landscape accepts precisely the bound the upstream stages produce. Junction 1 has no such repair; the linear-versus-log mismatch is intrinsic to the fact that Theorem 6.4's guarantee is multiplicative, and the honest treatment is to report it as a factor rather than convert it to a length.</p>
+<p><em>What this derivation does and does not license.</em> It licenses reporting each stage's bound and refusing to sum them, and it identifies a design change that makes one junction compose. It does not show that no end-to-end bound exists — a bound relating d<sub>W,1</sub> to d<sub>B</sub> under extra hypotheses, such as a cap on the number of off-diagonal points, would change the picture, and this curriculum simply has not proved one. The correct claim is about what <em>you</em> can currently justify, not about what is true.</p>
+</details>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example (faded): reading a row of the ledger.</strong> A collaborator's ledger has this row: <em>Stage: vectorisation · Parameter: persistence weighted Gaussian kernel, τ = 1, ω = arctan(C·pers) · Theorem that constrains it: Theorem 13.2.</em></p>
+<p><strong>Step 1 — check the theorem is the right one.</strong> Theorem 13.2 is the stability bound for the persistence <span class="gap">⟨your step: which construction?⟩</span>, defined by the feature map of Definition 13.3. It is not a statement about the persistence weighted kernel of Definition 13.5.</p>
+<p><strong>Step 2 — find the right one.</strong> Look for a displayed stability bound for the PWGK in §13.1.4. There is none: Dey and Wang say such results exist in the cited work with bounds depending on ω and k<sub>G</sub>, and then write that the precise statements are somewhat involved and they omit the details.</p>
+<p><strong>Step 3 — correct the row.</strong> The theorem column should read <span class="gap">⟨your step: what entry?⟩</span>, and the row joins the encoding, the embedding and the statistical stage in the set of choices bounded by nothing this curriculum has proved.</p>
+<p><strong>Step 4 — decide what to do.</strong> Either accept the unquantified stage and say so in the claim, or swap to a construction with a stated constant. The one thing not available is to leave Theorem 13.2 in the cell.</p>
+<p class="cite">Gap solutions: the persistence scale space kernel; and "none available in the read sections — see §13.1.4's omission".</p>
+</div>
+
+<div class="warn">
+<p><strong>What tdlbook.org supplies here.</strong> This unit's first-named resource is tdlbook.org, and <code>resources/RESOURCES.md</code> files it as the Semester-4 companion "alongside the TDL project". It is <em>Topological Deep Learning: Going Beyond Graph Data</em>: combinatorial complexes, combinatorial complex neural networks, higher-order message passing, pooling and unpooling, with applications to mesh segmentation and classification. It contains no persistent homology, no filtrations, no stability theorems and no null models, so it supplies none of the pipeline above. What it does supply is a genuine point of contact and a genuine contrast. Mapper — tda2-07's object — appears in §7.4 "Mapper and the CC-pooling operation", §9.4 "Pooling with mapper on graphs and data classification" and Appendix E, in the role of a <em>pooling operation</em> inside a neural architecture rather than a summary of data. That is worth seeing precisely because it is a different pipeline over the same construction: there, the topology is a layer whose parameters are learned; here, the topology is a measurement whose parameters you must fix in advance and defend. Note also the name collision this unit's title sits on: "TDL" here is the TDL project of <code>MISSION.md</code>, a persistent-homology pipeline, not Topological Deep Learning.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (i) Build the ledger for the analysis you intend to run, with all six columns, and count the rows whose theorem column reads "none". (ii) For your Čech-versus-Rips choice, write the log 2 cost next to it and say whether it is small compared with the persistence of the features cap-01 licensed you to claim. (iii) Take ε = 0.05 in Definition 6.5 with d = 3, k = 1, n = 3 × 10<sup>4</sup>: compute the log-scale error and the size bound, and compare with ε = 0.2. (iv) Look up the vectorisation you actually use and find its stability theorem. If there is none in the read sections, write "none" and say what that does to the claim. (v) Assemble the error budget with its "Where this budget does not compose" section, and check that you have named the metric and the scale for every row.</p>
+<p><em>Hint:</em> for (iii), ε = 0.05 gives log(1/0.95) ≈ 0.051 with constant (1/0.05)<sup>3</sup> = 8000; ε = 0.2 gives log(1/0.8) ≈ 0.223 with constant 125.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why does swapping the PSSK for a persistence landscape close junction 2?</p>
+<button onclick="check(this,true)" data-ok>Because Theorem 13.1 states the landscape's stability against the bottleneck distance, which is exactly the quantity the upstream theorems bound — the metrics now agree</button>
+<button onclick="check(this,false)">Because landscapes are lossless by Claim 13.1, so no information is dropped</button>
+<button onclick="check(this,false)">Because the landscape's constant is 1, and a constant of 1 composes with anything</button>
+<div class="explain">The junction fails because Theorem 13.2 needs a d<sub>W,1</sub> bound and the upstream supplies a d<sub>B</sub> bound; the fix is a downstream theorem stated against d<sub>B</sub>, which is Theorem 13.1. Losslessness is a separate and genuine virtue of landscapes but has nothing to do with metric compatibility. And a constant of 1 is convenient rather than decisive — a constant of 17 against the bottleneck distance would close the junction just as well.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> A row of the ledger has "none" in the theorem column. What follows?</p>
+<button onclick="check(this,false)">The parameter is unimportant and can be left at its default</button>
+<button onclick="check(this,true)" data-ok>The conclusion is conditional on that choice in a way no stability result softens, so the choice must be recorded and its effect argued for or swept</button>
+<button onclick="check(this,false)">The analysis is invalid and cannot be reported</button>
+<div class="explain">An empty theorem column is information, not a verdict: it marks a place where nothing you have proved bounds the effect of the choice, which is precisely why it must be recorded and, where affordable, swept. Treating it as unimportant inverts the meaning — the unbounded rows are the ones most in need of attention. And declaring the analysis invalid would rule out most applied work, including every pipeline whose encoding and embedding are chosen rather than derived.</div>
+</div>
+
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Close the page, look away, and reconstruct the argument skeleton — three load-bearing claims and why each forces the next:</p>
+<ol>
+<li>What the ledger is, and what its emptiest column tells you.</li>
+<li>The constants each stage contributes, and which choice each one is attached to.</li>
+<li>Why the constants do not add up, at which two junctions, and which of the two can be repaired.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) eight stages from raw data to reported number, a parameter list in which nothing is fixed by the data, and a "constrained by" column whose "none" entries — encoding, embedding, statistic and null — mark choices no theorem bounds; (2) log 2 for Čech against Rips, log(1/(1−ε)) and Θ((1/ε)<sup>kd</sup>n) for Definition 6.5's sparsification by Theorem 6.4 with 3log(1+ε) for Theorem 6.8's simpler tower, a field required outright by the Structure Theorem with the p-torsion condition needed only for an integral lift, and 1 against d<sub>B</sub> for landscapes by Theorem 13.1 against 1/(2πσ) against d<sub>W,1</sub> for the PSSK by Theorem 13.2 — with no constant available at all for the PWGK or the Fisher kernel; (3) junction 1 fails because additive-linear and multiplicative-log are increments on different axes, junction 2 fails because a bottleneck bound is not the Wasserstein bound Theorem 13.2 requires and the curriculum proves no inequality in that direction — and junction 2 closes by choosing a bottleneck-stable vectorisation while junction 1 does not close at all — then you have the lesson.</p>
+</details>
+</div>
+
+<footer>
+Sources. This unit has no textbook; its claims bind to three things. <strong>Theorems already proved in this curriculum, cited to their texts:</strong> Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — Definition 2.9 on the Čech complex and Definition 2.10 on the Vietoris–Rips complex (§2.2, p. 32); Corollary 6.1 and Proposition 6.2, and the multiplicative 2-interleaving of the Čech and Rips filtrations with its log 2 bottleneck bound at log scale, Eq. (6.3) (§6.1, p. 180); Definition 6.1 on the Čech and Rips diagram distances and Definition 6.2 on the Hausdorff distance (§6.1, p. 181); Definition 6.3 on the Gromov–Hausdorff distance and Theorem 6.3 with both parts and the provenance of the factor 2 in (b) (§6.1, p. 182); Definition 6.4 on nets and net-towers (§6.2.1, pp. 183–184); Definition 6.5 on the sparse Rips filtration (§6.2.1, pp. 185–186); Theorem 6.4 with its log(1/(1−ε)) error and Θ((1/ε)<sup>kd</sup>n) size, and the hypothesis ε &lt; 1/3 (§6.2.1, p. 186); Definition 6.6 on weak interleaving of vector space towers (§6.2.2, p. 191); Theorem 6.8's 3log(1+ε) (§6.2.2, p. 192); Theorem 13.1 on the landscape's bottleneck stability (§13.1.1, p. 393); Definition 13.2 on positive and negative semidefinite kernels (§13.1.2, p. 393); Definition 13.3 and Theorem 13.2 on the PSSK and its 1/(2πσ) bound against the 1-Wasserstein distance (§13.1.2, p. 394); Definition 13.4 and Theorem 13.3 on persistence images and their bound in ω and σ (§13.1.3, p. 395); Definition 13.5 on the persistence weighted kernel, together with §13.1.4's explicit omission of the PWGK stability bounds (§13.1.4, pp. 396–397); Corollary 13.8, the persistence Fisher kernel's positive definiteness, with §13.1.6 stating no stability result (§13.1.6, p. 400); Definition 13.8 on the (p,q)-Wasserstein distance (§13.3, p. 406). Ghrist, <em>Elementary Applied Topology</em> — §6.13's requirement of field coefficients for the Structure Theorem (Theorem 5.21), the numerical preference for 𝔽<sub>p</sub>, the coefficient sequence 0 → ℤ → ℤ → 𝔽<sub>p</sub> → 0 and the p-torsion condition with the hedge "rare occurrences in organic spaces" (pp. 131–132). Theorem 5.21 is named as Ghrist names it and is not restated here; §6.13 cites it without giving its statement. <strong>Repository artifacts:</strong> MathUni <code>MISSION.md</code> and <code>resources/RESOURCES.md</code>, the latter for the record of tdlbook.org's intended role. <strong>tdlbook.org</strong>, <em>Topological Deep Learning: Going Beyond Graph Data</em> — table of contents, and §7.4, §9.4 and Appendix E for Mapper as a CC-pooling operation. Supplied here, not in any source: the eight-stage decomposition and the ledger, which are this unit's own; and the junction analysis of the guided derivation, which is a statement about what the read corpus does and does not join. Not established here: any single end-to-end error bound for the pipeline. The junction between sampling and sparsification mixes an additive linear-scale bound with a multiplicative log-scale one, and the junction between the diagram and the vectorisation would require an inequality bounding the 1-Wasserstein distance by the bottleneck distance, which none of the read sections supplies and which the definitions make implausible in that direction. The absence of such a bound in this curriculum is not a proof that none exists under further hypotheses; the claim made here is about what can currently be justified.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
