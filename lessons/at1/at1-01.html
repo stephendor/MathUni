@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at1-01 — Homotopy, homotopy equivalence, and deformation retracts</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology I · Nexus College</p>
+<h1>Homotopy, homotopy equivalence, and deformation retracts <span class="cite">(at1-01)</span></h1>
+
+<div class="hook">
+A coffee mug and a doughnut, made rigorous — but the rigour arrives somewhere you would not have guessed.
+<p>Write the letters of the alphabet twice: once as thin strokes, once fattened into solid regions of the plane. The thin letter sits inside the thick one. Hatcher's picture for shrinking the thick letter onto the thin one is to cut the thick letter into line segments, one from each boundary point to a unique point of the thin subletter, and then slide every point down its own segment. Points already on the thin letter never move.</p>
+<p>That is the whole idea, and the definition is going to be exactly this picture with the time made explicit: a family of maps indexed by t in the interval [0,1]. What takes the rest of the lesson is noticing that this notion is <em>not symmetric</em> — the thick letter shrinks onto the thin one, but nothing shrinks the thin one onto the thick — and repairing that.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> The thin letters O, P and A are three different graphs: a circle, a circle with one whisker, and a circle with two whiskers joined at a point. Each of the three can be shrunk onto a circle. Now: is each of the three a deformation retract of each of the others?</p>
+<button onclick="check(this,false)">Yes — they all shrink to a circle, and shrinking is reversible</button>
+<button onclick="check(this,true)" data-ok>No — a deformation retract has to be a subspace, so the relation cannot even be stated both ways</button>
+<button onclick="check(this,false)">No, but only because the whiskers have different lengths</button>
+<div class="explain">Correct, and this is the crack the whole lesson widens. "A is a deformation retract of X" presupposes A ⊆ X. P is not a subspace of O, so the statement "O is a deformation retract of P" is not false — it is not even well formed. Hatcher makes exactly this contrast on p. 3: three graphs that "are all homotopy equivalent since they are deformation retracts of the same space", yet "none of the three is a deformation retract of any other". By Segment 2 you will have the symmetric replacement, and by Segment 3 you will know the one extra hypothesis that buys back the deformation retraction.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Homology is a homotopy invariant — that invariance is exactly why topological features survive noise.</p>
+
+<div class="warn">
+<p><strong>What this unit's source does and does not establish.</strong> The mission strip above is quoted verbatim, as the rubric requires, and it reaches past this unit's source in two places.</p>
+<p>Hatcher chapter 0 contains no homology at all. It builds the equivalence relation — homotopy equivalence — that homology will later be invariant under, and it flags the payoff twice without proving it: on p. 6 he says the Euler characteristic of a cell complex "depends only on its homotopy type, as we shall show in Theorem 2.44", and on p. 11 he says what one would like is "some sort of algebraic object associated to spaces, depending only on their homotopy type". That invariant is built in at1-03 and at1-07; the homotopy invariance of homology itself is Hatcher's Theorem 2.10, taught in at1-07.</p>
+<p>Nothing in chapter 0 concerns noise, perturbation, or data. The claim that features survive noise is a quantitative statement about persistence diagrams under perturbation of the input, and it is the stability theorem of tda1-07 — proved there from Oudot chapter 3 and Edelsbrunner VIII.2, in the specific metric those texts use. Homotopy invariance is a necessary ingredient in that story and is not the same statement: invariance says the answer is unchanged under an exact homotopy equivalence, stability says the answer changes by a controlled amount under an inexact perturbation. This lesson establishes the first notion only.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Sliding: deformation retraction, homotopy, retraction</h2>
+
+<p>Hatcher's thick-letter picture parametrises the shrinking by time. Here is the definition it produces, word for word in content.</p>
+
+<div class="definition">
+<p><strong>Deformation retraction.</strong> A deformation retraction of a space X onto a subspace A is a family of maps f<sub>t</sub> : X → X, t ∈ I, such that f<sub>0</sub> = 𝟙 (the identity map), f<sub>1</sub>(X) = A, and f<sub>t</sub>|A = 𝟙 for all t. The family f<sub>t</sub> should be continuous in the sense that the associated map X × I → X, (x, t) ↦ f<sub>t</sub>(x), is continuous. <span class="cite">— Hatcher, ch. 0, p. 2</span></p>
+</div>
+
+<p>Three conditions and a continuity clause, and the continuity clause is the one that carries the content. It is <em>not</em> the statement that each f<sub>t</sub> is continuous. It is the stronger statement that the single map on the product X × I is continuous — jointly in the point and the time. Every verification you do in this unit will turn on that distinction (top-04).</p>
+
+<h3>Worked example: the punctured plane onto the circle</h3>
+
+<div class="worked">
+<p><strong>Claim.</strong> ℝ<sup>n</sup> ∖ {0} deformation retracts onto S<sup>n−1</sup>, via f<sub>t</sub>(x) = (1 − t)x + t·x/|x|.</p>
+<p><strong>Step 0 — rewrite the formula so one scalar controls everything.</strong> Both x and x/|x| are multiples of x, so</p>
+<p style="text-align:center">f<sub>t</sub>(x) = λ(t, x)·x, &nbsp; where &nbsp; λ(t, x) = (1 − t) + t/|x|.</p>
+<p><strong>Step 1 — the map lands where it should.</strong> For t ∈ [0,1] both (1 − t) ≥ 0 and t/|x| ≥ 0, and they are not both zero: if t = 0 the first is 1, and if t &gt; 0 the second is positive. So λ &gt; 0 strictly. Since x ≠ 0 and λ ≠ 0, f<sub>t</sub>(x) = λx ≠ 0. The map really does send ℝ<sup>n</sup> ∖ {0} into itself. Skipping this step is the commonest error in this exercise, because the formula looks self-evidently harmless.</p>
+<p><strong>Step 2 — f<sub>0</sub> = 𝟙.</strong> λ(0, x) = 1, so f<sub>0</sub>(x) = x.</p>
+<p><strong>Step 3 — f<sub>1</sub>(X) = A.</strong> λ(1, x) = 1/|x|, so f<sub>1</sub>(x) = x/|x|, which has norm 1. Hence f<sub>1</sub>(X) ⊆ S<sup>n−1</sup>. For the reverse inclusion, any point of S<sup>n−1</sup> is fixed by f<sub>1</sub> (Step 4), so it is in the image. Therefore f<sub>1</sub>(X) = S<sup>n−1</sup>.</p>
+<p><strong>Step 4 — f<sub>t</sub>|A = 𝟙.</strong> If |x| = 1 then λ(t, x) = (1 − t) + t = 1 for every t, so f<sub>t</sub>(x) = x. Points of the sphere are stationary for the entire motion, exactly as Hatcher's points of the thin letter are.</p>
+<p><strong>Step 5 — joint continuity.</strong> The map (x, t) ↦ |x| is continuous on ℝ<sup>n</sup> × I and is non-zero on (ℝ<sup>n</sup> ∖ {0}) × I, so (x, t) ↦ t/|x| is continuous there as a quotient with non-vanishing denominator. Adding (1 − t) keeps continuity, giving λ continuous on (ℝ<sup>n</sup> ∖ {0}) × I. Finally scalar multiplication ℝ × ℝ<sup>n</sup> → ℝ<sup>n</sup> is continuous, and (x, t) ↦ f<sub>t</sub>(x) is the composite (x, t) ↦ (λ(t,x), x) ↦ λx. Composites of continuous maps are continuous. Note where the puncture was needed: at |x| = 0 the function 1/|x| is not defined, let alone continuous.</p>
+<p><strong>Consequence.</strong> The same formula does <em>not</em> work on all of ℝ<sup>n</sup>, and Step 1 already shows why: at x = 0 the formula is undefined. This is not a technicality to be patched. In at1-04 you will prove that no map whatever gives a deformation retraction of the disk onto its boundary sphere.</p>
+</div>
+
+<h3>Faded example: the Möbius band onto its core circle</h3>
+
+<div class="worked fade">
+<p>Hatcher's second picture (p. 2) is a deformation retraction of a Möbius band onto its core circle. Model the band as M = ([0,1] × [−1,1]) with (0, s) identified to (1, −s), and let A be the core circle, the image of [0,1] × {0}.</p>
+<p><strong>Step 1 — write the formula.</strong> Slide each point straight down its own vertical segment towards height 0:</p>
+<p style="text-align:center">f<sub>t</sub>([u, s]) = [u, (1 − t)s].</p>
+<p><strong>Step 2 — check it is well defined on the quotient.</strong> The identification sends (0, s) to (1, −s). Applying the formula to each: (0, s) ↦ (0, (1−t)s) and (1, −s) ↦ (1, −(1−t)s). These two are identified with each other, since the identification sends (0, w) to (1, −w) with w = (1 − t)s. So the formula respects the gluing and descends to M. ⟨your step: which property of the quotient topology lets you conclude the descended map is continuous?⟩</p>
+<p><strong>Step 3 — the three conditions.</strong> f<sub>0</sub>([u,s]) = [u, s], so f<sub>0</sub> = 𝟙. ⟨your step: f<sub>1</sub>(M) = A⟩ ⟨your step: f<sub>t</sub>|A = 𝟙⟩</p>
+<p><strong>Step 4 — joint continuity.</strong> ⟨your step: name the continuous map on [0,1] × [−1,1] × I you are descending, and why (u, s, t) ↦ (u, (1−t)s) is continuous⟩</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Let X be the closed annulus {x ∈ ℝ<sup>2</sup> : 1 ≤ |x| ≤ 2} and let A be the inner boundary circle |x| = 1. Write down a formula for a deformation retraction of X onto A and verify all four requirements. Then answer: is A also a deformation retract of X when X is the <em>open</em> annulus 1 &lt; |x| &lt; 2? Say precisely what goes wrong, and note that it is not a failure of continuity.</p>
+</div>
+
+<h3>Homotopy, retraction, and homotopy rel A</h3>
+
+<p>Hatcher now generalises in the obvious direction: keep the family, drop everything special about it.</p>
+
+<div class="definition">
+<p><strong>Homotopy; homotopic.</strong> A homotopy is any family of maps f<sub>t</sub> : X → Y, t ∈ I, such that the associated map F : X × I → Y given by F(x, t) = f<sub>t</sub>(x) is continuous. Two maps f<sub>0</sub>, f<sub>1</sub> : X → Y are homotopic if there exists a homotopy f<sub>t</sub> connecting them, written f<sub>0</sub> ≃ f<sub>1</sub>. <span class="cite">— Hatcher, ch. 0, p. 3</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Retraction.</strong> A retraction of X onto A is a map r : X → X such that r(X) = A and r|A = 𝟙. Equivalently, one may regard a retraction as a map X → A restricting to the identity on the subspace A ⊆ X. From a more formal viewpoint a retraction is a map r : X → X with r<sup>2</sup> = r, since this equation says exactly that r is the identity on its image. <span class="cite">— Hatcher, ch. 0, p. 3</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Homotopy rel A.</strong> A homotopy f<sub>t</sub> : X → Y whose restriction to a subspace A ⊆ X is independent of t is called a homotopy relative to A, or a homotopy rel A. <span class="cite">— Hatcher, ch. 0, p. 3</span></p>
+</div>
+
+<p>These three definitions let Hatcher repackage the first one, and the repackaging is worth memorising: <strong>a deformation retraction of X onto A is a homotopy rel A from the identity map of X to a retraction of X onto A.</strong> Every clause of the original definition is accounted for — f<sub>0</sub> = 𝟙 is the starting map, f<sub>1</sub>(X) = A makes the ending map a retraction, and f<sub>t</sub>|A = 𝟙 is the rel A.</p>
+
+<p>Hatcher asserts the r<sup>2</sup> = r characterisation without proof. Since the problem set uses it, here it is in full.</p>
+
+<div class="theorem">
+<p><strong>Lemma A (the idempotent characterisation).</strong> Let r : X → X be a map. Then r(X) = A and r|A = 𝟙 for some subspace A if and only if r<sup>2</sup> = r; and in that case A = r(X) necessarily.</p>
+<p><strong>Proof.</strong> (⟹) Let x ∈ X. Then r(x) ∈ r(X) = A, and r is the identity on A, so r(r(x)) = r(x). As x was arbitrary, r<sup>2</sup> = r.</p>
+<p>(⟸) Suppose r<sup>2</sup> = r and set A = r(X). Let a ∈ A, so a = r(x) for some x ∈ X. Then r(a) = r(r(x)) = r<sup>2</sup>(x) = r(x) = a. Hence r|A = 𝟙, and r(X) = A holds by the definition of A. ∎</p>
+<p>Note what the lemma does <em>not</em> say. It says nothing about deformation retractions. Every space retracts onto each of its points, via the constant map — which is idempotent — so retractions are cheap. The next lemma shows deformation retractions are not.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Lemma B (slices of a homotopy are paths).</strong> Let f<sub>t</sub> : X → Y be a homotopy and fix x ∈ X. Then γ : I → Y, γ(t) = f<sub>t</sub>(x), is continuous. Consequently, a space that deformation retracts onto a point is path-connected.</p>
+<p><strong>Proof.</strong> The inclusion I → X × I, t ↦ (x, t), is continuous, being the identity in the second coordinate and constant in the first. Composing with the continuous F : X × I → Y gives γ = F ∘ (t ↦ (x,t)), continuous as a composite. This is precisely the step that the weaker hypothesis — each f<sub>t</sub> continuous separately — would not support.</p>
+<p>Now suppose f<sub>t</sub> is a deformation retraction of X onto {x<sub>0</sub>}. For any x ∈ X the path γ above has γ(0) = f<sub>0</sub>(x) = x and γ(1) = f<sub>1</sub>(x) = x<sub>0</sub>, since f<sub>1</sub>(X) = {x<sub>0</sub>}. So every point is joined by a path to x<sub>0</sub>, and concatenating two such paths joins any two points. ∎</p>
+</div>
+
+<p>Hatcher draws the moral on p. 3: a space always retracts onto any point via the constant map, but a space that deformation retracts onto a point must be path-connected. He adds that it is "less trivial to show that there are path-connected spaces that do not deformation retract onto a point", and expects the letters with holes — A, B, D, O, P, Q, R — to be examples. Proving it needs an invariant, which is chapter 1's business and at1-03's.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which single clause of the definition of deformation retraction is the reason a discrete two-point space {0, 1} fails to deformation retract onto {0}?</p>
+<button onclick="check(this,false)">The continuity of X × I → X fails</button>
+<button onclick="check(this,true)" data-ok>f<sub>1</sub>(X) = A fails, because no continuous f<sub>1</sub> can carry 1 to 0</button>
+<button onclick="check(this,false)">f<sub>t</sub>|A = 𝟙 fails</button>
+<button onclick="check(this,false)">f<sub>0</sub> = 𝟙 fails</button>
+<div class="explain">By Lemma B, a space that deformation retracts onto a point is path-connected, and {0,1} discrete is not. Traced back to the definition, the obstruction sits at f<sub>1</sub>: the path t ↦ f<sub>t</sub>(1) would have to run continuously from 1 to 0 inside a discrete space, which forces it to be constant — so f<sub>1</sub>(1) = 1 ≠ 0 and the image is not A. Note that the constant map <em>is</em> a perfectly good retraction; it just is not the end of any homotopy starting at the identity.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In Step 5 of the worked example, why was it not enough to observe that each individual f<sub>t</sub> is a continuous map ℝ<sup>n</sup> ∖ {0} → ℝ<sup>n</sup> ∖ {0}?</p>
+<button onclick="check(this,false)">Because f<sub>t</sub> is only continuous for t &lt; 1</button>
+<button onclick="check(this,true)" data-ok>Because the definition requires the single map on X × I to be continuous, which is strictly stronger than continuity of every slice</button>
+<button onclick="check(this,false)">Because continuity has to be checked on the sphere separately</button>
+<button onclick="check(this,false)">Because ℝ<sup>n</sup> ∖ {0} is not compact</button>
+<div class="explain">Right. Hatcher writes the continuity clause on the associated map X × I → X deliberately. Separate continuity in each variable does not imply joint continuity in general, and Lemma B shows what joint continuity buys that slice-wise continuity does not: the <em>other</em> family of slices, the paths t ↦ f<sub>t</sub>(x), come out continuous too. That is the ingredient the path-connectedness argument runs on.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Repairing the asymmetry: homotopy equivalence</h2>
+
+<p>Now the crack from the prediction gate. Hatcher extracts what a deformation retraction gives, in a form that no longer mentions subspaces.</p>
+
+<p>If X deformation retracts onto A via f<sub>t</sub>, write r : X → A for the resulting retraction and i : A → X for the inclusion. Then two things hold: ri = 𝟙<sub>A</sub>, because r is the identity on A; and ir ≃ 𝟙<sub>X</sub>, the homotopy being f<sub>t</sub> itself. Generalise by forgetting that A sat inside X:</p>
+
+<div class="definition">
+<p><strong>Homotopy equivalence; homotopy type.</strong> A map f : X → Y is called a homotopy equivalence if there is a map g : Y → X such that fg ≃ 𝟙 and gf ≃ 𝟙. The spaces X and Y are said to be homotopy equivalent or to have the same homotopy type, written X ≃ Y. <span class="cite">— Hatcher, ch. 0, p. 3</span></p>
+</div>
+
+<p>The gain is immediate: the definition is visibly symmetric in f and g, so it can hold between two spaces neither of which is a subspace of the other. That is the repair. Hatcher calls checking that it is an equivalence relation "an easy exercise", "in contrast with the nonsymmetric notion of deformation retraction". The exercise is Problem 3, and it needs one lemma he does not isolate.</p>
+
+<div class="theorem">
+<p><strong>Lemma C (homotopy is compatible with composition).</strong> Let f<sub>0</sub> ≃ f<sub>1</sub> : X → Y. Then for any map g : Y → Z we have gf<sub>0</sub> ≃ gf<sub>1</sub>, and for any map h : W → X we have f<sub>0</sub>h ≃ f<sub>1</sub>h.</p>
+<p><strong>Proof.</strong> Let F : X × I → Y be continuous with F(·, 0) = f<sub>0</sub> and F(·, 1) = f<sub>1</sub>.</p>
+<p>For the first claim, g ∘ F : X × I → Z is continuous as a composite, and (g ∘ F)(·, 0) = gf<sub>0</sub>, (g ∘ F)(·, 1) = gf<sub>1</sub>. So g ∘ F is a homotopy from gf<sub>0</sub> to gf<sub>1</sub>.</p>
+<p>For the second, h × 𝟙<sub>I</sub> : W × I → X × I is continuous, so F ∘ (h × 𝟙<sub>I</sub>) : W × I → Y is continuous, and it takes (w, 0) to f<sub>0</sub>(h(w)) and (w, 1) to f<sub>1</sub>(h(w)). So it is a homotopy from f<sub>0</sub>h to f<sub>1</sub>h. ∎</p>
+</div>
+
+<p>With Lemma C the transitivity of ≃ is a computation. Suppose f : X → Y has homotopy inverse g, and f′ : Y → Z has homotopy inverse g′. The only candidate inverse for f′f is gg′, and</p>
+
+<p style="text-align:center">(gg′)(f′f) = g (g′f′) f ≃ g 𝟙<sub>Y</sub> f = gf ≃ 𝟙<sub>X</sub>,</p>
+
+<p>where the first ≃ applies Lemma C twice to the homotopy g′f′ ≃ 𝟙<sub>Y</sub> — once on the left by g and once on the right by f. The other composite is symmetric. Reflexivity takes g = 𝟙<sub>X</sub>; symmetry is free, since the definition treats f and g alike.</p>
+
+<h3>Worked example: the mapping cylinder</h3>
+
+<div class="definition">
+<p><strong>Mapping cylinder.</strong> For a map f : X → Y, the mapping cylinder M<sub>f</sub> is the quotient space of the disjoint union (X × I) ⊔ Y obtained by identifying each (x, 1) ∈ X × I with f(x) ∈ Y. <span class="cite">— Hatcher, ch. 0, p. 2</span></p>
+</div>
+
+<div class="worked">
+<p><strong>Claim.</strong> M<sub>f</sub> deformation retracts onto the subspace Y, for <em>every</em> map f — no hypothesis on f at all.</p>
+<p><strong>Step 1 — the formula, upstairs.</strong> Define on the disjoint union, before quotienting:</p>
+<p style="text-align:center">f̃<sub>t</sub>(x, s) = (x, s + t(1 − s)) &nbsp; on X × I, &nbsp;&nbsp; f̃<sub>t</sub>(y) = y &nbsp; on Y.</p>
+<p>The cylinder coordinate s moves towards 1 at a rate proportional to how far it has left to go; at t = 1 it arrives, whatever it started at.</p>
+<p><strong>Step 2 — it respects the identification.</strong> This is the only real step. The identification glues (x, 1) to f(x). Apply the formula to each side. On the cylinder side, f̃<sub>t</sub>(x, 1) = (x, 1 + t(1 − 1)) = (x, 1), which is glued to f(x). On the Y side, f̃<sub>t</sub>(f(x)) = f(x). The two results are the same point of M<sub>f</sub>, so the map descends.</p>
+<p><strong>Step 3 — continuity of the descended map.</strong> f̃ is continuous on ((X × I) ⊔ Y) × I, since a map out of a disjoint union is continuous exactly when its restriction to each summand is, and each piece here is built from continuous arithmetic. By the universal property of the quotient — a map out of a quotient is continuous exactly when its composite with the quotient map is (top-13) — the descended f<sub>t</sub> : M<sub>f</sub> × I → M<sub>f</sub> is continuous.</p>
+<p><strong>Step 4 — the three conditions.</strong> f<sub>0</sub>(x, s) = (x, s) and f<sub>0</sub>(y) = y, so f<sub>0</sub> = 𝟙. At t = 1, f<sub>1</sub>(x, s) = (x, 1) ∼ f(x) ∈ Y and f<sub>1</sub>(y) = y, so f<sub>1</sub>(M<sub>f</sub>) = Y. And f<sub>t</sub>|Y = 𝟙 by construction. All three hold.</p>
+<p><strong>Step 5 — cash it in.</strong> By the ri = 𝟙, ir ≃ 𝟙 observation at the top of this segment, the inclusion Y ↪ M<sub>f</sub> is a homotopy equivalence. This is Hatcher's main early tool: "the main tool we used for constructing homotopy equivalences was the fact that a mapping cylinder deformation retracts onto its 'target' end" (p. 10).</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Faded: reading the cylinder in two special cases.</strong></p>
+<p>Take X = S<sup>1</sup> and Y a single point, with f the only available map. The cylinder S<sup>1</sup> × I has its top circle S<sup>1</sup> × {1} entirely collapsed to that one point. The result is the cone on the circle, which is a disk. Step 4 then says the disk deformation retracts onto its cone point — as indeed it does.</p>
+<p>Now take X = Y = S<sup>1</sup> and f = 𝟙. ⟨your step: what is M<sub>f</sub> in this case, and which subspace does Step 4 retract it onto?⟩</p>
+<p>Finally take X = S<sup>1</sup>, Y = S<sup>1</sup>, and f the constant map at a point y<sub>0</sub>. ⟨your step: describe M<sub>f</sub>, and check by hand that Step 2's gluing computation still goes through even though f is very far from injective⟩</p>
+</div>
+
+<h3>Contractible spaces</h3>
+
+<div class="definition">
+<p><strong>Contractible; nullhomotopic.</strong> A space having the homotopy type of a point is called contractible. This amounts to requiring that the identity map of the space be nullhomotopic, that is, homotopic to a constant map. In general, this is slightly weaker than saying the space deformation retracts to a point. <span class="cite">— Hatcher, ch. 0, p. 4</span></p>
+</div>
+
+<p>Hold that last sentence up to Segment 1's repackaging and the gap becomes visible. A deformation retraction onto {x<sub>0</sub>} is a homotopy from 𝟙<sub>X</sub> to the constant map <em>rel</em> {x<sub>0</sub>}. Contractibility asks only for a homotopy from 𝟙<sub>X</sub> to a constant map, with no rel condition — so the point x<sub>0</sub> is allowed to wander while the contraction runs. That single dropped clause is the whole of the difference, and Hatcher's chapter-0 exercises supply a space realising it.</p>
+
+<p>Hatcher's showpiece is the <em>house with two rooms</em> (p. 4): a box divided into two chambers, each reachable from outside only through a tunnel punched down through the other, with two support walls. It is contractible — indeed it deformation retracts to a point — but not visibly so. The argument is worth its length: a closed ε-neighbourhood N(X) deformation retracts onto X and is homeomorphic to the ball D<sup>3</sup>, so X ≃ N(X) = D<sup>3</sup> ≃ point, and contractibility follows because homotopy equivalence is an equivalence relation. Hatcher then remarks it is "quite a challenging exercise to see exactly what this deformation retraction looks like" — the space contracts, but no one can picture it doing so.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A student claims: "M<sub>f</sub> deformation retracts onto Y, and it also contains X as the subspace X × {0}. So X and Y are both deformation retracts of M<sub>f</sub>, hence X ≃ Y for every map f whatsoever." Where is the error?</p>
+<button onclick="check(this,false)">M<sub>f</sub> does not actually contain a copy of X</button>
+<button onclick="check(this,true)" data-ok>The retraction onto Y is free, but nothing so far shows X is a deformation retract of M<sub>f</sub> — that needs f to be a homotopy equivalence</button>
+<button onclick="check(this,false)">Deformation retracts of a common space need not be homotopy equivalent</button>
+<button onclick="check(this,false)">The error is that X × {0} is not closed in M<sub>f</sub></button>
+<div class="explain">The two ends of the cylinder are not symmetric. Step 4 retracts onto Y with no hypothesis on f, because the identification is at the Y end and the slide runs towards it. Nothing yet retracts M<sub>f</sub> onto X × {0}, and the claim would prove every two spaces homotopy equivalent, which is absurd — take f : S<sup>1</sup> → point. Segment 3's Corollary 0.21 supplies exactly the missing condition: X is a deformation retract of M<sub>f</sub> precisely when f is a homotopy equivalence. The student has assumed the conclusion.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Let X be contractible and W any space. How many homotopy classes of maps W → X are there?</p>
+<button onclick="check(this,false)">As many as there are path components of W</button>
+<button onclick="check(this,true)" data-ok>Exactly one — every map W → X is nullhomotopic</button>
+<button onclick="check(this,false)">One for each point of X</button>
+<button onclick="check(this,false)">It depends on whether W is contractible</button>
+<div class="explain">Let H be a nullhomotopy of 𝟙<sub>X</sub>, ending at the constant map c. For any g : W → X, Lemma C's second half applied to 𝟙<sub>X</sub> ≃ c on the right by g gives g = 𝟙<sub>X</sub> ∘ g ≃ c ∘ g, and c ∘ g is itself constant. So every map into X is homotopic to the same constant map, and hence any two are homotopic to each other. Note the direction: maps <em>into</em> a contractible space collapse. Maps <em>out of</em> one collapse too, by the first half of Lemma C, but that is a separate application.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>The other end of the cylinder</h2>
+
+<p>Segment 2 left a debt. The mapping cylinder retracts onto Y for free; the question is when it also retracts onto X. Hatcher pays the debt in the last section of chapter 0, and the currency is a technical hypothesis.</p>
+
+<div class="definition">
+<p><strong>Homotopy extension property.</strong> A pair (X, A) has the homotopy extension property if every pair of maps X × {0} → Y and A × I → Y that agree on A × {0} can be extended to a map X × I → Y. Equivalently, (X, A) has the homotopy extension property if and only if X × {0} ∪ A × I is a retract of X × I. <span class="cite">— Hatcher, ch. 0, p. 14</span></p>
+</div>
+
+<p>Read it as an upgrade device. You are handed a homotopy that lives only on the subspace A, plus a map on all of X at time zero, and the property lets you extend the homotopy over all of X. That is precisely the missing ingredient identified in Segment 2's discussion of contractibility: the difference between a bare homotopy and a homotopy <em>rel</em> a subspace is control over what happens on the subspace, and this property is what supplies it. Hatcher's counterexample (pp. 14–15) is the pair (I, A) with A = {0, 1, 1/2, 1/3, 1/4, …}, where the property fails because of "the bad structure of (X, A) near 0".</p>
+
+<p>Three results follow, and the problem set uses all three.</p>
+
+<div class="theorem">
+<p><strong>Proposition 0.16.</strong> If (X, A) is a CW pair, then X × {0} ∪ A × I is a deformation retract of X × I, hence (X, A) has the homotopy extension property. <span class="cite">— Hatcher, ch. 0, p. 15</span></p>
+<p>The proof begins with a retraction r : D<sup>n</sup> × I → D<sup>n</sup> × {0} ∪ ∂D<sup>n</sup> × I given by radial projection from the point (0, 2) ∈ D<sup>n</sup> × ℝ, then sets r<sub>t</sub> = tr + (1 − t)𝟙 and builds up over skeleta, performing the n-th stage during the t-interval [1/2<sup>n+1</sup>, 1/2<sup>n</sup>] so that infinitely many concatenated homotopies still finish in unit time. The cell-complex machinery it runs on is at1-02's subject; this unit uses only the conclusion.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 0.17.</strong> If the pair (X, A) satisfies the homotopy extension property and A is contractible, then the quotient map q : X → X/A is a homotopy equivalence. <span class="cite">— Hatcher, ch. 0, p. 15</span></p>
+<p>This is the precise form of the hope Hatcher floats on p. 11 — that collapsing a subspace which already has the homotopy type of a point should not change the homotopy type of the whole. Note that contractibility of A alone is not the hypothesis; the extension property is there too, and Problem 5 asks you to say why.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 0.20.</strong> If (X, A) satisfies the homotopy extension property and the inclusion A ↪ X is a homotopy equivalence, then A is a deformation retract of X. <span class="cite">— Hatcher, ch. 0, p. 16</span></p>
+<p>This is the converse direction of Segment 2's opening observation, and it is the sentence that closes the loop the prediction gate opened. Going one way is free: a deformation retract is a homotopy equivalence. Coming back — from an abstract homotopy equivalence to an actual sliding motion that fixes A pointwise throughout — costs the homotopy extension property.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 0.21.</strong> A map f : X → Y is a homotopy equivalence if and only if X is a deformation retract of the mapping cylinder M<sub>f</sub>. Hence, two spaces X and Y are homotopy equivalent if and only if there is a third space containing both X and Y as deformation retracts. <span class="cite">— Hatcher, ch. 0, p. 16; proof on p. 17</span></p>
+<p>Hatcher's proof is short because the work is already done. In the mapping cylinder, write i : X → M<sub>f</sub> and j : Y → M<sub>f</sub> for the inclusions and r : M<sub>f</sub> → Y for the canonical retraction of Segment 2, so that f = ri and i ≃ jf. Since j and r are homotopy equivalences, f is a homotopy equivalence if and only if i is — using that a composite of homotopy equivalences is one, and that a map homotopic to a homotopy equivalence is one. Then apply Corollary 0.20 to the pair (M<sub>f</sub>, X), which has the homotopy extension property by Example 0.15, using the neighbourhood X × [0, 1/2] of X in M<sub>f</sub>.</p>
+</div>
+
+<p>So the answer to the prediction gate, in full. The three graphs are homotopy equivalent; none is a deformation retract of any other, because none is a subspace of any other; and Corollary 0.21 supplies the honest symmetric statement that replaces the failed one — there is a third space containing any two of them as deformation retracts, and one may always take it to be a mapping cylinder.</p>
+
+<h3>Visual: both ends of the cylinder</h3>
+
+<p>On the left, the deformation retraction of the punctured plane onto the circle from Segment 1: each ring of points slides radially, and the ring already on the circle never moves. On the right, the mapping cylinder of a map f : X → Y, with the slide running towards the Y end. Watch which end is reached and which is not — that asymmetry is the content of Corollary 0.21.</p>
+
+<canvas id="atCanvas" width="640" height="300" role="img" aria-label="Left: points of the punctured plane sliding radially onto the unit circle, with points already on the circle stationary. Right: a mapping cylinder whose points slide towards the Y end, leaving the X end behind."></canvas>
+<p style="text-align:center"><button onclick="togglePlay()" id="playBtn" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Pause</button></p>
+<script>
+(function(){
+  var cv = document.getElementById('atCanvas');
+  var ctx = cv.getContext('2d');
+  var t = 0, dir = 1, playing = true;
+
+  var cx = 150, cy = 162, R = 72;
+  var radii = [26, 44, 60, 72, 90, 112];
+  var x0 = 372, x1 = 596, ytop = 96, ybot = 228;
+
+  function lerp(a, b, u){ return a + (b - a) * u; }
+
+  function drawLeft(){
+    ctx.strokeStyle = '#2a333d';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+    ctx.stroke();
+    for (var i = 0; i < radii.length; i++){
+      var r0 = radii[i];
+      var r = lerp(r0, R, t);
+      var onCircle = (r0 === R);
+      ctx.fillStyle = onCircle ? '#4caf82' : '#8ab4f8';
+      for (var k = 0; k < 12; k++){
+        var a = 2 * Math.PI * k / 12 + i * 0.13;
+        ctx.beginPath();
+        ctx.arc(cx + r * Math.cos(a), cy + r * Math.sin(a), 2.6, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+    ctx.fillStyle = '#9aa5b1';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('punctured plane onto the circle', cx, 26);
+    ctx.fillStyle = '#4caf82';
+    ctx.fillText('green: already on the circle, never moves', cx, 268);
+  }
+
+  function drawRight(){
+    ctx.strokeStyle = '#2a333d';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x0, ytop, x1 - x0, ybot - ytop);
+    ctx.strokeStyle = '#d8a657';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(x0, ytop);
+    ctx.lineTo(x0, ybot);
+    ctx.stroke();
+    ctx.strokeStyle = '#4caf82';
+    ctx.beginPath();
+    ctx.moveTo(x1, ytop);
+    ctx.lineTo(x1, ybot);
+    ctx.stroke();
+    var rows = 6;
+    for (var i = 0; i < rows; i++){
+      var y = ytop + (ybot - ytop) * (i + 0.5) / rows;
+      var s0 = i / (rows - 1);
+      var s = s0 + t * (1 - s0);
+      ctx.fillStyle = '#8ab4f8';
+      ctx.beginPath();
+      ctx.arc(lerp(x0, x1, s), y, 3.2, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#9aa5b1';
+    ctx.font = '12px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('the mapping cylinder slides to the Y end', (x0 + x1) / 2, 26);
+    ctx.fillStyle = '#d8a657';
+    ctx.textAlign = 'left';
+    ctx.fillText('X end', x0 - 4, ytop - 10);
+    ctx.fillStyle = '#4caf82';
+    ctx.textAlign = 'right';
+    ctx.fillText('Y end', x1 + 4, ytop - 10);
+    ctx.fillStyle = '#9aa5b1';
+    ctx.textAlign = 'center';
+    ctx.fillText('t = ' + t.toFixed(2), (x0 + x1) / 2, 268);
+  }
+
+  function frame(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    drawLeft();
+    drawRight();
+    if (playing){
+      t += 0.006 * dir;
+      if (t >= 1){ t = 1; dir = -1; }
+      if (t <= 0){ t = 0; dir = 1; }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  window.togglePlay = function(){
+    playing = !playing;
+    document.getElementById('playBtn').textContent = playing ? 'Pause' : 'Play';
+  };
+
+  frame();
+})();
+</script>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Write this out properly before revealing the model answer. Two or three sentences each.</p>
+<p>Prove that if X deformation retracts onto A, then the inclusion i : A ↪ X is a homotopy equivalence. Then state, in one sentence, exactly what Corollary 0.20 adds to this — that is, what extra hypothesis converts the converse into a theorem, and why the converse is not free.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Claim.</strong> If f<sub>t</sub> is a deformation retraction of X onto A, then i : A ↪ X is a homotopy equivalence.</p>
+<p><strong>Proof.</strong> Let r : X → A be the map given by r(x) = f<sub>1</sub>(x); this is well defined into A because f<sub>1</sub>(X) = A, and continuous because f<sub>1</sub> is. First, ri = 𝟙<sub>A</sub>: for a ∈ A we have r(i(a)) = f<sub>1</sub>(a) = a, since f<sub>t</sub>|A = 𝟙 for every t, in particular at t = 1. Second, ir ≃ 𝟙<sub>X</sub>: the composite ir : X → X is exactly f<sub>1</sub>, and the family f<sub>t</sub> is by hypothesis a homotopy X × I → X from f<sub>0</sub> = 𝟙<sub>X</sub> to f<sub>1</sub>. So f<sub>t</sub> witnesses 𝟙<sub>X</sub> ≃ ir. Both conditions of the definition of homotopy equivalence hold, with g = r. ∎</p>
+<p><strong>What Corollary 0.20 adds.</strong> It supplies the converse, and the extra hypothesis is the homotopy extension property for the pair (X, A): given only that i : A ↪ X is a homotopy equivalence, one has some homotopy from ir to 𝟙<sub>X</sub>, but nothing forces that homotopy to hold A fixed while it runs — and a deformation retraction is by definition a homotopy <em>rel A</em>. The homotopy extension property is precisely the device for upgrading a homotopy prescribed on the subspace to one defined on all of X, which is what lets the rel A condition be imposed rather than merely hoped for.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Corollary 0.21 concludes that X ≃ Y if and only if some third space contains both as deformation retracts. Which of the two directions is the one that needed the whole homotopy-extension apparatus?</p>
+<button onclick="check(this,false)">Neither — both follow from the mapping cylinder retraction of Segment 2</button>
+<button onclick="check(this,true)" data-ok>The forward direction: from X ≃ Y, producing the third space, which requires showing M<sub>f</sub> also retracts onto its X end</button>
+<button onclick="check(this,false)">The reverse direction: from a common third space to X ≃ Y</button>
+<button onclick="check(this,false)">Both directions equally</button>
+<div class="explain">The reverse direction is cheap: if Z contains X and Y as deformation retracts then both inclusions are homotopy equivalences by the guided proof above, and ≃ is an equivalence relation, so X ≃ Y. The forward direction is the expensive one. Given a homotopy equivalence f, one takes Z = M<sub>f</sub>; Segment 2 gives the Y end for free, but the X end requires Corollary 0.20 applied to (M<sub>f</sub>, X), which needs that pair to have the homotopy extension property — supplied by Example 0.15 via the neighbourhood X × [0, 1/2].</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Close the laptop or look away. Reconstruct the argument skeleton from nothing: three load-bearing claims and why each forces the next. Then check.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Deformation retraction is the picture, and it is not symmetric.</strong> A family f<sub>t</sub> : X → X with f<sub>0</sub> = 𝟙, f<sub>1</sub>(X) = A, f<sub>t</sub>|A = 𝟙, jointly continuous on X × I. Equivalently: a homotopy rel A from 𝟙<sub>X</sub> to a retraction. The relation presupposes A ⊆ X, so it cannot be symmetric between two spaces — and Hatcher's three graphs show the failure is real, not an artefact.</p>
+<p><strong>2. Homotopy equivalence is the symmetric replacement, and a deformation retraction produces one.</strong> f : X → Y with g such that fg ≃ 𝟙 and gf ≃ 𝟙. If X deformation retracts onto A then ri = 𝟙 and ir ≃ 𝟙, so the inclusion is a homotopy equivalence. This forces the previous step's problem to go away, because the definition never mentions subspaces. The mapping cylinder makes the new relation constructive: M<sub>f</sub> deformation retracts onto Y for every f, with no hypothesis.</p>
+<p><strong>3. The converse costs a hypothesis, and Corollary 0.21 is the payoff.</strong> Going from an abstract homotopy equivalence back to an actual motion fixing A pointwise needs the homotopy extension property (Corollary 0.20), because only that lets a homotopy given on the subspace be extended over the whole space. Applied to (M<sub>f</sub>, X) it yields Corollary 0.21: f is a homotopy equivalence exactly when X too is a deformation retract of M<sub>f</sub> — so X ≃ Y precisely when a third space contains both as deformation retracts. That is the honest symmetric statement the first step could not make.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em>, chapter 0, "Some Underlying Geometric Notions". §"Homotopy and Homotopy Type": the thick-and-thin letters and the sliding construction, the definition of deformation retraction with its joint-continuity clause, the Möbius band retracting onto its core circle, and the mapping cylinder M<sub>f</sub> with the general fact that it deformation retracts onto Y (pp. 1–2); the definitions of homotopy, homotopic, retraction with the r<sup>2</sup> = r viewpoint, and homotopy rel A, the repackaging of a deformation retraction as a homotopy rel A from the identity to a retraction, the observation that a space deformation retracting onto a point must be path-connected while every space retracts onto each of its points, the definition of homotopy equivalence and homotopy type, the ri = 𝟙 and ir ≃ 𝟙 derivation, the remark that ≃ is an equivalence relation "in contrast with the nonsymmetric notion of deformation retraction", and the three graphs that are pairwise homotopy equivalent with none a deformation retract of any other (p. 3); contractible and nullhomotopic, the remark that contractibility is slightly weaker than deformation retracting to a point, and the house with two rooms with its N(X) ≅ D<sup>3</sup> argument (p. 4). §"Two Criteria for Homotopy Equivalence": the section opening and the statement that the mapping cylinder was the main early tool (p. 10); §"Collapsing Subspaces": the collapsing criterion as first floated, Example 0.7's three graphs, and the call for an algebraic invariant depending only on homotopy type (p. 11). §"The Homotopy Extension Property": the definition and its equivalent retraction form, and the pair (I, {0, 1, 1/2, 1/3, …}) for which it fails (p. 14, with the diagnosis of the failure carrying over to p. 15); Example 0.15's mapping cylinder neighbourhoods, Proposition 0.16 with its radial-projection retraction and skeleton-by-skeleton concatenation, and Proposition 0.17 (p. 15); Corollary 0.20 and the statement of Corollary 0.21 (p. 16), whose proof via f = ri and i ≃ jf is on p. 17. Also cited, not restated: Theorem 2.44 on the homotopy invariance of the Euler characteristic, forward-referenced by Hatcher on p. 6.
+<p>Lemma A (the idempotent characterisation), Lemma B (slices of a homotopy are paths, and path-connectedness of a space that deformation retracts to a point), and Lemma C (compatibility of homotopy with composition) are stated and proved in the body. Hatcher asserts all three in passing on pp. 3 and 4 without isolating or proving them; they are written out here because the problem set uses each one directly.</p>
+<p><strong>Not established here.</strong> That homology is a homotopy invariant: chapter 0 contains no homology, and the theorem is Hatcher's Theorem 2.10, taught in at1-07. That topological features survive noise: this is the stability theorem, proved in tda1-07 from Oudot chapter 3 and Edelsbrunner VIII.2, and it is a statement about perturbation of data in a specific metric rather than about exact homotopy equivalence. That there exist path-connected spaces which do not deformation retract onto a point: Hatcher states the expectation on p. 3 and defers the proof to chapter 1; it needs the fundamental group of at1-03 and at1-04. That the disk does not retract onto its boundary sphere: at1-04.</p>
+<p><strong>Deferred.</strong> Cell complexes, the n-skeleton, characteristic and attaching maps, subcomplexes and CW pairs, and the operations — products, quotients, suspension, cone, join, wedge sum, smash product — are chapter 0 pp. 5–10 and belong to at1-02; this unit uses "CW pair" only as an unopened hypothesis inside Proposition 0.16. The collapsing and attaching criteria worked out in Examples 0.7 to 0.14 (pp. 11–14), and Propositions 0.18 and 0.19 with the proof of 0.19 (pp. 15–17), are also at1-02's, which is where the CW machinery to use them arrives. Stillwell is listed as a resource for at1-04 only and is not consulted anywhere in this module; at1-01's resources name Hatcher chapter 0 alone.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
