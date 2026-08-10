@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cat-06 — Adjunctions</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body><p class="cite">Category Theory · Nexus College</p>
+<h1>Adjunctions <span class="cite">(cat-06)</span></h1>
+
+<div class="hook">
+<p>An adjunction is a pair of functors going opposite ways that are not inverse and not nearly inverse, but related by a bijection between two hom-sets — one on each side. Spivak's route in is the cleanest: for preorders, an adjunction is just f(p) ≤ q if and only if p ≤ g(q). Rewrite each side as "this hom-set is non-empty" and the biconditional becomes an isomorphism of hom-sets, which is the general definition. And the payoff, from Aluffi: once you know a functor is a right adjoint, you know it commutes with every limit, without knowing anything else about it.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Both authors insist the hom-set isomorphism of an adjunction be <em>natural</em>. Predict whether the preorder case can show you what naturality is for.</p>
+<button onclick="check(this,false)">Yes — it is the same condition in both cases</button>
+<button onclick="check(this,true)" data-ok>No. In a preorder every hom-set has at most one element, so every square of functions between them commutes automatically and naturality is invisible</button>
+<button onclick="check(this,false)">No, because preorders have no adjunctions</button>
+<div class="explain">Invisible. Any two functions between one-element sets agree, so the naturality squares commute for free and the condition costs nothing. That makes the preorder case a good on-ramp and a bad test — exactly the pattern cat-01 saw when every morphism in the ≤ category turned out to be a monomorphism vacuously. Naturality does real work only when hom-sets are large, and Segment 3's proof is where you see it doing that work.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Adjunctions organise the constructions (free complex, geometric realisation) that turn data into topology.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires. Neither source mentions simplicial complexes, geometric realisation, or data, so the parenthetical is entirely a forward pointer. The general claim, though, can be made precise here — and the interesting question is what "organise" cashes out to.</p>
+<p><strong>What is verified, and what is listed.</strong> Aluffi verifies exactly one instance: Example 1.16 establishes the free-group bijection Hom<sub>Set</sub>(A, S(G)) ≅ Hom<sub>Grp</sub>(F(A), G). He then adds that "the free functor is, as a rule, left-adjoint to the forgetful functor" — a remark, and the words "as a rule" are his. Spivak's Example 3.74 lists five families of adjunctions and introduces them with "If you know some abstract algebra or topology, here are some other examples"; he verifies none of them. So the pattern the strip relies on is, in these pages, one worked case and two informal generalisations. Problem 2(e) and Problem 5(e) ask the reader to audit that rather than absorb it.</p>
+<p><strong>What "organise" can be cashed out to, from these pages.</strong> Lemma 1.17: right adjoints commute with limits, left adjoints with colimits. That is a real and usable consequence — knowing a construction is a left adjoint tells you it preserves colimits, without knowing anything else about it, and contrapositively a construction that destroys some colimit cannot be a left adjoint. Segment 3 completes Aluffi's sketch of it. If the strip's "organise" means anything defensible from this unit, it means that.</p>
+<p><strong>And neither source proves Lemma 1.17.</strong> Aluffi says so: he "will not prove it in gory detail", offering instead to convince the reader that such statements "just boil down to suitable applications of the universal properties defining the various concepts". The guided proof completes his sketch along the strategy he names. This lesson does not say "Aluffi proves".</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>From Galois connections to the general definition</h2>
+
+<p>Spivak builds the definition rather than announcing it. An adjunction between preorders P and Q is a pair of monotone maps f : P → Q and g : Q → P that are, in his phrase, "almost inverses": f(p) ≤ q if and only if p ≤ g(q). Not f(g(q)) = q, not g(f(p)) = p — a two-way condition relating one comparison to another.</p>
+
+<p>Now recall from cat-01 that in a preorder, the hom-set P(a, b) has one element when a ≤ b and none otherwise. So "f(p) ≤ q" says Q(f(p), q) is non-empty, and "p ≤ g(q)" says P(p, g(q)) is non-empty. The biconditional says these are non-empty together — and since each has at most one element, that is the same as saying they are <em>isomorphic</em> as sets. Spivak: "either both are one-element sets or both are 0-element sets. This suggests how to define adjunctions in the general case."</p>
+
+<div class="definition">
+<p><strong>Definition 3.70 (Spivak).</strong> For categories C, D and functors L : C → D and R : D → C, we say L is <em>left adjoint</em> to R, and R <em>right adjoint</em> to L, if for any objects c of C and d of D there is an isomorphism of hom-sets α<sub>c,d</sub> : C(c, R(d)) ≅ D(L(c), d) that is <em>natural in c and d</em>. Given f : c → R(d), its image g := α<sub>c,d</sub>(f) is called its <em>mate</em>, and conversely. We write L ⊣ R. <span class="cite">— Spivak §3.4.2, p. 102</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Aluffi's version.</strong> ℱ : C → D and 𝒢 : D → C are <em>adjoint</em> — 𝒢 right-adjoint to ℱ, ℱ left-adjoint to 𝒢 — if there are <em>natural</em> isomorphisms Hom<sub>C</sub>(X, 𝒢(Y)) ≅ Hom<sub>D</sub>(ℱ(X), Y) for all X, Y. More precisely, he adds, there should be a natural isomorphism of <em>bifunctors</em> C<sup>op</sup> × D → Set. <span class="cite">— Aluffi §VIII.1.3, p. 492</span></p>
+</div>
+
+<p>The same definition, with the left adjoint written on opposite sides. Both authors put weight on <em>natural</em>, and both mean cat-04's Definition 1.15: the isomorphism must commute with the maps induced by morphisms in each variable separately. Spivak's footnote spells the square out — for f : c′ → c in C and g : d → d′ in D, the square relating α<sub>c,d</sub> and α<sub>c′,d′</sub> commutes. Without naturality the condition would say only that two hom-sets have the same cardinality, which is almost no information at all.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why is naturality automatic in the preorder case?</p>
+<button onclick="check(this,true)" data-ok>Because hom-sets there have at most one element, so any two functions between them agree and every square commutes</button>
+<button onclick="check(this,false)">Because monotone maps are automatically natural</button>
+<button onclick="check(this,false)">Because preorders are small categories</button>
+<button onclick="check(this,false)">It is not automatic; Spivak checks it</button>
+<div class="explain">Hom-sets are tiny. A naturality square asserts two composites of functions are equal; when the sets involved have at most one element, any two functions between them are equal and the assertion is free. This is the same collapse cat-01 recorded in Example 4.10 and cat-05 saw again when limits in a preorder reduced to meets. It is why the Galois-connection case is a good introduction and a poor test of understanding.</div>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: currying.</strong> <span class="cite">— Spivak Example 3.72 and Exercise 3.73, §3.4.2, pp. 103–104</span></p>
+<p>Fix a set B. For sets B and C, write C<sup>B</sup> for the set of functions B → C — written that way because if |C| = 10 and |B| = 3 then |C<sup>B</sup>| = 10<sup>3</sup>, and in general |C<sup>B</sup>| = |C|<sup>|B|</sup>. Then − × B is left adjoint to (−)<sup>B</sup>:</p>
+<p>Set(A × B, C) ≅ Set(A, C<sup>B</sup>).</p>
+<p>The idea, in Spivak's words: "if I have a function f of two variables a, b, I can 'put off' entering the second variable: if you give me just a, I'll return a function B → C that's waiting for the B input."</p>
+<p>Spivak then points out that he has only said what these functors do to <em>objects</em>, and sets Exercise 3.73. Complete it. Given f : X → Y, the functor − × B should send it to ⟨ which morphism X × B → Y × B? ⟩. The functor (−)<sup>B</sup> should send it to ⟨ which morphism X<sup>B</sup> → Y<sup>B</sup>, and is it pre- or post-composition? ⟩. Finally, curry addition + : ℕ × ℕ → ℕ to get p : ℕ → ℕ<sup>ℕ</sup>; then p(3) is ⟨ … — and note it is a function, not a number ⟩.</p>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Mates, units, and the examples</h2>
+
+<p>The isomorphism of Definition 3.70 does more than compare sizes; it lets you move morphisms across. Given f : c → R(d), its mate is α<sub>c,d</sub>(f) : L(c) → d, and the two operations are mutually inverse because α is an isomorphism.</p>
+
+<p>One choice of arguments is special, and it is the same trick cat-04's Yoneda proof used. Put d = L(c). Then the isomorphism reads C(c, R(L(c))) ≅ D(L(c), L(c)), and the right-hand side contains a canonical element: the identity on L(c). Pulling it back gives a morphism η<sub>c</sub> : c → R(L(c)), the <em>unit</em> of the adjunction. Dually one gets ε<sub>d</sub> : L(R(d)) → d, the counit. In the free-group adjunction η<sub>A</sub> : A → S(F(A)) is the inclusion of the generating set — each element of A as a one-letter word.</p>
+
+<p>Now the examples, and it is worth being careful about their status.</p>
+
+<div class="theorem">
+<p><strong>Example 1.16 (Aluffi), verified in the text.</strong> The free group functor F : Set → Grp is left adjoint to the forgetful functor S : Grp → Set: Hom<sub>Set</sub>(A, S(G)) ≅ Hom<sub>Grp</sub>(F(A), G), naturally. This is what the construction of the free group was "concocted" for — a set-function A → G is "the same as" a group homomorphism F(A) → G. <span class="cite">— Aluffi §VIII.1.3, pp. 492–493</span></p>
+<p>Aluffi then adds: "This of course applies to every other construction of 'free' objects we have encountered: the free functor is, <em>as a rule</em>, left-adjoint to the forgetful functor." The italics on "as a rule" are worth keeping — it is a remark about a pattern, not a proved theorem.</p>
+</div>
+
+<div class="warn">
+<p><strong>Spivak's Example 3.74 is a list, not a set of results.</strong> He gives five families: (1) free constructions — free group, monoid, ring, vector space — each a left adjoint to a forgetful functor; (2) free preorders and free categories on a graph, likewise; (3) discrete things — discrete preorder, graph, metric space, category, topological space — each a left adjoint to the underlying-set functor; (4) codiscrete things, each a <em>right</em> adjoint; (5) abelianisation, quotienting a group by its commutator subgroup, a left adjoint to the inclusion of abelian groups. And he introduces the whole list with "If you know some abstract algebra or topology, here are some other examples of adjunctions." None is verified. They are offered for recognition, and that is a legitimate way for a book to proceed — but it means a reader who takes the list as established has been more generous than the author asked.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In Example 3.74, which of "discrete" and "codiscrete" is the left adjoint?</p>
+<button onclick="check(this,true)" data-ok>Discrete is a left adjoint to the underlying-set functor; codiscrete is a right adjoint to it</button>
+<button onclick="check(this,false)">Both are left adjoints</button>
+<button onclick="check(this,false)">Discrete is a right adjoint, codiscrete a left adjoint</button>
+<button onclick="check(this,false)">Neither; they are inverse to each other</button>
+<div class="explain">Discrete on the left, codiscrete on the right — Spivak's items 3 and 4. The underlying-set functor therefore has adjoints on <em>both</em> sides, which is worth noticing: it is a right adjoint (to discrete) and a left adjoint (to codiscrete), so by Lemma 1.17 and its dual it preserves both limits and colimits. The fourth option is wrong for a structural reason: adjoints are not inverses, and Spivak's word for the preorder case was "almost inverses".</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> What is the unit η<sub>A</sub> of the free-group adjunction?</p>
+<button onclick="check(this,true)" data-ok>The inclusion of A into the underlying set of F(A), sending each element to itself as a one-letter word</button>
+<button onclick="check(this,false)">The identity map on A</button>
+<button onclick="check(this,false)">The map collapsing A to the trivial group</button>
+<button onclick="check(this,false)">The quotient of F(A) by its commutator subgroup</button>
+<div class="explain">The inclusion of generators. It is obtained by taking the identity of F(A) in Hom<sub>Grp</sub>(F(A), F(A)) and pulling it across the adjunction isomorphism to Hom<sub>Set</sub>(A, S(F(A))). Notice this is the same manoeuvre as cat-04's Yoneda proof — evaluate at the one morphism that is always there — and it is why the universal property of the free group is exactly the statement that η<sub>A</sub> is initial among maps from A into the underlying set of a group.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>What an adjunction buys: Lemma 1.17</h2>
+
+<div class="theorem">
+<p><strong>Lemma 1.17.</strong> Right-adjoint functors commute with limits. That is, if 𝒢 : D → C has a left adjoint ℱ and 𝒜 : I → D is a functor, there is a canonical isomorphism 𝒢(lim 𝒜) ≅ lim(𝒢 ∘ 𝒜), <em>if</em> the limits exist. Dually, left adjoints commute with colimits. <span class="cite">— Aluffi §VIII.1.3, p. 493 — stated, with the detailed proof declined</span></p>
+<p>Aluffi's gloss: "As every good calculus student should readily understand, this says that right-adjoint functors are <em>continuous</em>. (Needless to say, left-adjoint functors turn out to commute with <em>colimits</em> and would rightly be termed <em>cocontinuous</em>.)"</p>
+</div>
+
+<p>Aluffi then declines the proof, in terms worth quoting because they set the exercise: "We will not prove Lemma 1.17 in gory detail, but I will endeavor to convince the reader that such statements are easier than they look and just boil down to suitable applications of the universal properties defining the various concepts. By contrast, proving that a specific given functor preserves products (for instance), without appealing to abstract nonsense, may sometimes appear to involve some 'real' work."</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Complete Aluffi's sketch along the strategy he names: apply the universal properties. Show that if 𝒢 is a right adjoint then 𝒢(lim 𝒜) is a limit of 𝒢 ∘ 𝒜. Track, at each step, which universal property you are using — the limit's or the adjunction's — and find the one place naturality is needed. Write your argument before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Setup.</strong> Let L = lim 𝒜 with projections λ<sub>I</sub> : L → 𝒜(I), satisfying λ<sub>J</sub> = 𝒜(α) ∘ λ<sub>I</sub> for every α : I → J in I. That is cat-05's Definition 3.92.</p>
+<p><strong>Step 1: 𝒢(L) is a cone.</strong> Apply 𝒢 to get 𝒢(λ<sub>I</sub>) : 𝒢(L) → 𝒢(𝒜(I)). The cone condition survives because functors preserve composites — cat-03's observation that commutative diagrams go to commutative diagrams. So 𝒢(L) with these projections is a cone over 𝒢 ∘ 𝒜. <em>Functoriality only; no adjunction yet.</em></p>
+<p><strong>Step 2: transport an arbitrary cone across.</strong> Let (M, μ<sub>∗</sub>) be any cone over 𝒢 ∘ 𝒜 in C, so μ<sub>I</sub> : M → 𝒢(𝒜(I)). The adjunction gives, for each I, a mate μ′<sub>I</sub> : ℱ(M) → 𝒜(I). <em>Adjunction's universal property.</em></p>
+<p><strong>Step 3: the transported family is a cone.</strong> We need μ′<sub>J</sub> = 𝒜(α) ∘ μ′<sub>I</sub>. This is <em>exactly</em> where naturality is used. The naturality of α<sub>c,d</sub> in the second variable, applied at the morphism 𝒜(α) : 𝒜(I) → 𝒜(J), says that taking the mate commutes with post-composing by 𝒜(α) upstairs and by 𝒢(𝒜(α)) downstairs. Since (M, μ<sub>∗</sub>) is a cone, μ<sub>J</sub> = 𝒢(𝒜(α)) ∘ μ<sub>I</sub>; pushing both sides across gives μ′<sub>J</sub> = 𝒜(α) ∘ μ′<sub>I</sub>. Without naturality the mates would be unrelated and nothing would force the transported family to be a cone at all.</p>
+<p><strong>Step 4: use the limit downstairs.</strong> (ℱ(M), μ′<sub>∗</sub>) is a cone over 𝒜, so by the universal property of L there is a unique σ : ℱ(M) → L with λ<sub>I</sub> ∘ σ = μ′<sub>I</sub> for all I. <em>Limit's universal property.</em></p>
+<p><strong>Step 5: transport back.</strong> Take the mate of σ to get σ̄ : M → 𝒢(L). Naturality again — now in the first variable, or equivalently the inverse direction of Step 3 — shows 𝒢(λ<sub>I</sub>) ∘ σ̄ = μ<sub>I</sub>, so σ̄ is a morphism of cones. And it is unique, because σ was unique and taking mates is a bijection. <em>Adjunction plus limit.</em></p>
+<p><strong>Conclusion.</strong> Every cone over 𝒢 ∘ 𝒜 admits exactly one morphism to 𝒢(L), so 𝒢(L) is terminal in Cone(𝒢 ∘ 𝒜) — that is, 𝒢(lim 𝒜) ≅ lim(𝒢 ∘ 𝒜). ∎</p>
+<p><em>What to notice.</em> Aluffi's claim about the proof is accurate: nothing happens except applying two universal properties alternately, and the only substantive step is Step 3, where naturality converts "a compatible family of morphisms" into "a compatible family of mates". Skipping it is the standard way this argument goes wrong, because Steps 2, 4 and 5 all look like they work without it.</p>
+</details>
+</div>
+
+<p>The lemma is worth having because of what it lets you conclude about functors you know almost nothing about. The forgetful functor Grp → Set is a right adjoint, so it preserves products: the underlying set of G × H is the product of the underlying sets. Checking that directly means verifying a universal property twice; here it is free. And the contrapositive is the sharper tool — a construction that fails to preserve some limit cannot be a right adjoint, and one that destroys a colimit cannot be a left adjoint.</p>
+
+<canvas id="adj" width="640" height="330" aria-label="The adjunction hom-set isomorphism drawn as two boxes: morphisms from c to R of d on the left, morphisms from L of c to d on the right, joined by a two-headed arrow labelled natural in both variables. Beneath, the unit obtained by feeding the identity through, and a summary line recording that right adjoints commute with limits and left adjoints with colimits."></canvas>
+
+<div class="you-try">
+<p><strong>You try.</strong> Spivak's Example 3.74 item 4 says codiscrete constructions are <em>right</em> adjoints to the underlying-set functor, while item 3 says discrete ones are <em>left</em> adjoints to it. Conclude that the underlying-set functor has adjoints on both sides, and say what Lemma 1.17 and its dual then give you about it. Check one of the two conclusions directly for a small case.</p>
+<p>Then the harder half: use the contrapositive of Lemma 1.17 to argue that some functor you know is <em>not</em> a right adjoint, by exhibiting a limit it fails to preserve. Say honestly whether you can complete the argument from this unit's sources or whether you need a fact from elsewhere.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In the guided proof, where is naturality of the adjunction isomorphism used?</p>
+<button onclick="check(this,false)">In Step 1, to show 𝒢(L) is a cone</button>
+<button onclick="check(this,true)" data-ok>In Step 3, to show the transported family of mates is again a cone</button>
+<button onclick="check(this,false)">In Step 4, to invoke the universal property of the limit</button>
+<button onclick="check(this,false)">Nowhere; the bijection alone suffices</button>
+<div class="explain">Step 3. Steps 1 and 4 use functoriality and the limit's universal property respectively, and neither touches naturality. Step 2 needs only that α is a bijection. But the transported morphisms have to satisfy the cone condition, and nothing about a bare family of bijections would give that — it is naturality in the second variable, applied at 𝒜(α), that makes taking mates commute with post-composition. The last option is the standard error: the bijection moves individual morphisms, naturality moves whole diagrams.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> The mission strip says adjunctions "organise" the constructions that turn data into topology. What can this unit cash that out to?</p>
+<button onclick="check(this,false)">That geometric realisation is a left adjoint, proved here</button>
+<button onclick="check(this,true)" data-ok>That knowing a construction is a left adjoint tells you it preserves colimits, and a right adjoint that it preserves limits — Lemma 1.17 and its dual</button>
+<button onclick="check(this,false)">That every construction turning data into topology has an adjoint</button>
+<button onclick="check(this,false)">Nothing; adjunctions are unrelated to such constructions</button>
+<div class="explain">Lemma 1.17 is the cash value. It is a genuine organisational fact: one piece of information about a construction — that it has an adjoint on a given side — yields a whole family of preservation statements, and the contrapositive rules constructions out. The first option is not established here; neither source mentions geometric realisation, and Spivak's own free-construction examples are offered for recognition rather than verified. The third option would need a theorem no one has stated.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. An adjunction is a natural isomorphism of hom-sets, and the preorder case builds it.</strong> For preorders: f(p) ≤ q iff p ≤ g(q). Since a preorder hom-set has one element or none, that biconditional says Q(f(p), q) ≅ P(p, g(q)), which generalises to Definition 3.70 — α<sub>c,d</sub> : C(c, R(d)) ≅ D(L(c), d), natural in both variables, written L ⊣ R. Aluffi's version is the same with the sides swapped, plus the note that the precise form is a natural isomorphism of bifunctors C<sup>op</sup> × D → Set. Naturality is invisible in the preorder case because its hom-sets are too small for any square to fail.</p>
+<p><strong>2. Mates, the unit, and examples of two different statuses.</strong> The isomorphism transports morphisms; feeding the identity on L(c) backwards gives the unit η<sub>c</sub> : c → R(L(c)), which for free groups is the inclusion of generators — the same evaluate-at-the-identity trick as cat-04's Yoneda proof. Aluffi <em>verifies</em> one example, the free group adjunction, and remarks that free functors are left adjoints "as a rule". Spivak <em>lists</em> five families — free constructions, free preorders and categories, discrete, codiscrete, abelianisation — prefaced by "If you know some abstract algebra or topology", and verifies none.</p>
+<p><strong>3. Lemma 1.17 is what an adjunction buys.</strong> Right adjoints commute with limits; left adjoints with colimits; Aluffi calls this continuity and cocontinuity, and declines the detailed proof, saying such statements "boil down to suitable applications of the universal properties". They do: apply 𝒢 to the limit cone (functoriality), transport an arbitrary cone across by mates (the adjunction), check the transported family is still a cone (<em>naturality — the one substantive step</em>), use the limit downstairs, transport the comparison morphism back. The dividend is that the forgetful functor preserves products for free, and the contrapositive rules constructions out of being adjoints at all.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Aluffi, <em>Algebra: Chapter 0</em>, §VIII.1.3, pp. 492–493: the informal introduction of adjoint functors, the definition by natural isomorphisms Hom<sub>C</sub>(X, 𝒢(Y)) ≅ Hom<sub>D</sub>(ℱ(X), Y), the parenthetical that the precise version requires a natural isomorphism of bifunctors C<sup>op</sup> × D → Set, the observation that interesting functors may turn out to be adjoints of harmless-looking ones and that this permits translating properties of the former into properties of the latter, Example 1.16 verifying the free-group adjunction with the remark that free functors are "as a rule" left adjoints, and Lemma 1.17 with its canonical isomorphism, the continuity gloss, the dual statement for left adjoints and colimits, and Aluffi's statement that he will not prove it "in gory detail" together with his account of why such statements "boil down to suitable applications of the universal properties defining the various concepts" and the accompanying diagrams.
+<p>Spivak, <em>Seven Sketches in Compositionality</em>, §3.4.2, pp. 102–104: the recollection that Galois connections are adjunctions between preorders, the condition f(p) ≤ q iff p ≤ g(q) and its rephrasing as an isomorphism of hom-sets using that a preorder hom-set has one element or none; Definition 3.70 with naturality in both variables, footnote 8 spelling out the bifunctor naturality square, the terminology of <em>mates</em>, and the notation L ⊣ R with the direction convention; Example 3.71 identifying Galois connections with adjunctions between the corresponding categories; Example 3.72 on currying with the exponential object C<sup>B</sup>, the cardinality remark |C<sup>B</sup>| = |C|<sup>|B|</sup> and the informal account of putting off the second variable; Exercise 3.73 in three parts; and Example 3.74's five families — free constructions, free preorders and categories, discrete things, codiscrete things, abelianisation — with its prefatory "If you know some abstract algebra or topology". Every folio was read off the page cited; the Aluffi offset is PDF = printed + 23 and the Spivak offset PDF = printed + 12.</p>
+<p><strong>Neither source proves Lemma 1.17, and this lesson does not say either does.</strong> Aluffi states it and explicitly declines the detailed proof, describing instead the strategy — apply the universal properties. The guided proof completes that sketch along the strategy he names, in five steps, identifying at each which universal property is in use and isolating Step 3 as the single place naturality is required. That is a legitimate use of the source: the statement and the method are the text's, and the working-out is the reader's task the text sets.</p>
+<p><strong>Verified versus listed, and it matters for the mission strip.</strong> The strip leans on the pattern that free constructions are adjoints. In these pages that pattern is one worked instance and two informal generalisations: Aluffi verifies the free-group bijection and then writes "as a rule"; Spivak lists five families and prefaces them with "If you know some abstract algebra or topology, here are some other examples", verifying none. A reader who takes Example 3.74 as a set of established results has been more generous than its author asked, and Problems 2(e) and 5(e) ask for the audit rather than the absorption.</p>
+<p><strong>Not established here.</strong> Simplicial complexes, geometric realisation, and data: none appears in either source, so the mission strip's parenthetical is entirely a forward pointer, owed by at2 and tda1. What the strip's verb "organise" <em>can</em> be cashed out to from these pages is Lemma 1.17 and its dual — knowing a construction is a left adjoint tells you it preserves colimits, knowing it is a right adjoint tells you it preserves limits, and the contrapositive rules constructions out. That is stated as the defensible reading in the warn block and tested in Self-check 5.</p>
+<p><strong>Stated but not proved.</strong> The five families of Example 3.74, as above. Aluffi's "as a rule" generalisation beyond free groups. The counit ε and the triangle identities, which follow the unit construction naturally but which neither source develops — Problem 3(e) asks the reader to say so rather than assume it. The claim in the "You try" that the underlying-set functor has adjoints on both sides, which follows from Spivak's items 3 and 4 and inherits their unverified status. Spivak's Exercise 3.73, set and left to Problem 2(c).</p>
+<p><strong>Deferred.</strong> Σ and Π, the left and right pushforward data-migration functors adjoint to Δ, which Spivak develops in §3.4.3 immediately after this unit's range. The formal bifunctor account of adjunctions, which Aluffi leaves "to the inextinguishable reader". Free objects in general and their constructions, which belong to aa. The application of all this to persistence, which is cat-07's.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('adj');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82';
+  g.textAlign='center';
+
+  function arrow(x1,y1,x2,y2,col){
+    g.strokeStyle=col;g.lineWidth=2;
+    g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+    var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy);dx/=L;dy/=L;
+    g.beginPath();
+    g.moveTo(x2,y2);
+    g.lineTo(x2-9*dx-4.5*dy,y2-9*dy+4.5*dx);
+    g.lineTo(x2-9*dx+4.5*dy,y2-9*dy-4.5*dx);
+    g.closePath();g.fillStyle=col;g.fill();
+  }
+
+  g.fillStyle=ink;g.font='15px Segoe UI, sans-serif';
+  g.fillText('L ⊣ R :  one bijection, natural in both variables',320,34);
+
+  // two hom-set boxes
+  g.strokeStyle='#2a333d';g.lineWidth=1.5;
+  g.strokeRect(66,74,206,54);
+  g.strokeRect(368,74,206,54);
+  g.fillStyle=ink;g.font='16px Georgia, serif';
+  g.fillText('C( c , R d )',169,107);
+  g.fillText('D( L c , d )',471,107);
+
+  arrow(278,94,362,94,acc);
+  arrow(362,112,278,112,acc);
+  g.fillStyle=acc;g.font='12px Segoe UI, sans-serif';
+  g.fillText('mates',320,68);
+  g.fillText('natural in c and d',320,146);
+
+  // unit construction
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(50,170);g.lineTo(590,170);g.stroke();
+
+  g.fillStyle=dim;g.font='13px Segoe UI, sans-serif';
+  g.fillText('put  d = L c   and feed the identity backwards:',320,194);
+  g.fillStyle=good;g.font='15px Georgia, serif';
+  g.fillText('id at L c        ↦        η at c :  c → R L c',320,220);
+  g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+  g.fillText('the unit — for free groups, the inclusion of generators',320,242);
+
+  // payoff
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(50,262);g.lineTo(590,262);g.stroke();
+  g.fillStyle=acc;g.font='13px Segoe UI, sans-serif';
+  g.fillText('right adjoints commute with limits',180,288);
+  g.fillStyle=good;
+  g.fillText('left adjoints commute with colimits',462,288);
+  g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+  g.fillText('Lemma 1.17 — stated by Aluffi, proof declined; completed in the guided proof',320,312);
+})();
+</script>
+</body></html>
