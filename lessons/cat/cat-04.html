@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cat-04 — Natural transformations and the Yoneda lemma</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body><p class="cite">Category Theory · Nexus College</p>
+<h1>Natural transformations and the Yoneda lemma <span class="cite">(cat-04)</span></h1>
+
+<div class="hook">
+<p>cat-03 made functors the arrows between categories. This unit makes arrows between <em>functors</em>, and then proves — or rather, works the exercise in which Aluffi asks you to prove — something startling about them. Fix an object X. The natural transformations from Hom(−, X) to any set-valued functor ℱ are in bijection with the mere elements of ℱ(X), and the bijection is given by asking what happens to the identity on X. One consequence: an object is completely determined by the maps into it. Aluffi's word for the general phenomenon is that any "there is a natural homomorphism…" is probably hiding a natural transformation.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A natural transformation ν : h<sub>X</sub> ⇒ ℱ consists of one function ν<sub>A</sub> for <em>every</em> object A of C — potentially a proper class of choices. Predict how much data is really there.</p>
+<button onclick="check(this,false)">A proper class worth — one independent choice per object</button>
+<button onclick="check(this,true)" data-ok>A single element of ℱ(X). Everything else is forced by naturality</button>
+<button onclick="check(this,false)">Two elements: one for the source and one for the target</button>
+<div class="explain">One element. That is the Yoneda lemma, and the mechanism is the identity morphism: ν<sub>X</sub>(id<sub>X</sub>) ∈ ℱ(X) determines every other component, because naturality applied to φ : A → X forces ν<sub>A</sub>(φ) = ℱ(φ)(ν<sub>X</sub>(id<sub>X</sub>)). All the apparent freedom collapses onto the one object where a canonical morphism happens to live.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: An ε-interleaving of persistence modules is a pair of natural transformations M ⇒ N(·+ε) and N ⇒ M(·+ε) whose composites are the 2ε-shift maps — the native language in which stability is stated (tda1-06/07).</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires. It is unusually precise for a strip — it names the two transformations, gives their directions, and states the condition on their composites, which is exactly the clause that distinguishes an interleaving from an arbitrary pair of natural transformations. Nothing in it needs correcting. But almost none of it is established here.</p>
+<p><strong>Neither source contains persistence modules, interleavings or stability.</strong> Aluffi §VIII.1 and Spivak ch. 1 and ch. 3 have no filtrations and no barcodes; the word <em>persistence</em> occurs in neither. What this unit supplies is the grammar: Definition 1.15 and Definition 3.49 say what a natural transformation is, and Aluffi's Exercise 1.9 builds the functor category in which M and N live as objects. That is genuinely what the strip is made of, and it is all this unit gives.</p>
+<p><strong>One clause can be checked here, and it is worth checking.</strong> For N(·+ε) to be a functor at all, shifting by ε must itself be a functor P → P — which it is when P is a preorder under ≤ and ε ≥ 0, since p ≤ q implies p+ε ≤ q+ε. Then N(·+ε) is a composite of functors, legitimate by cat-03. So the strip's object is well formed, on the hypothesis ε ≥ 0, which the strip does not state and which the reader should supply.</p>
+<p><strong>Nothing here shows that interleavings exist, or that stability holds.</strong> The strip says what kind of object an interleaving <em>is</em>. Whether two given persistence modules admit one, and the theorem relating the smallest such ε to a distance between the inputs, are tda1-06 and tda1-07's. Problem 5(e) asks the reader to keep those two apart explicitly.</p>
+<p><strong>And on the Yoneda lemma: neither source proves it.</strong> Aluffi <em>sets</em> it, as Exercise 1.10 on p. 497, with a statement and a hint. Spivak gives only the preorder special case, at p. 20, and says of the general lemma that "we have not introduced it". The guided proof below is Aluffi's exercise worked from Aluffi's hint — a legitimate use of the source, since the statement is the text's and the proof is the exercise the text sets. This lesson does not say "Aluffi proves".</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Arrows between functors</h2>
+
+<div class="definition">
+<p><strong>Definition 1.15 (Aluffi).</strong> For functors ℱ, 𝒢 : C → D, a <em>natural transformation</em> ν : ℱ ⇝ 𝒢 is a morphism ν<sub>X</sub> : ℱ(X) → 𝒢(X) in D for every object X of C, such that for every α : X → Y in C the square commutes: 𝒢(α) ∘ ν<sub>X</sub> = ν<sub>Y</sub> ∘ ℱ(α). A <em>natural isomorphism</em> is one whose every component is an isomorphism. <span class="cite">— Aluffi §VIII.1.3, p. 492</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 3.49 (Spivak).</strong> To specify a natural transformation α : F ⇒ G, one specifies for each object c a morphism α<sub>c</sub> : F(c) → G(c), the <em>c-component</em>, subject to the naturality condition: for every f : c → d, F(f) ; α<sub>d</sub> = α<sub>c</sub> ; G(f). <span class="cite">— Spivak §3.3.4, p. 95</span></p>
+</div>
+
+<p>The same definition again, in the two composition orders cat-03 warned about. In words: transform, then map, equals map, then transform. Every component is a morphism in the target category, and the whole content is that one square commutes for every arrow of the source.</p>
+
+<canvas id="natsq" width="640" height="330" aria-label="On the left, the naturality square: F of c across the top to G of c, down the sides by F of f and G of f, and F of d to G of d along the bottom, with both routes marked as equal. On the right, the Yoneda correspondence: the set of natural transformations from Hom into X to a functor F, matched by a two-headed arrow with the set F of X, labelled by the identity on X."></canvas>
+
+<p>Aluffi's remark is worth internalising. "Any statement such as '<em>there is a natural (or canonical) homomorphism…</em>' is likely hiding a natural transformation between two functors. This technical meaning of the word 'natural' matches, as a rule, its psychological use." His example is the Hurewicz homomorphism π₁ → H₁ — two functors from based spaces to groups, and a homomorphism for each space, commuting with everything induced by maps of spaces.</p>
+
+<p>The contrast that makes "natural" contentful is a family that is <em>not</em>. Take the identity functor on finite-dimensional vector spaces and the double-dual functor. There is an isomorphism V → V<sup>∗∗</sup> that is natural, and an isomorphism V → V<sup>∗</sup> that requires choosing a basis and is not: the square fails for a linear map that does not respect the chosen bases. Naturality is precisely the condition ruling out constructions that need an arbitrary choice.</p>
+
+<div class="theorem">
+<p><strong>The functor category (Aluffi's Exercise 1.9).</strong> For C small and D any category, there is a category D<sup>C</sup> whose objects are the covariant functors C → D and whose morphisms are the natural transformations. <span class="cite">— Aluffi §VIII.1, Exercise 1.9, p. 496</span></p>
+<p>Identities are the transformations whose every component is an identity; composition is componentwise. The smallness of C is what keeps the collection of natural transformations between two functors a <em>set</em>, so that cat-01's Definition 3.1 is satisfied.</p>
+</div>
+
+<p>This is the construction cat-03 used and could not build. There, the category Top<sup>P</sup> of filtrations was needed for the evaluation functor and was flagged as deferred. Here it exists: its objects are functors P → Top, and a morphism between two filtrations is a natural transformation — a map of spaces at each parameter value, commuting with all the inclusions. That is also, exactly, the shape of the M ⇒ N(·+ε) in the mission strip.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Aluffi require C to be small when forming D<sup>C</sup>?</p>
+<button onclick="check(this,false)">Because functors out of a large category need not exist</button>
+<button onclick="check(this,true)" data-ok>So that the natural transformations between two functors form a <em>set</em>, as cat-01's Definition 3.1 requires of every Hom-collection</button>
+<button onclick="check(this,false)">Because composition of natural transformations fails otherwise</button>
+<button onclick="check(this,false)">Because natural isomorphisms would not be invertible</button>
+<div class="explain">Hom-sets must be sets. A natural transformation has one component per object of C, so if C has a proper class of objects the collection of transformations can fail to be a set — and Definition 3.1 was explicit that Hom<sub>C</sub>(A, B) is a set even though Obj(C) is only a class. Composition and invertibility are componentwise and cause no trouble; it is the size condition alone that bites, which is the same class-versus-set difficulty cat-01 recorded and set aside.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The preorder rehearsal</h2>
+
+<p>Before the general lemma, Spivak's special case, which is small enough to see all at once. Let (P, ≤) be a preorder — cat-01's Example 3.3 again — and for p ∈ P write ↑p = {p′ ∈ P : p ≤ p′}, the <em>upper set</em> of p.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the Yoneda lemma for preorders.</strong> <span class="cite">— Spivak Exercise 1.66 and the remark following it, §1.4, p. 20</span></p>
+<p><strong>1. ↑p is an upper set.</strong> Suppose p′ ∈ ↑p and p′ ≤ p″. Then p ≤ p′ ≤ p″, so p ≤ p″ by transitivity and p″ ∈ ↑p. Note that only transitivity was used.</p>
+<p><strong>2. ↑ is a monotone map P<sup>op</sup> → U(P).</strong> U(P) is the set of upper sets ordered by inclusion. We must show that if p ≤ p′ in P then ⟨ which inclusion holds, and in which direction? ⟩. Suppose p ≤ p′ and take p″ ∈ ↑p′, so p′ ≤ p″; then ⟨ … ⟩ by transitivity, so p″ ∈ ↑p. Hence ↑(p′) ⊆ ↑(p) — the order is reversed, which is why the source is P<sup>op</sup>.</p>
+<p><strong>3. p ≤ p′ if and only if ↑(p′) ⊆ ↑(p).</strong> One direction is part 2. For the converse, suppose ↑(p′) ⊆ ↑(p). We need an element of ↑(p′) to test with, and there is exactly one canonical candidate: ⟨ which element of P is always in ↑(p′), and by which property of the relation? ⟩. Feeding it through the inclusion gives ⟨ … ⟩, which is what was wanted.</p>
+<p>Spivak's gloss: "to know an element is the same as knowing its upper set — that is, knowing its web of relationships with the other elements of the preorder."</p>
+</div>
+
+<p>Two things to carry forward. First, look at what made part 3 work: an element that is <em>always</em> present in ↑(p′), supplied by reflexivity. In the general lemma the same role is played by the identity morphism, supplied by the category axioms. Second, look at what is invisible here. In a preorder, Hom(p, p′) has at most one element, so ↑p records only <em>whether</em> there is a morphism, never <em>which</em>. The general lemma is about a set of morphisms, and it recovers all of them.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which property of the preorder plays, in part 3, the role that the identity morphism plays in the general Yoneda lemma?</p>
+<button onclick="check(this,false)">Transitivity</button>
+<button onclick="check(this,true)" data-ok>Reflexivity — it guarantees p′ ∈ ↑(p′), which is the element you feed through the inclusion</button>
+<button onclick="check(this,false)">Antisymmetry</button>
+<button onclick="check(this,false)">That upper sets are ordered by inclusion</button>
+<div class="explain">Reflexivity. To use ↑(p′) ⊆ ↑(p) you need something in ↑(p′), and reflexivity supplies p′ itself for free. In cat-01's Example 3.3 reflexivity is precisely what supplies the identity morphism, so the correspondence is exact: the general proof evaluates a natural transformation at id<sub>X</sub>, and this one evaluates an inclusion at p′. Antisymmetry is not used anywhere — Spivak's statement is for preorders, as cat-01 would predict.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>The Yoneda lemma</h2>
+
+<div class="theorem">
+<p><strong>Yoneda lemma</strong> — <em>stated by Aluffi as Exercise 1.10, with a hint, and not proved in the text</em>. Let C be a category, X an object, and h<sub>X</sub> := Hom<sub>C</sub>(−, X) the contravariant Hom functor of cat-03. For every contravariant functor ℱ : C → Set there is a bijection between the set of natural transformations h<sub>X</sub> ⇝ ℱ and the set ℱ(X), given by sending ν to ν<sub>X</sub>(id<sub>X</sub>). <span class="cite">— Aluffi §VIII.1, Exercise 1.10, p. 497</span></p>
+</div>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Work Aluffi's Exercise 1.10 from Aluffi's own hint: "Produce an inverse of the specified map. For every f ∈ ℱ(X) and every φ ∈ Hom<sub>C</sub>(A, X), how do you construct an element of ℱ(A)?" Write your argument before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>The forward map.</strong> Given ν : h<sub>X</sub> ⇝ ℱ, its component at X is a function ν<sub>X</sub> : h<sub>X</sub>(X) = Hom<sub>C</sub>(X, X) → ℱ(X). Since id<sub>X</sub> ∈ Hom<sub>C</sub>(X, X), we may set Φ(ν) := ν<sub>X</sub>(id<sub>X</sub>) ∈ ℱ(X).</p>
+<p><strong>Answering the hint.</strong> Given f ∈ ℱ(X) and φ ∈ Hom<sub>C</sub>(A, X), the functor ℱ is contravariant, so ℱ(φ) runs from ℱ(X) to ℱ(A). Apply it: ℱ(φ)(f) ∈ ℱ(A). That is the only thing available, and it is what we want.</p>
+<p><strong>The candidate inverse.</strong> For f ∈ ℱ(X) define ν<sup>f</sup> by ν<sup>f</sup><sub>A</sub>(φ) := ℱ(φ)(f) for every object A and every φ ∈ Hom<sub>C</sub>(A, X). This is natural: for ψ : A′ → A, the functor h<sub>X</sub> sends ψ to pre-composition, and ν<sup>f</sup><sub>A′</sub>(φψ) = ℱ(φψ)(f) = ℱ(ψ)(ℱ(φ)(f)) = ℱ(ψ)(ν<sup>f</sup><sub>A</sub>(φ)), which is the naturality square — the middle step being contravariant functoriality, with the order reversed.</p>
+<p><strong>Round trip one, from ℱ(X) and back.</strong> Φ(ν<sup>f</sup>) = ν<sup>f</sup><sub>X</sub>(id<sub>X</sub>) = ℱ(id<sub>X</sub>)(f) = f, using only that ℱ preserves identities.</p>
+<p><strong>Round trip two, from ν and back.</strong> Put f = ν<sub>X</sub>(id<sub>X</sub>) and take any φ : A → X. Then ν<sup>f</sup><sub>A</sub>(φ) = ℱ(φ)(ν<sub>X</sub>(id<sub>X</sub>)). Now apply the naturality square of ν at the morphism φ: it says ℱ(φ) ∘ ν<sub>X</sub> = ν<sub>A</sub> ∘ h<sub>X</sub>(φ). Evaluating both sides at id<sub>X</sub> gives ℱ(φ)(ν<sub>X</sub>(id<sub>X</sub>)) = ν<sub>A</sub>(h<sub>X</sub>(φ)(id<sub>X</sub>)) = ν<sub>A</sub>(id<sub>X</sub> ∘ φ) = ν<sub>A</sub>(φ). So ν<sup>f</sup> = ν. ∎</p>
+<p><em>What to notice.</em> Naturality is used exactly once, in the second round trip, and it is the whole content: it is what forces every component of ν to be determined by the single value ν<sub>X</sub>(id<sub>X</sub>). Everything else is functoriality of ℱ. And notice the mechanism — the proof works because Hom<sub>C</sub>(X, X) contains a canonical element for free. That is the same reflexivity that supplied p′ ∈ ↑(p′) in Segment 2.</p>
+</details>
+</div>
+
+<p>Aluffi's Exercise 1.11 draws the consequence. Call a contravariant functor C → Set <em>representable</em> when it is naturally isomorphic to some h<sub>X</sub>; then C is <em>equivalent</em> — in cat-03's sense, fully faithful and essentially surjective — to the subcategory of representable functors in Set<sup>C<sup>op</sup></sup>. That is the precise form of "an object is known by its arrows": not up to equality, but up to isomorphism, exactly as cat-03's Example 1.8 warned is the most one can ask.</p>
+
+<div class="you-try">
+<p><strong>You try.</strong> Aluffi introduces adjunctions informally in the same section: ℱ and 𝒢 are adjoint when there are <em>natural</em> isomorphisms Hom<sub>C</sub>(X, 𝒢(Y)) ≅ Hom<sub>D</sub>(ℱ(X), Y). Check Example 1.16 — that the free group functor is left-adjoint to the forgetful functor — and verify naturality in the set variable. Then say what the word "natural" is ruling out, by exhibiting two functors whose Hom-sets are merely equinumerous without being naturally so.</p>
+<p>Then the harder half: Aluffi says the formal version needs a natural isomorphism of <em>bifunctors</em> C<sup>op</sup> × D → Set. Say why two variables are needed and what would be lost by asking for naturality in one only. cat-06 will take this up properly.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In the second round trip, where exactly is naturality used?</p>
+<button onclick="check(this,false)">To show ℱ(id<sub>X</sub>) is the identity</button>
+<button onclick="check(this,true)" data-ok>To rewrite ℱ(φ)(ν<sub>X</sub>(id<sub>X</sub>)) as ν<sub>A</sub>(φ) — that is, to show ν is determined by its value on id<sub>X</sub></button>
+<button onclick="check(this,false)">To show ν<sup>f</sup> is a natural transformation</button>
+<button onclick="check(this,false)">Nowhere; functoriality of ℱ suffices</button>
+<div class="explain">In the rewriting. The naturality square of ν at φ says ℱ(φ) ∘ ν<sub>X</sub> = ν<sub>A</sub> ∘ h<sub>X</sub>(φ); evaluating at id<sub>X</sub> turns the left side into ℱ(φ)(ν<sub>X</sub>(id<sub>X</sub>)) and the right into ν<sub>A</sub>(id<sub>X</sub> ∘ φ) = ν<sub>A</sub>(φ). Without it there would be no reason for the components at other objects to be related to the component at X at all. The third option is a different check — that one uses functoriality of ℱ, not naturality of ν, since ν<sup>f</sup> is being built rather than assumed.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The mission strip describes an ε-interleaving as a pair of natural transformations with a condition on their composites. What does this unit establish about it?</p>
+<button onclick="check(this,false)">That interleavings exist between any two persistence modules</button>
+<button onclick="check(this,true)" data-ok>Only what kind of object one is — the grammar. Existence, and the stability theorem, are tda1-06 and tda1-07's</button>
+<button onclick="check(this,false)">That stability follows from the Yoneda lemma</button>
+<button onclick="check(this,false)">Nothing at all; natural transformations are unrelated</button>
+<div class="explain">The grammar only. Definition 1.15 says what a natural transformation is, Exercise 1.9 builds the category in which M and N are objects, and cat-03's composition rule makes N(·+ε) well formed — provided ε ≥ 0, so that shifting is monotone and hence a functor P → P. That is a real contribution and it is the whole of it. Whether two given modules admit an interleaving, and the theorem bounding the least such ε by a distance between the inputs, are not touched by either source here.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which source proves the Yoneda lemma?</p>
+<button onclick="check(this,false)">Aluffi, in §VIII.1.3</button>
+<button onclick="check(this,false)">Spivak, in §1.4</button>
+<button onclick="check(this,true)" data-ok>Neither. Aluffi states it as Exercise 1.10 with a hint; Spivak gives only the preorder case and says the general lemma has not been introduced</button>
+<button onclick="check(this,false)">Both, independently</button>
+<div class="explain">Neither. This matters for how the lesson is allowed to talk: the guided proof above is Aluffi's exercise worked from Aluffi's hint, which is a legitimate use of a source, since the statement is the text's and the proof is the exercise the text sets. What would not be legitimate is writing "Aluffi proves the Yoneda lemma" — he assigns it. Spivak's p. 20 gives the preorder version and his own later remark says of the general lemma, "we have not introduced it".</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. A natural transformation is one square, repeated.</strong> Definition 1.15 and Definition 3.49: a component ν<sub>X</sub> : ℱ(X) → 𝒢(X) for each object, such that 𝒢(α)ν<sub>X</sub> = ν<sub>Y</sub>ℱ(α) for every α. Natural isomorphism means every component is one. Aluffi's diagnostic: "there is a natural homomorphism…" almost always hides one, the Hurewicz map being his example. Naturality is what rules out constructions needing an arbitrary choice — V ≅ V<sup>∗∗</sup> is natural, V ≅ V<sup>∗</sup> is not. By Exercise 1.9, for C small the functors C → D form a category D<sup>C</sup> with natural transformations as morphisms; smallness is needed only to keep those collections sets.</p>
+<p><strong>2. The preorder case shows the mechanism.</strong> For a preorder, ↑p = {p′ : p ≤ p′}, and Spivak's Exercise 1.66 gives: ↑p is an upper set by transitivity; ↑ is monotone P<sup>op</sup> → U(P), reversing the order; and p ≤ p′ if and only if ↑(p′) ⊆ ↑(p). The converse direction needs an element of ↑(p′) to test with, and reflexivity supplies p′ itself — the exact analogue of the identity morphism in the general proof. What the preorder case cannot show is anything about <em>which</em> morphism, since its Hom-sets have at most one element.</p>
+<p><strong>3. Yoneda: a natural transformation out of h<sub>X</sub> is one element.</strong> Nat(h<sub>X</sub>, ℱ) ≅ ℱ(X), by ν ↦ ν<sub>X</sub>(id<sub>X</sub>). The inverse sends f to ν<sup>f</sup><sub>A</sub>(φ) = ℱ(φ)(f), which is the only construction the types allow. One round trip is ℱ(id) = id; the other is naturality applied at φ and evaluated at id<sub>X</sub>, and that single use of naturality is the whole content. Exercise 1.11 draws the consequence: C is equivalent to the representable functors in Set<sup>C<sup>op</sup></sup> — an object is known by its arrows, up to isomorphism and never up to equality.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Aluffi, <em>Algebra: Chapter 0</em>, §VIII.1.3, pp. 492–493: Definition 1.15 of a natural transformation with its commuting square and of a natural isomorphism, the footnote explaining his choice of ⇝ over ⇒, the remark that natural transformations arise when comparing homology theories and that any "there is a natural homomorphism…" is likely hiding one, with the Hurewicz homomorphism π₁ → H₁ named; the informal introduction of adjoint functors as natural isomorphisms Hom<sub>C</sub>(X, 𝒢(Y)) ≅ Hom<sub>D</sub>(ℱ(X), Y), the parenthetical that the precise version needs a natural isomorphism of bifunctors C<sup>op</sup> × D → Set, Example 1.16 on the free group functor as left adjoint to the forgetful functor with the remark that free functors are as a rule left adjoints, and the observation that properties of interesting functors can be translated into properties of harmless ones. Exercise 1.9, p. 496, defining the functor category D<sup>C</sup> for C small with natural transformations as morphisms, and asking that X ↦ h<sub>X</sub> = Hom<sub>C</sub>(−, X) be shown a covariant functor C → Set<sup>C<sup>op</sup></sup>. Exercise 1.10, p. 497, which states the Yoneda lemma, specifies the forward map ν ↦ ν<sub>X</sub>(id<sub>X</sub>), and supplies the hint used in the guided proof; the text names the result and gives no proof. Exercise 1.11, p. 497, defining representable functors and asserting that C is equivalent to the subcategory of representables.
+<p>Spivak, <em>Seven Sketches in Compositionality</em>: §3.3.4, p. 95, Definition 3.49 of a natural transformation in specification style with the naturality condition in diagrammatic order and its commutative square (3.50), the definition of a natural isomorphism componentwise, and Definition 3.51 of a diagram as a functor from an indexing category with the criterion for commuting; §1.4, p. 20, Exercise 1.66 in four parts on upper sets in a preorder, the remark naming it the Yoneda lemma for preorders, and the gloss that to know an element is the same as knowing its upper set, together with the statement that the general Yoneda lemma "is a powerful tool in category theory". Every folio was read off the page cited; the Aluffi offset is PDF = printed + 23 and the Spivak offset is PDF = printed + 12, the latter re-checked here against printed 18 and 20.</p>
+<p><strong>Which source carries the Yoneda lemma, and how this lesson may speak of it.</strong> Neither source proves it. Aluffi <em>sets</em> it as Exercise 1.10, giving the statement, the forward map and a hint; the guided proof above is that exercise worked from that hint, which is a legitimate use of the source because the statement is the text's and the proof is the exercise the text assigns. Spivak supplies only the preorder special case and states elsewhere of the general lemma that "we have not introduced it". Accordingly this lesson nowhere says "Aluffi proves the Yoneda lemma", and the theorem box records that it is set rather than proved.</p>
+<p><strong>Not established here.</strong> Persistence modules, ε-interleavings, barcodes and stability: none appears in either source and the word <em>persistence</em> occurs in neither. The mission strip's description of an interleaving is accurate — it names both transformations, their directions, and the condition on their composites, which is the clause that distinguishes an interleaving from an arbitrary pair — but this unit establishes only the grammar it is written in: Definition 1.15, the functor category of Exercise 1.9, and cat-03's composition rule. Nothing here shows that interleavings exist between given modules, and nothing here bears on the stability theorem; both are tda1-06 and tda1-07's.</p>
+<p><strong>Checked rather than assumed.</strong> For N(·+ε) to be a functor, shifting by ε must be a functor P → P. It is, when P is a preorder under ≤ and <strong>ε ≥ 0</strong>, since p ≤ q gives p+ε ≤ q+ε; then N(·+ε) is a composite of functors and is legitimate by cat-03. The strip does not state the hypothesis ε ≥ 0 and the reader should supply it.</p>
+<p><strong>Stated but not proved.</strong> Aluffi's Exercise 1.9, whose functor category is used throughout Segment 1 and is verified only in Problem 2. Exercise 1.11 on representable functors, quoted for the precise form of "an object is known by its arrows" and left to the reader. Lemma 1.17, that right adjoints commute with limits, named in the "You try" and belonging to cat-06. The naturality of the free–forgetful adjunction of Example 1.16, set as the first half of the "You try". The non-naturality of V ≅ V<sup>∗</sup> is asserted as the standard contrast and the failing square is left to Problem 1(e).</p>
+<p><strong>Deferred.</strong> Adjunctions proper, introduced informally here and formalised in cat-06, together with the bifunctor formulation Aluffi leaves to the reader. Limits and colimits, cat-05's. The upgrade of the Yoneda lemma to the Freyd–Mitchell setting, Aluffi's Exercise IX.2.17, far outside this module.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('natsq');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82';
+  g.textAlign='center';
+
+  function arrow(x1,y1,x2,y2,col){
+    g.strokeStyle=col;g.lineWidth=1.8;
+    g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+    var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy);dx/=L;dy/=L;
+    g.beginPath();
+    g.moveTo(x2,y2);
+    g.lineTo(x2-9*dx-4.5*dy,y2-9*dy+4.5*dx);
+    g.lineTo(x2-9*dx+4.5*dy,y2-9*dy-4.5*dx);
+    g.closePath();g.fillStyle=col;g.fill();
+  }
+
+  // ---- left: naturality square ----
+  g.fillStyle=ink;g.font='14px Segoe UI, sans-serif';
+  g.fillText('naturality: both routes agree',160,34);
+
+  var lx=72,rx=248,ty=90,by=196;
+  g.font='16px Georgia, serif';g.fillStyle=ink;
+  g.fillText('F(c)',lx,ty);
+  g.fillText('G(c)',rx,ty);
+  g.fillText('F(d)',lx,by);
+  g.fillText('G(d)',rx,by);
+  arrow(lx+26,ty-5,rx-30,ty-5,acc);
+  arrow(lx+26,by-5,rx-30,by-5,acc);
+  arrow(lx,ty+10,lx,by-20,ink);
+  arrow(rx,ty+10,rx,by-20,ink);
+  g.font='12px Segoe UI, sans-serif';
+  g.fillStyle=acc;
+  g.fillText('α at c',160,ty-14);
+  g.fillText('α at d',160,by-14);
+  g.fillStyle=dim;
+  g.fillText('F(f)',lx-24,(ty+by)/2);
+  g.fillText('G(f)',rx+24,(ty+by)/2);
+  g.fillStyle=good;g.font='13px Segoe UI, sans-serif';
+  g.fillText('one square, for every f',160,236);
+
+  // divider
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(320,44);g.lineTo(320,250);g.stroke();
+
+  // ---- right: Yoneda ----
+  g.fillStyle=ink;g.font='14px Segoe UI, sans-serif';
+  g.fillText('Yoneda: all that data is one element',480,34);
+
+  g.strokeStyle='#2a333d';g.lineWidth=1.5;
+  g.strokeRect(360,110,150,50);
+  g.strokeRect(556,110,58,50);
+  g.fillStyle=ink;g.font='15px Georgia, serif';
+  g.fillText('Nat( h X , F )',435,140);
+  g.fillText('F(X)',585,140);
+
+  arrow(516,135,550,135,good);
+  arrow(550,152,516,152,good);
+  g.fillStyle=good;g.font='12px Segoe UI, sans-serif';
+  g.fillText('bijection',533,104);
+
+  g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+  g.fillText('forward:  send  α  to  α at X , applied to  id X',480,190);
+  g.fillText('back:  send  f  to  the family  φ ↦ F(φ)(f)',480,212);
+  g.fillStyle=good;g.font='13px Segoe UI, sans-serif';
+  g.fillText('the identity does all the work',480,236);
+
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(40,262);g.lineTo(600,262);g.stroke();
+  g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+  g.fillText('naturality is used exactly once, and it is what collapses the family onto one value',320,288);
+})();
+</script>
+</body></html>
