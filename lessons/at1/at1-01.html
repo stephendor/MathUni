@@ -129,12 +129,12 @@ A coffee mug and a doughnut, made rigorous — but the rigour arrives somewhere 
 <p>Hatcher draws the moral on p. 3: a space always retracts onto any point via the constant map, but a space that deformation retracts onto a point must be path-connected. He adds that it is "less trivial to show that there are path-connected spaces that do not deformation retract onto a point", and expects the letters with holes — A, B, D, O, P, Q, R — to be examples. Proving it needs an invariant, which is chapter 1's business and at1-03's.</p>
 
 <div class="selfcheck">
-<p><strong>Self-check 1.</strong> Which single clause of the definition of deformation retraction is the reason a discrete two-point space {0, 1} fails to deformation retract onto {0}?</p>
-<button onclick="check(this,false)">The continuity of X × I → X fails</button>
-<button onclick="check(this,true)" data-ok>f<sub>1</sub>(X) = A fails, because no continuous f<sub>1</sub> can carry 1 to 0</button>
+<p><strong>Self-check 1.</strong> A discrete two-point space X = {0, 1} does not deformation retract onto A = {0}. To locate the obstruction, take the obvious candidate family: f<sub>t</sub> = 𝟙 for t &lt; 1, and f<sub>1</sub> = the constant map at 0. Which clause of the definition does <em>this family</em> violate?</p>
+<button onclick="check(this,true)" data-ok>The continuity of X × I → X fails</button>
+<button onclick="check(this,false)">f<sub>1</sub>(X) = A fails</button>
 <button onclick="check(this,false)">f<sub>t</sub>|A = 𝟙 fails</button>
 <button onclick="check(this,false)">f<sub>0</sub> = 𝟙 fails</button>
-<div class="explain">By Lemma B, a space that deformation retracts onto a point is path-connected, and {0,1} discrete is not. Traced back to the definition, the obstruction sits at f<sub>1</sub>: the path t ↦ f<sub>t</sub>(1) would have to run continuously from 1 to 0 inside a discrete space, which forces it to be constant — so f<sub>1</sub>(1) = 1 ≠ 0 and the image is not A. Note that the constant map <em>is</em> a perfectly good retraction; it just is not the end of any homotopy starting at the identity.</div>
+<div class="explain">Exactly one clause fails, and it is the joint one. Check the other three: f<sub>0</sub> = 𝟙 by construction; every f<sub>t</sub> sends 0 to 0, so f<sub>t</sub>|A = 𝟙 throughout; and f<sub>1</sub>(X) = {0} = A, since the constant map at 0 <em>is</em> continuous — every map out of a discrete space is. That last point is worth pausing on: the image clause is not the obstruction here, and there is no sense in which "no continuous f<sub>1</sub> carries 1 to 0". What fails is the continuity of the single map X × I → X, at the point (1, 1): the associated path t ↦ f<sub>t</sub>(1) jumps from 1 to 0 at t = 1. And no repair exists, by Lemma B — a space that deformation retracts onto a point is path-connected, and {0,1} discrete is not. The two clauses trade off against each other, which is why the question fixes a family before asking: impose joint continuity and t ↦ f<sub>t</sub>(1) is forced constant, so f<sub>1</sub>(1) = 1 and the <em>image</em> clause fails instead.</div>
 </div>
 
 <div class="selfcheck">
