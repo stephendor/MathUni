@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at1-06 — Covering spaces</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology I · Nexus College</p>
+<h1>Covering spaces <span class="cite">(at1-06)</span></h1>
+
+<div class="hook">
+Every subgroup of π₁ is a space. Not a metaphor — an actual space, sitting above X.
+<p>at1-04 used one covering space, the helix ℝ → S<sup>1</sup>, as a device: a trick for turning loops into integers. This unit takes the device seriously and finds that it was not a trick at all. The connected covering spaces of a reasonable space X are in bijection with the subgroups of π₁(X). Bigger subgroup, smaller cover. The trivial subgroup gives one space sitting on top of everything else; the whole group gives X itself. In between, every subgroup you can name is realised by a space you can, in the nicest cases, draw.</p>
+<p>Hatcher's own comparison, on p. 56, is to Galois theory and its correspondence between field extensions and subgroups of the Galois group. Take that seriously too: it tells you what kind of theorem to expect, and what kind of work it will take to prove.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Let q : (0, 2) → S<sup>1</sup> be q(s) = (cos 2πs, sin 2πs). This is surjective, and every point of (0,2) has a neighbourhood mapped homeomorphically onto an open set — it is a surjective local homeomorphism. Is it a covering space?</p>
+<button onclick="check(this,false)">Yes — surjective plus local homeomorphism is exactly the definition</button>
+<button onclick="check(this,true)" data-ok>No — the point (1,0) has only one preimage, and no neighbourhood of it is evenly covered</button>
+<button onclick="check(this,false)">No, because the domain is not compact</button>
+<button onclick="check(this,false)">Yes, but only over the complement of a single point</button>
+<div class="explain">q<sup>−1</sup>((1,0)) = {1}, a single point, whereas q<sup>−1</sup> of any other point has two. So the sheet count is not locally constant, and by the remark on p. 56 it would have to be if q were a covering space over a connected base. Concretely: take a small arc U around (1,0). Then q<sup>−1</sup>(U) is three intervals — one around s = 1, and two half-open ones hugging the ends 0 and 2 — and each of those last two maps homeomorphically onto only <em>half</em> of U. "Maps homeomorphically onto U" is the clause being violated, and it is the clause a local homeomorphism never supplies. Compactness is irrelevant: ℝ → S<sup>1</sup> is a covering space and ℝ is not compact.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Covering-space theory is pi_1 as a group action (deck transformations) — the deepest tie from aa's groups to space.</p>
+
+<div class="warn">
+<p><strong>What this unit's source does and does not establish.</strong> The mission strip is quoted verbatim, as the rubric requires. Its mathematical content is exactly this unit and is fully established below. Its superlative is not a theorem and is not claimed.</p>
+<p><strong>Established here in full.</strong> That covering-space theory <em>is</em> π₁ as a group action is Propositions 1.39 and 1.40, and they are proved. Proposition 1.39 says the deck transformation group is N(H)/H, hence π₁(X)/H for a normal covering and π₁(X) itself for the universal cover. Proposition 1.40 runs the same correspondence backwards: a sufficiently well-behaved action of G on a simply-connected Y produces a covering space Y → Y/G with G as its deck group and π₁(Y/G) ≅ G. Both directions are here.</p>
+<p><strong>Not established: that this is the "deepest" tie.</strong> That is a curricular ranking, and no source ranks it. Hatcher's own comparison, on p. 56, is not to a hierarchy of connections but to Galois theory. What can be said precisely is which group theory the unit consumes, and it is a lot: subgroups and index (aa-23), group actions and orbits (aa-24), normal subgroups and quotients (aa-26), and the normaliser, which appears in Proposition 1.39(b). Hatcher assumes all of it without citation, so the pointers to aa here are this lesson's, not his.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Covering spaces, and the three lifting properties</h2>
+
+<div class="definition">
+<p><strong>Covering space.</strong> A covering space of a space X is a space X̃ together with a map p : X̃ → X such that each point x ∈ X has an open neighbourhood U in X for which p<sup>−1</sup>(U) is a union of disjoint open sets in X̃, each of which is mapped homeomorphically onto U by p. Such a U is called <em>evenly covered</em>, and those disjoint open sets are the <em>sheets</em> of X̃ over U. The number of sheets over U is the cardinality of p<sup>−1</sup>(x) for x ∈ U; as x varies this number is locally constant, hence constant if X is connected. Hatcher allows p<sup>−1</sup>(U) to be empty — the union of an empty collection of sheets — so p need not be surjective. <span class="cite">— Hatcher §1.3, p. 56</span></p>
+</div>
+
+<p>Three clauses, and the prediction gate above was built to make you feel which one carries the weight. "Union of open sets" is cheap. "Mapped homeomorphically onto U" is cheap locally. The clauses that a local homeomorphism does not give you are <em>disjoint</em> and <em>onto all of U, uniformly</em>. Everything in this unit is downstream of those two words.</p>
+
+<canvas id="helix" width="640" height="360" aria-label="The helix R projecting onto the circle S1, with one evenly covered arc U highlighted and the sheets above it marked"></canvas>
+
+<p>The picture is the one from at1-04, now read differently. The arc U at the right of the base circle is evenly covered: its preimage is the disjoint family of highlighted helix segments, one for each integer, and p carries each homeomorphically onto U. Those segments are the sheets. The whole circle is <em>not</em> evenly covered — its preimage is all of ℝ, which is connected — which is exactly why the definition has to be local.</p>
+
+<p>Two more examples to keep in mind. The map p : S<sup>1</sup> → S<sup>1</sup>, p(z) = z<sup>n</sup> on complex numbers of modulus one, is an n-sheeted covering. And S<sup>1</sup> ∨ S<sup>1</sup> has a covering space for every <em>2-oriented graph</em>: a graph with four edge ends at each vertex, labelled and oriented so that each vertex has one a-end in, one a-end out, one b-end in, one b-end out. Hatcher shows on p. 57 that these are precisely the covering spaces of the figure eight, which is why that one space illustrates almost the whole theory concretely. Problem 2 has you build them.</p>
+
+<h3>The three lifting properties</h3>
+
+<p>From the point of view of algebraic topology, Hatcher says on p. 60, the distinctive feature of covering spaces is not the local geometry but the behaviour under lifting. A <em>lift</em> of f : Y → X is a map f̃ : Y → X̃ with pf̃ = f. There are three properties, and they answer three different questions: can a homotopy be lifted, can a map be lifted, and how many lifts are there.</p>
+
+<div class="theorem">
+<p><strong>Proposition 1.30 (homotopy lifting).</strong> Given a covering space p : X̃ → X, a homotopy f<sub>t</sub> : Y → X, and a map f̃<sub>0</sub> : Y → X̃ lifting f<sub>0</sub>, there exists a unique homotopy f̃<sub>t</sub> : Y → X̃ of f̃<sub>0</sub> that lifts f<sub>t</sub>. <span class="cite">— Hatcher §1.3, p. 60; proved as property (c) in the proof of Theorem 1.7</span></p>
+</div>
+
+<p>Nothing new is proved here — this is at1-04's machinery, restated in the generality it always had. Taking Y to be a point gives <em>path lifting</em>: each path f : I → X and each lift x̃<sub>0</sub> of f(0) determine a unique lift f̃ starting at x̃<sub>0</sub>. Taking Y = I gives that a homotopy of paths lifts to a homotopy of paths — and it stays a homotopy <em>of paths</em>, endpoints fixed, because each endpoint traces a lift of a constant path, which must be constant.</p>
+
+<div class="theorem">
+<p><strong>Proposition 1.31.</strong> The map p<sub>∗</sub> : π₁(X̃, x̃<sub>0</sub>) → π₁(X, x<sub>0</sub>) induced by a covering space is injective. Its image consists of the homotopy classes of loops in X based at x<sub>0</sub> whose lifts to X̃ starting at x̃<sub>0</sub> are loops. <span class="cite">— Hatcher §1.3, p. 60</span></p>
+</div>
+
+<p>Injectivity is three lines and worth internalising, because it is the reason the whole classification is about <em>subgroups</em> rather than about arbitrary homomorphisms. An element of ker p<sub>∗</sub> is a loop f̃<sub>0</sub> upstairs whose projection is nullhomotopic downstairs. Lift the nullhomotopy: you get a homotopy of loops upstairs from f̃<sub>0</sub> to a constant. So [f̃<sub>0</sub>] was already trivial. The image characterisation is the sentence to remember when computing: <strong>a loop is in the subgroup exactly when its lift closes up.</strong></p>
+
+<div class="theorem">
+<p><strong>Proposition 1.32.</strong> The number of sheets of a covering space p : (X̃, x̃<sub>0</sub>) → (X, x<sub>0</sub>) with X and X̃ path-connected equals the index of p<sub>∗</sub>(π₁(X̃, x̃<sub>0</sub>)) in π₁(X, x<sub>0</sub>). <span class="cite">— Hatcher §1.3, p. 61</span></p>
+</div>
+
+<p>Sheets are a geometric count; index is an algebraic one; the proposition says they are the same number. This is the first place the correspondence stops being an analogy and becomes an equality, and the guided proof below asks you to build the bijection.</p>
+
+<div class="theorem">
+<p><strong>Proposition 1.33 (the lifting criterion).</strong> Given a covering space p : (X̃, x̃<sub>0</sub>) → (X, x<sub>0</sub>) and a map f : (Y, y<sub>0</sub>) → (X, x<sub>0</sub>) with Y path-connected and locally path-connected, a lift f̃ : (Y, y<sub>0</sub>) → (X̃, x̃<sub>0</sub>) of f exists if and only if f<sub>∗</sub>(π₁(Y, y<sub>0</sub>)) ⊂ p<sub>∗</sub>(π₁(X̃, x̃<sub>0</sub>)). <span class="cite">— Hatcher §1.3, p. 61</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 1.34 (unique lifting).</strong> Given a covering space p : X̃ → X and a map f : Y → X, if two lifts f̃<sub>1</sub>, f̃<sub>2</sub> : Y → X̃ of f agree at one point of Y and Y is connected, then they agree on all of Y. <span class="cite">— Hatcher §1.3, p. 62</span></p>
+</div>
+
+<p>These two are the workhorses of Segment 2, and it is worth noticing how they divide the labour. Proposition 1.33 is a purely algebraic <em>criterion</em> for existence: one subgroup inside another, nothing more. Proposition 1.34 says the lift is then rigid — pinning one value pins everything. Together they turn "is there a map?" into "is there a subgroup inclusion?", and that translation is the engine of the classification theorem.</p>
+
+<p>One hypothesis to watch. Proposition 1.33 needs Y locally path-connected, and Hatcher notes on p. 62 that the criterion genuinely fails without it. Problem 3(d) asks you to find where it is spent; the answer is that it is spent entirely on <em>continuity</em> of the lift, never on well-definedness.</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Write it out before revealing the model answer.</p>
+<p>Prove Proposition 1.32: for path-connected X and X̃, the number of sheets equals the index of H = p<sub>∗</sub>(π₁(X̃, x̃<sub>0</sub>)) in π₁(X, x<sub>0</sub>). Construct an explicit bijection from the set of cosets of H to the fibre p<sup>−1</sup>(x<sub>0</sub>), and check both directions. Then say which hypothesis each direction used.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>The map.</strong> For a loop g in X based at x<sub>0</sub>, let g̃ be its lift starting at x̃<sub>0</sub>, which exists and is unique by path lifting. Define Φ(H[g]) = g̃(1) ∈ p<sup>−1</sup>(x<sub>0</sub>).</p>
+<p><strong>Well defined.</strong> Suppose [h] ∈ H. Then h lifts to a <em>loop</em> h̃ at x̃<sub>0</sub>, by the image characterisation in Proposition 1.31. The product h · g therefore lifts to h̃ · g̃, which ends where g̃ ends. So replacing [g] by [h][g] does not move the endpoint, and Φ depends only on the coset.</p>
+<p><strong>Surjective.</strong> Let x̃ ∈ p<sup>−1</sup>(x<sub>0</sub>). Since X̃ is path-connected there is a path g̃ from x̃<sub>0</sub> to x̃; its projection g = pg̃ is a loop at x<sub>0</sub>, and g̃ is by uniqueness <em>the</em> lift of g starting at x̃<sub>0</sub>. So Φ(H[g]) = x̃.</p>
+<p><strong>Injective.</strong> Suppose Φ(H[g<sub>1</sub>]) = Φ(H[g<sub>2</sub>]), so g̃<sub>1</sub> and g̃<sub>2</sub> end at the same point. Then the lift of g<sub>1</sub> · ḡ<sub>2</sub> starting at x̃<sub>0</sub> is g̃<sub>1</sub> followed by g̃<sub>2</sub> reversed, which returns to x̃<sub>0</sub> — a loop. By Proposition 1.31 again, [g<sub>1</sub>][g<sub>2</sub>]<sup>−1</sup> ∈ H, so H[g<sub>1</sub>] = H[g<sub>2</sub>].</p>
+<p>Hence Φ is a bijection between the cosets of H and the fibre. The fibre has one point per sheet, so the number of sheets is the index of H. ∎</p>
+<p><strong>Where the hypotheses went.</strong> Path-connectedness of X̃ is used once, and only once: for surjectivity, to join x̃<sub>0</sub> to an arbitrary point of the fibre. Path-connectedness of X is what makes "the number of sheets" a single well-defined number at all, by the local-constancy remark in the definition. Notice that nothing here needs local path-connectedness or Proposition 1.33 — this proof runs on path lifting and Proposition 1.31 alone, which is why it comes so early.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> For the n-sheeted cover p : S<sup>1</sup> → S<sup>1</sup>, p(z) = z<sup>n</sup>, what is p<sub>∗</sub>(π₁(S<sup>1</sup>)) as a subgroup of π₁(S<sup>1</sup>) ≅ ℤ?</p>
+<button onclick="check(this,false)">ℤ<sub>n</sub>, the cyclic group of order n</button>
+<button onclick="check(this,true)" data-ok>nℤ, which has index n — matching the n sheets, as Proposition 1.32 requires</button>
+<button onclick="check(this,false)">The trivial subgroup, since the cover is connected</button>
+<button onclick="check(this,false)">All of ℤ, since p<sub>∗</sub> is injective</button>
+<div class="explain">The generator upstairs is the loop going once round; its image under p goes n times round, so p<sub>∗</sub> sends 1 to n and the image is nℤ. Index n, sheets n; Proposition 1.32 is satisfied. The first option confuses the subgroup with the quotient: ℤ<sub>n</sub> = ℤ/nℤ is the deck transformation group of this cover, which Proposition 1.39 will tell you, but it is not a subgroup of ℤ at all — ℤ is torsion-free. The last option confuses injectivity of p<sub>∗</sub> with surjectivity; p<sub>∗</sub> is always injective by Proposition 1.31, which is precisely why the image can be a proper subgroup while X̃ still has the same fundamental group as its image.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~30 min</span>
+<h2>The classification: every subgroup is a space</h2>
+
+<p>The correspondence sends a covering space to the subgroup p<sub>∗</sub>(π₁(X̃, x̃<sub>0</sub>)). Two questions: is it onto, and is it one-to-one? Onto is the hard half, because it asks whether every subgroup — including the trivial one — is realised, and realising the trivial subgroup means constructing a simply-connected covering space out of nothing but X.</p>
+
+<p>That cannot always be done, and there is a clean obstruction.</p>
+
+<div class="definition">
+<p><strong>Semilocally simply-connected.</strong> X is semilocally simply-connected if each point x ∈ X has a neighbourhood U such that the inclusion-induced map π₁(U, x) → π₁(X, x) is trivial. <span class="cite">— Hatcher §1.3, p. 63</span></p>
+</div>
+
+<p>Note how weak this is, and note the "semi". It does <em>not</em> say loops in U are nullhomotopic in U; only that they die once you look at them in X. Hatcher proves it is necessary in one paragraph: if X̃ is simply-connected, take U with a sheet Ũ over it; a loop in U lifts into Ũ, the lift is nullhomotopic because π₁(X̃) = 0, and projecting that nullhomotopy kills the original loop in X. Problem 4(e) asks you to write it out.</p>
+
+<p>The standard failure is at1-05's shrinking wedge, the circles of radius 1/n at (1/n, 0): every neighbourhood of the origin contains whole circles, each carrying a loop that survives in π₁(X). So the shrinking wedge has no universal cover. Hatcher adds a refinement worth noticing — the cone on the shrinking wedge <em>is</em> semilocally simply-connected, being contractible, while still failing to be locally simply-connected. The two conditions are genuinely different.</p>
+
+<h3>Worked example: building the universal cover out of paths</h3>
+
+<div class="worked fade">
+<p>Suppose X is path-connected, locally path-connected and semilocally simply-connected. Here is Hatcher's construction, pp. 63–65.</p>
+<p><strong>The motivating idea.</strong> If a simply-connected cover p : (X̃, x̃<sub>0</sub>) → (X, x<sub>0</sub>) existed, then by Proposition 1.6 each point of X̃ would be joined to x̃<sub>0</sub> by a <em>unique</em> homotopy class of paths — so points of X̃ could be <em>identified with</em> such classes. And by homotopy lifting, homotopy classes of paths upstairs from x̃<sub>0</sub> are the same as homotopy classes of paths downstairs from x<sub>0</sub>. That describes X̃ using only X. So define it that way.</p>
+<p><strong>The set.</strong> X̃ = { [γ] : γ is a path in X starting at x<sub>0</sub> }, homotopy rel endpoints. Set p([γ]) = γ(1). This is well defined, and surjective because X is path-connected.</p>
+<p><strong>The topology.</strong> Let 𝒰 be the collection of path-connected open U ⊂ X with π₁(U) → π₁(X) trivial. Semilocal simple connectivity plus local path-connectedness make 𝒰 a basis for X. For U ∈ 𝒰 and a path γ from x<sub>0</sub> into U, put</p>
+<p style="text-align:center">U<sub>[γ]</sub> = { [γ · η] : η is a path in U with η(0) = γ(1) }.</p>
+<p>Then p : U<sub>[γ]</sub> → U is surjective because U is path-connected, and injective because two choices of η with the same endpoint differ by a loop in U, which is nullhomotopic in X — that is exactly what "π₁(U) → π₁(X) trivial" buys, and it is the only place it is used.</p>
+<p><strong>The key identity.</strong> U<sub>[γ]</sub> = U<sub>[γ′]</sub> whenever [γ′] ∈ U<sub>[γ]</sub>. This one line does all the work: it makes the sets U<sub>[γ]</sub> a basis, it makes p a local homeomorphism, and it makes the sets U<sub>[γ]</sub> for varying [γ] <em>partition</em> p<sup>−1</sup>(U) — which is the disjointness clause of the covering space definition.</p>
+<p><strong>What you get.</strong> p : X̃ → X is a covering space, and it is simply-connected. So the trivial subgroup is realised.</p>
+</div>
+
+<p>The general case now follows by quotienting, and the argument is short enough to give whole.</p>
+
+<div class="theorem">
+<p><strong>Proposition 1.36.</strong> Suppose X is path-connected, locally path-connected and semilocally simply-connected. Then for every subgroup H ⊂ π₁(X, x<sub>0</sub>) there is a covering space p : X<sub>H</sub> → X with p<sub>∗</sub>(π₁(X<sub>H</sub>, x̃<sub>0</sub>)) = H for a suitable basepoint. <span class="cite">— Hatcher §1.3, p. 66</span></p>
+<p><strong>Proof.</strong> In the X̃ just built, declare [γ] ∼ [γ′] to mean γ(1) = γ′(1) and [γ · γ̄′] ∈ H. This is an equivalence relation for three reasons, one per group axiom: reflexive because H contains the identity, symmetric because H is closed under inverses, transitive because H is closed under multiplication. Let X<sub>H</sub> be the quotient. If γ(1) = γ′(1) then [γ] ∼ [γ′] iff [γ · η] ∼ [γ′ · η], so identifying any two points of basic neighbourhoods U<sub>[γ]</sub> and U<sub>[γ′]</sub> identifies the whole neighbourhoods; hence the induced map X<sub>H</sub> → X is still a covering space. Take x̃<sub>0</sub> to be the class of the constant path. A loop γ at x<sub>0</sub> lifts in X̃ to a path from [c] to [γ], so its image in X<sub>H</sub> is a loop iff [γ] ∼ [c], that is, iff [γ] ∈ H. ∎</p>
+</div>
+
+<p>Look at what happened there. The subgroup axioms were used <em>as</em> the equivalence-relation axioms, one for one. That is not a coincidence and it is the cleanest single indication that subgroups and covering spaces are the same data.</p>
+
+<div class="theorem">
+<p><strong>Proposition 1.37.</strong> If X is path-connected and locally path-connected, two path-connected covering spaces are isomorphic by an isomorphism matching chosen basepoints in the fibre if and only if they determine the same subgroup of π₁(X, x<sub>0</sub>). <span class="cite">— Hatcher §1.3, p. 67</span></p>
+<p><strong>Proof sketch.</strong> One direction is formal from p<sub>1</sub> = p<sub>2</sub>f and p<sub>2</sub> = p<sub>1</sub>f<sup>−1</sup>. For the other, equality of the subgroups lets the lifting criterion lift p<sub>1</sub> to p̃<sub>1</sub> : X̃<sub>1</sub> → X̃<sub>2</sub> and symmetrically p̃<sub>2</sub> : X̃<sub>2</sub> → X̃<sub>1</sub>. Both composites fix a basepoint and lift the identity, so by unique lifting both are the identity. ∎</p>
+</div>
+
+<p>That proof is the reason Propositions 1.33 and 1.34 were stated as a pair. Existence of the maps is the lifting criterion; the fact that they are mutually inverse is unique lifting. Neither alone would do it.</p>
+
+<div class="theorem">
+<p><strong>Theorem 1.38 (the Galois correspondence).</strong> Let X be path-connected, locally path-connected and semilocally simply-connected. Then there is a bijection between the set of basepoint-preserving isomorphism classes of path-connected covering spaces p : (X̃, x̃<sub>0</sub>) → (X, x<sub>0</sub>) and the set of subgroups of π₁(X, x<sub>0</sub>), obtained by associating the subgroup p<sub>∗</sub>(π₁(X̃, x̃<sub>0</sub>)) to the covering space. If basepoints are ignored, this correspondence gives a bijection between isomorphism classes of path-connected covering spaces and <em>conjugacy classes</em> of subgroups of π₁(X, x<sub>0</sub>). <span class="cite">— Hatcher §1.3, p. 67</span></p>
+</div>
+
+<p>Proposition 1.36 gave surjectivity and Proposition 1.37 gave injectivity, so the first half is already done. The second half is the one extra fact: moving x̃<sub>0</sub> to another point x̃<sub>1</sub> of the fibre replaces H by a conjugate. Take a path γ̃ from x̃<sub>0</sub> to x̃<sub>1</sub>; it projects to a loop γ at x<sub>0</sub>, and conjugation by [γ] is what happens to the subgroup. This is at1-03's change-of-basepoint isomorphism β<sub>h</sub> reappearing exactly where you would expect it: the group was only ever defined up to inner automorphism, so the correspondence can only ever be canonical up to conjugacy.</p>
+
+<div class="you-try">
+<p><strong>You try.</strong> Use Theorem 1.38 to list every connected covering space of S<sup>1</sup>, and then every connected covering space of ℝP<sup>2</sup>.</p>
+<p>For S<sup>1</sup>: π₁ ≅ ℤ by Theorem 1.7. Write down all subgroups of ℤ, and for each one name the covering space and check its sheet count against Proposition 1.32. Since ℤ is abelian, what does the "conjugacy classes" clause do here?</p>
+<p>For ℝP<sup>2</sup>: you will be able to compute π₁ ≅ ℤ<sub>2</sub> yourself by the end of Segment 3. There are two subgroups; name both covering spaces. One of them you have already met in at1-02.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which way round does the Galois correspondence run?</p>
+<button onclick="check(this,true)" data-ok>Bigger subgroup, smaller cover: the trivial subgroup gives the universal cover and the whole group gives X itself</button>
+<button onclick="check(this,false)">Bigger subgroup, bigger cover: the whole group gives the universal cover</button>
+<button onclick="check(this,false)">Neither — the correspondence is a bijection of sets with no compatible order</button>
+<button onclick="check(this,false)">It depends on whether π₁(X) is abelian</button>
+<div class="explain">By Proposition 1.32 the index of H is the number of sheets, so a small subgroup has large index and many sheets. The trivial subgroup has index |π₁(X)| — as many sheets as the group has elements — and gives the simply-connected cover sitting above everything. The whole group has index 1, one sheet, and gives the identity X → X. The order-reversal is the feature that makes "Galois correspondence" the right name rather than a loose analogy, and it is worth using as a running sanity check: any time you compute a covering space and its subgroup, ask whether a bigger subgroup would have given you a smaller space.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Deck transformations: π₁ acting</h2>
+
+<p>An isomorphism X̃ → X̃ of a covering space with itself is a <em>deck transformation</em>, and these form a group G(X̃) under composition. For ℝ → S<sup>1</sup> they are the vertical translations of the helix, so G(X̃) ≅ ℤ. For z ↦ z<sup>n</sup> they are the rotations through multiples of 2π/n, so G(X̃) ≅ ℤ<sub>n</sub>.</p>
+
+<p>Proposition 1.34 has an immediate and powerful consequence here: for path-connected X̃, a deck transformation is determined by where it sends a <em>single</em> point. In particular <strong>only the identity deck transformation fixes a point.</strong> A group acting with no fixed points other than by the identity is exactly what will make the next two propositions work.</p>
+
+<div class="definition">
+<p><strong>Normal covering space.</strong> p : X̃ → X is <em>normal</em> (some authors say <em>regular</em>) if for each x ∈ X and each pair of lifts x̃, x̃′ of x there is a deck transformation taking x̃ to x̃′. Intuitively, a normal covering space is one with maximal symmetry. <span class="cite">— Hatcher §1.3, p. 70</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 1.39.</strong> Let p : (X̃, x̃<sub>0</sub>) → (X, x<sub>0</sub>) be a path-connected covering space of the path-connected, locally path-connected space X, and let H = p<sub>∗</sub>(π₁(X̃, x̃<sub>0</sub>)). Then (a) the covering space is normal if and only if H is a normal subgroup of π₁(X, x<sub>0</sub>); and (b) G(X̃) is isomorphic to N(H)/H, where N(H) is the normaliser of H in π₁(X, x<sub>0</sub>). In particular G(X̃) ≅ π₁(X, x<sub>0</sub>)/H for a normal covering, and G(X̃) ≅ π₁(X) for the universal cover. <span class="cite">— Hatcher §1.3, p. 71</span></p>
+</div>
+
+<p>The word "normal" is being used in two senses in the same sentence, and part (a) says they agree. That is the whole reason for the terminology. The proof runs on the fact already extracted from Theorem 1.38 — that moving the basepoint in the fibre conjugates H. Chase it through: [γ] lies in N(H) exactly when the two basepoints give the same subgroup, which by the lifting criterion is exactly when a deck transformation carries one to the other. So the covering is normal iff N(H) is everything, iff H is normal. For (b), send [γ] ∈ N(H) to that deck transformation; it is a homomorphism, it is onto by the previous sentence, and its kernel is the set of classes lifting to loops, which is H by Proposition 1.31.</p>
+
+<p>Read the last clause again, because it is the mission strip's mathematical content: <strong>for the universal cover, the deck transformation group is π₁(X) itself.</strong> The fundamental group is not merely isomorphic to a group of symmetries by some accident of notation; it <em>is</em> the symmetry group of a space canonically built from X.</p>
+
+<h3>The correspondence run backwards</h3>
+
+<p>Given a group G and a space Y, an <em>action</em> of G on Y is a homomorphism G → Homeo(Y). Hatcher singles out one condition:</p>
+
+<div class="definition">
+<p><strong>Condition (∗), a covering space action.</strong> Each y ∈ Y has a neighbourhood U such that the images g(U) for varying g ∈ G are all disjoint — equivalently, since g<sub>1</sub>(U) ∩ g<sub>2</sub>(U) ≠ ∅ is the same as U ∩ g<sub>1</sub><sup>−1</sup>g<sub>2</sub>(U) ≠ ∅, such that U ∩ g(U) ≠ ∅ only for g the identity. <span class="cite">— Hatcher §1.3, pp. 71–72</span></p>
+</div>
+
+<p>The deck transformation group always satisfies (∗). Take Ũ projecting homeomorphically to U; if g<sub>1</sub>(Ũ) meets g<sub>2</sub>(Ũ) then two points of Ũ in the same fibre are identified, but Ũ meets each fibre once, so the two points coincide and g<sub>1</sub><sup>−1</sup>g<sub>2</sub> fixes a point — hence is the identity.</p>
+
+<div class="theorem">
+<p><strong>Proposition 1.40.</strong> If an action of G on Y satisfies (∗), then (a) the quotient map p : Y → Y/G onto the orbit space is a normal covering space; (b) G is the group of deck transformations of this covering space if Y is path-connected; (c) G is isomorphic to π₁(Y/G)/p<sub>∗</sub>(π₁(Y)) if Y is path-connected and locally path-connected. <span class="cite">— Hatcher §1.3, p. 72</span></p>
+</div>
+
+<p>Part (c) with Y simply-connected is the computational tool: <strong>π₁(Y/G) ≅ G</strong>. You get a fundamental group by finding a group acting nicely on a simply-connected space. Example 1.43 does exactly this for real projective space: the antipodal map generates a ℤ<sub>2</sub> action on S<sup>n</sup>, an open hemisphere is disjoint from its antipodal image so (∗) holds, and for n ≥ 2 the sphere is simply-connected — so π₁(ℝP<sup>n</sup>) ≅ ℤ<sub>2</sub>. Problem 5(d) works it, including the direct verification that the generator has order two.</p>
+
+<p>Condition (∗) sits between two more familiar notions, and the gaps are instructive. It implies the action is <em>free</em> — no non-identity element fixes a point — because a fixed point puts y in U ∩ g(U). But freeness does not imply it: Hatcher's example is ℤ acting on S<sup>1</sup> by rotation through an irrational multiple of 2π, which is free, yet every orbit is dense, and (∗) forces orbits to be discrete. In the other direction, the symmetry group of the hexagonal tiling of ℝ<sup>2</sup> is properly discontinuous — each point has a neighbourhood meeting only finitely many of its translates — but fails (∗) because it has fixed points: hexagon vertices are fixed by 120-degree rotations and edge midpoints by 180-degree rotations.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A group acts freely on a space and the action is properly discontinuous. Does condition (∗) follow?</p>
+<button onclick="check(this,false)">Yes, always — the two conditions together are the definition of (∗)</button>
+<button onclick="check(this,true)" data-ok>Yes if the space is Hausdorff; Hatcher sets this as an exercise, and does not assert it in general</button>
+<button onclick="check(this,false)">No — the irrational rotation on S<sup>1</sup> is a counterexample even so</button>
+<button onclick="check(this,false)">Only if the group is finite</button>
+<div class="explain">Hatcher's sentence on p. 73 is precise: an exercise at the end of the section is to show that <em>for actions on Hausdorff spaces</em>, freeness plus proper discontinuity implies (∗). The Hausdorff hypothesis is stated and should not be dropped when quoting the result. The irrational rotation is not a counterexample here, because it is free but <em>not</em> properly discontinuous — every neighbourhood of a point meets infinitely many of its translates, orbits being dense. And note the last clause of the same paragraph: proper discontinuity is automatic for finite groups, so for a finite group acting freely on a Hausdorff space, (∗) is free of charge — which is what makes Example 1.43 so quick.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Example 1.41 builds a covering space M<sub>11</sub> → M<sub>3</sub> from a 5-fold rotational symmetry of the genus-11 surface. What does Proposition 1.39 tell you?</p>
+<button onclick="check(this,false)">That π₁(M<sub>3</sub>) embeds in π₁(M<sub>11</sub>) with index 5</button>
+<button onclick="check(this,true)" data-ok>That π₁(M<sub>11</sub>) is a normal subgroup of π₁(M<sub>3</sub>) of index 5, with quotient ℤ<sub>5</sub></button>
+<button onclick="check(this,false)">That π₁(M<sub>11</sub>) ≅ π₁(M<sub>3</sub>) × ℤ<sub>5</sub></button>
+<button onclick="check(this,false)">Nothing, since neither surface is simply-connected</button>
+<button onclick="check(this,false)">That M<sub>3</sub> is the universal cover of M<sub>11</sub></button>
+<div class="explain">The direction is the first thing to get right, and it is the opposite of the naive guess: the group of the <em>covering</em> space injects into the group of the <em>base</em>, by Proposition 1.31. So π₁(M<sub>11</sub>) sits inside π₁(M<sub>3</sub>). The covering comes from a ℤ<sub>5</sub> action satisfying (∗), so by Proposition 1.40(a) it is normal, and by Proposition 1.39(a) the subgroup is normal; the quotient is the deck group ℤ<sub>5</sub>, and the index is 5 sheets by Proposition 1.32. The third option fails because a normal subgroup with cyclic quotient need not split off as a direct factor. Hatcher notes on p. 73 that the example generalises to M<sub>mn+1</sub> → M<sub>m+1</sub>, and that an Euler characteristic argument in §2.2 shows these are the only possibilities.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where in this unit does at1-05's van Kampen theorem, Theorem 1.20, get superseded?</p>
+<button onclick="check(this,false)">Everywhere — covering spaces compute every fundamental group van Kampen does, and more</button>
+<button onclick="check(this,false)">Nowhere — the two are about different spaces</button>
+<button onclick="check(this,true)" data-ok>Nowhere; they are complementary, and π₁(ℝP<sup>n</sup>) is a case each method reaches by a different route</button>
+<button onclick="check(this,false)">In Proposition 1.36, which computes π₁ of any space with a universal cover</button>
+<div class="explain">Neither method dominates. Van Kampen needs a cover by open sets whose groups you already know, and gives you a presentation; the covering space method needs a group acting nicely on a simply-connected space, and gives you the group directly. π₁(ℝP<sup>2</sup>) is reachable both ways — as ⟨a | a<sup>2</sup>⟩ from the cell structure via Proposition 1.26 in at1-05, and as ℤ<sub>2</sub> from the antipodal action via Proposition 1.40(c) here — and agreeing is a genuine consistency check rather than a repetition. Proposition 1.36 computes no fundamental groups at all: it takes π₁(X) as given and manufactures covering spaces from its subgroups, so it presupposes exactly what it might be thought to supply.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Covering spaces are about lifting, and there are exactly three lifting facts.</strong> The definition is local — evenly covered neighbourhoods, disjoint sheets each mapping onto <em>all</em> of U — and a surjective local homeomorphism is not enough. Proposition 1.30 lifts homotopies; Proposition 1.33 lifts maps, iff f<sub>∗</sub>π₁(Y) ⊂ p<sub>∗</sub>π₁(X̃), with local path-connectedness spent only on continuity; Proposition 1.34 says a lift is rigid once one value is fixed. Two consequences do most of the computing: p<sub>∗</sub> is injective with image the classes whose lifts close up (Proposition 1.31), and sheets = index (Proposition 1.32).</p>
+<p><strong>2. Theorem 1.38: connected covers ↔ subgroups, order-reversing.</strong> Surjectivity is Proposition 1.36, built by defining X̃ to <em>be</em> the homotopy classes of paths from x<sub>0</sub> and then quotienting by H — where the three subgroup axioms become the three equivalence-relation axioms. It needs semilocal simple connectivity, which is necessary as well as sufficient, and which the shrinking wedge fails. Injectivity is Proposition 1.37, which is Propositions 1.33 and 1.34 used together: lift each covering through the other, then note both composites fix a basepoint. Ignoring basepoints coarsens subgroups to conjugacy classes, because moving the basepoint in the fibre conjugates H — at1-03's β<sub>h</sub> again.</p>
+<p><strong>3. Deck transformations turn the correspondence into a group action, in both directions.</strong> Only the identity deck transformation fixes a point. Proposition 1.39: normal covering iff normal subgroup, and G(X̃) ≅ N(H)/H — so for the universal cover G(X̃) ≅ π₁(X) exactly. Proposition 1.40 goes the other way: any action satisfying (∗) gives a normal covering Y → Y/G with deck group G, and with Y simply-connected, π₁(Y/G) ≅ G. Condition (∗) implies free, is implied by free plus properly discontinuous on Hausdorff spaces, and is what the hexagonal tiling group lacks.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em>, §1.3 "Covering Spaces" (pp. 56–79). The Galois-theory comparison in the opening paragraph, the definition of a covering space with evenly covered neighbourhoods and sheets, the local constancy of the sheet count, the convention allowing p<sup>−1</sup>(U) to be empty, the helicoid example and the covering z ↦ z<sup>n</sup> (p. 56); 2-oriented graphs as exactly the covering spaces of S<sup>1</sup> ∨ S<sup>1</sup>, and the Eulerian-circuit argument that finite graphs with four edge ends per vertex can be 2-oriented (p. 57). §"Lifting Properties": the definition of a lift and the remark that lifting is the distinctive feature, Proposition 1.30 with its reference back to property (c) in the proof of Theorem 1.7, path lifting as the case Y = a point, the fact that a lifted homotopy of paths remains one because endpoints lift constant paths, Proposition 1.31 with its proof and its image characterisation (pp. 60–61); Proposition 1.32 with the coset-to-fibre bijection reproduced in the guided proof, Proposition 1.33 with the definition of local path-connectedness and the note that the criterion fails without it, and Proposition 1.34 with its open-and-closed proof (pp. 61–62). §"The Classification of Covering Spaces": semilocal simple connectivity, the paragraph proving its necessity, and the shrinking wedge and its cone as the two contrasting examples (p. 63); the construction of X̃ from homotopy classes of paths, the collection 𝒰, the basic sets U<sub>[γ]</sub>, the identity U<sub>[γ]</sub> = U<sub>[γ′]</sub>, and the verification that p is a covering space (pp. 63–65); Proposition 1.36 with its full proof, including the correspondence between the subgroup axioms and the equivalence relation axioms, the definition of isomorphism of covering spaces, and Proposition 1.37 with its proof (pp. 66–67); Theorem 1.38 with the basepoint-change argument giving conjugacy classes (p. 67). §"Deck Transformations and Group Actions": deck transformations for ℝ → S<sup>1</sup> and z ↦ z<sup>n</sup>, the fact that a deck transformation is determined by one point so only the identity has a fixed point, normal (regular) covering spaces (p. 70); Proposition 1.39 with its proof (p. 71); group actions, condition (∗) with its equivalent one-sided form, the proof that deck transformation groups satisfy it, orbit spaces, and Proposition 1.40 with its proof (pp. 71–72); free versus properly discontinuous, the irrational rotation on S<sup>1</sup>, the hexagonal tiling and its fixed points, the Hausdorff exercise, and the remark that proper discontinuity is automatic for finite groups (p. 73); Example 1.41 on M<sub>11</sub> → M<sub>3</sub> with its generalisation to M<sub>mn+1</sub> → M<sub>m+1</sub> (p. 73); Example 1.43 on ℝP<sup>n</sup> (p. 74). Theorem 1.7 (p. 29) is at1-04's; Theorem 1.20, Proposition 1.26 and Example 1.25 (pp. 43, 49, 50) are at1-05's; Propositions 1.6 and 1.14 are quoted where used.
+<p>The reading of the definition as "three clauses, two of which a local homeomorphism cannot supply", the framing of the three lifting properties as answers to three distinct questions, the running order-reversal check on the Galois correspondence, and the observation in Proposition 1.36 that the subgroup axioms are consumed one for one as the equivalence-relation axioms are this lesson's framing of Hatcher's material, not his wording. The non-example q : (0,2) → S<sup>1</sup> in the prediction gate is constructed here; Hatcher gives the local-constancy remark that rules it out but not this instance.</p>
+<p><strong>Not established here.</strong> That covering-space theory is the <em>deepest</em> tie between group theory and topology. No source ranks the ties, Hatcher's own comparison on p. 56 is to Galois theory rather than to any hierarchy, and nothing in this lesson depends on the superlative. What is established is the mathematical claim underneath it — Propositions 1.39 and 1.40, both proved. The pointers to aa-23, aa-24 and aa-26 for the group theory being consumed are this lesson's; Hatcher assumes subgroups, index, normality, quotients, normalisers and group actions without citation, as prerequisites.</p>
+<p><strong>Deferred.</strong> The representation of covering spaces by permutations, including disconnected ones (pp. 68–70), is not covered: it is a second classification, by actions of π₁ on the fibre rather than by subgroups, and this unit's resources give no unit that needs it. Cayley complexes and Examples 1.44 to 1.48 (pp. 77–79) are omitted for the same reason, though Example 1.44's identification of the deck group of X̃<sub>m,n</sub> with the torus knot group G<sub>m,n</sub> is the natural sequel to at1-05's Problem 5 and is worth reading. The proof of the classical fact that a finite connected graph with an even number of edge ends at each vertex has an Eulerian circuit is assumed, by Hatcher and here; the corresponding statement for infinite graphs he attributes to König and does not prove. The theorem that the fundamental group of any connected graph is free is §1.A, not among this unit's resources — Problem 2(d) therefore derives the rank of a covering of the figure eight by at1-05's maximal-tree method rather than quoting it.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('helix');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var cx=320,rx=120,ry=32,baseY=300,helixY=150,pitch=26,TAU=Math.PI*2;
+  function base(t){return [cx+rx*Math.cos(t), baseY+ry*Math.sin(t)];}
+  function helix(s){return [cx+rx*Math.cos(TAU*s), helixY-pitch*s+ry*Math.sin(TAU*s)];}
+  function stroke(pts,col,w){
+    g.strokeStyle=col;g.lineWidth=w;g.beginPath();
+    for(var i=0;i<pts.length;i++){ if(i===0){g.moveTo(pts[i][0],pts[i][1]);}else{g.lineTo(pts[i][0],pts[i][1]);} }
+    g.stroke();
+  }
+  function sample(f,a,b,n){var out=[],i;for(i=0;i<=n;i++){out.push(f(a+(b-a)*i/n));}return out;}
+  // base circle
+  stroke(sample(base,0,TAU,180),'#5a6773',2);
+  // the evenly covered arc U, on the front-right of the base
+  var half=0.5;
+  stroke(sample(base,-half,half,40),'#4caf82',5);
+  // the helix
+  stroke(sample(helix,-2.4,2.4,600),'#8ab4f8',2);
+  // the sheets over U: helix segments with angle within +-half of 0
+  var w=half/TAU,k;
+  for(k=-2;k<=2;k++){ stroke(sample(helix,k-w,k+w,20),'#4caf82',5); }
+  // projection lines from two sheets down to U
+  g.strokeStyle='#3a4652';g.lineWidth=1;
+  for(k=-1;k<=1;k++){
+    var h=helix(k),b0=base(0);
+    g.beginPath();g.moveTo(h[0],h[1]);g.lineTo(b0[0],b0[1]);g.stroke();
+  }
+  // labels
+  g.font='16px Segoe UI, system-ui, sans-serif';g.textAlign='center';
+  g.fillStyle='#8ab4f8';g.fillText('R',150,105);
+  g.fillStyle='#9aa5b1';g.fillText('S1',150,300);
+  g.fillStyle='#4caf82';g.fillText('U',498,300);
+  g.fillStyle='#9aa5b1';g.font='14px Segoe UI, system-ui, sans-serif';
+  g.fillText('p',300,225);
+  g.fillText('U is evenly covered: its preimage is one disjoint sheet per integer.',320,344);
+})();
+</script>
+</body></html>
