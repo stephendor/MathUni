@@ -219,7 +219,9 @@ family of subspaces with inclusions is one.
 before functors had been defined in this module. Redo it now with
 Definition 1.1 in hand: verify both functor conditions for the composite, and
 describe the result concretely — one abelian group per index, one homomorphism
-per comparison.
+per comparison. Then note the codomain: cat-07 will define a persistence module
+as a functor into $\mathsf{Vect}_k$ over a field, so say what has to change for
+this composite to be one on the nose, and which unit supplies it.
 (e) The reflection, and it turns on a distinction the mission strip does not
 draw. The strip says: *homology is a functor; so is "sample the filtration at
 level $t$"; persistence composes the two.* There are two different things that
@@ -257,8 +259,13 @@ never used, so $P$ may be a preorder — cat-01's Example 3.3, not a poset.⟩
 
 $H_n \circ \mathcal{X}$ has domain $P$ and codomain $\mathbf{Ab}$. Its value at
 $p$ is $H_n(X_p)$ and its value on $p \le q$ is the induced homomorphism. That
-is a group for every index and a map for every comparison: **a persistence
-module**.
+is a group for every index and a map for every comparison: **the shape of a
+persistence module**. One qualification, which cat-07 will fix: Oudot's
+Definition 1.7 asks for a functor into $\mathsf{Vect}_k$, not into
+$\mathbf{Ab}$. Take coefficients in a field — at1-09's material — and
+$H_n(-\,; k) \circ \mathcal{X} : P \to \mathsf{Vect}_k$ is a persistence module
+literally. Over $\mathbb{Z}$ it is an $\mathbf{Ab}$-valued diagram of the right
+shape and not one.
 
 $H_n \circ \mathrm{ev}_t$ has domain $\mathbf{Top}^P$ and codomain
 $\mathbf{Ab}$. Its value at a filtration $\mathcal{X}$ is the single group

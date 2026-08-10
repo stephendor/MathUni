@@ -60,9 +60,12 @@ set-functions this is automatic on Aluffi's convention: two functions that are
 the same function necessarily have the same source and target. Without it, a
 single $f$ could lie in two different Hom-sets and the composite $gf$ would not
 be determined by $f$ and $g$ alone. ⟨your step: give a concrete pair of
-"functions" that would become ambiguous — the inclusion
-$\mathbb{Z} \hookrightarrow \mathbb{Z}$ and the identity are a good place to
-start.⟩
+"functions" that would become ambiguous. Two maps with the *same graph* and
+different targets are what you want — the identity
+$\mathbb{Z} \to \mathbb{Z}$ and the inclusion
+$\mathbb{Z} \hookrightarrow \mathbb{Q}$ agree on every element and are
+different morphisms. Say which composite becomes ill-defined if they are
+allowed to be the same one.⟩
 </details>
 <details><summary>Strategy</summary>
 Aluffi remarks that 90% of the definition goes into the properties of

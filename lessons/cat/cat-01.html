@@ -101,7 +101,8 @@ details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
 
 <div class="worked fade">
 <p><strong>Worked, then fading: Example 3.4, the power set.</strong> <span class="cite">— Aluffi §I.3, p. 22</span></p>
-<p>Let S be a set. Define Ŝ by: Obj(Ŝ) = 𝒫(S), the power set; and for A, B ⊆ S, let Hom<sub>Ŝ</sub>(A, B) be the pair (A, B) if A ⊆ B, and ∅ otherwise.</p>
+<p>Let S be a set. Define Ŝ by: Obj(Ŝ) = 𝒫(S), the power set; and for A, B ⊆ S, let Hom<sub>Ŝ</sub>(A, B) be the one-element set {(A, B)} if A ⊆ B, and ∅ otherwise.</p>
+<p><em>A note on that wording.</em> Aluffi writes "let Hom<sub>Ŝ</sub>(A, B) be the pair (A, B)", but Definition 3.1 requires Hom<sub>Ŝ</sub>(A, B) to be a <em>set</em>, and the pair is the morphism, not the Hom-set. The singleton reading is forced. He is careful about exactly this two pages earlier in Example 3.3, where he writes "the set consisting of the element (a, b)"; the slip is local to Example 3.4 and the correction is this lesson's.</p>
 <p>The identity 1<sub>A</sub> is the pair (A, A), which exists because A ⊆ A, and is the only morphism A → A. Composition is stringing inclusions: given A → B and B → C we have A ⊆ B and B ⊆ C, hence A ⊆ C and a morphism A → C.</p>
 <p>Now check the rest. Associativity holds because ⟨ what is true of any two morphisms with the same source and target here? ⟩. The unit laws hold for the same reason. Disjointness holds because a morphism is literally the pair (A, B), so it ⟨ … ⟩.</p>
 <p>Aluffi's footnote says Ŝ is really an instance of Example 3.3. It is: take the set to be ⟨ … ⟩ and the reflexive transitive relation to be ⟨ … ⟩. That is his Exercise 3.5.</p>
