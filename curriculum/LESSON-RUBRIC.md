@@ -23,6 +23,7 @@ Model-agnostic, free, run before a human looks. Any FAIL ⇒ reject, do not scor
 | 0.2 | HTML tokenises without an exception; this is not a tag-balance guarantee | `python -c "from html.parser import HTMLParser; HTMLParser().feed(open(PATH,encoding='utf-8').read())"` | ☐ |
 | 0.3 | Self-contained: zero external requests | grep the file for `http://`, `https://`, `src=`, `cdn`, `<link`, external `<script src>` → none | ☐ |
 | 0.4 | Zero browser console errors on load | open in browser pane, read console | ☐ |
+| 0.5a | No unresolved source gaps: the lesson carries no `NOT IN SOURCE:` marker (LESSON-GUIDE §Source discipline). **Drift candidates are exempt** — `drift_bundle --check` drops this one row and reports the count instead, which is then read at Gate 2 | `python scripts/lesson_lint.py lessons/<m>/<u>.html` | ☐ |
 | 0.5 | Renders faithfully + structural counts: no invalid HTML entities or LaTeX leak, governed non-void tags balance (`p` excluded because its end tag is optional), and countable structure items are sufficient (>=4 self-checks, 2-3 segments, breaks, >=1 faded, guided proof, visual, blank-page, mission, footer) | `python scripts/lesson_lint.py lessons/<m>/<u>.html` | ☐ |
 
 > ⚠️ Gate 0 proves **form and mention**, never truth. 0.1-0.4 confirm a ref is
@@ -71,6 +72,15 @@ Check every one and cite the location of any defect:
 - [ ] Every **self-check** `data-ok` marks a genuinely correct option and the `.explain` is true.
 - [ ] The **guided-proof model answer** is a correct proof.
 - [ ] **Citations resolve** — the section/pages exist and actually contain what is attributed to them.
+- [ ] **Nothing is supplied from outside the source.** Every statement traces to the
+      cited sections. Where the source did not cover something, the lesson says so
+      with a `NOT IN SOURCE:` marker rather than filling the hole.
+
+> **Read the gap count before scoring.** On hard material a candidate that
+> declares **zero** gaps is not thereby complete — the likelier reading is that it
+> filled silently from recollection, which is precisely the drift being measured.
+> Zero gaps plus full coverage is a claim to be checked, not a result. Record the
+> count either way.
 
 **Verdict:** ☐ PASS  ☐ FAIL — defects: ________________________________________
 
@@ -97,6 +107,7 @@ Score against the LESSON-GUIDE §Register bar (Aluffi/Stillwell voice, British E
 ```
 Unit: __________   Generator: __________ (model/tier)   Date: __________
 Gate 0 admission : PASS / FAIL
+Declared gaps    : __  (NOT IN SOURCE markers; zero is a claim, not a result)
 Gate 1 structure : __ / 12 pass   (list any fails)
 Gate 2 correctness: PASS / FAIL   (list any defects)
 Gate 3 depth      : 3.1__ 3.2__ 3.3__ 3.4__  Σ__/12

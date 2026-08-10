@@ -14,8 +14,10 @@ Layout (default workspace is a SIBLING of the repo, <repo>-drift/, never inside 
 
   <repo>-drift/
     inbox/<unit>/     generator inputs  (LESSON-GUIDE, RUBRIC, template, exemplar,
-                      syllabus entry, problem set, source pointer, PROMPT) — NO answer
-    candidates/       you save Gemini output here as <unit>.flash.html / <unit>.pro.html
+                      syllabus entry, problem set, SOURCE-EXTRACT, PROMPT) — NO answer
+    candidates/       each generator writes <unit>.candidate.html here; RENAME between
+                      runs (<unit>.m1.html, ...) or the next one overwrites it. --check
+                      globs <unit>*.html, so any suffix works.
     reference/        the held-out gold, pulled from git (scorer's eyes only)
     scorecards/       rubric verdicts
 """
@@ -165,9 +167,17 @@ def build(args):
                              "paste the relevant notes/docs.")
     (inbox / "SOURCE-POINTER.md").write_text("\n".join(src_lines) + "\n", encoding="utf-8")
 
-    # 7. generation prompt
-    (inbox / "PROMPT.md").write_text(PROMPT_TEMPLATE.format(unit=unit, exemplar=args.exemplar),
-                                     encoding="utf-8")
+    # 7. generation prompt. Model-neutral by design: no vendor named, no
+    # reasoning directives (they would advantage models with those features and
+    # confound a reasoning-effort arm), and a fixed output contract.
+    # One canonical candidate path, built with pathlib so the separator is the
+    # platform's. It goes into the generator prompt AND the next-step print, so
+    # the file the generator is told to write is the file --check globs for.
+    candidate_path = ws / "candidates" / f"{unit}.candidate.html"
+    (inbox / "PROMPT.md").write_text(
+        PROMPT_TEMPLATE.format(unit=unit, exemplar=args.exemplar, inbox=inbox,
+                               candidate_path=candidate_path),
+        encoding="utf-8")
 
     # manifest
     print(f"Bundle built for {unit} (module {module}) at:\n  {inbox}")
@@ -177,11 +187,15 @@ def build(args):
     for p in sorted(inbox.iterdir()):
         print("   ", p.name)
     print("\nNEXT:")
-    print("  1. Paste the source sections named in SOURCE-POINTER.md into the inbox.")
-    print("  2. Run the inbox + PROMPT.md through Gemini Flash AND Pro.")
-    print(f"  3. Save outputs as  {ws / 'candidates'}\\{unit}.flash.html  and  {unit}.pro.html")
+    print("  1. Extract the sections named in SOURCE-POINTER.md into")
+    print(f"     {inbox / 'SOURCE-EXTRACT.md'}  (the one manual step; PROMPT.md reads it as")
+    print("     the sole source for this unit's own mathematics).")
+    print("  2. Point each generator at the inbox folder and PROMPT.md. Same bytes to")
+    print("     every generator, one turn each, no repair prompts.")
+    print(f"  3. Each writes {candidate_path} — RENAME IT")
+    print("     before the next run, or the next generator overwrites it.")
     print(f"  4. python scripts/drift_bundle.py {unit} --check")
-    print("  5. Bring the surviving candidates to Claude to score vs the reference.")
+    print("  5. Bring the surviving candidates to Claude to score against the rubric.")
     print("\nDo NOT put reference/ or the working-tree lesson in the generator's input.")
 
 
@@ -207,7 +221,7 @@ def check(args):
     unit = args.unit
     cands = sorted((ws / "candidates").glob(f"{unit}*.html"))
     if not cands:
-        sys.exit(f"no candidates at {ws / 'candidates'}\\{unit}*.html -- generate them first")
+        sys.exit(f"no candidates at {ws / 'candidates' / (unit + '*.html')} -- generate them first")
     pset = repo / "problems/sets" / f"{unit}.md"
     any_fail = False
     for c in cands:
@@ -231,8 +245,19 @@ def check(args):
         # self-contained
         ext = _self_contained(html)
         selfc = "PASS" if not ext else f"FAIL external: {', '.join(ext[:3])}"
+        # A candidate that declares "NOT IN SOURCE: ..." is being honest about the
+        # extract: a datum to read at Gate 2, not a bounce. Committed lessons are
+        # linted by the same function and DO fail on a gap — the exemption is this
+        # caller's policy, so it drops that one row by name rather than asking
+        # lesson_lint to soften.
         lint_results = lesson_lint.lint(html)
-        lfails = [(nm, d) for nm, ok, d in lint_results if not ok]
+        gaps = lesson_lint.gap_markers(html)
+        lfails = [(nm, d) for nm, ok, d in lint_results
+                  if not ok and nm != lesson_lint.GAP_CHECK]
+        # The gap row is a datum, not a check: exclude it from the count too, or a
+        # candidate with declared gaps reports one more "render+structure" check
+        # than one without.
+        structural = [r for r in lint_results if r[0] != lesson_lint.GAP_CHECK]
         failed = (cov.startswith(("FAIL", "ERROR")) or not source_gap_ok
                   or parse.startswith("FAIL") or selfc.startswith("FAIL") or bool(lfails))
         any_fail = any_fail or failed
@@ -242,29 +267,118 @@ def check(args):
             print(f"  source gap      : {source_gap}")
         print(f"  html parses     : {parse}")
         print(f"  self-contained  : {selfc}")
+        print(f"  declared gaps   : {len(gaps)}"
+              + ("  <- read these before scoring" if gaps else
+                 "  (none — check this is completeness, not silent invention)"))
+        for g in gaps:
+            print(f"      NOT IN SOURCE: {g.strip()[:100]}")
         if lfails:
             for nm, d in lfails:
                 print(f"  {nm} : FAIL{(': ' + d) if d else ''}")
         else:
-            print(f"  render+structure: PASS ({len(lint_results)} checks)")
+            print(f"  render+structure: PASS ({len(structural)} checks)")
     print("\n" + ("Some candidates failed the free gate — fix/regenerate before scoring."
                   if any_fail else "All candidates passed the free gate — bring them to Claude to score."))
     sys.exit(1 if any_fail else 0)
 
 
-PROMPT_TEMPLATE = """You are writing one self-contained HTML lesson for a mathematics self-study
-system. Follow LESSON-GUIDE.md exactly — every item in its Structure list is
-non-negotiable and in order. You will be graded against LESSON-RUBRIC.md; a single
-mathematical error fails the lesson outright, so verify every statement and proof
-against the attached source text and cite book + section + page in the footer.
-Match the depth, register (British English), and scaffolding of the attached
-exemplar lesson (exemplar-{exemplar}.html), which is on DIFFERENT content — do not
-copy its mathematics. Fill _template.html. Demonstrate every technique the attached
-problem set uses, and ensure every theorem/definition it names appears in your
-lesson. Output only the complete HTML file for unit {unit}.
+PROMPT_TEMPLATE = """# Generation task
 
-Attached: LESSON-GUIDE.md, LESSON-RUBRIC.md, _template.html, exemplar-{exemplar}.html,
-{unit}.syllabus.yaml, {unit}.problems.md, and the source sections from SOURCE-POINTER.md.
+Write one self-contained HTML lesson for a mathematics self-study system.
+
+## Where the inputs are
+
+Read every file in this folder:
+
+```
+{inbox}
+```
+
+In order of authority:
+
+1. `LESSON-GUIDE.md` — binding. Its **Structure** list is in order and every item
+   is required. Its **Register** section defines the voice.
+2. `LESSON-RUBRIC.md` — how the output will be scored.
+3. `_template.html` — the file skeleton to fill.
+4. `SOURCE-EXTRACT.md` — the mathematical source for this unit.
+5. `{unit}.syllabus.yaml` — the unit's id, title, prereqs, hook, mission_link and
+   pinned sections.
+6. `{unit}.problems.md` — the problem set this lesson must prepare the learner for.
+7. `exemplar-{exemplar}.html` — a completed lesson on different, easier content.
+
+Ignore `SOURCE-POINTER.md`; it is a build record, not input.
+
+## Where the output goes
+
+Write the finished lesson as a real file at exactly:
+
+```
+{candidate_path}
+```
+
+One file. Do not print the HTML into the conversation, do not wrap it in a code
+fence, and do not create, move or modify any other file anywhere.
+
+## What the exemplar is and is not
+
+The exemplar shows **format, markup conventions, register and scaffolding
+technique**. It is on much easier material than your target unit. Do **not**
+calibrate mathematical depth to it, and do not reuse its mathematics. Depth is
+set by `SOURCE-EXTRACT.md` and by the sections named in the syllabus entry.
+
+## Source discipline (this is graded)
+
+`SOURCE-EXTRACT.md` is the sole source for **this unit's own mathematics** — the
+definitions, theorems and proofs of the sections it pins. Do not restate those
+from recollection of the textbook, and do not consult anything outside this
+folder. Every definition, theorem statement and proof of the unit's material must
+be traceable to the extract, cited by book, section and page in the footer.
+
+**Prerequisite results are a different matter and you should use them freely.**
+The learner has already completed the earlier units of this curriculum, so
+standard facts they have met — the homology of a connected space, of spheres,
+surfaces and projective spaces, cellular and singular homology, the universal
+coefficient theorem, ordinary linear algebra — are available even when the
+extract does not restate them. Use them, and attribute them to the earlier unit
+rather than to the extract. The extract is a boundary on **what this unit
+teaches**, not on what the learner already knows.
+
+If something the lesson genuinely needs is missing — a result of *this unit's*
+material that the extract does not contain, and that is not prerequisite
+knowledge — do not supply it from memory and do not quietly work around it.
+State it in place, in this exact form, and carry on:
+
+```html
+<p class="gap">NOT IN SOURCE: the proof that the cover is good</p>
+```
+
+A lesson with an honest gap marker scores better than one with an unsupported
+claim. Do not use the marker for a prerequisite you could simply state, and do
+not invent a theorem number or a page citation for a result you are supplying
+yourself: if you need an auxiliary lemma, give it your own name, prove it, and
+say which cited result it follows from. Hypotheses matter — state them where the
+source states them.
+
+## Output contract
+
+- Exactly one HTML document in the file named above.
+- First characters `<!DOCTYPE html>`, last characters `</html>`.
+- Fully self-contained: no external requests of any kind — no CDN, no remote
+  fonts, stylesheets, images or scripts. All CSS and JS inline.
+- Use literal Unicode characters for mathematics (ℤ, ℝ, ⊗, ≅, ∂, ε). Do **not**
+  invent HTML entities: only the five standard named entities
+  (`&amp; &lt; &gt; &quot; &apos;`) and numeric entities are valid. Anything like
+  `&mathbb;`, `&left;`, `&dots;` renders as literal text and fails admission.
+- Label self-checks literally as `Self-check 1`, `Self-check 2`, … so they can be
+  counted.
+
+## Constraints on process
+
+Work at whatever internal depth you need; nothing about your reasoning is being
+measured and no reasoning trace should appear in the file. Only the delivered
+HTML is scored.
+
+Target unit: **{unit}**.
 """
 
 

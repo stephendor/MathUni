@@ -44,6 +44,24 @@ HTML file at `lessons/<module>/<unit>.html`, built from `lessons/_template.html`
    PDF page(s), e.g. `Axler §1A, pp. 2–5`. Resolve paths via
    resources/bookmap.json; verify quotes against the book's markdown.md.
 
+## Source discipline
+
+The mathematics comes from the sections named in the unit's `resources`, read
+from the text — never from recollection. If the source available to the writer
+does not contain something the lesson needs, say so in place rather than
+supplying it from memory or quietly routing around it:
+
+```html
+<p class="gap">NOT IN SOURCE: the proof that the cover is good</p>
+```
+
+A marked gap is an honest, reviewable defect; an unsupported claim is an
+invisible one. **A lesson is not committable while it still carries a gap
+marker** — `lesson_lint.py` fails on one. Resolve it (find the source, or
+rescope the lesson) and remove the marker. The marker exists so that a
+generation run can report the hole instead of inventing a filler, which is
+exactly what the drift test measures.
+
 ## Register
 - Definitions verbatim-faithful to the primary text (cite); narration in
   your own voice: vivid, precise, never breathless. Aluffi/Stillwell is the
