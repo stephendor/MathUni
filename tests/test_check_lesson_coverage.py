@@ -65,3 +65,29 @@ def test_cli_reports_nonvacuous_denominator(tmp_path, capsys):
 
     assert main([str(problem_set), str(lesson)]) == 0
     assert capsys.readouterr().out.strip() == "PASS checked 1 refs, 0 missing"
+
+
+def test_lesson_range_citation_covers_its_individual_numbers():
+    """Obs 153: a lesson citing 'Definitions 11.8-11.9' teaches both numbers,
+    even though REF_PATTERN never matches the plural, dash-joined form."""
+    problem_set = "Use Definition 11.9 to build the basis."
+    lesson = "<p>See Definitions 11.8-11.9, p. 328, for the construction.</p>"
+    assert find_missing_refs(problem_set, lesson) == []
+
+
+def test_lesson_range_citation_with_en_dash_and_comma_list():
+    problem_set = "Use Theorem 3 and Theorem 5."
+    lesson = "<p>Theorems 3, 4 and 5 are proved together below.</p>"
+    assert find_missing_refs(problem_set, lesson) == []
+
+
+def test_problem_set_range_citation_is_expanded_too():
+    problem_set = "See Definitions 2.1-2.2 for the setup."
+    lesson = "<p>Definition 2.1 and Definition 2.2 are both stated here.</p>"
+    assert find_missing_refs(problem_set, lesson) == []
+
+
+def test_range_citation_does_not_mask_a_genuinely_untaught_number():
+    problem_set = "Use Definition 11.9."
+    lesson = "<p>See Definitions 5.1-5.2 for something unrelated.</p>"
+    assert find_missing_refs(problem_set, lesson) == ["Definition 11.9"]

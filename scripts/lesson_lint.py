@@ -32,7 +32,15 @@ _NAMED = re.compile(r"&([a-zA-Z][a-zA-Z0-9]*);")   # &name;  (numeric &#...; is 
 _LATEX = re.compile(r"\\(?:left|right|frac|mathbb|mathbf|mathcal|cdot|times|sqrt"
                     r"|begin|end|leq|geq|neq|infty|sum|int|forall|exists)\b"
                     r"|\\\(|\\\)|\\\[|\\\]|\$\$")   # LaTeX that leaked as text
+_MARKDOWN = re.compile(
+    r"\*\*[^*\n]+\*\*"   # **bold** — same failure mode as LaTeX leak: source
+    r"|__[^_\n]+__"      # __bold__   syntax that renders as literal text with
+    r"|`[^`\n]+`"        # `code`     no parse/console error (Obs 151; la-01
+)                        #            shipped `**R**` inside an <h2>).
 _GAP = re.compile(r"NOT IN SOURCE:\s*([^<\n]*)")   # LESSON-GUIDE 'Source discipline'
+_SELF_CHECK_DATA_OK = re.compile(r"\bdata-ok\b")
+_SELF_CHECK_CLASS = re.compile(r'class="[^"]*\bselfcheck\b[^"]*"', re.I)
+_SELF_CHECK_PROSE = re.compile(r"Self-check\s*\d")
 _BALANCED_TAGS = {
     "sup", "sub", "em", "strong", "div", "details", "summary", "table",
     "tr", "td", "th", "ol", "ul", "li", "span", "footer", "textarea",
@@ -56,6 +64,38 @@ def invalid_entities(html):
 
 def latex_leaks(html):
     return Counter(_LATEX.findall(_strip_code(html)))
+
+
+def markdown_leaks(html):
+    """Markdown source syntax leaked into rendered HTML (Obs 151).
+
+    Same failure mode as latex_leaks: renders as literal text with no parse
+    or console error. la-01 shipped `<h2>Warm-up geometry: **R**<sup>n</sup></h2>`
+    — a generator emitting source syntax into a rendered target, just a
+    different dialect than LaTeX.
+    """
+    return Counter(_MARKDOWN.findall(_strip_code(html)))
+
+
+def _self_check_count(html):
+    """Count self-checks by semantic markup, not the literal prose label.
+
+    Obs 152: the rest of structure() is explicitly "keyed on robust semantic
+    signals, not one lesson's class names" — every other item honours that,
+    but this one counted the literal string "Self-check \\d", which a
+    structurally-complete candidate can simply head differently ("Check 1"
+    rather than "Self-check 1") and go uncounted. `data-ok` and
+    `class="...selfcheck..."` are the markup rubric 1.8 actually asks for
+    (3-4 buttons, one `data-ok`, one `.explain` per self-check); the prose
+    match is kept only as a fallback for lessons using neither marker.
+    """
+    semantic = max(
+        len(_SELF_CHECK_DATA_OK.findall(html)),
+        len(_SELF_CHECK_CLASS.findall(html)),
+    )
+    if semantic:
+        return semantic
+    return len(_SELF_CHECK_PROSE.findall(html))
 
 
 def tag_imbalances(html):
@@ -88,7 +128,7 @@ def structure(html):
     def count(pat):
         return len(re.findall(pat, html))
     return {
-        "self_checks": count(r"Self-check\s*\d"),
+        "self_checks": _self_check_count(html),
         # Keyed on robust semantic signals, not one lesson's class names: the
         # reference and generated candidates mark these components differently
         # (e.g. "Predict before we start" vs "Prediction Gate"; class="blankpage"
@@ -134,6 +174,9 @@ def lint(html):
     leaks = latex_leaks(html)
     out.append(("render: no LaTeX leak", not leaks,
                 "" if not leaks else ", ".join("%s x%d" % (k, v) for k, v in leaks.most_common(6))))
+    md_leaks = markdown_leaks(html)
+    out.append(("render: no Markdown leak", not md_leaks,
+                "" if not md_leaks else ", ".join("%s x%d" % (k, v) for k, v in md_leaks.most_common(6))))
     imbalances = tag_imbalances(html)
     out.append(("render: tags balanced", not imbalances,
                 "" if not imbalances else ", ".join(
@@ -199,6 +242,28 @@ def selftest():
     check("structure signal inside <script> is ignored",
           fired(good.replace('<textarea></textarea>', '')
                 + "<script>var t='<textarea></textarea>';</script>", "guided proof"))
+    check("fires on Markdown leak (bold)", fired(good + "**R**", "Markdown"))
+    check("fires on Markdown leak (code span)", fired(good + "use `foo()` here", "Markdown"))
+    check("valid text is NOT flagged as Markdown leak (no false positive)",
+          not fired(good, "Markdown"))
+    check("Markdown-looking text inside <script> is ignored",
+          not fired(good + "<script>var s='**not markdown**';</script>", "Markdown"))
+
+    # Obs 152: the self-check counter must be label-independent — a lesson
+    # using semantic markup (data-ok, class="selfcheck") instead of the
+    # literal "Self-check N" prose must still be counted.
+    relabelled = good
+    for i in range(1, 5):
+        relabelled = relabelled.replace(
+            '<p><strong>Self-check %d.</strong></p>' % i,
+            '<div class="selfcheck"><button data-ok>ok</button>'
+            '<button>a</button><button>b</button><div class="explain">e</div></div>',
+        )
+    check("self-checks counted under a different heading, not just the prose label",
+          all(ok for nm, ok, _ in lint(relabelled) if nm == "structure: >=4 self-checks"))
+    check("prose label alone still counts as a fallback (regression)",
+          all(ok for nm, ok, _ in lint(good) if nm == "structure: >=4 self-checks"))
+
     gapped = good + '<p class="gap">NOT IN SOURCE: the good-cover hypothesis</p>'
     check("fires on an unresolved gap marker", fired(gapped, "gap markers"))
     check("the gap row names what was declared (drift scoring reads this)",
