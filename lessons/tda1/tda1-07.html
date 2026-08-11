@@ -116,7 +116,7 @@ Perturb the data by epsilon, the diagram moves by at most epsilon. The theorem t
 
 <p>Oudot calls it "certainly the most subtle part in the proof of the Isometry Theorem", and the picture behind it is worth having. Order the plane by (x, y) ⪯ (x′, y′) iff x ≤ x′ and y ≤ y′, and for each r let Δ<sub>r</sub> = {(x, y) : y − x = 2r} be a shifted diagonal. As a poset Δ<sub>r</sub> is isomorphic to ℝ, via t ↦ (t − r, t + r), so persistence modules over ℝ are the same thing as representations of Δ<sub>r</sub>. Then (3.9): 𝕍 and 𝕎 are |y − x|-interleaved exactly when there is a representation 𝕌 of Δ<sub>x</sub> ∪ Δ<sub>y</sub> restricting to 𝕍 on one line and 𝕎 on the other. The module structures become the maps along the diagonals; φ and ψ become the vertical and horizontal maps between them; everything else is composition. Interpolating is then filling in the lines between.</p>
 
-<p>The tight bound then runs in three steps <span class="cite">— Oudot, p. 59</span>. Both rest on the <strong>Box Lemma</strong>: writing δ = |y − x| and R<sup>δ</sup> for the δ-thickening of a rectangle R = [p, q] × [r, s] with r &gt; q + 2δ,</p>
+<p>The tight bound then runs in three steps <span class="cite">— Oudot, p. 59</span>. Steps 1 and 2 rest on the <strong>Box Lemma</strong>: writing δ = |y − x| and R<sup>δ</sup> for the δ-thickening of a rectangle R = [p, q] × [r, s] with r &gt; q + 2δ,</p>
 
 <p style="text-align:center">μ<sub>𝕌<sub>x</sub></sub>(R) ≤ μ<sub>𝕌<sub>y</sub></sub>(R<sup>δ</sup>) and μ<sub>𝕌<sub>y</sub></sub>(R) ≤ μ<sub>𝕌<sub>x</sub></sub>(R<sup>δ</sup>),</p>
 
@@ -150,7 +150,7 @@ Perturb the data by epsilon, the diagram moves by at most epsilon. The theorem t
 <textarea class="proof-input" aria-label="Write your audit here"></textarea>
 <details class="model-answer"><summary>Reveal the model answer</summary>
 <p><strong>(1) Longest bar: controlled.</strong> If d<sub>b</sub>(X, Y) ≤ ε then take a matching of cost at most ε′ for any ε′ &gt; ε. The longest bar of X corresponds to a point p; its partner q satisfies ‖p − q‖<sub>∞</sub> ≤ ε′, so each coordinate moves by at most ε′ and the bar length p<sub>y</sub> − p<sub>x</sub> changes by at most 2ε′. If p is unmatched, its length is at most 2ε′ to begin with. So the longest bar lengths differ by at most 2ε. Lipschitz, with constant 2.</p>
-<p><strong>(2) Count above a threshold: not controlled, and badly.</strong> Let X have n points all at (0, 2δ + ε/2) and Y have the same n points at (0, 2δ − ε/2). Then a matching of cost ε/2 exists, so d<sub>b</sub>(X, Y) ≤ ε/2, and every bar of X exceeds 2δ while none of Y's does. The counts differ by n, for any n. No bound in terms of ε alone can exist, because thresholding is discontinuous and stability is a continuity statement.</p>
+<p><strong>(2) Count above a threshold: not controlled, and badly.</strong> Let X have n points all at (0, 2δ + ε/2) and Y have the same n points at (0, 2δ − ε/2). The two points differ only in the death coordinate, by ε, so the matching pairing them has cost ε and d<sub>b</sub>(X, Y) ≤ ε. Every bar of X exceeds 2δ and none of Y's does. The counts differ by n, for any n. No bound in terms of ε alone can exist, because thresholding is discontinuous and stability is a continuity statement.</p>
 <p><strong>(3) Total persistence: not controlled.</strong> Let X be empty off the diagonal and Y have n points at height ε above the diagonal. Every point of Y is within ε/2 of the diagonal in the ℓ<sup>∞</sup> sense, so d<sub>b</sub>(X, Y) ≤ ε/2, while the total persistence of Y is nε and of X is 0. Again unbounded in n. The trouble is that a sum over an unbounded number of small terms is not controlled by a supremum over them.</p>
 <p><strong>What this implies about chaining.</strong> Exactly what Oudot's Theorem 3.8 shows. That theorem bounds a Wasserstein distance by d<sub>i</sub> — but it has to pay for it, and the price is a factor (Pers(𝕍) + Pers(𝕎))<sup>1/p</sup>, which he immediately calls a dependence on quantities "which are unstable quantities". Case (3) is why: total persistence is one of the functionals stability does not control, so a bound that contains it is only as good as a separate bound on it. Stability is a statement about one distance, and every step away from that distance needs its own argument.</p>
 </details>
@@ -207,8 +207,8 @@ x.strokeStyle=grid;x.lineWidth=1;
 for(var i=0;i<=cols;i++)line(gx+i*cell,gy,gx+i*cell,gy+rows*cell,grid,1);
 for(var j=0;j<=rows;j++)line(gx,gy+j*cell,gx+cols*cell,gy+j*cell,grid,1);
 line(140,300,340,100,dim,1);
-var P=[[215,175],[265,135],[168,255]];
-var C=[[240,150],[290,100],[190,250]];
+var P=[[215,175],[265,135],[165,225]];
+var C=[[240,150],[290,100],[190,200]];
 for(var k=0;k<3;k++){
   x.beginPath();x.arc(P[k][0],P[k][1],4,0,6.2832);x.fillStyle=good;x.fill();
   line(P[k][0],P[k][1],C[k][0],C[k][1],acc,1.5);

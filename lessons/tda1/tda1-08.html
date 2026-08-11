@@ -145,7 +145,7 @@ Watch the sublevel sets of a function fill up; topology only changes at critical
 <p>Notice what unfolding does: it changes the triangulation. Whether the unfolded function has the <em>same persistence diagram</em> as the original is a further question, and nothing on these pages answers it. tda1-05's Persistence Equivalence Theorem would settle it given isomorphisms between the two sequences of homology groups commuting with everything — but those isomorphisms are exactly what would have to be exhibited, and Edelsbrunner does not exhibit them.</p>
 </div>
 
-<p>The PL Morse Inequalities have the same shape — c<sub>q</sub> ≥ β<sub>q</sub>(K) weak, the alternating version strong — and this time Edelsbrunner proves them, by induction along the lower star filtration using at1-09's Mayer–Vietoris sequence with K = K<sub>i</sub>, K′ = K<sub>i−1</sub>, K″ = St<sub>−</sub>u<sub>i</sub> ∪ Lk<sub>−</sub>u<sub>i</sub> and A = Lk<sub>−</sub>u<sub>i</sub>. K″ is a cone, hence homologically trivial, which collapses the sequence and gives rank H̃<sub>p</sub>(K<sub>i</sub>) = rank H̃<sub>p</sub>(K<sub>i−1</sub>) − k<sup>p</sup> + k<sub>p−1</sub> <span class="cite">— p. 166</span>. He omits the proof of the smooth strong inequalities and refers instead to this one — a nice inversion, since the PL case is the one where genericity fails and the elementary proof is available.</p>
+<p>The PL Morse Inequalities have the same shape — c<sub>q</sub> ≥ β<sub>q</sub>(K) weak, the alternating version strong — and this time Edelsbrunner proves them, by induction along the lower star filtration using at1-09's Mayer–Vietoris sequence with K = K<sub>i</sub>, K′ = K<sub>i−1</sub>, K″ = St<sub>−</sub>u<sub>i</sub> ∪ Lk<sub>−</sub>u<sub>i</sub> and A = Lk<sub>−</sub>u<sub>i</sub>. K″ is a cone, hence homologically trivial, which collapses the sequence and gives rank H̃<sub>p</sub>(K<sub>i</sub>) = rank H̃<sub>p</sub>(K<sub>i−1</sub>) − k<sup>p</sup> + k<sub>p−1</sub> <span class="cite">— p. 166</span>. The mixed sub- and superscript is Edelsbrunner's and is not a slip: they name two different families. Writing φ<sub>p</sub> for the connecting homomorphism and ψ<sub>p</sub> for the map induced by inclusion, he sets k<sub>p</sub> = rank ker ψ<sub>p</sub> and k<sup>p</sup> = rank cok φ<sub>p</sub>, so the identity subtracts a cokernel rank in degree p and adds a kernel rank in degree p−1. He omits the proof of the smooth strong inequalities and refers instead to this one — a nice inversion, since the PL case is the one where genericity fails and the elementary proof is available.</p>
 </div>
 
 <div class="break">☕ Break — walk to a window, 5 minutes.</div>
@@ -227,18 +227,20 @@ for(var p=0;p<4;p++){
   }
   x.beginPath();x.arc(cx,cy,4.5,0,6.2832);x.fillStyle=ink;x.fill();
 }
-var rows=[['b-1','0','1','0','0'],['b 0','0','0','1','0'],['b 1','0','0','0','1']];
-var ys=[248,278,308];
+var rows=[['-1','0','1','0','0'],['0','0','0','1','0'],['1','0','0','0','1']];
+var ys=[252,280,308];
+x.font='11px system-ui,sans-serif';x.textAlign='left';x.fillStyle=dim;
+x.fillText('reduced Betti number of the lower link, by degree:',25,228);
+line(20,238,600,238,grid,1);
 x.font='13px system-ui,sans-serif';
 for(var rI=0;rI<3;rI++){
-  x.textAlign='left';x.fillStyle=dim;x.fillText('reduced '+rows[rI][0],25,ys[rI]);
+  x.textAlign='right';x.fillStyle=dim;x.fillText(rows[rI][0],centres[0]-30,ys[rI]);
   x.textAlign='center';
   for(var cI=0;cI<4;cI++){
     x.fillStyle=(rows[rI][cI+1]==='1')?good:dim;
     x.fillText(rows[rI][cI+1],centres[cI],ys[rI]);
   }
 }
-line(20,224,600,224,grid,1);
 x.textAlign='left';x.font='12px system-ui,sans-serif';x.fillStyle=dim;
 x.fillText('a PL regular vertex has a non-empty but homologically trivial lower link',25,340);
 })();

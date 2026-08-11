@@ -35,7 +35,7 @@ Track a hole from the level it is born to the level it dies — persistence is h
 </div>
 
 <div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
-<p><strong>Predict before we start.</strong> tda1-02 derived that a filtration can tolerate only one of the four matrix operations: adding an earlier column to a later one. Edelsbrunner's persistence algorithm is on p. 182 of this unit's source. What will it turn out to use?</p>
+<p><strong>Predict before we start.</strong> tda1-02 derived that a filtered reduction may only let a basis element absorb elements of grade no larger — so adding an earlier column to a later one is admissible and free pivot exchange is not. Edelsbrunner's persistence algorithm is on p. 182 of this unit's source. What will it turn out to use?</p>
 <p>
 <button onclick="check(this,true)" data-ok>Exactly that one operation, and nothing else</button>
 <button onclick="check(this,false)">That operation plus column exchanges, to move pivots into place</button>
@@ -84,7 +84,7 @@ Track a hole from the level it is born to the level it dies — persistence is h
 <div class="worked fade">
 <p><strong>Worked, then fading: birth and death, made precise.</strong> <span class="cite">— Edelsbrunner, p. 180</span></p>
 <p>Let γ be a class in H<sub>p</sub>(K<sub>i</sub>). It is <em>born</em> at K<sub>i</sub> if γ ∉ H<sub>p</sub><sup>i−1,i</sup> — read aloud: γ is not the image of anything that was already there one step earlier, so it is genuinely new at i.</p>
-<p>If γ is born at K<sub>i</sub> then it <em>dies entering</em> K<sub>j</sub> if f<sub>p</sub><sup>i,j−1</sup>(γ) ∉ H<sub>p</sub><sup>i−1,j−1</sup> but f<sub>p</sub><sup>i,j</sup>(γ) ∈ H<sub>p</sub><sup>i−1,j</sup>. In words: up to time j−1 the class was still ⟨ what? ⟩, and at time j it becomes ⟨ what? ⟩. Notice what death is <em>not</em>: it is not "γ becomes a boundary". It is merging with an older class, which is the Elder Rule again — and the two coincide only ⟨ when? ⟩.</p>
+<p>If γ is born at K<sub>i</sub> then it <em>dies entering</em> K<sub>j</sub> if f<sub>p</sub><sup>i,j−1</sup>(γ) ∉ H<sub>p</sub><sup>i−1,j−1</sup> but f<sub>p</sub><sup>i,j</sup>(γ) ∈ H<sub>p</sub><sup>i−1,j</sup>. In words: up to time j−1 the class was still ⟨ what? ⟩, and at time j it becomes ⟨ what? ⟩. Note that the condition is membership in the image of what was <em>already there</em>, and that image may be zero — so a class becoming a boundary is the special case of dying into ⟨ which subgroup? ⟩, not a case the definition excludes. Edelsbrunner's gloss "it merges with an older class" is exact for H₀, where deaths really are merges of components and the Elder Rule names which one survives. In higher degree the other way happens too, and Segment 3's triangle shows it: the 1-cycle born at edge 6 dies when the triangle makes it a boundary, with no older class to merge with at all.</p>
 <p>The <em>persistence</em> of γ is pers(γ) = a<sub>j</sub> − a<sub>i</sub>, the difference in function value; the <em>index persistence</em> is j − i. A class born and never dying gets ∞ for both. Two classes can share an index persistence and differ wildly in persistence, so a stability theorem — which is about perturbing f — must be about ⟨ which of the two? ⟩.</p>
 </div>
 
@@ -146,7 +146,7 @@ Track a hole from the level it is born to the level it dies — persistence is h
 
 <div class="worked fade">
 <p><strong>Worked, then fading: the prediction, checked.</strong></p>
-<p>tda1-02 derived, from tda1-01's Definition 2.1 and the description of REDUCE, that a filtration can tolerate only one of the four operations used for Smith normal form: adding an earlier column to a later one. The algorithm above performs exactly one operation, and it is that one. The prediction holds.</p>
+<p>tda1-02 derived, from tda1-01's Definition 2.1 and the description of REDUCE, that a filtered reduction may only let a basis element absorb elements of grade no larger. Adding an earlier column to a later one is admissible on that test; free pivot exchange is not. The algorithm above performs exactly one operation, and it is the admissible one. The prediction holds.</p>
 <p>Where it was <em>looser</em> than the book is the more useful question. The constraint permitted adding any earlier column to any later one; the algorithm adds only when the lowest ones collide, and always sweeps left to right. That extra discipline is what buys the two structural facts below, neither of which follows from the constraint alone.</p>
 <p>And the last part of the prediction: a one-sided reduction cannot produce a diagonal, so something else must carry the answer. It is the <em>lowest ones</em>. Since ∂ is upper triangular — every simplex is preceded by its proper faces — and additions run left to right, V and R are upper triangular too, and R = ∂ · V. Counting zero columns and lowest ones by dimension gives #Zero<sub>p</sub>(R) = rank Z<sub>p</sub> and #Low<sub>p</sub>(R) = rank B<sub>p</sub>, so β<sub>p</sub> = #Zero<sub>p</sub> − #Low<sub>p</sub> — tda1-02's formula, read off a matrix that is nowhere near normal form. And the pairing of a row to a column by a lowest one is ⟨ what, in the language of Segment 1? ⟩.</p>
 </div>
