@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cat-02 — Universal properties; products and coproducts</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body><p class="cite">Category Theory · Nexus College</p>
+<h1>Universal properties; products and coproducts <span class="cite">(cat-02)</span></h1>
+
+<div class="hook">
+<p>cat-01 gave you a language and no reason to want it. Aluffi opens §5 by conceding the point: the abstract examples of §3 "may have left the reader with the impression that one can produce at will a large number of minute variations of the same basic ideas, without really breaking any new ground." This is the section where the ground breaks. A universal property describes an object by what maps into or out of it, and nothing else — and the payoff is that two constructions you would never have compared turn out to be the same. The Cartesian product of two sets and the minimum of two integers satisfy the same universal property in different categories.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A product is a final object of one accessory category; a coproduct is an initial object of the mirror category, obtained by reversing every arrow. Predict: can one and the same object satisfy both universal properties?</p>
+<button onclick="check(this,false)">No — reversing the arrows must give something different</button>
+<button onclick="check(this,true)" data-ok>Yes. Nothing in the definitions forbids it, and for two vector spaces V ⊕ W does exactly that</button>
+<button onclick="check(this,false)">Only in categories with no non-identity morphisms</button>
+<div class="explain">Yes. "Mirror" describes how the two universal properties are related as statements, not a guarantee that their solutions differ. For finitely many vector spaces or abelian groups, one object carries both structures — with the projections it is a product, with the inclusions a coproduct. That coincidence is a fact about those categories, and it fails for infinite families. Hold on to it: the mission strip below depends on which of the two is meant.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Direct sums of persistence modules (aa-15's category of modules) are a universal property — how barcodes combine.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires. Aluffi §I.5 contains no persistence modules and no barcodes, so those clauses are forward pointers to tda1. Two things can be said now, and the second is a correction rather than a deferral.</p>
+<p><strong>Functors are still not available.</strong> Aluffi says so in §5.2 itself: the natural context for universal properties "requires a good familiarity with the language of <em>functors</em>, which we will only introduce at a later stage", and he points at §VIII.1.1 — cat-03's resource. He then supplies a working definition, and this lesson uses exactly that and no more.</p>
+<p><strong>"Direct sums … are a universal property" is true and underdetermined, and this unit is where the ambiguity gets resolved.</strong> §I.5 defines two universal properties, not one: the product, a final object of C<sub>A,B</sub>, and the coproduct, an initial object of C<sup>A,B</sup>. For <em>finitely many</em> modules the direct sum satisfies both, which is why one can get away with saying "the" universal property. For an infinite family they come apart: the product is the full ∏ and the coproduct is the ⊕ of finitely-supported families, and only the second is the direct sum. Since a persistence module is indexed by a filtration parameter that need not be finite, the distinction is not idle. Problem 5(e) makes the reader draw it.</p>
+<p><strong>Not established: that barcodes combine by any of this.</strong> The decomposition of a persistence module into intervals is a structure theorem belonging to tda1, and it is what makes a barcode exist at all. Nothing in §I.5 bears on it. What §I.5 gives is the vocabulary in which such a statement could be phrased, plus Proposition 5.4, which is the reason a construction defined by a universal property may be called <em>the</em> one.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The two ends of a category</h2>
+
+<div class="definition">
+<p><strong>Definition 5.1.</strong> An object I of a category C is <em>initial</em> if for every object A there is exactly one morphism I → A — that is, Hom<sub>C</sub>(I, A) is a singleton for all A. An object F is <em>final</em> if Hom<sub>C</sub>(A, F) is a singleton for all A. <span class="cite">— Aluffi §I.5, pp. 31–32</span></p>
+</div>
+
+<p>Aluffi offers <em>terminal</em> for either, and immediately advises against using it without saying which end you mean. Take the advice: the two notions behave quite differently even in Set, as the examples show at once.</p>
+
+<p><strong>Example 5.2.</strong> The ≤ category on ℤ has neither. An initial object would be an integer below every integer; a final one, an integer above every integer. Neither exists. But slice it: the category of Example 3.6, the same category over A = 3, <em>does</em> have a final object, the pair (3, 3) — and still no initial one. Slicing changes the answer, which is worth noticing before you assume a universal problem has a solution.</p>
+
+<p><strong>Example 5.3.</strong> In Set the empty set is initial, since the empty graph defines the unique function out of it, and it is the only set that is. Every singleton is final, since there is exactly one constant function A → {p}. So the initial object is unique on the nose and the final objects are not. That asymmetry is an accident of Set, and Proposition 5.4 says what survives it.</p>
+
+<div class="theorem">
+<p><strong>Proposition 5.4.</strong> If I<sub>1</sub>, I<sub>2</sub> are both initial then I<sub>1</sub> ≅ I<sub>2</sub>; if F<sub>1</sub>, F<sub>2</sub> are both final then F<sub>1</sub> ≅ F<sub>2</sub>. Further, these isomorphisms are uniquely determined. <span class="cite">— Aluffi §I.5, p. 32</span></p>
+<p><strong>Proof.</strong> First, if I is initial there is exactly one morphism I → I; since the category axioms supply 1<sub>I</sub> as one such, that unique morphism <em>is</em> 1<sub>I</sub>. Now let I<sub>1</sub>, I<sub>2</sub> both be initial, with f : I<sub>1</sub> → I<sub>2</sub> and g : I<sub>2</sub> → I<sub>1</sub> the unique morphisms. Then gf : I<sub>1</sub> → I<sub>1</sub> must be the identity, and fg the identity on I<sub>2</sub> by the same token. So f is an isomorphism. The final case is analogous, and Aluffi leaves it as Exercise 5.3. ∎</p>
+</div>
+
+<p>Note how little the proof uses: initiality supplies uniqueness, the category axioms supply existence of 1<sub>I</sub>, and the two together do everything. This proposition is the engine of the whole unit. It is what licenses saying <em>the</em> product rather than <em>a</em> product, and Aluffi says he will invoke it constantly. It also explains Example 5.3's asymmetry: no singleton is more special than another, and "there may be psychological reasons why one initial or final object looks more compelling than others … but this plays no role in how these objects sit in their category."</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Proposition 5.4 says terminal objects are unique up to a unique isomorphism. Why is the word <em>unique</em> in front of "isomorphism" worth having?</p>
+<button onclick="check(this,false)">It is not — any isomorphism would do</button>
+<button onclick="check(this,true)" data-ok>Because it means there is no choice to make when identifying two solutions, so the identification carries no extra data</button>
+<button onclick="check(this,false)">Because otherwise the objects might not be isomorphic</button>
+<button onclick="check(this,false)">Because it forces the objects to be equal</button>
+<div class="explain">No choice to make. "Isomorphic" alone would leave a set of isomorphisms to pick from, and picking is exactly the kind of arbitrary choice universal properties are supposed to eliminate. Because the isomorphism is unique, two solutions to the same universal problem are identified in exactly one way, so nothing about the identification has to be remembered. That is what makes "the product" a legitimate phrase.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Reading a universal property, and one worked case</h2>
+
+<div class="definition">
+<p><strong>Working definition (Aluffi §5.2).</strong> A construction <em>satisfies a universal property</em> when it may be viewed as a terminal object of a category. The category depends on the context and is usually explained in words, often without the word <em>category</em> appearing at all. <span class="cite">— Aluffi §I.5, p. 33</span></p>
+</div>
+
+<p>The simplest form is a sentence like "∅ is universal with respect to the property of mapping to sets", which is synonymous with "∅ is initial in Set". The usual form is longer: "object X is universal with respect to the following property: for any Y such that …, there exists a unique morphism Y → X such that …" — and Aluffi's point is that this hides the definition of an accessory category and the claim that X is terminal in it. Learning to translate is the skill.</p>
+
+<div class="warn">
+<p><strong>The warning worth carrying out of this unit.</strong> Aluffi writes that "it is not uncommon to sweep under the rug part of the essential information about the solution to a universal problem (usually some key morphism)". The quotient is his own example of the offence: the solution is <em>not</em> A/∼ but the projection π : A → A/∼. He allows that the omission is forgivable, because no other morphism A → A/∼ is a plausible candidate — but the forgiveness depends on that, and it is not always available. When you read "X is the universal object such that …", ask which arrow came with X.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the quotient.</strong> <span class="cite">— Claim 5.5, Aluffi §I.5, pp. 33–34</span></p>
+<p>The assertion is: "the quotient A/∼ is universal with respect to the property of mapping A to a set in such a way that equivalent elements have the same image." Parse it. The objects are pairs (φ, Z) with φ : A → Z satisfying a′ ∼ a″ ⇒ φ(a′) = φ(a″). A morphism (φ<sub>1</sub>, Z<sub>1</sub>) → (φ<sub>2</sub>, Z<sub>2</sub>) is a commuting triangle under A — the same shape as Example 3.7.</p>
+<p><strong>Claim 5.5.</strong> (π, A/∼) is an <em>initial</em> object of this category.</p>
+<p><em>Proof.</em> Given any (φ, Z), we need a unique φ̄ making the triangle commute. Commutativity forces φ̄([a]<sub>∼</sub>) = φ(a) for every a — so φ̄ is determined, and is therefore unique <em>if it exists</em>. Existence is the well-definedness check: if [a<sub>1</sub>]<sub>∼</sub> = [a<sub>2</sub>]<sub>∼</sub> then a<sub>1</sub> ∼ a<sub>2</sub>, hence ⟨ … ⟩ — and that implication is precisely the condition ⟨ which one? ⟩ defining the objects of the category. ∎</p>
+<p>Notice the order: uniqueness first, existence second. That is forced here, because the triangle tells you what φ̄ must do before you know there is such a function. Notice also what would break if the objects were allowed to be arbitrary functions A → Z: the step marked ⟨ … ⟩ above would ⟨ … ⟩.</p>
+</div>
+
+<p>One dividend Aluffi draws immediately. If ∼ is the equivalence relation induced by a function f : A → B, then im f also satisfies this universal property; so by Proposition 5.4, im f ≅ A/∼. That is the content of his Theorem 2.7 on canonical decomposition, recovered without touching an element — the universal property proved a theorem about sets by proving nothing about sets.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In Claim 5.5's proof, where is the defining condition on the objects (φ, Z) actually used?</p>
+<button onclick="check(this,false)">In showing φ̄ is unique</button>
+<button onclick="check(this,true)" data-ok>In showing φ̄ is well defined — that is, in the existence half, not the uniqueness half</button>
+<button onclick="check(this,false)">In showing the triangle commutes</button>
+<button onclick="check(this,false)">Nowhere; it is a hypothesis that turns out to be unnecessary</button>
+<div class="explain">Well-definedness. Uniqueness comes purely from commutativity: the triangle forces φ̄([a]) = φ(a) whatever φ is. It is the existence half that needs a′ ∼ a″ ⇒ φ(a′) = φ(a″), because otherwise the prescription would depend on the representative chosen. Drop the condition and (φ, Z) admits no morphism from (π, A/∼) at all — which is why the condition is built into the objects rather than imposed later.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>Products, coproducts, and one object with two jobs</h2>
+
+<div class="theorem">
+<p><strong>Universal property of the product.</strong> Let A, B be objects with morphisms π<sub>A</sub> : A × B → A and π<sub>B</sub> : A × B → B. For every object Z and every pair f<sub>A</sub> : Z → A, f<sub>B</sub> : Z → B there exists a <em>unique</em> σ : Z → A × B with π<sub>A</sub>σ = f<sub>A</sub> and π<sub>B</sub>σ = f<sub>B</sub>. Equivalently: A × B with its projections is a <em>final</em> object of C<sub>A,B</sub>. <span class="cite">— Aluffi §I.5, pp. 35–36</span></p>
+<p><strong>Proof in Set.</strong> Put σ(z) = (f<sub>A</sub>(z), f<sub>B</sub>(z)). Then π<sub>A</sub>σ(z) = f<sub>A</sub>(z) and π<sub>B</sub>σ(z) = f<sub>B</sub>(z), so both triangles commute; and commutativity forces the formula, so σ is unique. ∎</p>
+</div>
+
+<p>Aluffi attaches a footnote to that proof: "Note that there is no 'well-definedness' issue this time." Compare Claim 5.5, where well-definedness was the entire existence argument. Here σ is defined on elements of Z directly and nothing depends on a choice of representative.</p>
+
+<p>Now the payoff. The explicit definition of a product of sets only makes sense where objects have elements; the universal property makes sense in <em>any</em> category. So one says C <em>has finite products</em> when C<sub>A,B</sub> has a final object for every A, B. And then, as Aluffi puts it, "a 'product' from this perspective does not need to 'look like a product'."</p>
+
+<div class="theorem">
+<p><strong>Products in the ≤ category are minima.</strong> In the category from ≤ on ℤ, the universal property reads: for all z with z ≤ a and z ≤ b, we have z ≤ a × b. The solution exists for all a, b, and it is min(a, b). <span class="cite">— Aluffi §I.5, p. 36</span></p>
+</div>
+
+<p>Aluffi's comment: "there is an unexpected connection between 'the Cartesian product of two sets' and 'the minimum of two integers': both are examples of products, taken in different categories; they both satisfy 'the same' universal property, in different contexts." Nothing about min resembles a Cartesian product. That is the point.</p>
+
+<h3>Reversing the arrows</h3>
+
+<p>The prefix <em>co-</em> means: reverse all arrows. Products are final objects in C<sub>A,B</sub>, categories of morphisms with a common <em>source</em> and targets A, B. Coproducts are initial objects in C<sup>A,B</sup>, categories of morphisms with a common <em>target</em> and sources A, B. Explicitly: a coproduct A ∐ B comes with i<sub>A</sub> : A → A ∐ B and i<sub>B</sub> : B → A ∐ B such that for every Z and every pair f<sub>A</sub> : A → Z, f<sub>B</sub> : B → Z there is a unique σ : A ∐ B → Z making the diagram commute.</p>
+
+<div class="theorem">
+<p><strong>Proposition 5.6.</strong> The disjoint union is a coproduct in Set. <span class="cite">— Aluffi §I.5, p. 37</span></p>
+<p><strong>Proof.</strong> Take A ∐ B = ({0} × A) ∪ ({1} × B) with i<sub>A</sub>(a) = (0, a) and i<sub>B</sub>(b) = (1, b). Given f<sub>A</sub>, f<sub>B</sub> into a common Z, define σ(0, a) = f<sub>A</sub>(a) and σ(1, b) = f<sub>B</sub>(b). This makes the diagram commute and is forced by commutativity. ∎</p>
+</div>
+
+<p>And this, Aluffi says, "sheds considerable light on the mysteries of disjoint unions". Why {0} and {1}? No reason — the choice was arbitrary, and different choices gave isomorphic answers. Proposition 5.4 explains exactly that: terminal objects are unique up to a unique isomorphism and not on the nose, so "there is not a 'most beautiful' disjoint union of two sets just as there is not a 'most beautiful' singleton in Set". The arbitrariness lives in the construction and is invisible to the universal property.</p>
+
+<p>In the ≤ category on ℤ, the coproduct of a and b is max(a, b). So min and max, which no one would call a product and a coproduct, are one of each.</p>
+
+<canvas id="mirror" width="640" height="330" aria-label="Two diagrams side by side: on the left the universal property of the product, with an object Z mapping into A times B and projections down to A and B; on the right the same diagram with every arrow reversed, giving the coproduct. Beneath each, the corresponding operation in the category from the order relation on the integers: minimum on the left, maximum on the right."></canvas>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Aluffi calls products and coproducts "mirror" constructions. Decide whether "mirror" forbids a single object from satisfying both universal properties. Prove your answer, and then say what happens to it for an infinite family. Write your argument before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Mirror does not forbid coincidence.</strong> The two universal properties are statements about different accessory categories — C<sub>A,B</sub> and C<sup>A,B</sup> — and there is no reason a single object of C cannot underlie a terminal object of both. In Set it happens not to: A × B and A ∐ B differ, visibly. In the ≤ category it happens not to either, since min(a, b) = max(a, b) only when a = b.</p>
+<p><strong>But it does happen.</strong> Take vector spaces over a field, or abelian groups. For two objects V, W the single object V ⊕ W carries both structures: with the projections it is a product, and with the inclusions it is a coproduct. Given f<sub>V</sub> : Z → V and f<sub>W</sub> : Z → W, the map z ↦ (f<sub>V</sub>(z), f<sub>W</sub>(z)) is the unique σ for the product; given g<sub>V</sub> : V → Z and g<sub>W</sub> : W → Z, the map (v, w) ↦ g<sub>V</sub>(v) + g<sub>W</sub>(w) is the unique σ for the coproduct — and this second one needs the target to have an <em>addition</em>, which is why the phenomenon does not occur in Set.</p>
+<p><strong>For an infinite family the two part company.</strong> Given modules M<sub>α</sub> for α in an infinite index set, the product is ∏<sub>α</sub> M<sub>α</sub>, all families; the coproduct is ⊕<sub>α</sub> M<sub>α</sub>, the families with only finitely many non-zero entries. The coproduct argument above breaks for infinitely many summands because the sum of the g<sub>α</sub> values would be an infinite sum, and nothing in the axioms makes sense of one. So exactly one of the two is the direct sum.</p>
+<p><strong>Conclusion.</strong> "Mirror" is a relation between the two <em>statements</em>, not a guarantee that their solutions differ. Whether they coincide is a fact about the particular category and the size of the family. ∎</p>
+<p><em>What to notice.</em> The mission strip says direct sums "are a universal property". They satisfy two, and only one of them survives to infinite index sets. Since a persistence module is indexed by a filtration parameter with no finiteness built in, that is the distinction to keep.</p>
+</details>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Aluffi's Exercise 5.1 asks you to show that a final object of C is initial in the opposite category C<sup>op</sup>. Prove it, and then use it to derive the coproduct universal property from the product one mechanically, without rewriting the diagram by hand.</p>
+<p>Then the harder half: Example 5.2 showed the ≤ category on ℤ has no initial or final object, yet Segment 3 showed it has all products and coproducts. Explain how both can be true, and say what the initial and final objects <em>would</em> be if ℤ were replaced by a finite set of integers.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does the universal property of the product apply in categories where the §1.4 definition of a product of sets does not?</p>
+<button onclick="check(this,true)" data-ok>Because it mentions only objects and morphisms, while the explicit definition needs elements</button>
+<button onclick="check(this,false)">Because every category has finite products</button>
+<button onclick="check(this,false)">Because the projections can always be constructed</button>
+<button onclick="check(this,false)">Because it is equivalent to the explicit definition in every category</button>
+<div class="explain">No elements needed. The universal property quantifies over objects Z and morphisms out of them; the explicit definition builds a set of ordered pairs, which requires elements to pair. That is why min(a, b) can be a product: nothing in the statement asks what an element of an integer is. The second option is false — Example 5.2's category has no terminal objects at all, and other categories fail to have products.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Aluffi says the solution to the quotient universal problem is "not really A/∼, but rather the morphism π : A → A/∼". Why does he then say the omission is forgivable?</p>
+<button onclick="check(this,false)">Because the morphism is not really part of the data</button>
+<button onclick="check(this,true)" data-ok>Because no other morphism A → A/∼ is a plausible candidate, so context recovers it — a licence that does not always apply</button>
+<button onclick="check(this,false)">Because Proposition 5.4 makes the morphism unique</button>
+<button onclick="check(this,false)">Because A/∼ determines π up to isomorphism</button>
+<div class="explain">Context recovers it. Aluffi's reason is specific: "there is in general no conceivable choice for a morphism A → A/∼ other than the canonical projection." That is a remark about this example, not a general principle — and the third option confuses two things, since Proposition 5.4 is about uniqueness of the terminal <em>object</em>, not of the structure map. When the omitted arrow is not obvious, omitting it loses information.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In Set the initial object is unique on the nose, while there are many final objects. Does that contradict Proposition 5.4?</p>
+<button onclick="check(this,false)">Yes — the proposition says terminal objects are unique</button>
+<button onclick="check(this,true)" data-ok>No. It says unique up to a unique isomorphism, which permits many final objects, all of them isomorphic</button>
+<button onclick="check(this,false)">No, because ∅ is not really initial</button>
+<button onclick="check(this,false)">Yes, but only for infinite sets</button>
+<div class="explain">No contradiction. All singletons are final and all are isomorphic, exactly as Proposition 5.4 predicts; ∅ happens also to be unique on the nose, which is more than the proposition claims and is an accident of Set. Aluffi makes the point directly: the proposition "explains why, while not unique, the final objects in Set are all isomorphic". Uniqueness on the nose is never what a universal property delivers.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Terminal objects are unique up to a unique isomorphism, and that is what makes universal properties usable.</strong> Definition 5.1: I is initial when Hom(I, A) is a singleton for all A, F final when Hom(A, F) is. The ≤ category on ℤ has neither; Set has ∅ initial, uniquely, and every singleton final. Proposition 5.4 proves initial objects are isomorphic by a two-line argument using only that a unique morphism I → I must be the identity. Without it, "the product" would be an abuse.</p>
+<p><strong>2. A universal property is a terminal object of an accessory category, usually described in words.</strong> Aluffi's working definition, offered because the honest version needs functors (deferred to §VIII.1.1). The skill is translation, and the standing hazard is that the key morphism gets swept away: the solution to the quotient problem is π, not A/∼. Claim 5.5 proves (π, A/∼) initial, uniqueness first from commutativity, existence second from well-definedness — and the same universal property applied to im f recovers the canonical decomposition theorem with no elements touched.</p>
+<p><strong>3. Products and coproducts are mirror statements, and their solutions may or may not coincide.</strong> The product is final in C<sub>A,B</sub>, the coproduct initial in C<sup>A,B</sup>; in Set they are the Cartesian product and the disjoint union, in the ≤ category they are min and max. The universal property applies where the explicit construction cannot, which is why min counts as a product. And one object can satisfy both: V ⊕ W is a product with its projections and a coproduct with its inclusions — a coincidence that needs addition in the target and that fails for infinite families, where ∏ and ⊕ part company.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Aluffi, <em>Algebra: Chapter 0</em>, §I.5 "Universal properties". The opening argument that categories give a unifying language, that constructions typically have an explicit description and a universal one, that the explicit description may rest on an arbitrary choice while the universal property does not, and that the universal viewpoint explains why constructions are defined only up to isomorphism and why products and disjoint unions are mirror constructions (p. 31). §5.1: Definition 5.1 of initial and final objects in Hom-set form, and the advice about the word <em>terminal</em> (pp. 31–32); Example 5.2 that the ≤ category on ℤ has neither while the slice of Example 3.6 has a final object (3,3) and no initial one, Example 5.3 that ∅ is initial in Set and uniquely so while every singleton is final, and Proposition 5.4 with its proof and the observation that no singleton is more special than another (p. 32). §5.2: the working definition of a universal property as a terminal object of an accessory category, the deferral of the honest version to §VIII.1.1 on the ground that it requires functors, the two sentence-patterns for stating universal properties, and the warning that the key morphism is often swept under the rug (p. 33). §5.3: the quotient assertion parsed, the category of pairs (φ, Z) with morphisms as commuting triangles and its similarity to Example 3.7, Claim 5.5 and its proof, the remark on the several levels of sloppiness in the original assertion, and the derivation that im f ≅ A/∼ recovering Theorem 2.7 (pp. 33–35). §5.4: the universal property of the product with its Set proof and the footnote that no well-definedness issue arises, the identification with final objects of C<sub>A,B</sub> from Example 3.9, the definition of a category with finite products, and the computation that the product in the ≤ category on ℤ is min(a,b) together with Aluffi's remark on the unexpected connection (pp. 35–36). §5.5: coproducts as initial objects of C<sup>A,B</sup>, the universal property, Proposition 5.6 that disjoint union is the coproduct in Set with its explicit model, the explanation via Proposition 5.4 of why the choice of {0} and {1} is invisible, and the remark that the coproduct in the ≤ category is max(a,b) (pp. 36–38). Exercise 5.1 on opposite categories, Exercise 5.3 on the final case of Proposition 5.4, and Exercise 5.5 on the final object of the quotient category, all named and not worked (p. 38). Every folio was read off the page cited; the Aluffi offset is PDF = printed + 23.
+<p><strong>Not established here.</strong> Persistence modules and barcodes appear nowhere in Aluffi §I.5, so both are forward pointers to tda1. In particular, that barcodes "combine" by any construction in this unit is not shown: the decomposition of a persistence module into intervals is a structure theorem belonging to tda1, and it is what makes a barcode exist at all. Also not available: functors, which Aluffi defers to §VIII.1.1 within §5.2 itself, and which are cat-03's resource — this lesson therefore uses only his working definition of a universal property and does not phrase anything in terms of representable functors. The identification of aa-15's category of modules with the setting here is the syllabus's and is not made by this source.</p>
+<p><strong>Sharpened rather than deferred.</strong> The strip's phrase "a universal property", singular, is underdetermined and §I.5 is exactly where that can be fixed. Direct sums satisfy <em>two</em> universal properties in the finite case — product and coproduct — and the coincidence needs an addition in the target, which is why it fails in Set. For infinite index sets the two separate: the product is ∏ and the coproduct is the finitely-supported ⊕, and only the second is the direct sum. The guided proof establishes all three points, and Problem 5(e) makes the reader draw the distinction before it matters in tda1.</p>
+<p><strong>Stated but not proved.</strong> The final case of Proposition 5.4, which Aluffi leaves as Exercise 5.3 and this lesson quotes as analogous. Theorem 2.7 of §I.2, recovered here as a consequence of the quotient universal property but proved in a section outside this unit. Exercise 5.1, that a final object of C is initial in C<sup>op</sup>, set as the "You try" and used nowhere in the exposition. The claim that V ⊕ W is simultaneously a product and a coproduct is proved in the guided proof for two summands from the universal properties as stated, but the categories of vector spaces and abelian groups themselves are aa's, not this unit's.</p>
+<p><strong>Deferred.</strong> Products and coproducts of arbitrary families, which §I.5 does not treat and which the guided proof reaches only far enough to show ∏ and ⊕ differ. Limits and colimits, the general form of both, which are cat-05's. Free objects and the remaining universal constructions of Aluffi's later chapters. Representability and the functorial account of universal properties, §VIII.1.1, cat-03's and cat-04's.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('mirror');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82';
+  g.textAlign='center';
+
+  function arrow(x1,y1,x2,y2,col){
+    g.strokeStyle=col;g.lineWidth=1.8;
+    g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+    var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy);dx/=L;dy/=L;
+    g.beginPath();
+    g.moveTo(x2,y2);
+    g.lineTo(x2-8*dx-4*dy,y2-8*dy+4*dx);
+    g.lineTo(x2-8*dx+4*dy,y2-8*dy-4*dx);
+    g.closePath();g.fillStyle=col;g.fill();
+  }
+
+  var cx=160;
+  g.fillStyle=acc;g.font='14px Segoe UI, sans-serif';
+  g.fillText('product — final in C(A,B)',cx,30);
+  g.fillStyle=ink;g.font='16px Georgia, serif';
+  g.fillText('Z',cx,64);
+  g.fillText('A × B',cx,132);
+  g.fillText('A',cx-78,196);
+  g.fillText('B',cx+78,196);
+  arrow(cx,74,cx,116,acc);
+  arrow(cx-14,140,cx-68,182,ink);
+  arrow(cx+14,140,cx+68,182,ink);
+  arrow(cx-12,68,cx-74,182,dim);
+  arrow(cx+12,68,cx+74,182,dim);
+  g.fillStyle=acc;g.font='12px Segoe UI, sans-serif';
+  g.fillText('exactly one',cx+34,98);
+
+  var dx2=480;
+  g.fillStyle=good;g.font='14px Segoe UI, sans-serif';
+  g.fillText('coproduct — initial in the mirror',dx2,30);
+  g.fillStyle=ink;g.font='16px Georgia, serif';
+  g.fillText('Z',dx2,64);
+  g.fillText('A ∐ B',dx2,132);
+  g.fillText('A',dx2-78,196);
+  g.fillText('B',dx2+78,196);
+  arrow(dx2,116,dx2,74,good);
+  arrow(dx2-68,182,dx2-14,140,ink);
+  arrow(dx2+68,182,dx2+14,140,ink);
+  arrow(dx2-74,182,dx2-12,68,dim);
+  arrow(dx2+74,182,dx2+12,68,dim);
+  g.fillStyle=good;g.font='12px Segoe UI, sans-serif';
+  g.fillText('exactly one',dx2+34,98);
+
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(40,228);g.lineTo(600,228);g.stroke();
+  g.font='13px Segoe UI, sans-serif';
+  g.fillStyle=dim;
+  g.fillText('in Set:  A × B',cx,252);
+  g.fillText('in Set:  A ∐ B  (disjoint union)',dx2,252);
+  g.fillStyle=acc;g.fillText('in  ≤  on ℤ:   min(a, b)',cx,278);
+  g.fillStyle=good;g.fillText('in  ≤  on ℤ:   max(a, b)',dx2,278);
+  g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+  g.fillText('same diagram, every arrow reversed',320,306);
+})();
+</script>
+</body></html>

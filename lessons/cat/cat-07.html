@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cat-07 — Homology and persistence as functors</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body><p class="cite">Category Theory · Nexus College</p>
+<h1>Homology and persistence as functors <span class="cite">(cat-07)</span></h1>
+
+<div class="hook">
+<p>Six units of category theory arrive here. Oudot's Definition 1.7 says a persistence module over T ⊆ ℝ is a representation of the poset (T, ≤) — and a few lines earlier he says what a representation of a poset is: regard (T, ≤) as a category "in the natural way", with one object per element and one morphism per comparison, and take a <em>functor</em> to vector spaces. That is cat-01's Example 3.3 and cat-03's Definition 1.1, verbatim, arriving from a completely different literature. The object this degree has been circling is a functor out of a preorder, and the last thing this unit does is explain why the relation between two of them is <em>not</em> a natural transformation.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Two persistence modules M and N are functors, so they are objects of a functor category and there is a notion of morphism between them: a natural transformation. Predict whether "M and N are ε-interleaved" means there is a natural transformation M ⇒ N.</p>
+<button onclick="check(this,false)">Yes — that is what a map between two functors is</button>
+<button onclick="check(this,true)" data-ok>No. An interleaving gives maps M<sub>t</sub> → N<sub>t+ε</sub>, which land in the wrong place to assemble into a transformation M ⇒ N</button>
+<button onclick="check(this,false)">Yes, provided ε = 0</button>
+<div class="explain">No. A natural transformation M ⇒ N supplies a map M<sub>t</sub> → N<sub>t</sub> for every t; an interleaving supplies M<sub>t</sub> → N<sub>t+ε</sub>, whose target has moved. The two are different kinds of object and the second is strictly weaker — which is exactly what the mission strip's final clause says, and why it says it. The third option is nearly right and is the subject of Segment 3.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The categorical statement of the mission — persistence is a functor, and stability is expressed through interleavings of those functors (cat-04), not as a natural transformation in its own right.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> This is the most accurate mission strip in the module — it makes a claim, attributes the machinery, and then corrects an error most readers would make. Very little needs bounding, and what does is a matter of chapter boundaries.</p>
+<p><strong>"Persistence is a functor" is established here, by the source, in almost these words.</strong> Oudot regards (T, ≤) as a category — footnote 4: "with one object per element i ∈ T and a single morphism per couple i ≤ j" — and defines a representation of it to be a functor to the category of vector spaces; Definition 1.7 then names such a representation a persistence module. He adds that representations of any poset may be defined the same way, and later that the identity and composition rules "follow from functoriality". Nothing here is a rescope; the strip and the source agree.</p>
+<p><strong>Where Chapter 1 stops.</strong> Oudot's account of filtrations, and of the homology functor turning them into persistence modules, opens <strong>Chapter 2</strong> on printed p. 29 — outside this unit's resources. Stability is <strong>Chapter 3</strong>, printed p. 49, also outside. So the composite producing a persistence module from a filtration is assembled in Segment 2 from cat-03's composition rule and at1-10's homology functor, with Oudot supplying only the target end of it; and the strip's stability clause is a forward pointer to tda1-06 and tda1-07.</p>
+<p><strong>The final clause is a correction, and it is correct.</strong> Given cat-04, the tempting reading of "stability relates two persistence modules" is that it supplies a natural transformation between them. It does not, and the strip says so. An interleaving is a pair of natural transformations, each into a <em>shifted</em> module, plus a condition on the two composites — three pieces of data where the tempting reading has one. Segment 3 does the comparison and Problem 5(d) makes the reader do it again.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The definition, and how little of it is new</h2>
+
+<div class="definition">
+<p><strong>Representations of a poset (Oudot).</strong> "Regarding (T, ≤) as a category in the natural way, we let a <em>representation of</em> (T, ≤) be a functor to the category of vector spaces." Footnote 4 gives the category: one object per element i ∈ T, a single morphism per couple i ≤ j. He adds that "more generally, one can define representations for any given poset as functors from that poset to the category of vector spaces". <span class="cite">— Oudot ch. 1 §1, p. 19</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 1.7.</strong> Given T ⊆ ℝ, a <em>persistence module</em> over T is a representation of the poset (T, ≤). <span class="cite">— Oudot ch. 1 §2, p. 20</span></p>
+</div>
+
+<p>Unwound: a persistence module assigns a vector space V<sub>i</sub> to each i ∈ T and a linear map v<sub>i</sub><sup>j</sup> : V<sub>i</sub> → V<sub>j</sub> to each i ≤ j, subject to v<sub>i</sub><sup>i</sup> = id and v<sub>j</sub><sup>k</sup> v<sub>i</sub><sup>j</sup> = v<sub>i</sub><sup>k</sup>. Oudot says later, of exactly these rules, that they follow "from functoriality" — and they do: they are cat-03's Definition 1.1 with nothing added.</p>
+
+<p>Two observations before moving on. First, the category (T, ≤) is cat-01's Example 3.3, and Oudot's footnote is Aluffi's construction word for word. Aluffi required only reflexivity and transitivity, so his version is more general; Oudot's T ⊆ ℝ carries a genuine partial order, and antisymmetry is used nowhere in Definition 1.7. Second, Definition 1.7 introduces no new mathematics whatever. It names an object this degree already built. What earns Chapter 1 its length is Theorem 1.9, not Definition 1.7.</p>
+
+<p>Definition 1.8 marks the boundary. A <em>zigzag module</em> of length n is a representation of an A<sub>n</sub>-type quiver — a line of n nodes whose arrows may point either way. Oudot rephrases it as a poset representation for a partial order whose Hasse diagram is of type A<sub>n</sub>, which "emphasizes its connection to Definition 1.7". Persistence modules are the case where every arrow points the same way.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Oudot says the identity and composition rules for a persistence module "follow from functoriality". Which is which?</p>
+<button onclick="check(this,true)" data-ok>F(id) = id gives v<sub>i</sub><sup>i</sup> = id; F(g∘f) = F(g)∘F(f) gives v<sub>j</sub><sup>k</sup>v<sub>i</sub><sup>j</sup> = v<sub>i</sub><sup>k</sup></button>
+<button onclick="check(this,false)">Both follow from preservation of composites</button>
+<button onclick="check(this,false)">They follow from the poset being antisymmetric</button>
+<button onclick="check(this,false)">They are extra axioms, not consequences of functoriality</button>
+<div class="explain">One each. cat-03's Definition 1.1 has exactly two conditions and they map onto Oudot's two rules one for one — which is why he can say the rules follow from functoriality rather than stating them as axioms. Antisymmetry plays no part: it is not used in Definition 1.7 at all, and cat-01's Example 3.3 needs only reflexivity and transitivity.</div>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: interval modules.</strong> <span class="cite">— Oudot ch. 1 §2, pp. 20–21</span></p>
+<p>An <em>interval</em> of T is a subset S ⊆ T such that for i ≤ j ≤ k in T, if i and k lie in S then so does j. The associated <em>interval module</em> has k at every index in S, the zero space elsewhere, identities between copies of k, and all other maps zero. Oudot notes the definition "is oblivious to the actual map orientations", which is what lets it serve zigzag modules too.</p>
+<p>Check it is a functor. The identity condition is immediate. For composition, take i ≤ j ≤ k and consider the cases. If all three lie in S, both sides of v<sub>j</sub><sup>k</sup>v<sub>i</sub><sup>j</sup> = v<sub>i</sub><sup>k</sup> are the identity on k. If i ∉ S or k ∉ S, then v<sub>i</sub><sup>k</sup> = 0 and at least one factor on the left is ⟨ … ⟩, so both sides vanish. The remaining case is i, k ∈ S with j ∉ S — and this cannot occur, because ⟨ which property of S rules it out? ⟩.</p>
+<p>That last case is the whole reason the convexity condition is in the definition. Without it the interval module would ⟨ … ⟩ and would not be a functor at all.</p>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Decomposition, and the composite the module was built for</h2>
+
+<div class="theorem">
+<p><strong>Theorem 1.9 (Interval Decomposition).</strong> Given T ⊆ ℝ and a partial order ⪯ on T, a representation 𝕍 of (T, ⪯) decomposes as a direct sum of interval modules in each of these situations: (i) T is finite and the Hasse diagram of ⪯ is of type A<sub>n</sub>; (ii) T is arbitrary, ⪯ is the natural order ≤, and 𝕍 is pointwise finite-dimensional. Moreover the decomposition, when it exists, is unique up to isomorphism and permutation of the terms, and each term is indecomposable. <span class="cite">— Oudot ch. 1 §2, p. 20</span></p>
+</div>
+
+<p>This is what Chapter 1 is for. Oudot describes it as summarising the structural results of his §1 and as "our main heritage from quiver theory", and adds a phrase worth noticing: the conditions "are sufficient for our purposes". Sufficient, not necessary — a module failing both (i) and (ii) has not thereby been shown to lack a decomposition, and the theorem is not a characterisation.</p>
+
+<p>The uniqueness clause is what makes a barcode exist as an <em>invariant</em>. A barcode is the multiset of intervals appearing in a decomposition; if a module admitted two essentially different decompositions, "the" barcode would be a property of the chosen decomposition rather than of the module. Uniqueness up to isomorphism and permutation is exactly the hypothesis that rules that out — and it is the same shape of guarantee as cat-02's Proposition 5.4, where uniqueness up to a unique isomorphism was what licensed the phrase "the product".</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Assemble the composite this module was built to justify. Let (T, ≤) ⊆ (ℝ, ≤), let 𝒳 : (T, ≤) → Top be a filtration, and let H<sub>p</sub> : Top → Vect<sub>k</sub> be homology with field coefficients. Show that H<sub>p</sub> ∘ 𝒳 satisfies Oudot's Definition 1.7. Then say exactly which parts of the argument came from which unit. Write it before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>The index category.</strong> (T, ≤) is a category by cat-01's Example 3.3 — one object per element, one morphism per comparison — which is exactly the category Oudot's footnote 4 describes.</p>
+<p><strong>The first functor.</strong> 𝒳 : (T, ≤) → Top assigns a space X<sub>i</sub> to each i and a continuous map X<sub>i</sub> → X<sub>j</sub> to each i ≤ j, with identities and composites matching. A nested family of spaces with inclusions is such a functor, since composites of inclusions are inclusions.</p>
+<p><strong>The second functor.</strong> H<sub>p</sub> is a functor Top → Ab, established in at1-10 from Hatcher §2.3, where 𝟙<sub>∗</sub> = 𝟙 and (fg)<sub>∗</sub> = f<sub>∗</sub>g<sub>∗</sub> are precisely the two functor conditions. Taking coefficients in a field k — at1-09's material — lands it in Vect<sub>k</sub>.</p>
+<p><strong>The composite.</strong> By cat-03, composites of functors are functors, so H<sub>p</sub> ∘ 𝒳 : (T, ≤) → Vect<sub>k</sub> is a functor. Concretely it assigns V<sub>i</sub> = H<sub>p</sub>(X<sub>i</sub>) to each i and v<sub>i</sub><sup>j</sup> = H<sub>p</sub>(X<sub>i</sub> → X<sub>j</sub>) to each i ≤ j.</p>
+<p><strong>It is a persistence module.</strong> The functor conditions give v<sub>i</sub><sup>i</sup> = id and v<sub>j</sub><sup>k</sup>v<sub>i</sub><sup>j</sup> = v<sub>i</sub><sup>k</sup> — Oudot's identity and composition rules, the ones he says follow from functoriality. A functor (T, ≤) → Vect<sub>k</sub> is a representation of the poset, and a representation of the poset is, by Definition 1.7, a persistence module over T. ∎</p>
+<p><strong>Where each piece came from.</strong> The index category: cat-01. The composition rule: cat-03. The homology functor: at1-10, from Hatcher. Field coefficients: at1-09. The target definition: Oudot, Definition 1.7. <em>Nothing came from Oudot's Chapter 1 except the last step</em> — his treatment of filtrations and of homology as the bridge opens Chapter 2, on p. 29, outside this unit's resources.</p>
+<p><em>And one thing not shown.</em> Whether this module is pointwise finite-dimensional, which Theorem 1.9(ii) requires, depends on the spaces X<sub>i</sub>, and nothing in this unit's sources lets you check it for any particular family. That is owed by tda1.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does Theorem 1.9's uniqueness clause matter more than its existence clause?</p>
+<button onclick="check(this,false)">It does not; existence is what produces the barcode</button>
+<button onclick="check(this,true)" data-ok>Existence produces <em>a</em> barcode; uniqueness is what makes it an invariant of the module rather than of the chosen decomposition</button>
+<button onclick="check(this,false)">Because existence is easy to prove</button>
+<button onclick="check(this,false)">Because the intervals are always unique anyway</button>
+<div class="explain">Uniqueness makes it an invariant. Both clauses are needed — without existence there is nothing to read off — but existence alone would leave the barcode depending on a choice, and an invariant that depends on a choice is not an invariant. This is the same structural point cat-02 made with Proposition 5.4: unique-up-to-isomorphism is what licenses the definite article. The fourth option is simply false; indecomposability of the terms is asserted by the theorem, not automatic.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>Why stability is not a natural transformation</h2>
+
+<p>M and N, persistence modules over (ℝ, ≤), are functors into Vect<sub>k</sub>. By cat-04's Exercise 1.9 they are objects of a functor category, whose morphisms are natural transformations. So there is already a notion of "map from M to N": a natural transformation in the sense of cat-04's Definition 1.15, or equivalently Spivak's Definition 3.49 — a family of linear maps φ<sub>t</sub> : M<sub>t</sub> → N<sub>t</sub>, one per index, commuting with the internal maps of both modules.</p>
+
+<p>That notion is too rigid for what stability needs to say, and seeing why is the point of this segment.</p>
+
+<div class="definition">
+<p><strong>The shift.</strong> For ε ≥ 0, shifting by ε is a functor (ℝ, ≤) → (ℝ, ≤): if s ≤ t then s + ε ≤ t + ε, so it is monotone, hence a functor between the poset categories by cat-01. Therefore N(· + ε) — the composite of the shift with N — is again a functor (ℝ, ≤) → Vect<sub>k</sub>, that is, again a persistence module. Its value at t is N<sub>t+ε</sub>. <span class="cite">— assembled from cat-01 and cat-03; not stated in this unit's sources</span></p>
+</div>
+
+<div class="definition">
+<p><strong>ε-interleaving</strong>, as the mission strip states it: a pair of natural transformations M ⇒ N(· + ε) and N ⇒ M(· + ε) whose composites are the 2ε-shift maps. Written out, the first supplies maps M<sub>t</sub> → N<sub>t+ε</sub> for every t and the second maps N<sub>t</sub> → M<sub>t+ε</sub> for every t. To compose them, take the second at the <em>shifted</em> index: M<sub>t</sub> → N<sub>t+ε</sub> followed by N<sub>t+ε</sub> → M<sub>t+2ε</sub>. That composite is required to be M's own internal map M<sub>t</sub> → M<sub>t+2ε</sub>, and the other way round likewise for N. The index shift is not optional bookkeeping — the two components as first written do not compose at all, since one ends at N<sub>t+ε</sub> and the other starts at N<sub>t</sub>. <span class="cite">— cat-04's mission strip; established in neither of this unit's sources</span></p>
+</div>
+
+<canvas id="interleave" width="640" height="330" aria-label="Two rows of dots representing the modules M and N at parameters t and t plus epsilon and t plus two epsilon. Diagonal arrows run from M at t up to N at t plus epsilon and from N at t up to M at t plus epsilon, crossing. A horizontal arrow along the M row from t to t plus two epsilon is marked as the composite the interleaving condition requires. A separate panel shows the vertical arrows that a natural transformation would need, marked as absent."></canvas>
+
+<p>Now compare. A natural transformation M ⇒ N gives, at each t, a map landing in N<sub>t</sub> — <em>vertically</em>, in the picture. An interleaving gives maps landing in N<sub>t+ε</sub> — <em>diagonally</em>. Nothing in an interleaving lands in N<sub>t</sub> at all, so the two are not merely different in strength; they are different kinds of data, and an interleaving cannot be compressed into a single arrow between M and N.</p>
+
+<p>The case ε = 0 is worth doing, because it is where the two nearly meet. Then N(· + 0) = N, the two transformations are M ⇒ N and N ⇒ M, and the composite condition says each round trip is the identity. So a 0-interleaving is an isomorphism in the functor category — much stronger than a natural transformation, not weaker. As ε grows the relation weakens; at ε = 0 it is strictest. That is the right way round, and it is why interleaving is useful as a measure of how far apart two modules are.</p>
+
+<div class="you-try">
+<p><strong>You try.</strong> Take T = {1, 2, 3} and write down a persistence module that is not an interval module — three vector spaces and two maps. Decompose it into interval modules by hand and read off its barcode. Then check your decomposition against Theorem 1.9(i): which of the two conditions applies, and is the Hasse diagram of the right type?</p>
+<p>Then the harder half: Oudot says Theorem 1.9's conditions "are sufficient for our purposes". Construct, or describe, a persistence module satisfying neither (i) nor (ii), and say what the theorem does and does not tell you about it. Be careful not to conclude more than the word "sufficient" permits.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A 0-interleaving between M and N is:</p>
+<button onclick="check(this,false)">A natural transformation M ⇒ N</button>
+<button onclick="check(this,true)" data-ok>An isomorphism in the functor category — a pair of transformations whose composites are both identities</button>
+<button onclick="check(this,false)">Nothing; interleavings require ε &gt; 0</button>
+<button onclick="check(this,false)">Weaker than a natural transformation</button>
+<div class="explain">An isomorphism. At ε = 0 the shift is the identity, so the two transformations run M ⇒ N and N ⇒ M, and the 2ε-shift maps they must compose to are the identity maps of each module. That is precisely a natural isomorphism in the sense of cat-04. Notice the direction of the relationship: interleaving gets <em>weaker</em> as ε grows and is strictest at 0, which is what makes "the least ε for which an interleaving exists" a sensible measure of distance.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> What does Oudot's Chapter 1 say about filtrations?</p>
+<button onclick="check(this,false)">That applying homology to one gives a persistence module</button>
+<button onclick="check(this,true)" data-ok>Nothing — that discussion opens Chapter 2, outside this unit's resources</button>
+<button onclick="check(this,false)">That every persistence module comes from a filtration</button>
+<button onclick="check(this,false)">That filtrations are functors into Vect</button>
+<div class="explain">Nothing. Oudot's Chapter 1 is algebraic throughout: quiver representations, persistence modules as poset representations, interval decomposition, barcodes and diagrams. His treatment of filtrations and of the homology functor as the bridge from topology to algebra opens Chapter 2 on printed p. 29, and stability is Chapter 3. So the composite in Segment 2's guided proof was assembled from cat-01, cat-03, at1-09 and at1-10, with Oudot supplying only Definition 1.7 at the far end.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Oudot says Theorem 1.9's conditions "are sufficient for our purposes". What follows about a module satisfying neither?</p>
+<button onclick="check(this,true)" data-ok>Nothing. Sufficient conditions are not necessary ones, so the theorem is silent about it</button>
+<button onclick="check(this,false)">That it has no interval decomposition</button>
+<button onclick="check(this,false)">That it is indecomposable</button>
+<button onclick="check(this,false)">That its barcode is not unique</button>
+<div class="explain">Nothing follows. The theorem lists situations in which a decomposition exists and does not claim to have listed them all — Oudot's phrase "sufficient for our purposes" is an explicit disclaimer of characterisation. Reading a sufficient condition as necessary is the most common way to over-read a theorem, and it is worth catching here, where the stakes are whether a barcode can be computed at all.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. A persistence module is a functor, and the source says so.</strong> Oudot regards (T, ≤) as a category with one object per element and one morphism per comparison — cat-01's Example 3.3 — and defines a representation of it to be a functor to vector spaces; Definition 1.7 names that a persistence module. Concretely: a space V<sub>i</sub> per index, a map v<sub>i</sub><sup>j</sup> per comparison, with v<sub>i</sub><sup>i</sup> = id and v<sub>j</sub><sup>k</sup>v<sub>i</sub><sup>j</sup> = v<sub>i</sub><sup>k</sup>, rules he says follow from functoriality — and they are cat-03's two conditions exactly. Zigzag modules (Definition 1.8) are the same idea over an A<sub>n</sub> order whose arrows may point either way.</p>
+<p><strong>2. Theorem 1.9 is what earns the chapter, and its uniqueness clause is what makes a barcode an invariant.</strong> Interval modules — k on a convex S, zero elsewhere — are the building blocks, and the convexity condition is exactly what makes them functors. Theorem 1.9 gives two sufficient situations for decomposing into them, plus uniqueness up to isomorphism and permutation. Existence yields a barcode; uniqueness makes it a property of the module rather than of the chosen decomposition, the same role Proposition 5.4 played in cat-02. "Sufficient for our purposes" is Oudot's own disclaimer against reading the conditions as necessary.</p>
+<p><strong>3. Stability relates modules diagonally, not vertically.</strong> M and N are objects of a functor category, so a natural transformation M ⇒ N is available — a map M<sub>t</sub> → N<sub>t</sub> for each t. An ε-interleaving instead gives M<sub>t</sub> → N<sub>t+ε</sub> and N<sub>t</sub> → M<sub>t+ε</sub>, with both composites required to be the 2ε-shift maps: three pieces of data, none of which lands in N<sub>t</sub>. Shifting is a functor because ε ≥ 0 makes it monotone, so N(· + ε) is again a module. At ε = 0 an interleaving is a natural <em>isomorphism</em>, and the relation weakens as ε grows — which is what makes the least such ε a distance.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Oudot, <em>Persistence Theory: From Quiver Representations to Data Analysis</em>, Chapter 1 "Algebraic Persistence". §1, on representations of arbitrary subposets of (ℝ, ≤): the decision to work with the poset directly rather than an associated quiver, the instruction to regard (T, ≤) "as a category in the natural way" with footnote 4 specifying one object per element and a single morphism per couple i ≤ j, the definition of a representation of (T, ≤) as a functor to the category of vector spaces, the remark that representations of any poset may be defined the same way, the attribution to Crawley-Boevey of the extension of Theorems 1.1 and 1.2 to arbitrary subposets, and the remark that a quiver may be viewed as a category with one morphism per finite oriented path (p. 19). §2: Definition 1.7 that a persistence module over T ⊆ ℝ is a representation of the poset (T, ≤), the note that this includes the L<sub>n</sub>, ℕ and ℤ quivers as special cases but not general A<sub>n</sub>-type quivers; Definition 1.8 on zigzag modules with the displayed alternating diagram, the Hasse-diagram argument, and the rephrasing as a poset representation; the definition of an interval of T and of the associated interval module, with the observation that the definition is oblivious to map orientations; and Theorem 1.9 (Interval Decomposition) with conditions (i) and (ii), the uniqueness clause, the indecomposability of the terms, Oudot's description of it as summarising Theorems 1.1, 1.2, 1.3 and 1.6 and as "our main heritage from quiver theory", and his statement that the conditions "are sufficient for our purposes" (pp. 20–21). §3 on barcodes and diagrams, including the H<sub>0</sub> example applied to a filtration of sublevel sets (pp. 21–27), and the remark that such objects are pointwise finite-dimensional representations of (ℝ, ≤) with the identity and composition rules "following from functoriality" (p. 26). Every folio was read off the page cited; the Oudot offset is PDF = printed + 9.
+<p>Carried in from earlier units and used explicitly: Spivak's Definition 3.35 and Aluffi's Definition 1.1 for functors (cat-03), Aluffi's Definition 1.15 and Exercise 1.9 for natural transformations and the functor category (cat-04), Aluffi's Example 3.3 for the poset-as-category (cat-01), Aluffi's Proposition 5.4 for the role of uniqueness (cat-02), and the fact that H<sub>p</sub> is a functor, established in at1-10 from Hatcher §2.3, with field coefficients from at1-09.</p>
+<p><strong>Where Chapter 1 stops, and what was assembled rather than quoted.</strong> Oudot's account of filtrations, and of the homology or cohomology functor turning them into persistence modules, opens <strong>Chapter 2</strong> on printed p. 29 — outside this unit's resources, whose line names Oudot ch. 1. Stability is <strong>Chapter 3</strong>, printed p. 49, also outside. Accordingly the guided proof's composite H<sub>p</sub> ∘ 𝒳 is assembled from cat-01's index category, cat-03's composition rule, at1-10's homology functor and at1-09's field coefficients, with Oudot supplying only Definition 1.7 as the target; the footer of the model answer says so line by line. Whether such a module is pointwise finite-dimensional, as Theorem 1.9(ii) requires, depends on the spaces and cannot be checked from this unit's sources; that is owed by tda1.</p>
+<p><strong>On the mission strip.</strong> This is the most accurate strip in the module and needs almost no bounding. Its first clause — persistence is a functor — is established by the source in nearly these words. Its second clause, that stability is expressed through interleavings, is a forward pointer: neither interleavings nor stability appear in Oudot's Chapter 1, and the definition of an ε-interleaving used in Segment 3 is cat-04's mission strip, not a result of either source. Its third clause is a <em>correction</em>, and it is right: an interleaving is a pair of natural transformations into shifted modules plus a condition on their composites, and none of its maps lands in N<sub>t</sub>, so it cannot be compressed into a single natural transformation M ⇒ N. The shift N(· + ε) is itself a composite of functors, legitimate for ε ≥ 0 because monotonicity makes shifting a functor — a fact assembled from cat-01 and cat-03 and stated in neither of this unit's sources.</p>
+<p><strong>Stated but not proved.</strong> Theorem 1.9, quoted as Oudot states it and resting on his Theorems 1.1, 1.2, 1.3 and 1.6 from §1, none of which is reproduced here; Gabriel's theorem, which underlies them, is treated in his Appendix A and is outside this unit. Azumaya's theorem, on which Oudot's uniqueness clause rests. Crawley-Boevey's extension to arbitrary subposets, cited by Oudot and not proved. That interval modules are indecomposable, asserted by Theorem 1.9 and set as Problem 2(d).</p>
+<p><strong>Deferred.</strong> Filtrations and persistent homology, Oudot's Chapter 2 and tda1's. Stability and the bottleneck distance, his Chapter 3 and tda1-06/07's. Persistence diagrams and their decorated points, treated in his §3 and used here only as far as the barcode. q-tameness, which his Theorem 1.13 needs and which this unit does not require. Zigzag persistence beyond Definition 1.8.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('interleave');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82',bad='#e06c75';
+  g.textAlign='center';
+
+  function arrow(x1,y1,x2,y2,col,w){
+    g.strokeStyle=col;g.lineWidth=w||1.8;
+    g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+    var dx=x2-x1,dy=y2-y1,L=Math.sqrt(dx*dx+dy*dy);dx/=L;dy/=L;
+    g.beginPath();
+    g.moveTo(x2,y2);
+    g.lineTo(x2-8*dx-4*dy,y2-8*dy+4*dx);
+    g.lineTo(x2-8*dx+4*dy,y2-8*dy-4*dx);
+    g.closePath();g.fillStyle=col;g.fill();
+  }
+
+  g.fillStyle=ink;g.font='15px Segoe UI, sans-serif';
+  g.fillText('an interleaving runs diagonally — nothing lands directly opposite',320,28);
+
+  // rows
+  var xs=[110,270,430], mY=180, nY=90;
+  g.font='14px Georgia, serif';
+  g.fillStyle=dim;g.textAlign='right';
+  g.fillText('N',72,nY+5);
+  g.fillText('M',72,mY+5);
+  g.textAlign='center';
+
+  var labs=['t','t + ε','t + 2ε'];
+  for(var i=0;i<3;i++){
+    g.fillStyle=acc;g.beginPath();g.arc(xs[i],nY,5,0,6.3);g.fill();
+    g.fillStyle=good;g.beginPath();g.arc(xs[i],mY,5,0,6.3);g.fill();
+    g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+    g.fillText(labs[i],xs[i],mY+28);
+  }
+
+  // diagonals
+  arrow(xs[0]+8,mY-6,xs[1]-8,nY+8,good);
+  arrow(xs[1]+8,nY+8,xs[2]-8,mY-6,acc);
+  g.fillStyle=good;g.font='11px Segoe UI, sans-serif';
+  g.fillText('M → N(·+ε)',176,146);
+  g.fillStyle=acc;
+  g.fillText('N → M(·+ε)',358,120);
+
+  // the required composite along M
+  g.strokeStyle=dim;g.setLineDash([4,3]);
+  g.beginPath();g.moveTo(xs[0],mY+12);
+  g.quadraticCurveTo((xs[0]+xs[2])/2,mY+46,xs[2],mY+12);
+  g.stroke();g.setLineDash([]);
+  g.fillStyle=dim;g.font='11px Segoe UI, sans-serif';
+  g.fillText('must equal M’s own map  t → t+2ε',270,mY+62);
+
+  // divider + the absent vertical
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(500,60);g.lineTo(500,250);g.stroke();
+
+  g.fillStyle=bad;g.font='13px Segoe UI, sans-serif';
+  g.fillText('what a natural',572,84);
+  g.fillText('transformation',572,100);
+  g.fillText('would need:',572,116);
+  g.fillStyle=acc;g.beginPath();g.arc(572,146,5,0,6.3);g.fill();
+  g.fillStyle=good;g.beginPath();g.arc(572,206,5,0,6.3);g.fill();
+  g.strokeStyle=bad;g.lineWidth=1.8;g.setLineDash([5,4]);
+  g.beginPath();g.moveTo(572,198);g.lineTo(572,156);g.stroke();g.setLineDash([]);
+  g.fillStyle=bad;g.font='11px Segoe UI, sans-serif';
+  g.fillText('M t → N t',572,232);
+  g.fillText('— absent',572,248);
+
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(50,272);g.lineTo(590,272);g.stroke();
+  g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+  g.fillText('at ε = 0 the diagonals become vertical and the pair is a natural isomorphism',320,298);
+})();
+</script>
+</body></html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at1-09 — Exact sequences: Mayer–Vietoris and coefficients</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology I · Nexus College</p>
+<h1>Exact sequences: Mayer–Vietoris and coefficients <span class="cite">(at1-09)</span></h1>
+
+<div class="hook">
+<p>at1-08 gave you a machine that computes the homology of a space you have already cut into cells. This unit gives you two machines of a different kind. The first computes the homology of a space from the homology of two pieces that overlap — no cell structure required, and the pieces may be anything you happen to understand. The second changes what the answer is made of: replace ℤ by any abelian group and every proof in §2.1 goes through unaltered, but the groups that come out the other end can differ so sharply that a class appears in a degree where the integral homology is zero.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> H<sub>4</sub>(ℝP<sup>4</sup>) = 0, as at1-08 computed. Predict what H<sub>4</sub>(ℝP<sup>4</sup>; 𝔽<sub>2</sub>) is.</p>
+<button onclick="check(this,false)">0 — a coefficient change cannot create homology where there was none</button>
+<button onclick="check(this,true)" data-ok>𝔽<sub>2</sub> — non-zero, in a degree where the integral homology vanishes</button>
+<button onclick="check(this,false)">𝔽<sub>2</sub> ⊕ 𝔽<sub>2</sub></button>
+<div class="explain">Non-zero. Over ℤ the top boundary map d<sub>4</sub> is multiplication by 2 and is injective, so Ker d<sub>4</sub> = 0. Over a field of characteristic 2 that same map is <em>zero</em>, so its kernel is everything. Example 2.50 gives H<sub>k</sub>(ℝP<sup>n</sup>; F) ≅ F for every k from 0 to n when char F = 2. Predicting "0" is the natural guess and it is wrong: coefficients do not merely coarsen the integral answer, they can produce classes it does not have.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Mayer-Vietoris and the coefficient choice (aa-06's fields vs rings) are exactly what TDA fixes when it picks F_2.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires, and it bundles together two things this unit is going to spend its time keeping apart.</p>
+<p><strong>Mayer–Vietoris is not a coefficient choice, and no coefficient choice settles it.</strong> Hatcher is explicit on p. 153: all the theory of §2.1 "carries over directly to general coefficient groups G with no change in the proofs", and "the same is true for Mayer–Vietoris sequences". So the sequence exists over ℤ, over 𝔽<sub>2</sub>, over ℚ, over ℤ<sub>6</sub> — over every abelian group, with identical proofs. Choosing 𝔽<sub>2</sub> does not buy you Mayer–Vietoris; you already had it. What the choice changes is the groups the sequence is a sequence <em>of</em>, and that is a real change, as Example 2.50 will show. Two distinct facts, and the strip's "and" hides the distinction.</p>
+<p><strong>"Fields vs rings" is narrower than Hatcher's setting.</strong> Hatcher's coefficients are an arbitrary <em>abelian group</em> G — not a ring, not a field. Nothing in the definition of C<sub>n</sub>(X; G), in ∂<sup>2</sup> = 0, or in the transfer of §2.1 uses multiplication. Fields enter only when one wants to compute, as in Example 2.50, or later when one wants vector spaces. Whether that generality lines up with aa-06's fields-versus-rings distinction is the syllabus's identification and not Hatcher's; treat it as a pointer.</p>
+<p><strong>"Exactly what TDA fixes when it picks 𝔽<sub>2</sub>" is a forward pointer to tda1 and is not established here.</strong> Neither Hatcher nor this unit contains a filtration, a persistence module or a barcode. What <em>is</em> established here, and is worth carrying forward, is Hatcher's own reason for 𝔽<sub>2</sub> — with no signs there is no orientation to track, so 𝔽<sub>2</sub> homology "is often the most natural tool in the absence of orientability" (p. 153) — together with the exact price, which Example 2.50 makes concrete rather than abstract. This closes a loop opened in at1-07, whose warn block asserted the 𝔽<sub>2</sub> behaviour of ℝP<sup>2</sup> from a direct reduction of Hatcher's matrices; Example 2.50 is the source's own general statement, and it agrees.</p>
+<p><strong>Machinery borrowed from §2.1.</strong> The long exact sequence attached to a short exact sequence of chain complexes, Proposition 2.21 on chains small with respect to a cover, and the five-lemma. The Mayer–Vietoris sequence is built entirely from the first two and cannot be derived without them; they are cited at each use and itemised in the footer. As in at1-08, this unit's <code>resources</code> line names §2.2 alone, and the gap is recorded in the branch plan.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Mayer–Vietoris: manufacturing a long exact sequence</h2>
+
+<div class="theorem">
+<p><strong>Mayer–Vietoris sequence.</strong> For A, B ⊂ X with X the union of the <em>interiors</em> of A and B, there is a long exact sequence<br>
+··· → H<sub>n</sub>(A ∩ B) →<sup>Φ</sup> H<sub>n</sub>(A) ⊕ H<sub>n</sub>(B) →<sup>Ψ</sup> H<sub>n</sub>(X) →<sup>∂</sup> H<sub>n−1</sub>(A ∩ B) → ··· → H<sub>0</sub>(X) → 0. <span class="cite">— Hatcher §2.2, p. 149</span></p>
+</div>
+
+<p>Read the hypothesis carefully. It is not X = A ∪ B; it is that the interiors already cover. Two closed semicircles cover S<sup>1</sup> but their interiors do not, and the derivation below breaks at the step that needs chains to be subdividable into A-chains and B-chains.</p>
+
+<p>The sequence is not proved directly. It is <em>manufactured</em>, by feeding a short exact sequence of chain complexes into the algebraic machine at1-07 and §2.1 already built. Let C<sub>n</sub>(A + B) ⊂ C<sub>n</sub>(X) be the chains that are sums of a chain in A and a chain in B — in general a proper subgroup. Then ∂ carries C<sub>n</sub>(A + B) into C<sub>n−1</sub>(A + B), so these form a chain complex, and Proposition 2.21 of §2.1 says the inclusion C<sub>n</sub>(A + B) ↪ C<sub>n</sub>(X) induces isomorphisms on homology. That is the whole topological content, and it is where the interior hypothesis is spent: it is barycentric subdivision that makes a general chain into a sum of small ones.</p>
+
+<div class="definition">
+<p><strong>The short exact sequence.</strong> 0 → C<sub>n</sub>(A ∩ B) →<sup>φ</sup> C<sub>n</sub>(A) ⊕ C<sub>n</sub>(B) →<sup>ψ</sup> C<sub>n</sub>(A + B) → 0, with φ(x) = (x, −x) and ψ(x, y) = x + y. <span class="cite">— Hatcher §2.2, pp. 149–150</span></p>
+<p>Exactness in three lines. Ker φ = 0, since a chain in A ∩ B that is zero as a chain in A is the zero chain. Im φ ⊂ Ker ψ, since ψφ = 0. And Ker ψ ⊂ Im φ: if x + y = 0 then x = −y, so x is a chain lying in both A and B, hence in A ∩ B, and (x, y) = (x, −x). Exactness at C<sub>n</sub>(A + B) is immediate from the definition of that group.</p>
+</div>
+
+<p>The minus sign in φ(x) = (x, −x) is not decoration. With φ(x) = (x, x) the composite ψφ would be x ↦ 2x rather than 0, and the sequence would fail exactness at the middle term immediately.</p>
+
+<p>The connecting map can be made explicit, and it is worth doing so, because it is the part of the sequence that actually moves information between degrees. A class α ∈ H<sub>n</sub>(X) is represented by a cycle z; by subdivision, write z = x + y with x a chain in A and y a chain in B. Neither x nor y need be a cycle. But ∂(x + y) = 0 forces ∂x = −∂y, and that common chain lies in A ∩ B and is a cycle. It represents ∂α ∈ H<sub>n−1</sub>(A ∩ B). The whole content of the boundary map is: split a cycle, and take the boundary of either half.</p>
+
+<p>There is a reduced version, obtained by augmenting the short exact sequence in the obvious way, and it is the one you will almost always want. There is also a variant that drops the interior hypothesis: if A and B are deformation retracts of neighbourhoods U and V with U ∩ V deformation retracting onto A ∩ B, the five-lemma shows nothing is lost. For a CW complex with A and B subcomplexes this always applies, so in practice one decomposes along subcomplexes and stops worrying.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does the derivation use C<sub>n</sub>(A + B) rather than C<sub>n</sub>(X) in the third slot?</p>
+<button onclick="check(this,false)">Because C<sub>n</sub>(X) is too large to be a chain complex</button>
+<button onclick="check(this,true)" data-ok>Because ψ(x, y) = x + y does not hit all of C<sub>n</sub>(X); Proposition 2.21 then says the difference is invisible to homology</button>
+<button onclick="check(this,false)">Because A ∩ B might be empty</button>
+<button onclick="check(this,false)">Because the boundary map is only defined on C<sub>n</sub>(A + B)</button>
+<div class="explain">Surjectivity. A general singular simplex in X need not lie in A or in B, so the image of ψ is exactly C<sub>n</sub>(A + B), a proper subgroup in general — and a short exact sequence needs surjectivity. Proposition 2.21 repairs it after the fact by showing the inclusion is a homology isomorphism, which is precisely where the interior hypothesis and barycentric subdivision are consumed. Without that step you get a long exact sequence with the wrong group in it.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Computing with it</h2>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the spheres, by induction.</strong> <span class="cite">— Example 2.46, Hatcher p. 150</span></p>
+<p>Take X = S<sup>n</sup> with A and B the northern and southern hemispheres, slightly enlarged so their interiors cover. Then A and B are contractible and A ∩ B ≃ S<sup>n−1</sup>. In the <em>reduced</em> Mayer–Vietoris sequence the middle terms H̃<sub>i</sub>(A) ⊕ H̃<sub>i</sub>(B) vanish in every degree, so each connecting map is squeezed between two zeros:</p>
+<p>0 → H̃<sub>i</sub>(S<sup>n</sup>) →<sup>∂</sup> H̃<sub>i−1</sub>(S<sup>n−1</sup>) → 0, an isomorphism for every i.</p>
+<p>Now induct. The base case is S<sup>0</sup>, two points, with H̃<sub>0</sub>(S<sup>0</sup>) ≅ ⟨ … ⟩ and H̃<sub>i</sub>(S<sup>0</sup>) = 0 for i ≠ 0. Applying the isomorphism n times shifts the single non-zero group up by ⟨ … ⟩ degrees, giving H̃<sub>i</sub>(S<sup>n</sup>) ≅ ⟨ … ⟩ for i = n and 0 otherwise.</p>
+<p>One thing to notice before moving on: the argument fails with unreduced homology. At n = 1 the unreduced middle term is H<sub>0</sub>(A) ⊕ H<sub>0</sub>(B) ≅ ℤ ⊕ ℤ, which is ⟨ zero or not? ⟩, so the squeeze does not happen. Reduced homology is not a convenience here; it is what makes the induction close.</p>
+</div>
+
+<p>Hatcher records a structural observation about the sequence that is worth pausing on. If A ∩ B is path-connected, the H<sub>1</sub> terms of the reduced sequence give H<sub>1</sub>(X) ≅ (H<sub>1</sub>(A) ⊕ H<sub>1</sub>(B))/Im Φ. That is the abelianised statement of van Kampen — Theorem 1.20 from at1-05 — with the free product replaced by a direct sum and the normal subgroup N replaced by the image of Φ. Note what has vanished: van Kampen needed the triple intersections path-connected in order to control the kernel, and Mayer–Vietoris has no triple-intersection hypothesis at all. Abelianising has already collapsed the difficulty that hypothesis was there to manage. The comparison does lean on H<sub>1</sub> being the abelianisation of π₁, which Hatcher proves in §2.A and which — as recorded in at1-03 and at1-07 — no unit of this module reads.</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Compute H<sub>∗</sub>(K) for the Klein bottle by Mayer–Vietoris, decomposing K as the union of two Möbius bands A and B glued along their boundary circles. You will need one geometric fact and one change of basis. Write your argument before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p>A and B are Möbius bands, each deformation retracting onto its core circle, and A ∩ B is their common boundary circle. So all three are homotopy equivalent to S<sup>1</sup>, and the interesting part of the reduced sequence is</p>
+<p>0 → H<sub>2</sub>(K) → H<sub>1</sub>(A ∩ B) →<sup>Φ</sup> H<sub>1</sub>(A) ⊕ H<sub>1</sub>(B) → H<sub>1</sub>(K) → H̃<sub>0</sub>(A ∩ B) = 0,</p>
+<p>that is, 0 → H<sub>2</sub>(K) → ℤ →<sup>Φ</sup> ℤ ⊕ ℤ → H<sub>1</sub>(K) → 0.</p>
+<p>The geometric fact: the boundary circle of a Möbius band wraps <em>twice</em> around the core circle. So the generator of H<sub>1</sub>(A ∩ B) maps to twice a generator in each factor, with a sign from the orientations: Φ(1) = (2, −2).</p>
+<p>Φ is injective, since (2, −2) ≠ 0 and ℤ is torsion-free. Exactness at the second term then gives H<sub>2</sub>(K) = 0.</p>
+<p>For H<sub>1</sub>, take the cokernel of Φ. Choose (1, 0) and (1, −1) as a basis for ℤ ⊕ ℤ — legitimate, since the change-of-basis matrix has determinant −1. In that basis Φ(1) = (2, −2) = 2·(1, −1) + 0·(1, 0), so the quotient is ℤ ⊕ ℤ<sub>2</sub>. Hence H<sub>1</sub>(K) ≅ ℤ ⊕ ℤ<sub>2</sub>. The earlier part of the sequence kills all higher groups. ∎</p>
+<p><em>What to notice.</em> All of the topology sits in one integer, the 2 in (2, −2), and that integer is a degree computed exactly as in at1-08. Mayer–Vietoris does not replace degree calculations; it reorganises what you do with them. Compare the answer with at1-08's cellular computation of H<sub>∗</sub>(N<sub>g</sub>) at g = 2: ℤ<sup>1</sup> ⊕ ℤ<sub>2</sub>, the same group by a completely different route.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In the Klein bottle computation, what would change if the boundary circle wrapped <em>once</em> around the core?</p>
+<button onclick="check(this,false)">Nothing — the answer depends only on the shape of the sequence</button>
+<button onclick="check(this,true)" data-ok>Φ(1) would be (1, −1), still injective, but the cokernel would be ℤ with no torsion</button>
+<button onclick="check(this,false)">H<sub>2</sub> would become ℤ</button>
+<button onclick="check(this,false)">The sequence would no longer be exact</button>
+<div class="explain">The torsion would vanish. With Φ(1) = (1, −1) one can take (1, 0) and (1, −1) as a basis again, and the quotient is a free ℤ. The ℤ<sub>2</sub> in H<sub>1</sub>(K) is entirely the "2", which is the degree of the boundary-to-core map — the same phenomenon as the coefficient 2 in at1-07's ℝP<sup>2</sup> and the d<sub>k</sub> = 2 of at1-08's ℝP<sup>n</sup>. Torsion in this module has so far come from exactly one source.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Use Mayer–Vietoris to compute H<sub>∗</sub>(S<sup>1</sup> ∨ S<sup>1</sup>), choosing A and B to be open neighbourhoods of the two circles that each deformation retract onto one of them, so that A ∩ B is contractible. Then check your answer against at1-05's π₁ = ℤ ∗ ℤ, and say what the check does and does not confirm.</p>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>Coefficients: same theorems, different answers</h2>
+
+<div class="definition">
+<p><strong>Homology with coefficients.</strong> Fix an abelian group G. Let C<sub>n</sub>(X; G) be the group of chains Σ<sub>i</sub> n<sub>i</sub>σ<sub>i</sub> with σ<sub>i</sub> singular n-simplices and n<sub>i</sub> ∈ G, with the same boundary formula ∂(Σ<sub>i</sub> n<sub>i</sub>σ<sub>i</sub>) = Σ<sub>i,j</sub> (−1)<sup>j</sup> n<sub>i</sub> σ<sub>i</sub>|[v<sub>0</sub>, ···, v̂<sub>j</sub>, ···, v<sub>n</sub>]. The same calculation as before gives ∂<sup>2</sup> = 0, and the homology of this complex is H<sub>n</sub>(X; G). <span class="cite">— Hatcher §2.2, p. 153</span></p>
+</div>
+
+<p>Note what G is <em>not</em> required to be. It is an abelian group. Not a ring, not a field: nothing in the definition, in ∂<sup>2</sup> = 0, or in what follows uses multiplication of coefficients. Fields appear only when one wants to compute conveniently, or, much later, when one wants the chain groups to be vector spaces.</p>
+
+<p>The case G = ℤ<sub>2</sub> is the one to hold on to. A chain has coefficients 0 or 1, so throwing away the zero terms makes a chain literally a finite union of simplices; and since −1 = 1, the boundary formula has no signs at all. Signs are the algebraic record of orientation, so with no signs there is nothing orientable to keep track of. That is Hatcher's reason, in his words, that ℤ<sub>2</sub> homology "is often the most natural tool in the absence of orientability".</p>
+
+<p>Now the sentence that the mission strip needs. <em>All</em> of the §2.1 theory carries over to arbitrary G with no change in the proofs, and so do Mayer–Vietoris sequences. Cellular homology carries over too: the chain group H<sub>n</sub>(X<sup>n</sup>, X<sup>n−1</sup>; G) is a direct sum of copies of G, one per n-cell, the agreement theorem of at1-08 extends to H<sub>n</sub><sup>CW</sup>(X; G) ≅ H<sub>n</sub>(X; G), and the cellular boundary formula has the <em>same</em> integer coefficients d<sub>αβ</sub>. So the machinery is coefficient-blind. Only the answers are not.</p>
+
+<div class="theorem">
+<p><strong>Lemma 2.49.</strong> If f : S<sup>k</sup> → S<sup>k</sup> has degree m, then f<sub>∗</sub> : H<sub>k</sub>(S<sup>k</sup>; G) → H<sub>k</sub>(S<sup>k</sup>; G) is multiplication by m. <span class="cite">— Hatcher §2.2, p. 154</span></p>
+<p><strong>Proof.</strong> A homomorphism φ : G<sub>1</sub> → G<sub>2</sub> induces maps on chains commuting with ∂, hence on homology, and these are natural. Take φ : ℤ → G sending 1 to a chosen g ∈ G, and the square comparing f<sub>∗</sub> over ℤ with f<sub>∗</sub> over G. The outer squares commute by the inductive computation of the groups, which reduces to k = 0 where commutativity is obvious. The top map sends 1 to m, so the bottom sends g to mg. ∎</p>
+<p>This is what licenses the previous paragraph's claim that the cellular boundary coefficients are unchanged. Without it, "the same formula" would be an assertion about numbers computed in a different category.</p>
+</div>
+
+<p>So the theorems are the same. Here is what is not.</p>
+
+<div class="theorem">
+<p><strong>Example 2.50: ℝP<sup>n</sup> over a field.</strong> With coefficients in a field F, at1-08's cellular chain complex becomes ··· →<sup>0</sup> F →<sup>2</sup> F →<sup>0</sup> F →<sup>2</sup> F →<sup>0</sup> F → 0, the integers 2 and 0 unchanged by Lemma 2.49. <span class="cite">— Hatcher §2.2, p. 154</span></p>
+<p>If char F = 2, every map "multiplication by 2" is the zero map, so every boundary map vanishes and H<sub>k</sub>(ℝP<sup>n</sup>; F) ≅ F for all 0 ≤ k ≤ n.</p>
+<p>If char F ≠ 2, every map "multiplication by 2" is an isomorphism, so H<sub>k</sub>(ℝP<sup>n</sup>; F) is F for k = 0 and for k = n odd, and 0 otherwise.</p>
+</div>
+
+<canvas id="coeff" width="640" height="330" aria-label="A table comparing the homology of real projective 4-space in degrees 0 to 4 over three coefficient choices: the integers, a field of characteristic two, and the rationals."></canvas>
+
+<p>Read the ℤ column against the char-2 column in degree 4. Integrally H<sub>4</sub>(ℝP<sup>4</sup>) = 0, because d<sub>4</sub> is multiplication by 2 and injective. Over a field of characteristic 2 that same map is zero, its kernel is everything, and a class appears where there was none. A coefficient change is not a coarsening of the integral answer; it is a different answer.</p>
+
+<p>Now read the char-2 column against the ℚ column in degree 1. Over ℚ the map "multiplication by 2" is invertible, so H<sub>1</sub>(ℝP<sup>4</sup>; ℚ) = 0 and the space looks rationally like a point. Over 𝔽<sub>2</sub> the class is there. Neither field sees what ℤ sees, and they fail to see different things. This is the same computation that at1-07's warn block did by hand for ℝP<sup>2</sup>, reducing Hatcher's boundary matrices mod 2; Example 2.50 is the general statement, and the two agree.</p>
+
+<p>Hatcher gives one more reason coefficients matter, and it is stronger than a computation. Let X be a Moore space M(ℤ<sub>m</sub>, n) — S<sup>n</sup> with a cell e<sup>n+1</sup> attached by a map of degree m — and let f : X → X/S<sup>n</sup> = S<sup>n+1</sup> be the quotient map. On reduced ℤ-homology f<sub>∗</sub> is trivial, because the non-zero groups of X and S<sup>n+1</sup> sit in different dimensions and there is nowhere for anything to go. With ℤ<sub>m</sub> coefficients the long exact sequence of the pair (X, S<sup>n</sup>) begins 0 = H̃<sub>n+1</sub>(S<sup>n</sup>; ℤ<sub>m</sub>) → H̃<sub>n+1</sub>(X; ℤ<sub>m</sub>) →<sup>f<sub>∗</sub></sup> H̃<sub>n+1</sub>(X/S<sup>n</sup>; ℤ<sub>m</sub>), so f<sub>∗</sub> is injective and non-zero. Hence f is not homotopic to a constant map — a conclusion ℤ coefficients cannot reach.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Does the choice of coefficient group change which exact sequences are available to you?</p>
+<button onclick="check(this,false)">Yes — Mayer–Vietoris requires a field</button>
+<button onclick="check(this,true)" data-ok>No. Hatcher says the §2.1 theory and Mayer–Vietoris carry over to any abelian group G with no change in the proofs</button>
+<button onclick="check(this,false)">Only if G is finitely generated</button>
+<button onclick="check(this,false)">Yes — the long exact sequence of a pair needs G torsion-free</button>
+<div class="explain">No. This is the distinction the mission strip blurs. The machinery is coefficient-blind: every exact sequence in the module exists over every abelian group, with identical proofs. What the choice of G changes is the groups appearing in those sequences — and Example 2.50 shows that change can be drastic. Keep the two apart; the second is a real fact and the first is not.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which is the best coefficient choice for computing the homology of ℝP<sup>4</sup>?</p>
+<button onclick="check(this,false)">𝔽<sub>2</sub>, since the answer is uniform</button>
+<button onclick="check(this,false)">ℚ, since vector spaces are easiest</button>
+<button onclick="check(this,true)" data-ok>The question is malformed — each choice discards something the others keep</button>
+<button onclick="check(this,false)">ℤ, since it determines all the others</button>
+<div class="explain">Malformed. ℚ loses everything but connectivity here. 𝔽<sub>2</sub> gains a class in degree 4 that is not there integrally and cannot report that the degree-1 class has order two. ℤ keeps the most, and is the reason the fourth option is tempting — Hatcher does say in §3.A that ℤ coefficients determine the rest — but "determines" is a statement about a formula, not about what a given computation shows you. The honest summary is that a coefficient choice is a choice about what you are willing not to see.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why is Lemma 2.49 needed at all?</p>
+<button onclick="check(this,true)" data-ok>To know the cellular boundary coefficients d<sub>αβ</sub> over G are the same integers as over ℤ</button>
+<button onclick="check(this,false)">To prove ∂<sup>2</sup> = 0 with coefficients in G</button>
+<button onclick="check(this,false)">To show H<sub>n</sub>(pt; G) = G</button>
+<button onclick="check(this,false)">To construct the Mayer–Vietoris sequence over G</button>
+<div class="explain">The boundary coefficients. Hatcher says the cellular boundary formula over G is d<sub>n</sub>(Σ n<sub>α</sub>e<sup>n</sup><sub>α</sub>) = Σ d<sub>αβ</sub>n<sub>α</sub>e<sup>n−1</sup><sub>β</sub> with the <em>same</em> d<sub>αβ</sub>. Those numbers were defined as degrees of maps of spheres, computed with ℤ coefficients; Lemma 2.49 is what says the induced map over G is still multiplication by that integer. Without it, reusing at1-08's numbers in Example 2.50 would be an unjustified transfer.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Mayer–Vietoris is manufactured, not proved.</strong> The short exact sequence of chain complexes 0 → C<sub>n</sub>(A ∩ B) → C<sub>n</sub>(A) ⊕ C<sub>n</sub>(B) → C<sub>n</sub>(A + B) → 0, with φ(x) = (x, −x) and ψ(x, y) = x + y, is exact by three one-line checks. Feed it to the long-exact-sequence machine of §2.1 and the result has C<sub>n</sub>(A + B) in it; Proposition 2.21 replaces that by C<sub>n</sub>(X), and that single step is where the interior hypothesis and barycentric subdivision are spent. The connecting map is: split a cycle as x + y, take ∂x = −∂y.</p>
+<p><strong>2. It computes by reduction to pieces, and the topology collapses into small integers.</strong> Spheres by induction, because both hemispheres are contractible and the reduced sequence squeezes each connecting map between zeros. The Klein bottle from two Möbius bands, where the entire answer is the 2 in Φ(1) = (2, −2) — a degree, computed as in at1-08 — and a determinant-(−1) change of basis turns the cokernel into ℤ ⊕ ℤ<sub>2</sub>. The H<sub>1</sub> terms give the abelianised van Kampen, with the triple-intersection hypothesis gone.</p>
+<p><strong>3. Coefficients change the answers and not the machinery.</strong> C<sub>n</sub>(X; G) for any abelian group G, same ∂, same ∂<sup>2</sup> = 0; all of §2.1 and Mayer–Vietoris carry over with no change in the proofs; Lemma 2.49 keeps the cellular boundary integers d<sub>αβ</sub> fixed. But Example 2.50 splits ℝP<sup>n</sup> three ways: F in every degree when char F = 2, almost nothing when char F ≠ 2, and the integral answer with its ℤ<sub>2</sub>'s in between. In degree n = 4, char 2 produces a class that is not there over ℤ. And Example 2.51 shows a map that ℤ coefficients cannot distinguish from a constant while ℤ<sub>m</sub> coefficients can. A coefficient choice is a choice about what to stop seeing.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em>, §2.2 "Computing Homology". §"Mayer–Vietoris Sequences": the statement of the sequence with the hypothesis that X is the union of the interiors of A and B, the remark on its use in induction arguments, the definition of C<sub>n</sub>(A + B), the appeal to Proposition 2.21, and the short exact sequence of chain complexes with φ(x) = (x, −x) and ψ(x, y) = x + y (p. 149); the three-part verification of exactness, the explicit description of the connecting map by splitting a cycle as x + y, the augmented sequence giving the reduced version, the van Kampen analogy with its reference forward to §2.A, the deformation-retract variant justified by the five-lemma with the N<sub>ε</sub> neighbourhoods of the Appendix, and Example 2.46 on S<sup>n</sup> (p. 150); Example 2.47 on the Klein bottle as a union of two Möbius bands, with Φ(1) = (2, −2), the injectivity giving H<sub>2</sub>(K) = 0, and the change of basis giving H<sub>1</sub>(K) ≅ ℤ ⊕ ℤ<sub>2</sub> (p. 151). §"Homology with Coefficients": the definition of C<sub>n</sub>(X; G) and C<sub>n</sub>(X, A; G) for an arbitrary abelian group G, the boundary formula and ∂<sup>2</sup> = 0, reduced groups via the augmented complex, the two simplifications in the case G = ℤ<sub>2</sub> and the remark about orientability, the statement that all of §2.1 and Mayer–Vietoris carry over with no change in the proofs, the computation of H<sub>n</sub>(pt; G) and H̃<sub>n</sub>(S<sup>k</sup>; G), and the extension of cellular homology to coefficients with the same integers d<sub>αβ</sub> (p. 153); Lemma 2.49 with its proof by naturality, and Example 2.50 on ℝP<sup>n</sup> over a field in both characteristics (p. 154); the reference forward to §3.A for the general algebraic formula, the remark on the Borsuk–Ulam proof in §2.B, and Example 2.51 on the Moore space M(ℤ<sub>m</sub>, n) (p. 155). Every folio was read off the page cited.
+<p><strong>Borrowed from §2.1, outside this unit's resources.</strong> The long exact sequence in homology attached to a short exact sequence of chain complexes — the machine the Mayer–Vietoris sequence is manufactured by, and without which there is no derivation at all; Proposition 2.21 on chains small with respect to a cover, which is the single step where the interior hypothesis is consumed; and the five-lemma, used for the deformation-retract variant. All are cited at use and stated, not proved. As in at1-08, this unit's <code>resources</code> line names Hatcher §2.2 alone; the gap is recorded in the branch plan and left to a separate syllabus pass.</p>
+<p><strong>Not established here.</strong> That Mayer–Vietoris and the coefficient choice are two aspects of one thing: they are not, and the warn block above gives Hatcher's own sentence to the contrary. That coefficients are a choice between "fields and rings": Hatcher's G is an arbitrary abelian group, and nothing before Example 2.50 uses multiplication. Anything about persistence, filtrations or barcodes, which are tda1's and appear in neither source. That H<sub>1</sub> is the abelianisation of π₁, needed for the van Kampen analogy and proved in §2.A, printed p. 166 — outside the resources of every at1 unit, as already recorded in at1-03 and at1-07. The general formula expressing H<sub>∗</sub>(X; G) in terms of H<sub>∗</sub>(X), which is §3.A's and is quoted only as a forward reference.</p>
+<p><strong>Stated but not proved.</strong> Proposition 2.21, the five-lemma, and the long exact sequence construction, as above. The claim that all of §2.1 carries over to arbitrary coefficients, which Hatcher asserts rather than reproves and which this lesson takes on his authority — the one consequence that would be unjustified without a proof, the constancy of the cellular boundary integers, is exactly what Lemma 2.49 supplies, and that proof is given in full. The geometric fact that the boundary circle of a Möbius band wraps twice around the core is used in the guided proof and left as Problem 3(c).</p>
+<p><strong>Deferred.</strong> Split exact sequences and the homology of groups, including Proposition 2.45 on torsionfree fundamental groups of finite-dimensional K(G,1)'s (pp. 147–148); Example 2.48, the mapping-torus sequence generalising Mayer–Vietoris (pp. 151–152); the Borsuk–Ulam proof of §2.B; and the universal coefficient theorem of §3.A, which is the reason "ℤ coefficients determine the rest" is true and is not available in this module.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('coeff');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82',bad='#e06c75';
+  var cols=[190,330,480];                       // Z, char 2, Q
+  var heads=['over ℤ','char F = 2','over ℚ'];
+  var rows=[70,110,150,190,230];                // degrees 0..4
+  var Z =['ℤ','ℤ2','0','ℤ2','0'];
+  var F2=['F','F','F','F','F'];
+  var Q =['ℚ','0','0','0','0'];
+
+  g.textAlign='center';
+  // title
+  g.fillStyle=ink;g.font='15px Segoe UI, sans-serif';
+  g.fillText('H_k( RP⁴ ; G )  for three coefficient choices',320,34);
+
+  // column heads
+  g.font='13px Segoe UI, sans-serif';
+  for(var i=0;i<3;i++){g.fillStyle=acc;g.fillText(heads[i],cols[i],56);}
+  g.fillStyle=dim;g.textAlign='right';g.fillText('degree',120,56);
+  g.textAlign='center';
+
+  // rule under the heads
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(70,62);g.lineTo(560,62);g.stroke();
+
+  // rows
+  g.font='17px Georgia, serif';
+  for(var r=0;r<5;r++){
+    g.fillStyle=dim;g.font='13px Segoe UI, sans-serif';
+    g.textAlign='right';g.fillText('k = '+r,120,rows[r]+5);
+    g.textAlign='center';g.font='17px Georgia, serif';
+    var vals=[Z[r],F2[r],Q[r]];
+    for(var j=0;j<3;j++){
+      var v=vals[j];
+      g.fillStyle=(v==='0')?dim:ink;
+      g.fillText(v,cols[j],rows[r]+5);
+    }
+  }
+
+  // highlight degree 4: zero over Z, non-zero over char 2
+  g.strokeStyle=bad;g.lineWidth=1.5;
+  g.strokeRect(cols[0]-34,rows[4]-14,68,26);
+  g.strokeStyle=good;
+  g.strokeRect(cols[1]-34,rows[4]-14,68,26);
+  g.beginPath();g.moveTo(cols[0]+36,rows[4]-1);g.lineTo(cols[1]-36,rows[4]-1);g.stroke();
+
+  // punchline
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(70,262);g.lineTo(560,262);g.stroke();
+  g.fillStyle=dim;g.font='13px Segoe UI, sans-serif';
+  g.fillText('degree 4: zero over ℤ, non-zero over characteristic 2',320,284);
+  g.fillText('a coefficient change is a different answer, not a coarser one',320,304);
+})();
+</script>
+</body></html>

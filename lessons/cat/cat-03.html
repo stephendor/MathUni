@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cat-03 — Functors</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body><p class="cite">Category Theory · Nexus College</p>
+<h1>Functors <span class="cite">(cat-03)</span></h1>
+
+<div class="hook">
+<p>cat-01 built categories and cat-02 used them, but both worked inside a single category at a time. Aluffi's §5.2 admitted the cost: the honest account of a universal property "requires a good familiarity with the language of <em>functors</em>", and he deferred them to this chapter. Here they are. A functor moves objects to objects and arrows to arrows, preserving identities and composition — which sounds like bookkeeping until you notice what it licenses. Functors compose. And once they compose, a filtration of spaces and the homology functor can be joined into a single object: a group for every parameter value and a map for every comparison.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Homology is a functor. "Sample the filtration at level t" also names a functor. Predict: does composing them give a persistence module?</p>
+<button onclick="check(this,false)">Yes — that is exactly what a persistence module is</button>
+<button onclick="check(this,true)" data-ok>It depends which functor "sample at level t" names; one reading gives a persistence module and the other gives a single group</button>
+<button onclick="check(this,false)">No — the two cannot be composed at all</button>
+<div class="explain">It depends. The phrase can name the filtration itself, 𝒳 : P → Top, whose value at t is X<sub>t</sub>; or it can name <em>evaluation at t</em>, ev<sub>t</sub> : Top<sup>P</sup> → Top, which takes a whole filtration and returns one space. Both are functors and both compose with H<sub>n</sub>, but H<sub>n</sub> ∘ 𝒳 has domain P and is a persistence module, while H<sub>n</sub> ∘ ev<sub>t</sub> has domain Top<sup>P</sup> and produces one abelian group. Composing is a type-checking operation before it is a mathematical one. Segment 3 does both computations.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Homology is a functor; so is 'sample the filtration at level t'. Persistence composes the two.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires, and for the first time in the cat module most of it is within reach — because functors are finally available and functors are what the strip is about.</p>
+<p><strong>"Homology is a functor" is true and is not established here.</strong> Neither Aluffi §VIII.1 nor Spivak ch. 3 contains homology. at1-10 established it from Hatcher §2.3, where 𝟙<sub>∗</sub> = 𝟙 and (fg)<sub>∗</sub> = f<sub>∗</sub>g<sub>∗</sub> are exactly Definition 1.1's two conditions. This lesson takes it from there and does not reprove it.</p>
+<p><strong>"Persistence composes the two" is correct under one reading of the strip and false under the other, and the ambiguity is worth resolving rather than passing over.</strong> Composition of functors is available here — Aluffi's Definition 1.1 gives the conditions and Spivak works a composite explicitly on p. 101 — so the check can be made. It is a check on <em>domains</em>: H<sub>n</sub> ∘ 𝒳 has domain P and is a group for each index with a map for each comparison, which is a persistence module; H<sub>n</sub> ∘ ev<sub>t</sub> has domain Top<sup>P</sup> and yields a single group. Both composites exist. Only the first is persistence. The guided proof does both and Problem 5(e) makes the reader do them again.</p>
+<p><strong>Still not established here: persistence itself.</strong> No filtration, barcode, interval decomposition or stability statement appears in either source, and the word persistence appears in neither. What this unit adds to at1-10's version of the same observation is the definition that makes the composite legitimate rather than suggestive — at1-10 formed the composite before this module had defined a functor at all, and said so.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>One definition, two notations</h2>
+
+<div class="definition">
+<p><strong>Definition 1.1 (Aluffi).</strong> A <em>covariant functor</em> ℱ : C → D assigns an object ℱ(A) of D to every object A of C, and a function Hom<sub>C</sub>(A, B) → Hom<sub>D</sub>(ℱ(A), ℱ(B)) to every pair A, B, such that ℱ(1<sub>A</sub>) = 1<sub>ℱ(A)</sub> for all A, and ℱ(β ∘ α) = ℱ(β) ∘ ℱ(α) whenever the composite is defined. <span class="cite">— Aluffi §VIII.1.1, p. 484</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 3.35 (Spivak).</strong> To specify a functor F : 𝒞 → 𝒟: (i) for every object c of 𝒞 specify an object F(c) of 𝒟; (ii) for every morphism f : c<sub>1</sub> → c<sub>2</sub> specify a morphism F(f) : F(c<sub>1</sub>) → F(c<sub>2</sub>). These must satisfy (a) F(id<sub>c</sub>) = id<sub>F(c)</sub>, and (b) F(f ; g) = F(f) ; F(g). <span class="cite">— Spivak §3.3.2, p. 91</span></p>
+</div>
+
+<p>These are the same definition. The only difference is the order of composition: Spivak's f ; g means "first f, then g", Aluffi's β ∘ α means the same composite written the other way about. Both conventions are standard — classical algebra writes ∘, the applied category theory this degree draws on writes ; — and the one thing you must not do is mix them inside a single argument. Fix one at the start of any calculation.</p>
+
+<p>A <em>contravariant</em> functor C → D is, by Aluffi's definition, a covariant functor C<sup>op</sup> → D. Unwound, it sends α : A → B to 𝒢(α) : 𝒢(B) → 𝒢(A) and satisfies 𝒢(βα) = 𝒢(α)𝒢(β) — note the switch. Aluffi draws it: A → B → C goes to 𝒢(A) ← 𝒢(B) ← 𝒢(C). In both variances, commutative diagrams go to commutative diagrams, because commutativity is an equation between composites and both conditions are equations about composites.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why do functors send commutative diagrams to commutative diagrams?</p>
+<button onclick="check(this,false)">Because they preserve identities</button>
+<button onclick="check(this,true)" data-ok>Because commutativity is an equation between composites, and functors preserve composites</button>
+<button onclick="check(this,false)">Because they are injective on morphisms</button>
+<button onclick="check(this,false)">Only covariant ones do; contravariant ones reverse the diagram and break commutativity</button>
+<div class="explain">Preservation of composites. If two paths through a diagram compose to the same morphism, applying ℱ to that equation gives an equation between the images of the two composites, and preservation turns each into the composite of the images. Contravariant functors reverse every arrow but still send commuting diagrams to commuting ones — Aluffi says so explicitly — because the reversed equation is still an equation. Nothing here needs injectivity, and identities alone would not suffice.</div>
+</div>
+
+<p>Examples come in two flavours. The <em>forgetful</em> functors drop structure: a ring has an underlying abelian group, and a ring homomorphism is in particular a homomorphism of those groups, so Ring → Ab is a covariant functor. Then there are the ones that do something. Example 1.2: R ↦ R<sup>∗</sup>, the group of units, is a covariant functor Ring → Grp. Example 1.4: Spec, the set of prime ideals, is <em>contravariant</em>, because a ring homomorphism φ : R → S pulls prime ideals back, giving φ<sup>∗</sup> : Spec(S) → Spec(R).</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the two Hom functors.</strong> <span class="cite">— Aluffi §VIII.1.2, p. 486</span></p>
+<p>Fix an object X of C. Then A ↦ Hom<sub>C</sub>(X, A) is <em>covariant</em> and A ↦ Hom<sub>C</sub>(A, X) is <em>contravariant</em>.</p>
+<p>Covariant case. Given α : A → B, we need a function Hom(X, A) → Hom(X, B). There is exactly one thing to do: send φ : X → A to αφ : X → B. That is post-composition. It preserves identities, since 1<sub>A</sub>φ = φ; and it preserves composition, since (βα)φ = β(αφ).</p>
+<p>Contravariant case. Given α : A → B, we need a function Hom(B, X) → Hom(A, X) — note the direction. Again there is one thing to do: send ψ : B → X to ⟨ … ⟩, which is <em>pre</em>-composition. It preserves identities because ⟨ … ⟩. For composition, take α : A → B and β : B → C and a morphism ψ : C → X; then applying the functor for βα gives ⟨ … ⟩, while applying it for β and then for α gives ⟨ … ⟩ — the same morphism, in the reversed order, which is exactly 𝒢(βα) = 𝒢(α)𝒢(β).</p>
+<p>Aluffi calls these "an important class of functors that are available on any category", and says they will be a source of examples for the next few sections. They are: cat-04's Yoneda lemma is a statement about exactly these.</p>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Spivak's functors: schemas, instances, and how much is forced</h2>
+
+<p>Spivak arrives at functors from databases, and the route is worth taking because it makes the definition concrete. His observation: a database schema is a category — objects are tables, morphisms are columns pointing at other tables — and the data filling that schema is an assignment of a <em>set</em> to each table and a <em>function</em> to each column.</p>
+
+<div class="definition">
+<p><strong>Definition 3.44 (Spivak).</strong> Let 𝒞 be a schema, that is, a finitely presented category. A <em>𝒞-instance</em> is a functor I : 𝒞 → Set. <span class="cite">— Spivak §3.3.3, p. 93</span></p>
+</div>
+
+<p>His summary: "a database schema is a category, and an instance on that schema — the data itself — is a set-valued functor. All the constraints, or business rules, are ensured by the rules of functors, namely that functors preserve composition." That is a genuine engineering claim and it has a genuine limit. Path equations declared in the schema are enforced automatically, because a functor must send equal composites to equal composites. Conditions that are <em>not</em> equations between composites — that a column be injective, that a table be non-empty — are not enforced by anything in Definition 3.35.</p>
+
+<p>Example 3.36 draws three functors <strong>2</strong> → <strong>3</strong> and notes something that is true of all of his early examples: each is completely determined by what it does on objects. Example 3.38 is sharper — there is <em>exactly one</em> functor from the free square category to the commutative square category sending A′ ↦ A and so on, and once that decision is made "each of the ten paths in F is forced to go to a certain path in C". Then Spivak adds the corrective: "All of our example functors so far have been completely determined by what they do on objects, but this is usually not the case."</p>
+
+<div class="warn">
+<p><strong>Why his examples were forced, and why yours will not be.</strong> In <strong>2</strong>, <strong>3</strong> and the commutative square, there is at most one morphism between any two objects. So once the objects are placed, every Hom-set the functor must map into is a singleton and no choice remains — the same phenomenon that made every morphism a monomorphism in cat-01's Example 4.10. Take a category where Hom-sets are large and the situation inverts completely: a functor between one-object categories is a group homomorphism, the object assignment carries no information whatever, and the morphism assignment is the entire content.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Spivak says functoriality enforces a database's business rules. Which of these does it <em>not</em> enforce?</p>
+<button onclick="check(this,false)">That two declared-equal paths of columns give the same function</button>
+<button onclick="check(this,true)" data-ok>That a particular column is injective</button>
+<button onclick="check(this,false)">That following the identity column changes nothing</button>
+<button onclick="check(this,false)">That composing two columns agrees with the declared composite column</button>
+<div class="explain">Injectivity. Definition 3.35 constrains a functor by two <em>equations</em> — identities go to identities, composites to composites — and every rule it enforces is therefore an equation between composites. Injectivity is not one: nothing in the definition says anything about how many elements a set has or whether a function collapses any of them. The other three options are all path equations or identity conditions, and all are automatic.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Aluffi defines an <em>equivalence of categories</em> as a fully faithful, essentially surjective functor rather than as a bijection on objects and morphisms. Why the weaker condition?</p>
+<button onclick="check(this,false)">Because bijections on objects are hard to construct in practice</button>
+<button onclick="check(this,true)" data-ok>Because equivalent categories may have wildly different numbers of objects — Example 1.8 matches one object per dimension against a proper class of vector spaces</button>
+<button onclick="check(this,false)">Because full and faithful together already imply bijectivity on objects</button>
+<button onclick="check(this,false)">Because isomorphism of categories is not definable</button>
+<div class="explain">Different sizes. Example 1.8's matrix category has one object per non-negative integer; the category of finite-dimensional k-vector spaces has a proper class of objects. No bijection on objects is possible, yet the two carry the same information — the functor is fully faithful and every finite-dimensional space is <em>isomorphic to</em> some k<sup>n</sup>, which is all essential surjectivity asks. "Isomorphic to" rather than "equal to" is exactly the slack that makes the notion useful.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>Composition, and which composite is persistence</h2>
+
+<p>Spivak works a composite explicitly on p. 101. He has a functor F : <strong>Gr</strong> → DDS between two schemas, and an instance I : DDS → Set. Then: "Objects in <strong>Gr</strong> are sent by F to objects in DDS, which are sent by I to objects in Set, which are sets. Morphisms in <strong>Gr</strong> are sent by F to morphisms in DDS, which are sent by I to morphisms in Set, which are functions. This defines a composite functor." The result is an instance on <strong>Gr</strong> — data migrated from one schema to another by nothing more than composing.</p>
+
+<p>That functors compose at all is a two-line check, and it is the whole engine of what follows.</p>
+
+<canvas id="composite" width="640" height="330" aria-label="Two candidate composites drawn one above the other. The upper row shows the preorder P mapping by a filtration into the category of spaces and then by homology into abelian groups, labelled as a persistence module. The lower row shows the category of all filtrations mapping by evaluation at t into spaces and then by homology into abelian groups, labelled as a single group. The domains are highlighted as the thing that differs."></canvas>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> First prove that the composite of two functors is a functor. Then use it to settle the mission strip: compute both candidate composites with H<sub>n</sub> and say which one is a persistence module. Write your argument before revealing the model answer.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Composites are functors.</strong> Let F : C → D and G : D → E. On objects, (G∘F)(A) = G(F(A)). On morphisms, (G∘F)(α) = G(F(α)), which runs from G(F(A)) to G(F(B)) as required. Identities: (G∘F)(1<sub>A</sub>) = G(F(1<sub>A</sub>)) = G(1<sub>F(A)</sub>) = 1<sub>G(F(A))</sub>. Composition: (G∘F)(βα) = G(F(β)F(α)) = G(F(β))G(F(α)). Each condition is used once in each factor. ∎</p>
+<p><strong>Setting up.</strong> Let (P, ≤) be a preorder as a category — cat-01's Example 3.3, which needs only reflexivity and transitivity. A functor 𝒳 : P → Top assigns a space X<sub>p</sub> to each p and a continuous map X<sub>p</sub> → X<sub>q</sub> to each p ≤ q, with identities and composites matching; a nested family of subspaces with inclusions is exactly such a functor. And H<sub>n</sub> : Top → Ab is a functor, established in at1-10 from Hatcher §2.3.</p>
+<p><strong>First composite.</strong> H<sub>n</sub> ∘ 𝒳 : P → Ab. Domain P, codomain Ab. Its value at p is H<sub>n</sub>(X<sub>p</sub>); its value on p ≤ q is the induced homomorphism H<sub>n</sub>(X<sub>p</sub>) → H<sub>n</sub>(X<sub>q</sub>). So: one abelian group for every index, one homomorphism for every comparison, compatible under composition. <em>That is the shape of a persistence module.</em> One qualification, kept for cat-07: Oudot's Definition 1.7 asks for a functor into <em>vector spaces</em> over a field, not into Ab. With field coefficients — at1-09's material — H<sub>n</sub> lands in Vect<sub>k</sub> and the same composite is a persistence module on the nose. With ℤ coefficients it is an Ab-valued diagram of the right shape and not literally one.</p>
+<p><strong>Second composite.</strong> Evaluation at t is a functor ev<sub>t</sub> : Top<sup>P</sup> → Top from the category whose objects are filtrations, sending 𝒳 to X<sub>t</sub>. So H<sub>n</sub> ∘ ev<sub>t</sub> : Top<sup>P</sup> → Ab. Domain Top<sup>P</sup>, codomain Ab. Its value at a filtration 𝒳 is the single group H<sub>n</sub>(X<sub>t</sub>). <em>That is one abelian group, not a persistence module</em> — it is the t-th slice, and it contains no comparisons at all.</p>
+<p><strong>Verdict.</strong> Both composites are legitimate functors, so the strip is not false; but only the first is persistence. The strip's phrase "sample the filtration at level t" most naturally names evaluation, which is the wrong one. Read as naming the filtration itself, it is right. ∎</p>
+<p><em>What to notice.</em> The whole argument was settled by looking at domains and codomains, before anything mathematical happened. Naming two functors does not determine a composite: you must say which two and in which order, and the types have to meet. at1-10 made a version of this point by counting arrows; this unit can make it properly, because it now has the definition that says what composing means.</p>
+</details>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Do Spivak's Exercise 3.37: he draws three functors <strong>2</strong> → <strong>3</strong>; find all the rest, and argue that your list is complete. Then his Exercise 3.39: say where each of the ten morphisms of the free square category goes under the functor of Example 3.38.</p>
+<p>Then the harder half: cat-02 showed that a category "has products" when a certain accessory category has final objects. Using Aluffi's Example 1.10, restate the product as a limit over the discrete category on two objects — that is, as a construction applied to a <em>functor</em> from a two-object category. Say what has been gained by that reformulation, and what cat-05 will need it for.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In the composite H<sub>n</sub> ∘ 𝒳 : P → Ab, which of the two functors did this module construct?</p>
+<button onclick="check(this,false)">Both — cat-03 defines functors, so both are available</button>
+<button onclick="check(this,true)" data-ok>Neither. cat-03 supplies the definition and the composition rule; H<sub>n</sub> is at1-10's and the filtration 𝒳 is tda1's</button>
+<button onclick="check(this,false)">Only 𝒳</button>
+<button onclick="check(this,false)">Only H<sub>n</sub></button>
+<div class="explain">Neither, and that is the honest answer. Aluffi and Spivak contain no homology and no filtrations. What cat-03 adds over at1-10 is not a new arrow but the licence to compose: Definition 1.1 says what a functor is, the guided proof shows composites are functors, and only then is "H<sub>n</sub> ∘ 𝒳" a defined expression rather than a suggestive one. at1-10 formed it before this module had defined a functor, and said so at the time.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Aluffi calls Hom<sub>C</sub>(X, −) and Hom<sub>C</sub>(−, X) "available on any category". What makes them available with no hypotheses at all?</p>
+<button onclick="check(this,true)" data-ok>They are built from composition alone, which every category has by definition</button>
+<button onclick="check(this,false)">They require the category to be small</button>
+<button onclick="check(this,false)">They require Set to be the codomain of some other functor</button>
+<button onclick="check(this,false)">They require X to be a terminal object</button>
+<div class="explain">Composition alone. The covariant one acts on morphisms by post-composition and the contravariant one by pre-composition, and both operations exist in every category by axiom. The Hom-sets land in Set because Definition 3.1 required Hom<sub>C</sub>(A, B) to be a set, which is exactly the clause cat-01 flagged as doing unobtrusive work. These functors are the subject of cat-04's Yoneda lemma.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. A functor is two assignments and two equations.</strong> Objects to objects, morphisms to morphisms, with ℱ(1) = 1 and ℱ(βα) = ℱ(β)ℱ(α) — Aluffi's Definition 1.1 and Spivak's Definition 3.35, the same thing in ∘ and ; notation. Contravariance is covariance on C<sup>op</sup> and reverses composition. Both variances send commuting diagrams to commuting diagrams, because commutativity is an equation between composites. Forgetful functors, R ↦ R<sup>∗</sup>, Spec (contravariant), and the two Hom functors, which exist in every category because they are built from composition alone.</p>
+<p><strong>2. Everything a functor enforces is an equation between composites.</strong> Spivak's schemas make this concrete: a database instance is a functor 𝒞 → Set, and functoriality automatically enforces every declared path equation — and nothing else. Injectivity and cardinality conditions are invisible to it. His early examples are determined by their action on objects only because their Hom-sets have at most one element; for one-object categories the object assignment carries nothing and the morphism assignment is everything. Fully faithful plus essentially surjective is <em>equivalence</em>, weaker than bijection because Example 1.8 matches one object per dimension against a proper class of vector spaces.</p>
+<p><strong>3. Functors compose, and composing is a type check first.</strong> (G∘F)(1) = 1 and (G∘F)(βα) = G(F(β))G(F(α)), each condition used once per factor. Applied to the mission: with P a preorder as in cat-01's Example 3.3, a filtration is a functor 𝒳 : P → Top, and H<sub>n</sub> ∘ 𝒳 : P → Ab is a group per index and a map per comparison — the shape of a persistence module, and literally one once coefficients are taken in a field, since cat-07's definition asks for Vect<sub>k</sub>. But evaluation at t is also a functor, ev<sub>t</sub> : Top<sup>P</sup> → Top, and H<sub>n</sub> ∘ ev<sub>t</sub> : Top<sup>P</sup> → Ab yields a single group. Both composites are legitimate; only one is persistence, and the domains decide which.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Aluffi, <em>Algebra: Chapter 0</em>, §VIII.1. §1.1: the motivation from operations already encountered, Definition 1.1 of a covariant functor with the object assignment, the Hom-set function, and the identity and composition conditions, the footnote on the notational abuse of writing ℱ for both, the definition of a contravariant functor as a covariant functor on the opposite category with the reversal 𝒢(βα) = 𝒢(α)𝒢(β) and the accompanying picture, the statement that both variances send commutative diagrams to commutative diagrams, the identification of contravariant Set-valued functors as presheaves, and the definition of an additive functor between module categories (pp. 484–485). §1.2: forgetful functors and the Ring → Ab example, Example 1.2 on the group of units, Example 1.3 on Aut<sub>k</sub>(−) as contravariant, Example 1.4 on Spec as contravariant via preimages of primes, Example 1.5 on presheaves over cat-01's power-set category with the restriction maps, and the Hom functors Hom<sub>C</sub>(X, −) and Hom<sub>C</sub>(−, X) described as available on any category and flagged as the source of examples for the following sections (pp. 485–486). Definition 1.6 (faithful, full), Definition 1.7 (equivalence of categories as fully faithful plus essentially surjective), Example 1.8 on the matrix category being equivalent to finite-dimensional vector spaces, and Example 1.9 on affine algebraic sets (p. 488). Example 1.10, that the product of two objects is the limit over a two-object discrete category, quoted in the "You try" and not developed (p. 489).
+<p>Spivak, <em>Seven Sketches in Compositionality</em>, §3.3. The route into functors through databases: a set as a one-column table, a function as two tables, and the observation that an instance "takes a presentation of a category, and turns every vertex into a set, and every arrow into a function" (p. 90); §3.3.2 with Definition 3.35 in specification style, Example 3.36 drawing three functors <strong>2</strong> → <strong>3</strong>, Exercise 3.37, Example 3.38 on the free and commutative square categories with the observation that the ten paths are forced once the objects are placed, Exercise 3.39, and the corrective remark that functors are not usually determined by their action on objects (pp. 91–92); §3.3.3 Definition 3.44, that a 𝒞-instance is a functor 𝒞 → Set (p. 93), and the summary that constraints are ensured by preservation of composition (p. 95); the worked composite <strong>Gr</strong> → DDS → Set with its object-and-morphism description (p. 101). Every folio was read off the page cited; the Aluffi offset is PDF = printed + 23 and the Spivak offset is PDF = printed + 12, both re-checked for this unit.</p>
+<p><strong>Not established here.</strong> Homology, which appears in neither source. That H<sub>n</sub> is a functor Top → Ab is at1-10's, established from Hatcher §2.3, and is used here without reproof. Filtrations, persistence modules, barcodes, interval decompositions and stability appear in neither source and the word <em>persistence</em> appears in neither; all belong to tda1. The category Top<sup>P</sup> of filtrations is used in the guided proof as a functor category, which neither source constructs in general — Spivak's 𝒞-Inst is the special case with codomain Set, and the general construction is cat-04's, where natural transformations supply its morphisms.</p>
+<p><strong>Sharpened rather than deferred.</strong> The mission strip's "persistence composes the two" is correct under one reading and false under the other, and this is the unit where the check becomes available. The guided proof computes both candidate composites: H<sub>n</sub> ∘ 𝒳 has domain P and is a persistence module; H<sub>n</sub> ∘ ev<sub>t</sub> has domain Top<sup>P</sup> and yields a single abelian group. Both are functors, so nothing in the strip is false, but only the first is persistence — and the phrase "sample the filtration at level t" names the second more naturally than the first. What this unit adds to at1-10, which reached the same conclusion by counting arrows, is the definition of composition that makes the expression well formed at all.</p>
+<p><strong>Stated but not proved.</strong> Example 1.9 on affine algebraic sets, which needs coordinate rings from Aluffi §VII.2 and is quoted only as a second instance of equivalence. Example 1.3 on Galois extensions, quoted as a contravariant example, with the Galois condition assumed. The classification of finite-dimensional vector spaces by dimension, which supplies essential surjectivity in Example 1.8 and is aa's. Spivak's Exercises 3.37 and 3.39, set in the "You try" and not worked here.</p>
+<p><strong>Deferred.</strong> Natural transformations, Aluffi's Definition 1.15 and Spivak's Definition 3.49, both on pages this unit's extract covers but both belonging to cat-04, together with the Yoneda lemma. Limits and colimits, Aluffi's Examples 1.10–1.14 and Spivak §3.5, which are cat-05's. Adjunctions and Lemma 1.17 that right adjoints commute with limits, cat-06's. Exact and additive functors, Example 1.18, which need module categories from Aluffi §III.7 and are outside the cat module entirely.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('composite');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  var ink='#e8e8e8',dim='#9aa5b1',acc='#8ab4f8',good='#4caf82',bad='#e06c75';
+  g.textAlign='center';
+
+  function arrow(x1,x2,yy,col){
+    g.strokeStyle=col;g.lineWidth=2;
+    g.beginPath();g.moveTo(x1,yy);g.lineTo(x2,yy);g.stroke();
+    g.beginPath();g.moveTo(x2,yy);g.lineTo(x2-9,yy-5);g.lineTo(x2-9,yy+5);g.closePath();
+    g.fillStyle=col;g.fill();
+  }
+  function box(x,y,w,label,col){
+    g.strokeStyle='#2a333d';g.lineWidth=1.5;
+    g.strokeRect(x-w/2,y-19,w,38);
+    g.fillStyle=col;g.font='16px Georgia, serif';
+    g.fillText(label,x,y+6);
+  }
+
+  g.fillStyle=ink;g.font='15px Segoe UI, sans-serif';
+  g.fillText('two composites with H n — the domains decide',320,30);
+
+  // row 1
+  var y1=98;
+  box(90,y1,86,'P',good);
+  box(320,y1,110,'Top',ink);
+  box(548,y1,86,'Ab',ink);
+  arrow(140,258,y1,good);
+  arrow(382,498,y1,acc);
+  g.fillStyle=good;g.font='12px Segoe UI, sans-serif';
+  g.fillText('filtration  𝒳',199,y1-26);
+  g.fillStyle=acc;g.fillText('H n',440,y1-26);
+  g.fillStyle=good;g.font='13px Segoe UI, sans-serif';
+  g.fillText('a group per index, a map per comparison  —  PERSISTENCE MODULE',320,y1+44);
+
+  // divider
+  g.strokeStyle='#2a333d';g.lineWidth=1;
+  g.beginPath();g.moveTo(40,168);g.lineTo(600,168);g.stroke();
+
+  // row 2
+  var y2=228;
+  box(90,y2,110,'Top^P',bad);
+  box(320,y2,110,'Top',ink);
+  box(548,y2,86,'Ab',ink);
+  arrow(152,258,y2,bad);
+  arrow(382,498,y2,acc);
+  g.fillStyle=bad;g.font='12px Segoe UI, sans-serif';
+  g.fillText('ev at t',205,y2-26);
+  g.fillStyle=acc;g.fillText('H n',440,y2-26);
+  g.fillStyle=bad;g.font='13px Segoe UI, sans-serif';
+  g.fillText('one group per filtration, no comparisons  —  NOT A PERSISTENCE MODULE',320,y2+44);
+
+  g.fillStyle=dim;g.font='12px Segoe UI, sans-serif';
+  g.fillText('both composites are functors; only the domains tell them apart',320,304);
+})();
+</script>
+</body></html>

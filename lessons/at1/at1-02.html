@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at1-02 — CW complexes and operations on spaces</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cells{border-collapse:collapse;margin:1.2rem auto;font-size:.95rem}
+table.cells td,table.cells th{border:1px solid #2a333d;padding:.35rem .8rem;text-align:center}
+table.cells th{color:var(--acc);font-family:Segoe UI,sans-serif;font-weight:normal}
+</style></head><body>
+<p class="cite">Algebraic Topology I · Nexus College</p>
+<h1>CW complexes and operations on spaces <span class="cite">(at1-02)</span></h1>
+
+<div class="hook">
+Build any space from cells, one dimension at a time — the data structure algebraic topology actually computes on.
+<p>Take a square of paper and glue its opposite edges: left to right, then top to bottom. You get a torus. Now look at what survived the gluing. All four corners became a single point. The four edges became two circles, because opposite pairs were identified. The interior of the square became one two-dimensional patch. A torus, described completely by the list: one point, two arcs, one patch — plus the instruction saying how the patch's boundary runs around the arcs.</p>
+<p>That list is a finite object. You can type it into a computer, whereas you cannot type in a torus. Chapter 0's last big idea is that essentially every space you will meet admits such a list, and that the list is a legitimate definition of the space rather than a picture of it.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> The house with two rooms from at1-01 is contractible: it has the homotopy type of a single point. Hatcher counts its cells and finds 29 zero-cells, 51 one-cells and 23 two-cells. A single point, described as a cell complex, has one cell. What is 29 − 51 + 23, and is the answer an accident of how the house happened to be cut up?</p>
+<button onclick="check(this,false)">1, and yes — a different cutting would give a different number</button>
+<button onclick="check(this,true)" data-ok>1, and no — the alternating count is the same for every cell structure on a space of this homotopy type</button>
+<button onclick="check(this,false)">0, because the two-cells and one-cells nearly cancel</button>
+<button onclick="check(this,false)">1, but only because this particular structure has no three-cells</button>
+<div class="explain">29 − 51 + 23 = 1, the same as the single cell of a point. And Hatcher says why it is not an accident: "the Euler characteristic of a cell complex depends only on its homotopy type, as we shall show in Theorem 2.44, so the fact that the house with two rooms has the homotopy type of a point implies that its Euler characteristic must be 1, no matter how it is represented as a cell complex" (p. 6). Notice the shape of that sentence — an arbitrary combinatorial count turning out to depend only on the topology. That is the whole programme of the next eight units, announced here in one line and proved in at1-08.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A CW structure turns a space into chain groups a persistence algorithm can chew: cells become generators.</p>
+
+<div class="warn">
+<p><strong>What this unit's source does and does not establish.</strong> The mission strip is quoted verbatim, as the rubric requires, and it names two things chapter 0 does not contain.</p>
+<p>There are no chain groups here. Hatcher builds the cells; the free abelian group on the n-cells — the cellular chain group whose generators the strip refers to — is constructed in §2.2 and taught in at1-08, and the boundary map that makes it a complex needs the degree theory of that section. What chapter 0 does supply is exactly the combinatorial input that construction consumes, and two visible shadows of it: the Euler characteristic as an alternating count of cells by dimension (p. 6), and the fact that X<sup>n</sup>/X<sup>n−1</sup> is a wedge of one n-sphere per n-cell (p. 10). That second fact is the reason the cellular chain group is free on the n-cells, so the strip's "cells become generators" is genuinely prefigured in this unit — it is simply not proved here.</p>
+<p>There is no persistence algorithm either, and no filtration. A persistence algorithm consumes a growing family of complexes, not one complex; that is tda1-01's filtration and tda1-02's matrix reduction. The word "chew" is doing a lot of work: the passage from a CW structure to something a machine reduces requires the boundary matrix of at1-08 and tda1-02, neither of which exists yet.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The construction: skeleta, attaching maps, characteristic maps</h2>
+
+<p>Hatcher motivates it from surfaces. An orientable surface of genus g is built from a 4g-sided polygon by identifying pairs of edges; the 4g edges become 2g circles all meeting at one point, and the polygon's interior is a 2-cell attached to that wedge. "Thus the surface can be built up in stages: start with a point, attach 1-cells to this point, then attach a 2-cell." Generalise the recipe and you have the definition.</p>
+
+<div class="definition">
+<p><strong>Cell complex (CW complex).</strong> Construct a space by the following procedure.</p>
+<p>(1) Start with a discrete set X<sup>0</sup>, whose points are regarded as 0-cells.</p>
+<p>(2) Inductively, form the n-skeleton X<sup>n</sup> from X<sup>n−1</sup> by attaching n-cells e<sup>n</sup><sub>α</sub> via maps φ<sub>α</sub> : S<sup>n−1</sup> → X<sup>n−1</sup>. This means that X<sup>n</sup> is the quotient space of the disjoint union X<sup>n−1</sup> ⊔<sub>α</sub> D<sup>n</sup><sub>α</sub> under the identifications x ∼ φ<sub>α</sub>(x) for x ∈ ∂D<sup>n</sup><sub>α</sub>. Thus as a set, X<sup>n</sup> = X<sup>n−1</sup> ⊔<sub>α</sub> e<sup>n</sup><sub>α</sub>, where each e<sup>n</sup><sub>α</sub> is an open n-disk.</p>
+<p>(3) One can either stop at a finite stage, setting X = X<sup>n</sup>, or continue indefinitely, setting X = ⋃<sub>n</sub> X<sup>n</sup>. In the latter case X is given the weak topology: a set A ⊆ X is open (or closed) if and only if A ∩ X<sup>n</sup> is open (or closed) in X<sup>n</sup> for each n. <span class="cite">— Hatcher, ch. 0, p. 5</span></p>
+</div>
+
+<p>Three clauses, and each is load-bearing. Clause (2) says an n-cell is glued on <em>only along its boundary sphere</em>, and the gluing map φ<sub>α</sub> may be as wild as you like — not injective, not surjective, nothing. The cell itself, e<sup>n</sup><sub>α</sub>, is an <em>open</em> disk, so the cells partition X as a set even though their closures overlap badly. Clause (3)'s weak topology is what makes infinite-dimensional examples behave: a map out of X is continuous exactly when its restriction to every skeleton is.</p>
+
+<p>If X = X<sup>n</sup> for some n, X is finite-dimensional and the smallest such n is the <strong>dimension</strong> of X, the maximum dimension of cells of X (p. 6).</p>
+
+<div class="definition">
+<p><strong>Characteristic map.</strong> Each cell e<sup>n</sup><sub>α</sub> in a cell complex X has a characteristic map Φ<sub>α</sub> : D<sup>n</sup><sub>α</sub> → X which extends the attaching map φ<sub>α</sub> and is a homeomorphism from the interior of D<sup>n</sup><sub>α</sub> onto e<sup>n</sup><sub>α</sub>. One takes Φ<sub>α</sub> to be the composition D<sup>n</sup><sub>α</sub> ↪ X<sup>n−1</sup> ⊔<sub>α</sub> D<sup>n</sup><sub>α</sub> → X<sup>n</sup> ↪ X, where the middle map is the quotient map defining X<sup>n</sup>. <span class="cite">— Hatcher, ch. 0, p. 7</span></p>
+</div>
+
+<p>Keep the two maps apart. The <em>attaching</em> map is defined on the boundary sphere and tells you the gluing; the <em>characteristic</em> map is defined on the whole disk and is the closest thing to a parametrisation of the cell. The characteristic map is essentially never injective on the boundary, and its image is the closure of the cell — a fact Problem 3 turns on.</p>
+
+<h3>Worked example: real projective space, one cell in each dimension</h3>
+
+<div class="worked">
+<p><strong>Claim.</strong> ℝP<sup>n</sup> has a cell structure e<sup>0</sup> ∪ e<sup>1</sup> ∪ ⋯ ∪ e<sup>n</sup> with exactly one cell in each dimension i ≤ n.</p>
+<p><strong>Step 1 — three descriptions of the same space.</strong> ℝP<sup>n</sup> is defined as the space of all lines through the origin in ℝ<sup>n+1</sup>, topologised as the quotient of ℝ<sup>n+1</sup> − {0} by v ∼ λv for λ ≠ 0. Each line is determined by a nonzero vector, unique up to scalar multiplication. Restricting to vectors of length 1, ℝP<sup>n</sup> is also the quotient S<sup>n</sup>/(v ∼ −v): the sphere with antipodal points identified. Restricting once more, to a closed hemisphere, it is the quotient of a disk D<sup>n</sup> with antipodal points of ∂D<sup>n</sup> identified — because each antipodal pair on S<sup>n</sup> has at least one representative in the hemisphere, and exactly one unless it lies on the equator.</p>
+<p><strong>Step 2 — recognise the induction.</strong> Take the third description. The equator ∂D<sup>n</sup> = S<sup>n−1</sup> with antipodal points identified is, by the same definition one dimension down, exactly ℝP<sup>n−1</sup>. So ℝP<sup>n</sup> is the quotient of ℝP<sup>n−1</sup> ⊔ D<sup>n</sup> under x ∼ φ(x) for x ∈ ∂D<sup>n</sup>, where φ : S<sup>n−1</sup> → ℝP<sup>n−1</sup> is the quotient projection identifying antipodal points.</p>
+<p><strong>Step 3 — that is clause (2), verbatim.</strong> Compare with the definition: a single n-cell, attached to the previous skeleton by the map φ. So ℝP<sup>n</sup> is obtained from ℝP<sup>n−1</sup> by attaching one n-cell, with attaching map the two-to-one covering projection S<sup>n−1</sup> → ℝP<sup>n−1</sup>.</p>
+<p><strong>Step 4 — induct.</strong> ℝP<sup>0</sup> is a single point, one 0-cell. Adding one cell per dimension gives ℝP<sup>n</sup> = e<sup>0</sup> ∪ e<sup>1</sup> ∪ ⋯ ∪ e<sup>n</sup>. A characteristic map for the cell e<sup>i</sup> is the quotient map D<sup>i</sup> → ℝP<sup>i</sup> ⊆ ℝP<sup>n</sup> identifying antipodal points of ∂D<sup>i</sup>.</p>
+<p><strong>Step 5 — read off the Euler characteristic.</strong> One cell in each dimension 0 through n means χ = 1 − 1 + 1 − ⋯ ± 1, an alternating sum of n+1 ones. So χ(ℝP<sup>n</sup>) = 1 when n is even and 0 when n is odd.</p>
+<p><strong>Step 6 — the infinite case comes free.</strong> Since ℝP<sup>n</sup> is obtained from ℝP<sup>n−1</sup> by attaching an n-cell, the union ℝP<sup>∞</sup> = ⋃<sub>n</sub> ℝP<sup>n</sup> is a cell complex with one cell in each dimension, by clause (3). It is the space of lines through the origin in ℝ<sup>∞</sup> = ⋃<sub>n</sub> ℝ<sup>n</sup>.</p>
+</div>
+
+<h3>Faded example: complex projective space</h3>
+
+<div class="worked fade">
+<p>ℂP<sup>n</sup> is the space of complex lines through the origin in ℂ<sup>n+1</sup>, that is, 1-dimensional vector subspaces, topologised as the quotient of ℂ<sup>n+1</sup> − {0} by v ∼ λv for λ ≠ 0. Equivalently it is the quotient of the unit sphere S<sup>2n+1</sup> ⊆ ℂ<sup>n+1</sup> by v ∼ λv for |λ| = 1.</p>
+<p><strong>Step 1 — find the disk.</strong> The vectors in S<sup>2n+1</sup> whose last coordinate is real and non-negative are exactly those of the form (w, √(1 − |w|<sup>2</sup>)) ∈ ℂ<sup>n</sup> × ℂ with |w| ≤ 1. These form the graph of w ↦ √(1 − |w|<sup>2</sup>), a disk D<sup>2n</sup><sub>+</sub> bounded by the sphere S<sup>2n−1</sup> of vectors (w, 0) with |w| = 1.</p>
+<p><strong>Step 2 — every class has a representative there.</strong> Each vector of S<sup>2n+1</sup> is equivalent under v ∼ λv to a vector in D<sup>2n</sup><sub>+</sub>, and that vector is unique if its last coordinate is non-zero. ⟨your step: what remains when the last coordinate <em>is</em> zero, and which identification survives there?⟩</p>
+<p><strong>Step 3 — read off the cell.</strong> ⟨your step: conclude that ℂP<sup>n</sup> is obtained from ℂP<sup>n−1</sup> by attaching a cell e<sup>2n</sup>, and name the attaching map⟩</p>
+<p><strong>Step 4 — induct and count.</strong> ⟨your step: the cell structure is ℂP<sup>n</sup> = e<sup>0</sup> ∪ e<sup>2</sup> ∪ ⋯ ∪ e<sup>2n</sup>, with cells only in even dimensions. What is χ(ℂP<sup>n</sup>), and why is the answer so much simpler than for ℝP<sup>n</sup>?⟩</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Give the Klein bottle a cell structure by identifying the edges of a square by the word abab<sup>−1</sup>. List the cells by dimension, compute the Euler characteristic, and compare with the torus. Then answer: the two surfaces have the same cell counts in every dimension — so what does the Euler characteristic fail to see, and which unit will supply an invariant that does see it?</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In the two-cell structure on S<sup>n</sup> (Example 0.3), the n-cell is attached by the constant map S<sup>n−1</sup> → e<sup>0</sup>. What is its characteristic map?</p>
+<button onclick="check(this,false)">The identity map D<sup>n</sup> → D<sup>n</sup></button>
+<button onclick="check(this,true)" data-ok>The quotient map D<sup>n</sup> → S<sup>n</sup> collapsing ∂D<sup>n</sup> to a point</button>
+<button onclick="check(this,false)">The inclusion S<sup>n−1</sup> ↪ S<sup>n</sup> as the equator</button>
+<button onclick="check(this,false)">There is none, because the attaching map is not injective</button>
+<div class="explain">Hatcher gives exactly this on p. 7: "in the canonical cell structure on S<sup>n</sup> described in Example 0.3, a characteristic map for the n-cell is the quotient map D<sup>n</sup> → S<sup>n</sup> collapsing ∂D<sup>n</sup> to a point." Note the last distractor is the tempting wrong answer: a characteristic map is never required to be injective on the boundary — only a homeomorphism from the <em>interior</em> onto the cell. Here it collapses the entire boundary to one point and is still perfectly good.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does clause (3) specify the weak topology rather than, say, the topology of the union with no further comment?</p>
+<button onclick="check(this,false)">Because the skeleta are not nested</button>
+<button onclick="check(this,true)" data-ok>Because for an infinite-dimensional complex the union carries no topology until one is specified, and the weak topology is the one making continuity checkable skeleton by skeleton</button>
+<button onclick="check(this,false)">Because the cells are open disks rather than closed ones</button>
+<button onclick="check(this,false)">Because attaching maps need not be injective</button>
+<div class="explain">Right. When X = X<sup>n</sup> stops at a finite stage, clause (2)'s quotient topology already determines everything. When the process runs forever, ⋃<sub>n</sub> X<sup>n</sup> is only a set, and clause (3) supplies the topology: A is open exactly when every A ∩ X<sup>n</sup> is. The practical consequence, which Hatcher leans on in Proposition 0.16's proof, is that a map out of X is continuous if and only if its restriction to each skeleton is — which is what lets an infinite concatenation of homotopies, one per skeleton, be continuous at the limit.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Subcomplexes, and the operations cells survive</h2>
+
+<div class="definition">
+<p><strong>Subcomplex; CW pair.</strong> A subcomplex of a cell complex X is a closed subspace A ⊆ X that is a union of cells of X. Since A is closed, the characteristic map of each cell in A has image contained in A, and in particular the image of the attaching map of each cell in A is contained in A, so A is a cell complex in its own right. A pair (X, A) consisting of a cell complex X and a subcomplex A is called a CW pair. <span class="cite">— Hatcher, ch. 0, p. 7</span></p>
+</div>
+
+<p>Two words are doing all the work: <em>closed</em> and <em>union of cells</em>. Drop "closed" and the argument in the definition collapses. Drop "union of cells" and you can take half of a cell, which is the failure mode Hatcher exhibits.</p>
+
+<p>Each skeleton X<sup>n</sup> is a subcomplex, and so are ℝP<sup>k</sup> ⊆ ℝP<sup>n</sup> and ℂP<sup>k</sup> ⊆ ℂP<sup>n</sup> for k ≤ n — in fact Hatcher notes these are the <em>only</em> subcomplexes of ℝP<sup>n</sup> and ℂP<sup>n</sup>, which the one-cell-per-dimension structure makes believable.</p>
+
+<p>Now the instructive failure. There are natural inclusions S<sup>0</sup> ⊆ S<sup>1</sup> ⊆ ⋯ ⊆ S<sup>n</sup>, but these subspheres are <em>not</em> subcomplexes of S<sup>n</sup> in its usual two-cell structure — there simply are not enough cells to build them from, since the only unions of cells available are the empty set, the 0-cell, the n-cell, and everything. The repair is to change the structure, not the subspace: regard each S<sup>k</sup> as obtained from the equatorial S<sup>k−1</sup> by attaching two k-cells, the two components of S<sup>k</sup> − S<sup>k−1</sup>. Now every S<sup>k</sup> is a subcomplex, and S<sup>∞</sup> = ⋃<sub>n</sub> S<sup>n</sup> becomes a cell complex too.</p>
+
+<p>Hatcher's last caution here is worth stating separately, because it contradicts the mental picture most people form: in the examples so far the closure of each cell is a subcomplex, and "most naturally arising cell structures have this property, but it need not hold in general". Attach a 2-cell to S<sup>1</sup> by a map S<sup>1</sup> → S<sup>1</sup> whose image is a nontrivial subarc, and the closure of the 2-cell contains only part of the 1-cell — so it is not a union of cells (p. 8).</p>
+
+<h3>The operations</h3>
+
+<p>Hatcher's summary of why this definition earns its keep: cell complexes have "a very nice mixture of rigidity and flexibility, with enough rigidity to allow many arguments to proceed in a combinatorial cell-by-cell fashion and enough flexibility to allow many natural constructions to be performed on them" (p. 8). Here are the constructions, each with its effect on cells.</p>
+
+<table class="cells">
+<tr><th>Operation</th><th>Definition</th><th>Cells of the result</th></tr>
+<tr><td>Product X × Y</td><td>—</td><td>products e<sup>m</sup><sub>α</sub> × e<sup>n</sup><sub>β</sub></td></tr>
+<tr><td>Quotient X/A, (X,A) a CW pair</td><td>—</td><td>cells of X − A, plus one new 0-cell</td></tr>
+<tr><td>Cone CX</td><td>(X × I)/(X × {0})</td><td>one new 0-cell; dimension rises by one</td></tr>
+<tr><td>Suspension SX</td><td>X × I with each end collapsed to a point</td><td>two 0-cells; one (n+1)-cell per n-cell</td></tr>
+<tr><td>Join X ∗ Y</td><td>quotient of X × Y × I collapsing each end</td><td>X, Y as subcomplexes, plus X × Y × (0,1)</td></tr>
+<tr><td>Wedge X ∨ Y</td><td>X ⊔ Y with x<sub>0</sub>, y<sub>0</sub> identified</td><td>cells of both, sharing one 0-cell</td></tr>
+<tr><td>Smash X ∧ Y</td><td>X × Y / X ∨ Y</td><td>cells of the product, minus the wedge</td></tr>
+</table>
+
+<p>Two of these need their fine print. For the <strong>product</strong>, the cell-complex topology on X × Y is sometimes strictly finer than the product topology, though the two coincide if either factor has finitely many cells or both have countably many. For the <strong>quotient</strong>, the attaching map of the cell of X/A corresponding to e<sup>n</sup><sub>α</sub> is the composite S<sup>n−1</sup> → X<sup>n−1</sup> → X<sup>n−1</sup>/A<sup>n−1</sup>. The <strong>join</strong> has a memorable special case: the join of n points is a convex polyhedron of dimension n − 1 called a simplex, and taking the n points to be the standard basis vectors of ℝ<sup>n</sup> realises it as Δ<sup>n−1</sup> = {(t<sub>1</sub>, …, t<sub>n</sub>) ∈ ℝ<sup>n</sup> : Σt<sub>i</sub> = 1 and t<sub>i</sub> ≥ 0}. That is the object tda1-01 will filter.</p>
+
+<h3>Worked example: the quotient of consecutive skeleta</h3>
+
+<div class="worked">
+<p><strong>Claim.</strong> For any cell complex X, the quotient X<sup>n</sup>/X<sup>n−1</sup> is a wedge sum ⋁<sub>α</sub> S<sup>n</sup><sub>α</sub> of n-spheres, with one sphere for each n-cell of X.</p>
+<p><strong>Step 1 — list the cells of the quotient.</strong> (X<sup>n</sup>, X<sup>n−1</sup>) is a CW pair, so the quotient rule applies: the cells of X<sup>n</sup>/X<sup>n−1</sup> are the cells of X<sup>n</sup> − X<sup>n−1</sup>, which are precisely the n-cells of X, together with one new 0-cell, the image of X<sup>n−1</sup>.</p>
+<p><strong>Step 2 — find the attaching maps.</strong> For an n-cell attached by φ<sub>α</sub> : S<sup>n−1</sup> → X<sup>n−1</sup>, the corresponding cell of the quotient is attached by the composite S<sup>n−1</sup> → X<sup>n−1</sup> → X<sup>n−1</sup>/X<sup>n−1</sup>. The target is a single point, so the composite is constant — whatever φ<sub>α</sub> was.</p>
+<p><strong>Step 3 — recognise each piece.</strong> A 0-cell with an n-cell attached by a constant map is exactly Example 0.3's description of S<sup>n</sup>. So each n-cell of X contributes a sphere.</p>
+<p><strong>Step 4 — they meet only at the 0-cell.</strong> The n-cells are disjoint as open cells, and every attaching map lands in the single new 0-cell, so any two of these spheres intersect exactly there. That is the definition of the wedge sum. Hence X<sup>n</sup>/X<sup>n−1</sup> = ⋁<sub>α</sub> S<sup>n</sup><sub>α</sub>, one sphere per n-cell. <span class="cite">— Hatcher, ch. 0, p. 10</span></p>
+<p><strong>Why this one matters most.</strong> Of everything in this segment, this is the fact at1-08 will consume. A wedge of k spheres in dimension n has, as you will prove there, homology a free abelian group of rank k in degree n. So the n-th cellular chain group turns out to be free on the n-cells — the "cells become generators" of this unit's mission strip. The generation happens here; the proof that it does happens in at1-08.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Faded: the smash product of spheres.</strong> Claim: S<sup>m</sup> ∧ S<sup>n</sup> = S<sup>m+n</sup>.</p>
+<p><strong>Step 1 — cells of the product.</strong> Give S<sup>m</sup> and S<sup>n</sup> their two-cell structures, with 0-cells x<sub>0</sub> and y<sub>0</sub>. The product S<sup>m</sup> × S<sup>n</sup> then has four cells: e<sup>0</sup> × e<sup>0</sup>, e<sup>m</sup> × e<sup>0</sup>, e<sup>0</sup> × e<sup>n</sup>, and e<sup>m</sup> × e<sup>n</sup>, of dimensions 0, m, n and m+n.</p>
+<p><strong>Step 2 — identify the wedge inside it.</strong> The subspace S<sup>m</sup> ∨ S<sup>n</sup> = (S<sup>m</sup> × {y<sub>0</sub>}) ∪ ({x<sub>0</sub>} × S<sup>n</sup>) consists of which of those four cells? ⟨your step⟩</p>
+<p><strong>Step 3 — quotient.</strong> ⟨your step: apply the quotient rule to the CW pair (S<sup>m</sup> × S<sup>n</sup>, S<sup>m</sup> ∨ S<sup>n</sup>) and list the cells that remain⟩</p>
+<p><strong>Step 4 — recognise.</strong> ⟨your step: two cells, of dimensions 0 and m+n — which space is that? And what does m = n = 1 say about the torus?⟩</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> S<sup>1</sup> in its minimal structure has one 0-cell and one 1-cell. Which of these subspaces of S<sup>1</sup> is a subcomplex?</p>
+<button onclick="check(this,false)">A closed semicircle containing the 0-cell</button>
+<button onclick="check(this,true)" data-ok>Only the empty set, the 0-cell alone, and all of S<sup>1</sup></button>
+<button onclick="check(this,false)">Any closed arc</button>
+<button onclick="check(this,false)">The open 1-cell alone</button>
+<div class="explain">A subcomplex must be both a union of cells and closed. The available unions are ∅, {e<sup>0</sup>}, {e<sup>1</sup>} and {e<sup>0</sup>, e<sup>1</sup>}, and of those, {e<sup>1</sup>} alone is not closed — its closure picks up the 0-cell. So three subcomplexes remain. A closed semicircle is closed but is not a union of cells: it contains part of the open 1-cell, not all of it. That is the same failure as Hatcher's example on p. 8, where the closure of a 2-cell meets only a subarc of the 1-cell and so fails to be a subcomplex.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The suspension SX of a cell complex has two 0-cells and one (n+1)-cell for each n-cell of X. The reduced suspension ΣX collapses the segment {x<sub>0</sub>} × I. How do the two structures differ in cell count?</p>
+<button onclick="check(this,false)">ΣX has the same cells as SX; only the topology differs</button>
+<button onclick="check(this,true)" data-ok>ΣX has a single 0-cell and an (n+1)-cell for each n-cell of X other than x<sub>0</sub> — one 0-cell and one 1-cell fewer</button>
+<button onclick="check(this,false)">ΣX has one fewer cell in every dimension</button>
+<button onclick="check(this,false)">ΣX has twice as many cells, since the segment is subdivided</button>
+<div class="explain">Hatcher states exactly this on p. 12: "In SX there are two 0-cells (the two suspension points) and an (n+1)-cell e<sup>n</sup> × (0,1) for each n-cell e<sup>n</sup> of X, whereas in ΣX there is a single 0-cell and an (n+1)-cell for each n-cell of X other than the 0-cell x<sub>0</sub>." Collapsing the segment {x<sub>0</sub>} × I merges the two suspension points into one and removes the 1-cell that segment contributed. The two spaces are homotopy equivalent — that is Example 0.10, and it is an instance of the collapsing criterion of Segment 3, the segment being a contractible subcomplex.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Two criteria: collapse a piece, or move the glue</h2>
+
+<p>Building spaces is only half the value of the definition. The other half is that CW structure makes homotopy equivalences <em>constructible</em>: Hatcher gives two criteria, each turning a contractible piece into a simplification.</p>
+
+<div class="theorem">
+<p><strong>The collapsing criterion.</strong> If (X, A) is a CW pair consisting of a CW complex X and a contractible subcomplex A, then the quotient map X → X/A is a homotopy equivalence. <span class="cite">— Hatcher, ch. 0, p. 11</span></p>
+<p>This is the special case of Proposition 0.17 (p. 15) in which the homotopy extension property comes from Proposition 0.16 (p. 15), which supplies it for every CW pair. Both were stated in at1-01; here is where they get used.</p>
+</div>
+
+<div class="theorem">
+<p><strong>The attaching criterion.</strong> If (X<sub>1</sub>, A) is a CW pair and the two attaching maps f, g : A → X<sub>0</sub> are homotopic, then X<sub>0</sub> ⊔<sub>f</sub> X<sub>1</sub> ≃ X<sub>0</sub> ⊔<sub>g</sub> X<sub>1</sub>. <span class="cite">— Hatcher, ch. 0, p. 13; proved as Proposition 0.18, p. 15</span></p>
+<p>Here X<sub>0</sub> ⊔<sub>f</sub> X<sub>1</sub> is X<sub>0</sub> with X<sub>1</sub> attached along A ⊆ X<sub>1</sub> via f : A → X<sub>0</sub> — the quotient of X<sub>0</sub> ⊔ X<sub>1</sub> identifying each a ∈ A with f(a). When (X<sub>1</sub>, A) = (D<sup>n</sup>, S<sup>n−1</sup>) this is exactly attaching an n-cell, so the criterion says: <em>homotopic attaching maps give homotopy equivalent results</em>. Proposition 0.18 in fact proves the stronger statement, that the equivalence may be taken rel X<sub>0</sub>.</p>
+</div>
+
+<p>Hatcher's proof of Proposition 0.18 is short and worth knowing, because it is the mapping-cylinder trick from at1-01 in a new costume. Given a homotopy F : A × I → X<sub>0</sub> from f to g, form X<sub>0</sub> ⊔<sub>F</sub> (X<sub>1</sub> × I). This contains both X<sub>0</sub> ⊔<sub>f</sub> X<sub>1</sub> and X<sub>0</sub> ⊔<sub>g</sub> X<sub>1</sub>. A deformation retraction of X<sub>1</sub> × I onto X<sub>1</sub> × {0} ∪ A × I — which Proposition 0.16 provides — induces a deformation retraction of the big space onto X<sub>0</sub> ⊔<sub>f</sub> X<sub>1</sub>, and symmetrically onto X<sub>0</sub> ⊔<sub>g</sub> X<sub>1</sub>. Both restrict to the identity on X<sub>0</sub>. So the third space containing both as deformation retracts is exhibited outright — which is precisely the situation Corollary 0.21 says characterises homotopy equivalence.</p>
+
+<h3>The mapping cone</h3>
+
+<p>Attaching gives a second construction alongside the mapping cylinder. Closely related to M<sub>f</sub> is the <strong>mapping cone</strong> C<sub>f</sub> = Y ⊔<sub>f</sub> CX, where CX is the cone (X × I)/(X × {0}) attached to Y along X × {1} via (x,1) ∼ f(x). When X is a sphere S<sup>n−1</sup>, C<sub>f</sub> is exactly Y with an n-cell attached via f. Equivalently, C<sub>f</sub> is the quotient M<sub>f</sub>/X of the mapping cylinder with X = X × {0} collapsed (p. 13). Example 0.13 makes the connection precise: if (X, A) is a CW pair then X/A ≃ X ∪ CA, the mapping cone of the inclusion A ↪ X, because CA is a contractible subcomplex of X ∪ CA and X/A = (X ∪ CA)/CA.</p>
+
+<h3>Visual: a torus as a list of cells</h3>
+
+<p>Left, the square with its edge identifications: opposite sides glued in the directions the arrows show. Right, the same space assembled by skeleta — first the single 0-cell, then the two 1-cells forming a wedge of two circles, then the 2-cell whose boundary runs a b a<sup>−1</sup> b<sup>−1</sup> around that wedge. Watch the corners: all four are the same point from the start.</p>
+
+<canvas id="cwCanvas" width="640" height="300" role="img" aria-label="Left: a square with opposite edges labelled a and b and arrowed to show the identification producing a torus. Right: the same torus built by skeleta, showing one 0-cell, then two 1-cells forming a wedge of two circles, then a 2-cell attached along a b a inverse b inverse."></canvas>
+<p style="text-align:center"><button onclick="stepCW()" id="cwBtn" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Next skeleton</button></p>
+<script>
+(function(){
+  var cv = document.getElementById('cwCanvas');
+  var ctx = cv.getContext('2d');
+  var stage = 0;
+  var sx0 = 70, sy0 = 80, sx1 = 230, sy1 = 240;
+  var cx = 450, cy = 165, r = 46;
+
+  function arrow(x1, y1, x2, y2, col){
+    ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    var mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+    var a = Math.atan2(y2 - y1, x2 - x1);
+    ctx.beginPath();
+    ctx.moveTo(mx + 8 * Math.cos(a), my + 8 * Math.sin(a));
+    ctx.lineTo(mx - 5 * Math.cos(a) + 4 * Math.sin(a), my - 5 * Math.sin(a) - 4 * Math.cos(a));
+    ctx.lineTo(mx - 5 * Math.cos(a) - 4 * Math.sin(a), my - 5 * Math.sin(a) + 4 * Math.cos(a));
+    ctx.closePath(); ctx.fillStyle = col; ctx.fill();
+  }
+
+  function dot(x, y, col, rad){
+    ctx.fillStyle = col; ctx.beginPath();
+    ctx.arc(x, y, rad || 5, 0, 2 * Math.PI); ctx.fill();
+  }
+
+  function drawSquare(){
+    if (stage >= 2){
+      ctx.fillStyle = 'rgba(138,180,248,0.13)';
+      ctx.fillRect(sx0, sy0, sx1 - sx0, sy1 - sy0);
+    }
+    arrow(sx0, sy1, sx0, sy0, '#d8a657');
+    arrow(sx1, sy1, sx1, sy0, '#d8a657');
+    arrow(sx0, sy0, sx1, sy0, '#4caf82');
+    arrow(sx0, sy1, sx1, sy1, '#4caf82');
+    ctx.font = '13px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#d8a657';
+    ctx.fillText('b', sx0 - 14, (sy0 + sy1) / 2);
+    ctx.fillText('b', sx1 + 14, (sy0 + sy1) / 2);
+    ctx.fillStyle = '#4caf82';
+    ctx.fillText('a', (sx0 + sx1) / 2, sy0 - 10);
+    ctx.fillText('a', (sx0 + sx1) / 2, sy1 + 20);
+    dot(sx0, sy0, '#8ab4f8'); dot(sx1, sy0, '#8ab4f8');
+    dot(sx0, sy1, '#8ab4f8'); dot(sx1, sy1, '#8ab4f8');
+    ctx.fillStyle = '#9aa5b1'; ctx.font = '12px Segoe UI';
+    ctx.fillText('all four corners are one 0-cell', (sx0 + sx1) / 2, 26);
+  }
+
+  function drawSkeleta(){
+    if (stage >= 2){
+      ctx.fillStyle = 'rgba(138,180,248,0.13)';
+      ctx.beginPath(); ctx.arc(cx - r, cy, r, 0, 2 * Math.PI); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx + r, cy, r, 0, 2 * Math.PI); ctx.fill();
+    }
+    if (stage >= 1){
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = '#4caf82';
+      ctx.beginPath(); ctx.arc(cx - r, cy, r, 0, 2 * Math.PI); ctx.stroke();
+      ctx.strokeStyle = '#d8a657';
+      ctx.beginPath(); ctx.arc(cx + r, cy, r, 0, 2 * Math.PI); ctx.stroke();
+      ctx.font = '13px Segoe UI'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#4caf82'; ctx.fillText('a', cx - 2 * r + 12, cy - r + 4);
+      ctx.fillStyle = '#d8a657'; ctx.fillText('b', cx + 2 * r - 12, cy - r + 4);
+    }
+    dot(cx, cy, '#8ab4f8', 6);
+    var labels = ['X⁰ : one 0-cell', 'X¹ : two 1-cells attached', 'X² : one 2-cell along a b a⁻¹ b⁻¹'];
+    ctx.fillStyle = '#9aa5b1'; ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillText(labels[stage], cx, 26);
+    var counts = ['cells so far: 1', 'cells so far: 1 + 2', 'cells so far: 1 + 2 + 1, so χ = 1 − 2 + 1 = 0'];
+    ctx.fillText(counts[stage], cx, 270);
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    drawSquare();
+    drawSkeleta();
+  }
+
+  window.stepCW = function(){
+    stage = (stage + 1) % 3;
+    draw();
+  };
+
+  draw();
+})();
+</script>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Write it out before revealing the model answer.</p>
+<p>Let X be the space obtained from S<sup>2</sup> by attaching the two ends of an arc A to the north and south poles, and let B be an arc in S<sup>2</sup> joining those two poles. Prove that S<sup>2</sup>/S<sup>0</sup> and S<sup>1</sup> ∨ S<sup>2</sup> are homotopy equivalent, naming every result you use and saying where the homotopy extension property comes from.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Setting up the CW structure.</strong> Take as 0-cells the two endpoints of A and B — that is, the two poles. Take as 1-cells the interiors of A and of B. Take as the single 2-cell the rest of S<sup>2</sup>, that is S<sup>2</sup> minus B and its endpoints. This is a legitimate cell structure: the 2-cell is an open disk attached along its boundary to the 1-skeleton A ∪ B.</p>
+<p><strong>Both A and B are contractible subcomplexes.</strong> Each is a single 1-cell together with its two 0-cells, hence a closed union of cells — a subcomplex — and each is an arc, hence contractible.</p>
+<p><strong>Collapsing each.</strong> (X, A) and (X, B) are CW pairs, so by Proposition 0.16 each has the homotopy extension property. Proposition 0.17 then applies to each — homotopy extension property plus contractible subcomplex — giving that the quotient maps X → X/A and X → X/B are both homotopy equivalences.</p>
+<p><strong>Identifying the two quotients.</strong> Collapsing A pulls the two poles of S<sup>2</sup> together and leaves nothing else changed, so X/A is S<sup>2</sup> with two points identified, that is S<sup>2</sup>/S<sup>0</sup>. Collapsing B leaves the sphere alone as a space but closes the external arc A into a loop meeting the sphere in a single point, so X/B is S<sup>1</sup> ∨ S<sup>2</sup>.</p>
+<p><strong>Conclusion.</strong> S<sup>2</sup>/S<sup>0</sup> ≃ X and X ≃ S<sup>1</sup> ∨ S<sup>2</sup>. Since homotopy equivalence is an equivalence relation (at1-01), and in particular symmetric and transitive, S<sup>2</sup>/S<sup>0</sup> ≃ S<sup>1</sup> ∨ S<sup>2</sup>. ∎</p>
+<p><strong>Remark.</strong> Hatcher calls this "a fact which may not be entirely obvious at first glance" (p. 11), and Example 0.14 generalises it: if (X, A) is a CW pair and A is contractible <em>in</em> X, then X/A ≃ X ∨ SA, giving S<sup>n</sup>/S<sup>i</sup> ≃ S<sup>n</sup> ∨ S<sup>i+1</sup> for i &lt; n. Setting i = 0 and n = 2 returns the result just proved.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> The attaching criterion requires (X<sub>1</sub>, A) to be a CW pair. In the proof sketched above, where exactly is that hypothesis consumed?</p>
+<button onclick="check(this,false)">In forming the quotient X<sub>0</sub> ⊔<sub>F</sub> (X<sub>1</sub> × I)</button>
+<button onclick="check(this,true)" data-ok>In invoking Proposition 0.16 to deformation retract X<sub>1</sub> × I onto X<sub>1</sub> × {0} ∪ A × I</button>
+<button onclick="check(this,false)">In checking that f and g are homotopic</button>
+<button onclick="check(this,false)">In showing the two deformation retractions restrict to the identity on X<sub>0</sub></button>
+<div class="explain">Forming the quotient needs no hypothesis; the homotopy F is given. The single place the CW condition is used is Proposition 0.16, whose conclusion is precisely that for a CW pair (X<sub>1</sub>, A) the subspace X<sub>1</sub> × {0} ∪ A × I is a deformation retract of X<sub>1</sub> × I. Everything else in the argument is formal. This is worth noticing generally: in both criteria the CW hypothesis enters only through Proposition 0.16, which is why Hatcher states Propositions 0.17 and 0.18 with the homotopy extension property rather than with CW pairs.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the argument skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. A space can be specified by a finite list.</strong> Start with a discrete set of 0-cells; inductively attach n-cells along maps φ<sub>α</sub> : S<sup>n−1</sup> → X<sup>n−1</sup>, taking the quotient of X<sup>n−1</sup> ⊔ D<sup>n</sup><sub>α</sub>; stop, or continue with the weak topology. The attaching map is arbitrary, the cells are open disks partitioning X, and the characteristic map extends φ<sub>α</sub> over the whole disk. Everything computable about the space will come out of this list.</p>
+<p><strong>2. The structure is stable under the constructions one actually performs.</strong> Subcomplexes — closed unions of cells — are cell complexes in their own right, and products, quotients, cones, suspensions, joins, wedges and smash products all inherit cell structures with predictable cells. The critical instance is X<sup>n</sup>/X<sup>n−1</sup> = ⋁ S<sup>n</sup>, one sphere per n-cell, because all attaching maps become constant in the quotient. That is the fact at1-08 turns into "the cellular chain group is free on the n-cells".</p>
+<p><strong>3. The structure makes homotopy equivalences constructible.</strong> Collapse a contractible subcomplex (Proposition 0.17), or replace an attaching map by a homotopic one (Proposition 0.18). Both criteria draw their CW hypothesis solely from Proposition 0.16, which gives every CW pair the homotopy extension property; and Proposition 0.18's proof exhibits a third space containing both results as deformation retracts, which is exactly the situation Corollary 0.21 identified with homotopy equivalence in at1-01.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em>, chapter 0. §"Cell Complexes": the genus-g surface from a 4g-gon and the build-up in stages, and the three-clause construction with skeleta, attaching maps and the weak topology (p. 5); dimension, Example 0.1 (graphs), Example 0.2 (the house with two rooms, its 29/51/23 count, the Euler characteristic and the forward reference to Theorem 2.44), Example 0.3 (S<sup>n</sup> with two cells), Example 0.4 (ℝP<sup>n</sup>, the three descriptions and the inductive cell structure), Example 0.5 (ℝP<sup>∞</sup>) and Example 0.6 (ℂP<sup>n</sup>, pp. 6–7); characteristic maps with the S<sup>n</sup>, ℝP<sup>n</sup> and ℂP<sup>n</sup> instances, subcomplexes and CW pairs, skeleta and ℝP<sup>k</sup> ⊆ ℝP<sup>n</sup> as subcomplexes, and the subspheres S<sup>k</sup> ⊆ S<sup>n</sup> which are not subcomplexes in the two-cell structure but are in the equatorial one, with S<sup>∞</sup> (pp. 7–8); the 2-cell attached to S<sup>1</sup> along a subarc whose closure is not a subcomplex (p. 8). §"Operations on Spaces": the rigidity-and-flexibility remark, products with the finer-topology caveat, and quotients with the attaching map of X/A (p. 8); suspension, cone, join with the formal-linear-combination description and the simplex Δ<sup>n−1</sup> (pp. 8–9); the CW structure on a join, wedge sum, X<sup>n</sup>/X<sup>n−1</sup> as a wedge of n-spheres, and smash product with S<sup>m</sup> ∧ S<sup>n</sup> = S<sup>m+n</sup> and the torus instance (pp. 9–10). §"Two Criteria for Homotopy Equivalence" and §"Collapsing Subspaces": the collapsing criterion as stated before proof, Example 0.7 (graphs) and Example 0.8 (the sphere with two points identified) (p. 11); Example 0.9 (the necklace) and Example 0.10 (reduced suspension, its cell count, Σ(X ∨ Y) = ΣX ∨ ΣY and ΣX = X ∧ S<sup>1</sup>) (p. 12). §"Attaching Spaces": X<sub>0</sub> ⊔<sub>f</sub> X<sub>1</sub>, the mapping cone C<sub>f</sub> = Y ⊔<sub>f</sub> CX and its identification with M<sub>f</sub>/X, the attaching criterion as stated before proof, and Example 0.11 (pp. 12–13); Example 0.12 (the necklace again), Example 0.13 (X/A ≃ X ∪ CA) and Example 0.14 (X/A ≃ X ∨ SA, giving S<sup>n</sup>/S<sup>i</sup> ≃ S<sup>n</sup> ∨ S<sup>i+1</sup>) (pp. 13–14); Proposition 0.18 with its proof via X<sub>0</sub> ⊔<sub>F</sub> (X<sub>1</sub> × I) (p. 15). Cited but not restated, having been established in at1-01: Proposition 0.16 and Proposition 0.17 (p. 15) and Corollary 0.21 (p. 16). Cited as a forward reference only, exactly as Hatcher cites it: Theorem 2.44 on the homotopy invariance of the Euler characteristic, proved in chapter 2 and taught in at1-08.
+<p><strong>Not established here.</strong> That cells become generators of chain groups: chapter 0 constructs no chain groups. The cellular chain complex is Hatcher §2.2 and at1-08; this unit supplies the input it consumes, and the wedge-of-spheres fact on p. 10 is the reason the construction works, but the group and its boundary map are not built here. That a CW structure feeds a persistence algorithm: there is no filtration and no algorithm in chapter 0 — a persistence computation consumes a growing family of complexes (tda1-01) and runs a boundary-matrix reduction (tda1-02, tda1-09). That the Euler characteristic is a homotopy invariant: Hatcher states it on p. 6 as a forward reference to Theorem 2.44 and this lesson repeats it as one; the proof is at1-08's.</p>
+<p><strong>Deferred.</strong> The point-set questions Hatcher routes to the Appendix — the explanation of the letters "CW", the proof that a mapping cylinder deformation retraction is continuous via Proposition A.17, and the precise conditions under which the CW and product topologies on X × Y agree — are outside this unit. Proposition 0.19 and its proof (pp. 15–17), used to derive Corollary 0.20 and Corollary 0.21, were taken as given in at1-01 and are not reproved. The fundamental group that Example 0.7 calls for, to distinguish ⋁<sub>m</sub>S<sup>1</sup> from ⋁<sub>n</sub>S<sup>1</sup> when m ≠ n, is at1-03.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

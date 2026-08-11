@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at1-04 — The fundamental group of the circle and applications</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology I · Nexus College</p>
+<h1>The fundamental group of the circle and applications <span class="cite">(at1-04)</span></h1>
+
+<div class="hook">
+π₁(S¹) = ℤ: winding number is a theorem, and it proves Brouwer's fixed point and the fundamental theorem of algebra.
+<p>at1-03 built a group and could not name a single non-trivial element of one. Hatcher was blunt about why: to show a fundamental group is non-trivial "one must somehow demonstrate the nonexistence of homotopies between certain loops", and every tool in that unit constructed homotopies rather than ruling them out.</p>
+<p>The device that breaks the deadlock is almost embarrassingly concrete. Roll the real line up into a helix sitting above the circle, and let a loop downstairs drag a path upstairs behind it. A loop must return to where it started; its lifted path need not. The integer it fails by cannot change under a homotopy, because the endpoint of a lifted homotopy is pinned. That is the whole proof, and it delivers the fundamental theorem of algebra and Brouwer's fixed point theorem within two pages.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> A loop in S¹ lifts to a path in ℝ starting at 0 and ending at an integer n. Suppose you now deform the loop continuously, through loops based at the same point. What can the endpoint n do?</p>
+<button onclick="check(this,false)">It varies continuously, so it can reach any real number in between</button>
+<button onclick="check(this,true)" data-ok>Nothing — it is pinned, because the lifted homotopy is a homotopy of paths and clause (1) forbids the endpoint from moving</button>
+<button onclick="check(this,false)">It can jump between integers, since ℤ is discrete</button>
+<button onclick="check(this,false)">It is undefined until a basepoint upstairs is chosen, so the question has no answer</button>
+<div class="explain">Pinned — and notice that "it is an integer, and integers cannot vary continuously" is <em>not</em> the argument, tempting as it is. The real reason is at1-03's clause (1): a homotopy of paths has f<sub>t</sub>(0) and f<sub>t</sub>(1) independent of t, full stop. What lifting supplies is fact (b): the lifted homotopy is again a homotopy <em>of paths</em>, so its endpoint is independent of t before you know anything about where endpoints live. Being integers is what makes the invariant useful; being pinned is what makes it an invariant. Problem 2(d) asks you to say what breaks if fact (b) delivered only a homotopy.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The first nontrivial computation — a hole detected algebraically, the template for all of persistent H_1.</p>
+
+<div class="warn">
+<p><strong>What this unit's source does and does not establish.</strong> The mission strip is quoted verbatim. Its first two clauses are exactly this unit; the third reaches well past it.</p>
+<p>What is proved here is that π₁(S¹) ≅ ℤ — a <em>fundamental</em> group, not a homology group. Hatcher §1.1 contains no H₁ at all, and the relation between the two (H₁ is the abelianisation of π₁, Theorem 2A.1, printed p. 166) is in §2.A, which as at1-03 recorded is not among the resources of any at1 unit. Since π₁(S¹) ≅ ℤ is already abelian the two agree for the circle, but that is a coincidence of this example rather than something established here.</p>
+<p>There is no persistence in this unit and nothing that resembles a template for it. The hole is detected by a covering-space lift, which has no analogue in a persistence computation; persistent H₁ is computed by reducing a boundary matrix over 𝔽₂ across a filtration (tda1-02, tda1-09), and the filtration itself is tda1-01. The honest common thread is narrower and worth stating: both this proof and persistence detect a hole by producing an <em>algebraic invariant that cannot change under the allowed deformation</em>, and in both cases the whole force of the argument lies in showing the invariant is well defined. That is a shared strategy, not a template.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Lifting</h2>
+
+<div class="theorem">
+<p><strong>Theorem 1.7.</strong> π₁(S¹) is an infinite cyclic group generated by the homotopy class of the loop ω(s) = (cos 2πs, sin 2πs) based at (1,0). <span class="cite">— Hatcher §1.1, p. 29</span></p>
+</div>
+
+<p>Hatcher restates it in the form the proof will actually establish. Writing ω<sub>n</sub>(s) = (cos 2πns, sin 2πns), one has [ω]<sup>n</sup> = [ω<sub>n</sub>], so the theorem is equivalent to: <em>every loop in S¹ based at (1,0) is homotopic to ω<sub>n</sub> for a unique n ∈ ℤ</em>. Existence gives generation, uniqueness gives infinite order.</p>
+
+<p>The comparison map is p : ℝ → S¹, p(s) = (cos 2πs, sin 2πs). Hatcher's picture: embed ℝ in ℝ³ as the helix s ↦ (cos 2πs, sin 2πs, s), and p is the restriction to the helix of the projection (x, y, z) ↦ (x, y). The loop ω<sub>n</sub> is the composition pω̃<sub>n</sub>, where ω̃<sub>n</sub>(s) = ns starts at 0 and ends at n, winding round the helix |n| times — upward if n &gt; 0, downward if n &lt; 0. The relation ω<sub>n</sub> = pω̃<sub>n</sub> is expressed by saying that ω̃<sub>n</sub> is a <strong>lift</strong> of ω<sub>n</sub>.</p>
+
+<div class="definition">
+<p><strong>Covering space.</strong> Given a space X, a covering space of X consists of a space X̃ and a map p : X̃ → X satisfying: for each point x ∈ X there is an open neighbourhood U of x in X such that p<sup>−1</sup>(U) is a union of disjoint open sets each of which is mapped homeomorphically onto U by p. Such a U is called <strong>evenly covered</strong>. <span class="cite">— Hatcher §1.1, p. 29</span></p>
+<p>For p : ℝ → S¹, any open arc in S¹ is evenly covered.</p>
+</div>
+
+<p>Note how local the condition is, and that it must be. The whole circle is not evenly covered by p: ℝ is connected, so it is not a disjoint union of several open pieces, and it is not homeomorphic to S¹ either. Only small arcs work — and small arcs are all the proof needs, because I is compact.</p>
+
+<div class="theorem">
+<p><strong>The two lifting facts.</strong> For a covering space p : X̃ → X:</p>
+<p>(a) For each path f : I → X starting at a point x<sub>0</sub> ∈ X and each x̃<sub>0</sub> ∈ p<sup>−1</sup>(x<sub>0</sub>) there is a unique lift f̃ : I → X̃ starting at x̃<sub>0</sub>.</p>
+<p>(b) For each homotopy f<sub>t</sub> : I → X of paths starting at x<sub>0</sub> and each x̃<sub>0</sub> ∈ p<sup>−1</sup>(x<sub>0</sub>) there is a unique lifted homotopy f̃<sub>t</sub> : I → X̃ of paths starting at x̃<sub>0</sub>. <span class="cite">— Hatcher §1.1, p. 29</span></p>
+</div>
+
+<p>Both are special cases of one statement, which Hatcher proves in general because "most of the arguments will apply in much greater generality":</p>
+
+<div class="theorem">
+<p><strong>(c) The general lifting property.</strong> Given a map F : Y × I → X and a map F̃ : Y × {0} → X̃ lifting F|Y × {0}, there is a unique map F̃ : Y × I → X̃ lifting F and restricting to the given F̃ on Y × {0}. <span class="cite">— Hatcher §1.1, p. 30</span></p>
+<p>Fact (a) is the case Y a point. Fact (b) is the case Y = I: the homotopy gives F(s,t) = f<sub>t</sub>(s); a unique lift on I × {0} comes from (a); then (c) gives a unique F̃ on I × I. The restrictions F̃|{0} × I and F̃|{1} × I are paths lifting <em>constant</em> paths, so by the uniqueness clause of (a) they are themselves constant — which is exactly why f̃<sub>t</sub>(s) = F̃(s,t) is a homotopy <em>of paths</em> and not merely a homotopy.</p>
+<p>The construction of (c) is local-then-glue. Every point (y<sub>0</sub>, t) has a product neighbourhood N<sub>t</sub> × (a<sub>t</sub>, b<sub>t</sub>) whose image under F lies in an evenly covered neighbourhood; by compactness of {y<sub>0</sub>} × I finitely many cover it, so one may choose a single N and a partition 0 = t<sub>0</sub> &lt; t<sub>1</sub> &lt; ⋯ &lt; t<sub>m</sub> = 1 with F(N × [t<sub>i</sub>, t<sub>i+1</sub>]) inside an evenly covered U<sub>i</sub>. Then define F̃ inductively on N × [t<sub>i</sub>, t<sub>i+1</sub>] as the composition of F with the homeomorphism p<sup>−1</sup> : U<sub>i</sub> → Ũ<sub>i</sub>. Uniqueness on a single segment {y} × I uses connectedness of [t<sub>i</sub>, t<sub>i+1</sub>] to force the two candidate lifts into the same sheet Ũ<sub>i</sub>, where p is injective. Uniqueness on segments then makes the locally constructed lifts agree on overlaps, giving a well-defined lift on all of Y × I.</p>
+</div>
+
+<p>The sentence in that construction to remember is the one about constant paths, since it is where fact (b) earns its "of paths". The two vertical edges of the square lift to constant paths, so the lifted homotopy's endpoints cannot move. The prediction gate's answer lives there.</p>
+
+<h3>Visual: the helix, and a loop dragging its lift</h3>
+
+<p>Left, a loop in S¹ winding round n times. Right, the same loop lifted to the helix over the circle: it starts at 0 and ends at the integer n, and the projection downward is p. Change n and watch the endpoint move by whole units — it can never land between them.</p>
+
+<canvas id="liftCanvas" width="640" height="300" role="img" aria-label="Left: the circle with a loop winding round it. Right: the helix over the circle, with the lifted path running from height zero up to height n, showing that the endpoint of a lift is an integer."></canvas>
+<p style="text-align:center"><button onclick="cycleN()" id="nBtn" style="background:#26313c;color:#e8e8e8;border:1px solid #2a333d;border-radius:8px;padding:.4rem .9rem;cursor:pointer">Change n</button></p>
+<script>
+(function(){
+  var cv = document.getElementById('liftCanvas');
+  var ctx = cv.getContext('2d');
+  var ns = [1, 2, 3, 0];
+  var k = 0;
+
+  var ccx = 140, ccy = 168, cR = 66;
+  var hcx = 465, hR = 62, hRy = 16, hBase = 240, hStep = 48;
+
+  function drawCircle(n){
+    ctx.strokeStyle = '#2a333d'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(ccx, ccy, cR, 0, 2 * Math.PI); ctx.stroke();
+    if (n !== 0){
+      ctx.strokeStyle = '#8ab4f8'; ctx.lineWidth = 3;
+      for (var j = 0; j < n; j++){
+        ctx.beginPath();
+        ctx.arc(ccx, ccy, cR - 6 * j, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * 0.97);
+        ctx.stroke();
+      }
+    }
+    ctx.fillStyle = '#4caf82';
+    ctx.beginPath(); ctx.arc(ccx + cR, ccy, 5, 0, 2 * Math.PI); ctx.fill();
+    ctx.font = '12px Segoe UI'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#4caf82'; ctx.fillText('x₀ = (1,0)', ccx + cR - 6, ccy + 22);
+    ctx.fillStyle = '#9aa5b1';
+    ctx.fillText('the loop ω' + (n === 0 ? '₀' : (n === 1 ? '' : (n === 2 ? '₂' : '₃'))) + ' in S¹', ccx, 26);
+    ctx.fillText('winding number n = ' + n, ccx, 278);
+  }
+
+  function helixPoint(u){
+    return [hcx + hR * Math.cos(2 * Math.PI * u - Math.PI / 2),
+            hBase - hStep * u + hRy * Math.sin(2 * Math.PI * u - Math.PI / 2)];
+  }
+
+  function drawHelix(n){
+    ctx.strokeStyle = '#2a333d'; ctx.lineWidth = 1;
+    for (var lev = 0; lev <= 3; lev++){
+      ctx.beginPath();
+      ctx.ellipse(hcx, hBase - hStep * lev, hR, hRy, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#8ab4f8'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    var steps = 240;
+    for (var i = 0; i <= steps; i++){
+      var p = helixPoint(n * i / steps);
+      if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]);
+    }
+    ctx.stroke();
+    var a = helixPoint(0), b = helixPoint(n);
+    ctx.fillStyle = '#4caf82';
+    ctx.beginPath(); ctx.arc(a[0], a[1], 5, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = '#d8a657';
+    ctx.beginPath(); ctx.arc(b[0], b[1], 5, 0, 2 * Math.PI); ctx.fill();
+    ctx.font = '12px Segoe UI'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#4caf82'; ctx.fillText('0', a[0] + 10, a[1] + 4);
+    ctx.fillStyle = '#d8a657'; ctx.fillText('n = ' + n, b[0] + 10, b[1] + 4);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#9aa5b1';
+    ctx.fillText('the lift ω̃ on the helix over S¹', hcx, 26);
+    ctx.fillText('endpoint is always an integer', hcx, 278);
+  }
+
+  function draw(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    var n = ns[k];
+    drawCircle(n);
+    drawHelix(n);
+  }
+
+  window.cycleN = function(){ k = (k + 1) % ns.length; draw(); };
+  draw();
+})();
+</script>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Where in the proof of (c) is the compactness of I used, and what would go wrong without it?</p>
+<button onclick="check(this,false)">In showing p is injective on each sheet</button>
+<button onclick="check(this,true)" data-ok>In reducing an infinite cover of {y₀} × I to finitely many products, so that a single neighbourhood N and a finite partition of I can be chosen</button>
+<button onclick="check(this,false)">In showing the lifted homotopy is a homotopy of paths</button>
+<button onclick="check(this,false)">In proving uniqueness on each segment {y} × I</button>
+<div class="explain">Each point (y<sub>0</sub>, t) gets its own product neighbourhood, and a priori the neighbourhoods N<sub>t</sub> shrink as t varies, with no single N working for all of them. Compactness of {y₀} × I extracts a finite subcover, and a finite intersection of neighbourhoods of y₀ is still a neighbourhood — which is what makes the inductive construction along a finite partition possible. Without it the induction has no base to run along. Uniqueness, by contrast, uses connectedness of [t<sub>i</sub>, t<sub>i+1</sub>] rather than compactness.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Fact (a) asserts existence <em>and</em> uniqueness of the lift. Which does the proof of Theorem 1.7 use for uniqueness of n?</p>
+<button onclick="check(this,false)">Existence only</button>
+<button onclick="check(this,true)" data-ok>Uniqueness — to identify the ends of the lifted homotopy as ω̃<sub>m</sub> and ω̃<sub>n</sub></button>
+<button onclick="check(this,false)">Neither; uniqueness of n follows from ℤ being discrete</button>
+<button onclick="check(this,false)">Both, in equal measure</button>
+<div class="explain">Given a homotopy f<sub>t</sub> from ω<sub>m</sub> to ω<sub>n</sub>, fact (b) lifts it to some f̃<sub>t</sub> starting at 0. To conclude m = n you must know that f̃<sub>0</sub> is <em>the</em> lift of ω<sub>m</sub> starting at 0, namely ω̃<sub>m</sub>, and similarly at the other end — and that is precisely the uniqueness clause of (a). Existence alone would leave f̃<sub>0</sub> as some unidentified lift, with no reason for its endpoint to be m.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The theorem, and the fundamental theorem of algebra</h2>
+
+<h3>Worked example: the proof of Theorem 1.7</h3>
+
+<div class="worked">
+<p><strong>Surjectivity.</strong> Let f : I → S¹ be a loop at x<sub>0</sub> = (1,0), representing a given element of π₁(S¹, x<sub>0</sub>). By (a) there is a lift f̃ starting at 0. This path ends at some integer n, since pf̃(1) = f(1) = x<sub>0</sub> and p<sup>−1</sup>(x<sub>0</sub>) = ℤ ⊂ ℝ.</p>
+<p>Another path in ℝ from 0 to n is ω̃<sub>n</sub>, and f̃ ≃ ω̃<sub>n</sub> via the linear homotopy (1 − t)f̃ + tω̃<sub>n</sub> — legitimate because ℝ is convex, which is at1-03's Example 1.1. Composing this homotopy with p gives a homotopy f ≃ ω<sub>n</sub>, so [f] = [ω<sub>n</sub>]. Note that composing with p preserves the property of being a homotopy of paths, because p is continuous and the endpoints upstairs were already fixed.</p>
+<p><strong>Uniqueness.</strong> Suppose f ≃ ω<sub>n</sub> and f ≃ ω<sub>m</sub>, so ω<sub>m</sub> ≃ ω<sub>n</sub>. Let f<sub>t</sub> be a homotopy from ω<sub>m</sub> = f<sub>0</sub> to ω<sub>n</sub> = f<sub>1</sub>. By (b) this lifts to a homotopy f̃<sub>t</sub> of paths starting at 0, and the uniqueness part of (a) implies f̃<sub>0</sub> = ω̃<sub>m</sub> and f̃<sub>1</sub> = ω̃<sub>n</sub>. Since f̃<sub>t</sub> is a homotopy <em>of paths</em>, the endpoint f̃<sub>t</sub>(1) is independent of t. At t = 0 that endpoint is m and at t = 1 it is n. So m = n. ∎</p>
+<p><strong>What was actually used.</strong> Convexity of ℝ, for the existence half; clause (1) of a homotopy of paths, for the uniqueness half. Nothing else. The difficulty was never in the algebra — it was in constructing the covering space and proving the lifting property, which is why Hatcher warns in advance that "the proof will involve some genuine work".</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 1.8 (Fundamental Theorem of Algebra).</strong> Every nonconstant polynomial with coefficients in ℂ has a root in ℂ. <span class="cite">— Hatcher §1.1, p. 31</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Faded: the proof.</strong> We may assume the polynomial has the form p(z) = z<sup>n</sup> + a₁z<sup>n−1</sup> + ⋯ + a<sub>n</sub>. Suppose it has no roots in ℂ.</p>
+<p><strong>Step 1 — a family of loops.</strong> For each real r ≥ 0, the formula</p>
+<p style="text-align:center">f<sub>r</sub>(s) = [ p(re<sup>2πis</sup>)/p(r) ] / | p(re<sup>2πis</sup>)/p(r) |</p>
+<p>defines a loop in the unit circle S¹ ⊂ ℂ based at 1. ⟨your step: where exactly is the hypothesis "no roots" used in making this well defined, and why is the basepoint 1?⟩</p>
+<p><strong>Step 2 — the class is zero.</strong> As r varies, f<sub>r</sub> is a homotopy of loops based at 1. Since f<sub>0</sub> is the trivial loop, [f<sub>r</sub>] ∈ π₁(S¹) is zero for all r. ⟨your step: substitute r = 0 and check f<sub>0</sub> really is constant⟩</p>
+<p><strong>Step 3 — the class is n.</strong> Fix r bigger than |a₁| + ⋯ + |a<sub>n</sub>| and bigger than 1. Then for |z| = r,</p>
+<p style="text-align:center">|z<sup>n</sup>| &gt; (|a₁| + ⋯ + |a<sub>n</sub>|)|z<sup>n−1</sup>| ≥ |a₁z<sup>n−1</sup>| + ⋯ + |a<sub>n</sub>| ≥ |a₁z<sup>n−1</sup> + ⋯ + a<sub>n</sub>|.</p>
+<p>From |z<sup>n</sup>| &gt; |a₁z<sup>n−1</sup> + ⋯ + a<sub>n</sub>| it follows that p<sub>t</sub>(z) = z<sup>n</sup> + t(a₁z<sup>n−1</sup> + ⋯ + a<sub>n</sub>) has no roots on |z| = r for 0 ≤ t ≤ 1. ⟨your step: why does that inequality rule out roots of p<sub>t</sub>?⟩</p>
+<p><strong>Step 4 — collide the two.</strong> Replacing p by p<sub>t</sub> in the formula for f<sub>r</sub> and letting t run from 1 to 0 gives a homotopy from f<sub>r</sub> to ω<sub>n</sub>(s) = e<sup>2πins</sup>. By Theorem 1.7, ω<sub>n</sub> represents n times a generator of the infinite cyclic group π₁(S¹). ⟨your step: combine with Step 2 and conclude n = 0, hence that the only root-free polynomials are constants⟩</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> The proof needs π₁(S¹) to be infinite cyclic, not merely non-trivial. Find the exact sentence where that matters, and construct the following counterfactual: if π₁(S¹) had turned out to be ℤ/5ℤ instead, what would the argument have proved about n, and would the theorem still follow?</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> The Fundamental Theorem of Algebra proof derives [ω<sub>n</sub>] = 0 and concludes n = 0. Which property of ℤ is being used?</p>
+<button onclick="check(this,false)">That ℤ is discrete</button>
+<button onclick="check(this,true)" data-ok>That the generator has infinite order, so n·[ω] = 0 forces n = 0</button>
+<button onclick="check(this,false)">That ℤ is abelian</button>
+<button onclick="check(this,false)">That ℤ is a principal ideal domain</button>
+<div class="explain">In a cyclic group of order 5, n·[ω] = 0 would give only n ≡ 0 mod 5, and the argument would conclude nothing about a degree-7 polynomial. "Infinite cyclic" is exactly the hypothesis that makes n·[ω] = 0 imply n = 0 — which is the you-try above. This is why Theorem 1.7 is stated as "infinite cyclic generated by [ω]" rather than the weaker "non-trivial": the applications need different amounts of it, and Brouwer, as Segment 3 shows, needs only non-triviality.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Brouwer, Borsuk–Ulam, and the ceiling</h2>
+
+<div class="theorem">
+<p><strong>Theorem 1.9 (Brouwer, dimension 2).</strong> Every continuous map h : D² → D² has a fixed point, that is, a point x ∈ D² with h(x) = x. <span class="cite">— Hatcher §1.1, p. 31</span></p>
+<p><strong>Proof.</strong> Suppose on the contrary that h(x) ≠ x for all x ∈ D². Then define r : D² → S¹ by letting r(x) be the point of S¹ where the ray in ℝ² starting at h(x) and passing through x leaves D². Continuity of r is clear since small perturbations of x produce small perturbations of h(x), hence also small perturbations of the ray through these two points. Note that the ray is well defined precisely because h(x) ≠ x gives it a direction.</p>
+<p>The crucial property of r, besides continuity, is that r(x) = x if x ∈ S¹. Thus r is a retraction of D² onto S¹ — at1-01's notion, arriving with a job at last. It remains to show no such retraction exists.</p>
+<p>Let f<sub>0</sub> be any loop in S¹. In D² there is a homotopy of f<sub>0</sub> to a constant loop, for example the linear homotopy f<sub>t</sub>(s) = (1 − t)f<sub>0</sub>(s) + tx<sub>0</sub> where x<sub>0</sub> is the basepoint of f<sub>0</sub>. Since the retraction r is the identity on S¹, the composition rf<sub>t</sub> is a homotopy in S¹ from rf<sub>0</sub> = f<sub>0</sub> to the constant loop at x<sub>0</sub>. But this contradicts the fact that π₁(S¹) is nonzero. ∎</p>
+</div>
+
+<p>Two debts are settled by that argument. at1-01 asserted that no map gives a deformation retraction of the disk onto its boundary sphere and deferred the proof here; what has just been proved is stronger, since it rules out every <em>retraction</em>, and a deformation retraction would yield one by taking t = 1. And at1-03 could produce no space with non-trivial π₁; now the consequences start arriving.</p>
+
+<p>Hatcher's historical notes are worth keeping. Brouwer proved this around 1910, and in fact for D<sup>n</sup>; the generalisation is obtained as Corollary 2.15 "using homology groups in place of π₁", or alternatively with the higher homotopy group π<sub>n</sub>. Brouwer's own proof used neither, since neither had been invented, and instead used the degree of maps S<sup>n</sup> → S<sup>n</sup>, defined in §2.2 using homology but defined by Brouwer directly in geometric terms. Hatcher also flags that all these proofs are by contradiction and "show just the existence of fixed points without giving any clue as to how to find one in explicit cases", the same being true of the Fundamental Theorem of Algebra proof; he points to Sperner's more constructive 1928 argument.</p>
+
+<div class="theorem">
+<p><strong>Theorem 1.10 (Borsuk–Ulam, dimension 2).</strong> For every continuous map f : S² → ℝ² there exists a pair of antipodal points x and −x in S² with f(x) = f(−x). <span class="cite">— Hatcher §1.1, p. 32</span></p>
+<p>Hatcher's gloss: it may be that there is only one such pair, for example if f is orthogonal projection of the standard S² ⊂ ℝ³ onto a plane. The theorem holds more generally for maps S<sup>n</sup> → ℝ<sup>n</sup>, shown as Corollary 2B.7. The case n = 1 is easy, since f(x) − f(−x) changes sign as x goes halfway round the circle, so the difference must vanish somewhere; for n ≥ 2 it is "certainly less obvious". His illustration: at every instant there must be a pair of antipodal points on the earth's surface with the same temperature and the same barometric pressure.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 1.11.</strong> Whenever S² is expressed as the union of three closed sets, at least one of them must contain a pair of antipodal points. <span class="cite">— Hatcher §1.1, p. 33</span></p>
+</div>
+
+<h3>The ceiling</h3>
+
+<p>Notice where the Brouwer argument stops. Run it in dimension n and it reduces to "no retraction D<sup>n</sup> → S<sup>n−1</sup>", which reduces in turn to π₁(S<sup>n−1</sup>) ≠ 0. For n = 2 that is Theorem 1.7. For n ≥ 3 the sphere S<sup>n−1</sup> is simply-connected — van Kampen gives this in at1-05 — so the final contradiction evaporates and the proof simply fails. The failure is not a defect in the argument; it is π₁ reaching its ceiling. π₁ sees one-dimensional holes and is blind to the higher ones, which is exactly why Hatcher's generalisations are cited to homology rather than to a cleverer π₁ argument, and why at1-07 onwards exist.</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Write it out before revealing the model answer.</p>
+<p>Prove that there is no retraction r : D² → S¹, and then state carefully what this does and does not tell you about retractions D<sup>n</sup> → S<sup>n−1</sup> for n ≥ 3.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Claim.</strong> There is no continuous r : D² → S¹ with r|S¹ = 𝟙.</p>
+<p><strong>Proof.</strong> Suppose such an r exists. Fix a basepoint x<sub>0</sub> ∈ S¹ and let f<sub>0</sub> be any loop in S¹ at x<sub>0</sub>. Regarding f<sub>0</sub> as a loop in D², the linear homotopy f<sub>t</sub>(s) = (1 − t)f<sub>0</sub>(s) + tx<sub>0</sub> is a homotopy of loops in D²: each f<sub>t</sub>(s) is a convex combination of two points of the convex set D² and so lies in D², the endpoints are fixed at x<sub>0</sub> for every t, and joint continuity holds because the operations are continuous. This is at1-03's Examples 1.1 and 1.4.</p>
+<p>Compose with r. Since r is continuous, rf<sub>t</sub> is a homotopy of loops in S¹. Since r|S¹ = 𝟙 and f<sub>0</sub> has image in S¹, we get rf<sub>0</sub> = f<sub>0</sub>; and rf<sub>1</sub> is the constant loop at r(x<sub>0</sub>) = x<sub>0</sub>. So [f<sub>0</sub>] = 0 in π₁(S¹, x<sub>0</sub>).</p>
+<p>As f<sub>0</sub> was an arbitrary loop, π₁(S¹, x<sub>0</sub>) = 0, contradicting Theorem 1.7, which gives π₁(S¹) ≅ ℤ. Hence no such r exists. ∎</p>
+<p><strong>What this says about n ≥ 3, and what it does not.</strong> The argument used exactly one fact about the boundary sphere: that its fundamental group is non-zero. Repeating it for D<sup>n</sup> → S<sup>n−1</sup> would require π₁(S<sup>n−1</sup>) ≠ 0, and for n − 1 ≥ 2 the sphere is simply-connected (at1-05), so the argument yields no contradiction. This does <em>not</em> show a retraction D<sup>n</sup> → S<sup>n−1</sup> exists — none does — only that π₁ cannot rule one out. The correct invariant is H<sub>n−1</sub>, and the resulting theorem is Hatcher's Corollary 2.15.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The Brouwer proof and the Fundamental Theorem of Algebra proof use Theorem 1.7 differently. How?</p>
+<button onclick="check(this,false)">Both need only that π₁(S¹) is non-zero</button>
+<button onclick="check(this,true)" data-ok>Brouwer needs only that π₁(S¹) is non-zero; the Fundamental Theorem of Algebra needs the generator to have infinite order</button>
+<button onclick="check(this,false)">Brouwer needs infinite cyclicity; the Fundamental Theorem of Algebra needs only non-triviality</button>
+<button onclick="check(this,false)">Both need the full statement that π₁(S¹) ≅ ℤ</button>
+<div class="explain">Brouwer's contradiction is that "every loop in S¹ is nullhomotopic", which any non-trivial group refutes — π₁(S¹) ≅ ℤ/2ℤ would have served. The Fundamental Theorem of Algebra instead derives n·[ω] = 0 for the degree n and needs to conclude n = 0, which requires [ω] to have infinite order. Reading a proof for which part of a cited theorem it actually consumes is a habit worth forming; it is what tells you which generalisations will survive.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Hatcher calls these proofs non-constructive. Which step in the Brouwer proof is responsible?</p>
+<button onclick="check(this,false)">The linear homotopy, since it does not specify a path</button>
+<button onclick="check(this,true)" data-ok>The opening "suppose on the contrary" — the fixed point is produced only by refuting its absence, which locates nothing</button>
+<button onclick="check(this,false)">The construction of r, since the ray is not computable</button>
+<button onclick="check(this,false)">The appeal to Theorem 1.7, whose proof is itself non-constructive</button>
+<div class="explain">Everything after the supposition is explicit: r is given by a formula in x and h(x), the homotopy is linear, the composition is concrete. What is not explicit is the conclusion. Having shown that h with no fixed point leads to a contradiction, one learns that a fixed point exists and nothing whatever about where. Hatcher makes the same remark about the Fundamental Theorem of Algebra proof and points to Sperner's 1928 argument as "somewhat more constructive". Note the contrast with Theorem 1.7 itself, which <em>is</em> constructive: given a loop, lift it and read off the endpoint.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. A covering space converts loops into paths, and paths remember more.</strong> p : ℝ → S¹ with every open arc evenly covered. Facts (a) and (b) — unique lifting of paths and of homotopies of paths — both follow from the single statement (c) about F : Y × I → X, proved by compactness of I to get a finite partition, then induction sheet by sheet, then gluing by uniqueness on segments. The clause that matters is that the vertical edges lift to constant paths, so the lifted homotopy is a homotopy <em>of paths</em>.</p>
+<p><strong>2. That forces π₁(S¹) ≅ ℤ.</strong> A loop lifts to a path from 0 to an integer n; ℝ is convex, so that lift is homotopic to ω̃<sub>n</sub> and pushing down gives [f] = [ω<sub>n</sub>] — surjectivity. If ω<sub>m</sub> ≃ ω<sub>n</sub>, lift the homotopy: uniqueness in (a) identifies its ends as ω̃<sub>m</sub> and ω̃<sub>n</sub>, and the fixed endpoint of a homotopy of paths gives m = n — injectivity. The first non-trivial fundamental group of the course.</p>
+<p><strong>3. The applications follow immediately, and then stop.</strong> The Fundamental Theorem of Algebra collides two homotopies of the same loop, one giving class 0 and one giving class n, and needs the generator to have infinite order. Brouwer builds a retraction D² → S¹ from a fixed-point-free map and needs only that π₁(S¹) ≠ 0 — settling at1-01's deferred claim in the stronger form, since no retraction at all exists. Borsuk–Ulam and Corollary 1.11 come from the same lifting technique. All of it stops at dimension 2, because π₁(S<sup>n−1</sup>) = 0 for n ≥ 3: the invariant sees one-dimensional holes only, which is the reason homology is coming.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em>, §1.1 "The Fundamental Group of the Circle". The announcement that the proof "will involve some genuine work", Theorem 1.7, the equivalent formulation via ω<sub>n</sub> and the identity [ω]<sup>n</sup> = [ω<sub>n</sub>], the map p(s) = (cos 2πs, sin 2πs) with the helix picture and the projection (x,y,z) ↦ (x,y), the notion of a lift, the definition of a covering space with the evenly-covered condition and the remark that every open arc in S¹ is evenly covered, and the two lifting facts (a) and (b) (p. 29); the proof of Theorem 1.7 in both directions, the general lifting statement (c) with the derivations of (a) and (b) from it — including the observation that the restrictions F̃|{0} × I and F̃|{1} × I lift constant paths and so are constant — and the construction of the local lift by compactness of {y<sub>0</sub>} × I and a partition of I (p. 30); the uniqueness argument on a segment via connectedness of [t<sub>i</sub>, t<sub>i+1</sub>] and injectivity of p on a sheet, the gluing of the local lifts, Theorem 1.8 with its full proof including the chain of inequalities and the homotopy through p<sub>t</sub>, and Theorem 1.9 (p. 31); the proof of Theorem 1.9 via the ray construction and the non-existence of a retraction, Hatcher's historical notes on Brouwer's 1910 proof and the degree of maps S<sup>n</sup> → S<sup>n</sup>, his remark on non-constructiveness with the pointer to Sperner 1928, and Theorem 1.10 with the orthogonal-projection example and the temperature-and-pressure illustration (p. 32); Corollary 1.11 (p. 33). Cited but not proved, exactly as Hatcher cites them: Corollary 2.15 for Brouwer in D<sup>n</sup> and Corollary 2B.7 for Borsuk–Ulam for S<sup>n</sup> → ℝ<sup>n</sup>, both chapter 2 results using homology in place of π₁. Cited as a forward reference: that S<sup>n</sup> is simply-connected for n ≥ 2, which at1-05 obtains from van Kampen.
+<p><strong>Stillwell was not consulted.</strong> It is the second of this unit's two listed resources and could not be retrieved. Nothing in the lesson or the problem set depends on it: Hatcher §1.1 supplies π₁(S¹) and all four applications — the Fundamental Theorem of Algebra, Brouwer, Borsuk–Ulam and Corollary 1.11 — in full, with proofs. Recorded rather than passed over, and flagged for the syllabus pass.</p>
+<p><strong>Not established here.</strong> That this is a template for persistent H₁: §1.1 contains no homology and no persistence. π₁(S¹) ≅ ℤ is a fundamental group; its relation to H₁ is Theorem 2A.1 in §2.A, printed p. 166, which no at1 unit reads. The two agree for the circle only because π₁(S¹) happens to be abelian. Persistent H₁ is computed by boundary-matrix reduction over 𝔽₂ along a filtration (tda1-01, tda1-02, tda1-09), and no step of that computation resembles a covering-space lift; what the two genuinely share is the strategy of exhibiting an invariant that cannot change under the permitted deformation. That π₁(S<sup>n</sup>) = 0 for n ≥ 2: stated here as a forward citation to at1-05, not proved.</p>
+<p><strong>Deferred.</strong> The proof of Corollary 1.11 from Theorem 1.10 is set as Problem 5(b) rather than worked here. §1.1's remaining material — Proposition 1.12 on π₁ of a product, Example 1.13 on the torus, and §"Induced Homomorphisms" (pp. 34–37) with Proposition 1.18 and Lemma 1.19 — is deferred to at1-05 and at1-06, where the tools that make it worth stating arrive. Covering spaces are used here only through facts (a), (b) and (c); their theory proper, including deck transformations and the classification, is at1-06 with Hatcher §1.3.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

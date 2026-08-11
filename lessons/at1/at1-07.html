@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>at1-07 — Simplicial and singular homology</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Algebraic Topology I · Nexus College</p>
+<h1>Simplicial and singular homology <span class="cite">(at1-07)</span></h1>
+
+<div class="hook">
+Count the holes with linear algebra. That is the whole idea, and it works.
+<p>π₁ took four units and gave you one number per space, computed by hand, in a group that might be any group at all. Homology gives you a number in every dimension at once, and computes them by row-reducing integer matrices. That is not a small trade. The reason it is possible is a single algebraic identity — the boundary of a boundary is zero — and a single construction that turns an identity into a group: the quotient of what has no boundary by what is a boundary.</p>
+<p>Dexter puts the appeal plainly at the top of his §7.1: these invariants are analogous to π₀ and π₁ but "only use linear algebra in the definitions, and are thus much simpler", the drawback being that they are "slightly less intuitive at first sight". Both halves of that are true, and this unit is the price and the payoff.</p>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> The boundary of an edge [v<sub>0</sub>, v<sub>1</sub>] is defined to be [v<sub>1</sub>] − [v<sub>0</sub>], with a minus sign, rather than [v<sub>0</sub>] + [v<sub>1</sub>]. Why the signs?</p>
+<button onclick="check(this,false)">To make the boundary map surjective</button>
+<button onclick="check(this,true)" data-ok>So that the faces of a simplex are coherently oriented — which is what forces ∂∂ = 0</button>
+<button onclick="check(this,false)">Purely a convention; the theory works equally well without them</button>
+<button onclick="check(this,false)">To make the chain groups free rather than merely abelian</button>
+<div class="explain">Hatcher is explicit on p. 105: one might wish to define the boundary as the plain sum of the faces, "however, it turns out to be better to insert certain signs", and heuristically the signs are there "to take orientations into account, so that all the faces of a simplex are coherently oriented". The payoff is Lemma 2.1. Drop the signs and it fails immediately: the unsigned double boundary of a triangle counts each vertex twice rather than cancelling, so Im ∂ would not sit inside Ker ∂ and the quotient defining H<sub>n</sub> would not exist. The third option is therefore the tempting wrong one — the signs are a convention in the sense that one chooses where to put them, but not in the sense that they could be omitted. The chain groups are free whatever the boundary map does, so the last option confuses two independent parts of the construction.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: This is homology proper: H_n = ker d_n / im d_(n+1), the object every persistence computation tracks.</p>
+
+<div class="warn">
+<p><strong>What this unit's sources do and do not establish.</strong> The mission strip is quoted verbatim, as the rubric requires. Its first clause is this unit exactly — and the formula in it is Dexter's, written in his notation, from Defn (Simplicial homology group) in §7.1. The second clause is a forward pointer that neither source makes, and it is not quite right as stated.</p>
+<p><strong>Persistence is not in either source.</strong> Hatcher §2.1 and Dexter §7.1 contain no filtrations, no barcodes and no stability. Persistence is tda1's, and this lesson establishes nothing about it.</p>
+<p><strong>And "the object every persistence computation tracks" is a simplification worth naming now rather than unlearning later.</strong> Persistence does not track <em>one</em> homology group. It tracks the whole family of them attached to a growing filtration of complexes, together with the maps between them induced by the inclusions — and that family, not any single H<sub>n</sub>, is what a barcode summarises. Two further differences will matter: persistence works over a <em>field</em>, usually 𝔽₂, where this unit works over ℤ, and the decomposition theorem that produces barcodes has no analogue over ℤ. What that costs is worth stating exactly on this unit's best computation, because the obvious guess is wrong. The ℤ₂ you will find in H₁(ℝP<sup>2</sup>) in Example 2.4 is <em>not</em> invisible over 𝔽₂. Take Hatcher's own boundary maps ∂₂U = −a + b + c and ∂₂L = a − b + c and reduce them mod 2: they become equal, so ∂₂ acquires the kernel U − L it did not have over ℤ, and H<sub>∗</sub>(ℝP<sup>2</sup>; 𝔽₂) = (𝔽₂, 𝔽₂, 𝔽₂). Two separate things happen, and neither is a map between them: the degree-1 quotient is still non-zero, so the class is not lost; and, independently, ∂₂ has stopped being injective, so a degree-2 class appears where integrally there is nothing at all. What a barcode over 𝔽₂ cannot do is report that the degree-1 class has <em>order two</em>: over a field every class is free, and a bar born from torsion is indistinguishable from a bar born from a free summand. Change the field and the answer changes again — over ℚ the same two boundary maps stay independent, ∂₂ is injective, and H₁ vanishes outright. That is a direct reduction of Hatcher's matrices, not an application of any coefficient theorem: the functoriality that makes the family a coherent object is at1-10, and the coefficient question proper is at1-09.</p>
+<p>So: this lesson builds H<sub>n</sub> = Ker ∂<sub>n</sub> / Im ∂<sub>n+1</sub> twice, proves the two constructions agree, and stops there.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Chains, the boundary map, and the identity everything rests on</h2>
+
+<p>Start with a Δ-complex X. Let Δ<sub>n</sub>(X) be the free abelian group with basis the n-simplices of X. Its elements, the <em>n-chains</em>, are finite formal sums Σ n<sub>α</sub>σ<sub>α</sub> with integer coefficients — a finite collection of n-simplices with multiplicities. The multiplicities are allowed to be negative, and that is the first place orientation enters.</p>
+
+<div class="definition">
+<p><strong>Boundary homomorphism.</strong> ∂<sub>n</sub> : Δ<sub>n</sub>(X) → Δ<sub>n−1</sub>(X) is defined on basis elements by</p>
+<p style="text-align:center">∂<sub>n</sub>(σ<sub>α</sub>) = Σ<sub>i</sub> (−1)<sup>i</sup> σ<sub>α</sub>|[v<sub>0</sub>, ···, v̂<sub>i</sub>, ···, v<sub>n</sub>],</p>
+<p>where the hat means the vertex is deleted. Each restriction is the characteristic map of an (n−1)-simplex of X, so the right side does lie in Δ<sub>n−1</sub>(X). <span class="cite">— Hatcher §2.1, p. 105</span></p>
+</div>
+
+<p>Write out the first three and check the pictures:</p>
+<p style="text-align:center">∂[v<sub>0</sub>, v<sub>1</sub>] = [v<sub>1</sub>] − [v<sub>0</sub>]<br>
+∂[v<sub>0</sub>, v<sub>1</sub>, v<sub>2</sub>] = [v<sub>1</sub>, v<sub>2</sub>] − [v<sub>0</sub>, v<sub>2</sub>] + [v<sub>0</sub>, v<sub>1</sub>]<br>
+∂[v<sub>0</sub>, v<sub>1</sub>, v<sub>2</sub>, v<sub>3</sub>] = [v<sub>1</sub>, v<sub>2</sub>, v<sub>3</sub>] − [v<sub>0</sub>, v<sub>2</sub>, v<sub>3</sub>] + [v<sub>0</sub>, v<sub>1</sub>, v<sub>3</sub>] − [v<sub>0</sub>, v<sub>1</sub>, v<sub>2</sub>]</p>
+
+<div class="theorem">
+<p><strong>Lemma 2.1.</strong> The composition Δ<sub>n</sub>(X) → Δ<sub>n−1</sub>(X) → Δ<sub>n−2</sub>(X) given by ∂<sub>n−1</sub>∂<sub>n</sub> is zero. <span class="cite">— Hatcher §2.1, p. 105</span></p>
+<p><strong>Proof.</strong> Expanding twice,</p>
+<p style="text-align:center">∂<sub>n−1</sub>∂<sub>n</sub>(σ) = Σ<sub>j&lt;i</sub> (−1)<sup>i</sup>(−1)<sup>j</sup> σ|[···, v̂<sub>j</sub>, ···, v̂<sub>i</sub>, ···] + Σ<sub>j&gt;i</sub> (−1)<sup>i</sup>(−1)<sup>j−1</sup> σ|[···, v̂<sub>i</sub>, ···, v̂<sub>j</sub>, ···].</p>
+<p>The two summations cancel: after switching the names i and j in the second sum it becomes the negative of the first. ∎</p>
+</div>
+
+<p>The exponent j − 1 in the second sum is the whole content, and it is worth pausing on. If you delete v<sub>i</sub> first, then every later vertex has shifted down one position, so v<sub>j</sub> for j &gt; i now sits at index j − 1. That single index shift is what flips the sign and makes the cancellation work. Problem 1(b) asks you to write it out; do write it out, because the same computation is reused verbatim for singular simplices later in the section and never proved again.</p>
+
+<div class="definition">
+<p><strong>Chain complex; homology.</strong> A sequence of homomorphisms of abelian groups ··· → C<sub>n+1</sub> → C<sub>n</sub> → C<sub>n−1</sub> → ··· → C<sub>0</sub> → 0 with ∂<sub>n</sub>∂<sub>n+1</sub> = 0 for each n is a <em>chain complex</em>. The condition is equivalent to Im ∂<sub>n+1</sub> ⊂ Ker ∂<sub>n</sub>, so one may define the nth <em>homology group</em> H<sub>n</sub> = Ker ∂<sub>n</sub> / Im ∂<sub>n+1</sub>. Elements of Ker ∂<sub>n</sub> are <em>cycles</em>, of Im ∂<sub>n+1</sub> are <em>boundaries</em>, of H<sub>n</sub> are <em>homology classes</em>; two cycles are <em>homologous</em> when their difference is a boundary. With C<sub>n</sub> = Δ<sub>n</sub>(X) this is the <em>simplicial homology group</em> H<sub>n</sub><sup>Δ</sup>(X). <span class="cite">— Hatcher §2.1, p. 106</span></p>
+</div>
+
+<p>Dexter builds the same object from a slightly different starting point, and the difference is instructive. He works with simplicial complexes, where a simplex is determined by its vertex set, so he has to add orientation by hand: an <em>oriented n-simplex</em> is an (n+1)-tuple (a<sub>0</sub>, ···, a<sub>n</sub>), with two tuples counted as the same oriented simplex when they differ by an <em>even</em> permutation. He then chooses an orientation for each simplex to get a basis of C<sub>n</sub>(K), notes the choice does not matter but must be made, and identifies −σ with σ̄, the same simplex reversed. Hatcher's Δ-complexes carry an ordering of the vertices of each simplex as part of the structure, so the orientation is already there and no choice is needed. Same theory, one bookkeeping step moved.</p>
+
+<p>Dexter's boundary map is written d<sub>n</sub> rather than ∂<sub>n</sub>, with the identical formula, and his homology group is H<sub>n</sub>(K) = ker d<sub>n</sub> / im d<sub>n+1</sub>. That is the formula in this unit's mission strip, in his notation.</p>
+
+<div class="warn">
+<p><strong>Modality note.</strong> Dexter <em>states</em> the lemma d<sub>n−1</sub> ∘ d<sub>n</sub> = 0; his proof reads, in full, "This just involves expanding the definition and working through the mess." Hatcher <em>proves</em> it, and his proof is the one given above and the one you should learn. Where the two sources overlap, the numbered, proved version is Hatcher's.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which statement about the identity ∂∂ = 0 is correct?</p>
+<button onclick="check(this,false)">It says every cycle is a boundary, so H<sub>n</sub> measures the failure of ∂ to be surjective</button>
+<button onclick="check(this,true)" data-ok>It says every boundary is a cycle, which is what makes the quotient Ker ∂<sub>n</sub> / Im ∂<sub>n+1</sub> well defined</button>
+<button onclick="check(this,false)">It says ∂ is injective in each degree</button>
+<button onclick="check(this,false)">It is a geometric fact about spaces, not an algebraic identity about the formula</button>
+<div class="explain">∂<sub>n</sub>∂<sub>n+1</sub> = 0 means exactly Im ∂<sub>n+1</sub> ⊂ Ker ∂<sub>n</sub> — boundaries are cycles — and a quotient group needs the numerator to contain the denominator. The first option has it backwards, and inverting it is the whole subject: H<sub>n</sub> measures the extent to which cycles fail to be boundaries, which is a failure of the <em>inclusion</em> to be an equality, not a failure of surjectivity. As for the last option, the proof above touches no space at all; it is an identity about a signed sum of index deletions, and that is precisely why the same proof works for singular simplices, where there is no geometry to appeal to.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~30 min</span>
+<h2>Computing, and the limits of the simplicial definition</h2>
+
+<h3>Worked example: the torus and the projective plane</h3>
+
+<div class="worked fade">
+<p>Both use the two-triangle Δ-complex structures from at1-02, and the contrast between them is the first genuinely interesting output of the subject.</p>
+<p><strong>The torus T</strong> (Example 2.3): one vertex, three edges a, b, c, two 2-simplices U, L.</p>
+<p>Since there is one vertex, ∂<sub>1</sub> = 0, so H<sub>0</sub><sup>Δ</sup>(T) ≅ ℤ. Both triangles have the same boundary, ∂<sub>2</sub>U = a + b − c = ∂<sub>2</sub>L. Since {a, b, a + b − c} is a basis for Δ<sub>1</sub>(T), the image of ∂<sub>2</sub> is the single summand generated by a + b − c, so</p>
+<p style="text-align:center">H<sub>1</sub><sup>Δ</sup>(T) = Ker ∂<sub>1</sub> / Im ∂<sub>2</sub> ≅ ℤ ⊕ ℤ, on [a] and [b].</p>
+<p>There are no 3-simplices, so H<sub>2</sub><sup>Δ</sup>(T) = Ker ∂<sub>2</sub>. Now ∂(pU + qL) = (p + q)(a + b − c), which vanishes only when p = −q, so the kernel is infinite cyclic on U − L and H<sub>2</sub><sup>Δ</sup>(T) ≅ ℤ.</p>
+<p><strong>The projective plane ℝP<sup>2</sup></strong> (Example 2.4): two vertices v, w, three edges a, b, c, two 2-simplices U, L.</p>
+<p>Im ∂<sub>1</sub> is generated by w − v, so H<sub>0</sub><sup>Δ</sup> ≅ ℤ on either vertex. Here ∂<sub>2</sub>U = −a + b + c and ∂<sub>2</sub>L = a − b + c, which are <em>different</em>, and independent: ∂<sub>2</sub> is injective, so H<sub>2</sub><sup>Δ</sup>(ℝP<sup>2</sup>) = 0. That is the first difference from the torus, and it is orientability showing up as a computation.</p>
+<p>For H<sub>1</sub>: Ker ∂<sub>1</sub> ≅ ℤ ⊕ ℤ with basis a − b and c. Choose instead the basis c and a − b + c. Then Im ∂<sub>2</sub> has basis a − b + c and 2c = (a − b + c) + (−a + b + c). So Im ∂<sub>2</sub> is an <em>index-two</em> subgroup of Ker ∂<sub>1</sub>, and</p>
+<p style="text-align:center">H<sub>1</sub><sup>Δ</sup>(ℝP<sup>2</sup>) ≅ ℤ<sub>2</sub>.</p>
+<p><strong>Where the torsion came from.</strong> One line: the coefficient 2 in 2c. Nothing about a hole is being counted here in the naive sense — the group is finite. A ℤ<sub>2</sub> in H<sub>1</sub> records a loop that is not a boundary but whose <em>double</em> is, which is exactly the behaviour of the generator of π₁(ℝP<sup>2</sup>) that at1-06 found by lifting to S<sup>2</sup>. Two entirely different methods, same 2.</p>
+</div>
+
+<canvas id="rp2" width="640" height="330" aria-label="The two-triangle Delta-complex structure on the projective plane, with edges a, b, c oriented and the two 2-simplices U and L labelled"></canvas>
+
+<p>Two more computations, both quick. S<sup>1</sup> with one vertex and one edge has ∂<sub>1</sub>e = v − v = 0, so every boundary map is zero and the homology equals the chain groups: ℤ in degrees 0 and 1, zero above. Hatcher draws the general principle on p. 106 — if all boundary maps vanish, homology is the chain complex itself. And S<sup>n</sup>, built from two copies of Δ<sup>n</sup> glued along their boundaries by the identity, has Ker ∂<sub>n</sub> infinite cyclic on U − L, so H<sub>n</sub><sup>Δ</sup>(S<sup>n</sup>) ≅ ℤ. Hatcher adds, honestly, that the other groups "would be more difficult" for that structure — which is a hint that the simplicial definition is about to run out of road.</p>
+
+<p>It runs out in two places. First, the groups are defined only for Δ-complexes, and the definition depends on the <em>chosen</em> structure. Hatcher raises the question directly on p. 107: are the H<sub>n</sub><sup>Δ</sup> independent of the choice, and do homotopy equivalent complexes have isomorphic groups? Nothing so far answers either. Second, a structure has to exist and be small enough to compute with — Hatcher notes on p. 107 that a genuine <em>simplicial complex</em> structure on the torus needs at least 14 triangles, 21 edges and 7 vertices against the Δ-complex's 2, 3 and 1.</p>
+
+<div class="you-try">
+<p><strong>You try.</strong> Compute the Euler characteristic V − E + F of the torus from both structures: the Δ-complex with 1, 3, 2 and the simplicial complex with 7, 21, 14. Do they agree?</p>
+<p>Then ask the harder question. You now have two structures giving the same three homology groups and the same alternating count. Is that a coincidence, a theorem, or a theorem you have not been given yet? Say precisely what you would need in order to settle it — and notice that the thing you need relates homology to a count of cells, which is at1-08's business, not this unit's.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> H<sub>2</sub><sup>Δ</sup>(T) ≅ ℤ but H<sub>2</sub><sup>Δ</sup>(ℝP<sup>2</sup>) = 0. Which computational fact is responsible?</p>
+<button onclick="check(this,false)">ℝP<sup>2</sup> has two vertices and the torus has one</button>
+<button onclick="check(this,true)" data-ok>On the torus the two triangles have equal boundaries, so U − L is a cycle; on ℝP<sup>2</sup> they do not, so ∂<sub>2</sub> is injective and there are no 2-cycles at all</button>
+<button onclick="check(this,false)">ℝP<sup>2</sup> is not a Δ-complex, so H<sub>2</sub><sup>Δ</sup> is undefined and written 0 by convention</button>
+<button onclick="check(this,false)">Because ℝP<sup>2</sup> has torsion in H<sub>1</sub>, which forces H<sub>2</sub> to vanish</button>
+<div class="explain">∂<sub>2</sub>U = a + b − c = ∂<sub>2</sub>L on the torus, so their difference is killed; ∂<sub>2</sub>U = −a + b + c and ∂<sub>2</sub>L = a − b + c on ℝP<sup>2</sup> are independent, so nothing is killed. H<sub>2</sub> in top degree is just Ker ∂<sub>2</sub>, there being no 3-simplices, and a top-degree cycle is what orientability buys — the torus is orientable and ℝP<sup>2</sup> is not, and this computation is that fact in arithmetic form. The vertex count is a red herring; it affects H<sub>0</sub>'s computation and not H<sub>2</sub>. And there is no implication between torsion in one degree and vanishing in another: at1-08 will produce spaces with torsion in H<sub>1</sub> and a non-zero H<sub>2</sub>.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Singular homology, and why it is worth the size</h2>
+
+<div class="definition">
+<p><strong>Singular homology.</strong> A <em>singular n-simplex</em> in X is just a map σ : Δ<sup>n</sup> → X — "singular" because σ need not be a nice embedding and may have singularities where its image looks nothing like a simplex; all that is required is continuity. Let C<sub>n</sub>(X) be the free abelian group on the singular n-simplices, with the boundary map given by the same formula as before. The proof of Lemma 2.1 applies unchanged, so ∂<sup>2</sup> = 0 and one defines H<sub>n</sub>(X) = Ker ∂<sub>n</sub> / Im ∂<sub>n+1</sub>. <span class="cite">— Hatcher §2.1, p. 108</span></p>
+</div>
+
+<p>Two things follow at once, one good and one alarming. The good one: it is evident from the definition that homeomorphic spaces have isomorphic H<sub>n</sub>, since nothing was chosen — in contrast to the situation for H<sub>n</sub><sup>Δ</sup>. And it is defined for <em>every</em> space, not just for Δ-complexes.</p>
+
+<p>The alarming one: C<sub>n</sub>(X) is enormous. The number of singular n-simplices in a space is usually uncountable, and non-zero in every degree. So, as Hatcher puts it on p. 108, it is "not at all clear" that H<sub>n</sub>(X) is finitely generated for a finite Δ-complex, or that it vanishes above the dimension — two properties trivial for H<sub>n</sub><sup>Δ</sup>. The whole point of the rest of the section is to recover them.</p>
+
+<p>The first results are nevertheless easy, and the ease is the lesson: one never manipulates the whole of C<sub>n</sub>(X), only a finite formal sum.</p>
+
+<div class="theorem">
+<p><strong>Proposition 2.7.</strong> If X is non-empty and path-connected then H<sub>0</sub>(X) ≅ ℤ. Hence for any X, H<sub>0</sub>(X) is a direct sum of copies of ℤ, one per path-component. <span class="cite">— Hatcher §2.1, p. 109</span></p>
+</div>
+
+<p>The proof introduces the map that recurs for the rest of the chapter: ε(Σ n<sub>i</sub>σ<sub>i</sub>) = Σ n<sub>i</sub>, the sum of the coefficients. One inclusion is immediate — ε∂<sub>1</sub>σ = 1 − 1 = 0. The other is the content: given Σ n<sub>i</sub>σ<sub>i</sub> with Σ n<sub>i</sub> = 0, join each point σ<sub>i</sub> to a basepoint by a path τ<sub>i</sub>, regard it as a singular 1-simplex, and compute ∂(Σ n<sub>i</sub>τ<sub>i</sub>) = Σ n<sub>i</sub>σ<sub>i</sub> − (Σ n<sub>i</sub>)σ<sub>0</sub> = Σ n<sub>i</sub>σ<sub>i</sub>. Path-connectedness is used exactly once, to choose the τ<sub>i</sub>. Problem 3(a) has you write it out.</p>
+
+<p>A point has H<sub>n</sub> = 0 for n &gt; 0 and H<sub>0</sub> ≅ ℤ, by Proposition 2.8: there is one singular simplex in each degree and the boundary maps alternate between isomorphisms and zero. That leftover ℤ in degree 0 is a nuisance often enough that Hatcher defines <em>reduced homology</em> H̃<sub>n</sub>(X) as the homology of the augmented complex ··· → C<sub>1</sub>(X) → C<sub>0</sub>(X) → ℤ → 0, with ε as the last map. Since ε∂<sub>1</sub> = 0, this gives H<sub>0</sub>(X) ≅ H̃<sub>0</sub>(X) ⊕ ℤ and H<sub>n</sub> ≅ H̃<sub>n</sub> for n &gt; 0. X must be non-empty, or there would be a spurious group in degree −1.</p>
+
+<h3>Functoriality, and the theorem that costs something</h3>
+
+<p>A map f : X → Y sends a singular simplex σ to fσ, giving f<sub>♯</sub> : C<sub>n</sub>(X) → C<sub>n</sub>(Y), and a one-line computation shows f<sub>♯</sub>∂ = ∂f<sub>♯</sub> — a <em>chain map</em>. Chain maps take cycles to cycles and boundaries to boundaries, so:</p>
+
+<div class="theorem">
+<p><strong>Proposition 2.9.</strong> A chain map between chain complexes induces homomorphisms between the homology groups of the two complexes. <span class="cite">— Hatcher §2.1, p. 111</span></p>
+<p>With the two formal properties (fg)<sub>∗</sub> = f<sub>∗</sub>g<sub>∗</sub> and 𝟙<sub>∗</sub> = 𝟙, both immediate from associativity of composition.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 2.10.</strong> If two maps f, g : X → Y are homotopic, then they induce the same homomorphism f<sub>∗</sub> = g<sub>∗</sub> : H<sub>n</sub>(X) → H<sub>n</sub>(Y). <span class="cite">— Hatcher §2.1, p. 111</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 2.11.</strong> The maps f<sub>∗</sub> : H<sub>n</sub>(X) → H<sub>n</sub>(Y) induced by a homotopy equivalence f : X → Y are isomorphisms for all n. <span class="cite">— Hatcher §2.1, p. 111</span></p>
+</div>
+
+<p>Notice the difference in cost between the last two named results and the one before them. Proposition 2.9 is a formality — cycles go to cycles because f<sub>♯</sub> commutes with ∂, and that is the entire argument. Theorem 2.10 has to convert a <em>continuous</em> homotopy into an <em>algebraic</em> one, a chain homotopy, and that construction — the prism operator, and Proposition 2.12, that chain-homotopic chain maps induce the same map on homology — is where the topology actually enters. Corollary 2.11 then follows formally from Theorem 2.10 and the two properties above, and in particular a contractible space has H̃<sub>n</sub> = 0 for all n.</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof.</strong> Write it out before revealing the model answer.</p>
+<p>Deduce Corollary 2.11 from Theorem 2.10 and Proposition 2.9. Then explain carefully why Corollary 2.11 does <em>not</em>, on its own, answer Hatcher's question from p. 107 about whether H<sub>n</sub><sup>Δ</sup>(X) depends on the chosen Δ-complex structure — and name the extra theorem that closes the gap.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Corollary 2.11.</strong> Let f : X → Y be a homotopy equivalence with homotopy inverse g, so gf ≃ 𝟙<sub>X</sub> and fg ≃ 𝟙<sub>Y</sub>. Applying Theorem 2.10 to the first homotopy, (gf)<sub>∗</sub> = (𝟙<sub>X</sub>)<sub>∗</sub>. By the two formal properties this reads g<sub>∗</sub>f<sub>∗</sub> = 𝟙 on H<sub>n</sub>(X). Symmetrically f<sub>∗</sub>g<sub>∗</sub> = 𝟙 on H<sub>n</sub>(Y). So f<sub>∗</sub> has a two-sided inverse and is an isomorphism, for every n. ∎</p>
+<p><strong>Why that is not yet an answer.</strong> Corollary 2.11 is a statement about <em>singular</em> homology, and about maps between spaces. The question on p. 107 is about <em>simplicial</em> homology, and about two Δ-complex structures on one space. These are different functors of different inputs: H<sub>n</sub><sup>Δ</sup> is not even defined for a general space, only for a space equipped with a structure, so there is nothing for Corollary 2.11 to be applied to. Nothing proved so far connects the two.</p>
+<p><strong>What closes it.</strong> Theorem 2.27, that the natural map H<sub>n</sub><sup>Δ</sup>(X, A) → H<sub>n</sub>(X, A) is an isomorphism for all Δ-complex pairs. With that bridge the argument runs in three steps: each structure gives H<sub>n</sub><sup>Δ</sup> ≅ H<sub>n</sub> by Theorem 2.27; H<sub>n</sub> is defined without reference to any structure; therefore any two structures give groups isomorphic to a common third group, hence to each other. Homotopy invariance then transfers along the same bridge, which answers the second and stronger form of the question too. The order matters: the bridge does the work, and Corollary 2.11 is what the bridge makes useful.</p>
+</details>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 2.27.</strong> The homomorphisms H<sub>n</sub><sup>Δ</sup>(X, A) → H<sub>n</sub>(X, A) are isomorphisms for all n and all Δ-complex pairs (X, A). <span class="cite">— Hatcher §2.1, p. 128</span></p>
+</div>
+
+<p><strong>Stated, not proved here.</strong> Hatcher's proof runs by induction over skeleta and uses two pieces of machinery this unit does not develop: the long exact sequence of a pair, and excision. Both are in §2.1, and neither is in at1-07's scope; the exact-sequence toolkit is at1-09's. What matters now is what the theorem buys, which is exactly the two-way trade the section has been setting up. Simplicial homology is computable — finite matrices, finitely generated answers, zero above the dimension — but depends on a structure and only exists for complexes. Singular homology is defined for every space and is manifestly a topological invariant, but is built from an uncountable basis and offers no way to compute anything. Theorem 2.27 says you never have to choose: compute simplicially, conclude singularly.</p>
+
+<p>One tempting shortcut is worth explicitly closing off. Hatcher points out on p. 108 that singular homology can be <em>regarded</em> as a special case of simplicial homology, via the singular complex S(X) — the Δ-complex with one n-simplex per singular n-simplex of X — for which H<sub>n</sub><sup>Δ</sup>(S(X)) is identical to H<sub>n</sub>(X). True, and useless for computing: S(X) is, in his words, "usually an extremely large object compared to X". It is a change of description, not a bridge. Theorem 2.27 is the bridge, and it is a theorem rather than an observation.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which property does <em>singular</em> homology have that simplicial homology does not?</p>
+<button onclick="check(this,false)">Finite generation for a finite complex</button>
+<button onclick="check(this,true)" data-ok>It is defined for every space, with no choices made, so homeomorphic spaces manifestly have isomorphic groups</button>
+<button onclick="check(this,false)">Vanishing above the dimension of the space</button>
+<button onclick="check(this,false)">Computability by row reduction of integer matrices</button>
+<div class="explain">The other three are simplicial advantages, and Hatcher says so directly on p. 108: finite generation and vanishing above the dimension are "trivial" for H<sub>n</sub><sup>Δ</sup> and "not at all clear" for H<sub>n</sub>. Row reduction needs a finite basis, which singular chains do not have. What singular homology has instead is that nothing was chosen — the definition uses only the space — so invariance is free rather than earned. Theorem 2.27 is what stops this from being a dilemma, and the reason it is the last theorem of the section rather than the first is that its proof needs most of the section's machinery.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Hatcher gives a geometric reading of cycles on p. 109: an n-cycle ξ builds a Δ-complex K<sub>ξ</sub> with a map to X. How far does the manifold picture extend?</p>
+<button onclick="check(this,false)">All the way — every n-cycle is a map of a closed oriented n-manifold into X</button>
+<button onclick="check(this,true)" data-ok>K<sub>ξ</sub> is a manifold away from its (n−3)-skeleton, and near interiors of (n−3)-simplices it may fail to be one</button>
+<button onclick="check(this,false)">Only for n = 1, where cycles are loops</button>
+<button onclick="check(this,false)">Not at all — the construction of K<sub>ξ</sub> requires ξ to be a boundary</button>
+<div class="explain">Hatcher is careful about exactly this. Pairing off the cancelling faces of a cycle gives a K<sub>ξ</sub> that is a manifold near everything outside the (n−2)-skeleton, and closer inspection extends this across the interiors of (n−2)-simplices, so the non-manifold points lie in the (n−3)-skeleton — but "near points in the interiors of (n−3)-simplices it can very well happen that K<sub>ξ</sub> is not a manifold." So the picture is exact in low degrees: H<sub>1</sub> classes are collections of oriented loops and H<sub>2</sub> classes are maps of closed oriented surfaces, both of which he states outright. It is the extension to all higher dimensions that fails, and he says why he mentions it: in the early days of the subject it "may have been believed, or at least hoped" that the connection continued, and the theory built from manifolds instead — bordism — turns out to be considerably more complicated than homology. The first option is the hope, not the fact.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> You have π₁ from at1-05 and H<sub>1</sub> from this unit. For the figure eight, π₁ ≅ ℤ ∗ ℤ. What should you expect of H<sub>1</sub>, and on what authority?</p>
+<button onclick="check(this,false)">ℤ ∗ ℤ, since homology and the fundamental group agree in degree 1</button>
+<button onclick="check(this,true)" data-ok>ℤ ⊕ ℤ — but this unit proves no such thing, and the theorem that would is in §2.A, outside every at1 unit's resources</button>
+<button onclick="check(this,false)">ℤ, since the figure eight is connected</button>
+<button onclick="check(this,false)">Nothing can be said, because the figure eight is not a Δ-complex</button>
+<div class="explain">H<sub>1</sub> is an abelian group by construction — it is a subquotient of a free abelian group — so it cannot be the non-abelian ℤ ∗ ℤ, and the expected answer is the abelianisation ℤ ⊕ ℤ. But <em>expected</em> is the operative word: the theorem that H<sub>1</sub> is the abelianisation of π₁ is Hatcher's Theorem 2A.1, printed p. 166, and §2.A is not among the resources of at1-07 or of any other at1 unit. This is the same gap at1-03's mission strip ran into. What you <em>can</em> do without it is compute H<sub>1</sub> of the figure eight directly from a Δ-complex structure with one vertex and two edges, which takes about a line, and observe that it agrees. The figure eight is a perfectly good Δ-complex, so the last option is simply false.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Signed faces make ∂∂ = 0, and ∂∂ = 0 makes homology exist.</strong> ∂<sub>n</sub>σ = Σ<sub>i</sub>(−1)<sup>i</sup>σ|[v<sub>0</sub>,···,v̂<sub>i</sub>,···,v<sub>n</sub>]. Lemma 2.1: expanding twice gives a j &lt; i sum and a j &gt; i sum, the latter carrying an extra sign because deleting v<sub>i</sub> first shifts v<sub>j</sub> down one index; swapping names makes them cancel. That gives Im ∂<sub>n+1</sub> ⊂ Ker ∂<sub>n</sub>, hence H<sub>n</sub> = Ker ∂<sub>n</sub>/Im ∂<sub>n+1</sub>. Dexter's d<sub>n</sub> is the same map with orientation supplied by hand rather than by the Δ-structure, and his lemma is stated rather than proved.</p>
+<p><strong>2. Simplicial homology computes, and its two best examples disagree in a way that matters.</strong> The torus: ∂<sub>2</sub>U = ∂<sub>2</sub>L, so U − L is a 2-cycle and H<sub>2</sub> ≅ ℤ, with H<sub>1</sub> ≅ ℤ ⊕ ℤ. ℝP<sup>2</sup>: the two boundaries are independent, ∂<sub>2</sub> is injective, H<sub>2</sub> = 0, and Im ∂<sub>2</sub> sits with index two inside Ker ∂<sub>1</sub>, giving H<sub>1</sub> ≅ ℤ<sub>2</sub>. Torsion, from a single coefficient 2. But the groups are defined only for Δ-complexes and only relative to a chosen structure.</p>
+<p><strong>3. Singular homology fixes the definition and breaks the computation; Theorem 2.27 repairs it.</strong> C<sub>n</sub>(X) is free on all maps Δ<sup>n</sup> → X: defined for every space, invariant with nothing chosen, and for most spaces uncountable. Proposition 2.7 gives H<sub>0</sub>; reduced homology removes the leftover ℤ; Proposition 2.9 gives functoriality for free, and Theorem 2.10 gives homotopy invariance at real cost, with Corollary 2.11 following formally. Theorem 2.27 identifies the two theories, so one computes simplicially and concludes singularly — and only then is the p. 107 question about dependence on the structure actually answered.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Hatcher, <em>Algebraic Topology</em>, §2.1 "Simplicial and Singular Homology" (pp. 102–130). n-chains as finite formal sums with integer multiplicities, the geometric motivation for the signs with the three worked boundaries of an edge, a triangle and a tetrahedron, and the definition of ∂<sub>n</sub> on basis elements (p. 105); Lemma 2.1 with the two-summation proof reproduced above, the definition of a chain complex, of H<sub>n</sub> = Ker ∂<sub>n</sub>/Im ∂<sub>n+1</sub>, of cycles, boundaries, homology classes and homologous cycles, the definition of H<sub>n</sub><sup>Δ</sup>, Example 2.2 on S<sup>1</sup> with the remark about complexes whose boundary maps vanish, and Example 2.3 on the torus (p. 106); Example 2.4 on ℝP<sup>2</sup>, which opens on p. 106 and whose index-two computation finishes across the page break (pp. 106–107); Example 2.5 on S<sup>n</sup> with the remark that the other groups would be harder, the questions about dependence on the Δ-complex structure, the definition of a simplicial complex, and the counts of 14 triangles, 21 edges, 7 vertices for the torus and 10, 15, 6 for ℝP<sup>2</sup> (p. 107). §"Singular Homology": the definition of a singular simplex and of C<sub>n</sub>(X), the observation that the proof of Lemma 2.1 applies unchanged, the contrast between manifest invariance and the two properties that become unclear, and the singular complex S(X) with the remark that it is extremely large (p. 108); the geometric reading of cycles via K<sub>ξ</sub>, the manifold statement away from the (n−3)-skeleton, the descriptions of H<sub>1</sub> and H<sub>2</sub> classes, and the remark on bordism, together with Propositions 2.6 and 2.7 with their proofs (p. 109); Proposition 2.8 with its proof and the definition of reduced homology via the augmented complex, including the non-emptiness requirement and the empty-simplex remark (p. 110); f<sub>♯</sub>, the verification of f<sub>♯</sub>∂ = ∂f<sub>♯</sub>, commutative diagrams, chain maps, Proposition 2.9, the two formal properties, Theorem 2.10 and Corollary 2.11 (p. 111); Proposition 2.12 on chain-homotopic chain maps, cited but not proved (p. 113); Theorem 2.27 (p. 128). Theorem 1.7 and the π₁ computations used for comparison are at1-04's and at1-05's.
+<p>Dexter, <em>Algebraic Topology</em> (Cambridge lecture notes), §7.1 "Simplicial homology": the motivating remark that these invariants use only linear algebra and are correspondingly less intuitive; Defn (Oriented n-simplex), with two (n+1)-tuples counted equal when they differ by an even permutation and σ̄ for the reversed simplex; Defn (Chain group C<sub>n</sub>(K)), including the instruction that an orientation must be chosen for each simplex although the choice does not matter, the convention C<sub>ℓ</sub>(K) = 0 for ℓ &lt; 0, and the identification of −σ<sub>i</sub> with σ̄<sub>i</sub>; Defn (Boundary homomorphisms), giving d<sub>n</sub> by the same alternating formula; the Lemma d<sub>n−1</sub> ∘ d<sub>n</sub> = 0, <strong>stated with its proof given only as "This just involves expanding the definition and working through the mess"</strong>; Defn (Simplicial homology group H<sub>n</sub>(K)) — the source of the mission strip's formula; and Defn (Chains, cycles and boundaries). Dexter's subsection numbers are those of the compiled notes, whose section counter starts at 0.</p>
+<p><strong>Not established here.</strong> Anything about persistence. Neither source contains a filtration, a barcode or a stability statement, and the mission strip's second clause is a forward pointer to tda1, not a result. Three specific corrections are made in the warn block above rather than left to be unlearned: persistence tracks a <em>family</em> of homology groups indexed by a filtration together with the maps between them, not a single H<sub>n</sub>; it works over a field, standardly 𝔽<sub>2</sub>, where this unit works over ℤ; and the ℤ<sub>2</sub> torsion computed for ℝP<sup>2</sup> here does not <em>vanish</em> over 𝔽<sub>2</sub> but merely stops being recognisable as torsion — the warn block reduces Hatcher's own boundary matrices mod 2 to get H<sub>∗</sub>(ℝP<sup>2</sup>; 𝔽<sub>2</sub>) = (𝔽<sub>2</sub>, 𝔽<sub>2</sub>, 𝔽<sub>2</sub>), and notes that over ℚ it vanishes instead. The coefficient question is at1-09's and the functoriality that makes the family coherent is at1-10's; neither is claimed here. Also not established: that H<sub>1</sub> is the abelianisation of π₁, which is Theorem 2A.1 in §2.A, printed p. 166, outside the resources of every at1 unit — the same gap recorded in at1-03 and flagged for the syllabus pass. Self-check 5 and Problem 2(e) treat it as a conjecture to be formed, not a theorem to be used.</p>
+<p><strong>Stated but not proved.</strong> Theorem 2.27, whose proof proceeds by induction over skeleta using the long exact sequence of a pair and excision — both in §2.1, both deferred, with the exact-sequence toolkit belonging to at1-09. Theorem 2.10, whose proof constructs a chain homotopy by means of the prism operator; the deduction of Corollary 2.11 from it is given in full in the guided proof, but the prism construction itself is not reproduced. Proposition 2.12 is quoted for the same reason.</p>
+<p><strong>Deferred.</strong> Relative homology, the long exact sequence of a pair (Theorem 2.16), excision (Theorem 2.20), good pairs and Proposition 2.22, and Corollaries 2.14, 2.15, 2.24, 2.25 and Theorem 2.26 — all in §2.1, pp. 114–130, and all belonging with the exact-sequence and computational material of at1-08 and at1-09. Barycentric subdivision and Proposition 2.21 support the proof of excision and are outside this unit entirely. The exercise that every Δ-complex can be subdivided to a simplicial complex, quoted on p. 107, is assumed here as Hatcher assumes it.</p>
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('rp2');
+  if(!c||!c.getContext)return;
+  var g=c.getContext('2d');
+  // square with antipodal boundary identification, cut into two triangles U and L
+  var x0=200,y0=50,s=200;               // square from (200,50) to (400,250)
+  var TL=[x0,y0],TR=[x0+s,y0],BL=[x0,y0+s],BR=[x0+s,y0+s];
+  function line(p,q,col,w){g.strokeStyle=col;g.lineWidth=w;g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke();}
+  function arrow(p,q,col){
+    var mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2,dx=q[0]-p[0],dy=q[1]-p[1];
+    var L=Math.sqrt(dx*dx+dy*dy);dx/=L;dy/=L;
+    var a=8;
+    g.strokeStyle=col;g.lineWidth=2;g.beginPath();
+    g.moveTo(mx-dx*a-dy*a*0.6,my-dy*a+dx*a*0.6);
+    g.lineTo(mx+dx*a,my+dy*a);
+    g.lineTo(mx-dx*a+dy*a*0.6,my-dy*a-dx*a*0.6);
+    g.stroke();
+  }
+  // faces
+  g.fillStyle='rgba(138,180,248,0.14)';
+  g.beginPath();g.moveTo(TL[0],TL[1]);g.lineTo(TR[0],TR[1]);g.lineTo(BR[0],BR[1]);g.closePath();g.fill();
+  g.fillStyle='rgba(216,166,87,0.14)';
+  g.beginPath();g.moveTo(TL[0],TL[1]);g.lineTo(BR[0],BR[1]);g.lineTo(BL[0],BL[1]);g.closePath();g.fill();
+  // the diagonal c, and the four boundary edges: top a, right b, bottom a, left b
+  line(TL,BR,'#4caf82',2.5); arrow(TL,BR,'#4caf82');
+  line(TL,TR,'#8ab4f8',2.5); arrow(TL,TR,'#8ab4f8');
+  line(BL,BR,'#8ab4f8',2.5); arrow(BR,BL,'#8ab4f8');
+  line(TR,BR,'#d8a657',2.5); arrow(TR,BR,'#d8a657');
+  line(TL,BL,'#d8a657',2.5); arrow(BL,TL,'#d8a657');
+  // vertices
+  function dot(p,col){g.fillStyle=col;g.beginPath();g.arc(p[0],p[1],5,0,Math.PI*2);g.fill();}
+  dot(TL,'#e8e8e8');dot(BR,'#e8e8e8');dot(TR,'#e06c75');dot(BL,'#e06c75');
+  // labels
+  g.font='15px Segoe UI, system-ui, sans-serif';g.textAlign='center';
+  g.fillStyle='#8ab4f8';g.fillText('a',x0+s/2,y0-12);g.fillText('a',x0+s/2,y0+s+22);
+  g.fillStyle='#d8a657';g.fillText('b',x0-16,y0+s/2);g.fillText('b',x0+s+16,y0+s/2);
+  g.fillStyle='#4caf82';g.fillText('c',x0+s/2+18,y0+s/2-6);
+  g.fillStyle='#8ab4f8';g.fillText('U',x0+s*0.68,y0+s*0.33);
+  g.fillStyle='#d8a657';g.fillText('L',x0+s*0.32,y0+s*0.70);
+  g.fillStyle='#e8e8e8';g.font='13px Segoe UI, system-ui, sans-serif';
+  g.fillText('v',TL[0]-14,TL[1]-6);g.fillText('v',BR[0]+14,BR[1]+14);
+  g.fillStyle='#e06c75';g.fillText('w',TR[0]+14,TR[1]-6);g.fillText('w',BL[0]-14,BL[1]+14);
+  g.fillStyle='#9aa5b1';g.font='14px Segoe UI, system-ui, sans-serif';
+  g.fillText('RP2 as a square with antipodal boundary points identified:',320,292);
+  g.fillText('two vertices, three edges, two 2-simplices. dU = -a+b+c, dL = a-b+c.',320,312);
+})();
+</script>
+</body></html>
