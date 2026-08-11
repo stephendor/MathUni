@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda1-02 — Homology by matrix reduction</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA I · Nexus College</p>
+<h1>Homology by matrix reduction <span class="cite">(tda1-02)</span></h1>
+
+<div class="hook">
+Homology as pure linear algebra over 𝔽₂: one Gaussian elimination on the boundary matrix (la-07, cashed in).
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Reducing the p-th boundary matrix to Smith normal form uses row operations, column operations, and exchanges of both. Which of those could a <em>filtered</em> version of the algorithm still afford to use?</p>
+<p>
+<button onclick="check(this,false)">All of them — reduction is reduction</button>
+<button onclick="check(this,true)" data-ok>Only some, because a filtration grades the simplices and most of these ignore grades</button>
+<button onclick="check(this,false)">None — filtered homology needs a different algorithm entirely</button>
+</p>
+<div class="explain">A filtration gives each simplex a grade — the index at which it enters — and REDUCE moves a pivot to wherever it finds one, with no regard for grades. Segment 3 turns this into a constraint any persistence algorithm must satisfy, derived from these pages without reading the chapter where that algorithm lives. It also shows that the quick answer "no exchanges" is too strong: an exchange <em>within</em> a grade is harmless.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The computational-topology view of at1's homology — the exact operation the persistence algorithm iterates.</p>
+
+<div class="warn">
+<p><strong>The second half of that strip is not on these pages, and the book says where it is.</strong> Chapter IV contains no persistence. Its opening paragraph says that assessing the importance of topological information and ranking it accordingly is "a topic we will address directly in Chapter VII" (p. 93). Chapter VII belongs to two later units and neither is this one: §VII.1, which carries both the definitions and the persistence algorithm itself, is tda1-03's resource, and §VII.2, which gives a sparse implementation of that same algorithm, is tda1-09's. So what follows establishes the reduction; that the persistence algorithm iterates <em>this</em> operation is a forward claim, and Segment 3 shows that as stated it cannot be quite right.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Homology with the arithmetic turned down</h2>
+
+<p>Everything in at1 is here, and almost everything is easier, for one reason: the coefficients are 0 and 1 with 1 + 1 = 0. Edelsbrunner calls these <em>modulo 2 coefficients</em> and writes the coefficient group ℤ₂; it is the two-element field, the same object la-07 calls 𝔽₂ and the hook above names that way. Nothing in this unit distinguishes them <span class="cite">— Edelsbrunner §IV.1, p. 94</span>.</p>
+
+<p>A <em>p-chain</em> is a formal sum c = Σ aᵢσᵢ over the p-simplices of K. Chains add componentwise, and since 1 + 1 = 0 the sum of two chains is, read as sets of simplices, their symmetric difference. The p-chains form a group C<sub>p</sub> = C<sub>p</sub>(K), abelian, with neutral element 0 and — the axiom worth pausing on — every element its own inverse, since c + c = 0 gives −c = c. Over ℤ that is false for every non-zero chain, and the difference is the whole reason the algorithm at the end of this lesson is short.</p>
+
+<p>The boundary of σ = [u₀, …, u<sub>p</sub>] is the sum of its (p−1)-faces, ∂<sub>p</sub>σ = Σ<sub>j</sub> [u₀, …, û<sub>j</sub>, …, u<sub>p</sub>], the hat marking omission. Extended additively to chains it commutes with addition, so it is a homomorphism ∂<sub>p</sub> : C<sub>p</sub> → C<sub>p−1</sub>, and the sequence of chain groups strung together by these maps is the <em>chain complex</em>. Notice there are no signs. Over ℤ the boundary formula carries (−1)<sup>j</sup>; here the signs are invisible because −1 = 1 <span class="cite">— pp. 94–95</span>.</p>
+
+<div class="definition">
+<p><strong>Cycles, boundaries, homology</strong> <span class="cite">— Edelsbrunner, pp. 95–96</span></p>
+<p>A <em>p-cycle</em> is a p-chain with ∂c = 0, so Z<sub>p</sub> = ker ∂<sub>p</sub>. A <em>p-boundary</em> is a p-chain of the form ∂d with d ∈ C<sub>p+1</sub>, so B<sub>p</sub> = im ∂<sub>p+1</sub>. The <em>p-th homology group</em> is H<sub>p</sub> = Z<sub>p</sub>/B<sub>p</sub>, and the <em>p-th Betti number</em> is β<sub>p</sub> = rank H<sub>p</sub>.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Fundamental Lemma of Homology</strong> <span class="cite">— Edelsbrunner, p. 95</span></p>
+<p>∂<sub>p</sub>∂<sub>p+1</sub>d = 0 for every integer p and every (p+1)-chain d.</p>
+</div>
+
+<p>The proof is two sentences and one fact. It suffices to check a single (p+1)-simplex τ. Its boundary is all p-faces of τ, and every (p−1)-face of τ lies in exactly <em>two</em> of them — so in the sum each appears twice, and 1 + 1 = 0. That is where the arithmetic enters: over ℤ the two appearances come with opposite signs and cancel for a different reason, but cancel they must, and the lemma is the same lemma. Its consequence is that B<sub>p</sub> ⊆ Z<sub>p</sub>, which is what makes the quotient defining H<sub>p</sub> legal at all.</p>
+
+<p>Because the coefficients are a field with two elements, C<sub>p</sub> is a vector space ℤ₂<sup>n</sup> with n the number of p-simplices, and <em>order</em> and <em>rank</em> come apart in a way worth keeping straight: a group with n generators has order 2<sup>n</sup>, so rank is the base-2 logarithm of order. From ord H<sub>p</sub> = ord Z<sub>p</sub> / ord B<sub>p</sub> one takes logarithms and gets β<sub>p</sub> = rank Z<sub>p</sub> − rank B<sub>p</sub>, which is the identity the whole of Segment 3 exists to evaluate <span class="cite">— p. 97</span>.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Figure IV.2's torus has H₁ of order 4 and rank 2, with classes B₁, x + B₁, y + B₁ and (x+y) + B₁. Why is there no fifth class?</p>
+<p>
+<button onclick="check(this,false)">Because the torus has only two independent loops to draw</button>
+<button onclick="check(this,true)" data-ok>Because a rank-2 vector space over ℤ₂ has exactly 2² = 4 elements</button>
+<button onclick="check(this,false)">Because x + y is homologous to zero</button>
+</p>
+<div class="explain">Order 4 <em>is</em> the answer: H₁ is a 2-dimensional vector space over a 2-element field, so it has four elements and they are the four listed. The first option gets the rank right for the wrong reason — it explains why the rank is 2, not why the group is finite. Over ℤ the same torus has H₁ ≅ ℤ², which is infinite: rank 2 in both cases, order 4 in one and unbounded in the other.</div>
+</div>
+
+<p>One irritation is worth removing before Segment 3, because the worked computation there depends on it. A ball should have no holes, and it nearly does: H<sub>p</sub> = 0 for p ≠ 0, but H₀ has rank 1, because β₀ counts components and one component is not zero. Appending the <em>augmentation map</em> ε : C₀ → ℤ₂ with ε(u) = 1 for every vertex to the bottom of the chain complex fixes it. Cycles and boundaries are defined as before, and the only change is that a 0-cycle must now have an even number of vertices. The result is the <em>reduced</em> homology H̃<sub>p</sub> and Betti numbers β̃<sub>p</sub>, with β̃<sub>p</sub> = β<sub>p</sub> for p ≥ 1 and β̃₀ = β₀ − 1 for non-empty K <span class="cite">— p. 98</span>.</p>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Induced maps, a degree with two values, and a formula that does not typecheck</h2>
+
+<p>A simplicial f : K → L induces f<sub>#</sub> on chains: send c = Σaᵢσᵢ to Σaᵢτᵢ where τᵢ = f(σᵢ) if that image still has dimension p, and τᵢ = 0 if f collapses σᵢ to something lower. The point of the convention is that f<sub>#</sub> then commutes with the boundary. Edelsbrunner checks both cases. If f(σᵢ) has dimension p the faces correspond one for one. If it drops dimension, the (p−1)-faces map to simplices of dimension below p−1 with the possible exception of exactly two whose images coincide — and coincide means cancel, so both sides are zero <span class="cite">— p. 99</span>.</p>
+
+<div class="warn">
+<p><strong>The next sentence cannot be read literally, and the conclusion it states is true.</strong> The text concludes that f<sub>#</sub> takes cycles to cycles and boundaries to boundaries, writing f<sub>#</sub>(Z<sub>p</sub>(K)) ⊆ f<sub>#</sub>(Z<sub>p</sub>(L)) and f<sub>#</sub>(B<sub>p</sub>(K)) ⊆ f<sub>#</sub>(B<sub>p</sub>(L)). But f<sub>#</sub> is defined on chains of K, and Z<sub>p</sub>(L) consists of chains of L, so the right-hand side does not typecheck. The intended statements are f<sub>#</sub>(Z<sub>p</sub>(K)) ⊆ Z<sub>p</sub>(L) and f<sub>#</sub>(B<sub>p</sub>(K)) ⊆ B<sub>p</sub>(L): the stray f<sub>#</sub> on the right is the error, and both sides being decorated identically is what makes it easy to slide past. Everything downstream — that f<sub>#</sub> descends to the quotients, giving f<sub>∗</sub> : H<sub>p</sub>(K) → H<sub>p</sub>(L) — is correct.</p>
+</div>
+
+<p>The induced map on homology satisfies rank f<sub>∗</sub>(H<sub>p</sub>(K)) ≤ min{β<sub>p</sub>(K), β<sub>p</sub>(L)}, for the reason any linear map does: the image is a quotient of the source and a subspace of the target.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: a degree with only two values.</strong> <span class="cite">— Edelsbrunner, pp. 99–100</span></p>
+<p>Let g : 𝕊<sup>p</sup> → 𝕊<sup>p</sup> be continuous and let c generate H<sub>p</sub>(𝕊<sup>p</sup>), a group with exactly two elements. Then g<sub>∗</sub>(c) is homologous to c or to 0, so g<sub>∗</sub>(c) ∼ αc with α ∈ {0, 1} — the <em>modulo 2 degree</em>. Continuous maps are handled by triangulating and approximating, which is where tda1-01's Simplicial Approximation Theorem is spent.</p>
+<p>Two values. The identity gives α = 1. If g extends to g₀ : 𝔹<sup>p+1</sup> → 𝕊<sup>p</sup> then g<sub>∗</sub> factors as H<sub>p</sub>(𝕊<sup>p</sup>) → H<sub>p</sub>(𝔹<sup>p+1</sup>) → H<sub>p</sub>(𝕊<sup>p</sup>) with the middle group ⟨ what? ⟩, so α = 0.</p>
+<p>Now compare with at1-08, where the degree of a self-map of 𝕊<sup>n</sup> is an <em>integer</em>. The cause of the difference is not the geometry but the coefficient group: H<sub>n</sub>(𝕊<sup>n</sup>; ℤ) ≅ ℤ has infinitely many elements and can record how many times and with what sign, while H<sub>n</sub>(𝕊<sup>n</sup>; ℤ₂) has two and can record only ⟨ what? ⟩. The antipodal map on 𝕊¹ has integer degree ⟨ ? ⟩ and modulo 2 degree ⟨ ? ⟩; z ↦ z² has integer degree ⟨ ? ⟩ and modulo 2 degree ⟨ ? ⟩. One of those two pairs shows the mod 2 degree discarding information that at1-08's degree keeps.</p>
+<p>Brouwer follows. Suppose f : 𝔹<sup>p+1</sup> → 𝔹<sup>p+1</sup> has no fixed point. Then A(x) = (x − f(x))/‖x − f(x)‖ is defined on 𝕊<sup>p</sup> and extends a map from the ball, so its degree is 0; the identity B(x) = x has degree 1; and H(x,t) = (x − tf(x))/‖x − tf(x)‖ is a homotopy between them, well defined at t = 1 because there is no fixed point and at t &lt; 1 because ‖x‖ = 1 &gt; ‖tf(x)‖. Homotopic maps have equal degree, and 0 ≠ 1.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Where in the Brouwer proof would ℤ coefficients change anything?</p>
+<p>
+<button onclick="check(this,true)" data-ok>Nowhere essential — 0 ≠ 1 in ℤ as well</button>
+<button onclick="check(this,false)">The homotopy H would no longer be well defined</button>
+<button onclick="check(this,false)">The degree of the identity would not be 1</button>
+</p>
+<div class="explain">Nothing essential changes. The argument needs only that degree is a homotopy invariant, that the identity has degree 1, and that a map extending over the ball has degree 0 — all true over ℤ, where the same proof gives the same contradiction. The mod 2 degree is <em>weaker</em>, and Brouwer is a theorem the weaker invariant is already strong enough to prove. That is the general shape of the trade this chapter is making.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>The matrix, the reduction, and one thing the reduction cannot be</h2>
+
+<p>Write n<sub>p</sub> = rank C<sub>p</sub> for the number of p-simplices, z<sub>p</sub> = rank Z<sub>p</sub> and b<sub>p</sub> = rank B<sub>p</sub>. Rank–nullity applied to ∂<sub>p</sub> : C<sub>p</sub> → C<sub>p−1</sub> gives n<sub>p</sub> = z<sub>p</sub> + b<sub>p−1</sub> — note the index: the kernel of ∂<sub>p</sub> is Z<sub>p</sub> and its image is B<sub>p−1</sub>, one dimension down. Taking the alternating sum and reindexing the second term turns the Euler characteristic into the alternating sum of Betti numbers <span class="cite">— §IV.2, p. 101</span>.</p>
+
+<div class="theorem">
+<p><strong>Euler–Poincaré Theorem</strong> <span class="cite">— Edelsbrunner, p. 101</span></p>
+<p>The Euler characteristic of a topological space is the alternating sum of its Betti numbers, χ = Σ<sub>p≥0</sub> (−1)<sup>p</sup> β<sub>p</sub>.</p>
+</div>
+
+<p>Edelsbrunner is careful to say what the theorem needs and does not supply: that homology does not depend on the triangulation chosen. He calls that proof "difficult", refers the reader to more advanced texts, and offers the weaker-sounding fact that homotopy equivalent spaces have isomorphic homology as plausible. That weaker fact is exactly at1-07's Corollary 2.11, proved there from Hatcher — and it does the job here given one further ingredient, that two triangulations of the same space have homeomorphic, hence homotopy equivalent, underlying spaces. So this unit can supply what Edelsbrunner declines to prove, but only by reaching into at1, and the theorem it reaches for is Hatcher's, not Edelsbrunner's.</p>
+
+<p>Now the matrices. The p-th boundary matrix has the (p−1)-simplices as rows and the p-simplices as columns, with entry 1 exactly when the row simplex is a face of the column simplex. A set of columns is a p-chain and the sum of those columns is its boundary — the boundary map <em>is</em> matrix multiplication. Two column operations are allowed, exchanging two columns and adding one column to another, and two matching row operations; each is multiplication by an invertible matrix, V on the right and U on the left <span class="cite">— pp. 102–103</span>.</p>
+
+<div class="warn">
+<p><strong>The index conditions for U and V are corrupt in the extraction, and the figure captions say what they should be.</strong> As extracted, adding column k to column l is described by "v<sub>k</sub><sup>l</sup> = 1 and v<sub>i</sub><sup>l</sup> = 1 for all i" — which would fill the whole l-th column with ones, giving a matrix of rank 1 that is not invertible and would not preserve the rank the operations are said to preserve. What is meant is the elementary matrix V = I + E<sub>kl</sub>: the identity plus a single off-diagonal one. Figure IV.3's caption states this in words — "the effect of a single off-diagonal one in the matrix V" — and Figure IV.4 says the same for U. The text is right, the transcription of its indices is not, and the captions are the warrant for the reading used here.</p>
+</div>
+
+<p>Reducing with these operations gives the <em>Smith normal form</em> N<sub>p</sub> = U<sub>p−1</sub> ∂<sub>p</sub> V<sub>p</sub>: over modulo 2 arithmetic, an initial segment of the diagonal is 1 and everything else is 0. Split n<sub>p</sub> = b<sub>p−1</sub> + z<sub>p</sub>. The leftmost b<sub>p−1</sub> columns carry the diagonal ones and represent p-chains whose boundaries generate B<sub>p−1</sub>; the rightmost z<sub>p</sub> columns are zero and represent p-cycles generating Z<sub>p</sub>. The new cycle basis is read off the last z<sub>p</sub> columns of V<sub>p</sub>, and the boundary basis off the first b<sub>p−1</sub> columns of the inverse of U<sub>p−1</sub> <span class="cite">— p. 103</span>.</p>
+
+<canvas id="reduce" width="640" height="300" aria-label="Left: the first boundary matrix of the tetrahedron, four rows labelled by vertices one to four and six columns labelled by the edges twelve, thirteen, fourteen, twenty-three, twenty-four and thirty-four, with ones shown as filled cells. An arrow labelled reduce leads to the right: the same matrix in Smith normal form, with ones in the first three diagonal cells and every other cell zero. Below, three lines of readout giving b nought equals three, z one equals three, and reduced beta nought equals zero."></canvas>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the tetrahedron, one dimension at a time.</strong> <span class="cite">— Edelsbrunner, pp. 105–106</span></p>
+<p>Take the 3-ball triangulated as the faces of a single tetrahedron on vertices 1, 2, 3, 4, and compute the reduced homology of each skeleton as it is built.</p>
+<p><strong>0-skeleton.</strong> Four vertices. In the reduced complex the only non-trivial matrix is ∂₀, a single row of four ones — the augmentation ε from Segment 1. Three column operations clear three of them, leaving one non-zero and three zero columns, so β̃₀ = 3. Four points, three gaps.</p>
+<p><strong>1-skeleton.</strong> Add all six edges. The matrix drawn above reduces to three ones on the diagonal, so b₀ = 3 and β̃₀ = 3 − 3 = 0: connected. The three zero columns give z₁ = 3, so β̃₁ = 3 — the complete graph on four vertices carries three independent cycles.</p>
+<p><strong>2-skeleton.</strong> Add the four triangles; the space is now the 2-sphere. ∂₂ is six by four and reduces to ⟨ how many diagonal ones? ⟩, so b₁ = ⟨ ? ⟩ and β̃₁ = 3 − ⟨ ? ⟩ = ⟨ ? ⟩. The zero columns give z₂ = ⟨ ? ⟩, hence β̃₂ = ⟨ ? ⟩ — and that number is the one you should have predicted for a 2-sphere.</p>
+<p><strong>The solid.</strong> Add the tetrahedron itself. ∂₃ is four by one and reduces to ⟨ ? ⟩ diagonal one(s), so β̃₂ drops to ⟨ ? ⟩ and every reduced Betti number is now zero — a ball, as expected. Say in one sentence what was added between the step where β̃₂ became 1 and the step where it returned to 0.</p>
+</div>
+
+<p>The procedure that does this is Gaussian elimination with the arithmetic simplified away. Find any 1 at or below-right of the current diagonal position, move it there with at most two exchanges, clear the rest of its row and column by additions, recurse on the submatrix. At most n<sub>p−1</sub> row and n<sub>p</sub> column operations per call and at most min{n<sub>p−1</sub>, n<sub>p</sub>} calls give (n<sub>p−1</sub> + n<sub>p</sub>) min{n<sub>p−1</sub>, n<sub>p</sub>} operations; multiplying by the length of a row and of a column gives a running time of a constant times 2 n<sub>p−1</sub> n<sub>p</sub> min{n<sub>p−1</sub>, n<sub>p</sub>}, and memory a constant times (n<sub>p−1</sub> + n<sub>p</sub>)². Cubic time, quadratic memory, in the number of simplices <span class="cite">— pp. 104–105</span>.</p>
+
+<div class="guided-proof">
+<p><strong>Guided derivation — a constraint on the persistence algorithm, from these pages only.</strong></p>
+<p>The strip says this reduction is "the exact operation the persistence algorithm iterates". Chapter VII, where that algorithm lives, is not in this unit's resources, and the book itself defers the topic there (p. 93). But something can be settled here without it.</p>
+<p>Observe two things. First, tda1-01's Definition 2.1 gives every simplex a <em>grade</em>: the smallest index at which it is present. It does not give an ordering. Several simplices may share a grade and enter together, and the subcomplex condition says only that a face's grade is no larger than its coface's. Second, the reduction above exchanges rows and columns freely — the very first thing REDUCE does is "exchange rows x and k; exchange columns x and l" — and the resulting bases, read off V<sub>p</sub> and the inverse of U<sub>p−1</sub>, bear no relation to the grading at all.</p>
+<p>Your task: state the consequence as a <em>constraint any persistence algorithm must satisfy</em>, not as a claim about what Chapter VII does. Phrase it in terms of grades, and be careful about what it does <em>not</em> forbid. Then write down one thing you will check first in tda1-03, where the algorithm appears.</p>
+<textarea class="proof-input" aria-label="Write your derivation here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>The constraint.</strong> If an algorithm is to compute homology <em>along</em> a filtration rather than at one index, every basis element it manipulates must carry a grade, and no operation may introduce a simplex into a chain before that chain's own grade. So: an operation is admissible only if it <em>preserves grades and face precedence</em> — it may replace a basis element by a combination of elements of grade no larger, and nothing else. That is the whole constraint, and it is derived from Definition 2.1 plus the description of REDUCE, with nothing about Chapter VII assumed.</p>
+<p><strong>What it forbids, and what it does not.</strong> Adding an earlier column to a later one is admissible: it replaces the p-chain in a column by a sum of p-chains all of which have already entered, which is a change of representative within the same class at every index from that grade onward. Adding a <em>later</em> column to an earlier one is not — it back-dates a simplex. Row operations mix (p−1)-simplices and are subject to exactly the same test, so a row may only absorb rows of grade no larger.</p>
+<p>Exchanges need more care than the quick answer gives them, and this is where reading "filtration" as "ordering" would mislead. An exchange of two columns of the <em>same</em> grade changes nothing about the filtration — the two simplices enter together, and which of them is listed first is a tie-break the filtration never fixed. What is forbidden is an exchange that crosses a grade boundary. So the honest conclusion is not "no exchanges" but "no exchange that reorders grades", and Smith normal form is unreachable because REDUCE exchanges to place a pivot wherever it finds one, with no regard for grade.</p>
+<p><strong>Therefore the strip overstates.</strong> Smith normal form is not what a persistence algorithm can iterate, because Smith normal form is reachable only with tools most of which the constraint forbids. What survives is a strictly poorer reduction, and the interesting question — which this unit cannot answer — is what such a restricted reduction still computes.</p>
+<p><strong>To check first in tda1-03.</strong> Whether the reduction there is column-only and left-to-right, and what replaces the diagonal of the normal form as the thing you read the answer off. A one-sided reduction cannot produce a diagonal, so something else must be carrying the information; find out what before anything else.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> The reduction produces N<sub>p</sub> = U<sub>p−1</sub> ∂<sub>p</sub> V<sub>p</sub>. Why does the Betti number computation need both V<sub>p</sub> and V<sub>p+1</sub> — that is, two different reductions?</p>
+<p>
+<button onclick="check(this,false)">Because ∂<sub>p</sub> is not square</button>
+<button onclick="check(this,true)" data-ok>Because β<sub>p</sub> = z<sub>p</sub> − b<sub>p</sub>, and the two ranks come from matrices one dimension apart</button>
+<button onclick="check(this,false)">Because U and V must be recomputed after each column operation</button>
+</p>
+<div class="explain">z<sub>p</sub> is the number of zero columns of N<sub>p</sub> and b<sub>p</sub> is the number of diagonal ones of N<sub>p+1</sub>. Each reduction sees only one of the two, which is why Edelsbrunner's tetrahedron is worked one dimension at a time and why each Betti number is only finalised when the <em>next</em> matrix has been reduced. Non-squareness is true and is not the reason.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Edelsbrunner writes "we reduce the boundary matrices in time at most cubic and in memory at most quadratic in the number of simplices in K". Which of these is the honest reading?</p>
+<p>
+<button onclick="check(this,false)">Homology of any complex is computable in cubic time</button>
+<button onclick="check(this,true)" data-ok>The stated bound is per dimension, in n<sub>p−1</sub> and n<sub>p</sub>, and is then bounded above using the total</button>
+<button onclick="check(this,false)">The bound is cubic in the dimension of K</button>
+</p>
+<div class="explain">The derived bound is 2 n<sub>p−1</sub> n<sub>p</sub> min{n<sub>p−1</sub>, n<sub>p</sub>} up to a constant, which is a statement about one dimension. Since each of n<sub>p−1</sub> and n<sub>p</sub> is at most the total number of simplices, the summary in terms of that total follows — and is weaker than what was proved. The first option is a real claim about a real algorithm but it is not what was established: it silently generalises from modulo 2 coefficients, and the bibliographic notes on p. 106 say that already over ℤ "it is no longer straightforward to guarantee a running time that is polynomial in the number of simplices".</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Write out ∂₂ for the tetrahedron with edges ordered 12, 13, 14, 23, 24, 34 as rows and triangles ordered 123, 124, 134, 234 as columns. Reduce it by hand and confirm the rank you predicted in the faded example. Then check your answer against a fact you can see without reducing: the four columns sum to zero, and no three of them do.</p>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Modulo 2 coefficients turn homology into linear algebra over a two-element field.</strong> Chains are vectors, the boundary is a homomorphism with no signs, and every element is its own inverse. The Fundamental Lemma holds because each (p−1)-face of a (p+1)-simplex lies in exactly two p-faces and 1 + 1 = 0; it gives B<sub>p</sub> ⊆ Z<sub>p</sub>, which is what licenses the quotient. Order and rank differ by a logarithm, and β<sub>p</sub> = rank Z<sub>p</sub> − rank B<sub>p</sub> is the identity everything else computes.</p>
+<p><strong>2. The invariant is weaker than at1's, and knowingly so.</strong> Induced maps work the same way; the degree of a self-map of a sphere collapses from an integer to an element of {0,1}. Brouwer still follows, which is the point of the trade — the cheap invariant proves the theorem anyway. Euler–Poincaré needs triangulation-independence, which Edelsbrunner declines to prove and at1-07's Corollary 2.11 supplies from Hatcher.</p>
+<p><strong>3. Reduction to Smith normal form computes the Betti numbers, and cannot be what a persistence algorithm iterates.</strong> The boundary map is matrix multiplication; row and column operations are elementary matrices; N<sub>p</sub> = U<sub>p−1</sub> ∂<sub>p</sub> V<sub>p</sub> has b<sub>p−1</sub> diagonal ones and z<sub>p</sub> zero columns, giving both ranks and both bases in cubic time. But a filtration grades the simplices, and an operation is admissible only if it preserves grades and face precedence: a basis element may absorb elements of grade no larger and nothing else. Adding an earlier column to a later one passes; adding a later to an earlier does not; and an exchange passes exactly when it stays within a grade, which REDUCE's pivot search does not respect. So the strip's "exact operation" is too strong, and what a filtered reduction computes is tda1-03's question.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Edelsbrunner and Harer, <em>Computational Topology: An Introduction</em>, §IV.1 "Homology Groups". Chains, modulo 2 coefficients, the group C<sub>p</sub>, the boundary of a simplex and of a chain, the boundary homomorphism and the chain complex (pp. 94–95); cycles and boundaries as kernel and image, the argument that exactly half the 0-cycles are 0-boundaries in a connected complex, and the Fundamental Lemma of Homology with its proof (p. 95); the definition of H<sub>p</sub> and β<sub>p</sub>, cosets, homologous cycles and well-definedness of addition (p. 96); order against rank, ℤ₂<sup>n</sup> as a vector space, and the torus of Figure IV.2 with H₁ of order 4 and rank 2 (p. 97); the homology of a ball with the explicit construction of the (p+1)-chain d (pp. 97–98); the augmentation map, reduced homology, β̃₀ = β₀ − 1 and β̃₋₁ = 1 for the empty complex (p. 98); induced maps f<sub>#</sub> and f<sub>∗</sub> with both cases of the commutation argument and the rank bound (p. 99); the modulo 2 degree and Brouwer's Fixed Point Theorem with its proof (pp. 99–100). The chapter opening's deferral of ranking topological information to Chapter VII (p. 93).
+<p>§IV.2 "Matrix Reduction". n<sub>p</sub> = z<sub>p</sub> + b<sub>p−1</sub>, the reindexing, and the Euler–Poincaré Theorem with the remark that triangulation-independence is difficult and is not proved (p. 101); boundary matrices and boundary as matrix multiplication (p. 102); row and column operations as multiplication by U and V, with the captions of Figures IV.3 and IV.4 (pp. 102–103); Smith normal form, N<sub>p</sub> = U<sub>p−1</sub> ∂<sub>p</sub> V<sub>p</sub>, the split n<sub>p</sub> = b<sub>p−1</sub> + z<sub>p</sub>, and where the two bases are read off (p. 103); the REDUCE procedure and the operation count (p. 104); the running time and memory bounds (p. 105); the tetrahedron worked one dimension at a time with Figure IV.6 (pp. 105–106); the bibliographic note that integer coefficients make polynomial time non-straightforward (p. 106). Every folio was read off the page cited; the Edelsbrunner offset is PDF = printed + 12.
+</p>
+<p>Interleaved and cited from their own units: Hatcher's Corollary 2.11, that homotopy equivalences induce isomorphisms on homology, read in at1-07; the integer degree of at1-08; tda1-01's Definition 2.1 and Simplicial Approximation Theorem.</p>
+<p><strong>Not established here.</strong> That this reduction is "the exact operation the persistence algorithm iterates". Chapter IV contains no persistence and the book defers the topic to Chapter VII on p. 93; §VII.1, which carries the persistence algorithm, is tda1-03's resource, and §VII.2, which gives it a sparse implementation, is tda1-09's. Segment 3 goes further than recording the boundary and derives, from Definition 2.1 together with the description of REDUCE, that an operation is admissible only if it preserves grades and face precedence — which REDUCE's free pivot exchanges do not, so the strip cannot be right as stated. Note that Definition 2.1 grades the simplices and does not order them: simplices sharing a grade enter together, and an exchange between two of those is invisible to the filtration. The constraint is about grades, not about a total order, and the stronger reading would not follow from the definition. That derivation is this lesson's and is offered as a constraint to test in tda1-03, not as a description of Chapter VII's algorithm, which has not been read here.</p>
+<p><strong>Stated but not proved.</strong> That homology is independent of the triangulation, which Edelsbrunner calls difficult and refers elsewhere (p. 101); at1-07's Corollary 2.11 supplies the homotopy-invariance half, and the step from homeomorphic underlying spaces to homotopy equivalence is used without comment here. That homology of a ball is trivial except in degree 0 for a general triangulated ball — Edelsbrunner proves it only for the faces of a single simplex and calls the general case "surprisingly hard" (p. 97). That singular and simplicial homology agree, asserted on p. 101 and used to justify triangulation-independence.</p>
+<p><strong>Deferred.</strong> Relative homology and exact sequences, §IV.3 and §IV.4 — the latter is tda1-09's resource. Cohomology and coboundaries, mentioned on p. 102 as "a concept that will be defined in the next chapter". Persistent homology and the reduction that computes it, Chapter VII, tda1-03 and tda1-09. Integer and general field coefficients, where the reduction is genuinely harder (p. 106) and where at1-09's coefficient discussion applies.</p>
+</footer>
+<script>
+(function(){
+var c=document.getElementById('reduce');if(!c||!c.getContext)return;
+var x=c.getContext('2d');
+var dim='#9aa5b1',ink='#e8e8e8',acc='#8ab4f8',good='#4caf82',grid='#2a333d';
+var D1=[[1,1,1,0,0,0],[1,0,0,1,1,0],[0,1,0,1,0,1],[0,0,1,0,1,1]];
+var N1=[[1,0,0,0,0,0],[0,1,0,0,0,0],[0,0,1,0,0,0],[0,0,0,0,0,0]];
+var cell=26;
+function drawGrid(gx,gy,M,cols,rows,fill){
+  for(var r=0;r<4;r++){for(var k=0;k<6;k++){
+    var px=gx+k*cell,py=gy+r*cell;
+    if(M[r][k]===1){x.fillStyle=fill;x.fillRect(px+1,py+1,cell-2,cell-2);}
+    x.strokeStyle=grid;x.lineWidth=1;x.strokeRect(px,py,cell,cell);
+  }}
+  x.font='11px system-ui,sans-serif';x.textAlign='center';x.fillStyle=dim;
+  for(var k2=0;k2<6;k2++)x.fillText(cols[k2],gx+k2*cell+cell/2,gy-6);
+  x.textAlign='right';
+  for(var r2=0;r2<4;r2++)x.fillText(rows[r2],gx-6,gy+r2*cell+17);
+}
+var edges=['12','13','14','23','24','34'],verts=['1','2','3','4'],idx=['1','2','3','4','5','6'];
+x.font='13px system-ui,sans-serif';x.textAlign='center';x.fillStyle=ink;
+x.fillText('boundary matrix  d1',156,52);
+x.fillText('Smith normal form  N1',468,52);
+drawGrid(78,78,D1,edges,verts,good);
+drawGrid(390,78,N1,idx,verts,acc);
+x.beginPath();x.moveTo(258,130);x.lineTo(368,130);x.strokeStyle=dim;x.lineWidth=1.5;x.stroke();
+x.beginPath();x.moveTo(368,130);x.lineTo(360,126);x.lineTo(360,134);x.closePath();x.fillStyle=dim;x.fill();
+x.font='11px system-ui,sans-serif';x.textAlign='center';x.fillStyle=dim;
+x.fillText('reduce',313,122);
+x.textAlign='left';x.font='13px system-ui,sans-serif';
+x.fillStyle=good;x.fillText('b0 = 3   three ones on the diagonal',78,226);
+x.fillStyle=acc;x.fillText('z1 = 3   three zero columns',78,250);
+x.fillStyle=ink;x.fillText('reduced beta0 = 3 - 3 = 0   connected',78,274);
+})();
+</script>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

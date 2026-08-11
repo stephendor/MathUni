@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda1-09 — The persistence algorithm and duality</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA I · Nexus College</p>
+<h1>The persistence algorithm and duality <span class="cite">(tda1-09)</span></h1>
+
+<div class="hook">
+The full algorithm, with its clever pairing and cohomological speed-up — why Ripser (lab-03) is so fast.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> tda1-03's persistence algorithm is cubic. For a piecewise linear function on a triangulated surface, Edelsbrunner gets both interesting diagrams in time proportional to mα(m) — essentially linear. Where does the saving come from?</p>
+<p>
+<button onclick="check(this,false)">From computing with cohomology instead of homology</button>
+<button onclick="check(this,true)" data-ok>From union–find in dimension 0, and from getting dimension 1 by reflecting the dimension-0 diagram of −f</button>
+<button onclick="check(this,false)">From the sparse matrix representation alone</button>
+</p>
+<div class="explain">Two ingredients, neither of them cohomological. Dimension 0 collapses to a connectivity question that union–find answers in near-linear time. Dimension 1 is then obtained without a second persistence computation, by reflecting the 0-th diagram of −f across the minor diagonal. The sparse representation helps but is still cubic in the worst case. Cohomology is Chapter V of this book and is not in this unit's resources at all — Segment 3 says what that does to the hook.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The theory behind the tool: the reduction algorithm's correctness and the duality that makes it efficient.</p>
+
+<div class="warn">
+<p><strong>Two scope notes, one of which is a straightforward correction.</strong> <em>Correctness</em> was established in tda1-03, by the Pairing Lemma; §VII.2 makes the algorithm fast and changes nothing about whether it is right. And the hook's "cohomological speed-up" is not on these pages: cohomology is Chapter V, outside this unit's resources, and the cohomology-based persistence algorithm that Ripser uses postdates this book entirely. What Edelsbrunner does have is a genuine speed-up from a genuine duality — just a different one, stated in §VII.3 and used in §VII.2. Segment 3 sorts it out and writes the corrected sentence.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The same algorithm, stored sparsely</h2>
+
+<p>tda1-03's algorithm stores the whole boundary matrix. For a large complex that is prohibitive, so §VII.2 replaces it by a linear array ∂[1..m] with a linked list at each entry. The list at ∂[j] starts as the j-th column — the codimension-one faces of σ<sub>j</sub> — and by the end the list at the j-th entry is the column of the reduced matrix <em>whose lowest one is in row j</em>. That relocation is the whole idea, and it is why Edelsbrunner renames the array from ∂ to R as the algorithm runs, and why "we see a general migration of the lists from right to left" <span class="cite">— Edelsbrunner §VII.2, p. 186</span>.</p>
+
+<p>Lists are sorted by decreasing index, so the most recently added simplex is on top; write i = TOP(L). Call an entry <em>occupied</em> if it holds a non-empty list. Then the algorithm reads: for each j, take L = ∂[j], empty R[j], and while L is non-empty and R[i] with i = TOP(L) is occupied, replace L by L + R[i]; if L survives non-empty, deposit it at R[i]. Compare with tda1-03: TOP(L) is low(j), "occupied" is "a column already has that lowest one", and adding lists is adding columns. The dense and sparse algorithms do the same arithmetic.</p>
+
+<p>Adding two lists is a merge that deletes both copies of every duplicate — the set-symmetric-difference reading of addition that tda1-02 established from 1 + 1 = 0 — and sorted order makes it a single parallel scan.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the analysis, by collisions.</strong> <span class="cite">— Edelsbrunner, p. 187</span></p>
+<p>Call a <em>collision</em> a failed attempt to deposit L because the entry is occupied; each one costs a merge. The loop ends either with L empty — σ<sub>j</sub> gives ⟨ birth or death? ⟩ — or with a successful deposit at some entry i, in which case σ<sub>j</sub> gives ⟨ which? ⟩ and σ<sub>i</sub> is ⟨ what? ⟩.</p>
+<p><strong>The inner loop runs right to left.</strong> When L collides with R[k], the simplex σ<sub>k</sub> is topmost in <em>both</em> lists, so in the merge it ⟨ what happens to it, and by what arithmetic? ⟩. Hence the topmost simplex of the result has index below k, and successive collisions have strictly decreasing indices.</p>
+<p><strong>So collisions are confined.</strong> They happen only at entries between i and j, where i = 1 if σ<sub>j</sub> gives birth and i is the index of the corresponding birth if it gives death — and in that second case j − i is exactly tda1-03's ⟨ which quantity? ⟩. A collision at k requires σ<sub>k</sub> to have given birth to a class that died at some σ<sub>l</sub> with i &lt; k &lt; l &lt; j, and inductively the collisions for σ<sub>l</sub> are nested inside [k, l]. So every list added contains only faces of simplices with index in [i, j].</p>
+<p><strong>The bound.</strong> A p-simplex has at most ⟨ how many? ⟩ codimension-one faces, so the faces available number at most (p+1)(j−i), which bounds the cost of one merge; and the number of collisions is bounded by ⟨ what? ⟩. Multiplying gives (p+1)(j−i)² for the inner loop at σ<sub>j</sub>.</p>
+<p>Knowing in advance which simplices give birth — which the Incremental Betti Number Algorithm supplies for complexes in ℝ³ — lets the births be skipped, making the total <em>output-sensitive</em>: the dimension times the sum of squares of the index persistences. That is at most proportional to m³, and much less whenever the bars are short. This is the first bound in the module that improves on favourable data rather than on favourable dimensions.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Compare with tda1-02's Smith normal form bound of a constant times 2n<sub>p−1</sub>n<sub>p</sub>min{n<sub>p−1</sub>, n<sub>p</sub>}. Both are cubic in the worst case. What is genuinely different?</p>
+<p>
+<button onclick="check(this,false)">The persistence bound is per dimension and the Smith bound is not</button>
+<button onclick="check(this,true)" data-ok>The persistence bound depends on the answer, so favourable data beats it; the Smith bound depends only on the input size</button>
+<button onclick="check(this,false)">The Smith bound is not achievable in practice</button>
+</p>
+<div class="explain">The Smith bound is a function of how many simplices there are in two adjacent dimensions and of nothing else — no input of a given size can beat it. The persistence bound is a sum of squares of <em>index persistences</em>, which is a property of the output: a filtration in which everything dies quickly is fast, and one long bar is what costs. It is the Smith bound that is per dimension, incidentally; the persistence algorithm handles all dimensions in one matrix.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Dimension zero collapses, and dimension one is its reflection</h2>
+
+<p>The 0-th diagram depends only on the vertices and edges and their order, since nothing of higher dimension can create or destroy a component. A vertex has empty boundary and always gives birth. An edge σ<sub>j</sub> has ∂σ<sub>j</sub> = u + w with u = σ<sub>i</sub> first and w = σ<sub>k</sub> second; the algorithm tries to deposit the two-element list at R[k], and if that entry is occupied the occupant is another two-element list, so the merge again has length two. Every list in sight has length exactly two, each addition is constant time, and the total is at most m² <span class="cite">— p. 188</span>.</p>
+
+<p>"But we can do even better." Look at what the two cases mean. The edge gives <em>birth</em> to a 1-cycle exactly when u and w already lie in the same component of K<sub>j−1</sub> — the algorithm walks a path along the collisions with L tracking its two endpoints, and eventually the ends meet and L empties. It gives <em>death</em> exactly when they lie in different components; the loop then ends when a path-end reaches the oldest vertex σ<sub>i</sub> of one component, and because the loop runs monotonically right to left, the oldest vertex of the <em>other</em> component is older still. That is the Elder Rule of tda1-03 appearing as a property of the loop's direction rather than as a definition: the survivor is the older component because the loop cannot reach past it.</p>
+
+<p>So the outcome is predictable from connectivity alone. Whether u and w are in different components, and if so which vertices are oldest, is exactly what union–find answers — store each component as a tree and name it by the index of its oldest vertex. The 0-th diagram therefore costs mα(m), with α the inverse Ackermann function, "which, for all practical purposes, is bounded from above by a constant" <span class="cite">— p. 189</span>.</p>
+
+<p>Dimension one has no comparable structure — there is no union–find for 1-cycles. Edelsbrunner's move is not to compute it at all.</p>
+
+<canvas id="reflect" width="640" height="360" aria-label="A persistence diagram plane with two diagonal lines. The faint one running from lower left to upper right is the main diagonal. The solid one running from upper left to lower right is the minor diagonal. Three filled points representing the zeroth diagram of minus f sit on one side, and three open points representing the finite part of the first diagram of f sit on the other, each joined to its partner by a dashed line perpendicular to the minor diagonal, showing that one diagram is the reflection of the other."></canvas>
+
+<div class="theorem">
+<p><strong>The reflection</strong> <span class="cite">— Edelsbrunner, pp. 190–191</span></p>
+<p>A point (a, b) belongs to Dgm₁(f) if and only if (−b, −a) belongs to Dgm₀(−f). So the finite portion of Dgm₁(f) is the finite portion of Dgm₀(−f) reflected across the minor diagonal.</p>
+</div>
+
+<p>The reasoning is one sentence: "Looking at −f is like taking the complement and going backward." A point (a, b) of Dgm₁(f) marks a 1-class born at a and dying at b; under −f the order reverses and the values negate, so the same event is a 0-class born at −b and dying at −a. Edelsbrunner omits the proof, "since the relations are consequences of the more general theorems given in the next section" — that is §VII.3's Persistence Duality and Symmetry Theorems, which tda1-05 read, and which are consequences of Lefschetz duality.</p>
+
+<p>The infinite points are not obtained by reflection and need their own argument. Partition the edges of K into three sets: those that give death in the lower star filtration of f, those that give death in the lower star filtration of −f, and the rest. The first two contribute the finite portions of the 0-th and 1-st diagrams. Each edge in the third set gives a class born when it is added and living on even when K is complete — a point at infinity in the 1-st diagram. The result is a three-pass algorithm computing both diagrams of a PL function on a triangulated 2-manifold in time proportional to mα(m) <span class="cite">— p. 191</span>.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> The reflection computes a 1-dimensional diagram from a 0-dimensional computation. Why is that a <em>speed-up</em> and not merely a convenience?</p>
+<p>
+<button onclick="check(this,false)">Because reflection is cheaper than matrix reduction</button>
+<button onclick="check(this,true)" data-ok>Because dimension 0 has a union–find algorithm and dimension 1 has none, so the reflection moves the work to where a fast method exists</button>
+<button onclick="check(this,false)">Because −f has fewer critical points than f</button>
+</p>
+<div class="explain">The saving is not in the reflection, which is trivial — it is in what the reflection lets you avoid. Dimension 0 reduces to connectivity, which union–find answers in mα(m); dimension 1 has no such reduction, and running the general algorithm there is cubic. Reflecting exports the 1-dimensional problem into the dimension where the fast method lives. That is what makes a duality worth having computationally: not that it is elegant, but that the two sides have different costs.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> An edge in the third part of the partition gives death in neither the filtration of f nor that of −f. Why does that make it a point at infinity in Dgm₁(f)?</p>
+<p>
+<button onclick="check(this,false)">Because it is never added to the complex</button>
+<button onclick="check(this,true)" data-ok>Because it gives birth to a 1-class that is still alive when K is complete, and nothing in the filtration can kill it</button>
+<button onclick="check(this,false)">Because its two endpoints are in different components at every stage</button>
+</p>
+<div class="explain">Giving death for f means killing a component on the way up; giving death for −f means, by the reflection, killing a 1-class of f. An edge doing neither must give birth to a 1-class for f — its endpoints are already connected — and that class survives to the complete complex. On a surface there are no 2-cells beyond K itself to kill it, so its death coordinate is infinite. The third option describes an edge that gives <em>death</em>, which is the opposite case.</div>
+</div>
+
+<p>One prerequisite has been passed over and is worth stating, because it is what makes the whole surface computation legitimate. The diagrams of f are defined from the sublevel sets |K|<sub>a</sub>; the algorithm computes with the lower star filtration, which is the filtration of the monotonic g(σ) = max<sub>x∈σ</sub> f(x) — the function tda1-08 constructed, and which Edelsbrunner gives explicitly here. The inclusion |K<sub>a</sub>| ⊆ |K|<sub>a</sub> is a homotopy equivalence by §VI.3, so by at1-07's Corollary 2.11 the vertical maps in the square relating the two sequences are isomorphisms, and all four maps being induced by inclusion makes it commute. Those are exactly the two hypotheses of the Persistence Equivalence Theorem, so the two sequences define the same diagram <span class="cite">— p. 189</span>.</p>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>Where long exact sequences come from, and what the hook claims</h2>
+
+<p>§IV.4 supplies the machinery that at1-09 and tda1-08 have been using. Free the definitions from simplicial complexes: a <em>chain complex</em> is a sequence 𝒰 = (U<sub>p</sub>, u<sub>p</sub>) with u<sub>p</sub>u<sub>p+1</sub> = 0, and that vanishing is all that is needed to define Z<sub>p</sub>, B<sub>p</sub> and H<sub>p</sub>. A <em>chain map</em> φ commutes with the boundary maps, vφ = φu, which forces φ<sub>p</sub>(Z<sub>p</sub>(𝒰)) ⊆ Z<sub>p</sub>(𝒱) and φ<sub>p</sub>(B<sub>p</sub>(𝒰)) ⊆ B<sub>p</sub>(𝒱) and hence induces a map on homology <span class="cite">— §IV.4, p. 114</span>.</p>
+
+<p>Worth noticing: those two containments are stated correctly here, where §IV.1's version — flagged in tda1-02 — put a stray f<sub>#</sub> on the right-hand side and failed to typecheck. The same book, the same claim, one chapter apart, and this is the right one.</p>
+
+<div class="theorem">
+<p><strong>Snake Lemma</strong> <span class="cite">— Edelsbrunner, p. 115</span></p>
+<p>Let 0 → 𝒰 →<sup>φ</sup> 𝒱 →<sup>ψ</sup> 𝒲 → 0 be a short exact sequence of chain complexes. Then there is a well-defined map D : H<sub>p</sub>(𝒲) → H<sub>p−1</sub>(𝒰), the <em>connecting homomorphism</em>, such that ⋯ → H<sub>p</sub>(𝒰) → H<sub>p</sub>(𝒱) → H<sub>p</sub>(𝒲) →<sup>D</sup> H<sub>p−1</sub>(𝒰) → ⋯ is a long exact sequence.</p>
+</div>
+
+<p>Every other map in the long sequence is induced by a chain map; D is the only new object, and it is the only thing that has to be built. The exact homology sequence of a pair falls straight out: inclusions give 0 → 𝒞(K₀) → 𝒞(K) → 𝒞(K, K₀) → 0, injective on the left, surjective on the right, and exact in the middle because a chain of K is carried by K₀ exactly when it is zero in the quotient.</p>
+
+<div class="guided-proof">
+<p><strong>Guided construction — the connecting homomorphism, and why two of its four steps are the real work.</strong></p>
+<p>Edelsbrunner builds D in four steps from the ladder of short exact sequences. Steps 1 and 2 construct; steps 3 and 4 check.</p>
+<p>Your task: carry out the construction. <strong>Step 1</strong>: start from a cycle α ∈ W<sub>p</sub> and produce γ ∈ U<sub>p−1</sub> — say which map you invert and why you may, and which map you apply next. <strong>Step 2</strong>: show γ is a cycle, using commutativity and vv = 0. <strong>Steps 3 and 4</strong>: say what is chosen in each, what must be shown about it, and — the point of the exercise — why the construction would be worthless without them.</p>
+<textarea class="proof-input" aria-label="Write your construction here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Step 1.</strong> Take a cycle α ∈ W<sub>p</sub> representing a class in H<sub>p</sub>(𝒲). Since ψ<sub>p</sub> is surjective — that is what exactness at 𝒲 gives — there is β ∈ V<sub>p</sub> with ψβ = α. Apply the boundary map: vβ ∈ V<sub>p−1</sub>. Now ψ(vβ) = w(ψβ) = wα = 0 since α is a cycle, so vβ lies in ker ψ<sub>p−1</sub> = im φ<sub>p−1</sub>, and since φ is injective there is a unique γ ∈ U<sub>p−1</sub> with φγ = vβ. Set D[α] = [γ].</p>
+<p><strong>Step 2.</strong> φ(uγ) = v(φγ) = v(vβ) = 0 by commutativity and vv = 0, and φ is injective, so uγ = 0 and γ is a cycle. Without this there would be no class [γ] to land in.</p>
+<p><strong>Step 3: the choice of β.</strong> Another β′ with ψβ′ = α differs from β by something in ker ψ<sub>p</sub> = im φ<sub>p</sub>, so β′ = β + φδ. Then vβ′ = vβ + vφδ = vβ + φ(uδ), so γ′ = γ + uδ — which differs from γ by a boundary, hence [γ′] = [γ].</p>
+<p><strong>Step 4: the choice of α.</strong> A different representative of the same class in H<sub>p</sub>(𝒲) is α + wε, and running the construction on it changes γ by a boundary in the same way, so [γ] is unchanged.</p>
+<p><strong>Why steps 3 and 4 are the work.</strong> Steps 1 and 2 produce <em>a</em> class from <em>a</em> pair of choices; nothing in them says the result is a function of the input. D is defined on homology classes, and the construction reaches into chains twice — once to pick a preimage β, once to pick a representative α. If either choice mattered, D would not be a map at all and the long sequence would not exist. This is the general shape of every diagram-chase definition: the construction is short and the well-definedness is the theorem.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In the long exact sequence the Snake Lemma produces, every map except D is induced by a chain map. Why does that make D the only thing the lemma has to construct?</p>
+<p>
+<button onclick="check(this,true)" data-ok>Because chain maps already induce maps on homology, so those arrows exist before the lemma is stated</button>
+<button onclick="check(this,false)">Because D is the only map that is not a homomorphism</button>
+<button onclick="check(this,false)">Because the other maps are isomorphisms and need no construction</button>
+</p>
+<div class="explain">The maps H<sub>p</sub>(𝒰) → H<sub>p</sub>(𝒱) → H<sub>p</sub>(𝒲) come free from φ and ψ, by the argument that a chain map sends cycles to cycles and boundaries to boundaries. D is the one arrow that drops a dimension, and nothing in the given data points that way — it has to be manufactured, which is why the entire content of the construction is the two well-definedness steps. D is a homomorphism, and the induced maps are certainly not isomorphisms in general; the sequence being exact is exactly the statement that they are not.</div>
+</div>
+
+<p>Edelsbrunner uses the Snake Lemma to derive the <strong>Mayer–Vietoris Sequence Theorem</strong> for a complex K with subcomplexes K′, K″ covering it and A = K′ ∩ K″ — the divide-and-conquer sequence at1-09 taught and tda1-08's PL Morse proof ran on <span class="cite">— p. 117</span>. He omits the proof that the long sequence is exact, "leaving that as an exercise to the interested reader".</p>
+
+<div class="warn">
+<p><strong>The audit, and the corrected sentences.</strong></p>
+<p><em>Cohomology.</em> Searching both sources: §VII.2 and §IV.4 contain none. Edelsbrunner defines cohomology in §V.1, outside this unit's resources, and the one place Chapter VII mentions it is §VII.3's remark that modulo 2 the homology and cohomology groups are isomorphic — used to state Lefschetz duality, not to compute anything. There is no cohomological persistence algorithm in this book. The algorithm the hook is reaching for is a later development, and Ripser is not mentioned anywhere in these pages.</p>
+<p><em>Correctness.</em> tda1-03's Pairing Lemma. §VII.2 adds no correctness argument and needs none: the sparse implementation performs the same operations as the dense one, so it inherits the guarantee.</p>
+<p><em>The duality that does make it efficient.</em> Dgm₁(f) is the reflection of Dgm₀(−f) across the minor diagonal, stated in §VII.2 and proved in §VII.3 from Lefschetz duality. It earns the word "duality" because it relates complementary dimensions of complementary constructions, and it earns "efficient" because dimension 0 has union–find and dimension 1 has nothing comparable — the whole saving is that the two sides of the duality cost different amounts.</p>
+<p><em>Corrected hook:</em> the full algorithm, stored sparsely, with its pairing already proved correct — and, on a surface, made near-linear by union–find in dimension 0 and by a reflection that computes dimension 1 from it. <em>Corrected strip:</em> the theory behind the tool: correctness is the Pairing Lemma of the previous section, and the duality that makes the surface case efficient is §VII.3's, relating Dgm₁(f) to Dgm₀(−f).</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Take K a path of four vertices 1–2–3–4 with the edges added after all the vertices, in the order 12, 34, 23. Run the sparse algorithm by hand: write the initial lists, follow every collision, and read off the 0-th diagram. Then check your pairing against union–find, naming each component by its oldest vertex, and confirm the two agree.</p>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. The sparse implementation is the same algorithm with a different data structure, and its analysis is output-sensitive.</strong> An array of linked lists, migrating right to left; TOP(L) is low(j) and occupancy is the collision test. The inner loop is monotone because the colliding simplex cancels, so collisions are confined to [i, j] and nest; a merge costs at most (p+1)(j−i) and there are at most j−i of them, giving (p+1)(j−i)². Skipping known births makes the total the dimension times the sum of squares of index persistences — a bound the data can beat, unlike tda1-02's.</p>
+<p><strong>2. Dimension 0 reduces to connectivity and dimension 1 reflects into it.</strong> All lists in dimension 0 have length two; an edge gives birth iff its endpoints are already connected, and death otherwise, with the Elder Rule appearing as a consequence of the loop's direction. Union–find then gives mα(m). Dimension 1 has no analogue, so instead Dgm₁(f) is the reflection of Dgm₀(−f) across the minor diagonal, with the points at infinity coming from a three-way partition of the edges. The whole surface computation is legitimate because the lower star filtration is the filtration of g(σ) = max f, homotopy equivalent to the sublevel sets, so the Persistence Equivalence Theorem applies.</p>
+<p><strong>3. Long exact sequences all come from one lemma, and the hook names the wrong duality.</strong> A chain complex needs only uu = 0; a chain map needs only commutation; the Snake Lemma turns a short exact sequence of complexes into a long exact sequence of homology, with the connecting homomorphism the sole construction — and its two well-definedness steps are the actual content. Mayer–Vietoris follows. Meanwhile these pages contain no cohomology and no Ripser: the speed-up is union–find plus reflection, and the duality behind the reflection is §VII.3's Lefschetz-based one.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Edelsbrunner and Harer, <em>Computational Topology: An Introduction</em>, §VII.2 "Efficient Implementations". The sparse matrix representation as a linear array of linked lists, the sorted order, TOP and occupied entries, the renaming of ∂ to R, the migration from right to left, and the pseudocode (p. 186); list addition as a parallel scan, the definition of a collision, the two ways the loop ends and their identification with birth and death, the monotone right-to-left argument, the confinement of collisions to [i, j], the nesting argument, the bound (p+1)(j−i)², and the output-sensitive refinement via the Incremental Betti Number Algorithm (p. 187); the 0-th diagram, the two cases for an edge, the constant-time merges and the m² bound, the connectivity characterisation with Figure VII.7, and the Elder Rule appearing through the loop's direction (p. 188); the union–find reduction with the oldest vertex as component name and the mα(m) bound; surfaces, the two questions, the identification of the lower star filtration with the filtration of g(σ) = max<sub>x∈σ</sub> f(x), the commuting square of isomorphisms, and the appeal to the homotopy equivalence of §VI.3 (p. 189); the Persistence Equivalence Theorem with the note that its proof is "not difficult but tedious and therefore omitted" (p. 190); the relation between Dgm₁(f) and Dgm₀(−f) with Figure VII.8 and the remark that its proof is deferred to the next section, the three-way partition of the edges giving the points at infinity, and the three-pass mα(m) algorithm (pp. 190–191). §IV.4 "Exact Sequences": chain complexes and chain maps in the setting-free form with the containments for cycles and boundaries, exactness, and short exact sequences of chain complexes with their three pointwise consequences (p. 114); the Snake Lemma, the derivation of the exact homology sequence of a pair, and the remark that the proof of exactness is left as an exercise (p. 115); the four-step construction of the connecting homomorphism (pp. 115–117); the Mayer–Vietoris Sequence Theorem with its proof (p. 117). Every folio was read off the page cited; the Edelsbrunner offset is PDF = printed + 12. Note that the running head on printed p. 115 reads "IV.3 Exact Sequences" where the section is IV.4; the section heading on p. 114 is correct.
+<p>Interleaved and cited from their own units: tda1-03's Pairing Lemma, low(j) and the Elder Rule; tda1-02's mod-2 arithmetic and Smith normal form bound, and the §IV.1 typecheck slip that §IV.4 states correctly; at1-07's Corollary 2.11, which supplies the vertical isomorphisms of p. 189; at1-09's long exact sequences, which the Snake Lemma manufactures; tda1-08's lower star filtration and its monotonic function, which Edelsbrunner gives explicitly on p. 189; tda1-05's Persistence Equivalence Theorem and the §VII.3 duality theorems.</p>
+<p><strong>Not established here, and the hook is the reason.</strong> The "cohomological speed-up", and Ripser. Neither §VII.2 nor §IV.4 contains cohomology; Edelsbrunner defines it in §V.1, outside this unit's resources, and Chapter VII mentions it only in §VII.3, to say that modulo 2 the homology and cohomology groups are isomorphic so that Lefschetz duality can be stated. The cohomology-based persistence algorithm postdates this book and is nowhere in it, and Ripser is not named on any page cited here. What is established is a different speed-up — union–find in dimension 0, and the reflection carrying dimension 1 into it — and a different duality, §VII.3's, which §VII.2 invokes and does not prove. Also not established here: correctness, which is tda1-03's Pairing Lemma; §VII.2 inherits it rather than adding to it, and the strip's phrasing suggests otherwise. The corrected hook and strip are in Segment 3.</p>
+<p><strong>Stated but not proved.</strong> The relation between Dgm₁(f) and Dgm₀(−f), whose proof Edelsbrunner omits as a consequence of §VII.3's theorems — which are themselves stated there without proof, as tda1-05 recorded. The Persistence Equivalence Theorem, omitted as tedious. The exactness of the long sequence produced by the Snake Lemma, left as an exercise. The Incremental Betti Number Algorithm of §V.4, cited for the output-sensitive bound and not described. That the union–find bound is mα(m), which rests on Chapter I's analysis of the data structure.</p>
+<p><strong>Deferred.</strong> Cohomology, §V.1 — and with it the modern cohomological persistence algorithm, which is not in this book at any point. Spectral sequences, §VII.4, which reinterprets the same matrix reduction. Extended persistence computation, §VII.3's lower and upper stars. The Wasserstein distance and the stability results that need it. Multi-parameter persistence. Ripser itself and its engineering, which is lab-03's and belongs to the practical track rather than to either of these chapters.</p>
+</footer>
+<script>
+(function(){
+var c=document.getElementById('reflect');if(!c||!c.getContext)return;
+var x=c.getContext('2d');
+var dim='#9aa5b1',ink='#e8e8e8',acc='#8ab4f8',good='#4caf82',grid='#2a333d';
+function line(x1,y1,x2,y2,col,w){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.strokeStyle=col;x.lineWidth=w||1.5;x.stroke();}
+var ox=320,oy=190,u=3.5;
+function PX(a){return ox+u*a;}
+function PY(b){return oy-u*b;}
+x.font='13px system-ui,sans-serif';x.textAlign='center';x.fillStyle=ink;
+x.fillText('one diagram is the other reflected',300,30);
+line(PX(-40),PY(-40),PX(40),PY(40),grid,1);
+line(PX(-40),PY(40),PX(40),PY(-40),dim,1.5);
+var B=[[-30,-10],[-25,5],[-22,14]];
+x.setLineDash([3,3]);
+for(var k=0;k<B.length;k++){
+  var a=B[k][0],b=B[k][1];
+  var ra=-b,rb=-a;
+  line(PX(a),PY(b),PX(ra),PY(rb),grid,1);
+}
+x.setLineDash([]);
+for(var k2=0;k2<B.length;k2++){
+  var a2=B[k2][0],b2=B[k2][1];
+  x.beginPath();x.arc(PX(a2),PY(b2),5,0,6.2832);x.fillStyle=good;x.fill();
+  x.beginPath();x.arc(PX(-b2),PY(-a2),5,0,6.2832);x.strokeStyle=acc;x.lineWidth=2;x.stroke();
+}
+x.font='11px system-ui,sans-serif';x.fillStyle=dim;x.textAlign='left';
+x.fillText('minor diagonal',PX(14),PY(-24));
+x.fillText('main diagonal',PX(20),PY(26));
+x.font='12px system-ui,sans-serif';
+x.fillStyle=good;x.beginPath();x.arc(492,286,5,0,6.2832);x.fill();
+x.fillStyle=dim;x.fillText('Dgm0(-f)',506,290);
+x.strokeStyle=acc;x.lineWidth=2;x.beginPath();x.arc(492,316,5,0,6.2832);x.stroke();
+x.fillStyle=dim;x.fillText('Dgm1(f), finite part',506,320);
+})();
+</script>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

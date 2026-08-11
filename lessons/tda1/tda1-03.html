@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda1-03 — Persistent homology and the persistence module</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA I · Nexus College</p>
+<h1>Persistent homology and the persistence module <span class="cite">(tda1-03)</span></h1>
+
+<div class="hook">
+Track a hole from the level it is born to the level it dies — persistence is homology with a lifespan.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> tda1-02 derived that a filtered reduction may only let a basis element absorb elements of grade no larger — so adding an earlier column to a later one is admissible and free pivot exchange is not. Edelsbrunner's persistence algorithm is on p. 182 of this unit's source. What will it turn out to use?</p>
+<p>
+<button onclick="check(this,true)" data-ok>Exactly that one operation, and nothing else</button>
+<button onclick="check(this,false)">That operation plus column exchanges, to move pivots into place</button>
+<button onclick="check(this,false)">Something unrelated — the constraint was too crude to predict an algorithm</button>
+</p>
+<div class="explain">Exactly that one. The pseudocode's only statement inside the loop is "add column j₀ to column j" with j₀ &lt; j. Segment 3 checks the prediction properly, including the more interesting question of where it was <em>looser</em> than what the book does.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The persistence module — one vector space per level, one map per step — is the mission's central algebraic object.</p>
+
+<div class="warn">
+<p><strong>Two books, one object, and neither of them says so.</strong> Edelsbrunner §VII.1 builds a filtration, takes homology, and studies the images of the induced maps. He never writes the phrase "persistence module" — the object is present and unnamed. Oudot's Chapter 1 defines the persistence module in Definition 1.7 and never builds one from a filtration; his filtrations open Chapter 2, which tda1-01 read. So the identification that gives this unit its title is made here, from the two halves, and Segment 3 does it explicitly rather than by assertion.</p>
+<p><strong>And "one map per step" is not what Definition 1.7 says.</strong> It supplies a map v<sub>i</sub><sup>j</sup> for <em>every</em> pair i ≤ j in T, not only for adjacent ones. For Edelsbrunner's T = {0, 1, …, n} the two descriptions agree, because functoriality makes every map a composite of steps. Over T = ℝ they do not agree and cannot: no two reals are adjacent, so there are no steps at all, and every map in the module is one that "one map per step" fails to account for.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The Elder Rule, and turning it into groups</h2>
+
+<p>Edelsbrunner starts before the algebra. Let 𝕏 be connected and f : 𝕏 → ℝ continuous. Sublevel sets are nested, and drawing each component of 𝕏<sub>a</sub> as a point and letting a increase gives a graph: components merge, and — this is the asymmetry the whole subject rests on — they never split. So the graph is a tree, the <em>merge tree</em> G(f) <span class="cite">— Edelsbrunner §VII.1, p. 178</span>.</p>
+
+<p>Decompose that tree into monotone paths, drawn upward together. When two paths meet, one of them must end. Which?</p>
+
+<div class="theorem">
+<p><strong>Elder Rule</strong> <span class="cite">— Edelsbrunner, p. 179</span></p>
+<p>At a juncture, the older of the two merging paths continues and the younger path ends.</p>
+</div>
+
+<p>The rule is not a convention. Let β(a, b) be the number of components of 𝕏<sub>b</sub> meeting 𝕏<sub>a</sub>. Read on the tree, that is the number of subtrees topping out at b and reaching down to a — and each such subtree has exactly one longest path spanning [a, b]. So β(a, b) is the number of decomposition paths spanning [a, b], and Edelsbrunner adds that any decomposition <em>not</em> generated by the Elder Rule fails this. If f is Morse the Elder Rule gives a unique decomposition, and it is the only one whose spanning counts are the β(a, b) for all a ≤ b. The rule is forced by wanting the counts to come out right.</p>
+
+<p>Now the algebra. Take a simplicial complex K and f : K → ℝ that is <em>monotonic</em>: f(σ) ≤ f(τ) whenever σ is a face of τ. That is exactly the condition making every sublevel set K(a) = f<sup>−1</sup>(−∞, a] a subcomplex, since a face of a simplex in K(a) has value at most that simplex's. With a₁ &lt; ⋯ &lt; a<sub>n</sub> the distinct values and a₀ = −∞, the K<sub>i</sub> = K(a<sub>i</sub>) form</p>
+
+<p style="text-align:center">∅ = K₀ ⊆ K₁ ⊆ ⋯ ⊆ K<sub>n</sub> = K,</p>
+
+<p>which Edelsbrunner calls <em>the filtration of f</em> <span class="cite">— p. 179</span>. Compare tda1-01's Definition 2.1: this is a finitely simplicial filtration over the finite index set {0, 1, …, n}, and note that here K₀ = ∅ by construction, so it is a filtration <em>of</em> K in the strict sense the octahedron example failed.</p>
+
+<p>Each inclusion induces f<sub>p</sub><sup>i,j</sup> : H<sub>p</sub>(K<sub>i</sub>) → H<sub>p</sub>(K<sub>j</sub>), and the filtration becomes a sequence of homology groups strung together by homomorphisms, one sequence per dimension. Classes appear; classes stop being new.</p>
+
+<div class="definition">
+<p><strong>Persistent homology groups</strong> <span class="cite">— Edelsbrunner, p. 180</span></p>
+<p>The p-th persistent homology groups are the images of the homomorphisms induced by inclusion, H<sub>p</sub><sup>i,j</sup> = im f<sub>p</sub><sup>i,j</sup>, for 0 ≤ i ≤ j ≤ n. The corresponding p-th persistent Betti numbers are the ranks, β<sub>p</sub><sup>i,j</sup> = rank H<sub>p</sub><sup>i,j</sup>.</p>
+</div>
+
+<p>Two readings of the same group, and it is worth having both. As an image it is a subgroup of H<sub>p</sub>(K<sub>j</sub>) — the classes of K<sub>j</sub> that were already there at K<sub>i</sub>. As a subquotient it is H<sub>p</sub><sup>i,j</sup> = Z<sub>p</sub>(K<sub>i</sub>) / (B<sub>p</sub>(K<sub>j</sub>) ∩ Z<sub>p</sub>(K<sub>i</sub>)) — the cycles present at time i, modulo those that have become boundaries by time j. The first is where the classes live; the second is what has happened to them.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: birth and death, made precise.</strong> <span class="cite">— Edelsbrunner, p. 180</span></p>
+<p>Let γ be a class in H<sub>p</sub>(K<sub>i</sub>). It is <em>born</em> at K<sub>i</sub> if γ ∉ H<sub>p</sub><sup>i−1,i</sup> — read aloud: γ is not the image of anything that was already there one step earlier, so it is genuinely new at i.</p>
+<p>If γ is born at K<sub>i</sub> then it <em>dies entering</em> K<sub>j</sub> if f<sub>p</sub><sup>i,j−1</sup>(γ) ∉ H<sub>p</sub><sup>i−1,j−1</sup> but f<sub>p</sub><sup>i,j</sup>(γ) ∈ H<sub>p</sub><sup>i−1,j</sup>. In words: up to time j−1 the class was still ⟨ what? ⟩, and at time j it becomes ⟨ what? ⟩. Note that the condition is membership in the image of what was <em>already there</em>, and that image may be zero — so a class becoming a boundary is the special case of dying into ⟨ which subgroup? ⟩, not a case the definition excludes. Edelsbrunner's gloss "it merges with an older class" is exact for H₀, where deaths really are merges of components and the Elder Rule names which one survives. In higher degree the other way happens too, and Segment 3's triangle shows it: the 1-cycle born at edge 6 dies when the triangle makes it a boundary, with no older class to merge with at all.</p>
+<p>The <em>persistence</em> of γ is pers(γ) = a<sub>j</sub> − a<sub>i</sub>, the difference in function value; the <em>index persistence</em> is j − i. A class born and never dying gets ∞ for both. Two classes can share an index persistence and differ wildly in persistence, so a stability theorem — which is about perturbing f — must be about ⟨ which of the two? ⟩.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Edelsbrunner remarks that births and deaths "can also be defined for a sequence of vector spaces that are not necessarily homology groups. All we need is a finite sequence and homomorphisms from left to right." What does that remark give up?</p>
+<p>
+<button onclick="check(this,false)">Uniqueness of the pairing</button>
+<button onclick="check(this,true)" data-ok>Every connection to a space — the definitions were never topological</button>
+<button onclick="check(this,false)">The Elder Rule, which needs a merge tree</button>
+</p>
+<div class="explain">It gives up the topology and keeps everything else. Birth, death and multiplicity were defined from images of composites and nothing else, so nothing in them knew that the vector spaces were homology groups. This remark is the whole of Definition 1.7 in one sentence, three chapters early and without the name — except that Oudot will also drop "finite", which Edelsbrunner keeps.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The diagram, and why it loses nothing</h2>
+
+<p>The persistent Betti numbers form a two-parameter family, which is awkward. The diagram compresses them to a multiset of points. Let μ<sub>p</sub><sup>i,j</sup> be the number of p-dimensional classes born at K<sub>i</sub> and dying entering K<sub>j</sub>. Then</p>
+
+<p style="text-align:center">μ<sub>p</sub><sup>i,j</sup> = (β<sub>p</sub><sup>i,j−1</sup> − β<sub>p</sub><sup>i,j</sup>) − (β<sub>p</sub><sup>i−1,j−1</sup> − β<sub>p</sub><sup>i−1,j</sup>)</p>
+
+<p>for all i &lt; j and all p. The first bracket counts classes born at or before K<sub>i</sub> that die entering K<sub>j</sub>; the second counts those born at or before K<sub>i−1</sub> that do the same; the difference is those born exactly at K<sub>i</sub>. Drawing each point (a<sub>i</sub>, a<sub>j</sub>) with multiplicity μ<sub>p</sub><sup>i,j</sup> gives the <em>p-th persistence diagram</em> Dgm<sub>p</sub>(f). Multiplicities are defined only for i &lt; j, so every point lies strictly above the diagonal, and the vertical distance to the diagonal is the persistence. Edelsbrunner then adds the diagonal itself, each point with infinite multiplicity, "for technical reasons which will become clear in the next chapter" — those reasons are tda1-06's, where the bottleneck matching needs somewhere to send unmatched points <span class="cite">— p. 181</span>.</p>
+
+<p>Reading β back off the diagram is a quadrant count: β<sub>p</sub><sup>k,l</sup> is the number of points in the upper-left quadrant with corner (a<sub>k</sub>, a<sub>l</sub>). A class born at K<sub>i</sub> and dying entering K<sub>j</sub> is counted exactly when a<sub>i</sub> ≤ a<sub>k</sub> and a<sub>j</sub> &gt; a<sub>l</sub> — so the quadrant is <em>closed</em> along its vertical right side and <em>open</em> along its horizontal lower side. The asymmetry is not decoration; it is the difference between "born by then" and "not yet dead by then".</p>
+
+<div class="theorem">
+<p><strong>Fundamental Lemma of Persistent Homology</strong> <span class="cite">— Edelsbrunner, p. 181</span></p>
+<p>Let ∅ = K₀ ⊆ K₁ ⊆ ⋯ ⊆ K<sub>n</sub> = K be a filtration. For every pair of indices 0 ≤ k ≤ l ≤ n and every dimension p, the p-th persistent Betti number is β<sub>p</sub><sup>k,l</sup> = Σ<sub>i≤k</sub> Σ<sub>j&gt;l</sub> μ<sub>p</sub><sup>i,j</sup>.</p>
+</div>
+
+<p>Edelsbrunner's gloss is one sentence: "the diagram encodes the entire information about persistent homology groups." Worth being exact about the scope of that. It says the multiset of points determines every β<sub>p</sub><sup>k,l</sup>, which is a genuine completeness statement and the reason diagrams are used at all. It does <em>not</em> say the diagram determines the filtration — different filtrations routinely share a diagram — nor that it determines the homology classes, which have been discarded in favour of counting them.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why is the Fundamental Lemma of Persistent Homology a lemma about <em>inverting</em> the definition of μ?</p>
+<p>
+<button onclick="check(this,true)" data-ok>μ was defined from the β by differences; the lemma recovers the β by summation</button>
+<button onclick="check(this,false)">It proves the μ are non-negative</button>
+<button onclick="check(this,false)">It proves the diagram is finite</button>
+</p>
+<div class="explain">μ<sub>p</sub><sup>i,j</sup> is a second difference of the persistent Betti numbers, and the lemma is the corresponding double summation. The content is that the alternating cancellation goes through — a discrete inclusion–exclusion. Non-negativity of μ is true and is a separate matter, and finiteness is automatic for a finite filtration.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>One reduction, one pass, and the module it computes</h2>
+
+<p>All of this is computed by a single matrix reduction, which is the payoff of tda1-02 and the test of its prediction. Order the simplices σ₁, …, σ<sub>m</sub> <em>compatibly</em>: f(σ<sub>i</sub>) &lt; f(σ<sub>j</sub>) implies i &lt; j, and so does σ<sub>i</sub> being a face of σ<sub>j</sub>. Monotonicity of f is exactly what makes such an ordering exist, and every initial subsequence is then a subcomplex. Build one boundary matrix ∂ over all dimensions at once, with ∂[i, j] = 1 exactly when σ<sub>i</sub> is a codimension-one face of σ<sub>j</sub> <span class="cite">— pp. 181–182</span>.</p>
+
+<div class="theorem">
+<p><strong>The persistence algorithm</strong> <span class="cite">— Edelsbrunner, p. 182</span></p>
+<p>Let low(j) be the row index of the lowest one in column j, undefined if the column is zero. Call R <em>reduced</em> if low(j) ≠ low(j′) for any two distinct non-zero columns. Then: R = ∂; for j = 1 to m, while there exists j′ &lt; j with low(j′) = low(j), add column j′ to column j.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the prediction, checked.</strong></p>
+<p>tda1-02 derived, from tda1-01's Definition 2.1 and the description of REDUCE, that a filtered reduction may only let a basis element absorb elements of grade no larger. Adding an earlier column to a later one is admissible on that test; free pivot exchange is not. The algorithm above performs exactly one operation, and it is the admissible one. The prediction holds.</p>
+<p>Where it was <em>looser</em> than the book is the more useful question. The constraint permitted adding any earlier column to any later one; the algorithm adds only when the lowest ones collide, and always sweeps left to right. That extra discipline is what buys the two structural facts below, neither of which follows from the constraint alone.</p>
+<p>And the last part of the prediction: a one-sided reduction cannot produce a diagonal, so something else must carry the answer. It is the <em>lowest ones</em>. Since ∂ is upper triangular — every simplex is preceded by its proper faces — and additions run left to right, V and R are upper triangular too, and R = ∂ · V. Counting zero columns and lowest ones by dimension gives #Zero<sub>p</sub>(R) = rank Z<sub>p</sub> and #Low<sub>p</sub>(R) = rank B<sub>p</sub>, so β<sub>p</sub> = #Zero<sub>p</sub> − #Low<sub>p</sub> — tda1-02's formula, read off a matrix that is nowhere near normal form. And the pairing of a row to a column by a lowest one is ⟨ what, in the language of Segment 1? ⟩.</p>
+</div>
+
+<canvas id="pers" width="640" height="300" aria-label="Left: the eight by eight boundary matrix of a triangle filtration, rows and columns indexed zero to seven, with ones shown as filled cells. An arrow labelled add earlier column to later leads to the right: the reduced matrix R, with the same layout, four non-zero columns, and the four lowest ones drawn darker. Below, a line listing the four pairs zero one, two four, three five and six seven, and noting that columns two, three and six are zero."></canvas>
+
+<p>The example drawn above is Edelsbrunner's own <span class="cite">— pp. 184–185</span>. K is a triangle with its faces; the filtration adds the three vertices, then the three edges, then the triangle, numbered 1 to 7 — and a dummy simplex of index 0, the non-zero element of the (−1)-st reduced chain group, so that the computation is of <em>reduced</em> homology. The augmentation makes the boundary of each vertex that dummy simplex. Reduction leaves four non-zero columns. The lowest ones are at (0, 1), (2, 4), (3, 5) and (6, 7): vertex 1 kills the (−1)-dimensional class; vertices 2 and 3 give birth to 0-cycles killed by edges 4 and 5; edge 6 kills nothing, its column reducing to zero, and gives birth to the 1-cycle that the triangle 7 kills.</p>
+
+<div class="guided-proof">
+<p><strong>Guided proof — the Pairing Lemma.</strong></p>
+<p>The reduced matrix R is <em>not</em> unique: one may stop as soon as it is reduced or keep going. Yet the pairing had better not depend on that. Edelsbrunner's fix is to characterise the lowest ones by something manifestly independent of the reduction. Write R<sub>i</sub><sup>j</sup> for the lower-left submatrix of R with corner R[i, j], and</p>
+<p style="text-align:center">r<sub>R</sub>(i, j) = rank R<sub>i</sub><sup>j</sup> − rank R<sub>i+1</sub><sup>j</sup> + rank R<sub>i+1</sub><sup>j−1</sup> − rank R<sub>i</sub><sup>j−1</sup>.</p>
+<p><strong>Pairing Lemma.</strong> i = low(j) if and only if r<sub>∂</sub>(i, j) = 1. In particular the pairing defined by the lowest ones does not depend on R.</p>
+<p>Your task: prove it. Establish first that rank R<sub>i</sub><sup>j</sup> equals the <em>number of non-zero columns</em> of R<sub>i</sub><sup>j</sup>, then evaluate r<sub>R</sub>(i, j) in the case where R[i, j] is a lowest one and in the two sub-cases where it is not. Finally say why r<sub>R</sub> = r<sub>∂</sub>.</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Rank equals the number of non-zero columns.</strong> In a reduced matrix distinct non-zero columns have distinct lowest ones. In any non-trivial linear combination of them, look at the column whose lowest one sits lowest: its entry in that row is 1 and every other column in the combination is zero there, so nothing can cancel it and the combination is non-zero. Hence the non-zero columns are independent, and they span, so they are a basis. The same holds for every submatrix R<sub>i</sub><sup>j</sup>, since deleting rows above i and columns after j leaves a reduced matrix.</p>
+<p><strong>Book-keeping that makes all three cases short.</strong> A column is non-zero in R<sub>i</sub><sup>j</sup> exactly when its index is at most j and its lowest one lies in row i or below — if the lowest one were above row i, every entry from row i down would be zero. Let c be the number of columns among 1, …, j−1 whose lowest one is in row i or below.</p>
+<p><strong>Case R[i, j] is a lowest one.</strong> Then rank R<sub>i</sub><sup>j</sup> = c + 1, counting column j as well. Removing row i kills column j and nothing else, since lowest ones are distinct, so rank R<sub>i+1</sub><sup>j</sup> = c; and both j−1 submatrices have rank c, for the same reason. So r<sub>R</sub>(i, j) = (c+1) − c + c − c = 1.</p>
+<p><strong>Case R[i, j] is not a lowest one, sub-case A:</strong> no column among 1, …, j−1 has its lowest one in row i. Then R<sub>i</sub><sup>j</sup> and R<sub>i+1</sub><sup>j</sup> have the same number of non-zero columns, and so do R<sub>i</sub><sup>j−1</sup> and R<sub>i+1</sub><sup>j−1</sup>. The four terms cancel in two pairs and r<sub>R</sub>(i, j) = 0.</p>
+<p><strong>Sub-case B:</strong> some column among 1, …, j−1 has its lowest one in row i. Then R<sub>i</sub><sup>j</sup> has one more non-zero column than R<sub>i+1</sub><sup>j</sup>, and R<sub>i</sub><sup>j−1</sup> has one more than R<sub>i+1</sub><sup>j−1</sup> — the same extra column, since its index is below j. The first difference contributes +1 and the second contributes −1, so r<sub>R</sub>(i, j) = 0 again.</p>
+<p><strong>Why r<sub>R</sub> = r<sub>∂</sub>.</strong> Left-to-right column operations preserve the rank of every lower-left submatrix: adding column j′ to column j with j′ &lt; j does not change the span of the first j columns, and the row deletion is the same on both sides. So rank R<sub>i</sub><sup>j</sup> = rank ∂<sub>i</sub><sup>j</sup> for all i, j, and the four ranks in r are the same computed from either matrix. Since r<sub>∂</sub> is defined without reference to any reduction, the lowest ones are too — and this is where the one-sidedness of the algorithm is spent. A reduction allowed to add later columns to earlier ones would not preserve these submatrix ranks, and the pairing would be an artifact.</p>
+</details>
+</div>
+
+<p>Now name what has been built. Oudot regards (T, ≤) as a category, one object per element and a single morphism per pair i ≤ j, and defines a <em>representation</em> to be a functor to vector spaces: spaces V<sub>i</sub> and maps v<sub>i</sub><sup>j</sup> subject to v<sub>i</sub><sup>i</sup> = 1 and v<sub>i</sub><sup>k</sup> = v<sub>j</sub><sup>k</sup> ∘ v<sub>i</sub><sup>j</sup> <span class="cite">— Oudot §1.1, p. 19, constraints (1.10)</span>.</p>
+
+<div class="definition">
+<p><strong>Definition 1.7</strong> <span class="cite">— Oudot, p. 20</span></p>
+<p>Given T ⊆ ℝ, a <em>persistence module</em> over T is a representation of the poset (T, ≤).</p>
+</div>
+
+<p>Edelsbrunner's construction is one: take T = {0, 1, …, n}, V<sub>i</sub> = H<sub>p</sub>(K<sub>i</sub>) and v<sub>i</sub><sup>j</sup> = f<sub>p</sub><sup>i,j</sup>. Both constraints hold — the first because the inclusion K<sub>i</sub> ⊆ K<sub>i</sub> is the identity, the second because composing inclusions gives an inclusion and homology is a functor, which is at1-10's content. Under the identification, β<sub>p</sub><sup>i,j</sup> = rank v<sub>i</sub><sup>j</sup>, and Edelsbrunner's whole apparatus of births and deaths is a statement about ranks of composites in a module. What the module discards is the cycles and boundaries themselves; what Edelsbrunner uses without naming is precisely the composition constraint, every time he compares H<sub>p</sub><sup>i,j</sup> with H<sub>p</sub><sup>i−1,j</sup>. Definition 1.8 covers the case where some arrows run backwards — <em>zigzag modules</em>, representations of an A<sub>n</sub>-type quiver — which no filtration produces, since inclusions all point one way.</p>
+
+<div class="theorem">
+<p><strong>Theorem 1.9 (Interval Decomposition)</strong> <span class="cite">— Oudot, p. 20</span></p>
+<p>A representation 𝕍 of the poset (T, ⪯) decomposes as a direct sum of interval modules when (i) T is finite and the Hasse diagram of ⪯ is of type A<sub>n</sub>, or (ii) T is arbitrary, ⪯ is the natural order, and 𝕍 is pointwise finite-dimensional. The decomposition, when it exists, is unique up to isomorphism and permutation, and each term is indecomposable.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Case (i) of Theorem 1.9 applies to Edelsbrunner's filtration. Why does he never invoke it?</p>
+<p>
+<button onclick="check(this,false)">Because his coefficients are ℤ₂ and the theorem needs a general field</button>
+<button onclick="check(this,true)" data-ok>Because his algorithm produces a pairing directly; the theorem would add uniqueness</button>
+<button onclick="check(this,false)">Because his index set is not of type A<sub>n</sub></button>
+</p>
+<div class="explain">The algorithm gives <em>a</em> pairing, and the Pairing Lemma shows it does not depend on the reduction — so Edelsbrunner earns his own uniqueness, by a completely different route. What Theorem 1.9 adds is that the pairing corresponds to a decomposition of the module into interval summands, unique up to isomorphism and permutation. That is tda1-04's subject. ℤ₂ is a field, and {0, …, n} with the natural order has Hasse diagram L<sub>n</sub>, which case (i) explicitly names.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Oudot's Rule 1.10 picks, among intervals of ℝ meeting T in a given interval S, the smallest by inclusion. Why does no such ambiguity arise for Edelsbrunner?</p>
+<p>
+<button onclick="check(this,false)">Because his diagrams are drawn with function values, not indices</button>
+<button onclick="check(this,true)" data-ok>Because his intervals are produced by a pairing of indices, never chosen as subsets of ℝ</button>
+<button onclick="check(this,false)">Because his index set is finite, and Rule 1.10 concerns infinite ones</button>
+</p>
+<div class="explain">His intervals arrive as a pair (i, j) from the algorithm, so there is nothing to choose. Oudot's problem is the reverse one: given a sub<em>set</em> S of T that happens to be an interval, write it as an interval of ℝ cut down to T — and with T = {1,2,3,4} and S = {2,3}, the candidates include [2,3], (1,3], [2,4) and (1,4). Finiteness is not the issue: the ambiguity is at its worst for finite T, since a sparse T leaves more room between its points.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Take the same triangle but filter it differently: all three vertices at once, then edge [1,2], then edge [1,3], then edge [2,3], then the triangle. Write the compatible ordering, build ∂, reduce it, and read off the pairs. Then compare the two diagrams and say which points moved and which did not — and whether the multiset for H₁ changed at all.</p>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. The Elder Rule is forced, and monotonicity is what makes it algebraic.</strong> Components merge and never split, so the merge tree is a tree; β(a, b) counts spanning paths only for the elder decomposition. A monotonic f on K has subcomplex sublevel sets, giving a finite filtration from ∅ to K; homology turns it into a sequence of groups, and H<sub>p</sub><sup>i,j</sup> = im f<sub>p</sub><sup>i,j</sup> is both a subgroup of H<sub>p</sub>(K<sub>j</sub>) and the subquotient Z<sub>p</sub>(K<sub>i</sub>)/(B<sub>p</sub>(K<sub>j</sub>) ∩ Z<sub>p</sub>(K<sub>i</sub>)). Death is merging with an older class, not becoming a boundary.</p>
+<p><strong>2. The diagram is a second difference and loses no persistent Betti number.</strong> μ is defined from the β by a double difference; the Fundamental Lemma of Persistent Homology inverts it by a double sum. The quadrant that reads β<sub>p</sub><sup>k,l</sup> is closed on the right and open below, because "born by k" and "not dead by l" are not symmetric conditions. Completeness is about the β and not about the filtration, which the diagram does not determine.</p>
+<p><strong>3. One left-to-right column reduction computes all of it, and the object it computes has a name.</strong> A compatible ordering exists because f is monotonic; ∂, V and R are upper triangular; β<sub>p</sub> = #Zero<sub>p</sub> − #Low<sub>p</sub>; and the Pairing Lemma makes the lowest ones independent of the reduction by characterising them through submatrix ranks that left-to-right operations preserve. The sequence of groups is a persistence module in the sense of Definition 1.7, with β<sub>p</sub><sup>i,j</sup> = rank v<sub>i</sub><sup>j</sup>; Theorem 1.9 says it decomposes into intervals, which is what tda1-04 turns into a barcode.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Edelsbrunner and Harer, <em>Computational Topology: An Introduction</em>, §VII.1 "Persistent Homology". The merge tree of a continuous function on a connected space and the path decomposition (p. 178); the Elder Rule, β(a, b) as a count of spanning paths, and the uniqueness claim for Morse functions (p. 179); monotonic functions, sublevel sets as subcomplexes, the filtration of f, and the induced sequence of homology groups (p. 179); the definition of the persistent homology groups and persistent Betti numbers, the subquotient formula, birth and death entering, persistence and index persistence, and the remark that the definitions need only a finite sequence of vector spaces and linear maps (p. 180); persistence diagrams, the formula for μ<sub>p</sub><sup>i,j</sup>, the addition of the diagonal with infinite multiplicity, the quadrant rule with its closed right and open lower side, and the Fundamental Lemma of Persistent Homology (p. 181); compatible orderings, the single boundary matrix, low(j) and the reduced condition, and the left-to-right column algorithm (pp. 181–182); R = ∂ · V, upper triangularity, and β<sub>p</sub> = #Zero<sub>p</sub> − #Low<sub>p</sub> (p. 182); the Pairing Lemma with its submatrix-rank argument and all three cases, positive and negative simplices, and the identification of lowest ones with finite diagram points (pp. 183–184); the worked triangle with the dummy (−1)-simplex, the four lowest ones, and Figures VII.4 and VII.5 (pp. 184–185); the chapter opening (p. 177). Every folio was read off the page cited; the Edelsbrunner offset is PDF = printed + 12.
+<p>Oudot, <em>Persistence Theory</em>, Chapter 1 "Algebraic Persistence". Representations of (T, ≤) as functors to vector spaces with the constraints (1.10), footnote 4 giving the poset category as one object per element and a single morphism per couple i ≤ j, and Theorem 1.6 of Crawley-Boevey (p. 19); Definition 1.7 of a persistence module, Definition 1.8 of a zigzag module with its rephrasing, the definition of an interval of T and of the associated interval module, and Theorem 1.9 with both cases and the uniqueness clause (pp. 20–21); decorated real numbers, the dictionary for finite intervals, and Rule 1.10 with its worked ambiguity for T = {1,2,3,4} and S = {2,3} (p. 21). The Oudot offset is PDF = printed + 9. Definition 1.7 and Theorem 1.9 were first read in cat-07 and are re-read here against the same pages.</p>
+<p><strong>Not established here.</strong> That the persistence module has "one map per step". Definition 1.7 supplies a map for every pair i ≤ j; the two agree for Edelsbrunner's finite index set, where functoriality makes each map a composite of steps, and fail over T = ℝ, which has no adjacent pairs and hence no steps. The strip is exact on "one vector space per level" and loose on the second clause, and the looseness matters from tda1-05 onward, where the index set is ℝ. Also not established: that the module is this unit's <em>central</em> object. The Elder Rule, the subquotient formula, the algorithm, the Pairing Lemma and the Fundamental Lemma of Persistent Homology are all provable without the word; the module is what tda1-04 needs, and the strip is best read as a claim about where the module leads rather than about what this unit rests on.</p>
+<p><strong>Stated but not proved.</strong> That any non-elder path decomposition fails the spanning-path property, asserted on p. 179 and set as Problem 1(c). The Fundamental Lemma of Persistent Homology, stated on p. 181 with the gloss that the diagram encodes the entire information and no proof given there; the double-summation argument is set as Problem 5(d). That #Zero<sub>p</sub>(R) = rank Z<sub>p</sub> and #Low<sub>p</sub>(R) = rank B<sub>p</sub>, which p. 182 obtains by "comparing the reduced matrix with the normal form matrices" — a comparison, not an argument, and tda1-02's normal forms are what it compares to. That the running time is at most cubic, asserted on p. 182 without analysis.</p>
+<p><strong>Deferred.</strong> The interval decomposition turned into a barcode, tda1-04, which is where Theorem 1.9's uniqueness earns its keep. Diagrams as objects with a geometry of their own, tda1-05; the bottleneck distance and the reason the diagonal carries infinite multiplicity, tda1-06. Sparse implementations of this algorithm, Edelsbrunner §VII.2, tda1-09. Extended persistence, §VII.3 and Oudot §2.1.2. Theorem 1.6, quoted here as the source of Theorem 1.9's case (ii), whose own proof by functorial filtration is outside both units.</p>
+</footer>
+<script>
+(function(){
+var c=document.getElementById('pers');if(!c||!c.getContext)return;
+var x=c.getContext('2d');
+var dim='#9aa5b1',ink='#e8e8e8',acc='#8ab4f8',good='#4caf82',grid='#2a333d';
+var n=8,cell=20;
+function empty(){var M=[];for(var i=0;i<n;i++){M.push([0,0,0,0,0,0,0,0]);}return M;}
+var B=empty();
+B[0][1]=1;B[0][2]=1;B[0][3]=1;
+B[1][4]=1;B[2][4]=1;
+B[1][5]=1;B[3][5]=1;
+B[2][6]=1;B[3][6]=1;
+B[4][7]=1;B[5][7]=1;B[6][7]=1;
+var R=empty();
+R[0][1]=1;
+R[1][4]=1;R[2][4]=1;
+R[1][5]=1;R[3][5]=1;
+R[4][7]=1;R[5][7]=1;R[6][7]=1;
+var lows=[[0,1],[2,4],[3,5],[6,7]];
+function isLow(r,k){for(var t=0;t<lows.length;t++){if(lows[t][0]===r&&lows[t][1]===k)return true;}return false;}
+function drawGrid(gx,gy,M,mark,fill){
+  for(var r=0;r<n;r++){for(var k=0;k<n;k++){
+    var px=gx+k*cell,py=gy+r*cell;
+    if(M[r][k]===1){x.fillStyle=(mark&&isLow(r,k))?ink:fill;x.fillRect(px+1,py+1,cell-2,cell-2);}
+    x.strokeStyle=grid;x.lineWidth=1;x.strokeRect(px,py,cell,cell);
+  }}
+  x.font='10px system-ui,sans-serif';x.fillStyle=dim;
+  x.textAlign='center';
+  for(var k2=0;k2<n;k2++)x.fillText(String(k2),gx+k2*cell+cell/2,gy-5);
+  x.textAlign='right';
+  for(var r2=0;r2<n;r2++)x.fillText(String(r2),gx-5,gy+r2*cell+14);
+}
+x.font='13px system-ui,sans-serif';x.textAlign='center';x.fillStyle=ink;
+x.fillText('boundary matrix  d',160,52);
+x.fillText('reduced  R   (lowest ones light)',450,52);
+drawGrid(100,70,B,false,good);
+drawGrid(390,70,R,true,acc);
+x.beginPath();x.moveTo(280,150);x.lineTo(370,150);x.strokeStyle=dim;x.lineWidth=1.5;x.stroke();
+x.beginPath();x.moveTo(370,150);x.lineTo(362,146);x.lineTo(362,154);x.closePath();x.fillStyle=dim;x.fill();
+x.font='10px system-ui,sans-serif';x.textAlign='center';x.fillStyle=dim;
+x.fillText('add earlier col',325,141);
+x.fillText('to later col',325,166);
+x.textAlign='left';x.font='13px system-ui,sans-serif';
+x.fillStyle=ink;x.fillText('pairs (row, col):  (0,1)   (2,4)   (3,5)   (6,7)',100,262);
+x.fillStyle=dim;x.font='12px system-ui,sans-serif';
+x.fillText('columns 2, 3 and 6 reduce to zero - those simplices give birth',100,284);
+})();
+</script>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

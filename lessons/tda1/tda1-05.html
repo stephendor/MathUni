@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda1-05 — Persistence diagrams and their space</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA I · Nexus College</p>
+<h1>Persistence diagrams and their space <span class="cite">(tda1-05)</span></h1>
+
+<div class="hook">
+Replot each interval as a point above the diagonal — the persistence diagram, a multiset you can do geometry on.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> tda1-04 built the diagram from a barcode, which needs an interval decomposition. Some modules have none. What can be done for them?</p>
+<p>
+<button onclick="check(this,false)">Nothing — no decomposition, no diagram</button>
+<button onclick="check(this,true)" data-ok>Build the measure first from ranks, then produce the diagram from the measure</button>
+<button onclick="check(this,false)">Approximate the module by a decomposable one and take its diagram</button>
+</p>
+<div class="explain">Oudot's §4 describes itself as proceeding "backwards compared to Section 3": the inclusion–exclusion formulas that were <em>consequences</em> of having a diagram get promoted to <em>axioms</em> defining a measure, and Theorem 1.13 then produces the unique multiset realising it. The third option is not wrong as a later idea — it is Crawley-Boevey's, and it needs the metric this unit does not have.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Diagram space is the metric space (an2-01) where stability is stated; lab-04 computed these, here they are defined.</p>
+
+<div class="warn">
+<p><strong>Neither of this unit's sources defines a metric on diagrams.</strong> Edelsbrunner says so himself at the moment he adds the diagonal: it is there "for technical reasons which will become clear in the next chapter" (p. 181) — Chapter VIII, which is tda1-06's and tda1-07's. Oudot's §4 says his diagrams "can be compared against one another in a natural and theoretically sound way" and points at his Chapter 3, also tda1-06's. So the strip's "here they are defined" is right about the diagrams and wrong about the space. Segment 3 says exactly what this unit is entitled to, and builds — as a construction of its own, flagged as such — the definition tda1-06 will supply, so that you meet it already knowing which of its properties are hard.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>A diagram with no barcode behind it</h2>
+
+<p>tda1-04 built the diagram by decomposing, reading off intervals, and plotting them. That route needs Theorem 1.9, and Theorem 1.9 has hypotheses that fail. Oudot's §4 opens by announcing the reversal: "we proceed backwards compared to Section 3: first, we use the formulas of (1.18) as axioms to define the persistence measure μ<sub>𝕍</sub> of 𝕍; then, we show the existence and uniqueness of a multiset of points in the extended plane whose counting measure restricted to rectangles coincides with μ<sub>𝕍</sub>" <span class="cite">— Oudot §1.4, p. 25</span>.</p>
+
+<p>So the formulas come first. For a module over ℝ and p &lt; q ≤ r &lt; s,</p>
+
+<p style="text-align:center">μ<sub>𝕍</sub>([−∞, q] × [r, +∞]) = rank v<sub>q</sub><sup>r</sup>,<br>
+μ<sub>𝕍</sub>([−∞, q] × [r, s]) = rank v<sub>q</sub><sup>r</sup> − rank v<sub>q</sub><sup>s</sup>,<br>
+μ<sub>𝕍</sub>([p, q] × [r, +∞]) = rank v<sub>q</sub><sup>r</sup> − rank v<sub>p</sub><sup>r</sup>,<br>
+μ<sub>𝕍</sub>([p, q] × [r, s]) = rank v<sub>q</sub><sup>r</sup> − rank v<sub>q</sub><sup>s</sup> + rank v<sub>p</sub><sup>s</sup> − rank v<sub>p</sub><sup>r</sup></p>
+
+<p>— the quadrant, the horizontal strip, the vertical strip and the finite rectangle of Figure 1.5, each obtained from the one above it by removing a double count <span class="cite">— (1.18), p. 24</span>. Note what the right-hand sides are made of: ranks of the module's own maps, and nothing else. No decomposition is mentioned. That is the whole opportunity.</p>
+
+<p>To use them as axioms one needs the alternating sums to make sense, which means the ranks must be finite — or, Oudot says, "less stringently, that all but rank v<sub>q</sub><sup>r</sup>" are finite, the sums then being +∞. The exception is the leading term, the one counting an unbounded quadrant, and every other term is a correction. That proviso is exactly the condition:</p>
+
+<div class="definition">
+<p><strong>Definition 1.12</strong> <span class="cite">— Oudot, p. 25</span></p>
+<p>A persistence module 𝕍 = (V<sub>i</sub>, v<sub>i</sub><sup>j</sup>) over ℝ is <em>quadrant-tame</em>, or <em>𝔮-tame</em> for short, if rank v<sub>i</sub><sup>j</sup> &lt; +∞ for all i &lt; j.</p>
+</div>
+
+<p>The name is legible from the first formula: rank v<sub>i</sub><sup>j</sup> is the multiplicity of the quadrant [−∞, i] × [j, +∞], so 𝔮-tameness says every quadrant lying strictly above the diagonal carries finite mass. Multiplicity is allowed to be infinite when i = j, where the quadrant's corner touches the diagonal. Forbid that too and, Oudot notes, you are back to pointwise finite-dimensional modules — so 𝔮-tameness is precisely the amount of infinity that can be tolerated, and it is all concentrated on the diagonal.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: why the measure is non-negative.</strong> <span class="cite">— Oudot, p. 25</span></p>
+<p>An alternating sum of ranks has no business being non-negative, and Oudot says so: it "is not obvious at first sight". His argument is a restriction trick. Each of the four formulas, he observes, actually counts the multiplicity of the summand 𝕀[q, r] in the interval decomposition of the restriction of 𝕍 to a <em>finite</em> index set J — namely J = {q, r} for the first formula, {q, r, s} for the second, {p, q, r} for the third and {p, q, r, s} for the fourth.</p>
+<p>The restriction to a finite J is interval-decomposable by ⟨ which case of which theorem? ⟩, so the multiplicity of any summand in it is ⟨ what? ⟩ and hence ⟨ what sign? ⟩. Additivity under splitting then follows without any of this, straight from the definition, because ⟨ what happens to the duplicated terms? ⟩.</p>
+<p>Notice the shape of the argument. A statement about a module over ℝ, where no decomposition need exist, is proved by restricting to four points at a time, where one always does. That is a pattern worth keeping: 𝔮-tameness is a condition that lets finite-index facts be assembled into a real-indexed conclusion.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 1.13</strong> <span class="cite">— Oudot, p. 25</span></p>
+<p>Given a 𝔮-tame module 𝕍, there is a uniquely defined locally finite decorated multiset Dgm(𝕍) in the open extended upper half-plane {(x, y) : x &lt; y} such that for any rectangle R = [p, q] × [r, s] with −∞ ≤ p &lt; q &lt; r &lt; s ≤ +∞, μ<sub>𝕍</sub>(R) = card(Dgm(𝕍)|<sub>R</sub>).</p>
+</div>
+
+<p>Three qualifications, each ruling something out. <em>Uniquely defined</em>: the multiset is determined by the measure, so the diagram is an invariant of the module and not of a construction. <em>Locally finite</em>: it cannot accumulate, which is what will make it possible to match two diagrams point by point. <em>In the open upper half-plane</em>: the diagonal is excluded, and it has to be, because the rectangles admitted by the theorem require p &lt; q &lt; r &lt; s and no such rectangle can contain a point with x = y.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> For a module that is both 𝔮-tame and interval-decomposable, the diagram of Theorem 1.13 and the diagram of tda1-04's §3 agree above the diagonal and may differ on it. Which summands cause the difference?</p>
+<p>
+<button onclick="check(this,false)">Summands 𝕀[b, +∞) with infinite death</button>
+<button onclick="check(this,true)" data-ok>Summands 𝕀[b, b], which sit on the diagonal where no admissible rectangle reaches</button>
+<button onclick="check(this,false)">Summands appearing with infinite multiplicity</button>
+</p>
+<div class="explain">A summand 𝕀[b, b] = 𝕀[b<sup>−</sup>, b<sup>+</sup>] plots at (b, b). The §3 diagram lists it because §3 reads summands off a decomposition. Theorem 1.13's diagram cannot see it, because its defining condition ranges over rectangles with p &lt; q &lt; r &lt; s, all of which lie strictly above the diagonal. Points at infinity are fine — the extended plane includes them and the quadrant formula is exactly the one that reaches them.</div>
+</div>
+
+<p>Oudot's own reason for tolerating the discrepancy is a forward one: the metrics of his Chapter 3 "are oblivious to the restrictions of the diagrams to the diagonal", so either definition can be used in practice. That is a promissory note this unit cannot cash, and Segment 3 returns to it.</p>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Edelsbrunner's diagrams, and making everything pair</h2>
+
+<p>Edelsbrunner's diagrams are the finite, function-flavoured version, and Chapter VII adds two things tda1-03 did not need. The first is a portability theorem.</p>
+
+<div class="theorem">
+<p><strong>Persistence Equivalence Theorem</strong> <span class="cite">— Edelsbrunner §VII.2, p. 190</span></p>
+<p>Consider two sequences of vector spaces connected by homomorphisms, with maps φ<sub>i</sub> : U<sub>i</sub> → V<sub>i</sub> between them. If the φ<sub>i</sub> are isomorphisms and all squares commute, then the persistence diagram defined by the U<sub>i</sub> is the same as that defined by the V<sub>i</sub>.</p>
+</div>
+
+<p>This is a statement about presentations, not about spaces: it says that if two sequences are isomorphic as ladders then they have the same diagram, so one may compute with whichever is convenient. Edelsbrunner uses it exactly that way, computing the 0-th diagram of a piecewise linear f through a different function g. He also notes that the proof "is not difficult but tedious and therefore omitted".</p>
+
+<p>The second addition is the reason the chapter has a §VII.3. Edelsbrunner wants an <em>elevation</em> function on a smoothly embedded 2-manifold, measuring local protrusion by pairing each critical point of a height function with another. Two things must hold for that to be well defined: the pairing must agree for the two antipodal directions ±n<sub>x</sub>, and <em>every</em> critical point must be paired — otherwise elevation is undefined on part of the surface. Ordinary persistence fails the second: classes that are born and never die leave their birth points unpaired <span class="cite">— pp. 192–193</span>.</p>
+
+<p>The fix is to go up and then come back down. With interleaved values b₀ &lt; a₁ &lt; b₁ &lt; ⋯ &lt; a<sub>n</sub> &lt; b<sub>n</sub>, run the sublevel sets up and then the pairs (𝕄, 𝕄<sup>b</sup>) back down:</p>
+
+<p style="text-align:center">0 = H<sub>p</sub>(𝕄<sub>b₀</sub>) → ⋯ → H<sub>p</sub>(𝕄<sub>b<sub>n</sub></sub>) → H<sub>p</sub>(𝕄, 𝕄<sup>b<sub>n</sub></sup>) → ⋯ → H<sub>p</sub>(𝕄, 𝕄<sup>b₀</sup>) = 0.</p>
+
+<p>The one-line argument is the whole point: the sequence starts at the trivial group and ends at the trivial group, so everything born must die, and every birth acquires a death. Relative homology is at1-09's, and it is doing structural work here rather than computational — it supplies the descending half. Rules 1, 2 and 3 translate between classes of the superlevel set 𝕄<sup>b</sup> and relative classes of the pair, according to whether a class is <em>essential</em> — surviving all the way down to b₀ — or not <span class="cite">— pp. 193–194</span>.</p>
+
+<canvas id="extdgm" width="640" height="360" aria-label="The first extended persistence diagram of the height function on a genus-2 torus. A diagonal line runs from lower left to upper right. Four square points sit symmetrically about the diagonal, two above and two below, marking the extended sub-diagram. One circular point above the diagonal marks the ordinary sub-diagram and one triangular point below marks the relative sub-diagram. A legend at the right names the three sub-diagrams."></canvas>
+
+<p>The picture is Edelsbrunner's genus-2 torus <span class="cite">— pp. 194–195</span>. In dimension 1 the pairs of critical values are (a₄, a₇), (a₅, a₆), (a₆, a₅), (a₇, a₄), (a₈, a₉) and (a₉, a₈). The class born at a₈ dies at a₉ on the way up, so that pair is <em>ordinary</em> and sits above the diagonal. The class born at a₉ on the way down dies at a₈, so that pair is <em>relative</em> and sits below. The four remaining classes are born going up, on the four independent loops of a genus-2 surface, and killed coming down — those are <em>extended</em>, and they land on both sides of the diagonal.</p>
+
+<div class="theorem">
+<p><strong>Persistence Duality Theorem</strong> <span class="cite">— Edelsbrunner, p. 195</span></p>
+<p>A tame function f on a d-manifold without boundary has persistence diagrams that are reflections of each other: Ord<sub>p</sub>(f) = Rel<sub>d−p</sub><sup>T</sup>(f), Ext<sub>p</sub>(f) = Ext<sub>d−p</sub><sup>T</sup>(f), and Rel<sub>p</sub>(f) = Ord<sub>d−p</sub><sup>T</sup>(f), where T is reflection across the main diagonal. Equivalently Dgm<sub>p</sub>(f) = Dgm<sub>d−p</sub><sup>T</sup>(f).</p>
+</div>
+
+<p>Read the middle line at d = 2 and p = 1: Ext₁(f) = Ext₁<sup>T</sup>(f), so the extended sub-diagram in the picture is its own reflection across the diagonal — which is visibly true of the four square points, and is why they had to come in mirror pairs. Edelsbrunner attributes the symmetry to Lefschetz duality, H<sup>p</sup>(𝕄<sub>b</sub>) ≅ H<sub>d−p</sub>(𝕄, 𝕄<sup>b</sup>), and states the theorem without proof. The companion <strong>Persistence Symmetry Theorem</strong> relates the diagrams of f and −f by reflections R across the minor diagonal and 0 through the origin, and it is what finally guarantees that antipodal directions pair critical points the same way — the first of elevation's two requirements <span class="cite">— p. 195</span>.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why do the points of the ordinary sub-diagrams lie above the diagonal and those of the relative sub-diagrams below, while extended points may lie on either side?</p>
+<p>
+<button onclick="check(this,true)" data-ok>Because on the way up values increase, on the way down they decrease, and an extended point takes one of each</button>
+<button onclick="check(this,false)">Because relative homology has negative dimension shifts</button>
+<button onclick="check(this,false)">By the Persistence Duality Theorem, which forces the sign</button>
+</p>
+<div class="explain">An ordinary point is born and dies on the ascending pass, so its birth value is below its death value and it plots above the diagonal. A relative point is born and dies on the descending pass, where the threshold decreases, so the inequality reverses. An extended point has its birth on the way up and its death on the way down, and nothing constrains the comparison — hence both sides. Duality is a consequence of this arrangement, not its cause.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>"Their space" — what is here, and what is not</h2>
+
+<p>The unit is titled "Persistence diagrams and <em>their space</em>", and the mission strip says that space "is the metric space (an2-01) where stability is stated". Search both sources and the metric is not there. Edelsbrunner defers it at the exact moment he introduces the structure that will need it — the diagonal, added with infinite multiplicity "for technical reasons which will become clear in the next chapter", Chapter VIII. Oudot defers it too, saying his diagrams "can be compared against one another in a natural and theoretically sound way" in his Chapter 3. Both chapters are tda1-06's resources.</p>
+
+<p>What can honestly be done here is to build the definition anyway, from the one piece of structure that <em>is</em> present, and to find out in advance which parts of it are hard.</p>
+
+<div class="guided-proof">
+<p><strong>Guided construction — the definition this unit does not have, built from the diagonal it does.</strong></p>
+<p>Two diagrams of the same function need not have the same number of off-diagonal points, so no bijection between them need exist. Yet Edelsbrunner has added the diagonal to every diagram, with <em>infinite</em> multiplicity. That is not decoration.</p>
+<p>Your task, in three steps. (1) Say what job an infinite-multiplicity diagonal can do in a comparison of two multisets of different sizes. (2) Write down the distance you would expect: a matching, a cost per matched pair, and a way of combining the costs. (3) Take an2-01's metric space axioms and go through them one at a time, saying for each what would have to be proved. Name the one that is least obvious. Do not claim any of this is in the sources — it is not.</p>
+<textarea class="proof-input" aria-label="Write your construction here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>(1) The job.</strong> It gives every point somewhere to go. A bijection between two diagrams exists once both contain the whole diagonal with infinite multiplicity, because any point without a genuine partner can be matched to a diagonal point instead — and the natural one to match it to is its own nearest, the foot of the perpendicular. Matching a point to the diagonal is the formal version of saying "this feature has no counterpart in the other diagram", and its cost should be small exactly when the feature was short-lived, which is what makes a distance built this way indifferent to noise. It also explains why the multiplicity has to be infinite: any number of points may need discarding at once.</p>
+<p><strong>(2) The definition to expect.</strong> Let X and Y be diagrams, each containing the diagonal with infinite multiplicity. For a bijection η : X → Y set the cost of a matched pair to a distance between points — the supremum norm ‖x − η(x)‖<sub>∞</sub> is the obvious candidate — and combine the costs by taking the worst one. Then define d(X, Y) = inf<sub>η</sub> sup<sub>x∈X</sub> ‖x − η(x)‖<sub>∞</sub>, the infimum over all bijections. Taking a supremum rather than a sum is a real choice, and the alternative gives a different distance; this unit cannot say which the sources take.</p>
+<p><strong>(3) The checklist.</strong> <em>Non-negativity</em> is immediate from the norm. <em>Symmetry</em> follows because bijections invert, and the cost of η<sup>−1</sup> equals that of η. <em>d(X, X) = 0</em> is immediate from the identity bijection. <em>Identity of indiscernibles</em> — d(X, Y) = 0 implies X = Y — is already not free: the infimum may not be attained, so d = 0 gives a sequence of matchings with costs tending to zero rather than one perfect matching, and the diagonal parts of X and Y are never distinguished at all. Expect the axiom to hold only for off-diagonal parts, or the object to be a pseudometric.</p>
+<p><em>The triangle inequality</em> is the hard one. It needs that composing a matching X → Y with a matching Y → Z gives a matching X → Z whose cost is at most the sum — which is true for a fixed pair of bijections by the triangle inequality in the norm, but the distances are infima, so one must handle near-optimal matchings and pass to the limit. And the composite may route a point of X through a diagonal point of Y and back out to a genuine point of Z, so the bookkeeping about which points are "really" matched does not compose. That is the axiom to watch for in tda1-06.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Theorem 1.13 produces a <em>locally finite</em> multiset. Why does a distance need that?</p>
+<p>
+<button onclick="check(this,false)">Because an infinite multiset has no bijections</button>
+<button onclick="check(this,true)" data-ok>Because without it the points can accumulate off the diagonal and no matching has finite cost</button>
+<button onclick="check(this,false)">Because the supremum of infinitely many costs is always infinite</button>
+</p>
+<div class="explain">Oudot's own example of an interval-decomposable module that is not 𝔮-tame has decorated endpoints forming a dense subset of the half-plane above the diagonal, and its persistence measure is infinite on every rectangle. A diagram like that has points accumulating away from the diagonal, so no matching can push them all onto it cheaply and no comparison is possible. Local finiteness is what 𝔮-tameness buys, and it is bought precisely so that a metric can exist later.</div>
+</div>
+
+<div class="warn">
+<p><strong>Three unrelated meanings of "tame", now all in play.</strong> Oudot's footnote on p. 17 calls a <em>quiver</em> tame when its classification problem is harder than Dynkin but still feasible. Definition 1.12 calls a <em>module</em> 𝔮-tame. Edelsbrunner's duality and symmetry theorems are stated for a tame <em>function</em>. Only two of the three are related, and Oudot says how: his footnote on p. 32 records that the Cohen-Steiner–Edelsbrunner–Harer notion of tameness for a function "is a more restrictive condition than 𝔮-tameness, however it guarantees that H<sub>∗</sub>(f) is interval-decomposable, with half-open intervals". So a tame function gives a 𝔮-tame module and not conversely, and the Persistence Duality Theorem is stated in the strictly stronger sense. The tame quiver has nothing to do with either.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Take the interval module 𝕀[b, d) over ℝ. Compute rank v<sub>i</sub><sup>j</sup> for every i &lt; j, then evaluate all four formulas of (1.18) and check that the only rectangle carrying mass is one containing (b, d). Then do the same for 𝕀[b, b] and confirm that every admissible rectangle gives zero.</p>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. The diagram can be defined without a decomposition, by running §3 backwards.</strong> The inclusion–exclusion formulas (1.18) express the measure of a quadrant, two strips and a rectangle purely in terms of ranks of the module's own maps. Promote them to axioms; the finiteness they need is exactly Definition 1.12's 𝔮-tameness, which permits infinite multiplicity only where the quadrant touches the diagonal. Non-negativity comes from restricting to at most four indices, where Theorem 1.9 (i) always applies. Theorem 1.13 then gives a unique, locally finite multiset in the open upper half-plane, agreeing with the §3 diagram except possibly on the diagonal, where 𝕀[b, b] summands live and no admissible rectangle reaches.</p>
+<p><strong>2. Edelsbrunner's diagrams gain portability and completeness of pairing.</strong> The Persistence Equivalence Theorem says isomorphic ladders have equal diagrams, so one may compute through a convenient substitute. Extended persistence runs the filtration up through absolute homology and back down through relative homology, from 0 to 0, so everything born must die and every critical point is paired — which is what elevation needed. The diagram splits into Ord above the diagonal, Rel below, and Ext on both sides, and the Duality and Symmetry Theorems make those reflections of each other.</p>
+<p><strong>3. Neither source defines the metric, and the diagonal is the piece of it that is here.</strong> An infinite-multiplicity diagonal exists so that every point has somewhere to go, making bijections available between diagrams of different sizes; the expected distance is an infimum over bijections of the worst matched cost. Checked against an2-01's axioms, non-negativity and symmetry are free, identity of indiscernibles is already doubtful on the diagonal, and the triangle inequality is the hard one because the distance is an infimum and composites can route through diagonal points. Local finiteness is what makes any of it possible, and 𝔮-tameness is what buys local finiteness.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Oudot, <em>Persistence Theory: From Quiver Representations to Data Analysis</em>, Chapter 1. §3's persistence measure (1.15)–(1.17) with its additivity and Figures 1.3 and 1.4 (pp. 22–24); the inclusion–exclusion formulas (1.18) with the quadrant, horizontal strip, vertical strip and rectangle of Figure 1.5, the finiteness proviso allowing all but rank v<sub>q</sub><sup>r</sup> to be finite, and the remark that the formulas localize diagram points from ranks alone (p. 24). §4: the programme of proceeding "backwards compared to Section 3", Definition 1.12 of 𝔮-tameness with the explanation of the name and the observation that finiteness at i = j would return pointwise finite-dimensionality, the non-negativity argument by restriction to the finite index sets {q,r}, {q,r,s}, {p,q,r} and {p,q,r,s} with Theorem 1.9 (i), the additivity remark, and Theorem 1.13 with its proof sketch by recursive subdivision (p. 25); the agreement of the two definitions above the diagonal, the possible disagreement at 𝕀[b, b] summands, and the note that Chapter 3's metrics are oblivious to the diagonal (p. 26); the comparison of 𝔮-tameness with interval-decomposability, with the dense-endpoints example and the product ∏𝕀[0, 1/n] (p. 28). Oudot's footnote on p. 32, in Chapter 2, that the Cohen-Steiner–Edelsbrunner–Harer notion of tameness for a function "is a more restrictive condition than 𝔮-tameness". The Oudot offset is PDF = printed + 9.
+<p>Edelsbrunner and Harer, <em>Computational Topology: An Introduction</em>, Chapter VII. §VII.1's Dgm<sub>p</sub>(f), the addition of the diagonal with infinite multiplicity "for technical reasons which will become clear in the next chapter", and the quadrant rule (p. 181). §VII.2's Persistence Equivalence Theorem with the remark that its proof is "not difficult but tedious and therefore omitted", and the reflection relating the finite parts of Dgm₁(f) and Dgm₀(−f) across the minor diagonal with Figure VII.8 and the three-way partition of the edges (pp. 190–191). §VII.3: the elevation function and its two requirements, the extended filtration through absolute and relative homology with the argument that everything born must die, Rules 1–3 with the essential/inessential distinction, the genus-2 torus example with all ten pairs, the Ord, Ext and Rel sub-diagrams and which side of the diagonal each lies on, and the Persistence Duality Theorem and Persistence Symmetry Theorem, both stated without proof and both for a <em>tame function</em> (pp. 192–195). Every folio was read off the page cited; the Edelsbrunner offset is PDF = printed + 12.</p>
+<p><strong>Not established here.</strong> The metric. The strip says diagram space "is the metric space (an2-01) where stability is stated", and neither of this unit's resources defines a distance between diagrams or states a stability theorem. Both defer, and both say where: Edelsbrunner to Chapter VIII at the moment he adds the diagonal (p. 181), Oudot to Chapter 3 (pp. 25–26). Both are tda1-06's resources. The corrected sentence is: <em>the diagram is defined here, for 𝔮-tame modules and not only decomposable ones, together with the diagonal that a metric will need; the metric itself, and the stability statement over it, are tda1-06's and tda1-07's.</em> The strip's clause "here they are defined" is exactly right and is the part this unit earns. The bottleneck distance constructed in Segment 3's guided derivation is <strong>this lesson's own construction</strong>, built from the diagonal and an2-01's axioms; no claim is made that it is either source's definition, and the three properties flagged as non-obvious are flagged as predictions to test.</p>
+<p><strong>Stated but not proved.</strong> Theorem 1.13, whose proof is a citation to Chazal and coauthors with only a sketch given. The Persistence Equivalence Theorem, omitted as tedious. Rules 1, 2 and 3, which Edelsbrunner leaves "to the interested reader" with the hint that it goes by kernels and cokernels — at1-09's long exact sequence of a pair is the tool, and it is not carried out here. The Persistence Duality Theorem and the Persistence Symmetry Theorem, both "stated without proof". Lefschetz duality, used to motivate both. The relation between Dgm₁(f) and Dgm₀(−f), whose proofs Edelsbrunner omits as consequences of the next section's theorems.</p>
+<p><strong>Deferred.</strong> The bottleneck distance and the interleaving distance in their real form, Oudot ch. 3 and Edelsbrunner ch. VIII, tda1-06. Stability, tda1-07. The observable category and Crawley-Boevey's result that a 𝔮-tame module sits at interleaving distance zero from an interval-decomposable submodule (p. 28) — stated in Oudot's §5 and unusable here for want of the metric. Sublevel-set persistence through Morse theory, which is what the genus-2 torus example presumes and which is tda1-08's. The sparse implementation of §VII.2 and spectral sequences of §VII.4.</p>
+</footer>
+<script>
+(function(){
+var c=document.getElementById('extdgm');if(!c||!c.getContext)return;
+var x=c.getContext('2d');
+var dim='#9aa5b1',ink='#e8e8e8',acc='#8ab4f8',good='#4caf82',bad='#e06c75',grid='#2a333d';
+function line(x1,y1,x2,y2,col,w){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.strokeStyle=col;x.lineWidth=w||1.5;x.stroke();}
+var ox=220,oy=300,u=24;
+function px(k){return ox+(k-1)*u;}
+function py(k){return oy-(k-1)*u;}
+x.font='13px system-ui,sans-serif';x.textAlign='center';x.fillStyle=ink;
+x.fillText('Dgm1 of the height function on a genus-2 torus',320,44);
+line(205,oy,470,oy,grid,1);
+line(ox,oy,ox,80,grid,1);
+line(px(1),py(1),px(10),py(10),dim,1);
+function sq(k,l,col){x.fillStyle=col;x.fillRect(px(k)-5,py(l)-5,10,10);}
+function ci(k,l,col){x.beginPath();x.arc(px(k),py(l),5,0,6.2832);x.fillStyle=col;x.fill();}
+function tr(k,l,col){x.beginPath();x.moveTo(px(k),py(l)-6);x.lineTo(px(k)-6,py(l)+4);x.lineTo(px(k)+6,py(l)+4);x.closePath();x.fillStyle=col;x.fill();}
+sq(4,7,good);sq(5,6,good);sq(6,5,good);sq(7,4,good);
+ci(8,9,acc);
+tr(9,8,bad);
+x.font='11px system-ui,sans-serif';x.fillStyle=dim;x.textAlign='center';
+x.fillText('a1',px(1),oy+18);
+x.fillText('a10',px(10),oy+18);
+x.textAlign='right';
+x.fillText('a1',ox-8,py(1)+4);
+x.fillText('a10',ox-8,py(10)+4);
+x.textAlign='center';
+x.fillText('birth',px(5),oy+34);
+x.save();x.translate(ox-30,py(6));x.rotate(-1.5708);x.fillText('death',0,0);x.restore();
+x.textAlign='left';x.font='12px system-ui,sans-serif';
+x.fillStyle=acc;x.beginPath();x.arc(492,132,5,0,6.2832);x.fill();
+x.fillStyle=dim;x.fillText('Ord - up, up',506,136);
+x.fillStyle=good;x.fillRect(487,175,10,10);
+x.fillStyle=dim;x.fillText('Ext - up, down',506,184);
+x.fillStyle=bad;x.beginPath();x.moveTo(492,222);x.lineTo(486,232);x.lineTo(498,232);x.closePath();x.fill();
+x.fillStyle=dim;x.fillText('Rel - down, down',506,232);
+x.font='12px system-ui,sans-serif';x.fillStyle=dim;
+x.fillText('Ext1 is its own reflection across the diagonal - duality with d = 2, p = 1',40,345);
+})();
+</script>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

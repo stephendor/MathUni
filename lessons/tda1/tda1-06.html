@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda1-06 — Metrics on diagrams: bottleneck and interleaving</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA I · Nexus College</p>
+<h1>Metrics on diagrams: bottleneck and interleaving <span class="cite">(tda1-06)</span></h1>
+
+<div class="hook">
+How far apart are two diagrams? Match points optimally (bottleneck) — or compare the modules directly (interleaving).
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Edelsbrunner writes that the bottleneck distance "satisfies all axioms of a metric". Oudot writes that it "is not a true distance though, even on the multisets not touching the diagonal". Both sentences are about the same formula. What is going on?</p>
+<p>
+<button onclick="check(this,false)">One of them has made an error</button>
+<button onclick="check(this,true)" data-ok>Each is quantifying over a different class of multisets, and neither says which in that sentence</button>
+<button onclick="check(this,false)">They are using different norms</button>
+</p>
+<div class="explain">Edelsbrunner's diagrams "consist of finitely many points above the diagonal" — a restriction stated a paragraph earlier and not repeated. Oudot's counterexample is ℚ² minus the diagonal, which is not locally finite. Segment 1 settles it and names the class on which both are right.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The interleaving distance is the algebraic metric; bottleneck is its geometric shadow — stability relates them.</p>
+
+<div class="warn">
+<p><strong>Three words in that strip to hold loosely.</strong> "Metric": neither distance is one, and each source supplies its own counterexample to the same missing axiom. "Shadow": Theorem 3.1 says the two distances are <em>equal</em> on 𝔮-tame modules, and an isometry loses nothing — shadow is the wrong picture, though there is a real asymmetry it may have been reaching for. "Stability relates them": stability is one of the theorem's two inequalities, and the omitted one is the half that makes diagrams worth computing at all. Segment 3 takes all three.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The bottleneck distance, and a contradiction that is not one</h2>
+
+<p>Oudot introduces the bottleneck distance first "because the intuition behind it is easier to grasp", and treats undecorated diagrams as plain multisets of points in the extended plane — his footnote records why he may: the metric "is oblivious to the decorations in the persistence diagrams" <span class="cite">— Oudot §3.1.1, pp. 49–50</span>. That is tda1-04's promissory note being cashed.</p>
+
+<div class="definition">
+<p><strong>Partial matching, cost, and the bottleneck distance</strong> <span class="cite">— Oudot, p. 50</span></p>
+<p>A <em>partial matching</em> M : P ↔ Q is a subset of P × Q in which every point of P is matched with at most one point of Q and conversely. The cost of a matched pair (p, q) is ‖p − q‖<sub>∞</sub>; the cost of an unmatched point s is |s<sub>y</sub> − s<sub>x</sub>|/2, the ℓ<sup>∞</sup>-distance from s to its nearest point of the diagonal Δ. The <em>bottleneck cost</em> is</p>
+<p style="text-align:center">c(M) = max{ sup<sub>(p,q)∈M</sub> ‖p − q‖<sub>∞</sub> , sup<sub>s unmatched</sub> |s<sub>y</sub> − s<sub>x</sub>|/2 },</p>
+<p>and the <em>bottleneck distance</em> is d<sub>b</sub>(P, Q) = inf<sub>M</sub> c(M).</p>
+</div>
+
+<p>Edelsbrunner writes the same thing differently. He adds the diagonal to every diagram with infinite multiplicity — "these extra points are not essential to the diagram but their presence simplifies upcoming definitions" — and then takes <em>bijections</em>: W<sub>∞</sub>(X, Y) = inf<sub>η</sub> sup<sub>x∈X</sub> ‖x − η(x)‖<sub>∞</sub> <span class="cite">— Edelsbrunner §VIII.2, p. 216</span>. The two agree, and converting between them is the exercise: an unmatched point becomes a point matched to its own diagonal projection, at exactly the cost Oudot assigns it, and a bijection restricted to off-diagonal pairs is a partial matching.</p>
+
+<canvas id="bottle" width="640" height="340" aria-label="Two superimposed persistence diagrams above a diagonal line. Three circular points from the first diagram each sit inside a small square box, and inside each box is a square point from the second diagram; the pair at the lower left touches the corner of its box, marking the pair that achieves the distance. Two further square points lie near the diagonal, each joined to the diagonal by a dashed line, marking points matched to the diagonal rather than to any point of the first diagram."></canvas>
+
+<p>The picture is Figure VIII.5's construction. Draw a square of side twice the bottleneck distance around each point of X; the matching is good exactly when every square contains its partner. The pair sitting on a corner is the one achieving the supremum — the distance is the smallest side length for which all the boxes still work. The two unattached points near the diagonal are matched to Δ instead: they are the noise, and their cost is their distance to the diagonal, which is small precisely because they are short-lived.</p>
+
+<p>That is Example 3.2's point too. Oudot compares a function f with a noisy approximation f′, whose diagram has extra points near Δ. The genuine minima p, q, s pair with p′, q′, s′; the rest go to the diagonal. Two details are worth extracting. The two ways of matching {p, s} with {p′, s′} give the same cost, since p and s coincide — so the matching is not unique and the <em>distance</em> still is. And Oudot's footnote contrasts the bottleneck distance with the Hausdorff distance: Hausdorff asks only that every point be near <em>some</em> point of the other set, so one point of dgm(f) could account for both p′ and s′. A matching cannot double up, and that is what makes the bottleneck distance notice that dgm(f′) has two points where dgm(f) has two <span class="cite">— pp. 50–51</span>.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the contradiction, settled.</strong></p>
+<p>Edelsbrunner, p. 217: "Clearly, W<sub>∞</sub>(X, Y) = 0 iff X = Y. Furthermore, W<sub>∞</sub>(X, Y) = W<sub>∞</sub>(Y, X) and W<sub>∞</sub>(X, Z) ≤ W<sub>∞</sub>(X, Y) + W<sub>∞</sub>(Y, Z). We see that W<sub>∞</sub> satisfies all axioms of a metric and thus deserves to be called a distance."</p>
+<p>Oudot, p. 51: "The bottleneck distance is an extended pseudometric … It is not a true distance though, even on the multisets not touching the diagonal Δ, as for instance the multisets ℚ² ∖ Δ and (ℚ + √2)² ∖ Δ are distinct but at bottleneck distance zero — the infimum in (3.2) is zero but not attained in this case."</p>
+<p>Take the counterexample seriously first. Every rational is within any ε &gt; 0 of an element of ℚ + √2, so the two multisets admit matchings of cost ⟨ what? ⟩ for every ε, hence d<sub>b</sub> = 0; and they are distinct because ⟨ why? ⟩. The axiom that fails is ⟨ which? ⟩ — and note that the failure is not that some matching is bad but that the infimum is ⟨ what? ⟩.</p>
+<p>Now find the missing quantifier in each. Edelsbrunner's is a paragraph earlier: "Under the assumptions on the input functions considered in this book, the diagram consists of finitely many points above the diagonal." Oudot's is the next sentence after the counterexample: a compactness argument shows the infimum "is always attained when P, Q are locally finite multisets in ℝ² ∖ Δ", which "implies that d<sub>b</sub> is a true distance for such multisets, which by Theorem 1.13 include in particular all undecorated persistence diagrams of 𝔮-tame modules."</p>
+<p>So both are right, and the class on which they agree is ⟨ which? ⟩. Note what this makes of the word "Clearly" in Edelsbrunner's sentence: the claim is ⟨ true or false? ⟩ in his setting and ⟨ true or false? ⟩ in general, and the step it skips is exactly the compactness argument Oudot cites.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> tda1-05's guided construction predicted this definition before reading it, and flagged the triangle inequality as the hard axiom. How did that prediction do?</p>
+<p>
+<button onclick="check(this,false)">Right — the triangle inequality is where the compactness argument goes</button>
+<button onclick="check(this,true)" data-ok>Half right — the flagged phenomenon was real, but it breaks a different axiom</button>
+<button onclick="check(this,false)">Wrong throughout — the construction was not the right definition</button>
+</p>
+<div class="explain">The construction was right: Edelsbrunner's W<sub>∞</sub> is exactly what it predicted, bijections and all. And it correctly worried that the infimum need not be attained. But it attached that worry to identity of indiscernibles and then called the triangle inequality the hard one — where in fact Oudot proves the triangle inequality in a subordinate clause, "as matchings P ↔ Q and Q ↔ S can be composed in a natural way", and the compactness argument is spent on attainment. Right phenomenon, wrong axiom.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Interleaving: comparing the modules instead of their pictures</h2>
+
+<p>The second metric never mentions a diagram. Start with the case that motivates it. If f, g : X → ℝ satisfy ‖f − g‖<sub>∞</sub> ≤ ε then f(x) ≤ i forces g(x) ≤ i + ε, so the sublevel sets satisfy</p>
+
+<p style="text-align:center">F<sub>i</sub> ⊆ G<sub>i+ε</sub> and G<sub>i</sub> ⊆ F<sub>i+ε</sub> for all i ∈ ℝ,</p>
+
+<p>and these inclusions fit into squares commuting with the filtrations' own inclusions. Apply homology and the squares become diagrams of vector spaces, with cross maps φ<sub>i</sub> : H<sub>∗</sub>(F<sub>i</sub>) → H<sub>∗</sub>(G<sub>i+ε</sub>) and ψ<sub>i</sub> : H<sub>∗</sub>(G<sub>i</sub>) → H<sub>∗</sub>(F<sub>i+ε</sub>) <span class="cite">— Oudot §3.1.2, p. 52</span>.</p>
+
+<div class="definition">
+<p><strong>Definition 3.3</strong> <span class="cite">— Oudot, p. 52</span></p>
+<p>Let 𝕍, 𝕎 be persistence modules over ℝ and ε ≥ 0. An <em>ε-interleaving</em> between 𝕍 and 𝕎 is given by two families of linear maps (φ<sub>i</sub> : V<sub>i</sub> → W<sub>i+ε</sub>) and (ψ<sub>i</sub> : W<sub>i</sub> → V<sub>i+ε</sub>) making the diagrams (3.4) and (3.5) commute for all i ≤ j. The <em>interleaving distance</em> is d<sub>i</sub>(𝕍, 𝕎) = inf{ε ≥ 0 : there is an ε-interleaving}.</p>
+</div>
+
+<p>Oudot's next sentence is the important one: the definition "is the direct translation, at the algebraic level, of the interleaving between filtrations, although it does not actually need filtrations to start with in order to be stated". Nothing in Definition 3.3 refers to a space, a function or a diagram — only to two modules over a common field. That is the same move tda1-03 met in Edelsbrunner's remark that births and deaths need only a sequence of vector spaces, and it has the same payoff: the concept outlives the construction that suggested it.</p>
+
+<p>The categorical rephrasing makes the structure visible. A family φ = (φ<sub>i</sub> : V<sub>i</sub> → W<sub>i+ε</sub>) making the first square commute is a <em>morphism of degree ε</em>, and morphisms of degree 0 are morphisms in the ordinary sense; write Hom<sup>ε</sup>(𝕍, 𝕎) and End<sup>ε</sup>(𝕍). Composition lands in Hom<sup>ε+ε′</sup>. When the composite runs from a module to itself it cannot be the identity, because the indices have shifted — but there is a canonical replacement, the <em>(ε+ε′)-shift morphism</em> 𝟙<sub>𝕌</sub><sup>ε+ε′</sup>, which is just the family (u<sub>i</sub><sup>i+ε+ε′</sup>) taken from the module's own structure <span class="cite">— p. 53</span>.</p>
+
+<div class="definition">
+<p><strong>Definition 3.3 (rephrased)</strong> <span class="cite">— Oudot, p. 53</span></p>
+<p>𝕍 and 𝕎 are ε-interleaved if there exist φ ∈ Hom<sup>ε</sup>(𝕍, 𝕎) and ψ ∈ Hom<sup>ε</sup>(𝕎, 𝕍) with ψ ∘ φ = 𝟙<sub>𝕍</sub><sup>2ε</sup> and φ ∘ ψ = 𝟙<sub>𝕎</sub><sup>2ε</sup>.</p>
+</div>
+
+<p>This is cat-04's mission strip, arrived at from the other side. There it read: a pair of natural transformations M ⇒ N(·+ε) and N ⇒ M(·+ε) whose composites are the 2ε-shift maps. Every clause matches — a morphism of degree ε <em>is</em> a natural transformation into the shifted module, and the shift morphism is the 2ε-shift map. The categorical phrasing makes clearer why an interleaving is not a morphism: the composites are required to be shifts and not identities, so φ and ψ are not inverse to anything, and there is no map V<sub>i</sub> → W<sub>i</sub> anywhere in the definition.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why must the composite ψ ∘ φ be required to equal the shift morphism rather than the identity?</p>
+<p>
+<button onclick="check(this,false)">Because the identity is not a morphism of persistence modules</button>
+<button onclick="check(this,true)" data-ok>Because ψ ∘ φ has degree 2ε, so its source and target indices differ and it cannot be the identity</button>
+<button onclick="check(this,false)">Because requiring the identity would make the two modules isomorphic, which is too strong</button>
+</p>
+<div class="explain">ψ ∘ φ sends V<sub>i</sub> to V<sub>i+2ε</sub>. Those are different spaces, so "identity" does not typecheck; the shift morphism is the canonical thing of the right degree. The third option has a true consequence attached to the wrong reason — asking for degree-0 composites <em>would</em> force an isomorphism, and that is exactly what a 0-interleaving is, which is why d<sub>i</sub> = 0 does not imply isomorphic only because the infimum need not be attained.</div>
+</div>
+
+<p>Like the bottleneck distance, d<sub>i</sub> is an extended pseudometric. Symmetry is immediate; the triangle inequality holds because an ε-interleaving composes with an ε′-interleaving to give an (ε+ε′)-interleaving; and the missing axiom fails for the same structural reason. Oudot's counterexample: 𝕀[0,1] and 𝕀(0,1) are ε-interleaved for every ε &gt; 0 but not 0-interleaved, so their distance is zero and they are not isomorphic — "if they were 0-interleaved, then by definition they would be isomorphic" <span class="cite">— p. 53</span>. Two different distances, two different counterexamples, one shared cause: an infimum that is not attained.</p>
+
+<p>Two further properties, which Oudot attributes to Lesnick and states with the caveat that they were proved "under some restrictions". d<sub>i</sub> is <em>stable</em>: d<sub>i</sub>(H<sub>∗</sub>(𝓕), H<sub>∗</sub>(𝓖)) ≤ ‖f − g‖<sub>∞</sub>. And it is <em>universal</em>: any other stable pseudometric d satisfies d ≤ d<sub>i</sub>. Universality makes d<sub>i</sub> the <em>largest</em> stable pseudometric, and largest is the useful extreme — a larger distance separates more pairs of modules, so a universal one is the most discriminating comparison that stability permits.</p>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>What the two distances are to each other</h2>
+
+<div class="theorem">
+<p><strong>Theorem 3.1 (Isometry)</strong> <span class="cite">— Oudot, p. 49</span></p>
+<p>Let 𝕍, 𝕎 be 𝔮-tame persistence modules over ℝ. Then d<sub>b</sub>(dgm(𝕍), dgm(𝕎)) = d<sub>i</sub>(𝕍, 𝕎).</p>
+</div>
+
+<p>Oudot splits the statement in two and names what each half is for. The <em>stability</em> part, d<sub>b</sub> ≤ d<sub>i</sub>, "guarantees that persistence diagrams are stable signatures". The <em>converse stability</em> part, d<sub>i</sub> ≤ d<sub>b</sub>, "guarantees that they are also informative signatures". Those are the right words: stability says nearby modules have nearby diagrams, so a diagram cannot be thrown off by a small perturbation; informativeness says diagrams that are close came from modules that are close, so a small diagram distance cannot hide a large difference. A signature with only the first property could be constant. The proof is tda1-07's — Oudot says the stability part "is reputed to be difficult to prove, whereas the converse stability part is easy once the stability part is given".</p>
+
+<p>Edelsbrunner has the inequality but not the equality, and states it twice. For filtrations: two monotonic f, g on a simplicial complex K give W<sub>∞</sub>(Dgm<sub>p</sub>(f), Dgm<sub>p</sub>(g)) ≤ ‖f − g‖<sub>∞</sub>. For functions, he first has to say which functions. Call a ∈ ℝ a <em>homological critical value</em> of a continuous f on a triangulable 𝕏 if there is no ε &gt; 0 for which f<sub>p</sub><sup>a−ε,a+ε</sup> is an isomorphism in every dimension; call f <em>tame</em> if it has finitely many homological critical values and all sublevel sets have finite-rank homology in every dimension. That is the third sense of "tame" in this module, and it is the one Oudot's footnote on p. 32 calls "a more restrictive condition than 𝔮-tameness" <span class="cite">— Edelsbrunner, pp. 217–219</span>.</p>
+
+<div class="guided-proof">
+<p><strong>Guided audit — the strip, in three words.</strong></p>
+<p>The strip says: "The interleaving distance is the algebraic metric; bottleneck is its geometric shadow — stability relates them." Settle each word against what you have read.</p>
+<p><strong>(1) "metric".</strong> Give both counterexamples and say, for each distance, on which class of objects it <em>is</em> a metric.</p>
+<p><strong>(2) "geometric shadow".</strong> A shadow is a lossy image. What does Theorem 3.1 say instead, and what is the right word? Then find the asymmetry between the two distances that is genuinely there.</p>
+<p><strong>(3) "stability relates them".</strong> Which half of Theorem 3.1 is stability, and what does leaving out the other half cost?</p>
+<textarea class="proof-input" aria-label="Write your audit here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>(1)</strong> Neither is a metric in general. For d<sub>b</sub>, ℚ² ∖ Δ and (ℚ+√2)² ∖ Δ are distinct at distance zero; for d<sub>i</sub>, 𝕀[0,1] and 𝕀(0,1) are non-isomorphic at distance zero. In both cases the infimum is not attained, which is the same failure twice. d<sub>b</sub> <em>is</em> a metric on locally finite multisets in ℝ² ∖ Δ, by the compactness argument Oudot cites, and Theorem 1.13 puts every 𝔮-tame module's diagram in that class. d<sub>i</sub> is a metric on isomorphism classes only if one quotients further, and Oudot does not claim it is one at all — he says it is an extended pseudometric between isomorphism classes and leaves it there.</p>
+<p><strong>(2)</strong> Theorem 3.1 says the two distances are <em>equal</em>, so the map from a 𝔮-tame module to its undecorated diagram is an isometry onto its image. An isometry loses no distance information whatever, which is the opposite of a shadow. The right word is <em>isometric image</em>, and the theorem's name says so.</p>
+<p>The real asymmetry is elsewhere, and it is worth keeping. d<sub>i</sub> is defined for <em>arbitrary</em> persistence modules over a common field — Oudot says so explicitly, "there are no conditions on the persistence modules". d<sub>b</sub> needs a diagram to exist, which needs 𝔮-tameness and Theorem 1.13. So the interleaving distance is defined more widely, and the isometry holds exactly where both are defined. That is a genuine sense in which one is primary and the other derived — but it is about domains of definition, not about losing information.</p>
+<p><strong>(3)</strong> Stability is d<sub>b</sub> ≤ d<sub>i</sub>: perturbing a module cannot move its diagram much. Leaving out d<sub>i</sub> ≤ d<sub>b</sub> leaves out informativeness — and without it, nothing rules out a signature that is stable because it is insensitive. The constant map to a single diagram satisfies stability perfectly. So the omitted half is the one that makes the diagram worth computing, and Oudot's own framing puts the two questions side by side at the head of the chapter: "are these signatures stable? are they informative?"</p>
+</details>
+</div>
+
+<p>One last construction, because it explains what stability looks like when you watch it happen. Let f, g be monotonic on K and take the straight-line homotopy f<sub>t</sub> = (1−t)f + tg. Each t gives a diagram; stacking them along a third axis, each off-diagonal point traces out a path. The pairing of simplices changes at only finitely many t, and between changes each pair gives a straight segment, so the paths are polygonal — Edelsbrunner calls each one a <em>vine</em> and the whole multiset a <em>vineyard</em>. A vine begins at an off-diagonal point of X or at a diagonal point, and ends at an off-diagonal point of Y or on the diagonal. That the paths are <em>connected</em> is the content: points do not jump. Differentiating and projecting bounds the slope of every segment by ‖f − g‖<sub>∞</sub>, and that bound is the Stability Theorem for Filtrations <span class="cite">— pp. 217–218</span>.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Edelsbrunner introduces the Wasserstein distance because the bottleneck distance has a "drawback". What is it?</p>
+<p>
+<button onclick="check(this,false)">It is not a metric</button>
+<button onclick="check(this,true)" data-ok>It records only the worst matched pair, ignoring the rest of the bijection</button>
+<button onclick="check(this,false)">It cannot handle points at infinity</button>
+</p>
+<div class="explain">His words: "insensitivity to details of the bijection beyond the furthest pair of corresponding points". The degree-q Wasserstein distance sums the costs instead of taking their supremum, which notices everything — at a price he states immediately, that it "requires additional properties to be stable". A more sensitive distance is harder to prove stability for, which is the same trade universality describes from the other end.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Take P = {(0, 4)} and Q = {(0, 3), (1, 2)}. Compute d<sub>b</sub>(P, Q) by hand: enumerate the partial matchings, compute the cost of each, and take the smallest. Then check your answer against the picture — draw the square of side 2d<sub>b</sub> around (0, 4) and confirm which point it reaches and which is left to the diagonal.</p>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. The bottleneck distance is an infimum over partial matchings, with unmatched points charged their distance to the diagonal.</strong> Oudot's partial matchings and Edelsbrunner's bijections onto a diagram containing Δ at infinite multiplicity are the same definition. Matching, rather than Hausdorff proximity, is what makes it notice multiplicity. It is an extended pseudometric in general — ℚ² ∖ Δ against (ℚ+√2)² ∖ Δ — and a true distance on locally finite multisets off the diagonal, which by Theorem 1.13 is every 𝔮-tame module's diagram. Edelsbrunner's "all axioms of a metric" is right for his finite diagrams and silent about the compactness argument that general ones need.</p>
+<p><strong>2. The interleaving distance compares modules with no diagram in sight.</strong> ‖f − g‖<sub>∞</sub> ≤ ε makes sublevel sets interleave; homology turns that into Definition 3.3. Rephrased, an ε-interleaving is a pair of degree-ε morphisms whose composites are the 2ε-shift morphisms — cat-04's strip exactly. It is defined for arbitrary modules over a common field, it is an extended pseudometric with 𝕀[0,1] against 𝕀(0,1) as the counterexample, and it is universal: the largest stable pseudometric there is.</p>
+<p><strong>3. Theorem 3.1 says the two are equal, not that one shadows the other.</strong> Stability, d<sub>b</sub> ≤ d<sub>i</sub>, makes diagrams stable signatures; converse stability, d<sub>i</sub> ≤ d<sub>b</sub>, makes them informative, and without it a constant signature would qualify. Edelsbrunner has the inequality only, twice — once for monotonic functions on a complex and once for tame functions on a triangulable space — and proves the first by bounding the slope of every vine by ‖f − g‖<sub>∞</sub>. The real asymmetry between the two distances is that d<sub>i</sub> needs no hypotheses and d<sub>b</sub> needs a diagram to exist.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Oudot, <em>Persistence Theory: From Quiver Representations to Data Analysis</em>, Chapter 3 "Stability". The chapter opening with the two questions and the observation that these signatures "do not require the modules under consideration to be decomposable", Theorem 3.1 (Isometry) with its split into stability and converse stability parts and the remark on their relative difficulty, and footnote 1 that the bottleneck metric is oblivious to decorations (p. 49). §1.1: partial matchings with both constraints, the cost of a matched pair and of an unmatched point, the bottleneck cost (3.1) and distance (3.2), and Example 3.2 with Figure 3.1 including the remark that the two matchings of {p, s} cost the same and footnote 2 contrasting the Hausdorff distance (pp. 50–51); the decompositions of H<sub>∗</sub>(f) and H<sub>∗</sub>(f′), the remark that the choice of norm does not matter fundamentally but that ℓ<sup>∞</sup> gives the tightest bounds, the statement that d<sub>b</sub> is an extended pseudometric with the counterexample ℚ² ∖ Δ against (ℚ+√2)² ∖ Δ and the note that the infimum is not attained, and the compactness result of [72, theorem 4.10] restoring metricity on locally finite multisets in ℝ² ∖ Δ (p. 51). §1.2: the motivating case ‖f − g‖<sub>∞</sub> ≤ ε with (3.3) and the commuting squares, the cross maps φ<sub>i</sub> and ψ<sub>i</sub>, Definition 3.3 with (3.4) and (3.5), and the remark that the definition does not need filtrations (p. 52); morphisms of degree ε, Hom<sup>ε</sup> and End<sup>ε</sup>, composition, the shift morphism, Definition 3.3 (rephrased) with the proof that the two forms agree, the pseudometric properties with the counterexample 𝕀[0,1] against 𝕀(0,1), and the stability and universality properties attributed to Lesnick with the caveat that they hold under some restrictions (p. 53). The Oudot offset is PDF = printed + 9.
+<p>Edelsbrunner and Harer, <em>Computational Topology: An Introduction</em>, §VIII.2 "Stability Theorems". The opening contrast between the bottleneck and Wasserstein distances, the restriction that under this book's assumptions a diagram "consists of finitely many points above the diagonal", the addition of the diagonal at infinite multiplicity, the definition of W<sub>∞</sub> by bijections, Figure VIII.5's squares, and the claim that W<sub>∞</sub> "satisfies all axioms of a metric" (pp. 216–217); the straight-line homotopy, vines and vineyards with Figure VIII.6, the slope bound, and the Stability Theorem for Filtrations (pp. 217–218); homological critical values, the definition of a tame function, the reconstruction of μ<sub>p</sub><sup>a<sub>i</sub>,a<sub>j</sub></sup> using interleaved values, and the Stability Theorem for Tame Functions, stated without proof (pp. 218–219); the Wasserstein distance and the drawback of the bottleneck distance that motivates it (p. 219). The Edelsbrunner offset is PDF = printed + 12.</p>
+<p><strong>Not established here, and the strip is the reason.</strong> That either distance is a "metric": both sources give a counterexample to identity of indiscernibles for their own distance, and both failures have the same cause, an infimum that is not attained. That the bottleneck distance is the interleaving distance's "geometric shadow": Theorem 3.1 asserts <em>equality</em> on 𝔮-tame modules, so the passage from module to diagram is an isometry onto its image and loses no distance information at all. The asymmetry that is real — recorded in Segment 3 as a correction rather than a defence — is that d<sub>i</sub> is defined for arbitrary modules over a common field while d<sub>b</sub> needs a diagram, hence 𝔮-tameness and Theorem 1.13. And that "stability relates them": stability is one of the two inequalities, and the omitted converse is what rules out a signature that is stable by being insensitive.</p>
+<p><strong>Stated but not proved.</strong> Theorem 3.1 itself, which is tda1-07's; Oudot states it in the chapter opening and proves it in his §2 and §3. That d<sub>b</sub> is a true distance on locally finite multisets in ℝ² ∖ Δ, which Oudot attributes to a compactness argument in [72, theorem 4.10] and does not reproduce. The stability and universality of d<sub>i</sub>, attributed to Lesnick and stated with an explicit caveat about restrictions whose content is not given on this page — the caveat is repeated here rather than dropped. Edelsbrunner's Stability Theorem for Tame Functions, "which we state without proof". His claim that every piecewise linear function has a monotonic function generating the same diagrams, cited back to Chapter VII.</p>
+<p><strong>Deferred.</strong> The proof of the Isometry Theorem, with the Snapping and Interpolation Lemmas, tda1-07. Corollary 3.6 and Theorems 3.7 and 3.8 of Oudot's §3.4 discussion. The Wasserstein distance in earnest, and the additional properties it needs for stability. Vineyards as an algorithm rather than an illustration. Oudot's Chapter 3 §2's loose bound of 3d<sub>i</sub>, which is where the difficulty of the stability part first becomes visible.</p>
+</footer>
+<script>
+(function(){
+var c=document.getElementById('bottle');if(!c||!c.getContext)return;
+var x=c.getContext('2d');
+var dim='#9aa5b1',ink='#e8e8e8',acc='#8ab4f8',good='#4caf82',bad='#e06c75',grid='#2a333d';
+function line(x1,y1,x2,y2,col,w){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.strokeStyle=col;x.lineWidth=w||1.5;x.stroke();}
+x.font='13px system-ui,sans-serif';x.textAlign='center';x.fillStyle=ink;
+x.fillText('two diagrams, one matching',260,44);
+line(140,290,400,290,grid,1);
+line(150,300,150,60,grid,1);
+line(150,290,385,55,dim,1);
+var d=8;
+var X=[[190,110],[250,90],[300,75]];
+var Y=[[198,118],[245,83],[305,78]];
+var N=[[210,218],[270,158]];
+var F=[[216,224],[276,164]];
+for(var k=0;k<3;k++){
+  x.strokeStyle=acc;x.lineWidth=1;
+  x.strokeRect(X[k][0]-d,X[k][1]-d,2*d,2*d);
+}
+for(var k2=0;k2<3;k2++){
+  x.beginPath();x.arc(X[k2][0],X[k2][1],4.5,0,6.2832);x.fillStyle=good;x.fill();
+  x.fillStyle=acc;x.fillRect(Y[k2][0]-4,Y[k2][1]-4,8,8);
+}
+x.setLineDash([3,3]);
+for(var m=0;m<2;m++){
+  line(N[m][0],N[m][1],F[m][0],F[m][1],bad,1.5);
+  x.fillStyle=acc;x.fillRect(N[m][0]-4,N[m][1]-4,8,8);
+}
+x.setLineDash([]);
+x.font='11px system-ui,sans-serif';x.fillStyle=dim;x.textAlign='left';
+x.fillText('this pair sits on the corner',210,108);
+x.fillText('it achieves the distance',210,122);
+x.fillText('matched to the diagonal',286,214);
+x.textAlign='center';x.fillText('birth',270,308);
+x.save();x.translate(132,180);x.rotate(-1.5708);x.fillText('death',0,0);x.restore();
+x.textAlign='left';x.font='12px system-ui,sans-serif';
+x.fillStyle=good;x.beginPath();x.arc(452,102,4.5,0,6.2832);x.fill();
+x.fillStyle=dim;x.fillText('points of X',466,106);
+x.fillStyle=acc;x.fillRect(448,140,8,8);
+x.fillStyle=dim;x.fillText('points of Y',466,148);
+x.strokeStyle=acc;x.lineWidth=1;x.strokeRect(444,178,16,16);
+x.fillStyle=dim;x.fillText('box of side 2 d',466,190);
+x.fillText('smallest d for which every',444,228);
+x.fillText('box still reaches its partner',444,244);
+x.fillText('is the bottleneck distance',444,260);
+})();
+</script>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda1-01 — Simplicial complexes and filtrations</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA I · Nexus College</p>
+<h1>Simplicial complexes and filtrations <span class="cite">(tda1-01)</span></h1>
+
+<div class="hook">
+A single space grows as you turn a dial — the filtration — and topology appears and vanishes as it does.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A filtration of a space X is a nested family of subspaces indexed by the reals. Which of these is <em>also</em> required, in the definition you are about to read?</p>
+<p>
+<button onclick="check(this,false)">Every X<sub>i</sub> is non-empty</button>
+<button onclick="check(this,true)" data-ok>The intersection of all of them is empty</button>
+<button onclick="check(this,false)">The inclusions are homotopy equivalences</button>
+</p>
+<div class="explain">The intersection is required to be empty — the filtration has to start from nothing, not merely from something small. It is the least memorable clause of Oudot's Definition 2.1 and the one Segment 3 will catch his own worked example failing.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The filtration is the input to everything; persistence studies how homology changes along it.</p>
+
+<div class="warn">
+<p><strong>What these two sources do and do not contain, because the seam is exactly where this unit sits.</strong> Edelsbrunner §III.1 builds simplicial complexes and never mentions a filtration — not the word, not the idea. Oudot's Chapter 2 builds filtrations and never constructs a simplicial complex; it opens by assuming them outright ("<em>Prerequisites.</em> We will be assuming familiarity with simplicial complexes", p. 29). So the two halves of this unit's title come from two books that do not overlap, and the join between them is made here rather than read off a page.</p>
+<p><strong>And "the input to everything" is the strip's word, not Oudot's.</strong> His §1 lists four families of topological construction — filtrations and excursion sets, relative and extended filtrations, zigzags and level sets, and kernels, images and cokernels. This unit's resource is the first of the four. The strip is right about §1.1 and reaches past it; the footer says so again.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Two definitions of the same thing, and why there have to be two</h2>
+
+<p>Edelsbrunner opens by saying what he wants the data structure for: "we use simplicial complexes as the prime data structure to represent topological spaces", in "their geometric as well as abstract forms" <span class="cite">— Edelsbrunner §III.1, p. 62</span>. Both forms arrive within two pages, and the interesting question is why one is not enough.</p>
+
+<p>Start geometric. Given points u₀, …, u<sub>k</sub> in ℝ<sup>d</sup>, a point x = Σ λᵢuᵢ is an <em>affine combination</em> when the λᵢ sum to 1, and a <em>convex combination</em> when in addition every λᵢ ≥ 0. The k+1 points are <em>affinely independent</em> when any two affine combinations agree only if their coefficients agree, equivalently when the k vectors uᵢ − u₀ are linearly independent. A <em>k-simplex</em> is the convex hull of k+1 affinely independent points. Since ℝ<sup>d</sup> holds at most d linearly independent vectors, it holds at most d+1 affinely independent points — the first place the ambient dimension bites <span class="cite">— p. 62</span>.</p>
+
+<div class="definition">
+<p><strong>Simplicial complex</strong> <span class="cite">— Edelsbrunner, p. 63</span></p>
+<p>A finite collection of simplices K such that σ ∈ K and τ ≤ σ implies τ ∈ K, and σ, σ′ ∈ K implies σ ∩ σ′ is either empty or a face of both.</p>
+</div>
+
+<p>Two clauses, doing two different jobs. The first is closure under faces: a triangle drags in its three edges and three vertices. The second polices intersections: two triangles may share an edge, or a vertex, or nothing, but may not cross. A set of size k+1 has 2<sup>k+1</sup> subsets, of which the empty one spans nothing, so a k-simplex has 2<sup>k+1</sup> − 1 faces — all proper except itself.</p>
+
+<p>Around a simplex τ, three neighbourhoods. The <em>star</em> St τ is all cofaces of τ; it is generally <em>not</em> a complex, because a coface drags in faces the star does not contain. The <em>closed star</em> St̄ τ is the smallest subcomplex containing it. The <em>link</em> Lk τ is everything in the closed star disjoint from τ. If K triangulates a 2-manifold without boundary, the link of an edge is a pair of points — a 0-sphere — and the link of a vertex is a cycle, a 1-sphere <span class="cite">— p. 63</span>.</p>
+
+<div class="definition">
+<p><strong>Abstract simplicial complex</strong> <span class="cite">— Edelsbrunner, p. 64</span></p>
+<p>A finite collection of sets A such that α ∈ A and β ⊆ α implies β ∈ A.</p>
+</div>
+
+<p>One clause. The intersection condition has vanished, and it is worth being precise about why rather than saying "abstract things are easier". Simplices here are finite <em>sets</em>. The intersection of two of them is a set; if it is non-empty it is a subset of each, so the single clause already puts it in A. There is nothing left to forbid. Geometrically the same two simplices are subsets of ℝ<sup>d</sup> and can genuinely overlap in a region that is a face of neither, so the condition has real work to do. The number of clauses is a fact about the ambient space, not about the level of abstraction.</p>
+
+<p>Passing between the two is easy in one direction: throw away every simplex of a geometric K and keep only its vertex set, and you have a <em>vertex scheme</em> A. The other direction is a theorem.</p>
+
+<div class="theorem">
+<p><strong>Geometric Realization Theorem</strong> <span class="cite">— Edelsbrunner, p. 64</span></p>
+<p>Every abstract simplicial complex of dimension d has a geometric realization in ℝ<sup>2d+1</sup>.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the proof, and the one inequality it turns on.</strong></p>
+<p>Choose an injection f from the vertex set into ℝ<sup>2d+1</sup> whose image is in general position, meaning any 2d+2 or fewer of the points are affinely independent. Take α, α′ ∈ A with k = dim α and k′ = dim α′. Since dim α = card α − 1 for an abstract simplex,</p>
+<p style="text-align:center">card(α ∪ α′) = card α + card α′ − card(α ∩ α′) ≤ k + k′ + 2 ≤ 2d + 2.</p>
+<p>That is the whole argument's hinge, and it is why the general-position threshold is 2d+2 rather than any other number: 2d+2 is the largest possible size of α ∪ α′, so it is exactly the size at which affine independence must still be guaranteed. Being of size at most 2d+2, the points of α ∪ α′ <em>are</em> affinely independent, so every convex combination of them is ⟨ what? ⟩. Hence a point x lies in both conv f(α) and conv f(α′) precisely when x is a convex combination of ⟨ which set? ⟩, so the two image simplices meet in either the empty set or conv f(α ∩ α′) — which is ⟨ what, in the language of the definition on p. 63? ⟩.</p>
+<p>Notice what the ambient dimension is being spent on. Not on fitting the simplices in — a d-dimensional complex has d-simplices, which need only d+1 points — but on keeping <em>pairs</em> of them from colliding. The 2 in 2d+1 is the price of the second clause of the geometric definition.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Edelsbrunner notes that skeleta "are generally not full", where a subcomplex L ⊆ K is <em>full</em> if it contains every simplex of K spanned by vertices in L. Take K to be a single triangle with its edges and vertices. Is the 1-skeleton K<sup>(1)</sup> full?</p>
+<p>
+<button onclick="check(this,false)">Yes — it contains all three edges</button>
+<button onclick="check(this,true)" data-ok>No — the triangle is spanned by its vertices and is missing</button>
+<button onclick="check(this,false)">The question is not well posed for skeleta</button>
+</p>
+<div class="explain">No. Fullness is about which simplices of K are spanned by L's vertices, and Vert K<sup>(1)</sup> is all three vertices, which span the 2-simplex. K<sup>(1)</sup> omits it, so it is not full. This is the general reason skeleta fail to be full: taking all simplices up to dimension j keeps every vertex, and the vertices span the higher simplices that were just discarded.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Maps, subdivision, and one sentence in a proof that is wrong</h2>
+
+<p>Every point x of |K| lies in the interior of exactly one simplex — that is the payoff of the observation on p. 63 that a point belongs to the interior of the face spanned by its positive coefficients. So, writing that simplex as conv{u₀, …, u<sub>k</sub>} and x = Σλᵢuᵢ, we may set bᵢ(x) = λᵢ for i ≤ k and bᵢ(x) = 0 otherwise, and get the <em>barycentric coordinates</em> of x in K, well defined for every point at once <span class="cite">— pp. 64–65</span>.</p>
+
+<p>A <em>vertex map</em> φ : Vert K → Vert L is a function carrying the vertices of every simplex of K to vertices of some simplex of L. It extends to a continuous f : |K| → |L| by f(x) = Σ bᵢ(x) φ(uᵢ), the <em>simplicial map induced by φ</em>. Edelsbrunner offers a second way to see it: fix a vertex u<sub>j</sub> and let b<sub>j</sub> : |K| → ℝ be the j-th barycentric coordinate. Its graph "has the shape of a hat, increasing from zero on and outside the link to one at u<sub>j</sub>" — the link is where the hat's brim sits, because a point outside St u<sub>j</sub> has no u<sub>j</sub> among the vertices of its own simplex, hence coefficient zero. The simplicial map is the weighted sum of these n+1 basis functions <span class="cite">— p. 65</span>.</p>
+
+<p>Subdivision next, because approximation will need it. L subdivides K if |L| = |K| and every simplex of L sits inside a simplex of K. The <em>barycentric</em> subdivision Sd K is built by induction on dimension: Sd K<sup>(0)</sup> = K<sup>(0)</sup>, and Sd K<sup>(j)</sup> adds the barycenter of every j-simplex and joins it to the simplices subdividing that simplex's boundary. The <em>mesh</em> of K is the largest diameter of any simplex, equivalently its longest edge <span class="cite">— pp. 65–66</span>.</p>
+
+<div class="theorem">
+<p><strong>Mesh Lemma</strong> <span class="cite">— Edelsbrunner, p. 66</span></p>
+<p>Letting δ be the mesh of the d-dimensional simplicial complex K, the mesh of Sd K is at most <span class="frac"><span class="num">d</span><span class="den">d+1</span></span> δ.</p>
+</div>
+
+<p>The proof takes complementary faces τ, υ of a simplex σ — meaning τ ∩ υ = ∅ and dim τ + dim υ = dim σ − 1 — and observes that the segment joining their barycenters has length at most δ and splits, in Sd K, into two edges in the ratio 1 + dim υ to 1 + dim τ. So each piece is at most <span class="frac"><span class="num">k</span><span class="den">k+1</span></span> δ where k = dim σ, and k ≤ d gives the bound.</p>
+
+<div class="you-try">
+<p><strong>You try.</strong> Take σ a triangle, τ = {u₀}, υ = conv{u₁, u₂}. Check that they are complementary, compute both barycenters, and confirm that the barycenter of σ divides the segment between them in the ratio 2 : 1. Then say which of the two pieces is the long one, and whether it is the one attached to τ or to υ.</p>
+</div>
+
+<p>Iterating drives the mesh to zero, and that is what makes the next theorem true. A continuous g : |K| → |L| satisfies the <em>star condition</em> if for each vertex u of K there is a vertex v of L with g(N(u)) ⊆ N(v), where N(u) is the union of the interiors of the simplices in St u. Given the star condition, the assignment u ↦ v is a vertex map, and the simplicial map f it induces satisfies g(N(u)) ⊆ N(f(u)) — the definition of a <em>simplicial approximation</em> of g <span class="cite">— p. 67</span>.</p>
+
+<div class="theorem">
+<p><strong>Simplicial Approximation Theorem</strong> <span class="cite">— Edelsbrunner, p. 67</span></p>
+<p>If g : |K| → |L| is continuous then there is a sufficiently large integer n such that g has a simplicial approximation f : Sd<sup>n</sup> K → L.</p>
+</div>
+
+<div class="guided-proof">
+<p><strong>Guided proof — and there is a slip in the printed one, so read it as a claim rather than as a warrant.</strong></p>
+<p>Edelsbrunner's proof, printed on p. 68, runs: cover |K| by the open sets g<sup>−1</sup>(N(v)) for v ∈ Vert L; compactness of |K| gives a positive λ such that any set of diameter less than λ lies in one of them; "Choose n such that each simplex in Sd<sup>n</sup> K has diameter less than half of λ. Then each star in K has diameter less than λ implying it lies in one of the sets g<sup>−1</sup>(N(v))."</p>
+<p>Your task: reconstruct the argument, and decide whether "each star in K" is what the proof needs. Three things to settle. (1) What is λ called, and which standard fact about compact metric spaces produces it? (2) The vertex map being built is defined on the vertices of <em>which</em> complex — K, or Sd<sup>n</sup> K? (3) Why one <em>half</em> of λ and not λ itself?</p>
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>(1)</strong> λ is a Lebesgue number of the open cover {g<sup>−1</sup>(N(v))}. The standard fact is the Lebesgue number lemma: every open cover of a compact metric space admits a λ &gt; 0 such that every subset of diameter less than λ lies in some member of the cover. Compactness of |K| is used here and nowhere else.</p>
+<p><strong>(2)</strong> On Sd<sup>n</sup> K. The theorem's conclusion is a simplicial map f : Sd<sup>n</sup> K → L, so φ must be defined on Vert Sd<sup>n</sup> K, and the star condition must therefore hold for the stars of <em>that</em> complex. So the printed "each star in K" should read <strong>each star in Sd<sup>n</sup> K</strong>. As printed the sentence claims something about K, whose stars have not been made small by anything — n does not appear in it — and which would make the subdivision pointless. The mathematics is right and the sentence naming the complex is wrong; the theorem is not in doubt.</p>
+<p><strong>(3)</strong> Because a star is not a single simplex. Take two points x, y in N(u) for a vertex u of Sd<sup>n</sup> K. They lie in simplices σ, σ′ of the star, both containing u. Then d(x, y) ≤ d(x, u) + d(u, y) &lt; λ/2 + λ/2 = λ. One half is the triangle inequality routed through the shared vertex, and it is the reason the sentence has to be about the subdivided complex: the bound on simplex diameters is a bound on Sd<sup>n</sup> K, and it converts to a bound on stars only for the same complex.</p>
+<p><strong>Finish.</strong> Each star of Sd<sup>n</sup> K therefore has diameter less than λ, so N(u) lies in some g<sup>−1</sup>(N(v)); that is the star condition; the induced simplicial map is a simplicial approximation. The Mesh Lemma is what guarantees an n with mesh Sd<sup>n</sup> K &lt; λ/2 exists, since (d/(d+1))<sup>n</sup> → 0.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> The Simplicial Approximation Theorem subdivides K but not L. Why is that asymmetry not a gap in the theorem?</p>
+<p>
+<button onclick="check(this,false)">L is assumed finer than K</button>
+<button onclick="check(this,true)" data-ok>The cover being refined is a cover of the source, indexed by L's vertices</button>
+<button onclick="check(this,false)">Subdividing L would change |L| and break continuity</button>
+</p>
+<div class="explain">The open cover is {g<sup>−1</sup>(N(v)) : v ∈ Vert L} — a cover of |K| whose <em>index set</em> comes from L. Making it a cover with small members is done by shrinking pieces of the source, which is subdivision of K. L is only ever consulted for its vertex stars, and those are not required to be small. Subdividing L would indeed leave |L| unchanged, but that is not why it is unnecessary.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>The filtration, and a condition that is easy to skip</h2>
+
+<p>Oudot opens Chapter 2 by naming the whole apparatus at once: families of spaces, "called <em>filtrations</em>", linked by continuous maps usually taken to be inclusions; a functor, typically homology, turning them into persistence modules; and persistence diagrams defined for filtrations as a result. Then the definition <span class="cite">— Oudot §2.1.1, p. 29</span>.</p>
+
+<div class="definition">
+<p><strong>Definition 2.1</strong> <span class="cite">— Oudot, p. 29</span></p>
+<p>Given a subset T ⊆ ℝ, a <em>filtration</em> 𝒳 over T is a family of topological spaces X<sub>i</sub>, parametrized by i ∈ T, such that X<sub>i</sub> ⊆ X<sub>j</sub> whenever i ≤ j ∈ T.</p>
+<p>It is <em>(finitely) simplicial</em> if the X<sub>i</sub> are (finite) simplicial complexes and X<sub>i</sub> is a <em>subcomplex</em> of X<sub>j</sub> whenever i ≤ j. When the X<sub>i</sub> are subsets of a common space X with ⋂<sub>i∈T</sub> X<sub>i</sub> = ∅ and ⋃<sub>i∈T</sub> X<sub>i</sub> = X, 𝒳 is called a <em>filtration of X</em>, and (X, 𝒳) a <em>filtered space</em>.</p>
+</div>
+
+<p>Three definitions in one box, and they are not nested the way the layout suggests. A filtration <em>over T</em> asks for nothing but nesting. Simplicial upgrades "subset" to "subcomplex" — which is where Segment 1's face-closure clause is finally spent, since a subset of a complex need not be one. And a filtration <em>of X</em> adds two conditions that the first two never mentioned: the family exhausts X, and it starts from nothing.</p>
+
+<p>Oudot's next sentence names the structure exactly: 𝒳 "is a special type of representation of the poset (T, ≤) in the category of topological spaces". That is cat-07's Definition 1.7 with Top in place of Vect<sub>k</sub> — a functor out of the poset category, one object per i ∈ T and one morphism per pair i ≤ j. What makes it <em>special</em> is that the objects are subspaces of one another and every morphism is the inclusion, so the functor is determined by the objects alone.</p>
+
+<p>Apply homology and you get, for each p, a persistence module H<sub>p</sub>(𝒳): the vector space H<sub>p</sub>(X<sub>i</sub>) at every i, and at every pair i ≤ j the homomorphism H<sub>p</sub>(X<sub>i</sub>) → H<sub>p</sub>(X<sub>j</sub>) induced by the inclusion. Their collection over all p is the <em>persistent homology</em> H<sub>∗</sub>(𝒳), and the image of one of those maps is a <em>p-th persistent homology group</em> <span class="cite">— p. 30</span>. This is where at1-07's computations get their new job: they are what sits at each index, and the maps between them are what the subject is actually about.</p>
+
+<canvas id="filt" width="640" height="330" aria-label="Top row: four panels showing a filtration of a triangle. The first has one vertex; the second has two vertices; the third has three vertices joined by three edges to form an empty loop; the fourth has the same loop with its interior filled in. Bottom: a barcode over the index axis one to four, with a long H-zero bar running from one to four, a single-point H-zero mark at two, and a single-point H-one mark at three."></canvas>
+
+<p>The picture is a four-step simplicial filtration over T = {1, 2, 3, 4}: one vertex, then two, then a triangle's boundary, then the filled triangle. Its persistent homology is H₀ ≅ 𝕀[1,4] ⊕ 𝕀[2,2] and H₁ ≅ 𝕀[3,3] — one component throughout, a second that exists only at index 2, and a loop that exists only at index 3. Those are the first two lines of Oudot's Example 2.2 exactly; his octahedron adds H₂ ≅ 𝕀[4,4] for the void this smaller example has no room for.</p>
+
+<div class="warn">
+<p><strong>A check worth doing on the source, because it fails.</strong> Oudot calls Example 2.2 "the filtration 𝒳 of the octahedron", and Figure 2.1's caption reads "A simplicial filtration of the octahedron, indexed over the set {1, 2, 3, 4}". But 𝕀[1,4] is a summand of H₀(𝒳), so H₀(X₁) ≠ 0, so X₁ ≠ ∅ — and X₁ ⊆ X<sub>i</sub> for every index, so ⋂<sub>i∈T</sub> X<sub>i</sub> = X₁ ≠ ∅. Definition 2.1 reserves "filtration <em>of</em> X" for families whose intersection is empty. On its own definition, then, this is a filtration <em>over</em> {1,2,3,4} and not a filtration <em>of</em> the octahedron.</p>
+<p>The repair is one index wide: take T = {0,1,2,3,4} with X₀ = ∅. Nothing in the decomposition moves, because H<sub>∗</sub>(∅) = 0 contributes no summand and starts no interval. So the condition is not doing hidden mathematical work in this example — which is exactly why it is easy to write past.</p>
+<p><strong>And it happens twice, which changes what the finding is.</strong> Example 2.5 on p. 33 introduces "the following filtration of X indexed over ℝ" with X<sub>i</sub> = {a} for i ≤ 0 — so ⋂<sub>i∈ℝ</sub> X<sub>i</sub> = {a}, non-empty again, and this time over all of ℝ where the clause was supposed to bite. Two of the chapter's own examples are called filtrations <em>of</em> a space while failing the clause that phrase is defined by. One instance would be a slip. Two suggests the intersection condition is functioning as a normalization for the sublevel-sets case — where it holds automatically, as you will see below — rather than as a requirement Oudot enforces on the word. Read it that way and both examples are fine; read it as stated in Definition 2.1 and both are misnamed. What is <em>not</em> available is reading it as stated and then not checking.</p>
+</div>
+
+<p>Oudot then warns about vocabulary. It is natural to say a feature is <em>born</em> at b and <em>dies</em> at d, and he does — "the second component is born at time 2 and dies at time 3" for Example 2.2 — but he immediately adds that this "is unsafe for persistence modules over general subsets of ℝ because it assumes implicitly that the intervals in the decomposition can be written in the form [b, d)", which is possible here and not always over ℝ. The interval in the decomposition is 𝕀[2,2]: the component is present at index 2 and absent at index 3, and "dies at 3" is a statement about the half-open rewriting, not about the interval. The death of the younger component when two merge is the <em>elder rule</em> <span class="cite">— pp. 30–31</span>.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Oudot insist that persistence gives finer information than computing H<sub>∗</sub>(X<sub>i</sub>) at every index separately?</p>
+<p>
+<button onclick="check(this,false)">The separate computations are not functorial</button>
+<button onclick="check(this,true)" data-ok>Separate computations cannot relate features across indices</button>
+<button onclick="check(this,false)">Homology of a single X<sub>i</sub> is not well defined without a filtration</button>
+</p>
+<div class="explain">His reason on p. 30 is that computing each H<sub>∗</sub>(X<sub>i</sub>) separately "would not make possible to relate the topological features across indices". In Example 2.2 the pointwise Betti numbers would tell you there are two components at index 2 and one at index 3, but not <em>which</em> of the two survived. The maps carry that, and the maps are what the pointwise computation throws away.</div>
+</div>
+
+<p>Now the construction that makes filtrations appear from data. A <em>filter</em> on X is any function f : X → ℝ. Each value i gives a sublevel set F<sub>i</sub> = f<sup>−1</sup>((−∞, i]) and a superlevel set F<sup>i</sup> = f<sup>−1</sup>([i, +∞)). The sublevel sets are nested, their union is X and their intersection is empty, so 𝓕<sub>≤</sub> is a filtration of X in the full sense — all three conditions, this time genuinely satisfied. The superlevel sets are nested the other way, so they are indexed over the backwards copy ℝ<sup>op</sup>, ordered by i ≤ j exactly when i ≥ j; the reindexing is forced by the direction of inclusion and is not a convention <span class="cite">— p. 31</span>.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: when the diagram exists at all.</strong></p>
+<p>Nothing so far guarantees that H<sub>∗</sub>(𝒳) has a persistence diagram. Oudot lists three situations in which it does <span class="cite">— p. 30</span>: (i) T finite and the modules arbitrary; (ii) T arbitrary and the modules pointwise finite-dimensional; (iii) T = ℝ and the modules 𝔮-tame. He attributes (i) and (ii) to Theorem 1.9 and (iii) to Theorem 1.13, both in Chapter 1.</p>
+<p>A finitely simplicial filtration over a finite index set — the kind the algorithms handle — satisfies ⟨ which of the three, and why more than one? ⟩. It satisfies (iii) ⟨ never / sometimes / always ⟩, because ⟨ what is wrong with T? ⟩.</p>
+<p>Then Proposition 2.3 supplies 𝔮-tameness for functions: f : X → ℝ is 𝔮-tame when X is finitely triangulable and f continuous, or when X is locally finitely triangulable and f is continuous, bounded below and proper. Oudot argues the conditions are <em>tight</em> — dropping boundedness below, with X = ℤ and f : n ↦ n, breaks it — and yet <em>not necessary</em>, since the Hawaiian earring with a discontinuous f is 𝔮-tame anyway. Tight and necessary are different properties of a sufficient condition, and ⟨ which example establishes which? ⟩.</p>
+</div>
+
+<p>One last question, and Oudot asks it himself: is every ℝ-indexed filtration of X the sublevel-sets filtration of some f? No. Example 2.5 takes X = {a, b, c} discrete with X<sub>i</sub> = {a} for i ≤ 0, {a, b} on (0,1), and all of X for i ≥ 1. If 𝓕<sub>≤</sub> = 𝒳 then b ∈ F<sub>i</sub> for all i &gt; 0 forces f(b) ≤ 0, and b ∉ F<sub>i</sub> for all i &lt; 0 forces f(b) ≥ 0, so f(b) = 0 — and then b ∈ F₀ while b ∉ X₀. Switching to open sublevel sets moves the contradiction to i = 1 rather than removing it <span class="cite">— pp. 33–34</span>.</p>
+
+<p>Proposition 2.6 then rescues something, and it is important to see how much. For a 𝔮-tame filtration 𝒳 of X there <em>is</em> a 𝔮-tame f whose <strong>undecorated</strong> diagram coincides with that of 𝒳 — one may take the time-of-appearance function f(x) = inf{i ∈ ℝ : x ∈ X<sub>i</sub>} — and Oudot's own next sentence says the decorated diagrams Dgm(f) and Dgm(𝒳) "may be different though, as in Example 2.5". Three qualifications sit inside one statement: it is about undecorated diagrams, it produces some f rather than repairing the given filtration, and the decorated version is explicitly not claimed <span class="cite">— p. 34</span>.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Proposition 2.6 is stated for 𝔮-tame filtrations. Where does that hypothesis come from, given this unit's sources?</p>
+<p>
+<button onclick="check(this,false)">From Definition 2.1, which requires tameness</button>
+<button onclick="check(this,true)" data-ok>From Definition 1.12 in Chapter 1, outside this unit's resources</button>
+<button onclick="check(this,false)">From Proposition 2.3, which defines it</button>
+</p>
+<div class="explain">𝔮-tameness is Definition 1.12, p. 25 — a module over ℝ with rank v<sub>i</sub><sup>j</sup> finite for all i &lt; j — and Chapter 1 is cat-07's resource range, not this unit's. Proposition 2.3 gives <em>sufficient conditions</em> for a function to have the property; it does not define it. Definition 2.1 says nothing about tameness at all. This unit can use the word because Chapter 2 does, and can say where the definition lives, but does not establish it.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> A filtration is a functor out of (T, ≤). What, in that language, is the difference between a filtration over T and a filtration of X?</p>
+<p>
+<button onclick="check(this,false)">The second is a functor and the first is not</button>
+<button onclick="check(this,true)" data-ok>Both are functors; the second constrains the colimit and the limit of the diagram</button>
+<button onclick="check(this,false)">The second lands in a different category</button>
+</p>
+<div class="explain">Both are functors into Top. The two extra conditions are conditions on the two ends of the diagram: ⋃ X<sub>i</sub> = X says the union — the colimit of a diagram of inclusions — is X, and ⋂ X<sub>i</sub> = ∅ says the intersection, its limit, is empty. Oudot does not put it this way, and cat-05's limits and colimits are not in this unit's resources; the reading is offered as a way to remember which condition is which, not as something the sources state.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. A simplicial complex has two clauses geometrically and one abstractly, and the difference is the ambient space.</strong> Face-closure is common to both; the intersection condition exists only because geometric simplices are point sets that can overlap improperly. The Geometric Realization Theorem converts abstract to geometric at the cost of dimension 2d+1, and the proof shows what that dimension buys: general position for 2d+2 points, which is exactly card(α ∪ α′) at its largest, which is exactly what forces two image simplices to meet in the image of their intersection.</p>
+<p><strong>2. Simplicial approximation makes continuous maps combinatorial, and needs subdivision to do it.</strong> Barycentric coordinates are well defined because each point is interior to exactly one face; a vertex map extends to a simplicial map through them. The Mesh Lemma drives mesh Sd<sup>n</sup> K to zero, and the Lebesgue number of the cover {g<sup>−1</sup>(N(v))} fixes how small is small enough. The printed proof says "each star in K" where it means each star in Sd<sup>n</sup> K, and the factor of one half is the tell — it converts a bound on simplex diameters into a bound on star diameters via the triangle inequality through the shared vertex, in whichever complex the simplices belong to.</p>
+<p><strong>3. A filtration is a poset representation in Top, and "of X" is strictly stronger than "over T".</strong> Definition 2.1 gives nesting only; simplicial strengthens subset to subcomplex; "of X" adds exhaustion and empty intersection. Homology turns any of them into a persistence module, one per dimension, whose maps are what pointwise Betti numbers cannot see. Sublevel sets satisfy all three conditions; Example 2.2's octahedron does not satisfy the third, on Oudot's own definition; and Example 2.5 shows filtrations of X that are no function's sublevel sets, with Proposition 2.6 recovering the undecorated diagram only.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Edelsbrunner and Harer, <em>Computational Topology: An Introduction</em>, §III.1 "Simplicial Complexes". Simplices, affine and convex combinations, affine independence, the bound of d+1 affinely independent points in ℝ<sup>d</sup>, faces and cofaces, the 2<sup>k+1</sup> − 1 count, boundary and interior (p. 62); the definition of a simplicial complex, dimension, underlying space, polyhedron, triangulation, subcomplex and fullness, the j-skeleton and vertex set with the remark that skeleta are generally not full, and the star, closed star and link with the 2-manifold example (p. 63); the definition of an abstract simplicial complex, vertex schemes and geometric realizations, and the Geometric Realization Theorem with its proof (p. 64); barycentric coordinates, vertex maps, the induced simplicial map and the hat-shaped basis function (pp. 64–65); subdivisions, the barycenter, the construction of Sd K, mesh, and the Mesh Lemma with its proof (pp. 65–66); N(u), the star condition, simplicial approximation, and the Simplicial Approximation Theorem with its proof (pp. 67–68). Every folio was read off the page cited; the Edelsbrunner offset is PDF = printed + 12.
+<p>Oudot, <em>Persistence Theory: From Quiver Representations to Data Analysis</em>, Chapter 2 "Topological Persistence", §1.1. The chapter opening on filtrations, the homology functor and the prerequisites paragraph (p. 29); Definition 2.1 with all three of its clauses, the poset-representation remark, persistent homology and persistent cohomology, the persistent homology group, and the three situations in which diagrams are well defined with their attribution to Theorems 1.9 and 1.13 (pp. 29–30); Example 2.2 with Figure 2.1 and its decomposition, the feature and lifespan vocabulary, the caution about birth and death, the elder rule, and the remark that persistence is finer than pointwise homology (pp. 30–31); filters, excursion sets, and the sublevel- and superlevel-sets filtrations with ℝ<sup>op</sup> (p. 31); Proposition 2.3 with both cases, the X = ℤ example and the Hawaiian earring (p. 32); Example 2.4 (p. 33); Example 2.5, stated on p. 33 and argued on p. 34; Proposition 2.6 and the time-of-appearance function (p. 34). Definition 1.12 of 𝔮-tameness and Theorem 1.13 are quoted by page (p. 25) as Chapter 1 material that Chapter 2 relies on. The Oudot offset is PDF = printed + 9.</p>
+<p><strong>Not established here.</strong> That the filtration is "the input to everything". Oudot's own §1 lists four families of construction — filtrations and excursion sets, relative and extended filtrations, zigzags and level sets, and kernels, images and cokernels — and this unit's resource is the first. The strip is exact for §1.1 and overreaches beyond it; the correction is legible from the source's own section list, not from outside it. Also not established: anything about filtrations indexed over all of ℝ that depends on 𝔮-tameness, since Definition 1.12 and Theorem 1.13 are Chapter 1's and outside this unit's resources — they are named here, and cited to p. 25, but not proved or developed. And the limit/colimit reading of Definition 2.1's two extra conditions offered in Self-check 5 is this lesson's, not Oudot's; cat-05's limits are not in this unit's range.</p>
+<p><strong>Two findings against the sources, recorded rather than smoothed.</strong> First, Edelsbrunner's proof of the Simplicial Approximation Theorem (p. 68) says "each star in K has diameter less than λ" where the argument requires each star in Sd<sup>n</sup> K; the theorem is not in doubt and the rest of the proof is correct as printed. Second, Oudot's Example 2.2 and Figure 2.1 both call the octahedron construction a filtration <em>of</em> the octahedron, while its own decomposition forces X₁ ≠ ∅ and hence ⋂<sub>i∈T</sub> X<sub>i</sub> ≠ ∅, which Definition 2.1 excludes for that phrase; adjoining X₀ = ∅ repairs it and changes no interval. Example 2.5 (p. 33) does the same over T = ℝ, with X<sub>i</sub> = {a} for i ≤ 0 and hence ⋂<sub>i∈ℝ</sub> X<sub>i</sub> = {a}. Two instances rather than one is why the body reads the clause as a normalization for the sublevel-sets case rather than as a slip; that reading is this lesson's inference from the two examples, not a statement Oudot makes. Both are recorded in the body at the point of use.</p>
+<p><strong>Stated but not proved.</strong> That the link of a vertex in a triangulated 2-manifold without boundary is a 1-sphere — Edelsbrunner asserts it on p. 63 without argument and it is not proved here; Problem 1(e) asks only for the edge case, which follows by counting. That mesh Sd<sup>n</sup> K → 0, which follows from the Mesh Lemma by iteration and is used in the Simplicial Approximation Theorem's proof without a separate statement. The Lebesgue number lemma, used by name in the guided proof and not proved.</p>
+<p><strong>Deferred.</strong> The persistence module in its own right and the interval decomposition, tda1-03 and tda1-04 — Theorem 1.9 is stated in cat-07 and used here only as an attribution. Relative and extended filtrations and the EP duality theorem, Oudot §2.1.2, outside this unit's pages. Sublevel-set persistence worked through Morse theory, tda1-08. The reduction algorithm that turns a finitely simplicial filtration into a barcode, tda1-02 and tda1-09. Delaunay and alpha complexes, Edelsbrunner §III.3 and §III.4.</p>
+</footer>
+<script>
+(function(){
+var c=document.getElementById('filt');if(!c||!c.getContext)return;
+var x=c.getContext('2d');
+var dim='#9aa5b1',ink='#e8e8e8',acc='#8ab4f8',good='#4caf82',panel='#2a333d';
+function dot(px,py,r,col){x.beginPath();x.arc(px,py,r,0,6.2832);x.fillStyle=col;x.fill();}
+function line(x1,y1,x2,y2,col,w){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.strokeStyle=col;x.lineWidth=w||1.5;x.stroke();}
+var starts=[18,168,318,468],W=138;
+x.font='12px system-ui,sans-serif';x.textAlign='center';
+for(var s=0;s<4;s++){
+  var p=starts[s];
+  x.fillStyle=dim;x.fillText('X'+(s+1),p+W/2,26);
+  x.strokeStyle=panel;x.lineWidth=1;x.strokeRect(p,34,W,118);
+  var ax=p+30,ay=124,bx=p+108,by=124,cx=p+69,cy=58;
+  if(s>=3){x.beginPath();x.moveTo(ax,ay);x.lineTo(bx,by);x.lineTo(cx,cy);x.closePath();x.fillStyle='rgba(76,175,130,0.30)';x.fill();}
+  if(s>=2){line(ax,ay,bx,by,good,2);line(bx,by,cx,cy,good,2);line(cx,cy,ax,ay,good,2);}
+  dot(ax,ay,4,ink);
+  if(s>=1)dot(bx,by,4,ink);
+  if(s>=2)dot(cx,cy,4,ink);
+}
+function ix(i){return 100+(i-1)*140;}
+line(90,292,560,292,panel,1);
+x.fillStyle=dim;
+for(var i=1;i<=4;i++){line(ix(i),288,ix(i),296,panel,1);x.fillText(String(i),ix(i),308);}
+x.textAlign='right';
+x.fillStyle=good;x.fillText('H0',80,204);
+line(ix(1),200,ix(4),200,good,5);
+x.fillStyle=good;x.fillText('H0',80,229);
+dot(ix(2),225,5,good);
+x.fillStyle=acc;x.fillText('H1',80,254);
+dot(ix(3),250,5,acc);
+x.textAlign='left';x.fillStyle=dim;x.font='11px system-ui,sans-serif';
+x.fillText('index',566,296);
+})();
+</script>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
