@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda1-08 — Morse theory and sublevel-set persistence</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA I · Nexus College</p>
+<h1>Morse theory and sublevel-set persistence <span class="cite">(tda1-08)</span></h1>
+
+<div class="hook">
+Watch the sublevel sets of a function fill up; topology only changes at critical points (an-12's derivatives return).
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Almost every smooth function on a compact manifold is Morse — being Morse is generic. What is the situation for piecewise linear functions on a triangulated manifold?</p>
+<p>
+<button onclick="check(this,false)">The same: PL Morse functions are dense too</button>
+<button onclick="check(this,true)" data-ok>Different: PL Morse functions are not dense, and a PL function may need a substantial perturbation</button>
+<button onclick="check(this,false)">Stronger: every PL function on a manifold is automatically PL Morse</button>
+</p>
+<div class="explain">Edelsbrunner states it flatly on p. 164: "In contrast to the smooth case, PL Morse functions are not dense among the class of all PL functions." The PL monkey saddle is his example, and the consequence he draws is that "it is therefore not reasonable to assume a PL Morse function as input". Segment 2 works out what that costs, and Segment 3 what it costs the mission strip.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Sublevel-set persistence links Morse theory to filtrations — how a scalar field becomes a barcode.</p>
+
+<div class="warn">
+<p><strong>The link the strip names is real and the source makes it explicitly</strong> — Chapter VII lists "the lower star filtration of a piecewise linear function in Section VI.3" among its examples of filtrations (p. 179). What needs care is the second half. A scalar field measured on data is not a PL function on a triangulated manifold, and the steps between them — choosing a triangulation, checking genericity, deciding what to do when the function is not PL Morse, and knowing whether the answer depends on the triangulation — are mostly not in these pages. Segment 3 lists them and says for each where it is settled, which for several is nowhere here.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Smooth Morse theory, in the two theorems persistence uses</h2>
+
+<p>Let 𝕄 be a smooth d-manifold. A smooth f : 𝕄 → ℝ induces a linear map Df<sub>x</sub> : T𝕄<sub>x</sub> → ℝ on each tangent space, and a linear map to ℝ has image either all of ℝ or {0} — so every point is either <em>regular</em> (Df<sub>x</sub> surjective) or <em>critical</em> (Df<sub>x</sub> zero), with no third case. In local coordinates, critical means every partial derivative vanishes. This is an-12's stationary-point condition on a manifold <span class="cite">— Edelsbrunner §VI.1, p. 151</span>.</p>
+
+<p>Second derivatives sort the critical points. The <em>Hessian</em> H(x) is the matrix of second partials, and a critical point is <em>non-degenerate</em> when det H(x) ≠ 0 — the multivariable form of an-12's second-derivative test, which in one variable asks only that f″ ≠ 0. Degeneracy is not exotic: f(x₁) = x₁³ has a degenerate critical point at 0, and f(x₁, x₂) = x₁³ − 3x₁x₂² has one at the origin, the <em>monkey saddle</em>, so called because the surface goes up and down three times around it — room for two legs and a tail <span class="cite">— p. 152</span>.</p>
+
+<div class="theorem">
+<p><strong>Morse Lemma</strong> <span class="cite">— Edelsbrunner, p. 152</span></p>
+<p>Let u be a non-degenerate critical point of f : 𝕄 → ℝ. There are local coordinates with u = (0, …, 0) such that f(x) = f(u) − x₁² − ⋯ − x<sub>q</sub>² + x<sub>q+1</sub>² + ⋯ + x<sub>d</sub>² in a small neighbourhood of u.</p>
+</div>
+
+<p>The number of minus signs is the <em>index</em>, and it sorts non-degenerate critical points into d+1 types — for a surface: minima (0), saddles (1), maxima (2). Two consequences. Locally f − f(u) is a non-degenerate quadratic form, which vanishes only at the origin, so non-degenerate critical points are <em>isolated</em>; on a compact manifold there are therefore finitely many. And a function can fail to have any index at all: the height function of a torus lying on its side has an entire circle of minima and another of maxima, all degenerate.</p>
+
+<div class="definition">
+<p><strong>Morse function</strong> <span class="cite">— Edelsbrunner, p. 152</span></p>
+<p>A smooth function f : 𝕄 → ℝ on a manifold such that (i) all critical points are non-degenerate, and (ii) the critical points have distinct function values.</p>
+</div>
+
+<p>Edelsbrunner keeps both conditions throughout and notes that (ii) is sometimes dropped. His torus examples are worth holding on to as a measure of how generic this is: for a geometrically perfect torus the height function satisfies (i) for all but <em>two</em> directions — those parallel to the symmetry axis — and violates (ii) for two circles of directions, those along which the two saddles have equal height. The exceptions are a measure-zero set; being Morse is the normal case.</p>
+
+<p>Two structural results follow, and they are what persistence uses. The gradient ∇f is defined by ⟨X(x), ∇f(x)⟩ = X[f] for all vector fields X — which needs a Riemannian metric, since without an inner product there is no way to convert the derivative into a vector. Following its flow gives a 1-parameter group of diffeomorphisms, and it carries sublevel sets into sublevel sets. Hence:</p>
+
+<div class="theorem">
+<p><strong>No change away from critical points; a handle at each one</strong> <span class="cite">— Edelsbrunner, pp. 154</span></p>
+<p>If a &lt; b and f<sup>−1</sup>[a, b] is compact and contains no critical points, then 𝕄<sub>a</sub> is diffeomorphic to 𝕄<sub>b</sub>. If instead it contains exactly one critical point, of index q, then 𝕄<sub>b</sub> has the homotopy type of 𝕄<sub>a</sub> with a q-handle attached — 𝔹<sup>q</sup> glued along 𝕊<sup>q−1</sup> by a map into bd 𝕄<sub>a</sub>, with q = 0 meaning simply the addition of a disjoint point, since 𝕊<sup>−1</sup> is empty.</p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: the upright torus, one handle at a time.</strong> <span class="cite">— Edelsbrunner, p. 151 and Figure VI.2</span></p>
+<p>Stand a torus upright and take the height function. It has four critical points: u a minimum, v and w saddles, z a maximum. Walk the sublevel set up through them.</p>
+<p><strong>Past u.</strong> Index 0, so a disjoint point is added and the sublevel set becomes a disk.</p>
+<p><strong>Past v.</strong> Index 1. Edelsbrunner's caption: "Going from a disk to a cylinder is homotopically the same as attaching a 1-handle." The result is a cylinder, whose homotopy type is ⟨ what one-dimensional thing? ⟩ — the interval of the handle has both ends glued to the disk, and the disk shrinks to a point.</p>
+<p><strong>Past w.</strong> Index 1 again. The caption continues: "going from the cylinder to the capped torus is homotopically the same as attaching another 1-handle." The sublevel set is the capped torus, and its homotopy type is a <em>figure-8</em>, obtained by gluing the two ends of another interval to the cylinder, which is then shrunk to a circle. So two saddles have produced ⟨ how many independent loops? ⟩, which you should check against β₁ of the torus.</p>
+<p><strong>Past z.</strong> Index 2, the last handle: the complete torus is obtained by gluing a disk to the capped torus. That disk is ⟨ which 𝔹<sup>q</sup>, glued along which 𝕊<sup>q−1</sup>? ⟩.</p>
+<p>Now count and check the Morse Inequalities. Here c₀ = ⟨ ? ⟩, c₁ = ⟨ ? ⟩, c₂ = ⟨ ? ⟩, and the Betti numbers of the torus are β₀ = 1, β₁ = 2, β₂ = 1. Verify the weak inequalities one at a time, then evaluate the strong inequality at j = 2 and confirm both sides give ⟨ what number, and by which theorem on the right? ⟩.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Notice the asymmetry in that pair of statements: away from critical points, <em>diffeomorphic</em>; across one, <em>the homotopy type of</em>. Why the weaker conclusion in the second case?</p>
+<p>
+<button onclick="check(this,false)">Because handles are only defined up to homotopy</button>
+<button onclick="check(this,true)" data-ok>Because attaching a handle genuinely changes the space, and only its homotopy type is determined</button>
+<button onclick="check(this,false)">Because the gradient flow is not smooth at a critical point</button>
+</p>
+<div class="explain">The flow argument gives a diffeomorphism because it can be integrated across the whole interval; at a critical point the flow stalls and there is nothing to integrate. What survives is that 𝕄<sub>b</sub> deformation retracts onto 𝕄<sub>a</sub> with a cell attached — the smooth structure of the result depends on the gluing map, but its homotopy type does not. This asymmetry is why the whole subject computes with homology rather than with diffeomorphism type.</div>
+</div>
+
+<p>Counting critical points then bounds Betti numbers. Writing c<sub>q</sub> for the number of index-q critical points, the <strong>Morse Inequalities</strong> say c<sub>q</sub> ≥ β<sub>q</sub>(𝕄) for all q (weak), and Σ<sub>q≤j</sub>(−1)<sup>j−q</sup>c<sub>q</sub> ≥ Σ<sub>q≤j</sub>(−1)<sup>j−q</sup>β<sub>q</sub>(𝕄) for all j (strong). At j = d the strong inequality is an <em>equality</em>, and both sides are then the Euler characteristic — tda1-02's Euler–Poincaré Theorem on the right, and the alternating count of critical points on the left <span class="cite">— §VI.2, p. 159</span>.</p>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The PL case, where the genericity fails</h2>
+
+<p>"We rarely find smooth functions in practical situations." A PL function on a simplicial complex K is determined by values at vertices and extended linearly, f(x) = Σᵢ bᵢ(x)f(uᵢ) with the barycentric coordinates of tda1-01. Call f <em>generic</em> when the vertex values are distinct, and order f(u₁) &lt; ⋯ &lt; f(u<sub>n</sub>). Let K<sub>i</sub> be the full subcomplex on the first i vertices: σ ∈ K<sub>i</sub> exactly when every vertex of σ has index at most i <span class="cite">— §VI.3, p. 162</span>.</p>
+
+<div class="definition">
+<p><strong>Lower star and lower star filtration</strong> <span class="cite">— Edelsbrunner, p. 162</span></p>
+<p>St<sub>−</sub>u<sub>i</sub> = {σ ∈ St u<sub>i</sub> : x ∈ σ ⇒ f(x) ≤ f(u<sub>i</sub>)}, the simplices of the star for which u<sub>i</sub> is the maximum vertex. By genericity each simplex has a unique maximum vertex, so the lower stars <em>partition</em> K and K<sub>i</sub> is the union of the first i of them. The nested sequence ∅ = K₀ ⊆ K₁ ⊆ ⋯ ⊆ K<sub>n</sub> = K is the <em>lower star filtration</em> of f.</p>
+</div>
+
+<p>Check it against tda1-01's Definition 2.1 and every clause holds, including both that "filtration <em>of</em> K" adds: the union is K<sub>n</sub> = K and the intersection is K₀ = ∅. Unlike Oudot's own octahedron example, this one satisfies the empty-intersection clause by construction.</p>
+
+<p>The filtration is a discretization, and the next result says nothing is lost. For f(u<sub>i</sub>) ≤ a &lt; f(u<sub>i+1</sub>), the sublevel set |K|<sub>a</sub> has the same homotopy type as |K<sub>i</sub>|. The proof is a deformation retraction: a simplex with vertices on both sides is the join of its maximal face in K<sub>i</sub> and its maximal face outside, hence a union of segments from x ∈ |K<sub>i</sub>| to y outside; the sublevel set contains the portion up to the point of value a, and (1 − t)y + tx sweeps that portion down to x as t goes from 0 to 1 <span class="cite">— p. 163</span>.</p>
+
+<p>That is a statement about homotopy type, and one more ingredient converts it into what persistence needs: at1-07's <strong>Corollary 2.11</strong>, that homotopy equivalences induce isomorphisms on homology. With it, H<sub>∗</sub>(|K|<sub>a</sub>) ≅ H<sub>∗</sub>(K<sub>i</sub>) — and, since the retractions are compatible with the inclusions, the whole persistence module of the continuous sublevel-set family agrees with that of the lower star filtration. Without it one would have two families that look alike and no theorem relating them.</p>
+
+<canvas id="lowerlink" width="640" height="360" aria-label="Four small diagrams of a vertex with six neighbours arranged in a hexagon. In the first, three consecutive neighbours are highlighted with the edges between them, marking a regular vertex whose lower link is a connected arc. In the second nothing is highlighted, a minimum with empty lower link. In the third two opposite neighbours are highlighted with no edges, a saddle whose lower link has two components. In the fourth all six neighbours and the whole rim are highlighted, a maximum whose lower link is a circle. Below, a table of the reduced Betti numbers minus one, zero and one for each of the four cases."></canvas>
+
+<p>The classification is by the <em>lower link</em> Lk<sub>−</sub>u<sub>i</sub>, the simplices of the link whose vertices all have smaller value. Going from K<sub>i−1</sub> to K<sub>i</sub> attaches the closed lower star, glued along the lower link. If K triangulates a d-manifold this restricts things sharply, because every vertex star is an open d-ball and every vertex link a (d−1)-sphere. Reading the reduced Betti numbers of the lower link off the picture gives Table VI.1: regular (0, 0, 0), minimum (1, 0, 0), saddle (0, 1, 0), maximum (0, 0, 1) — with β̃<sub>−1</sub> = 1 for the empty lower link, the one exception to β̃₀ = β₀ − 1 <span class="cite">— pp. 163–164</span>.</p>
+
+<div class="definition">
+<p><strong>PL critical vertices and PL Morse functions</strong> <span class="cite">— Edelsbrunner, p. 164</span></p>
+<p>u<sub>i</sub> is <em>PL regular</em> if its lower link is non-empty but homologically trivial, and a <em>simple PL critical vertex of index q</em> if its lower link has the reduced homology of the (q−1)-sphere — that is, β̃<sub>q−1</sub> = 1 and all other reduced Betti numbers zero. A PL function on a manifold is <em>PL Morse</em> if (i) every vertex is PL regular or simple PL critical, and (ii) the vertex values are distinct.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> "PL regular" requires the lower link to be non-empty. Why is that clause there rather than being a harmless extra?</p>
+<p>
+<button onclick="check(this,false)">Because an empty lower link would make the attachment undefined</button>
+<button onclick="check(this,true)" data-ok>Because the empty lower link is the minimum, which is critical of index 0, not regular</button>
+<button onclick="check(this,false)">Because the empty set is not homologically trivial in any dimension</button>
+</p>
+<div class="explain">The empty lower link has β̃<sub>−1</sub> = 1, which is the reduced homology of the (−1)-sphere — so by the definition of a simple PL critical vertex it is critical of index 0, a minimum. Dropping "non-empty" would classify every minimum as regular and lose every 0-dimensional birth. The attachment is perfectly well defined: it adds a disjoint cone, which is the PL analogue of the smooth q = 0 case's disjoint point.</div>
+</div>
+
+<div class="warn">
+<p><strong>And here the smooth analogy breaks.</strong> Edelsbrunner: "In contrast to the smooth case, PL Morse functions are not dense among the class of all PL functions. Equivalently, a PL function on a manifold may require a substantial perturbation before it becomes PL Morse." His example is the PL monkey saddle, whose centre vertex has a lower link with two components rather than one — a 2-fold saddle. In general a k-fold saddle on a 2-manifold has β̃₀ = k, and it can be <em>unfolded</em> into k simple saddles by introducing k − 1 new vertices with values close to the original. His own conclusion is the operative one: "it is therefore not reasonable to assume a PL Morse function as input". For higher-dimensional manifolds he says only that it is "less clear" how to unfold.</p>
+<p>Notice what unfolding does: it changes the triangulation. Whether the unfolded function has the <em>same persistence diagram</em> as the original is a further question, and nothing on these pages answers it. tda1-05's Persistence Equivalence Theorem would settle it given isomorphisms between the two sequences of homology groups commuting with everything — but those isomorphisms are exactly what would have to be exhibited, and Edelsbrunner does not exhibit them.</p>
+</div>
+
+<p>The PL Morse Inequalities have the same shape — c<sub>q</sub> ≥ β<sub>q</sub>(K) weak, the alternating version strong — and this time Edelsbrunner proves them, by induction along the lower star filtration using at1-09's Mayer–Vietoris sequence with K = K<sub>i</sub>, K′ = K<sub>i−1</sub>, K″ = St<sub>−</sub>u<sub>i</sub> ∪ Lk<sub>−</sub>u<sub>i</sub> and A = Lk<sub>−</sub>u<sub>i</sub>. K″ is a cone, hence homologically trivial, which collapses the sequence and gives rank H̃<sub>p</sub>(K<sub>i</sub>) = rank H̃<sub>p</sub>(K<sub>i−1</sub>) − k<sup>p</sup> + k<sub>p−1</sub> <span class="cite">— p. 166</span>. He omits the proof of the smooth strong inequalities and refers instead to this one — a nice inversion, since the PL case is the one where genericity fails and the elementary proof is available.</p>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>From a function to a barcode, link by link</h2>
+
+<p>The bridge to tda1-03 is one definition. That unit's filtration comes from a <em>monotonic</em> function on simplices, f(σ) ≤ f(τ) whenever σ is a face of τ. Given a generic PL function on vertices, set f(σ) = max{f(u) : u a vertex of σ}. A face has a subset of the vertices, so its maximum is no larger — monotonic. Its sublevel complexes are exactly the K<sub>i</sub>, and its compatible orderings are exactly the orderings that list each lower star together. So the lower star filtration <em>is</em> a tda1-03 filtration, and everything there applies: the persistence algorithm, the pairing, the diagram.</p>
+
+<div class="guided-proof">
+<p><strong>Guided audit — the chain, link by link.</strong></p>
+<p>The strip says sublevel-set persistence is "how a scalar field becomes a barcode". Write the chain out and mark each link with the unit and result that licenses it — then mark the links that nothing here licenses.</p>
+<p>Start from: a scalar field measured on data. End at: a persistence diagram. Do not skip the steps that seem administrative; those are the ones the audit is for.</p>
+<textarea class="proof-input" aria-label="Write your audit here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Licensed here, and by what.</strong> (1) A PL function on a triangulated manifold has a lower star filtration — §VI.3's definition, needing genericity. (2) That filtration is a filtration in tda1-01's Definition 2.1, all clauses. (3) The sublevel sets |K|<sub>a</sub> are homotopy equivalent to the |K<sub>i</sub>| — §VI.3's deformation retraction — hence have isomorphic homology, by at1-07's Corollary 2.11. (4) The vertex-indexed filtration is the filtration of an explicit monotonic function on simplices, so tda1-03 applies and produces a diagram. (5) Critical vertices are classified by the reduced homology of the lower link, so births and deaths can be read off local data. Chapter VII names the lower star filtration among its filtrations (p. 179), so the source itself makes the join.</p>
+<p><strong>Not licensed here.</strong> (a) <em>Getting a triangulated manifold at all.</em> Data is not a manifold and is not triangulated; choosing K is a modelling decision these pages do not discuss. Edelsbrunner's Chapter III gives Delaunay and alpha complexes, outside this unit. (b) <em>Genericity.</em> Measured values collide; the definition requires distinct vertex values and nothing here says what to do when they do not, beyond assuming they do not. (c) <em>PL Morse-ness.</em> Edelsbrunner says outright that it is not reasonable to assume it, and unfolding is offered only for 2-manifolds. (d) <em>Independence of the triangulation.</em> Two triangulations of the same space give two filtrations; whether they give the same diagram is not addressed here, and tda1-02 already recorded that Edelsbrunner calls the corresponding statement for ordinary homology "difficult" and refers it elsewhere. (e) <em>Stability of any of it under measurement noise.</em> That is tda1-07's, and tda1-07 recorded its own limits.</p>
+<p><strong>The honest form of the strip.</strong> Sublevel-set persistence links Morse theory to filtrations, and the lower star filtration is the bridge: it turns a generic PL function into a filtration whose persistence is the sublevel-set persistence of the function. Getting from a measured scalar field to such a function is a separate chain of modelling steps, most of which are outside these pages.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> The hook says "topology only changes at critical points". That is the smooth statement. What is the PL analogue, and is it the same claim?</p>
+<p>
+<button onclick="check(this,false)">The same claim, with PL critical vertices in place of critical points</button>
+<button onclick="check(this,true)" data-ok>A weaker claim about homology, not diffeomorphism type — and it needs the function to be PL Morse</button>
+<button onclick="check(this,false)">There is no PL analogue; the lower star filtration replaces it</button>
+</p>
+<div class="explain">Smoothly, the conclusion is that 𝕄<sub>a</sub> and 𝕄<sub>b</sub> are <em>diffeomorphic</em> — the strongest possible sameness. In the PL setting, a PL regular vertex has a homologically trivial lower link, so passing it leaves the reduced homology unchanged, which is strictly less than saying the complexes are the same. And the classification into regular and simple critical presupposes PL Morse-ness: for a k-fold saddle the vertex is neither regular nor simple critical, so the hook's sentence has no subject. Both qualifications matter and neither is visible in the hook.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Take K to be the boundary of an octahedron, triangulating 𝕊², with the height function taking distinct values at the six vertices. Compute the lower link of each vertex, classify it by Table VI.1, and check the count against the weak PL Morse Inequalities using β₀(𝕊²) = β₂(𝕊²) = 1 and β₁(𝕊²) = 0. Then check the strong inequality at j = 2 and confirm it is an equality with χ(𝕊²) = 2.</p>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. Smoothly, index sorts critical points and the sublevel set changes only by handle attachment.</strong> Df<sub>x</sub> is surjective or zero, so points are regular or critical; the Hessian sorts the critical ones, and the Morse Lemma puts a non-degenerate one in normal form with q minus signs. Non-degenerate critical points are isolated, hence finite on a compact manifold. Away from critical values the sublevel sets are diffeomorphic; across one of index q, a q-handle is attached and only the homotopy type is determined. Counting gives the Morse Inequalities, an equality at j = d where both sides are the Euler characteristic.</p>
+<p><strong>2. In the PL case the filtration is the lower star filtration, and the genericity fails.</strong> A generic PL function orders the vertices; K<sub>i</sub> is the full subcomplex on the first i, the lower stars partition K, and |K|<sub>a</sub> deformation retracts to |K<sub>i</sub>| — which becomes a statement about homology only via at1-07's Corollary 2.11. Vertices are classified by the reduced Betti numbers of the lower link, with the empty lower link a minimum rather than a regular vertex. And PL Morse functions are <em>not</em> dense: the PL monkey saddle needs unfolding, unfolding changes the triangulation, and nothing here says the diagram survives it.</p>
+<p><strong>3. The bridge to persistence is a monotonic function, and the chain beyond it is longer than it looks.</strong> Setting f(σ) to the maximum vertex value makes the lower star filtration a tda1-03 filtration, so the algorithm and the diagram apply, and Chapter VII names it as such. What these pages do not supply: a triangulation of measured data, a guarantee of genericity, PL Morse-ness, independence of the triangulation, or stability under noise. The strip is right about the link and silent about the five steps before it.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Edelsbrunner and Harer, <em>Computational Topology: An Introduction</em>, Chapter VI "Morse Functions". §VI.1: smooth manifolds, tangent spaces, the derivative Df<sub>x</sub>, regular and critical points with the rank dichotomy, the local partial-derivative criterion, critical and regular values (p. 151); the Hessian, non-degeneracy, the two degenerate examples and the monkey saddle (p. 152); the Morse Lemma, the index and its d+1 types, the isolation of non-degenerate critical points and finiteness on a compact manifold, the sideways torus with circles of degenerate critical points, and the definition of a Morse function with both conditions and the torus's exceptional directions (pp. 152–153); vector fields, the directional derivative, the Riemannian metric, the gradient, the 1-parameter group of diffeomorphisms and the conclusion that 𝕄<sub>a</sub> is diffeomorphic to 𝕄<sub>b</sub> away from critical points, and the attachment of a q-handle with the q = 0 special case (pp. 153–154). §VI.2: the Morse Inequalities, weak and strong, the remark that the strong inequality at j = d is an equality, and the derivation of the weak from the strong (p. 159). §VI.3: PL functions by linear extension with barycentric coordinates, genericity, the full subcomplexes K<sub>i</sub>, the lower star with the partition argument, the lower star filtration, and the deformation retraction giving |K|<sub>a</sub> ≃ |K<sub>i</sub>| with Figure VI.8 (pp. 162–163); the lower link, the attachment of the closed lower star along it, the consequences of triangulating a manifold, the classification by reduced Betti numbers with Figure VI.9 and Table VI.1 including the empty-lower-link exception, and the definitions of PL regular, simple PL critical of index q, and PL Morse (pp. 163–164); unfolding, the PL monkey saddle of Figure VI.10, the k-fold saddle with β̃₀ = k, the statement that PL Morse functions are not dense and that it is "not reasonable to assume a PL Morse function as input", and the remark that unfolding is "less clear" in higher dimensions (p. 164); the PL Morse Inequalities with the Mayer–Vietoris induction, the triviality of the cone K″, and the rank identity (p. 166). Chapter VII: the filtration of a monotonic function (pp. 179–180) and the naming of the lower star filtration as an example (p. 179). Every folio was read off the page cited; the Edelsbrunner offset is PDF = printed + 12.
+<p>Interleaved and cited from their own units: an-12's partial derivatives and second-derivative test, of which criticality and non-degeneracy are the manifold forms; at1-07's Corollary 2.11 (Hatcher), which converts §VI.3's homotopy equivalence into an isomorphism on homology; at1-09's Mayer–Vietoris sequence, used in the PL Morse proof; tda1-01's Definition 2.1, which the lower star filtration satisfies in full; tda1-02's Euler–Poincaré Theorem, which the strong Morse inequality at j = d meets; tda1-03's monotonic functions and persistence algorithm; and tda1-05's Persistence Equivalence Theorem, named as what an unfolding argument would need.</p>
+<p><strong>Not established here.</strong> The five steps between a measured scalar field and the input these pages assume, enumerated in Segment 3's audit and repeated because the strip's phrase "how a scalar field becomes a barcode" runs past all of them: obtaining a triangulated manifold from data, which is Edelsbrunner's Chapter III and not this unit's; genericity, which is assumed rather than achieved; PL Morse-ness, which Edelsbrunner says explicitly it is "not reasonable to assume"; independence of the diagram from the triangulation chosen, which is nowhere addressed — and which for ordinary homology tda1-02 already recorded Edelsbrunner calling difficult and referring elsewhere; and stability under measurement noise, which is tda1-07's and was bounded there. Also not established: that unfolding a k-fold saddle preserves the persistence diagram. tda1-05's Persistence Equivalence Theorem would give it from isomorphisms between the two sequences commuting with the maps, and Edelsbrunner exhibits no such isomorphisms; the observation that this is what would be needed is this lesson's.</p>
+<p><strong>Stated but not proved.</strong> The Morse Lemma, quoted without proof. The no-change and handle-attachment results, both asserted from the properties of the 1-parameter group with the integration not carried out. The strong Morse Inequalities in the smooth case, which Edelsbrunner explicitly omits, referring to the PL proof instead — so the smooth statement is not established by anything in this unit. The claim that the height function of a torus is Morse for all but the stated directions, asserted by inspection. That every vertex star of a triangulated d-manifold is an open d-ball and every vertex link a (d−1)-sphere, used to restrict Table VI.1 and not proved.</p>
+<p><strong>Deferred.</strong> Morse–Smale functions, transversality, stable and unstable manifolds and the Morse–Smale complex, §VI.2 — read here only for the inequalities. Floer homology, named in §VI.2. Reeb graphs and the Loop Lemma, §VI.4. Delaunay and alpha complexes, §III.3 and §III.4, which are how one would actually get a complex from data. Extended persistence, §VII.3, which tda1-05 read and which the elevation function of that section needs. Unfolding in dimensions above two, which Edelsbrunner leaves open with a forward reference to his §X.8.</p>
+</footer>
+<script>
+(function(){
+var c=document.getElementById('lowerlink');if(!c||!c.getContext)return;
+var x=c.getContext('2d');
+var dim='#9aa5b1',ink='#e8e8e8',acc='#8ab4f8',good='#4caf82',grid='#2a333d';
+function line(x1,y1,x2,y2,col,w){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.strokeStyle=col;x.lineWidth=w||1.5;x.stroke();}
+var centres=[90,240,390,540],cy=112,r=40;
+var names=['regular','minimum','saddle','maximum'];
+var lower=[[0,1,2],[],[0,3],[0,1,2,3,4,5]];
+var rim=[[[0,1],[1,2]],[],[],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]]];
+function px(cx,k){return cx+r*Math.cos((30+k*60)*Math.PI/180);}
+function py(k){return cy+r*Math.sin((30+k*60)*Math.PI/180);}
+x.font='12px system-ui,sans-serif';x.textAlign='center';
+for(var p=0;p<4;p++){
+  var cx=centres[p];
+  x.fillStyle=dim;x.fillText(names[p],cx,58);
+  for(var k=0;k<6;k++)line(cx,cy,px(cx,k),py(k),grid,1);
+  for(var e=0;e<rim[p].length;e++){
+    var a=rim[p][e][0],b=rim[p][e][1];
+    line(px(cx,a),py(a),px(cx,b),py(b),good,2.5);
+  }
+  for(var k2=0;k2<6;k2++){
+    var on=lower[p].indexOf(k2)>=0;
+    x.beginPath();x.arc(px(cx,k2),py(k2),on?5:3.5,0,6.2832);
+    x.fillStyle=on?good:grid;x.fill();
+  }
+  x.beginPath();x.arc(cx,cy,4.5,0,6.2832);x.fillStyle=ink;x.fill();
+}
+var rows=[['b-1','0','1','0','0'],['b 0','0','0','1','0'],['b 1','0','0','0','1']];
+var ys=[248,278,308];
+x.font='13px system-ui,sans-serif';
+for(var rI=0;rI<3;rI++){
+  x.textAlign='left';x.fillStyle=dim;x.fillText('reduced '+rows[rI][0],25,ys[rI]);
+  x.textAlign='center';
+  for(var cI=0;cI<4;cI++){
+    x.fillStyle=(rows[rI][cI+1]==='1')?good:dim;
+    x.fillText(rows[rI][cI+1],centres[cI],ys[rI]);
+  }
+}
+line(20,224,600,224,grid,1);
+x.textAlign='left';x.font='12px system-ui,sans-serif';x.fillStyle=dim;
+x.fillText('a PL regular vertex has a non-empty but homologically trivial lower link',25,340);
+})();
+</script>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
