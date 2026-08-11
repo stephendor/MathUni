@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda1-04 — The structure theorem: interval decomposition and barcodes</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA I · Nexus College</p>
+<h1>The structure theorem: interval decomposition and barcodes <span class="cite">(tda1-04)</span></h1>
+
+<div class="hook">
+Every <em>tame</em> persistence module shatters uniquely into intervals — and for finite type, aa-20 is why. The barcode is a theorem with a hypothesis, not a picture.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> aa-20's structure theorem decomposes finitely generated modules over a PID. Oudot's Chapter 1 decomposes persistence modules into intervals. What is the relation between the two theorems?</p>
+<p>
+<button onclick="check(this,false)">Oudot's theorem is aa-20 applied to k[t]-modules</button>
+<button onclick="check(this,true)" data-ok>Oudot's theorem generalises aa-20, with a different hypothesis and a different proof</button>
+<button onclick="check(this,false)">They are unrelated; the resemblance is superficial</button>
+</p>
+<div class="explain">Oudot's own words for Theorem 1.4 are that it "can be viewed as a generalization of the classical structure theorem for finitely generated (graded) modules over a (graded) principal ideal domain". Generalisation runs the opposite way from application. Segment 3 works out exactly where aa-20 stops and what has to replace it — and the answer includes one class of modules for which the mission strip is literally correct.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: aa-20 (f.g. modules over a PID) is the algebra the barcode rests on: a tame persistence module over k[t] decomposes into intervals by exactly that theorem — the summit link of the degree.</p>
+
+<div class="warn">
+<p><strong>The strip names a real connection and attaches it to the wrong class of modules, and the hook already knows this.</strong> The hook says "for finite type, aa-20 is why" — hedged, and correct. The strip drops the hedge and says a <em>tame</em> persistence module over k[t] decomposes "by exactly that theorem". Three things go wrong at once, and Segment 3 takes them one at a time: k[t] requires an index set with a next element, so it cannot be ℝ; Oudot calls Theorem 1.4 a <em>generalisation</em> of the PID theorem rather than an application of it; and "tame" has two unrelated meanings in this very chapter, on one of which the claim is false.</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Four theorems, each removing one hypothesis</h2>
+
+<p>Oudot builds the decomposition theorem in stages, and the stages are the point: each removes a restriction the previous one needed, and the last two remove restrictions that data actually violates.</p>
+
+<div class="theorem">
+<p><strong>Theorem 1.1 (Krull, Remak, Schmidt)</strong> <span class="cite">— Oudot, p. 16</span></p>
+<p>Every finite-dimensional representation of a finite quiver over a field decomposes as a direct sum of indecomposable representations, uniquely up to isomorphism and permutation of the terms.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 1.2 (Gabriel for A<sub>n</sub>-type quivers)</strong> <span class="cite">— Oudot, p. 17</span></p>
+<p>For an A<sub>n</sub>-type quiver ℚ over a field k, every indecomposable finite-dimensional representation is isomorphic to an interval representation 𝕀<sub>ℚ</sub>[b, d]: the zero space on [1, b−1], a copy of k on [b, d], and zero again on [d+1, n].</p>
+</div>
+
+<p>Separately neither gives a barcode. Theorem 1.1 says there are indecomposable pieces and they are essentially unique; Theorem 1.2 says what the pieces <em>are</em>. Together they classify: an isomorphism class is fully described by the multiset of intervals [b, d] in its decomposition, and Oudot says of that multiset that it "is at the origin of our persistence barcodes". The barcode is a complete invariant because of Theorem 1.1 and a <em>readable</em> one because of Theorem 1.2.</p>
+
+<p>Oudot then names the two limitations, and they are exactly the two that data breaks: the index set is finite, and the representations are finite-dimensional. Three theorems remove them. <strong>Theorem 1.3</strong> (Auslander, Ringel, Tachikawa, Gabriel, Azumaya) drops finite-dimensionality for A<sub>n</sub>-type quivers, via the path algebra kℚ being an Artin algebra and an equivalence with its left modules <span class="cite">— p. 17</span>. <strong>Theorem 1.4</strong> (Webb) moves to the infinite quiver ℤ under <em>pointwise</em> finite-dimensionality. <strong>Theorem 1.6</strong> (Crawley-Boevey) moves to arbitrary T ⊆ ℝ under the same condition <span class="cite">— pp. 18–19</span>.</p>
+
+<div class="theorem">
+<p><strong>Theorem 1.4 (Webb)</strong> <span class="cite">— Oudot, p. 18</span></p>
+<p>Let k be a field. Then any pointwise finite-dimensional representation of ℤ over k is a direct sum of interval representations.</p>
+</div>
+
+<p>Pointwise finite-dimensional means each V<sub>i</sub> is finite-dimensional — strictly weaker than the representation being finite-dimensional, since infinitely many non-zero spaces of finite dimension sum to something infinite-dimensional. It is the weakest hypothesis in sight, and Oudot immediately shows it cannot be weakened further.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: Example 1.5, the module with no interval decomposition.</strong> <span class="cite">— Oudot (after Webb), p. 18</span></p>
+<p>For i ≥ 0 let V<sub>i</sub> = ∏<sub>m≥0</sub> k<sub>m</sub>, and for i &lt; 0 let V<sub>i</sub> = ∏<sub>m≥−i</sub> k<sub>m</sub>, with every v<sub>i</sub><sup>j</sup> the inclusion. Concretely V<sub>i</sub> for i ≥ 0 is all sequences (x₀, x₁, …) in k — uncountably dimensional — and for i &lt; 0 it is those with x₀ = ⋯ = x<sub>−i−1</sub> = 0.</p>
+<p>Suppose it decomposed into intervals. Every map is injective, and bijective for i ≥ 0, so every interval must be (−∞, +∞) or [i, +∞) with i ≤ 0 — an interval that ended would ⟨ what? ⟩, and one starting above 0 would ⟨ what? ⟩. Next, dim V<sub>i+1</sub>/V<sub>i</sub> = 1 for i &lt; 0, so each [i, +∞) occurs with multiplicity ⟨ ? ⟩. Next, ⋂<sub>i&lt;0</sub> V<sub>i</sub> = 0, since the only sequence with every entry zero is zero, so (−∞, +∞) occurs ⟨ how many times? ⟩. Hence 𝕍 ≅ ⊕<sub>i≤0</sub> 𝕀[i, +∞), which makes V₀ ⟨ what cardinality of dimension? ⟩ — contradicting that it is uncountably dimensional.</p>
+<p>So the hypothesis is not decoration. What the example proves is that <em>this</em> module has no interval decomposition; whether that makes it indecomposable is a separate question, and Oudot's definition of interval-indecomposable has ⟨ how many disjuncts? ⟩ for exactly that reason.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 1.9 (Interval Decomposition)</strong> <span class="cite">— Oudot, p. 20</span></p>
+<p>Given T ⊆ ℝ and a partial order ⪯ on T, a representation 𝕍 of the poset (T, ⪯) decomposes as a direct sum of interval modules when (i) T is finite and the Hasse diagram of ⪯ is of type A<sub>n</sub>, or (ii) T is arbitrary, ⪯ is the natural order ≤, and 𝕍 is pointwise finite-dimensional. The decomposition, when it exists, is unique up to isomorphism and permutation of the terms, and each term is indecomposable.</p>
+</div>
+
+<p>Theorem 1.9 is the summary: case (ii) <em>is</em> Theorem 1.6, and case (i) is Theorems 1.1, 1.2 and 1.3 packaged for posets, covering zigzag modules (Definition 1.8) as well as persistence modules (Definition 1.7). Both qualifications in the uniqueness clause are load-bearing. "Permutation" is needed because a direct sum has no order. "Up to isomorphism" is needed because the summands are subspaces chosen by a decomposition, not canonical subobjects — two decompositions can pick different copies of the same interval module.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Theorem 1.9's conclusion is "the decomposition, <em>when it exists</em>, is unique". Why is that hedge there when the theorem has just asserted existence?</p>
+<p>
+<button onclick="check(this,false)">Because case (ii) only gives existence for pointwise finite-dimensional modules</button>
+<button onclick="check(this,true)" data-ok>Because uniqueness holds generally, beyond the two cases where existence is proved</button>
+<button onclick="check(this,false)">Because the decomposition may fail to be unique when T is infinite</button>
+</p>
+<div class="explain">Uniqueness comes from Azumaya's theorem and does not need the hypotheses that existence needs, so Oudot states it separately and unconditionally. The first option is true as a statement about case (ii) and is not the reason for the hedge — the hedge is what lets the clause apply to modules outside both cases that happen to decompose anyway.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>From a decomposition to a barcode, and the bookkeeping in between</h2>
+
+<p>A decomposition is a statement about modules; a barcode is a multiset of intervals. Getting from one to the other needs a convention, because over a general T ⊆ ℝ an interval of T does not determine an interval of ℝ.</p>
+
+<p>Oudot's device is <em>decorated real numbers</em>: an ordinary real with a superscript + or −, ordered by b<sup>±</sup> &lt; d<sup>±</sup> when b &lt; d, or when b = d with the first carrying − and the second +. The dictionary for finite intervals reads ⌈b<sup>−</sup>, d<sup>−</sup>⌋ = [b, d), ⌈b<sup>−</sup>, d<sup>+</sup>⌋ = [b, d], ⌈b<sup>+</sup>, d<sup>−</sup>⌋ = (b, d) and ⌈b<sup>+</sup>, d<sup>+</sup>⌋ = (b, d]. Infinite endpoints implicitly carry −∞<sup>+</sup> and +∞<sup>−</sup>, since an interval is always open at infinity <span class="cite">— Oudot §1.3, p. 21</span>.</p>
+
+<p>Even so, writing an interval S of T as ⌈b<sup>±</sup>, d<sup>±</sup>⌋ ∩ T is not unique: with T = {1,2,3,4} and S = {2,3}, one may take [2,3], or (1,3], or [2,4), or (1,4), or anything between. Rule 1.10 removes the ambiguity by always picking the smallest by inclusion. Oudot's own footnote calls the rule "arbitrary and not motivated by mathematical considerations" — which is exactly right, and worth noticing: nothing mathematical breaks without it, but the barcode would stop being a well-defined function of the module, and comparing two barcodes would become a comparison of two arbitrary choices.</p>
+
+<div class="definition">
+<p><strong>Barcode and diagrams</strong> <span class="cite">— Oudot, pp. 21–22</span></p>
+<p>Any interval-decomposable module can be written, uniquely up to permutation, as 𝕍 ≅ ⊕<sub>j∈J</sub> 𝕀⌈b<sub>j</sub><sup>±</sup>, d<sub>j</sub><sup>±</sup>⌋. The multiset of those intervals, ordered lexicographically on the decorated coordinates, is the <em>persistence barcode</em> of 𝕍. Identifying each interval with the point (b<sub>j</sub>, d<sub>j</sub>) carrying a diagonal tick per Figure 1.1 gives the <em>decorated persistence diagram</em> Dgm(𝕍); forgetting the ticks gives the <em>undecorated</em> diagram dgm(𝕍).</p>
+</div>
+
+<canvas id="barcode" width="640" height="340" aria-label="Left: a barcode with three horizontal bars over an axis marked a, b, c, d, e. The top bar starts at a and runs off the right with an arrow, meaning it never ends. The second bar runs from b to c. The third runs from d to e. Right: the same information as a persistence diagram, with a diagonal line, a point at b comma c, a point at d comma e, and a point at a with an upward arrow standing for infinite death."></canvas>
+
+<p>The picture is Example 1.11 <span class="cite">— Oudot, pp. 22–23</span>. A smooth planar curve X is filtered by its height function f, and the 0-homology of the sublevel-set family decomposes as</p>
+
+<p style="text-align:center">H₀(𝓕) ≅ 𝕀[a, +∞) ⊕ 𝕀[b, c) ⊕ 𝕀[d, e) = 𝕀⌈a<sup>−</sup>, +∞⌋ ⊕ 𝕀⌈b<sup>−</sup>, c<sup>−</sup>⌋ ⊕ 𝕀⌈d<sup>−</sup>, e<sup>−</sup>⌋,</p>
+
+<p>which reads: three independent components appear, at a, at b and at d; the first survives to the end, the other two merge into it at c and at e. Two things about the drawing are worth flagging. The bars and the points are the <em>same multiset</em> presented twice, which is why the barcode and the diagram carry identical information. And the horizontal placement is partly the drawing's own: the decomposition forces a ≤ b, b &lt; c, a ≤ d and d &lt; e, and says nothing whatever about how c and d compare. The figure fixes an order the algebra does not.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which of the two diagrams is a faithful record of the barcode?</p>
+<p>
+<button onclick="check(this,true)" data-ok>The decorated one — the ticks are what distinguish [b,d) from [b,d]</button>
+<button onclick="check(this,false)">The undecorated one — decorations are a drawing convention</button>
+<button onclick="check(this,false)">Neither; both forget the multiplicities</button>
+</p>
+<div class="explain">Decorations are not a drawing convention: they carry the open/closed data, and four different intervals share the point (b, d). So 𝕀[b,d) and 𝕀[b,d] are non-isomorphic modules with the same undecorated diagram. Both diagrams are multisets, so both keep multiplicities. The undecorated version is used anyway, and tda1-06 will show why that is safe — the metrics there are blind to the difference.</div>
+</div>
+
+<p>The last construction of §3 turns the diagram into a measure. For a rectangle R = [p,q] × [r,s] with p &lt; q ≤ r &lt; s, set μ<sub>𝕍</sub>(R) = card(Dgm(𝕍)|<sub>R</sub>) where a decorated point belongs to R exactly when ⌈q, r⌋ ⊆ ⌈b<sup>±</sup>, d<sup>±</sup>⌋ ⊆ ⌈p, s⌋ — in pictures, when (b, d) is inside R, or on its boundary with the tick pointing inwards. This is additive under splitting a rectangle vertically or horizontally, and the reason is entirely the decorations: a point on the shared boundary is assigned to exactly one of the two halves by which way its tick points <span class="cite">— p. 23</span>.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> tda1-03's μ<sub>p</sub><sup>i,j</sup> and this unit's μ<sub>𝕍</sub> are both called multiplicities. What is the essential difference?</p>
+<p>
+<button onclick="check(this,false)">One counts points, the other counts classes</button>
+<button onclick="check(this,true)" data-ok>μ<sub>p</sub><sup>i,j</sup> is defined from ranks; μ<sub>𝕍</sub> presupposes a decomposition</button>
+<button onclick="check(this,false)">μ<sub>𝕍</sub> is only defined for finite index sets</button>
+</p>
+<div class="explain">Edelsbrunner's μ<sub>p</sub><sup>i,j</sup> is a second difference of persistent Betti numbers, and ranks of composites exist for any module whatever. Oudot's μ<sub>𝕍</sub> is defined here from Dgm(𝕍), which exists only when the module decomposes. That asymmetry is why §4 re-derives the measure from ranks for 𝔮-tame modules — where there may be no decomposition to read a diagram off — and Theorem 1.13 then produces a diagram from the measure rather than the other way round.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>The audit: where aa-20 stops</h2>
+
+<p>Now the strip. It says the barcode rests on aa-20's structure theorem for finitely generated modules over a PID, and that a tame persistence module over k[t] decomposes into intervals "by exactly that theorem". Oudot mentions the PID theorem exactly twice in this chapter. Both mentions are worth reading in full, because between them they make the strip about two-thirds right in a way that is more interesting than either verdict alone.</p>
+
+<div class="guided-proof">
+<p><strong>Guided audit — three claims, taken separately.</strong></p>
+<p><strong>Claim 1: "over k[t]".</strong> On p. 18 Oudot states an equivalence of categories between representations of ℤ and ℤ-graded modules over the polynomial ring k[t]. Work out what the action of t must be under that equivalence, and deduce for which index sets the phrase "persistence module over k[t]" names anything at all.</p>
+<p><strong>Claim 2: "by exactly that theorem".</strong> Oudot writes that Theorem 1.4 "can be viewed as a generalization of the classical structure theorem for finitely generated (graded) modules over a (graded) principal ideal domain". Say what has to be dropped from aa-20's hypotheses to reach Theorem 1.4, and use Example 1.5 to say what has to be put back.</p>
+<p><strong>Claim 3: "tame".</strong> This chapter uses "tame" twice, in unrelated senses. Find both, decide which the strip means, and determine whether the PID theorem covers 𝔮-tame modules.</p>
+<textarea class="proof-input" aria-label="Write your audit here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Claim 1.</strong> Under the equivalence, multiplication by t raises the grading by one, so it is the internal map from each graded piece to the <em>next</em>. That is the whole content: the equivalence needs an index set in which "the next index" exists, so it is available for ℤ and ℕ and for any T order-isomorphic to one of them, and is unavailable for T = ℝ, where no two indices are adjacent. So "persistence module over k[t]" is meaningful exactly in the discrete case. This is tda1-03's complaint about "one map per step" in its exact algebraic form: both say that a step-based description of a persistence module presupposes steps.</p>
+<p><strong>Claim 2.</strong> A generalisation is not an application; it runs the other way. aa-20 requires the module to be <em>finitely generated</em>. Theorem 1.4 requires only that each V<sub>i</sub> be finite-dimensional, which does not imply finite generation of the corresponding graded module — a module with a non-zero one-dimensional piece at every integer is pointwise finite-dimensional and not finitely generated. So Theorem 1.4 covers modules aa-20 does not reach, and its proof is Webb's, not aa-20's. And Example 1.5 shows something must be assumed in aa-20's place: with no dimension hypothesis at all the conclusion is false. Pointwise finite-dimensionality is the replacement.</p>
+<p><strong>Claim 3.</strong> Footnote 1 on p. 17 calls a <em>quiver</em> tame when its classification problem is harder than Dynkin but still feasible — one of the trichotomy Dynkin / tame / wild. Definition 1.12 on p. 25 calls a <em>module</em> 𝔮-tame when rank v<sub>i</sub><sup>j</sup> is finite for all i &lt; j. The two are unrelated: one is a property of an index shape, the other of a module's maps. The strip says "a tame persistence module", so it must mean the second. And on that reading the claim is false, because 𝔮-tameness permits every V<sub>i</sub> to be infinite-dimensional — the maps between them are what is constrained, not the spaces. aa-20 cannot touch such a module, and neither can Theorem 1.9. This is precisely why Theorem 1.13 exists and why it produces a diagram directly from the measure rather than from a decomposition.</p>
+<p><strong>The corrected claim.</strong> On p. 27 Oudot says Zomorodian and Carlsson "used the structure theorem for finitely generated modules over a principal ideal domain as decomposition theorem for finite-dimensional persistence modules over ℕ". That is the class for which the strip is literally true: finite-dimensional, indexed over ℕ. So a corrected strip reads: <em>for finite-dimensional persistence modules over ℕ, aa-20 is exactly the decomposition theorem, and this is how the barcode was first proved; pointwise finite-dimensional modules over arbitrary T ⊆ ℝ need Webb's and Crawley-Boevey's generalisations instead, and 𝔮-tame modules need Theorem 1.13, which does not decompose them at all.</em> Note that this unit's hook already says the hedged version — "for finite type, aa-20 is why" — so the hook and the strip disagree with each other, and the hook is right.</p>
+</details>
+</div>
+
+<p>One more thing the audit turns up, and it is the harder question. tda1-03 obtained a birth–death pairing from an algorithm, and proved it well defined by the Pairing Lemma, without invoking any decomposition theorem at all. So what does Theorem 1.9 buy?</p>
+
+<p>Three things the algorithm cannot give. First, <em>reach</em>: the algorithm runs on a finite filtration, and Theorem 1.9 (ii) covers arbitrary T ⊆ ℝ, where there is no matrix to reduce. Second, <em>meaning</em>: the algorithm's pairing is a pairing of simplices; Theorem 1.9 says the module <em>is</em> the direct sum of the corresponding interval modules, which is a statement about the object rather than about a computation on a presentation of it. Third, <em>the hypothesis</em>. The algorithm always terminates and always outputs a pairing, so it never signals that anything is wrong; the theorem carries a condition that can fail, and Example 1.5 is a module where it does. An algorithm that always answers cannot tell you when there is no answer, and that is what the hook means by a theorem with a hypothesis rather than a picture.</p>
+
+<div class="you-try">
+<p><strong>You try.</strong> Take T = {1,2,3,4} and the module k → k → 0 → k with the first map the identity. Write its interval decomposition, its barcode under Rule 1.10, and both diagrams. Then change the last space to 0 and say which of the three — decomposition, barcode, undecorated diagram — changes, and by how much.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Oudot says 𝔮-tameness and interval-decomposability are "closely related but not identical, and neither of them is a direct generalization of the other". Which example goes which way?</p>
+<p>
+<button onclick="check(this,true)" data-ok>A dense set of intervals is decomposable but not 𝔮-tame; a product of shrinking intervals is 𝔮-tame but not decomposable</button>
+<button onclick="check(this,false)">Both examples are 𝔮-tame; decomposability is strictly stronger</button>
+<button onclick="check(this,false)">Neither example exists over a field; the claim is about general rings</button>
+</p>
+<div class="explain">Oudot's pair on p. 28: the direct sum of interval modules whose decorated endpoints are dense above the diagonal is interval-decomposable by construction, and its persistence measure is infinite on every rectangle, so it is not 𝔮-tame; and the product ∏<sub>n≥1</sub> 𝕀[0, 1/n] is 𝔮-tame and not interval-decomposable. Neither class contains the other, which is why the chapter needs both Theorem 1.9 and Theorem 1.13.</div>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. The decomposition theorem is built in four stages, each dropping a hypothesis data violates.</strong> Theorem 1.1 gives indecomposables and uniqueness; Theorem 1.2 identifies them as intervals for A<sub>n</sub>-type quivers, and that multiset is the barcode. Theorem 1.3 drops finite-dimensionality, Theorem 1.4 moves to ℤ under pointwise finite-dimensionality, Theorem 1.6 to arbitrary T ⊆ ℝ. Theorem 1.9 packages the lot for posets. Example 1.5 shows pointwise finite-dimensionality cannot itself be dropped: a module of sequence spaces with inclusion maps has no interval decomposition at all.</p>
+<p><strong>2. Turning a decomposition into a barcode takes a convention, and the convention is arbitrary and necessary.</strong> Decorated reals encode open and closed ends; Rule 1.10 picks the smallest representative interval, which Oudot's own footnote calls unmotivated. Without it the barcode is not a function of the module. The decorated diagram is faithful to the barcode and the undecorated one is not, and the persistence measure is additive precisely because the ticks assign each boundary point to one side.</p>
+<p><strong>3. aa-20 is exactly the right theorem for exactly one case and not for the case the strip names.</strong> The k[t] picture needs a next index, so it stops at ℕ and ℤ; Theorem 1.4 <em>generalises</em> the PID theorem rather than applying it, trading finite generation for pointwise finite-dimensionality; and 𝔮-tame modules, which the strip's word most plausibly means, may have infinite-dimensional spaces and are not decomposed by anything here. The strip is literally true for finite-dimensional modules over ℕ, which is what Zomorodian and Carlsson proved and what the hook's "finite type" already says.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Oudot, <em>Persistence Theory: From Quiver Representations to Data Analysis</em>, Chapter 1 "Algebraic Persistence". §1: Theorem 1.1 of Krull, Remak and Schmidt (p. 16); Theorem 1.2, Gabriel for A<sub>n</sub>-type quivers, with the interval representation drawn out, the remark that the collection of intervals "is at the origin of our persistence barcodes", the statement of the two limitations, and footnote 1's Dynkin/tame/wild trichotomy (p. 17); the path algebra kℚ, the Artin algebra condition in footnote 2, and Theorem 1.3 (p. 17); the quivers ℕ and ℤ, pointwise finite-dimensionality with footnote 3, Theorem 1.4 of Webb, the equivalence of categories between representations of ℤ and ℤ-graded k[t]-modules, the remark that Theorem 1.4 "can be viewed as a generalization of the classical structure theorem for finitely generated (graded) modules over a (graded) principal ideal domain", and Example 1.5 with all four steps of its argument (p. 18); Theorem 1.6 of Crawley-Boevey (p. 19). §2: Definition 1.7, Definition 1.8 and its rephrasing, interval modules, Theorem 1.9 with both cases and the uniqueness clause, the "so, concretely" restatement, and the definition of interval-decomposable with its two disjuncts (pp. 20–21). §3: decorated real numbers with their order and the four-line dictionary, the convention for infinite endpoints, Rule 1.10 with its worked ambiguity and footnote 6 calling it arbitrary, the decomposition (1.12), the barcode as a lexicographically ordered multiset, the decorated and undecorated diagrams (1.13) and (1.14) with Figure 1.1, Example 1.11 with Figure 1.2 and its component reading, and the persistence measure (1.15)–(1.17) with Figures 1.3 and 1.4 (pp. 21–23). §4: Definition 1.12 of 𝔮-tameness and Theorem 1.13 (p. 25). §5: the historical account, including that Zomorodian and Carlsson "used the structure theorem for finitely generated modules over a principal ideal domain as decomposition theorem for finite-dimensional persistence modules over ℕ" (p. 27), and the comparison of 𝔮-tameness with interval-decomposability with an example in each direction (p. 28). Every folio was read off the page cited; the Oudot offset is PDF = printed + 9.
+<p><strong>Not established here, and the strip is the reason.</strong> That "a tame persistence module over k[t] decomposes into intervals by exactly that theorem", where "that theorem" is aa-20. Three separate failures, each recorded in Segment 3 with the page that shows it. The k[t] equivalence (p. 18) is between representations of <em>ℤ</em> and graded k[t]-modules, and the action of t is the map to the next index — so the phrase is undefined for T = ℝ. Oudot calls Theorem 1.4 a <em>generalization</em> of the PID structure theorem, which is the opposite of being proved by it, and the hypothesis traded is finite generation for pointwise finite-dimensionality. And "tame" on the 𝔮-tame reading (Definition 1.12) permits infinite-dimensional spaces, which aa-20 cannot touch and Theorem 1.9 does not cover — Theorem 1.13 exists for that case and produces a diagram without a decomposition. What <em>is</em> established, and is the strip's true core, is p. 27's report that the PID theorem was used as the decomposition theorem for finite-dimensional persistence modules over ℕ. This unit's own hook states the hedged version correctly; the hook and the strip disagree, and the hook is right.</p>
+<p><strong>Stated but not proved.</strong> Theorems 1.1, 1.2, 1.3, 1.4 and 1.6 are all quoted from Oudot's §1, which is itself explicitly a survey — "a quick walk", with the proof outline for Gabriel's theorem deferred to his Appendix A, outside this unit's pages. Azumaya's theorem, invoked three times for uniqueness and never stated. The equivalence of categories between representations of ℤ and ℤ-graded k[t]-modules, asserted on p. 18 as "as it turns out". The equivalence between Rep<sub>k</sub>(ℚ) and left kℚ-modules, asserted on p. 17. Theorem 1.13, whose proof is a citation to Chazal and coauthors.</p>
+<p><strong>Deferred.</strong> The persistence measure as the definition of a diagram for 𝔮-tame modules, and the sense in which the two definitions agree above the diagonal — Oudot §1.4, read here only for Definition 1.12 and Theorem 1.13's statements. Diagrams as a metric space, tda1-05. The bottleneck and interleaving distances, and the reason the undecorated diagram is enough, tda1-06. The observable category and Crawley-Boevey's result that 𝔮-tame modules sit at interleaving distance zero from interval-decomposable submodules (p. 28), which needs the metric of tda1-06 to even state. Zigzag modules in earnest, and the Diamond Principle, Oudot's Appendix A.</p>
+</footer>
+<script>
+(function(){
+var c=document.getElementById('barcode');if(!c||!c.getContext)return;
+var x=c.getContext('2d');
+var dim='#9aa5b1',ink='#e8e8e8',acc='#8ab4f8',good='#4caf82',grid='#2a333d';
+function line(x1,y1,x2,y2,col,w){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.strokeStyle=col;x.lineWidth=w||1.5;x.stroke();}
+function dot(px,py,r,col){x.beginPath();x.arc(px,py,r,0,6.2832);x.fillStyle=col;x.fill();}
+x.font='13px system-ui,sans-serif';x.textAlign='center';x.fillStyle=ink;
+x.fillText('barcode',180,54);
+x.fillText('persistence diagram',465,54);
+// left: barcode
+var labs=['a','b','c','d','e'];
+function bx(k){return 70+k*50;}
+var ys=[120,150,180];
+line(bx(0),ys[0],292,ys[0],good,5);
+x.beginPath();x.moveTo(300,ys[0]);x.lineTo(290,ys[0]-5);x.lineTo(290,ys[0]+5);x.closePath();x.fillStyle=good;x.fill();
+line(bx(1),ys[1],bx(2),ys[1],good,5);
+line(bx(3),ys[2],bx(4),ys[2],good,5);
+line(60,215,305,215,grid,1);
+x.font='12px system-ui,sans-serif';x.fillStyle=dim;
+for(var k=0;k<5;k++){line(bx(k),211,bx(k),219,grid,1);x.fillText(labs[k],bx(k),233);}
+// right: diagram
+var ox=370,oy=285,u=38;
+function dx(k){return ox+k*u;}
+function dy(k){return oy-k*u;}
+line(360,oy,575,oy,grid,1);
+line(ox,oy,ox,88,grid,1);
+line(ox,oy,ox+190,oy-190,dim,1);
+dot(dx(1),dy(2),5,acc);
+dot(dx(3),dy(4),5,acc);
+dot(ox,95,5,acc);
+x.beginPath();x.moveTo(ox,80);x.lineTo(ox-5,90);x.lineTo(ox+5,90);x.closePath();x.fillStyle=acc;x.fill();
+x.font='11px system-ui,sans-serif';x.fillStyle=dim;x.textAlign='left';
+x.fillText('(b, c)',dx(1)+8,dy(2)-6);
+x.fillText('(d, e)',dx(3)+8,dy(4)-6);
+x.fillText('(a, infinity)',ox+8,98);
+x.textAlign='center';
+x.fillText('birth',ox+95,oy+18);
+x.save();x.translate(ox-14,oy-95);x.rotate(-1.5708);x.fillText('death',0,0);x.restore();
+x.textAlign='left';x.font='12px system-ui,sans-serif';x.fillStyle=dim;
+x.fillText('the same multiset drawn twice - bars on the left, decorated points on the right',60,318);
+})();
+</script>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
