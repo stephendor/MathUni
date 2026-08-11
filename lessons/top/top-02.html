@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-02 — Basis, order, and subspace topologies</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>Basis, order, and subspace topologies <span class="cite">(top-02)</span></h1>
+
+<div class="hook">
+You can't list every open set by hand — so name a basis and let it generate the
+rest. The real line makes the point: its standard topology has uncountably many
+open sets, and you have never written one down except as a union of intervals.
+That is not laziness, it is the definition. But the word "basis" is a false
+friend here, and Munkres says so on printed 80: the expression of an open set as
+a union of basis elements is <em>not unique</em>, so the term "differs
+drastically from its use in linear algebra". A basis in topology is a supply of
+small sets, not a coordinate system.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A subset Y of a space X inherits a
+topology. If Y also happens to carry an order of its own, it has a second,
+independently defined topology — the order topology of Y. Predict: do they
+agree?</p>
+<button onclick="check(this,false)">Always — inheritance is inheritance</button>
+<button onclick="check(this,true)" data-ok>Not always, and Munkres names the condition that saves it</button>
+<button onclick="check(this,false)">Never, except when Y = X</button>
+<div class="explain">Not always. Y = [0,1) ∪ {2} inside ℝ is the counterexample
+on printed 90: the set {2} is open in the subspace topology and not in the order
+topology of Y. Theorem 16.4 gives the condition that rescues it — Y must be
+<em>convex</em> in X — and segment 3 shows exactly where the proof would break
+without it.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The subspace topology is how sampled data inherits structure from the space it sits inside.</p>
+
+<div class="warn">
+<strong>Two bounds on the strip.</strong>
+<br><br>
+<em>There is no data here.</em> §16 defines 𝒯_Y = {Y ∩ U : U ∈ 𝒯} for an
+arbitrary subset Y of an arbitrary space. Nothing about sampling, finiteness or
+point clouds is in the section; the reading of Y as "the sample" is TDA's, and
+it is lab-01 that makes a finite metric space out of a point cloud.
+<br><br>
+<em>"Inherits structure" is exactly right for the topology and wrong for
+anything else the ambient space carried.</em> This is the substantive bound, and
+§16 makes it itself. When X is an ordered set, a subset Y inherits <em>two</em>
+things — the topology, and the order — and the topology Y inherits need not be
+the topology its inherited order generates. Munkres puts it in italics on
+printed 90: "the resulting order topology on Y need not be the same as the
+topology that Y inherits as a subspace of X". Theorem 16.4 identifies convexity
+as what makes them agree. So inheritance is a fact about one structure at a
+time, and a subset that looks like a faithful small copy of its ambient space
+may not be one.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Bases: generating a topology, and recognising one</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 78).</strong> If X is a set, a
+<em>basis</em> for a topology on X is a collection ℬ of subsets of X (called
+<em>basis elements</em>) such that
+<br>(1) For each x ∈ X, there is at least one basis element B containing x.
+<br>(2) If x belongs to the intersection of two basis elements B₁ and B₂, then
+there is a basis element B₃ containing x such that B₃ ⊂ B₁ ∩ B₂.
+<br><br>
+The <em>topology 𝒯 generated by</em> ℬ: a subset U of X is open in X if for each
+x ∈ U there is a basis element B ∈ ℬ such that x ∈ B and B ⊂ U.
+</div>
+
+<p>Condition (2) is quantified over <em>points of the intersection</em>, which
+is why it holds vacuously when two basis elements are disjoint — the commonest
+way to satisfy it, and the one Problem 1(a) turns on. Note also what the
+definition of "generated" does not say: it does not say the open sets are the
+basis elements. Each basis element is itself open (take B = B), but there are
+many more open sets, and the next lemma says exactly how many more.</p>
+
+<div class="theorem">
+<strong>Lemma 13.1 (printed 80).</strong> Let X be a set; let ℬ be a basis for a
+topology 𝒯 on X. Then 𝒯 equals the collection of all unions of elements of ℬ.
+<br><br>
+<em>Proof (Munkres's).</em> Given a collection of elements of ℬ, they are also
+elements of 𝒯; because 𝒯 is a topology, their union is in 𝒯. Conversely, given
+U ∈ 𝒯, choose for each x ∈ U an element B_x of ℬ with x ∈ B_x ⊂ U. Then
+U = ⋃_{x ∈ U} B_x, so U equals a union of elements of ℬ. ∎
+</div>
+
+<p>The union in that last line is worth pausing on. It contains U because each
+x ∈ U is in its own B_x; it is contained in U because each B_x ⊂ U. Both
+directions are needed and both are one line, which is the shape of most
+arguments in this section.</p>
+
+<p>Lemma 13.1 goes from a basis to its topology. Going the other way — being
+handed a topology and asked to produce a basis for it — is the move you will
+make far more often, and Lemma 13.2 is the tool.</p>
+
+<div class="theorem">
+<strong>Lemma 13.2 (printed 80).</strong> Let X be a topological space. Suppose
+that 𝒞 is a collection of open sets of X such that for each open set U of X and
+each x in U, there is an element C of 𝒞 such that x ∈ C ⊂ U. Then 𝒞 is a basis
+for the topology of X.
+</div>
+
+<p>Read the hypothesis carefully: 𝒞 must consist of <em>open</em> sets, and the
+covering condition must hold for <em>every</em> open U, not just for X. Both
+clauses earn their place. Openness is what lets the proof intersect two members
+of 𝒞 and still have an open set to apply the hypothesis to; and quantifying over
+every open U is what forces the generated topology to be the whole of 𝒯 rather
+than something coarser.</p>
+
+<div class="theorem">
+<strong>Lemma 13.3 (printed 81).</strong> Let ℬ and ℬ′ be bases for the
+topologies 𝒯 and 𝒯′ on X. Then the following are equivalent:
+<br>(1) 𝒯′ is finer than 𝒯.
+<br>(2) For each x ∈ X and each basis element B ∈ ℬ containing x, there is a
+basis element B′ ∈ ℬ′ such that x ∈ B′ ⊂ B.
+</div>
+
+<p>Munkres anticipates the question students actually ask — "which way does the
+inclusion go?" — and answers it by refining top-01's gravel: think of the
+pebbles as the basis elements of the old topology, and after they are smashed to
+dust, the dust particles are the basis elements of the new one. The new topology
+is finer, and each dust particle sits inside a pebble, "as the criterion states"
+(printed 81). The metaphor was a rough analogy in §12; here it earns its keep by
+fixing the direction of an inclusion.</p>
+
+<div class="worked">
+<strong>Worked example — Lemma 13.2 applied, and a countable basis for free.</strong>
+Claim: ℬ_ℚ = {(a,b) : a &lt; b, a and b rational} is a basis generating the
+standard topology on ℝ. (Munkres sets this as his Exercise 8(a), printed 83, and
+names the lemma to use.)
+<br><br>
+<em>The members are open.</em> Each (a,b) with rational endpoints is a basis
+element of the standard topology, hence open. That is the first hypothesis of
+Lemma 13.2.
+<br>
+<em>The covering condition.</em> Let U be open in the standard topology and let
+x ∈ U. By the definition of the generated topology there is a standard basis
+element (a,b) with x ∈ (a,b) ⊂ U. Choose rationals p, q with a &lt; p &lt; x
+and x &lt; q &lt; b — possible because ℚ is dense in ℝ. Then
+x ∈ (p,q) ⊂ (a,b) ⊂ U, and (p,q) ∈ ℬ_ℚ.
+<br><br>
+Lemma 13.2 now says ℬ_ℚ is a basis for the topology of ℝ — that is, for the
+standard topology, not merely for some topology. And ℬ_ℚ is indexed by pairs of
+rationals, so it is countable. The standard topology on ℝ therefore has a
+countable basis, which is a property with a name and a section of its own
+(top-10).
+<br><br>
+<em>Why Lemma 13.2 and not Lemma 13.1.</em> Lemma 13.1 would let you rebuild the
+topology from a basis you already knew to be one. Here the whole question is
+whether ℬ_ℚ <em>is</em> a basis for the given topology, and that is precisely
+what Lemma 13.2 certifies.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> On X = {a,b,c,d}, is
+ℬ = {{a,b}, {b,c}, {b}} a basis?</p>
+<button onclick="check(this,false)">Yes</button>
+<button onclick="check(this,true)" data-ok>No — condition (1) fails at d</button>
+<button onclick="check(this,false)">No — condition (2) fails at b</button>
+<button onclick="check(this,false)">Only if we add ∅</button>
+<div class="explain">Condition (1) fails: no member contains d, so ℬ does not
+cover X. Condition (2) is fine — {a,b} ∩ {b,c} = {b}, and {b} ∈ ℬ. Adding ∅
+would not help, since ∅ contains no points either. This is why condition (1) is
+really a covering condition: ⋃ℬ must be all of X.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Lemma 13.3(2) says: for each B ∈ ℬ containing
+x there is B′ ∈ ℬ′ with x ∈ B′ ⊂ B. Which topology does that make finer?</p>
+<button onclick="check(this,true)" data-ok>𝒯′, the one whose basis supplies the smaller sets</button>
+<button onclick="check(this,false)">𝒯, the one whose basis supplies the larger sets</button>
+<button onclick="check(this,false)">Neither — the condition is symmetric</button>
+<div class="explain">𝒯′. The dust sits inside the pebbles, and the dust is the
+finer topology. Concretely: every standard interval (a,b) about x contains a
+lower-limit basis element [x,b), so ℝ_ℓ is finer than the standard topology —
+the direction the canvas below draws.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Three lines, and an order that generates its own topology</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 81–82).</strong> The topology generated by
+the open intervals (a,b) = {x : a &lt; x &lt; b} is the <em>standard topology</em>
+on ℝ. The topology generated by the half-open intervals
+[a,b) = {x : a ≤ x &lt; b} is the <em>lower limit topology</em>; ℝ with this
+topology is written ℝ_ℓ. With K = {1/n : n ∈ ℤ₊}, the topology generated by all
+(a,b) together with all sets (a,b) − K is the <em>K-topology</em>; ℝ with this
+topology is written ℝ_K.
+</div>
+
+<div class="theorem">
+<strong>Lemma 13.4 (printed 82).</strong> The topologies of ℝ_ℓ and ℝ_K are
+strictly finer than the standard topology on ℝ, but are not comparable with one
+another.
+<br><br>
+<span class="cite">Munkres proves the two "strictly finer" clauses and then
+writes: "We leave it to you to show that the topologies of ℝ_ℓ and ℝ_K are not
+comparable." He sets the same thing again as Exercise 6, printed 83. The
+incomparability clause is <em>stated</em> here and proved nowhere in the
+section; it is Problem 3(d).</span>
+</div>
+
+<canvas id="rl" width="640" height="340" aria-label="Two rows illustrating Lemma 13.3 for the lower limit topology. The upper row shows an open interval from a to b with a point x inside it, and below it the half-open interval from x to b sitting inside, showing that every standard basis element about x contains a lower limit basis element. The lower row shows the half-open interval from x to d, and two attempted open intervals containing x, both of which extend to the left of x and so escape the half-open interval."></canvas>
+
+<div class="worked">
+<strong>Worked example — ℝ_ℓ is strictly finer, and the two halves are
+different kinds of argument.</strong>
+<br><br>
+<em>Finer, via Lemma 13.3.</em> Take a standard basis element (a,b) and a point
+x ∈ (a,b). The lower-limit basis element [x,b) contains x and lies inside (a,b).
+That is criterion (2) verified with ℬ the standard basis and ℬ′ the lower-limit
+basis, so (2) ⇒ (1) gives: ℝ_ℓ is finer.
+<br><br>
+<em>Strictly, and <strong>not</strong> via Lemma 13.3.</em> Here Munkres argues
+directly: given the basis element [x,d) of ℝ_ℓ, there is no open interval (a,b)
+that contains x and lies inside [x,d). Any interval containing x has a &lt; x
+strictly, so it contains points less than x, and those are not in [x,d). Hence
+the standard topology is not finer than ℝ_ℓ, and the containment is proper.
+<br><br>
+The asymmetry matters. Lemma 13.3 is an equivalence, so it certifies "finer"
+cleanly in one direction; but "strictly finer" is the failure of the reverse
+containment, and to establish a failure you exhibit a witness rather than verify
+a criterion. Both halves are in the picture above: the top row is the criterion
+holding, the bottom row is the witness.
+</div>
+
+<div class="worked fade">
+<strong>Faded example — ℝ_K is strictly finer, same shape, different witness.</strong>
+<br><br>
+<em>Finer.</em> Every standard basis element (a,b) is itself a basis element of
+ℝ_K, since the K-basis consists of all the (a,b) <em>together with</em> the sets
+(a,b) − K. So criterion (2) of Lemma 13.3 holds with B′ = B, and ℝ_K is finer.
+<br><br>
+<em>Strictly.</em> Take the K-basis element B = (−1,1) − K and the point 0 ∈ B.
+⟨your step: let (a,b) be any standard basis element with 0 ∈ (a,b). Then b &gt; 0.
+Show that (a,b) must contain 1/n for some n, and conclude that (a,b) ⊄ B.⟩
+<br><br>
+⟨your step: name which half of this argument used Lemma 13.3 and which did not,
+and say why the K-topology's witness has to be a set removed from an interval
+rather than a half-open interval.⟩
+</div>
+
+<div class="definition">
+<strong>Definition — the order topology (Munkres, printed 84).</strong> Let X be
+a set with a simple order relation, with more than one element. Let ℬ be the
+collection of all sets of the following types:
+<br>(1) All open intervals (a,b) in X.
+<br>(2) All intervals of the form [a₀,b), where a₀ is the smallest element (if
+any) of X.
+<br>(3) All intervals of the form (a,b₀], where b₀ is the largest element (if
+any) of X.
+<br><br>
+ℬ is a basis, and the topology it generates is the <em>order topology</em>.
+</div>
+
+<p>Types (2) and (3) exist only when X has an extreme element, and they are
+there for one reason: without them, a smallest element a₀ would lie in no basis
+element at all, and condition (1) for a basis would fail. Munkres verifies that
+condition and then writes of condition (2), "Several cases need to be checked;
+we leave it to you" (printed 84). That is Problem 4(a).</p>
+
+<p>Two of his examples are worth carrying. The order topology on ℤ₊ <em>is</em>
+the discrete topology: for n &gt; 1 the singleton {n} = (n−1, n+1) is a type-(1)
+basis element, and {1} = [1,2) is type (2). But on X = {1,2} × ℤ₊ in the
+dictionary order — write a_n = 1 × n and b_n = 2 × n, so that X looks like
+a₁, a₂, …; b₁, b₂, … — the order topology is <em>not</em> discrete, and there is
+exactly one exception. Any basis element containing b₁ must reach below it, and
+everything below b₁ is some a_i; since the a-sequence has no largest member, no
+basis element can start immediately below b₁. So {b₁} is not open, while every
+other singleton is (printed 85).</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why is {b₁} not open in X = {1,2} × ℤ₊?</p>
+<button onclick="check(this,false)">Because b₁ is the largest element of X</button>
+<button onclick="check(this,true)" data-ok>Because b₁ has no immediate predecessor</button>
+<button onclick="check(this,false)">Because the dictionary order is not a simple order</button>
+<button onclick="check(this,false)">Because X is infinite</button>
+<div class="explain">It has no immediate predecessor: the elements below b₁ are
+exactly a₁, a₂, a₃, …, and that sequence has no largest member. Any basis
+element containing b₁ has the form (a_m, ·), so it contains a_{m+1}, a_{m+2}, …
+The first option is wrong twice over — b₁ is neither largest nor smallest — and
+X being infinite is not the reason, since ℤ₊ is infinite and its order topology
+<em>is</em> discrete.</div>
+</div>
+
+<p>Finally, the rays. For a ∈ X the sets (a,+∞) = {x : x &gt; a} and
+(−∞,a) = {x : x &lt; a} are the <em>open rays</em>; [a,+∞) and (−∞,a] are the
+<em>closed rays</em> (printed 85–86). The open rays are open, by a two-case
+argument — if X has a largest element b₀ then (a,+∞) = (a,b₀], a type-(3) basis
+element, and if not then (a,+∞) = ⋃_{x&gt;a}(a,x) — and they form a
+<em>subbasis</em> for the order topology, in the sense of printed 82: a
+collection whose union is X, generating all unions of finite intersections of
+its members. One inclusion is that open rays are open; the other is that
+(a,b) = (−∞,b) ∩ (a,+∞), while [a₀,b) and (a,b₀], where they exist, are
+themselves open rays (printed 86).</p>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Subspaces, and the one place inheritance goes wrong</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 88).</strong> Let X be a topological space
+with topology 𝒯. If Y is a subset of X, the collection
+𝒯_Y = {Y ∩ U : U ∈ 𝒯} is a topology on Y, called the <em>subspace topology</em>.
+With this topology Y is called a <em>subspace</em> of X; its open sets consist of
+all intersections of open sets of X with Y.
+</div>
+
+<p>That it is a topology is two identities (printed 89):
+(U₁ ∩ Y) ∩ ⋯ ∩ (Uₙ ∩ Y) = (U₁ ∩ ⋯ ∩ Uₙ) ∩ Y and
+⋃_α (U_α ∩ Y) = (⋃_α U_α) ∩ Y, with ∅ = Y ∩ ∅ and Y = Y ∩ X for axiom (1). Each
+right-hand side is (something open in X) ∩ Y because 𝒯 satisfies the
+corresponding axiom.</p>
+
+<div class="theorem">
+<strong>Lemma 16.1 (printed 89).</strong> If ℬ is a basis for the topology of X
+then ℬ_Y = {B ∩ Y : B ∈ ℬ} is a basis for the subspace topology on Y.
+<br><br>
+<strong>Lemma 16.2 (printed 89).</strong> Let Y be a subspace of X. If U is open
+in Y and Y is open in X, then U is open in X.
+<br><br>
+<strong>Theorem 16.3 (printed 89–90).</strong> If A is a subspace of X and B is
+a subspace of Y, then the product topology on A × B is the same as the topology
+A × B inherits as a subspace of X × Y.
+</div>
+
+<p>Lemma 16.2 is the one to keep in the front of your mind, because its
+hypothesis is easy to drop. "Open in Y" and "open in X" are different
+predicates, and they coincide only when Y is itself open. Take X = ℝ,
+Y = [0,1], U = [0,1/2): then U = Y ∩ (−1,1/2) is open in Y and is not open in
+ℝ, because no interval about 0 lies inside it. Munkres makes the distinction
+explicit on printed 89 and it is worth adopting his phrasing — always say "open
+in Y" or "open in X", never bare "open", whenever a subspace is in play.</p>
+
+<div class="warn">
+<strong>The anomaly, and it is not an edge case.</strong> Munkres italicises it
+on printed 90: for an ordered set X and Y ⊂ X, <em>the resulting order topology
+on Y need not be the same as the topology that Y inherits as a subspace of X</em>.
+<br><br>
+His Example 2: Y = [0,1) ∪ {2} ⊂ ℝ. In the subspace topology {2} is open,
+because {2} = Y ∩ (3/2, 5/2). In the order topology on Y it is not: 2 is the
+largest element of Y, so a basis element containing it has the form
+{x ∈ Y : a &lt; x ≤ 2}, and every such set contains points of Y less than 2.
+<br><br>
+His Example 3 does the same to the unit square. On I × I with I = [0,1], the
+dictionary order topology differs from the topology inherited from the
+dictionary order topology on ℝ × ℝ. His witness is the set {1/2} × (1/2, 1],
+which he says is open in the subspace topology and not in the order topology
+"as you can check" — asserted and left to the reader, unlike Example 2, which he
+argues. Munkres names I × I in the dictionary order topology the <em>ordered
+square</em>, I₀².
+</div>
+
+<div class="theorem">
+<strong>Definition and Theorem 16.4 (printed 90–91).</strong> A subset Y of an
+ordered set X is <em>convex</em> in X if for each pair of points a &lt; b of Y,
+the entire interval (a,b) of points of X lies in Y. Intervals and rays are
+convex.
+<br><br>
+<strong>Theorem 16.4.</strong> Let X be an ordered set in the order topology;
+let Y be a subset of X that is convex in X. Then the order topology on Y is the
+same as the topology Y inherits as a subspace of X.
+</div>
+
+<div class="worked">
+<strong>Worked example — where convexity enters the proof of Theorem 16.4.</strong>
+Munkres works with the <em>subbasis</em> of open rays from §14 rather than with
+the basis, which is what makes the proof four lines.
+<br><br>
+Consider the ray (a,+∞) of X and intersect it with Y.
+<br>• If a ∈ Y, then (a,+∞) ∩ Y = {x ∈ Y : x &gt; a}, which is an open ray of the
+ordered set Y. Fine, and convexity was not needed.
+<br>• If a ∉ Y, then <em>because Y is convex</em>, a is either a lower bound for
+Y or an upper bound for Y. In the first case (a,+∞) ∩ Y = Y; in the second it is
+empty.
+<br><br>
+<em>That second bullet is the whole use of the hypothesis.</em> Without
+convexity, a point a ∉ Y can have members of Y on both sides of it, and then
+(a,+∞) ∩ Y is neither all of Y nor empty nor an open ray of Y — it is a chunk of
+Y cut off at a place Y itself cannot name. That is exactly what happens in
+Example 2: take a = 1, which is not in Y = [0,1) ∪ {2}; then (1,+∞) ∩ Y = {2},
+and Y has points below a and a point above it. The failure of convexity is
+witnessed by the pair 1/2 &lt; 2 of points of Y, since the interval (1/2, 2) of ℝ
+is not contained in Y.
+<br><br>
+The rest is bookkeeping: the same argument for (−∞,a); the sets (a,+∞) ∩ Y and
+(−∞,a) ∩ Y form a subbasis for the subspace topology and are order-open, giving
+one inclusion; and every open ray of Y is the intersection of an open ray of X
+with Y, giving the other.
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove Theorem 16.3: if A is a subspace of X and B
+is a subspace of Y, then the product topology on A × B equals the subspace
+topology A × B inherits from X × Y.
+<br><br>
+Munkres's proof compares <em>bases</em> rather than open sets. Justify that move
+explicitly — name the result of §13 that licenses it — and then do the
+computation.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+<em>Why comparing bases suffices.</em> By Lemma 13.1, a topology generated by a
+basis is exactly the collection of all unions of that basis's elements. So two
+topologies on the same set that admit the same basis are equal: each is the set
+of all unions of the same collection. It is therefore enough to exhibit one
+collection that is simultaneously a basis for both topologies.
+<br><br>
+<em>The subspace side.</em> The general basis element of X × Y is U × V with U
+open in X and V open in Y. By Lemma 16.1, intersecting the basis of X × Y with
+the subset A × B gives a basis for the subspace topology on A × B. So the
+general basis element of the subspace topology is (U × V) ∩ (A × B).
+<br><br>
+<em>The computation.</em> (U × V) ∩ (A × B) = (U ∩ A) × (V ∩ B). A point
+(x,y) lies in the left side exactly when x ∈ U, y ∈ V, x ∈ A and y ∈ B, which is
+exactly the condition for it to lie in the right side.
+<br><br>
+<em>The product side.</em> By the definition of the subspace topology, U ∩ A is
+the general open set of A and V ∩ B is the general open set of B. So
+(U ∩ A) × (V ∩ B) is the general basis element of the product topology on
+A × B.
+<br><br>
+The two topologies therefore have the same basis, and by the first paragraph
+they are equal. ∎
+<br><br>
+<em>Remark.</em> Munkres puts this theorem immediately before the order-topology
+anomaly, and the contrast is the point: "For product topologies, the result is
+what one might expect; for order topologies, it is not" (printed 89). Taking a
+subspace commutes with forming a product, and does not commute with forming an
+order topology.
+</details>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Prove Lemma 16.1. Munkres's proof is three lines and
+ends by handing off to an earlier result rather than finishing by hand:
+<br><br>
+"Given U open in X and given y ∈ U ∩ Y, we can choose an element B of ℬ such
+that y ∈ B ⊂ U. Then y ∈ B ∩ Y ⊂ U ∩ Y. It follows from Lemma 13.2 that ℬ_Y is
+a basis for the subspace topology on Y."
+<br><br>
+Write out what Lemma 13.2 required — both hypotheses — and check that the two
+lines above supply both. One of them is not checked in Munkres's three lines at
+all; find it and supply it. Then say why Lemma 13.2 rather than the definition
+of a basis is the right tool here.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Y = [0,1] as a subspace of ℝ. Is [0,1/2) open
+in Y? Open in ℝ?</p>
+<button onclick="check(this,true)" data-ok>Open in Y, not open in ℝ</button>
+<button onclick="check(this,false)">Open in both</button>
+<button onclick="check(this,false)">Open in ℝ, not open in Y</button>
+<button onclick="check(this,false)">Open in neither</button>
+<div class="explain">[0,1/2) = Y ∩ (−1, 1/2), so it is open in Y. It is not open
+in ℝ: no interval about 0 lies inside it. Lemma 16.2 says this can only happen
+when Y itself is not open in X — and [0,1] is not open in ℝ. Munkres's Example 1
+adds the other half of the story: for this particular Y the subspace and order
+topologies <em>do</em> agree, because [0,1] is convex, so Theorem 16.4
+applies.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which hypothesis does Y = [0,1) ∪ {2} fail in
+Theorem 16.4?</p>
+<button onclick="check(this,false)">X must be an ordered set — ℝ is not simply ordered</button>
+<button onclick="check(this,true)" data-ok>Y must be convex in X</button>
+<button onclick="check(this,false)">Y must be open in X</button>
+<button onclick="check(this,false)">Y must have a largest element</button>
+<div class="explain">Convexity. Take a = 1/2 and b = 2, both in Y; the interval
+(1/2, 2) of ℝ contains 1, which is not in Y. Openness of Y is a hypothesis of
+Lemma 16.2, not of Theorem 16.4 — and note Y does have a largest element, 2,
+which is part of why the order topology on Y behaves as it does.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>A basis is a supply of small sets, and Lemma 13.1 says the topology
+it generates is exactly all unions of them.</strong> Not a coordinate system —
+the expression is not unique, which Munkres flags as the drastic difference from
+linear algebra. Lemma 13.2 runs the other way, certifying that a given
+collection of open sets is a basis for the topology you already have, and it is
+the workhorse: it is what makes ℬ_ℚ a countable basis for ℝ and what finishes
+Lemma 16.1.
+<br><br>
+2. <strong>Comparison becomes local once you have bases (Lemma 13.3), but
+strictness never does.</strong> "Finer" is a criterion you verify at every point;
+"strictly finer" is a containment that fails, so it needs a witness. Lemma 13.4
+is three instances: [x,b) inside every (a,b) makes ℝ_ℓ finer, [x,d) containing
+no open interval about x makes it strict, and (−1,1) − K with the point 0 does
+the same job for ℝ_K.
+<br><br>
+3. <strong>A subspace inherits one structure at a time.</strong> 𝒯_Y = {Y ∩ U}
+is always a topology, and it commutes with products (Theorem 16.3). It does not
+commute with the order: Y = [0,1) ∪ {2} inherits an order and a topology, and the
+topology its inherited order generates is coarser than the topology it
+inherited. Theorem 16.4 says convexity is what closes the gap, and the proof
+shows why — convexity is exactly what forces a point outside Y to be a bound for
+Y rather than a cut through it.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed. (folio = PDF − 17, checked on each
+page cited). <strong>§13 "Basis for a Topology", printed 78–83:</strong> the
+definition of a basis and of the generated topology, p. 78; the verification
+that the generated collection is a topology, p. 79; Lemma 13.1 and the remark
+that the expression as a union is not unique and so differs "drastically" from
+linear algebra, p. 80; Lemma 13.2, p. 80; Lemma 13.3 and the pebbles-to-dust
+refinement of the gravel image, p. 81; the standard, lower limit and K
+topologies, pp. 81–82; Lemma 13.4, p. 82; the definition of a subbasis and the
+check that it generates a topology, pp. 82–83; Exercises 6 and 8, p. 83.
+<strong>§14 "The Order Topology", printed 84–86:</strong> intervals and the
+definition of the order topology, p. 84; Examples 1–4, p. 85; rays, and the
+proofs that open rays are open and form a subbasis, pp. 85–86.
+<strong>§16 "The Subspace Topology", printed 88–91:</strong> the definition,
+p. 88; the verification, Lemma 16.1, the open-in-Y versus open-in-X distinction
+and Lemma 16.2, p. 89; Theorem 16.3, pp. 89–90; the italicised warning,
+Examples 1–3, the ordered square I₀² and the definition of convex, p. 90;
+Theorem 16.4 and the standing convention, p. 91.
+<br><br>
+<em>Modality.</em> Two things this unit uses are <em>stated</em> by Munkres and
+left to the reader rather than proved: the incomparability clause of Lemma 13.4
+("We leave it to you", p. 82, and again as Exercise 6), and the second basis
+condition for the order topology ("Several cases need to be checked; we leave it
+to you", p. 84). Both appear here as problems, not as worked examples. The
+countable-basis argument for ℬ_ℚ is Munkres's Exercise 8(a), p. 83, worked here
+from the lemma he names.
+<br><br>
+<em>Not established here.</em> Closed sets, closure and limit points — §17,
+printed 92 (top-03). Continuity — §18, printed 102 (top-04). The general product
+topology on arbitrary products, and why the box topology is the wrong answer —
+§19, printed 112 (top-05); this unit uses only the finite product of §15,
+printed 86, and only inside Theorem 16.3. Metric spaces, which is where Munkres
+says he will treat the circles-and-rectangles example "more formally" (p. 81) —
+§20, printed 119 (top-06). Second-countability, which the ℬ_ℚ example
+establishes an instance of without naming — §30, printed 190 (top-10). The
+mission strip's "sampled data" is not in §16 and is not established anywhere in
+this unit.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('rl'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  function span(x0,x1,y,col,leftClosed,rightClosed){
+    g.strokeStyle=col; g.fillStyle=col; g.lineWidth=3;
+    g.beginPath(); g.moveTo(x0,y); g.lineTo(x1,y); g.stroke();
+    [[x0,leftClosed],[x1,rightClosed]].forEach(function(e){
+      g.beginPath(); g.arc(e[0],y,5,0,6.2832);
+      if(e[1]){g.fill();} else {g.fillStyle='#0c1013'; g.fill(); g.strokeStyle=col; g.lineWidth=2; g.stroke(); g.fillStyle=col;}
+    });
+  }
+  function guide(x,y0,y1){g.save();g.strokeStyle='#2a333d';g.setLineDash([3,4]);g.lineWidth=1;
+    g.beginPath();g.moveTo(x,y0);g.lineTo(x,y1);g.stroke();g.restore();}
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillStyle='#8ab4f8';
+  g.fillText('every (a,b) about x contains a basis element [x,b) of ℝℓ  —  so ℝℓ is finer', 320, 44);
+  guide(140,66,120); guide(300,66,120); guide(460,66,120);
+  span(140,460,78,'#9aa5b1',false,false);
+  span(300,460,106,'#4caf82',true,false);
+  g.fillStyle='#9aa5b1'; g.font='11px Segoe UI,system-ui,sans-serif';
+  g.fillText('a',140,134); g.fillText('x',300,134); g.fillText('b',460,134);
+  g.save(); g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(40,152); g.lineTo(600,152); g.stroke(); g.restore();
+  g.fillStyle='#e06c75'; g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillText('but no open interval about x fits inside [x,d) — each reaches left of x', 320, 180);
+  guide(300,196,272); guide(460,196,222);
+  span(300,460,208,'#4caf82',true,false);
+  span(230,400,238,'#e06c75',false,false);
+  span(180,350,262,'#e06c75',false,false);
+  g.fillStyle='#9aa5b1'; g.font='11px Segoe UI,system-ui,sans-serif';
+  g.fillText('x',300,290); g.fillText('d',460,290);
+  g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillText('Lemma 13.3 gives "finer"; strictness needs a witness, not a criterion', 320, 318);
+})();
+</script>
+</body></html>
