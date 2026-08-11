@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-03 — Closed sets, closure, interior, and limit points</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>Closed sets, closure, interior, and limit points <span class="cite">(top-03)</span></h1>
+
+<div class="hook">
+The closure adds exactly the points you can sneak up on — the boundary made
+precise. Munkres puts the same thought as a riddle on printed 93: how is a set
+different from a door? A door must be either open or closed and cannot be both;
+a set can be open, or closed, or both, or neither. [0,1) in ℝ is neither, and in
+the subspace Y = [0,1] ∪ (2,3) the piece [0,1] is <em>both</em> — the two words
+are not opposites and never were.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A sequence in a topological space
+converges to a point if every neighbourhood of that point eventually contains
+it. Predict: can a <em>constant</em> sequence converge to a point it never
+equals?</p>
+<button onclick="check(this,false)">No — a constant sequence has only one limit</button>
+<button onclick="check(this,true)" data-ok>Yes, and there is a three-point space where it converges to all three</button>
+<button onclick="check(this,false)">Only in infinite spaces</button>
+<div class="explain">Yes. On X = {a,b,c} with the topology
+{∅, X, {b}, {a,b}, {b,c}}, the constant sequence x_n = b converges to a, to b
+<em>and</em> to c, because every open set containing a or c also contains b.
+Munkres uses exactly this phenomenon on printed 98 to motivate the Hausdorff
+axiom, and Theorem 17.10 is the repair.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Limit points and closure are the raw material of the connectedness and compactness proofs ahead.</p>
+
+<div class="warn">
+<strong>Two bounds on the strip, and one on the hook.</strong>
+<br><br>
+<em>Nothing about connectedness or compactness is in §17.</em> Munkres defines
+connectedness in §23 (printed 148, top-07) and compactness in §26 (printed 163,
+top-08). The strip is a forward promise about how this material gets used, and
+this unit does not redeem it. What §17 does supply is the vocabulary those
+proofs are written in — closed, closure, limit point, neighbourhood, Hausdorff —
+and the last paragraph of the section (printed 100) says so itself, listing the
+countability, compactness and connectedness conditions as things still to come.
+<br><br>
+<em>The one exception is visible and worth naming.</em> Problem 5(d) reaches
+connectedness by the back door: a subset other than ∅ and X with empty boundary
+is exactly a proper non-empty clopen set, and the existence of one is what
+top-07 will call a separation. That is a definition matching up, not a theorem
+proved here.
+<br><br>
+<em>The hook overstates, by one word.</em> "The boundary made precise" is not
+what §17's body does. Munkres defines the interior and the closure on printed 95
+— and adds, of the interior, "We shall not make much use of" it. The
+<strong>boundary</strong> Bd A = Ā ∩ (X − A)‾ appears only in Exercise 19,
+printed 102. It is set, not developed. This unit makes the <em>closure</em>
+precise; the boundary is a problem.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Closed sets, and the closure you can actually compute</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 93).</strong> A subset A of a topological
+space X is said to be <em>closed</em> if the set X − A is open.
+</div>
+
+<div class="theorem">
+<strong>Theorem 17.1 (printed 94).</strong> Let X be a topological space. Then
+the following conditions hold:
+<br>(1) ∅ and X are closed.
+<br>(2) Arbitrary intersections of closed sets are closed.
+<br>(3) Finite unions of closed sets are closed.
+</div>
+
+<p>Compare that with top-01's axioms and notice what moved. For open sets the
+unrestricted operation was <em>union</em> and the finite one was
+<em>intersection</em>; for closed sets it is the other way round. De Morgan is
+the whole reason — X − ⋂A_α = ⋃(X − A_α) turns an arbitrary intersection into an
+arbitrary union — and the word "finite" travels with whichever operation it was
+attached to before complementation. Munkres notes on printed 94 that one could
+have axiomatised topology by the closed sets instead, and adds that this "has no
+particular advantage over the one we have adopted".</p>
+
+<div class="theorem">
+<strong>Theorem 17.2 (printed 94).</strong> Let Y be a subspace of X. Then a set
+A is closed in Y if and only if it equals the intersection of a closed set of X
+with Y.
+<br><br>
+<strong>Theorem 17.3 (printed 94–95).</strong> Let Y be a subspace of X. If A is
+closed in Y and Y is closed in X, then A is closed in X.
+<br><br>
+<span class="cite">Munkres states Theorem 17.3 and writes "we leave the proof to
+you" (printed 94). It is Problem 1(d), and it is the exact mirror of top-02's
+Lemma 16.2, which said the same thing with "open" in both places.</span>
+</div>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 95).</strong> Given a subset A of a
+topological space X, the <em>interior</em> of A is the union of all open sets
+contained in A, and the <em>closure</em> of A is the intersection of all closed
+sets containing A. Written Int A and Cl A or Ā. Int A is open, Ā is closed, and
+Int A ⊂ A ⊂ Ā. If A is open then A = Int A; if A is closed then A = Ā.
+</div>
+
+<p>Munkres adds a sentence that is worth taking as instruction: "We shall not
+make much use of the interior of a set, but the closure of a set will be quite
+important." He also fixes a convention, on the same page — with a subspace in
+play, Ā always means the closure in X — and Theorem 17.4 says how to recover the
+other one: for A ⊂ Y ⊂ X, the closure of A in Y equals Ā ∩ Y.</p>
+
+<p>Neither definition is usable as it stands. "The intersection of all closed
+sets containing A" is a quantification over a collection that is, as Munkres
+says, "usually much too big to work with". Theorem 17.5 replaces it with a
+pointwise test.</p>
+
+<div class="theorem">
+<strong>Theorem 17.5 (printed 96).</strong> Let A be a subset of the topological
+space X.
+<br>(a) Then x ∈ Ā if and only if every open set U containing x intersects A.
+<br>(b) Supposing the topology of X is given by a basis, then x ∈ Ā if and only
+if every basis element B containing x intersects A.
+<br><br>
+<span class="cite">Munkres shortens "U is an open set containing x" to "U is a
+<em>neighborhood</em> of x" (printed 96), and warns on printed 97 that some
+authors call A a neighbourhood of x when A merely <em>contains</em> an open set
+containing x. He does not follow that practice and neither will we.</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — proof by contraposition, and why it is easier.</strong>
+Munkres proves Theorem 17.5(a) by replacing both implications with their
+contrapositives, and says so in as many words. Written out, the equivalent
+statement is:
+<br><br>
+x ∉ Ā ⟺ there exists an open set U containing x that does not intersect A.
+<br><br>
+<em>(⇒)</em> If x ∉ Ā, take U = X − Ā. It is open because Ā is closed, it
+contains x, and it misses A because A ⊂ Ā.
+<br>
+<em>(⇐)</em> If such a U exists, then X − U is a closed set containing A. By the
+definition of the closure as the intersection of all such sets, Ā ⊂ X − U. Since
+x ∈ U, x ∉ X − U, so x ∉ Ā.
+<br><br>
+<em>Why the contrapositive is the easier form.</em> The original statement, in
+both directions, quantifies over <em>all</em> open sets containing x. The
+contrapositive asks in each direction for a <em>single</em> witness set — and in
+each direction the witness is handed to you: X − Ā one way, X − U the other. A
+quantifier over all becomes an exhibition of one.
+<br><br>
+Part (b) is then two lines. Every basis element is open, so "all open sets meet
+A" gives "all basis elements meet A". Conversely, an open set U containing x
+contains a basis element containing x, by the definition of the generated
+topology (top-02), and if that meets A then so does U.
+</div>
+
+<canvas id="cl" width="640" height="372" aria-label="Three number lines showing Munkres's Examples 6 and 8. The first shows the half-open interval from 0 to 1, open at 0 and closed at 1, with 0 ringed as the one limit point lying outside the set. The second shows the points one over n accumulating at 0, with 0 ringed as the only limit point. The third shows the set consisting of 0 together with the open interval from 1 to 2, with 1 and 2 ringed as limit points and 0 marked as an isolated point of the set."></canvas>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In ℝ, what is the closure of
+B = {1/n : n ∈ ℤ₊}?</p>
+<button onclick="check(this,false)">B itself — every point of B is isolated</button>
+<button onclick="check(this,true)" data-ok>{0} ∪ B</button>
+<button onclick="check(this,false)">[0,1]</button>
+<button onclick="check(this,false)">{0}</button>
+<div class="explain">{0} ∪ B. Every interval (a,b) containing 0 has b &gt; 0, and
+some 1/n &lt; b, so the interval meets B — hence 0 ∈ B̄ by Theorem 17.5(b). No
+other new point arrives: a point strictly between 1/(n+1) and 1/n has an
+interval about it missing B entirely. The first option confuses "every point of
+B is isolated in B", which is true, with "B is closed", which is false — the
+missing point is not in B at all.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Limit points, and the closure decomposed</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 97).</strong> If A is a subset of the
+topological space X and x is a point of X, we say that x is a <em>limit point</em>
+(or "cluster point", or "point of accumulation") of A if every neighbourhood of
+x intersects A in some point <em>other than x itself</em>. Said differently, x is
+a limit point of A if it belongs to the closure of A − {x}. The point x may lie
+in A or not; for this definition it does not matter.
+</div>
+
+<div class="theorem">
+<strong>Theorem 17.6 (printed 97).</strong> Let A be a subset of the topological
+space X, let A′ be the set of all limit points of A. Then Ā = A ∪ A′.
+<br><br>
+<strong>Corollary 17.7 (printed 98).</strong> A subset of a topological space is
+closed if and only if it contains all its limit points.
+</div>
+
+<p>The three words "other than x itself" are the entire difference between a
+limit point and a point of the closure, and the picture above shows where they
+bite. For C = {0} ∪ (1,2) the closure is {0} ∪ [1,2] but the set of limit points
+is just [1,2]: the point 0 lies in C and is <em>not</em> a limit point of C,
+because the interval (−1/2, 1/2) meets C only at 0 itself. Such a point is called
+isolated. Theorem 17.6 is untroubled by it because the theorem takes a union —
+0 enters Ā through A, not through A′.</p>
+
+<div class="worked fade">
+<strong>Faded example — Corollary 17.7 in one line, expanded to three.</strong>
+Munkres's whole proof is: "The set A is closed if and only if A = Ā, and the
+latter holds if and only if A′ ⊂ A."
+<br><br>
+<em>First equivalence.</em> If A is closed then A is one of the closed sets
+whose intersection defines Ā, and A ⊂ Ā always, so A = Ā. Conversely if A = Ā
+then A is closed, because Ā is.
+<br><br>
+<em>Second equivalence.</em> ⟨your step: use Theorem 17.6 to rewrite A = Ā as
+A = A ∪ A′, and show that this holds exactly when A′ ⊂ A.⟩
+<br><br>
+⟨your step: state what the corollary says for C = {0} ∪ (1,2), and check it
+against the picture — is C closed, and does it contain all of C′?⟩
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove Theorem 17.6: Ā = A ∪ A′.
+<br><br>
+Both inclusions. In the harder one, split on whether the point lies in A, and
+say explicitly which hypothesis lets you upgrade "meets A" to "meets A in a
+point other than x".
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+<em>(A ∪ A′ ⊂ Ā).</em> If x ∈ A′ then every neighbourhood of x intersects A —
+in a point different from x, but in particular it intersects A — so x ∈ Ā by
+Theorem 17.5(a). And A ⊂ Ā holds by definition. Hence A ∪ A′ ⊂ Ā.
+<br><br>
+<em>(Ā ⊂ A ∪ A′).</em> Let x ∈ Ā. If x ∈ A there is nothing to prove. So suppose
+x ∉ A. Since x ∈ Ā, Theorem 17.5(a) gives that every neighbourhood U of x
+intersects A. Because x ∉ A, any point of U ∩ A is automatically different from
+x. So every neighbourhood of x meets A in a point other than x, which is to say
+x ∈ A′. Hence x ∈ A ∪ A′. ∎
+<br><br>
+<em>The hypothesis being consumed.</em> The upgrade from "U meets A" to "U meets
+A in a point other than x" is free <strong>only</strong> because x ∉ A. That is
+why the proof splits: in the case x ∈ A the upgrade is not available and is not
+needed, since x ∈ A ∪ A′ already. A proof that tried to run uniformly would have
+to show that every point of the closure is a limit point, which is false — the
+isolated point 0 of C = {0} ∪ (1,2) is the counterexample.
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> For C = {0} ∪ (1,2) in ℝ, which is right?</p>
+<button onclick="check(this,false)">C̄ = C′ = {0} ∪ [1,2]</button>
+<button onclick="check(this,true)" data-ok>C̄ = {0} ∪ [1,2] and C′ = [1,2]</button>
+<button onclick="check(this,false)">C̄ = [0,2] and C′ = [0,2]</button>
+<button onclick="check(this,false)">C̄ = {0} ∪ [1,2] and C′ = (1,2)</button>
+<div class="explain">C̄ = {0} ∪ [1,2] and C′ = [1,2]. The point 0 is in C but not
+in C′ — the interval (−1/2, 1/2) meets C only at 0 — so it is isolated. The
+third option would need every point of [0,1] to be a limit point of C, but
+(1/4, 3/4) misses C entirely. The fourth forgets that 1 and 2 are limit points
+of (1,2) although neither lies in it.</div>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Prove that A′ is closed, for every subset A of every
+space. Munkres does not state this in §17, so you are on your own for the
+statement as well as the proof.
+<br><br>
+Take x ∈ (A′)‾ and a neighbourhood U of x; U meets A′ at some y. Now U is a
+neighbourhood of y as well, so U meets A in a point other than y. The care is in
+getting a point other than <strong>x</strong>: handle y = x and y ≠ x
+separately, and in the second case shrink U before you use it.
+<br><br>
+Then decide whether (A′)′ = A′ always holds. Test A = {1/n} in ℝ before
+committing to an answer, and note that the two questions have different answers
+— which is the point of asking both.
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Hausdorff: ruling out the spaces that mislead</h2>
+
+<p>Munkres's warning on printed 98 is that experience with ℝ and ℝ² misleads. In
+those spaces every one-point set is closed and a sequence has at most one limit,
+and neither fact holds in an arbitrary space. His counterexample is a
+three-point space shown in a figure; the figure's topology is not spelled out in
+the text, so take instead the topology 𝒜 = {∅, X, {b}, {a,b}, {b,c}} on
+X = {a,b,c}, which Munkres <em>does</em> describe in prose in §12 (printed 76)
+and which top-01 verified is a topology. It has both pathologies.</p>
+
+<div class="worked">
+<strong>Worked example — one non-closed point, three limits for one sequence.</strong>
+Work in (X, 𝒜) with 𝒜 = {∅, X, {b}, {a,b}, {b,c}}.
+<br><br>
+<em>{b} is not closed.</em> X − {b} = {a,c}, and {a,c} ∉ 𝒜. So the complement of
+{b} is not open, which by definition means {b} is not closed. (Indeed
+{b}‾ = X: every non-empty open set contains b, so every neighbourhood of every
+point meets {b}, and Theorem 17.5(a) puts every point in the closure.)
+<br><br>
+<em>The constant sequence x_n = b converges to all three points.</em> Munkres's
+definition, printed 98: x_n → x provided that for each neighbourhood U of x
+there is N with x_n ∈ U for all n ≥ N.
+<br>• Neighbourhoods of a: {a,b} and X. Both contain b, so x_n ∈ U for every n.
+Take N = 1.
+<br>• Neighbourhoods of b: {b}, {a,b}, {b,c}, X. All contain b.
+<br>• Neighbourhoods of c: {b,c} and X. Both contain b.
+<br>So x_n → a, x_n → b and x_n → c.
+<br><br>
+<em>What exactly fails.</em> There is no pair of disjoint open sets separating b
+from a, because every open set containing a also contains b. That is the
+Hausdorff condition failing, and Theorem 17.10 says it is the only thing that
+could have gone wrong.
+</div>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 98).</strong> A topological space X is
+called a <em>Hausdorff space</em> if for each pair x₁, x₂ of distinct points of
+X, there exist neighbourhoods U₁ and U₂ of x₁ and x₂, respectively, that are
+disjoint.
+</div>
+
+<div class="theorem">
+<strong>Theorem 17.8 (printed 99).</strong> Every finite point set in a
+Hausdorff space X is closed.
+<br><br>
+<strong>Theorem 17.9 (printed 99).</strong> Let X be a space satisfying the T₁
+axiom; let A be a subset of X. Then the point x is a limit point of A if and
+only if every neighbourhood of x contains infinitely many points of A.
+<br><br>
+<strong>Theorem 17.10 (printed 99).</strong> If X is a Hausdorff space, then a
+sequence of points of X converges to at most one point of X.
+<br><br>
+<strong>Theorem 17.11 (printed 100).</strong> Every simply ordered set is a
+Hausdorff space in the order topology. The product of two Hausdorff spaces is a
+Hausdorff space. A subspace of a Hausdorff space is a Hausdorff space.
+<br><br>
+<span class="cite">Munkres introduces Theorem 17.11 with "The proof of the
+following result is left to the exercises" (printed 100). It is stated and not
+proved anywhere in §17; Problem 5 proves all three clauses.</span>
+</div>
+
+<p>Between Hausdorff and nothing sits the <strong>T₁ axiom</strong>: the
+condition that finite point sets be closed. Munkres notes on printed 99 that it
+is strictly weaker, and gives the separating example — ℝ in the finite complement
+topology is T₁ and not Hausdorff. The first half is top-01's Example 3 read
+through complements: the 𝒯_f-closed sets are exactly ℝ and the finite sets. The
+second half is a one-liner worth knowing: if U and V are non-empty and
+𝒯_f-open, then ℝ − U and ℝ − V are finite, so ℝ − (U ∩ V) is finite, so U ∩ V
+is non-empty because ℝ is infinite. In that space no two distinct points can be
+separated at all.</p>
+
+<p>Munkres also tells you how much use T₁ will get: "The T₁ axiom will appear in
+this book in a few exercises, and in just one theorem" — Theorem 17.9. Its
+hypothesis is not decorative. In (X, 𝒜) above, take A = {b} and x = a: every
+neighbourhood of a contains b ≠ a, so a is a limit point of A, and A has exactly
+one point. Theorem 17.9 would forbid that, and the space is not T₁.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> ℝ with the finite complement topology 𝒯_f.
+Which holds?</p>
+<button onclick="check(this,false)">Hausdorff and T₁</button>
+<button onclick="check(this,true)" data-ok>T₁ but not Hausdorff</button>
+<button onclick="check(this,false)">Hausdorff but not T₁</button>
+<button onclick="check(this,false)">Neither</button>
+<div class="explain">T₁ and not Hausdorff — Munkres's own separating example,
+printed 99. Finite sets are closed because their complements are 𝒯_f-open by
+definition. But no two non-empty 𝒯_f-open sets are disjoint, since the
+complement of their intersection is a union of two finite sets. "Hausdorff but
+not T₁" is impossible: Theorem 17.8 says Hausdorff implies T₁.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which theorem is the reason "the limit" of a
+convergent sequence is a legitimate phrase?</p>
+<button onclick="check(this,false)">Theorem 17.8</button>
+<button onclick="check(this,true)" data-ok>Theorem 17.10, and only in Hausdorff spaces</button>
+<button onclick="check(this,false)">Theorem 17.6</button>
+<button onclick="check(this,false)">Corollary 17.7</button>
+<div class="explain">Theorem 17.10 — and the qualification matters. Munkres only
+introduces the notation x_n → x and the phrase "x is <em>the</em> limit" on
+printed 100, immediately <em>after</em> proving uniqueness, and only for
+Hausdorff spaces. Before that theorem the definite article is not licensed, as
+the three-point space shows.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where does Munkres define the boundary
+Bd A = Ā ∩ (X − A)‾?</p>
+<button onclick="check(this,false)">In the body of §17, beside the interior and closure</button>
+<button onclick="check(this,true)" data-ok>In Exercise 19, printed 102</button>
+<button onclick="check(this,false)">In §16, with the subspace topology</button>
+<button onclick="check(this,false)">He does not define it at all</button>
+<div class="explain">Exercise 19, printed 102 — set, not developed. The body of
+§17 defines only Int A and Ā, and says of the first "We shall not make much use
+of the interior of a set". This unit's hook says the boundary is made precise
+here; strictly, it is Problem 5(d) that does it, from the exercise.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>Closed is defined by complement, so Theorem 17.1 is top-01's axioms
+in a mirror</strong> — and De Morgan moves the word "finite" from intersections
+to unions. Open and closed are not opposites: a set can be both, either, or
+neither, and in a subspace the answer can differ from the answer in the ambient
+space (Theorem 17.2, Theorem 17.3, Theorem 17.4).
+<br><br>
+2. <strong>The closure is defined by an unusable intersection and computed by
+Theorem 17.5</strong>, which replaces "intersect all closed sets containing A"
+with "test every neighbourhood of x", and by 17.5(b) with "test every basis
+element". Theorem 17.6 then splits Ā into A ∪ A′, and the three words "other
+than x itself" are exactly what keeps A′ smaller than Ā — the isolated point 0
+of {0} ∪ (1,2) sits in one and not the other. Corollary 17.7: closed means
+containing your own limit points.
+<br><br>
+3. <strong>Without an extra axiom, none of this behaves.</strong> A one-point
+set need not be closed and a constant sequence can converge everywhere. The
+Hausdorff condition rules both out — Theorem 17.8 and Theorem 17.10 — with T₁
+sitting strictly between (Theorem 17.9, and ℝ with the finite complement
+topology as the separating example). Theorem 17.11 says the condition survives
+orders, finite products and subspaces, so it costs almost nothing to assume.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed., §17 "Closed Sets and Limit Points",
+printed 92–101 (folio = PDF − 17, checked on each page cited). The definition of
+a closed set, Examples 1–5 and the door riddle, p. 93. Theorem 17.1 with its De
+Morgan proof, the remark that one could axiomatise by closed sets instead, the
+definition of "closed in Y", Theorem 17.2, and the statement of Theorem 17.3,
+p. 94. Interior, closure, the inclusion Int A ⊂ A ⊂ Ā, the remark that the
+interior will not be much used, the Ā-means-closure-in-X convention and
+Theorem 17.4, p. 95. The word "intersects", Theorem 17.5 with its
+contrapositive proof, the definition of "neighborhood" and Example 6, p. 96.
+Example 7, the warning about the other use of "neighborhood", the definition of
+limit point, Example 8 and Theorem 17.6, p. 97. Corollary 17.7, the three-point
+motivating space, the definition of convergence and the Hausdorff definition,
+p. 98. Theorem 17.8, the T₁ axiom with the finite-complement example,
+Theorem 17.9 and Theorem 17.10, p. 99. The notation x_n → x and the word
+"limit", Theorem 17.11, and the closing survey of separation, countability,
+compactness and connectedness conditions, p. 100. Exercise 19, defining the
+boundary, p. 102.
+<br><br>
+<em>Modality.</em> Theorem 17.3 is stated with "we leave the proof to you"
+(p. 94) and Theorem 17.11 with "The proof of the following result is left to the
+exercises" (p. 100); both appear here as problems and neither is proved in the
+lesson. The boundary is defined in Exercise 19, not in the body. Munkres's
+Figure 17.3 is a diagram whose topology the surrounding text does not describe,
+so this unit uses instead the topology on {a,b,c} he sets out in words in §12,
+p. 76, and verifies its two pathologies directly rather than reading them off a
+picture.
+<br><br>
+<em>Not established here.</em> Continuity, and the characterisation of it by
+closed sets — §18, printed 102 (top-04). The product topology on arbitrary
+products — §19, printed 112 (top-05); Theorem 17.11's product clause is the
+two-factor case of §15. Connectedness — §23, printed 148 (top-07); Problem 5(d)
+meets a proper non-empty clopen set but does not develop the theory. Compactness
+— §26, printed 163 (top-08). The countability axioms — §30, printed 190
+(top-10). The wider family of separation axioms, of which Hausdorff and T₁ are
+two — §31, printed 195 (top-11), which is also where Munkres promises to explain
+the "strange terminology" of the T-numbering.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('cl'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  function X(v){return 90+(v+0.5)*170;}
+  function axis(y){g.save();g.strokeStyle='#2a333d';g.lineWidth=1;
+    g.beginPath();g.moveTo(70,y);g.lineTo(610,y);g.stroke();g.restore();}
+  function dot(v,y,filled,col){g.beginPath();g.arc(X(v),y,5,0,6.2832);
+    if(filled){g.fillStyle=col;g.fill();}else{g.fillStyle='#0c1013';g.fill();g.strokeStyle=col;g.lineWidth=2;g.stroke();}}
+  function bar(v0,v1,y,col){g.strokeStyle=col;g.lineWidth=3;
+    g.beginPath();g.moveTo(X(v0),y);g.lineTo(X(v1),y);g.stroke();}
+  function ring(v,y){g.save();g.strokeStyle='#e06c75';g.lineWidth=2;
+    g.beginPath();g.arc(X(v),y,10,0,6.2832);g.stroke();g.restore();}
+  g.textAlign='left'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#9aa5b1';
+  g.fillText('A = (0,1]     Ā = [0,1]     A′ = [0,1]', 70, 44);
+  axis(78); bar(0,1,78,'#4caf82'); dot(0,78,false,'#4caf82'); dot(1,78,true,'#4caf82'); ring(0,78);
+  g.fillStyle='#9aa5b1';
+  g.fillText('B = {1/n}     B̄ = {0} ∪ B     B′ = {0}', 70, 148);
+  axis(182); for(var n=1;n<=14;n++){dot(1/n,182,true,'#4caf82');} ring(0,182);
+  g.fillStyle='#9aa5b1';
+  g.fillText('C = {0} ∪ (1,2)     C̄ = {0} ∪ [1,2]     C′ = [1,2]', 70, 252);
+  axis(286); dot(0,286,true,'#4caf82'); bar(1,2,286,'#4caf82');
+  dot(1,286,false,'#4caf82'); dot(2,286,false,'#4caf82'); ring(1,286); ring(2,286);
+  g.font='11px Segoe UI,system-ui,sans-serif'; g.fillStyle='#8ab4f8';
+  g.fillText('0 is in C and is not a limit point of C — an isolated point', X(0)-14, 310);
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#9aa5b1';
+  g.fillText('filled = in the set · hollow = not in the set · red ring = limit point', 320, 336);
+})();
+</script>
+</body></html>
