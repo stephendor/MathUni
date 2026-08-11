@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-08 — Compactness</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>Compactness <span class="cite">(top-08)</span></h1>
+
+<div class="hook">
+Every open cover has a finite subcover — the property that tames the infinite,
+now off the real line. It reads like a technical convenience and it is not: it is
+what turns "for each point there is a δ" into "there is a δ that works for every
+point". Two theorems calculus assumed without saying so, the extreme value
+theorem and uniform continuity, are that conversion carried out, and both fail on
+(0,1) for exactly the same reason.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> The set {1/n : n ∈ ℤ₊} sits inside
+ℝ. Predict whether it is compact, and whether adding the single point 0 changes
+the answer.</p>
+<button onclick="check(this,false)">Both compact — the set is bounded</button>
+<button onclick="check(this,true)" data-ok>{1/n} is not compact; {0} ∪ {1/n} is</button>
+<button onclick="check(this,false)">Neither is compact — both are infinite</button>
+<div class="explain">Adding one point does it. Without 0, the sets
+(1/(n+1), 2/n) cover the set and no finite subfamily reaches the small terms.
+With 0 present, any open cover has a member U containing 0, and U being open
+already swallows every 1/n beyond some index — so finitely many more finish the
+job. That is Munkres's Example 2 against Example 4, printed 164, and the whole
+subject in miniature: compactness is what a limit point forces.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: TDA's theory lives on compact spaces; filtrations of compact data are where the theorems hold.</p>
+
+<div class="warn">
+<strong>"Compact data" is true of every point cloud and tells you nothing.</strong>
+<br><br>
+Munkres's Example 3, printed 164: "Any space X containing only finitely many
+points is necessarily compact, because in this case every open covering of X is
+finite." A point cloud is a finite set. So a point cloud is compact — and the
+argument never looked at a distance, exactly as top-06's argument that its
+topology is discrete never looked at a distance. Both facts are true, trivial and
+uninformative, and for the same reason: finiteness settles them before the
+geometry is consulted.
+<br><br>
+So the strip's phrase "filtrations of compact data" names the wrong object. What
+the theorems of TDA require to be compact is not the finite sample. It is the
+underlying space being sampled — the manifold or compact set the data is drawn
+from — or the parameter interval along which the filtration runs. Neither is the
+point cloud, and neither is established anywhere in §26 or §27.
+<br><br>
+<em>And there is no TDA here.</em> §§26–27 contain no filtration, no persistence
+and no data. What they do supply is the property that later stability arguments
+consume: Lemma 27.5 and Theorem 27.6, where compactness converts a
+point-by-point δ into a single δ good everywhere. That conversion is the shape
+every uniform bound in the mission has.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Covers, and what a limit point forces</h2>
+
+<div class="definition">
+<strong>Definitions (Munkres, printed 164).</strong> A collection 𝒜 of subsets of
+a space X is said to <em>cover</em> X, or to be a <em>covering</em> of X, if the
+union of the elements of 𝒜 is equal to X. It is called an <em>open covering</em>
+of X if its elements are open subsets of X.
+<br><br>
+A space X is said to be <em>compact</em> if every open covering 𝒜 of X contains a
+finite subcollection that also covers X.
+</div>
+
+<canvas id="cov" width="640" height="348" aria-label="Two rows. The upper row shows the half-open interval from zero to one, open at zero, with a nested family of covering intervals each starting at one over n and running to one; none of them reaches zero, and no finite subfamily covers the interval. The lower row shows the closed interval from zero to one, where a single open set containing zero already covers an entire initial segment, so finitely many further sets finish the cover."></canvas>
+
+<div class="worked">
+<strong>Worked example — Examples 2 and 4 side by side.</strong>
+<br><br>
+<em>(0,1] is not compact (Example 4, printed 164).</em> The collection
+𝒜 = {(1/n, 1) : n ∈ ℤ₊} is an open covering: every x with 0 &lt; x &lt; 1 has
+1/n &lt; x for large n. Any finite subfamily has a largest index N, so its union
+is (1/N, 1), which misses every point of (0, 1/N]. No finite subcover exists.
+Munkres notes the same argument disposes of (0,1).
+<br><br>
+<em>{0} ∪ {1/n} is compact (Example 2, printed 164).</em> Let 𝒜 be an open cover
+and pick U ∈ 𝒜 containing 0. Because U is open there is ε &gt; 0 with
+(−ε, ε) ∩ X ⊂ U; by the Archimedean property there is N with 1/N &lt; ε, and then
+every 1/n with n ≥ N lies in U. So the points of X outside U are among
+1, 1/2, …, 1/(N−1) — finitely many. Choose one member of 𝒜 for each, add U, and
+you have a finite subcover. ∎
+<br><br>
+<em>The difference is one point.</em> {1/n} alone is not compact — it is (0,1]'s
+failure in miniature. Adjoin its limit point and it becomes compact. Compactness
+is not about being small or bounded; it is about whether the space contains the
+points its own covers are aiming at.
+</div>
+
+<div class="theorem">
+<strong>Lemma 26.1 (printed 164).</strong> Let Y be a subspace of X. Then Y is
+compact if and only if every covering of Y by sets open in X contains a finite
+subcollection covering Y.
+<br><br>
+<strong>Theorem 26.2 (printed 165).</strong> Every closed subspace of a compact
+space is compact.
+<br><br>
+<strong>Theorem 26.3 (printed 165).</strong> Every compact subspace of a
+Hausdorff space is closed.
+<br><br>
+<strong>Theorem 26.5 (printed 166).</strong> The image of a compact space under a
+continuous map is compact. <span class="cite">This is the exact analogue of
+top-07's Theorem 23.5, which said the same for connectedness; both are proved by
+pulling a structure on the image back through f⁻¹.</span>
+<br><br>
+<strong>Theorem 26.6 (printed 167).</strong> Let f : X → Y be a bijective
+continuous function. If X is compact and Y is Hausdorff, then f is a
+homeomorphism.
+</div>
+
+<p>Theorems 26.2 and 26.3 are near-converses with different hypotheses, and the
+asymmetry is worth noticing: "closed ⇒ compact" needs the ambient space compact,
+"compact ⇒ closed" needs it Hausdorff. Neither hypothesis can be dropped. And
+Theorem 26.6 is the pair of them put to work — it is the standard tool for
+promoting a continuous bijection to a homeomorphism, and it explains top-04's
+Example 6 exactly: F : [0,1) → S¹ fails it because [0,1) is not compact, not
+because anything is wrong with F.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which hypothesis of Theorem 26.6 does
+F : [0,1) → S¹ fail?</p>
+<button onclick="check(this,true)" data-ok>X compact — [0,1) is not</button>
+<button onclick="check(this,false)">Y Hausdorff — S¹ is not</button>
+<button onclick="check(this,false)">f bijective — F is not injective</button>
+<button onclick="check(this,false)">f continuous</button>
+<div class="explain">[0,1) is not compact: the covering {[0, 1 − 1/n)} has no
+finite subcover, by the same argument as Example 4. S¹ <em>is</em> Hausdorff,
+being a subspace of ℝ² (Theorem 17.11), and F is a continuous bijection. So
+Theorem 26.6 is inapplicable, and top-04 found by hand that its conclusion is
+false.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Products, tubes, and closed sets that refuse to be empty</h2>
+
+<div class="theorem">
+<strong>Theorem 26.7 (printed 167).</strong> The product of finitely many compact
+spaces is compact.
+<br><br>
+<strong>Lemma 26.8, the tube lemma (printed 168).</strong> Consider the product
+space X × Y, where Y is compact. If N is an open set of X × Y containing the
+slice x₀ × Y of X × Y, then N contains some tube W × Y about x₀ × Y, where W is a
+neighbourhood of x₀ in X.
+<br><br>
+<strong>Theorem 26.9 (printed 170).</strong> Let X be a topological space. Then X
+is compact if and only if for every collection 𝒞 of closed sets in X having the
+finite intersection property, the intersection ⋂_{C ∈ 𝒞} C of all the elements of
+𝒞 is non-empty.
+</div>
+
+<p>A collection has the <strong>finite intersection property</strong> if every
+finite subcollection has non-empty intersection (printed 169). Theorem 26.9 is
+the definition of compactness with every set complemented: covers become
+collections of closed sets with empty intersection, and finite subcovers become
+finite subcollections with empty intersection. De Morgan does the whole
+translation, and the value of having both forms is that some arguments name open
+sets naturally and others name closed ones.</p>
+
+<div class="worked fade">
+<strong>Faded example — the tube lemma, and where compactness is spent.</strong>
+Let N be open in X × Y containing x₀ × Y, with Y compact.
+<br><br>
+For each y ∈ Y pick a basis element U_y × V_y with (x₀, y) ∈ U_y × V_y ⊂ N. The
+sets V_y cover Y.
+<br><br>
+⟨your step: apply compactness of Y to extract finitely many V_{y₁},…,V_{y_n}
+covering Y, and define W = U_{y₁} ∩ ⋯ ∩ U_{y_n}. Say why W is open — which axiom
+of top-01, and why the <em>finiteness</em> of the subcover is what makes it
+applicable.⟩
+<br><br>
+⟨your step: show W × Y ⊂ N. Take (x,y) with x ∈ W; find the i with y ∈ V_{y_i},
+and check that (x,y) ∈ U_{y_i} × V_{y_i}.⟩
+<br><br>
+<em>Without compactness it fails.</em> Take Y = ℝ and
+N = {(x,y) : |x|·(1 + y²) &lt; 1}. The slice 0 × ℝ lies in N, but for any
+neighbourhood W of 0 there is a small non-zero x ∈ W, and then (x, y) ∉ N once
+|y| is large enough. No tube fits.
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove Theorem 26.9 in the direction that is
+usually the useful one: if X is compact and 𝒞 is a collection of closed sets with
+the finite intersection property, then ⋂𝒞 ≠ ∅.
+<br><br>
+Argue by contradiction and name the De Morgan step explicitly.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+Suppose ⋂_{C ∈ 𝒞} C = ∅. Put 𝒜 = {X − C : C ∈ 𝒞}. Each X − C is open, since each
+C is closed. By De Morgan,
+<br>⋃_{C ∈ 𝒞} (X − C) = X − ⋂_{C ∈ 𝒞} C = X − ∅ = X,
+<br>so 𝒜 is an open covering of X.
+<br><br>
+Since X is compact, finitely many members cover X, say
+X = (X − C₁) ∪ ⋯ ∪ (X − C_n). Applying De Morgan again,
+<br>∅ = X − ⋃_{i}(X − C_i) = C₁ ∩ ⋯ ∩ C_n.
+<br><br>
+So the finite subcollection {C₁, …, C_n} of 𝒞 has empty intersection —
+contradicting the finite intersection property. Hence ⋂𝒞 ≠ ∅. ∎
+<br><br>
+<em>The immediate corollary.</em> A decreasing sequence C₁ ⊃ C₂ ⊃ ⋯ of non-empty
+closed subsets of a compact space has non-empty intersection: any finite
+subcollection has intersection equal to its smallest member, which is non-empty,
+so the finite intersection property holds. In ℝ this fails — take C_n = [n, ∞) —
+and the failure is exactly the failure of compactness.
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Where is compactness of Y used in the tube
+lemma?</p>
+<button onclick="check(this,false)">To make the slice x₀ × Y closed</button>
+<button onclick="check(this,true)" data-ok>To reduce the cover of Y to finitely many V_y, so that ⋂U_{y_i} is open</button>
+<button onclick="check(this,false)">To make N open</button>
+<button onclick="check(this,false)">It is not used; the lemma holds for all Y</button>
+<div class="explain">The finite subcover is what makes W = U_{y₁} ∩ ⋯ ∩ U_{y_n}
+a <em>finite</em> intersection of open sets, hence open by top-01's axiom (3).
+An infinite intersection would not be open, and the argument would collapse — and
+the lemma really does fail, as N = {(x,y) : |x|(1+y²) &lt; 1} over Y = ℝ
+shows.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The real line, and the two theorems calculus assumed</h2>
+
+<div class="theorem">
+<strong>Theorem 27.1 (printed 172).</strong> Let X be a simply ordered set having
+the least upper bound property. In the order topology, each closed interval in X
+is compact.
+<br><br>
+<strong>Corollary 27.2 (printed 173).</strong> Every closed interval in ℝ is
+compact.
+<br><br>
+<strong>Theorem 27.3 (printed 173).</strong> A subspace A of ℝⁿ is compact if and
+only if it is closed and is bounded in the euclidean metric d or the square
+metric ρ.
+<br><br>
+<strong>Theorem 27.4, the extreme value theorem (printed 174).</strong> Let
+f : X → Y be continuous, where Y is an ordered set in the order topology. If X is
+compact, then there exist points c and d in X such that f(c) ≤ f(x) ≤ f(d) for
+every x ∈ X.
+</div>
+
+<p>Theorem 27.3 is the Heine–Borel statement, and it is worth seeing which pieces
+it consumes. Compact ⇒ closed is Theorem 26.3, using that ℝⁿ is Hausdorff;
+compact ⇒ bounded comes from covering A by balls. Closed and bounded ⇒ compact
+puts A inside a cube [−M,M]ⁿ, compact by Corollary 27.2 and Theorem 26.7, and
+then Theorem 26.2 finishes. That either metric may be used is top-06's
+Theorem 20.3.</p>
+
+<p>Theorem 27.4 and top-07's Theorem 24.3 are the matched pair of the two
+chapters. The intermediate value theorem is powered by <em>connectedness</em> of
+the domain; the extreme value theorem by <em>compactness</em>. Both fail on
+(0,1): f(x) = 1/x is continuous and unbounded there, so no maximum exists; and on
+the disconnected domain (0,1) ∪ (2,3) the map f(x) = x omits the value 1.5 while
+taking values on both sides of it.</p>
+
+<div class="definition">
+<strong>Definitions (Munkres, printed 175–176).</strong> For a non-empty
+A ⊂ (X,d), the <em>distance from x to A</em> is d(x,A) = inf{d(x,a) : a ∈ A}.
+<br><br>
+f : (X,d_X) → (Y,d_Y) is <em>uniformly continuous</em> if given ε &gt; 0 there is
+δ &gt; 0 such that for every pair of points x₀, x₁ of X,
+d_X(x₀,x₁) &lt; δ ⟹ d_Y(f(x₀), f(x₁)) &lt; ε.
+</div>
+
+<div class="theorem">
+<strong>Lemma 27.5, the Lebesgue number lemma (printed 175).</strong> Let 𝒜 be an
+open covering of the metric space (X,d). If X is compact, there is a δ &gt; 0 such
+that for each subset of X having diameter less than δ, there exists an element of
+𝒜 containing it.
+<br><br>
+<strong>Theorem 27.6, the uniform continuity theorem (printed 176).</strong> Let
+f : X → Y be a continuous map of the compact metric space (X,d_X) to the metric
+space (Y,d_Y). Then f is uniformly continuous.
+<br><br>
+<strong>Theorem 27.7 (printed 176).</strong> Let X be a non-empty compact
+Hausdorff space. If X has no isolated points, then X is uncountable.
+<br><br>
+<strong>Corollary 27.8 (printed 177).</strong> Every closed interval in ℝ is
+uncountable.
+</div>
+
+<div class="worked">
+<strong>Worked example — what compactness actually buys, in one sentence.</strong>
+Compare the two definitions written out with their quantifiers in order.
+<br><br>
+<em>Continuous</em> (Theorem 21.1, top-06): for every x, for every ε &gt; 0,
+there exists δ &gt; 0 such that d_X(x,y) &lt; δ ⟹ d_Y(f(x),f(y)) &lt; ε.
+<br>
+<em>Uniformly continuous</em>: for every ε &gt; 0, there exists δ &gt; 0 such that
+for every pair x₀, x₁, d_X(x₀,x₁) &lt; δ ⟹ d_Y(f(x₀),f(x₁)) &lt; ε.
+<br><br>
+The only change is that <strong>∃δ has moved to the left of ∀x</strong>. In the
+first, δ may shrink as x moves; in the second one δ must serve the whole space.
+Theorem 27.6 says compactness licenses the move, and Lemma 27.5 is how — the
+Lebesgue number is precisely a δ that works everywhere at once, extracted from a
+cover by a finite subcover.
+<br><br>
+<em>Why it fails without compactness.</em> f(x) = 1/x on (0,1) is continuous:
+for each x a δ exists. But as x → 0 the admissible δ shrinks to nothing, and no
+single δ serves. That is the same failure as Example 4's, seen through a
+different window.
+<br><br>
+<em>And this is the shape the mission cares about.</em> Every uniform bound in
+stability theory — sup-norm control, a single ε governing an entire diagram — is
+a quantifier in this position. Compactness is the hypothesis that puts it there.
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Prove Theorem 27.7 and deduce Corollary 27.8.
+<br><br>
+Then close a loop. top-07's Example 6 — the ordered square is connected but not
+path connected — finished by injecting the interval I into ℚ and calling that a
+contradiction "which we shall prove later". Corollary 27.8 is the later.
+Check that the two statements really are the same one, and then say whether
+top-07's argument is now complete or still owes something.
+<br><br>
+Munkres defines an <em>isolated point</em> of X as a point x with {x} open
+(printed 176). Note in passing what that makes of a point cloud, whose topology
+top-06 showed is discrete: every point is isolated, so Theorem 27.7 says nothing
+about it — correctly, since a point cloud is countable.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which quantifier moves when "continuous"
+becomes "uniformly continuous"?</p>
+<button onclick="check(this,true)" data-ok>∃δ moves to the left of ∀x</button>
+<button onclick="check(this,false)">∀ε moves to the right of ∃δ</button>
+<button onclick="check(this,false)">∀x is deleted entirely</button>
+<button onclick="check(this,false)">Nothing moves; uniform continuity adds a boundedness clause</button>
+<div class="explain">∃δ moves left of ∀x, so one δ must serve every point rather
+than being chosen per point. Nothing is deleted — the second definition still
+quantifies over all pairs x₀, x₁, but <em>after</em> δ has been fixed. That
+single reordering is what Theorem 27.6 buys with compactness, via the Lebesgue
+number of Lemma 27.5.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Is a point cloud compact?</p>
+<button onclick="check(this,true)" data-ok>Yes, trivially — every finite space is compact</button>
+<button onclick="check(this,false)">Only if the points are bounded in ℝⁿ</button>
+<button onclick="check(this,false)">No — the discrete topology is never compact</button>
+<button onclick="check(this,false)">Only if it is closed in the ambient space</button>
+<div class="explain">Yes, by Munkres's Example 3: every open covering of a finite
+space is finite. The fact is true and useless, since it never consults a
+distance — the same shape as top-06's finding that a point cloud's metric
+topology is discrete. The second and fourth options describe Theorem 27.3, which
+is about subspaces of ℝⁿ in general and is not what settles the finite case. The
+third is wrong: a <em>finite</em> discrete space is compact; an infinite one is
+not.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Is compactness a homotopy invariant?</p>
+<button onclick="check(this,false)">Yes — homotopy equivalence preserves all topological properties</button>
+<button onclick="check(this,true)" data-ok>No — a point and ℝ are homotopy equivalent and only one is compact</button>
+<button onclick="check(this,false)">Yes, for metric spaces</button>
+<button onclick="check(this,false)">The question is not well posed</button>
+<div class="explain">No. ℝ deformation retracts onto {0}, so ℝ and a one-point
+space are homotopy equivalent; a point is compact and ℝ is not. Compactness
+<em>is</em> a topological property in Munkres's sense (§18, printed 105) — it is
+stated purely in open sets, so homeomorphisms preserve it — but topological
+properties need not survive the coarser relation, which is precisely top-04's
+mission bound seen from the other side.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>Compactness is what the space's own limit points force.</strong>
+{1/n} is not compact and {0} ∪ {1/n} is; (0,1] is not and [0,1] is. Nothing
+about size or boundedness is doing the work — it is whether a cover aiming at a
+point finds that point present. Lemma 26.1 lets you check it with sets open in
+the ambient space; Theorems 26.2 and 26.3 are near-converses with different
+hypotheses, and Theorem 26.6 puts them together into the standard tool for
+upgrading a continuous bijection.
+<br><br>
+2. <strong>Finiteness of the subcover is what every proof spends.</strong> In the
+tube lemma it is what makes ⋂U_{y_i} open; in Theorem 26.3 it is what makes
+⋂U_{y_i} a neighbourhood; in Theorem 26.9 it is what De Morgan turns into a
+finite subcollection with empty intersection. Take finiteness away and each
+argument fails at exactly that line.
+<br><br>
+3. <strong>On metric spaces, compactness moves a quantifier.</strong>
+Theorem 27.1 and Corollary 27.2 make closed intervals compact; Theorem 27.3
+identifies the compact subspaces of ℝⁿ; Theorem 27.4 gives extreme values where
+top-07's Theorem 24.3 gave intermediate ones. And Lemma 27.5 with Theorem 27.6
+is the payoff: ∃δ moves left of ∀x, and one δ serves the whole space. Every
+uniform bound downstream has that shape.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed. (folio = PDF − 17, checked on each
+page cited). <strong>§26 "Compact Spaces", printed 163–171:</strong> the
+definitions of covering, open covering and compactness, and Examples 1–4,
+p. 164; Lemma 26.1 with its proof, pp. 164–165; Theorem 26.2, p. 165;
+Theorem 26.3 with its proof, pp. 165–166; Theorem 26.5, p. 166; Theorem 26.6,
+p. 167; Theorem 26.7, p. 167; Lemma 26.8, the tube lemma, p. 168; the finite
+intersection property, p. 169; Theorem 26.9, p. 170.
+<strong>§27 "Compact Subspaces of the Real Line", printed 172–178:</strong>
+Theorem 27.1, p. 172; Corollary 27.2 and Theorem 27.3, p. 173; Theorem 27.4,
+p. 174; the distance from a point to a set and Lemma 27.5, p. 175; uniform
+continuity and Theorem 27.6, p. 176; isolated points and Theorem 27.7, p. 176;
+Corollary 27.8, p. 177.
+<br><br>
+<em>Modality.</em> Munkres proves everything cited above in the body of §§26–27;
+this unit takes nothing from an exercise. Where he says of [0,1] that "you are
+probably already familiar with this fact from analysis. In any case, we shall
+prove it shortly" (p. 164), the promise is redeemed by Corollary 27.2 and this
+lesson uses only the redeemed form.
+<br><br>
+<em>Not established here.</em> Limit point compactness and sequential
+compactness, and how they relate to this definition — §28, printed 178
+(top-09). Local compactness — §29, printed 182 (top-09). The Tychonoff theorem,
+which extends Theorem 26.7 to arbitrary products — §37, printed 230, far outside
+this unit; §26 proves only the finite case and says nothing about the infinite
+one. Compactness in metric spaces via total boundedness — §45, printed 275.
+Filtrations, persistence and stability are absent from §§26–27; the mission
+bound's claim about which object TDA requires to be compact is stated there from
+the syllabus, not from Munkres.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('cov'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  function X(x){return 120+x*440;}
+  function dot(x,y,filled,col){g.beginPath();g.arc(X(x),y,5,0,6.2832);
+    if(filled){g.fillStyle=col;g.fill();}else{g.fillStyle='#0c1013';g.fill();g.strokeStyle=col;g.lineWidth=2;g.stroke();}}
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillStyle='#e06c75';
+  g.fillText('(0,1] with the covering {(1/n, 1)} — every member stops short of 0', 320, 34);
+  for(var n=2;n<=8;n++){
+    g.strokeStyle='#e06c75'; g.lineWidth=2; g.globalAlpha=0.85;
+    var y=104-(n-1)*8;
+    g.beginPath(); g.moveTo(X(1/n),y); g.lineTo(X(1),y); g.stroke();
+  }
+  g.globalAlpha=1;
+  g.strokeStyle='#9aa5b1'; g.lineWidth=3;
+  g.beginPath(); g.moveTo(X(0),118); g.lineTo(X(1),118); g.stroke();
+  dot(0,118,false,'#9aa5b1'); dot(1,118,true,'#9aa5b1');
+  g.fillStyle='#9aa5b1'; g.font='11px Segoe UI,system-ui,sans-serif';
+  g.fillText('0',X(0),138); g.fillText('1',X(1),138);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(40,164); g.lineTo(600,164); g.stroke();
+  g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#4caf82';
+  g.fillText('[0,1]: any member containing 0 already swallows an initial segment', 320, 194);
+  g.strokeStyle='#4caf82'; g.lineWidth=2;
+  g.beginPath(); g.moveTo(X(-0.04),222); g.lineTo(X(0.42),222); g.stroke();
+  g.beginPath(); g.moveTo(X(0.36),238); g.lineTo(X(0.78),238); g.stroke();
+  g.beginPath(); g.moveTo(X(0.72),254); g.lineTo(X(1.04),254); g.stroke();
+  g.strokeStyle='#9aa5b1'; g.lineWidth=3;
+  g.beginPath(); g.moveTo(X(0),272); g.lineTo(X(1),272); g.stroke();
+  dot(0,272,true,'#9aa5b1'); dot(1,272,true,'#9aa5b1');
+  g.fillStyle='#9aa5b1'; g.font='11px Segoe UI,system-ui,sans-serif';
+  g.fillText('0',X(0),292); g.fillText('1',X(1),292);
+  g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillText('Munkres §26, Examples 2 and 4 — compactness is what the endpoint forces', 320, 324);
+})();
+</script>
+</body></html>
