@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-05 — The product topology</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>The product topology <span class="cite">(top-05)</span></h1>
+
+<div class="hook">
+Infinitely many spaces, one product — and the obvious box topology is the wrong
+answer. Why? Munkres's own reply, on printed 115, is worth reading before you
+accept the question: "What is not so clear is why we prefer the product topology
+to the box topology. The answer will appear as we continue our study of
+topology." He then declines to settle it in this section. One result separates
+them here, and it is the one this unit is built round.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Both candidate topologies on
+∏X_α have basis elements that are products ∏U_α of open sets. They differ in one
+clause. Predict which of the two has <em>more</em> open sets.</p>
+<button onclick="check(this,true)" data-ok>The box topology — its basis has no finiteness restriction</button>
+<button onclick="check(this,false)">The product topology — restricting the basis leaves room for more unions</button>
+<button onclick="check(this,false)">Neither; they are always incomparable</button>
+<div class="explain">The box topology. Its basis is every ∏U_α; the product
+topology's basis takes only those with U_α = X_α for all but finitely many α.
+Fewer basis elements, and by Lemma 13.3 (top-02) the topology with the smaller
+sets available is the finer one — so box ⊇ product. Munkres records both
+consequences on printed 115: for finite products the two are "precisely the
+same", and in general the box topology is finer.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Product spaces model multi-parameter data; this subtlety returns in multiparameter persistence.</p>
+
+<div class="warn">
+<strong>The subtlety does not return in multiparameter persistence, and
+Theorem 19.1 is why.</strong>
+<br><br>
+The whole distinction between the box and product topologies is a statement
+about <em>infinite</em> index sets. Munkres's first consequence of Theorem 19.1,
+printed 115: "for finite products ∏<sup>n</sup><sub>α=1</sub> X_α the two
+topologies are precisely the same". A multiparameter persistence module is
+indexed by finitely many parameters — two or three in practice — so any product
+of that many factors is a finite product and the distinction collapses before it
+can be made. Nothing in §19's subtlety survives the crossing.
+<br><br>
+It would become relevant only under a change the subject does not make: an
+indexing by infinitely many parameters. If someone ever writes that down, §19 is
+the section to reread.
+<br><br>
+<em>Two smaller bounds.</em> There is no data anywhere in §15 or §19 — no
+sampling, no persistence, no modules. And the hook's "wrong answer" is not
+Munkres's verdict. The box topology is a topology, and Theorems 19.2 through
+19.5 all hold in it; what he says is that it "is not so important; we shall use
+it primarily for constructing counterexamples" (printed 115). Less useful is not
+the same as wrong, and Problem 5(c) makes you say which one this is.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Two factors: the same topology from a basis and from a subbasis</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 86).</strong> Let X and Y be topological
+spaces. The <em>product topology</em> on X × Y is the topology having as basis
+the collection ℬ of all sets of the form U × V, where U is an open subset of X
+and V is an open subset of Y.
+</div>
+
+<p>The basis check is one identity — (U₁ × V₁) ∩ (U₂ × V₂) = (U₁ ∩ U₂) × (V₁ ∩ V₂)
+— and Munkres immediately warns that ℬ is <em>not</em> a topology: the union of
+two disjoint open rectangles is open and is not a product of two sets
+(printed 86). Basis elements generate; they do not exhaust.</p>
+
+<div class="theorem">
+<strong>Theorem 15.1 (printed 86–87).</strong> If ℬ is a basis for the topology
+of X and 𝒞 is a basis for the topology of Y, then the collection
+𝒟 = {B × C : B ∈ ℬ and C ∈ 𝒞} is a basis for the topology of X × Y.
+<br><br>
+<strong>Theorem 15.2 (printed 88).</strong> The collection
+𝒮 = {π₁⁻¹(U) : U open in X} ∪ {π₂⁻¹(V) : V open in Y} is a subbasis for the
+product topology on X × Y.
+</div>
+
+<p>Theorem 15.2's proof rests on a single identity, U × V = π₁⁻¹(U) ∩ π₂⁻¹(V),
+and it is the one to carry forward: it says every <em>basis</em> element of the
+product is a finite intersection of <em>subbasis</em> elements, each of which
+constrains one coordinate only. That reformulation is what generalises to
+infinitely many factors, and the basis formulation is what does not.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which is an open set of ℝ² that is not a
+product of two subsets of ℝ?</p>
+<button onclick="check(this,false)">(0,1) × (0,1)</button>
+<button onclick="check(this,true)" data-ok>((0,1) × (0,1)) ∪ ((2,3) × (2,3))</button>
+<button onclick="check(this,false)">ℝ × (0,1)</button>
+<button onclick="check(this,false)">∅</button>
+<div class="explain">The union of the two squares. If it were A × B then, since
+it contains (0.5, 0.5) and (2.5, 2.5), we would need 0.5, 2.5 ∈ A and
+0.5, 2.5 ∈ B, hence (0.5, 2.5) ∈ A × B — but that point is in neither square.
+This is Munkres's remark on printed 86 that ℬ is not a topology. Note ∅ = ∅ × ∅
+is a product, and ℝ × (0,1) is one by inspection.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Arbitrarily many factors, and the clause that separates them</h2>
+
+<div class="definition">
+<strong>Definitions (Munkres, printed 114).</strong> For an indexed family
+{X_α}_{α∈J}, the <em>box topology</em> on ∏X_α is generated by the basis of all
+sets ∏U_α with U_α open in X_α for each α.
+<br><br>
+Let π_β : ∏X_α → X_β be the <em>projection</em>, π_β((x_α)) = x_β. Let
+𝒮_β = {π_β⁻¹(U_β) : U_β open in X_β} and 𝒮 = ⋃_β 𝒮_β. The topology generated by
+the subbasis 𝒮 is the <em>product topology</em>, and ∏X_α with it is a
+<em>product space</em>.
+</div>
+
+<p>The two definitions are not stated in parallel, and that is deliberate. The
+box topology is given by a basis; the product topology by a subbasis. Working out
+what basis the subbasis generates is the computation on printed 115, and it has
+one step worth naming: intersecting two members of the <em>same</em> 𝒮_β gives
+nothing new, since π_β⁻¹(U_β) ∩ π_β⁻¹(V_β) = π_β⁻¹(U_β ∩ V_β). So a typical
+finite intersection runs over <em>distinct</em> indices β₁,…,β_n, and constrains
+exactly n coordinates — leaving all the others entirely free.</p>
+
+<div class="theorem">
+<strong>Theorem 19.1, comparison of the box and product topologies (printed
+115).</strong> The box topology on ∏X_α has as basis all sets of the form ∏U_α,
+where U_α is open in X_α for each α. The product topology on ∏X_α has as basis
+all sets of the form ∏U_α, where U_α is open in X_α for each α <em>and U_α
+equals X_α except for finitely many values of α</em>.
+</div>
+
+<canvas id="box" width="640" height="360" aria-label="Two rows of eight vertical bars, each bar standing for one coordinate of an infinite product. In the upper row, a product-topology basis element constrains only the first three coordinates to small windows while the remaining bars are highlighted in full, meaning those coordinates are unrestricted. In the lower row, a box-topology basis element constrains every coordinate, with the windows shrinking like one over n."></canvas>
+
+<p>Munkres draws two consequences immediately (printed 115). First, "for finite
+products ∏<sup>n</sup><sub>α=1</sub> X_α the two topologies are precisely the
+same" — with finitely many indices, "all but finitely many" is no restriction at
+all. Second, "the box topology is in general finer than the product topology",
+because every product basis element is a box basis element and not conversely.</p>
+
+<p>Then the convention, in his italics: <em>whenever we consider the product
+∏X_α, we shall assume it is given the product topology unless we specifically
+state otherwise.</em> And the reason, deferred: the answer to why "will appear as
+we continue our study of topology", with the box topology reserved "primarily for
+constructing counterexamples".</p>
+
+<div class="theorem">
+<strong>Theorem 19.2 (printed 116).</strong> If the topology on each X_α is
+given by a basis ℬ_α, then the sets ∏B_α with B_α ∈ ℬ_α form a basis for the box
+topology; and the sets ∏B_α with B_α ∈ ℬ_α for finitely many α and B_α = X_α for
+the rest form a basis for the product topology.
+<br><br>
+<strong>Theorem 19.3 (printed 116).</strong> If A_α is a subspace of X_α for each
+α, then ∏A_α is a subspace of ∏X_α, if both products are given the box topology
+or both the product topology.
+<br><br>
+<strong>Theorem 19.4 (printed 116).</strong> If each X_α is Hausdorff, then
+∏X_α is Hausdorff in both the box and product topologies.
+<br><br>
+<strong>Theorem 19.5 (printed 116).</strong> If ∏X_α is given either the product
+or the box topology, then ∏Ā_α = (∏A_α)‾.
+<br><br>
+<span class="cite">Munkres writes of this group: "most of the proofs are left to
+the exercises" (printed 115). Theorems 19.2, 19.3 and 19.4 are his Exercises 1,
+2 and 3 and are proved nowhere in the section; they are Problems 2(d), 3(a) and
+3(b) here. Theorem 19.5 he does prove.</span>
+</div>
+
+<p>Note what that list means for the argument. Four results in a row, and every
+one of them holds in <em>both</em> topologies. After Theorem 19.5 Munkres says so
+himself: "So far, no reason has appeared for preferring the product to the box
+topology."</p>
+
+<p>Each is an earlier result with the index set widened, and it is worth naming
+which. Theorem 19.2 is Lemma 13.2 (top-02) applied once in each topology — the
+candidate sets are open, and every point of an open set has one of them around it
+inside. Theorem 19.4 widens top-03's Theorem 17.11, whose product clause covered
+two factors only. Theorem 19.5's proof is Theorem 17.5(a) run coordinatewise:
+x_α ∈ Ā_α says every open U_α about x_α meets A_α, and choosing one such point in
+each coordinate assembles a point of ∏A_α inside the given basis element. And
+Theorem 19.5 is worth comparing with top-04's Theorem 18.1(2), which gave only
+the inclusion f(Ā) ⊂ f(A)‾ for a general continuous map. Here the relation is an
+<em>equality</em>, because a product is not an arbitrary continuous image: the
+projections let the closure condition be tested coordinatewise in both
+directions, which is exactly what an arbitrary f does not permit.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> On ℝ<sup>ω</sup>, is
+(−1,1) × (−1/2, 1/2) × (−1/3, 1/3) × ⋯ open in the product topology?</p>
+<button onclick="check(this,false)">Yes — it is a product of open sets</button>
+<button onclick="check(this,true)" data-ok>No — infinitely many coordinates are constrained</button>
+<button onclick="check(this,false)">Yes, because each factor is bounded</button>
+<button onclick="check(this,false)">Only if ℝ is given the lower limit topology</button>
+<div class="explain">No. By Theorem 19.1 a product-topology basis element must
+have U_α = X_α for all but finitely many α, and here <em>every</em> coordinate is
+cut down. It is a perfectly good box-topology basis element — which is exactly
+Munkres's Example 2, and the set that breaks Theorem 19.6.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The one theorem that tells them apart</h2>
+
+<p>Munkres's own hinge sentence, printed 116: "It is when we try to generalize
+our previous theorem about continuity of maps into product spaces that a
+difference first arises. Here is a theorem that does not hold if ∏X_α is given
+the box topology."</p>
+
+<div class="theorem">
+<strong>Theorem 19.6 (printed 117).</strong> Let f : A → ∏_{α∈J} X_α be given by
+f(a) = (f_α(a))_{α∈J}, where f_α : A → X_α for each α. Let ∏X_α have the
+<strong>product</strong> topology. Then f is continuous if and only if each f_α
+is continuous.
+</div>
+
+<div class="worked">
+<strong>Worked example — the proof, and where the finiteness clause is spent.</strong>
+<br><br>
+<em>Projections are continuous.</em> If U_β is open in X_β then π_β⁻¹(U_β) is by
+definition a subbasis element of the product topology, hence open.
+<br><br>
+<em>Forwards.</em> f_β = π_β ∘ f, a composite of continuous maps, continuous by
+Theorem 18.2(c) (top-04).
+<br><br>
+<em>Backwards.</em> By the subbasis reduction of top-04 (§18, printed 103) it is
+enough to check that the preimage of each subbasis element is open. A subbasis
+element of the product topology is π_β⁻¹(U_β) for a single index β, and
+<br>f⁻¹(π_β⁻¹(U_β)) = f_β⁻¹(U_β),
+<br>because f_β = π_β ∘ f. That is open in A since f_β is continuous. ∎
+<br><br>
+<em>The whole argument is in the size of the subbasis.</em> The product topology
+has a subbasis whose members constrain <strong>one coordinate each</strong>, so
+checking continuity reduces to checking one coordinate function at a time. The
+box topology has no such subbasis: its basis elements constrain all coordinates
+at once, and there is no way to take them apart. That is the same shape as
+top-04's basis and subbasis reductions — the coarser the generating collection,
+the less you have to check — pushed to the point where it decides a theorem.
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Munkres's Example 2, the failure made concrete.</strong>
+Define f : ℝ → ℝ<sup>ω</sup> by f(t) = (t, t, t, …), so the nth coordinate
+function is f_n(t) = t.
+<br><br>
+Each f_n is the identity, hence continuous, so f is continuous into the
+<em>product</em> topology by Theorem 19.6. Now give ℝ<sup>ω</sup> the box
+topology and take the basis element
+<br>B = (−1,1) × (−1/2, 1/2) × (−1/3, 1/3) × ⋯
+<br><br>
+⟨your step: suppose f⁻¹(B) were open in ℝ. It contains 0, so it contains some
+interval (−δ, δ) with δ &gt; 0. Apply π_n to the inclusion f((−δ,δ)) ⊂ B and
+write down what you get for each n.⟩
+<br><br>
+⟨your step: derive the contradiction. Say exactly which property of the sequence
+1/n you are using, and why the same argument fails if only finitely many
+coordinates are constrained.⟩
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Munkres's Exercise 5, printed 118, reads in full:
+"One of the implications stated in Theorem 19.6 holds for the box topology.
+Which one?"
+<br><br>
+Answer it, and prove the surviving implication for the box topology. Then say in
+one sentence which feature of the box topology kills the other.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+<em>The surviving implication is: f continuous ⇒ each f_α continuous.</em>
+<br><br>
+<em>Proof.</em> Give ∏X_α the box topology and suppose f : A → ∏X_α is
+continuous. Fix β and let U_β be open in X_β. Then
+π_β⁻¹(U_β) = ∏U_α with U_β the given set and U_α = X_α for α ≠ β. That is a
+product of open sets, hence a basis element of the <em>box</em> topology, hence
+open. So π_β is continuous in the box topology as well, and
+f_β = π_β ∘ f is continuous as a composite (Theorem 18.2(c)). ∎
+<br><br>
+<em>Why the other direction dies.</em> The backward direction of Theorem 19.6
+worked by checking preimages of subbasis elements, each constraining a single
+coordinate. The box topology has no subbasis of that kind — its basis elements
+constrain every coordinate simultaneously — so knowing each f_α separately never
+assembles into a statement about f. Example 2 shows the gap is real and not
+merely a gap in the argument.
+<br><br>
+<em>A remark worth keeping.</em> Note that this makes the box topology finer in
+exactly the way that hurts: more open sets in the target means more preimages
+that have to come out open, so continuity <em>into</em> it is a stronger demand.
+Fineness is not a virtue when the space is a codomain.
+</details>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Take stock of the section's evidence, which is
+Problem 5(a).
+<br><br>
+List the results of §19 that hold in both topologies and those that hold only in
+the product topology. Count them. Then reread Munkres's sentence on printed 115
+— "What is not so clear is why we prefer the product topology to the box
+topology. The answer will appear as we continue our study of topology" — and
+decide whether the section, taken alone, makes the case.
+<br><br>
+Then answer the sharper question: the box topology is not <em>wrong</em>. It is a
+topology; Theorems 19.1 through 19.5 hold in it; the projections are continuous
+in it. Write down what a topology on ∏X_α would have to fail in order to be
+wrong in a stronger sense than "less useful", and check the box topology against
+your own criterion.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which direction of Theorem 19.6 survives in
+the box topology?</p>
+<button onclick="check(this,true)" data-ok>f continuous ⇒ every f_α continuous</button>
+<button onclick="check(this,false)">Every f_α continuous ⇒ f continuous</button>
+<button onclick="check(this,false)">Both, provided J is countable</button>
+<button onclick="check(this,false)">Neither</button>
+<div class="explain">The forward one. It only needs the projections to be
+continuous, and π_β⁻¹(U_β) is a box basis element (all other factors being the
+whole space), so they are. The converse is exactly what Example 2 refutes:
+f(t) = (t,t,t,…) has continuous coordinate functions and is not continuous into
+the box topology. This is Munkres's Exercise 5, set and not answered in the
+text.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Does §19 improve on top-04's warning about
+maps <em>out of</em> a product?</p>
+<button onclick="check(this,false)">Yes — Theorem 19.6 covers both directions</button>
+<button onclick="check(this,true)" data-ok>No — Theorem 19.6 is still about maps into a product</button>
+<button onclick="check(this,false)">Yes, for the box topology only</button>
+<button onclick="check(this,false)">Only when the index set is finite</button>
+<div class="explain">No. Theorem 19.6 generalises Theorem 18.4, which was about
+maps <em>into</em> a product; the domain case remains what Munkres called it on
+printed 110, a place with no useful criterion. And top-04's counterexample lives
+in ℝ × ℝ — a finite product, where box and product agree by Theorem 19.1 — so
+nothing in §19 touches it.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> For which index sets J do the box and product
+topologies on ∏_{α∈J} X_α necessarily coincide?</p>
+<button onclick="check(this,false)">All countable J</button>
+<button onclick="check(this,true)" data-ok>All finite J — and some infinite ones too</button>
+<button onclick="check(this,false)">Only J with one element</button>
+<button onclick="check(this,false)">None; they always differ</button>
+<div class="explain">All finite J, by Theorem 19.1's first consequence. But the
+answer is "and some infinite ones too", which the degenerate case forces: if all
+but finitely many X_α are indiscrete — one-point spaces being the extreme — then
+the only open U_α available for those factors are ∅ and X_α, and the finiteness
+clause bites on nothing. Problem 2(c) asks you to state the sharp condition.
+</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>Two factors admit two equivalent descriptions, and only one of them
+generalises.</strong> The basis description (Theorem 15.1) says the open
+rectangles generate; the subbasis description (Theorem 15.2) says
+U × V = π₁⁻¹(U) ∩ π₂⁻¹(V), so the generators each constrain one coordinate. With
+finitely many factors the two agree. With infinitely many they do not, and each
+gives a different topology: box from the basis, product from the subbasis.
+<br><br>
+2. <strong>Theorem 19.1 states the difference in one clause</strong> — the
+product topology's basis elements have U_α = X_α for all but finitely many α —
+and its consequences are that the two agree for finite products and that box is
+in general finer. Theorems 19.2 to 19.5 then hold in both, so after five
+theorems Munkres can say that no reason to prefer either has appeared.
+<br><br>
+3. <strong>Theorem 19.6 is where they part, and the reason is the size of the
+subbasis.</strong> Continuity into a product can be checked one coordinate at a
+time exactly because the product topology has a subbasis whose members constrain
+one coordinate each. The box topology has no such subbasis, and
+f(t) = (t,t,t,…) into ℝ<sup>ω</sup> is continuous coordinatewise and not
+continuous. Only the forward implication survives (Exercise 5), because the
+projections stay continuous. Fineness in a codomain is a cost, not a benefit.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed. (folio = PDF − 17, checked on each
+page cited). <strong>§15 "The Product Topology on X × Y", printed 86–88:</strong>
+the definition, the basis check and the remark that ℬ is not a topology, p. 86;
+Theorem 15.1, pp. 86–87; Theorem 15.2 with its proof, p. 88.
+<strong>§19 "The Product Topology", printed 112–118:</strong> J-tuples,
+coordinates and the cartesian product, p. 113; the box topology, the projection
+maps and the product topology, p. 114; the basis computation, Theorem 19.1, the
+two immediate consequences, the standing convention and the remark that the box
+topology is used "primarily for constructing counterexamples", p. 115;
+Theorems 19.2, 19.3, 19.4 and 19.5 with the proof of the last, Example 1 on ℝⁿ,
+and the sentence "So far, no reason has appeared for preferring the product to
+the box topology", p. 116; Theorem 19.6 with its proof and Example 2, p. 117;
+Exercises 1, 2, 3 and 5, p. 118.
+<br><br>
+<em>Modality.</em> Munkres says of Theorems 19.2–19.5 that "most of the proofs
+are left to the exercises" (p. 115), and 19.2, 19.3 and 19.4 are indeed his
+Exercises 1, 2 and 3 with no proof in the text; they appear here as problems.
+Theorem 19.5 he proves and the lesson cites accordingly. Exercise 5 — which
+implication of Theorem 19.6 survives in the box topology — is <em>asked</em> and
+not answered in the text; the guided proof answers it. The deferral of the real
+reason for preferring the product topology is Munkres's own and is quoted, not
+paraphrased.
+<br><br>
+<em>Not established here.</em> Metric spaces, and the metric on ℝ<sup>ω</sup>
+under which it is complete — §20–§21, printed 119 and 129 (top-06). Connectedness
+and compactness of products, which are among the later theorems Munkres's
+deferral is pointing at — §23 and §26, printed 148 and 163 (top-07, top-08); this
+unit does not state what those theorems say. The Tychonoff theorem, the strongest
+case for the product topology, is §37, printed 230, far outside this unit. There
+is no homology, cohomology or Künneth theorem in §15 or §19; at2-05 supplies
+those and cites this unit only for the construction. Multiparameter persistence
+is not in Munkres at all, and the mission strip's claim about it is bounded above
+from Theorem 19.1 rather than developed.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('box'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var xs=[90,152,214,276,338,400,462,524], W=16;
+  function bar(cx,top,bot,col){g.fillStyle=col;g.fillRect(cx-W/2,top,W,bot-top);}
+  function frame(cx,top,bot){g.strokeStyle='#2a333d';g.lineWidth=1;g.strokeRect(cx-W/2+0.5,top+0.5,W-1,bot-top-1);}
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillStyle='#8ab4f8';
+  g.fillText('product topology — only finitely many coordinates constrained', 320, 44);
+  var t1=66,b1=146,c1=106;
+  xs.forEach(function(cx,k){
+    frame(cx,t1,b1);
+    if(k<3){bar(cx,c1-13,c1+13,'#4caf82');} else {bar(cx,t1+1,b1-1,'#4caf82');}
+  });
+  g.fillStyle='#9aa5b1'; g.font='11px Segoe UI,system-ui,sans-serif';
+  g.fillText('…', 586, c1+4);
+  xs.forEach(function(cx,k){ g.fillText(String(k+1), cx, b1+16); });
+  g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e06c75';
+  g.fillText('box topology — every coordinate constrained, here to (−1/n, 1/n)', 320, 200);
+  var t2=216,b2=296,c2=256;
+  xs.forEach(function(cx,k){
+    frame(cx,t2,b2);
+    var h=30/(k+1); if(h<4) h=4;
+    bar(cx,c2-h,c2+h,'#e06c75');
+  });
+  g.fillStyle='#9aa5b1'; g.font='11px Segoe UI,system-ui,sans-serif';
+  g.fillText('…', 586, c2+4);
+  xs.forEach(function(cx,k){ g.fillText(String(k+1), cx, b2+16); });
+  g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillText('Theorem 19.1: for finite products the two agree; for infinite ones box is finer', 320, 340);
+})();
+</script>
+</body></html>
