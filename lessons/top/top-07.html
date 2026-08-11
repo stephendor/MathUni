@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-07 — Connectedness and components</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>Connectedness and components <span class="cite">(top-07)</span></h1>
+
+<div class="hook">
+Can you walk between any two points without leaving the set? Counting those
+path-pieces is H₀. Except that "walk" and "one piece" are two different
+questions, and Munkres spends §25 showing they can have different answers. There
+is a subset of the plane — one curve and one segment — that is a single connected
+piece and cannot be walked across. Everything in this unit turns on the
+hypothesis that rules that out.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A space is <em>connected</em> if it
+admits no separation into two disjoint non-empty open pieces; it is <em>path
+connected</em> if any two points are joined by a path. Predict the relation
+between them.</p>
+<button onclick="check(this,false)">Equivalent — they are two names for one property</button>
+<button onclick="check(this,true)" data-ok>Path connected ⇒ connected, and the converse fails</button>
+<button onclick="check(this,false)">Connected ⇒ path connected, and the converse fails</button>
+<div class="explain">Path connected implies connected, by a three-line argument
+Munkres gives on printed 155: a path's image is a continuous image of a connected
+interval, so it lies wholly on one side of any separation. The converse fails,
+and he gives two counterexamples — the ordered square (Example 6) and the
+topologist's sine curve (Example 7), drawn below. Theorem 25.5 names the extra
+hypothesis that restores the equivalence.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Path components ARE what zeroth homology counts — for TDA's finite complexes they are the connected pieces, the first and most robust Betti number.</p>
+
+<div class="warn">
+<strong>The strip's parenthesis is the load-bearing part, and Theorem 25.5 is
+why.</strong>
+<br><br>
+Read it again: "path components ARE ... — <em>for TDA's finite complexes</em> —
+the connected pieces". Strip the parenthesis and the claim is false. Munkres's
+Theorem 25.5 says only that each path component <em>lies in</em> a component, and
+that the two coincide when X is <strong>locally path connected</strong>. Without
+that hypothesis they come apart, and his own Example 2 is the witness: the
+topologist's sine curve has <em>one</em> component and <em>two</em> path
+components. So "path components are the connected pieces" is not a theorem; it is
+a theorem plus a hypothesis, and the strip's parenthetical clause is where the
+hypothesis is being supplied.
+<br><br>
+Note also what supplying it is not. Whether finite simplicial complexes are
+locally path connected is a question about those complexes, not about §25 — that
+belongs to at1-07 and lab-02, and nothing in this unit establishes it.
+<br><br>
+<em>Two further bounds.</em> There is no homology anywhere in §§23–25; the
+identification of H₀ with path components is at1-07's, and this unit supplies
+only the objects it counts. And "most robust" is a stability claim — robustness
+under perturbation is tda1-07's theorem, and nothing here bears on it.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Separations, and the four things connectedness survives</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 148).</strong> Let X be a topological space.
+A <em>separation</em> of X is a pair U, V of disjoint non-empty open subsets of X
+whose union is X. The space X is said to be <em>connected</em> if there does not
+exist a separation of X.
+</div>
+
+<p>Two remarks before the theorems. First, the definition is about the whole
+space, so applying it to a subspace Y means applying it to Y's own topology —
+which is why Lemma 23.1 restates the condition in terms of limit points, letting
+you check it inside X without ever computing the subspace topology. Second, the
+pieces are required non-empty, and that is what makes a one-point space and the
+empty space connected.</p>
+
+<div class="theorem">
+<strong>Lemma 23.1 (printed 148).</strong> If Y is a subspace of X, a separation
+of Y is a pair of disjoint non-empty sets A and B whose union is Y, neither of
+which contains a limit point of the other. The space Y is connected if there
+exists no separation of Y.
+<br><br>
+<strong>Lemma 23.2 (printed 149).</strong> If the sets C and D form a separation
+of X, and if Y is a connected subspace of X, then Y lies entirely within either
+C or D.
+<br><br>
+<strong>Theorem 23.3 (printed 149).</strong> The union of a collection of
+connected subspaces of X that have a point in common is connected.
+<br><br>
+<strong>Theorem 23.4 (printed 149).</strong> Let A be a connected subspace of X.
+If A ⊂ B ⊂ Ā, then B is also connected.
+<br><br>
+<strong>Theorem 23.5 (printed 150).</strong> The image of a connected space under
+a continuous map is connected.
+<br><br>
+<strong>Theorem 23.6 (printed 150).</strong> A finite cartesian product of
+connected spaces is connected.
+</div>
+
+<div class="worked">
+<strong>Worked example — Theorem 23.3, and why Lemma 23.2 is the whole proof.</strong>
+Let {A_α} be connected subspaces of X with a common point p, and put
+Y = ⋃A_α. Suppose Y = C ∪ D were a separation.
+<br><br>
+The point p lies in one of the two pieces; say p ∈ C. Each A_α is a connected
+subspace of Y, so by <strong>Lemma 23.2</strong> it lies entirely in C or
+entirely in D. Since p ∈ A_α for every α and p ∈ C, every A_α lies in C. Hence
+Y = ⋃A_α ⊂ C, so D = ∅ — contradicting the requirement that both pieces of a
+separation be non-empty. ∎
+<br><br>
+<em>Where the hypothesis is spent.</em> The common point is used exactly once, in
+the sentence "since p ∈ A_α for every α". Delete it and the theorem is false: two
+disjoint open intervals of ℝ are each connected and their union is not. Lemma 23.2
+is the engine — it converts "connected" from a statement about the piece into a
+statement about where the piece can sit.
+<br><br>
+<em>Theorem 23.4 runs the same way</em>, with Lemma 23.1 instead: a separation
+C, D of B has A wholly inside one, say C; then B ⊂ Ā ⊂ C̄, so any point of D is a
+limit point of C, which Lemma 23.1 forbids.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Is ℚ, as a subspace of ℝ, connected?</p>
+<button onclick="check(this,false)">Yes — between any two rationals there is another</button>
+<button onclick="check(this,true)" data-ok>No — an irrational cut separates it</button>
+<button onclick="check(this,false)">Yes, because ℝ is connected and ℚ is dense</button>
+<button onclick="check(this,false)">Only the positive rationals are connected</button>
+<div class="explain">No. ℚ ∩ (−∞, √2) and ℚ ∩ (√2, ∞) are disjoint, non-empty,
+open in ℚ, and cover it, since √2 ∉ ℚ. In fact Munkres's Example 1 in §25
+(printed 161) says more: every component of ℚ is a single point, and none of them
+is open in ℚ. Density is no help — the third option is the trap, since
+connectedness does not pass to dense subspaces, only to closures
+(Theorem 23.4).</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The real line, the IVT, and paths</h2>
+
+<div class="theorem">
+<strong>Theorem 24.1 (printed 153).</strong> If L is a linear continuum in the
+order topology, then L is connected, and so are intervals and rays in L.
+<br><br>
+<strong>Corollary 24.2 (printed 154).</strong> The real line ℝ is connected and
+so are intervals and rays in ℝ.
+<br><br>
+<strong>Theorem 24.3, the intermediate value theorem (printed 154).</strong> Let
+f : X → Y be a continuous map, where X is a connected space and Y is an ordered
+set in the order topology. If a and b are two points of X and if r is a point of
+Y lying between f(a) and f(b), then there exists a point c of X such that
+f(c) = r.
+</div>
+
+<p>Theorem 24.3 is the calculus theorem with its hypotheses laid bare, and the
+proof is two lines once you see what to separate. Suppose no such c exists. Then
+f(X) ∩ (−∞, r) and f(X) ∩ (r, +∞) are disjoint, open in f(X) — open rays are open
+in the order topology, from top-02 — non-empty, since one contains f(a) and the
+other f(b), and together they cover f(X) because r is not a value. That is a
+separation of f(X), which is connected by Theorem 23.5. Contradiction. The
+domain's connectedness enters only through Theorem 23.5, and the order on Y only
+through the rays.</p>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 155).</strong> Given points x and y of the
+space X, a <em>path</em> in X from x to y is a continuous map f : [a,b] → X of
+some closed interval in the real line into X, such that f(a) = x and f(b) = y. A
+space X is said to be <em>path connected</em> if every pair of points of X can be
+joined by a path in X.
+</div>
+
+<p>Path connected implies connected, and Munkres's argument is worth having in
+one line: if X = A ∪ B were a separation, then any path's image f([a,b]) is a
+continuous image of a connected set, hence connected, hence lies entirely in A or
+in B by Lemma 23.2 — so no path joins a point of A to a point of B. "The converse
+does not hold; a connected space need not be path connected."</p>
+
+<canvas id="sine" width="640" height="360" aria-label="The topologist's sine curve. A green oscillating curve is the graph of sine of one over x for x between zero and one, oscillating faster and faster as x approaches zero from the right. A separate red vertical segment stands at x equals zero running from minus one to one. Together they form a single connected set with two path components."></canvas>
+
+<div class="worked">
+<strong>Worked example — the topologist's sine curve, in two claims.</strong>
+Munkres's Example 7, printed 156, and Example 2 of §25, printed 161. Let
+<br>S = {x × sin(1/x) : 0 &lt; x ≤ 1}, and let S̄ be its closure in ℝ².
+<br><br>
+<em>S̄ is connected.</em> S is the image of the connected set (0,1] — connected by
+Corollary 24.2 — under a continuous map, hence connected by Theorem 23.5. Its
+closure is then connected by Theorem 23.4, taking B = Ā. So S̄ has exactly one
+component.
+<br><br>
+<em>S̄ has two path components.</em> They are S itself and the vertical segment
+V = 0 × [−1,1], which is the part the closure adds. Munkres records their
+topological status too, and it is the sharpest illustration of his remark that
+path components "need be neither open nor closed": <strong>S is open in S̄ and not
+closed; V is closed and not open.</strong>
+<br><br>
+<em>Why this is the example to remember.</em> One component, two path components.
+So "component" and "path component" are genuinely different notions, and any
+statement identifying them is carrying a hypothesis. Munkres adds a refinement on
+the same page: delete from V the points with rational second coordinate and you
+get a space with one component and <em>uncountably many</em> path components.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which is true of the topologist's sine curve
+S̄?</p>
+<button onclick="check(this,false)">Two components, two path components</button>
+<button onclick="check(this,true)" data-ok>One component, two path components</button>
+<button onclick="check(this,false)">One component, one path component</button>
+<button onclick="check(this,false)">Two components, one path component</button>
+<div class="explain">One component — S̄ is connected, being the closure of a
+continuous image of an interval — and two path components, S and V = 0 × [−1,1].
+The last option is impossible in any space: a path component is path connected,
+hence connected, so it can never straddle two components (Theorem 25.5, first
+clause).</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Components, path components, and the hypothesis that fuses them</h2>
+
+<div class="definition">
+<strong>Definitions (Munkres, printed 159–161).</strong> Define x ∼ y if there is
+a connected subspace of X containing both; the equivalence classes are the
+<em>components</em> of X. Define x ∼ y if there is a path in X from x to y; the
+classes are the <em>path components</em> of X.
+<br><br>
+X is <em>locally connected at x</em> if for every neighbourhood U of x there is a
+connected neighbourhood V of x contained in U; <em>locally connected</em> if this
+holds at every point. Similarly for <em>locally path connected</em>.
+</div>
+
+<div class="theorem">
+<strong>Theorem 25.1 (printed 159).</strong> The components of X are connected
+disjoint subspaces of X whose union is X, such that each non-empty connected
+subspace of X intersects only one of them.
+<br><br>
+<strong>Theorem 25.2 (printed 160).</strong> The path components of X are
+path-connected disjoint subspaces of X whose union is X, such that each non-empty
+path-connected subspace of X intersects only one of them.
+<br><br>
+<strong>Theorem 25.3 (printed 161).</strong> A space X is locally connected if and
+only if for every open set U of X, each component of U is open in X.
+<br><br>
+<strong>Theorem 25.4 (printed 161).</strong> A space X is locally path connected
+if and only if for every open set U of X, each path component of U is open in X.
+<br><br>
+<strong>Theorem 25.5 (printed 162).</strong> If X is a topological space, each
+path component of X lies in a component of X. If X is locally path connected,
+then the components and the path components of X are the same.
+<br><br>
+<span class="cite">Munkres proves Theorem 25.1 and says of Theorem 25.2 only
+that its proof "is similar to that of the theorem preceding" (printed 160) — the
+path-connectedness of a path component is not written out, and is Problem 4(b).</span>
+</div>
+
+<p>That the path relation <em>is</em> an equivalence relation takes more work
+than the connected one, and Munkres does it carefully on printed 160. Reflexivity
+is the constant path. Symmetry is g(t) = f(1 − t). Transitivity pastes two paths
+together — after reparametrising, which is legitimate "from the fact that any two
+closed intervals in ℝ are homeomorphic" — and the pasted map is continuous by
+<strong>Theorem 18.3</strong>, the pasting lemma of top-04, whose two closed
+pieces here are [0,1] and [1,2] meeting at {1}.</p>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove the first clause of Theorem 25.5: each path
+component of X lies in a component of X.
+<br><br>
+Then say, in one sentence, what has to be added for the two to coincide, and name
+the space in which the addition fails.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+Let P be a path component of X. By Theorem 25.2, P is path connected. A path
+connected space is connected — Munkres's argument on printed 155: any separation
+would have every path's image, being a continuous image of a connected interval
+(Corollary 24.2, Theorem 23.5), lying wholly on one side by Lemma 23.2, so no
+path could join the two sides. So P is a non-empty connected subspace of X.
+<br><br>
+By <strong>Theorem 25.1</strong>, each non-empty connected subspace of X
+intersects only one component. Let C be that component. Since P intersects C and
+P is connected, P ⊂ C: indeed every point of P is related to every other by a
+connected subspace (namely P itself), so all of P lies in one equivalence class,
+which is C. ∎
+<br><br>
+<em>What has to be added.</em> Local path connectedness. Under it,
+Theorem 25.4 makes every path component of every open set open, so the path
+components of X are open; a component C is then a disjoint union of open path
+components, and if there were more than one, any of them together with the union
+of the rest would separate C — contradicting the connectedness of C given by
+Theorem 25.1. Hence each component is a single path component.
+<br><br>
+<em>Where it fails.</em> The topologist's sine curve S̄, which is not locally path
+connected at any point of V: one component, two path components. That is the
+whole distance between Theorem 25.5's first clause and its second.
+</details>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — a discrete space, which is what a point cloud gives.</strong>
+By top-06's Problem 1(c), the metric topology of any finite metric space is
+discrete. So take X discrete with n points.
+<br><br>
+<em>The connected subsets.</em> If A ⊂ X has two distinct points x and y, then
+{x} and A − {x} are non-empty, disjoint, open in A and cover A — a separation. So
+the connected subsets of X are ∅ and the singletons.
+<br><br>
+⟨your step: read the components off that. Then ask what the image of a path
+[a,b] → X must be — it is connected by Theorem 23.5 — and deduce the path
+components.⟩
+<br><br>
+⟨your step: is X locally path connected? Check the definition against the
+neighbourhood {x}. Then say what Theorem 25.5 gives here, and how many components
+there are.⟩
+<br><br>
+The count comes out at exactly n, which is all the discrete topology knows — and
+is why a point cloud is analysed through a filtration (lab-02, tda1-01) rather
+than through its own metric topology.
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Prove Theorem 25.3: X is locally connected if and only
+if every component of every open set is open in X.
+<br><br>
+Both directions. Forwards, take an open U, a component C of U, and a point
+x ∈ C; find a connected neighbourhood inside U and argue it lies in C. Backwards,
+given a neighbourhood U of x, name the component of U containing x and check the
+definition against it.
+<br><br>
+Then do the same for Theorem 25.4 and say which single word changes in the
+proof — and check that the word really is the only change, rather than assuming
+it.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which hypothesis does Theorem 25.5's second
+clause require?</p>
+<button onclick="check(this,false)">X connected</button>
+<button onclick="check(this,true)" data-ok>X locally path connected</button>
+<button onclick="check(this,false)">X Hausdorff</button>
+<button onclick="check(this,false)">X compact</button>
+<div class="explain">Locally path connected. Note that connectedness is no help
+at all: S̄ <em>is</em> connected and still has two path components. That is
+exactly why the mission strip needs its parenthetical clause about finite
+complexes rather than resting on connectedness.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Munkres says components are always closed, and
+open when there are finitely many. Why the second clause?</p>
+<button onclick="check(this,true)" data-ok>The complement of one is a finite union of closed sets</button>
+<button onclick="check(this,false)">Because finite spaces are discrete</button>
+<button onclick="check(this,false)">Because Theorem 25.3 applies to finite spaces</button>
+<button onclick="check(this,false)">It is not true; Munkres says components need not be open</button>
+<div class="explain">A component's complement is the union of the other
+components, each closed; with finitely many, that union is closed by
+Theorem 17.1(3), so the component is open. With infinitely many the union need
+not be closed — ℚ is the example, where every component is a point and none is
+open. The last option confuses "finitely many components" with the general
+case.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In the topologist's sine curve, which path
+component is open and which is closed?</p>
+<button onclick="check(this,true)" data-ok>S is open and not closed; V is closed and not open</button>
+<button onclick="check(this,false)">Both are clopen, since they partition S̄</button>
+<button onclick="check(this,false)">S is closed and V is open</button>
+<button onclick="check(this,false)">Neither is open or closed</button>
+<div class="explain">S is open and not closed, V is closed and not open —
+Munkres's Example 2, printed 161, which is his illustration of the remark that
+path components "need be neither open nor closed". The second option cannot be
+right for any connected space: two clopen pieces partitioning S̄ would be a
+separation, and S̄ is connected.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>Connectedness is the absence of a separation, and Lemma 23.2 is what
+makes it usable.</strong> It converts "this piece is connected" into "this piece
+sits wholly on one side", which is the engine of Theorems 23.3 and 23.4 — union
+with a common point, and anything between a set and its closure. Theorem 23.5
+carries connectedness through continuous maps and Theorem 23.6 through finite
+products.
+<br><br>
+2. <strong>ℝ is connected because it is a linear continuum, and that single fact
+is what the IVT is.</strong> Theorem 24.3 separates f(X) by the two open rays
+around the missing value r; the domain's connectedness enters only through
+Theorem 23.5. Paths are then maps out of connected intervals, so path connected
+⇒ connected — and the converse fails, with the ordered square and the
+topologist's sine curve as Munkres's two witnesses.
+<br><br>
+3. <strong>Components and path components are different partitions, and one
+hypothesis fuses them.</strong> Theorem 25.1 and Theorem 25.2 build both;
+Theorem 25.5 says each path component lies in a component, and that they
+coincide when X is locally path connected — Theorems 25.3 and 25.4 being the
+statements that make local connectedness equivalent to openness of the pieces.
+Without the hypothesis: S̄ has one component and two path components. So any
+claim that "the path pieces are the connected pieces" is a claim about the space,
+not about topology.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed. (folio = PDF − 17, checked on each
+page cited). <strong>§23 "Connected Spaces", printed 148–152:</strong> the
+definition of separation and connectedness and Lemma 23.1, p. 148; Lemma 23.2,
+Theorem 23.3 and Theorem 23.4, p. 149; Theorem 23.5 and Theorem 23.6, p. 150.
+<strong>§24 "Connected Subspaces of the Real Line", printed 153–158:</strong> the
+linear continuum and Theorem 24.1, p. 153; Corollary 24.2 and Theorem 24.3,
+p. 154; the definition of a path, path connectedness, and the proof that path
+connected implies connected, p. 155; Examples 3–7 — the unit ball, punctured
+euclidean space, the sphere, the ordered square, and the topologist's sine curve
+— p. 156.
+<strong>§25 "Components and Local Connectedness", printed 159–162:</strong>
+components and Theorem 25.1, p. 159; path components, the pasting argument for
+transitivity, and Theorem 25.2, p. 160; the openness and closedness remarks,
+Examples 1 and 2, local connectedness and local path connectedness, and
+Theorems 25.3 and 25.4, p. 161; Theorem 25.5, p. 162.
+<br><br>
+<em>Modality.</em> Theorem 25.2 is stated with only "whose proof is similar to
+that of the theorem preceding" (p. 160); the part that is not similar — that a
+path component is path connected — is a problem here, not a worked example.
+Munkres's Example 6, the ordered square, closes with an appeal to the
+uncountability of I, "which we shall prove later"; the problem set flags the
+dependency rather than hiding it. §25 carries a footnote on p. 159 recording that
+the section is assumed in Part II of the book.
+<br><br>
+<em>Not established here.</em> Homology, and the identification of H₀ with the
+path components — at1-07; nothing in §§23–25 mentions it. Robustness of a Betti
+number under perturbation, which the mission strip calls "most robust" — that is
+a stability statement, tda1-07. Compactness — §26, printed 163 (top-08), which is
+where connectedness's companion property begins. Whether a finite simplicial
+complex is locally path connected, which is the hypothesis the mission strip's
+parenthesis supplies — that belongs to at1-07 and lab-02 and is not proved here.
+The uncountability of the unit interval, used in Munkres's Example 6, is deferred
+by him and not established in this unit.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('sine'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  function CX(x){return 120+x*480;}
+  function CY(y){return 180-y*90;}
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
+  g.fillText("the topologist's sine curve: one component, two path components", 320, 36);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(108,CY(0)); g.lineTo(614,CY(0)); g.stroke();
+  g.strokeStyle='#4caf82'; g.lineWidth=1.5; g.beginPath();
+  var started=false;
+  for(var t=120;t>=1;t-=0.02){
+    var x=1/t, y=Math.sin(t);
+    if(!started){g.moveTo(CX(x),CY(y)); started=true;} else {g.lineTo(CX(x),CY(y));}
+  }
+  g.stroke();
+  g.strokeStyle='#e06c75'; g.lineWidth=4;
+  g.beginPath(); g.moveTo(CX(0),CY(-1)); g.lineTo(CX(0),CY(1)); g.stroke();
+  g.textAlign='right'; g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillStyle='#e06c75'; g.fillText('V = 0 × [−1,1]', 110, CY(0)-6);
+  g.fillStyle='#4caf82'; g.fillText('S = {x × sin(1/x) : 0 < x ≤ 1}', 612, 74);
+  g.textAlign='center'; g.fillStyle='#9aa5b1';
+  g.fillText('S is open in S̄ and not closed; V is closed and not open', 320, 328);
+})();
+</script>
+</body></html>
