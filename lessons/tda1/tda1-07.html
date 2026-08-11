@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tda1-07 — The stability theorem</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">TDA I · Nexus College</p>
+<h1>The stability theorem <span class="cite">(tda1-07)</span></h1>
+
+<div class="hook">
+Perturb the data by epsilon, the diagram moves by at most epsilon. The theorem that makes TDA a science, proven. (pw-04's craft.)
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Stability bounds the bottleneck distance between two diagrams by ε. Which of these numbers, read off a diagram, is therefore guaranteed to move by at most a bounded amount?</p>
+<p>
+<button onclick="check(this,true)" data-ok>The length of the longest bar</button>
+<button onclick="check(this,false)">The number of bars longer than a fixed threshold</button>
+<button onclick="check(this,false)">The total persistence, summed over all bars</button>
+</p>
+<div class="explain">Only the first. A bound on d<sub>b</sub> says every point moves by at most ε in the supremum norm or is destroyed against the diagonal, which controls the longest bar to within 2ε. It does not control a count across a threshold — arbitrarily many bars can sit within ε of it — and it does not control a sum, which is why Oudot's own Theorem 3.8 has to buy its Wasserstein bound with a quantity he calls unstable. Segment 3 does this properly.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The stability theorem is why persistence is trustworthy on noisy data — the mission's keystone; the isometry theorem (bottleneck = interleaving distance) is its algebraic partner.</p>
+
+<div class="warn">
+<p><strong>Two things to fix in that strip before the theorem is stated, so that it can be read correctly when it is.</strong> First, stability is not the isometry theorem's <em>partner</em>; it is one of its two halves. Oudot: "the statement of the theorem falls into two parts: on the one hand, the 'stability' part … on the other hand, the 'converse stability' part". Second, "trustworthy on noisy data" is a claim about a chain of inferences from a data perturbation to a reported number, and the theorem is a bound on a bottleneck distance by a supremum norm. Segment 3 works out which links of that chain these pages close and which they do not — using Oudot's own remark that the original hypotheses "do have an impact on applications … especially in the presence of noise in the data" (p. 62).</p>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Three statements, and exactly what each says</h2>
+
+<div class="theorem">
+<p><strong>Theorem 3.1 (Isometry)</strong> <span class="cite">— Oudot, p. 49</span></p>
+<p>For 𝔮-tame persistence modules 𝕍, 𝕎 over ℝ: d<sub>b</sub>(dgm(𝕍), dgm(𝕎)) = d<sub>i</sub>(𝕍, 𝕎).</p>
+</div>
+
+<p>Stability is the inequality d<sub>b</sub> ≤ d<sub>i</sub>: modules that are close have diagrams that are close, so a diagram cannot be thrown far by a small change. Converse stability is d<sub>i</sub> ≤ d<sub>b</sub>: diagrams that are close came from modules that are close, so the signature is not merely calm but discriminating. Oudot: the stability part "is reputed to be difficult to prove, whereas the converse stability part is easy once the stability part is given" — an ordering Segment 2 and Segment 3 follow.</p>
+
+<div class="theorem">
+<p><strong>Corollary 3.6</strong> <span class="cite">— Oudot, p. 61</span></p>
+<p>Let f, g : X → ℝ be 𝔮-tame functions. Then d<sub>b</sub>(dgm(f), dgm(g)) ≤ ‖f − g‖<sub>∞</sub>.</p>
+</div>
+
+<p>The derivation is two steps, both from tda1-06, and Oudot puts it in a footnote: ‖f − g‖<sub>∞</sub> ≤ ε makes the sublevel-set filtrations ε-interleaved by (3.3), hence the persistent homologies ε-interleaved by Definition 3.3, and Theorem 3.1 applies. Note what the corollary needs and note it now, because Segment 3 turns on it: <em>the same space X</em>, two functions on it, compared in the supremum norm.</p>
+
+<p>Edelsbrunner has the inequality without the equality, twice. For monotonic f, g on a simplicial complex K: W<sub>∞</sub>(Dgm<sub>p</sub>(f), Dgm<sub>p</sub>(g)) ≤ ‖f − g‖<sub>∞</sub>, and he proves it — via vineyards, by differentiating the straight-line homotopy and bounding the slope of every segment in the vineyard by ‖f − g‖<sub>∞</sub>. Bounding a slope bounds a distance because a vine that runs from t = 0 to t = 1 with slope at most s has moved at most s in the plane, and the vines are exactly the trajectories the matching follows. For tame functions on a triangulable space he states the same inequality "without proof" <span class="cite">— Edelsbrunner §VIII.2, pp. 217–219</span>.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Oudot reports that the original Cohen-Steiner–Edelsbrunner–Harer statement needed a more restrictive tameness plus finite triangulability and continuity, because its authors interpolated between the <em>functions</em> rather than between the modules. What went wrong with that?</p>
+<p>
+<button onclick="check(this,false)">The interpolated functions need not be continuous</button>
+<button onclick="check(this,true)" data-ok>The interpolating module could become wild, so extra hypotheses were needed to force it to stay tame</button>
+<button onclick="check(this,false)">Interpolating functions does not give interpolating diagrams</button>
+</p>
+<div class="explain">Oudot's word is exactly "wild": taking the persistent homology of an interpolating function gives a module you do not control, so the hypotheses on X, f and g had to be strengthened until it was forced to remain tame. The algebraic Interpolation Lemma removes the problem by interpolating in the category where the conclusion lives. This is a general moral about proofs, and it has a cost in applications that Oudot states plainly.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~30 min</span>
+<h2>Snapping, and a loose bound that is tight for something else</h2>
+
+<p>The first proof gives d<sub>b</sub> ≤ 3d<sub>i</sub> — not the theorem, but "very simple and geometrically flavored", and its looseness turns out to be informative. Everything rests on one construction. The <em>ε-discretization</em> 𝕍<sub>εℤ</sub> is the restriction of 𝕍 to the index set εℤ, extended back over ℝ by putting V<sub>nε</sub> at every index in [nε, (n+1)ε) <span class="cite">— Oudot §3.2.1, p. 54</span>.</p>
+
+<p>What discretizing does to a diagram is legible. A birth strictly between (n−1)ε and nε is not detected until nε; a death strictly between (m−1)ε and mε is not detected until mε. So a summand 𝕀⌈b<sup>±</sup>, d<sup>±</sup>⌋ inside that cell becomes 𝕀[nε, mε) — and the corresponding point is <em>snapped</em> to the upper-right corner of its grid cell. Both coordinates round up, because detection is always late. When a coordinate sits exactly on a cell boundary, it is the <em>decoration</em> that decides which cell the point belongs to, so two summands plotting at the same undecorated point can snap to different vertices.</p>
+
+<canvas id="snap" width="640" height="360" aria-label="A square grid representing the epsilon integer lattice, with a diagonal line running from lower left to upper right. Three points sit inside three different grid cells above the diagonal, and each has an arrow leading to the upper-right corner of its own cell, showing the snapping rule. A note at the right records that the move is at most epsilon in the supremum norm."></canvas>
+
+<div class="theorem">
+<p><strong>Lemma 3.4 (Snapping)</strong> <span class="cite">— Oudot, p. 55</span></p>
+<p>If 𝕍 is 𝔮-tame then dgm(𝕍<sub>εℤ</sub>) is well defined and dgm(𝕍<sub>εℤ</sub>) ∖ Δ is localised at the grid vertices {(nε, mε)}<sub>n&lt;m</sub>, with the multiplicity of each vertex given by the persistence measure μ<sub>𝕍</sub> of its lower-left cell — mult(nε, mε) = μ<sub>𝕍</sub>([(n−1)ε, nε] × [(m−1)ε, mε]), and correspondingly at infinity. These rules define a partial matching of bottleneck cost at most ε between dgm(𝕍) and dgm(𝕍<sub>εℤ</sub>).</p>
+</div>
+
+<p>The multiplicity is read off the cell <em>below and to the left</em> of the vertex, because that is the cell whose points snap to it. The bound of ε is the cell's own side length: a point moves within one cell, so each coordinate moves by less than ε and the ℓ<sup>∞</sup>-distance is at most ε. And one observation Oudot flags as "instrumental": the grid may be shifted, so 𝕍 may equally be discretized over εℤ + ε/2, with the same bound.</p>
+
+<div class="worked fade">
+<p><strong>Worked, then fading: from an interleaving to 3ε.</strong> <span class="cite">— Oudot, pp. 55–56</span></p>
+<p>Let φ, ψ be an ε-interleaving of 𝔮-tame 𝕍, 𝕎. Restrict attention to the indices 2nε in 𝕍 and (2n+1)ε in 𝕎. The interleaving maps run diagonally between the two rows, and commutativity makes the whole ladder commute. Three modules can be read off it: 𝕍<sub>2εℤ</sub> along the top row, 𝕎<sub>2εℤ+ε</sub> along the bottom row, and a <em>mixed</em> module 𝕌 obtained by following the diagonals, alternating spaces from 𝕍 and 𝕎.</p>
+<p>The key observation: by commutativity, 𝕍<sub>2εℤ</sub> and 𝕎<sub>2εℤ+ε</sub> are <em>both</em> 2ε-discretizations of 𝕌 — the top row is 𝕌 restricted to its even positions and the bottom row to its odd ones. So Lemma 3.4 applies to four pairs, (𝕍, 𝕍<sub>2εℤ</sub>), (𝕌, 𝕍<sub>2εℤ</sub>), (𝕌, 𝕎<sub>2εℤ+ε</sub>) and (𝕎, 𝕎<sub>2εℤ+ε</sub>), each giving a bottleneck bound of ⟨ what, given a grid of spacing 2ε? ⟩. The triangle inequality then gives d<sub>b</sub>(dgm 𝕍, dgm 𝕎) ≤ ⟨ what? ⟩.</p>
+<p>That crude number comes down to 3ε by tracking one point rather than adding four worst cases: a point of dgm(𝕍) is matched successively into dgm(𝕍<sub>2εℤ</sub>), dgm(𝕌), dgm(𝕎<sub>2εℤ+ε</sub>) and dgm(𝕎), and the four moves are not independent — each snap lands on a grid vertex, so the next move starts from a constrained position. Following Figure 3.3, the total displacement is at most 3ε. What the crude sum double-counts is ⟨ what? ⟩.</p>
+</div>
+
+<p>Now the remark that makes the loose bound worth teaching. Oudot: 3d<sub>i</sub> "is not a tight upper bound. However, it becomes so if one replaces the concept of interleaving as of Definition 3.3 by the weaker version given in (3.8)" — and one can build modules that are weakly ε-interleaved whose diagrams lie exactly 3ε apart. So this is not a weaker argument for the same theorem; it is a <em>tight</em> argument for a weaker hypothesis. What (3.8) records is the interleaving at the indices of one fixed grid and its shift. What Definition 3.3 gives, and (3.8) throws away, is the interleaving at <em>every</em> real index — equivalently, the freedom to shift the grid arbitrarily. So the missing 2ε is exactly the price of fixing a grid, and any proof of the tight bound must use shiftability <span class="cite">— p. 57</span>.</p>
+
+<div class="theorem">
+<p><strong>Lemma 3.5 (Interpolation)</strong> <span class="cite">— Oudot, p. 57</span></p>
+<p>Suppose 𝕍, 𝕎 are ε-interleaved. Then there is a 1-parameter family (𝕌<sub>x</sub>)<sub>x∈[0,ε]</sub> of persistence modules with 𝕌₀ = 𝕍, 𝕌<sub>ε</sub> = 𝕎, and 𝕌<sub>x</sub>, 𝕌<sub>y</sub> being |y − x|-interleaved for all x, y. This family is not unique in general.</p>
+</div>
+
+<p>Oudot calls it "certainly the most subtle part in the proof of the Isometry Theorem", and the picture behind it is worth having. Order the plane by (x, y) ⪯ (x′, y′) iff x ≤ x′ and y ≤ y′, and for each r let Δ<sub>r</sub> = {(x, y) : y − x = 2r} be a shifted diagonal. As a poset Δ<sub>r</sub> is isomorphic to ℝ, via t ↦ (t − r, t + r), so persistence modules over ℝ are the same thing as representations of Δ<sub>r</sub>. Then (3.9): 𝕍 and 𝕎 are |y − x|-interleaved exactly when there is a representation 𝕌 of Δ<sub>x</sub> ∪ Δ<sub>y</sub> restricting to 𝕍 on one line and 𝕎 on the other. The module structures become the maps along the diagonals; φ and ψ become the vertical and horizontal maps between them; everything else is composition. Interpolating is then filling in the lines between.</p>
+
+<p>The tight bound then runs in three steps <span class="cite">— Oudot, p. 59</span>. Both rest on the <strong>Box Lemma</strong>: writing δ = |y − x| and R<sup>δ</sup> for the δ-thickening of a rectangle R = [p, q] × [r, s] with r &gt; q + 2δ,</p>
+
+<p style="text-align:center">μ<sub>𝕌<sub>x</sub></sub>(R) ≤ μ<sub>𝕌<sub>y</sub></sub>(R<sup>δ</sup>) and μ<sub>𝕌<sub>y</sub></sub>(R) ≤ μ<sub>𝕌<sub>x</sub></sub>(R<sup>δ</sup>),</p>
+
+<p>proved by discretizing both modules over the finite index set {p−δ, p, q, q+δ, r−δ, r, s, s+δ} and running the same point-tracking argument through Lemma 3.4. <strong>Step 1</strong>: letting R shrink to a point of dgm(𝕌<sub>x</sub>) forces μ<sub>𝕌<sub>y</sub></sub> to be positive within a δ-thickening of it, so the <em>Hausdorff</em> distance between the two diagrams is at most |y − x|. <strong>Step 2</strong>: once δ is below a threshold δ<sub>x</sub> — typically a fraction of the minimum inter-point distance in dgm(𝕌<sub>x</sub>) — the bottleneck and Hausdorff distances <em>coincide</em>. <strong>Step 3</strong>: the intervals (x − δ<sub>x</sub>, x + δ<sub>x</sub>) cover the compact [0, ε]; extract a finite subcover with centres 0 = x₀ &lt; ⋯ &lt; x<sub>k</sub> = ε, and on each consecutive pair d<sub>b</sub> = d<sub>H</sub> ≤ |x<sub>i+1</sub> − x<sub>i</sub>|. The triangle inequality sums these to ε.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does interpolating give ε where §2.1 gave 3ε, when chaining the loose bound over N steps of ε/N would still give 3ε?</p>
+<p>
+<button onclick="check(this,false)">Because the interpolating family avoids discretization entirely</button>
+<button onclick="check(this,true)" data-ok>Because over short enough steps the bottleneck distance equals the Hausdorff distance, and that one is bounded by the step</button>
+<button onclick="check(this,false)">Because the interpolating family is unique, so no choices accumulate</button>
+</p>
+<div class="explain">Chaining the loose bound really does give nothing better than 3ε — the constant does not improve by subdividing. The gain comes from Step 2: below a threshold depending on the diagram's own inter-point spacing, d<sub>b</sub> and d<sub>H</sub> agree, and the Box Lemma bounds d<sub>H</sub> by the step size with constant 1. Compactness of [0, ε] is what makes finitely many such steps suffice. Discretization is not avoided — the Box Lemma is proved with it. And Oudot says explicitly the family is <em>not</em> unique; Figure 3.5 shows three constructions and notes the interpolated points "do not always follow shortest paths in the ℓ<sup>∞</sup>-distance".</div>
+</div>
+</div>
+
+<div class="break">☕ Break — walk to a window, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~30 min</span>
+<h2>The converse, and what stability licenses</h2>
+
+<p>The converse is two steps. <strong>Interval-decomposable case.</strong> Take a matching of bottleneck cost at most ε between the two undecorated diagrams. It induces a partial matching of interval summands, so both modules split as ⊕<sub>j</sub>𝕍<sub>j</sub> and ⊕<sub>j</sub>𝕎<sub>j</sub> where each pair is either two matched intervals, or an unmatched summand of 𝕍 against 0, or 0 against an unmatched summand of 𝕎. An ε-interleaving is then built summand by summand and summed <span class="cite">— Oudot §3.3, p. 60</span>.</p>
+
+<p><strong>General case</strong>, and it is a nice argument. Let 𝓟<sub>𝔮</sub> be the 𝔮-tame modules with the pseudometric d<sub>i</sub>, 𝓟<sub>pfd</sub> the pointwise finite-dimensional ones, and f(𝕍, 𝕎) = d<sub>i</sub>(𝕍, 𝕎) − d<sub>b</sub>(dgm 𝕍, dgm 𝕎). Stability makes 𝕍 ↦ dgm(𝕍) 1-Lipschitz, so f is non-negative and continuous; the interval-decomposable case makes f = 0 on 𝓟<sub>pfd</sub> × 𝓟<sub>pfd</sub>. If 𝓟<sub>pfd</sub> is dense, continuity finishes it. And it is dense: the <em>ε-smoothing</em> 𝕍<sup>ε</sup> with V<sub>i</sub><sup>ε</sup> = im v<sub>i−ε</sub><sup>i+ε</sup> is pointwise finite-dimensional exactly because Definition 1.12 says those ranks are finite, and 𝕍 is ε-interleaved with 𝕍<sup>ε</sup>, so 𝕍 is the limit of the 𝕍<sup>1/n</sup>. Oudot's Remark adds that this continuity argument extends the <em>full</em> theorem, so it suffices to prove the Isometry Theorem for pointwise finite-dimensional modules <span class="cite">— pp. 60–61</span>.</p>
+
+<div class="guided-proof">
+<p><strong>Guided audit — what a bound on d<sub>b</sub> does and does not control.</strong></p>
+<p>Corollary 3.6 gives d<sub>b</sub>(dgm(f), dgm(g)) ≤ ‖f − g‖<sub>∞</sub> for 𝔮-tame f, g on the <em>same</em> space X. Almost nothing anyone reports is a bottleneck distance, so the operative question is which functionals of a diagram are Lipschitz for d<sub>b</sub>.</p>
+<p>Three candidates. (1) The length of the longest bar. (2) The number of bars longer than a fixed threshold 2δ. (3) The total persistence, Σ(p<sub>y</sub> − p<sub>x</sub>). For each, decide whether d<sub>b</sub>(X, Y) ≤ ε bounds the difference, and prove it or give a counterexample. Then say what the answers imply about chaining stability results together.</p>
+<textarea class="proof-input" aria-label="Write your audit here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>(1) Longest bar: controlled.</strong> If d<sub>b</sub>(X, Y) ≤ ε then take a matching of cost at most ε′ for any ε′ &gt; ε. The longest bar of X corresponds to a point p; its partner q satisfies ‖p − q‖<sub>∞</sub> ≤ ε′, so each coordinate moves by at most ε′ and the bar length p<sub>y</sub> − p<sub>x</sub> changes by at most 2ε′. If p is unmatched, its length is at most 2ε′ to begin with. So the longest bar lengths differ by at most 2ε. Lipschitz, with constant 2.</p>
+<p><strong>(2) Count above a threshold: not controlled, and badly.</strong> Let X have n points all at (0, 2δ + ε/2) and Y have the same n points at (0, 2δ − ε/2). Then a matching of cost ε/2 exists, so d<sub>b</sub>(X, Y) ≤ ε/2, and every bar of X exceeds 2δ while none of Y's does. The counts differ by n, for any n. No bound in terms of ε alone can exist, because thresholding is discontinuous and stability is a continuity statement.</p>
+<p><strong>(3) Total persistence: not controlled.</strong> Let X be empty off the diagonal and Y have n points at height ε above the diagonal. Every point of Y is within ε/2 of the diagonal in the ℓ<sup>∞</sup> sense, so d<sub>b</sub>(X, Y) ≤ ε/2, while the total persistence of Y is nε and of X is 0. Again unbounded in n. The trouble is that a sum over an unbounded number of small terms is not controlled by a supremum over them.</p>
+<p><strong>What this implies about chaining.</strong> Exactly what Oudot's Theorem 3.8 shows. That theorem bounds a Wasserstein distance by d<sub>i</sub> — but it has to pay for it, and the price is a factor (Pers(𝕍) + Pers(𝕎))<sup>1/p</sup>, which he immediately calls a dependence on quantities "which are unstable quantities". Case (3) is why: total persistence is one of the functionals stability does not control, so a bound that contains it is only as good as a separate bound on it. Stability is a statement about one distance, and every step away from that distance needs its own argument.</p>
+</details>
+</div>
+
+<div class="warn">
+<p><strong>The strip, corrected.</strong> Two changes, both about what these pages establish.</p>
+<p><em>"The isometry theorem is its algebraic partner"</em> — no: stability <em>is</em> the isometry theorem, one of its two inequalities. The partner is converse stability, and that is the half that makes diagrams informative rather than merely calm. A signature that ignored its input would satisfy stability perfectly.</p>
+<p><em>"Why persistence is trustworthy on noisy data"</em> — what is proved is that two 𝔮-tame functions on the <em>same</em> space, close in the supremum norm, have diagrams close in the bottleneck distance. Three gaps between that and trustworthiness on noisy data, none of them closed on these pages. The noise must act as a sup-norm perturbation of the filter function, which rules out corruptions that change the underlying space — resampling, subsampling, outliers. The reported quantity must be Lipschitz for d<sub>b</sub>, which the guided audit shows fails for a threshold count and for total persistence. And the hypotheses must hold, which Oudot says is where the original version hurt: requiring finite triangulability and continuity "does have an impact on applications, where it is common to deal with spaces or maps that do not comply with the requirements, <strong>especially in the presence of noise in the data</strong>" (p. 62). That sentence is the source's own, and it is the exact opposite of what the strip's phrasing suggests.</p>
+<p>A corrected strip: <em>the Isometry Theorem is the keystone — its stability half bounds the bottleneck distance between diagrams by the interleaving distance between modules, and its converse half makes the bound informative. For functions, Corollary 3.6 gives d<sub>b</sub>(dgm f, dgm g) ≤ ‖f − g‖<sub>∞</sub>. What that licenses about a pipeline depends on whether the noise is a sup-norm perturbation and whether what is reported is Lipschitz in d<sub>b</sub>; neither is established here.</em></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Theorem 3.7 lists four equivalent conditions on 𝔮-tame 𝕍, 𝕎, including "d<sub>i</sub> = 0" and "dgm(𝕍) = dgm(𝕎)". But tda1-06 saw that d<sub>i</sub> = 0 does not imply isomorphic. How do both hold?</p>
+<p>
+<button onclick="check(this,false)">Theorem 3.7 assumes the modules are interval-decomposable</button>
+<button onclick="check(this,true)" data-ok>Its first condition is isomorphism in the <em>observable</em> category, not in the ordinary one</button>
+<button onclick="check(this,false)">The undecorated diagram cannot distinguish 𝕀[0,1] from 𝕀(0,1), so the theorem is vacuous</button>
+</p>
+<div class="explain">Oudot's list begins "𝕍 and 𝕎 are isomorphic in the observable category" — the quotient in which ephemeral differences are killed. In that category d<sub>i</sub> becomes a true metric between isomorphism classes, which is what makes the four conditions equivalent and what he calls "clean and balanced". 𝕀[0,1] and 𝕀(0,1) are non-isomorphic ordinarily and isomorphic there, so nothing contradicts. The third option gets the diagram fact right and draws the wrong conclusion: agreeing on a coarser invariant is the content, not a defect.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Take 𝕍 = 𝕀[0, 4) and 𝕎 = 𝕀[1, 6), Figure 3.5's example. Compute d<sub>b</sub>(dgm 𝕍, dgm 𝕎) directly from the definition, then find an explicit ε-interleaving realising the same ε, and check the Isometry Theorem by hand on this pair. Then discretize both over 2ℤ and confirm the Snapping Lemma's bound.</p>
+</div>
+
+<div class="blank-page">
+<p><strong>Blank page.</strong> Look away and reconstruct the skeleton: three load-bearing claims and why each forces the next.</p>
+<details><summary>Reveal the skeleton</summary>
+<p><strong>1. The theorem is an equality with two halves, and the function-level statement is a corollary.</strong> Stability, d<sub>b</sub> ≤ d<sub>i</sub>, makes diagrams stable; converse stability, d<sub>i</sub> ≤ d<sub>b</sub>, makes them informative. Corollary 3.6 follows in two steps: sup-norm closeness gives interleaved sublevel sets, which give interleaved modules. Edelsbrunner proves the inequality for monotonic functions by bounding every vineyard slope by ‖f − g‖<sub>∞</sub>, and states the tame-function version without proof.</p>
+<p><strong>2. The loose bound is tight for a weaker hypothesis, and that is what says where the work must go.</strong> Discretizing snaps each diagram point to the upper-right corner of its cell, moving it by at most the cell width (Lemma 3.4). Restricting an ε-interleaving to alternating indices produces a mixed module 𝕌 of which both discretizations are 2ε-discretizations, so four applications of the lemma and the triangle inequality give 8ε, reduced to 3ε by tracking one point. And 3ε is exactly right for the <em>weak</em> interleaving of (3.8), which fixes one grid — so the missing factor is the freedom to shift the grid, and Lemma 3.5's interpolating family is what supplies it.</p>
+<p><strong>3. Converse stability is easy on decomposables and extends by density, and neither half licenses a pipeline.</strong> A cost-ε matching splits both modules summand by summand; ε-smoothing makes every 𝔮-tame module a d<sub>i</sub>-limit of pointwise finite-dimensional ones, and continuity does the rest — which, as Oudot notes, extends the whole theorem, so pfd modules suffice. What a bound on d<sub>b</sub> then controls is a Lipschitz functional of the diagram: the longest bar, yes; a count across a threshold, no; total persistence, no — which is why Theorem 3.8's Wasserstein bound has to carry a quantity Oudot himself calls unstable.</p>
+</details>
+</div>
+</div>
+
+<footer>
+Sources: Oudot, <em>Persistence Theory: From Quiver Representations to Data Analysis</em>, Chapter 3 "Stability". Theorem 3.1 with its split into stability and converse stability and the remark on their relative difficulty (p. 49); Lesnick's lifting of the interleaving distance to the topological level, with its stated restrictions (p. 54). §2.1: the snapping principle, the ε-discretization and its extension convention, the effect on interval summands with the rounding-up of births and deaths, the limit cases decided by the decoration, Figure 3.2, Lemma 3.4 with the multiplicity rules (3.7) and footnote 3's extended measure at infinity, and the observation that the grid may be shifted to εℤ + ε/2 (pp. 54–55); the proof of the loose bound with diagram (3.8), the three modules read off it, the key observation that both discretizations are 2ε-discretizations of the mixed module 𝕌, the four applications of Lemma 3.4, the crude 8ε, and its reduction to 3ε by tracking a point through Figure 3.3 (pp. 55–56); the Remark that 3ε becomes tight for the weak interleaving of (3.8) (p. 57). §2.2: Lemma 3.5 with the statement that the family is not unique, the standard partial order on the plane, the shifted diagonals Δ<sub>r</sub> and their poset isomorphism with ℝ, the correspondence (3.9), and Figure 3.5's three extensions by cokernels, images and kernels (pp. 57–60). §3: the two-step converse proof, the interval-decomposable case with its three kinds of summand pair, the map f and its continuity, the ε-smoothing 𝕍<sup>ε</sup> = im v<sub>i−ε</sub><sup>i+ε</sup>, the density of 𝓟<sub>pfd</sub>, and the Remark that the argument extends the full theorem to 𝔮-tame modules (pp. 60–61). §4: Corollary 3.6 with footnote 4's derivation, the account of the original Cohen-Steiner–Edelsbrunner–Harer hypotheses and the sentence that they "do have an impact on applications … especially in the presence of noise in the data", the history through Chazal–Oudot, Glisse and de Silva, Theorem 3.7 with the observable category, and Theorem 3.8 with the warning that total persistences "are unstable quantities" (pp. 61–63). The Oudot offset is PDF = printed + 9.
+<p>Edelsbrunner and Harer, <em>Computational Topology: An Introduction</em>, §VIII.2. The Stability Theorem for Filtrations with the vineyard slope bound that proves it, the definition of a tame function through homological critical values, and the Stability Theorem for Tame Functions, stated without proof (pp. 216–219). The Edelsbrunner offset is PDF = printed + 12.</p>
+<p><strong>Not established here, and the strip is the reason.</strong> That the isometry theorem is stability's "partner": stability is one of its two inequalities, and the partner is converse stability. That stability is "why persistence is trustworthy on noisy data". What is proved is that two 𝔮-tame functions on the <em>same</em> space, close in the supremum norm, have diagrams close in the bottleneck distance. Three links are missing between that and a claim about pipelines, and none is closed on these pages: the noise must act as a sup-norm perturbation of the filter function, so corruptions that change the space itself are outside the statement; the reported quantity must be Lipschitz for d<sub>b</sub>, and the guided audit exhibits counterexamples for a threshold count and for total persistence; and the tameness hypotheses must hold, which is precisely where Oudot says the original version hurt — "especially in the presence of noise in the data" (p. 62). The three functional computations in the guided audit are this lesson's, not Oudot's; the total-persistence one is the phenomenon his Theorem 3.8 pays for and names.</p>
+<p><strong>Stated but not proved.</strong> Lemma 3.4, whose proof Oudot refers to [71, 72]; only the intuition for interval-decomposable modules is given, and reproduced here. Lemma 3.5, given as a proof outline through the poset picture with the extension step not carried out. The reduction of 8ε to 3ε, argued from Figure 3.3 rather than written out. The Box Lemma (3.10), stated by Oudot and attributed to [72, lemma 4.22], with only the method of proof indicated; Steps 1 to 3 of the tight bound are reproduced here at the level of detail Oudot gives them, and the compactness argument needed when dgm(𝕌<sub>x</sub>) is infinite is referred to [72, §4.8] and not carried out. Theorem 3.7, which depends on the observable category, defined in neither this unit's pages nor tda1-04's. Theorem 3.8, "adapted from" Cohen-Steiner et al. and quoted without proof. Lesnick's lifting result, quoted with its restrictions unstated. Edelsbrunner's Stability Theorem for Tame Functions, stated without proof in his text.</p>
+<p><strong>Deferred.</strong> The construction step of Lemma 3.5's proof — Oudot gives the poset picture and then extends by one of kernel, image or cokernel of an explicit morphism, and the extension itself is not worked here. The Bauer–Lesnick proof building the matching directly from one degree-ε morphism, and the Bubenik–de Silva–Scott categorical generalisation to arbitrary posets — both named on p. 62 as current developments. Wasserstein distances in earnest. Stability for multi-parameter persistence, the "still unresolved question" the discussion ends on. The pipeline questions the audit leaves open: sampling, estimation, and the behaviour of non-Lipschitz summary statistics, none of which is in either book's Chapter 3 or Chapter VIII.</p>
+</footer>
+<script>
+(function(){
+var c=document.getElementById('snap');if(!c||!c.getContext)return;
+var x=c.getContext('2d');
+var dim='#9aa5b1',ink='#e8e8e8',acc='#8ab4f8',good='#4caf82',bad='#e06c75',grid='#2a333d';
+function line(x1,y1,x2,y2,col,w){x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.strokeStyle=col;x.lineWidth=w||1.5;x.stroke();}
+x.font='13px system-ui,sans-serif';x.textAlign='center';x.fillStyle=ink;
+x.fillText('the snapping rule',290,42);
+var gx=140,gy=100,cell=50,cols=6,rows=4;
+x.strokeStyle=grid;x.lineWidth=1;
+for(var i=0;i<=cols;i++)line(gx+i*cell,gy,gx+i*cell,gy+rows*cell,grid,1);
+for(var j=0;j<=rows;j++)line(gx,gy+j*cell,gx+cols*cell,gy+j*cell,grid,1);
+line(140,300,340,100,dim,1);
+var P=[[215,175],[265,135],[168,255]];
+var C=[[240,150],[290,100],[190,250]];
+for(var k=0;k<3;k++){
+  x.beginPath();x.arc(P[k][0],P[k][1],4,0,6.2832);x.fillStyle=good;x.fill();
+  line(P[k][0],P[k][1],C[k][0],C[k][1],acc,1.5);
+  x.beginPath();x.arc(C[k][0],C[k][1],4.5,0,6.2832);x.fillStyle=acc;x.fill();
+}
+x.font='11px system-ui,sans-serif';x.fillStyle=dim;x.textAlign='center';
+line(140,318,190,318,dim,1);
+line(140,314,140,322,dim,1);line(190,314,190,322,dim,1);
+x.fillText('eps',165,332);
+x.textAlign='left';x.font='12px system-ui,sans-serif';
+x.fillStyle=good;x.beginPath();x.arc(452,120,4,0,6.2832);x.fill();
+x.fillStyle=dim;x.fillText('point of dgm(V)',466,124);
+x.fillStyle=acc;x.beginPath();x.arc(452,158,4.5,0,6.2832);x.fill();
+x.fillStyle=dim;x.fillText('its image in',466,152);
+x.fillText('dgm(V discretized)',466,168);
+x.fillText('each point moves to the',444,208);
+x.fillText('upper-right corner of its',444,224);
+x.fillText('own cell, so it moves by',444,240);
+x.fillText('at most eps in sup norm',444,256);
+})();
+</script>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
