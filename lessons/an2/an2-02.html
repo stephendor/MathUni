@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an2-02 — Completeness and completion</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Analysis II · Nexus College</p>
+<h1>Completeness and completion <span class="cite">(an2-02)</span></h1>
+
+<div class="hook">
+an2-01 ended one sentence short. Every definition there — convergence,
+continuity, open, closed — transferred from ℝ to an arbitrary metric space by
+replacing |x − y| with d(x, y), and every one of them worked. One did not
+transfer, and it is the one on which all of calculus rests: <em>a sequence can
+huddle together without having anywhere to go</em>. Lindström's verdict on why
+this matters is blunt — completeness "is probably the most important notion in
+this book as most of the deep and interesting theorems about metric spaces only
+hold when the space is complete."
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> an2-01 finished with three metrics
+on ℝ² that are different functions but have exactly the same open sets. Suppose
+d₁ and d₂ are two metrics on one set X with exactly the same open sets, and
+(X, d₁) is complete. Must (X, d₂) be complete?</p>
+<button onclick="check(this,false)">Yes — convergence is determined by the open sets, and completeness is about convergence</button>
+<button onclick="check(this,true)" data-ok>No, and a bounded distortion of the real line is a counterexample</button>
+<button onclick="check(this,false)">Yes, but only if X is separable</button>
+<button onclick="check(this,false)">Undecidable without knowing whether the metrics are bounded</button>
+<div class="explain">No. The first option gets the first half right and the
+second half wrong: convergence <em>is</em> determined by the open sets, but
+completeness is not a statement about convergence alone — it is a statement about
+which sequences are <em>Cauchy</em>, and Cauchyness compares two running indices
+with no point named. Segment 2 builds the counterexample explicitly on ℝ, and it
+is worth noticing now that the failure has to happen out at infinity: on a
+bounded region the two notions are hard to prise apart. The fourth option is a
+reasonable instinct pointed at the wrong object — boundedness is itself one of
+the properties this counterexample shows is invisible to the topology.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Diagram space is complete; completeness is what lets limits of diagrams exist to be proven stable.</p>
+
+<div class="warn">
+<strong>The strip is quoted exactly. Its first clause is true under a
+restriction it does not state, and its second clause attaches completeness to
+the wrong theorem.</strong> Take them in order, because the second is the more
+useful mistake.
+<br><br>
+<em>First clause.</em> The corpus does establish it, and narrowly. tda2-09 reads
+Dey and Wang at their printed 406: with Definition 13.9 defining 𝔻<sub>q</sub><sup>p</sup>
+as the diagrams at finite (p, q)-Wasserstein distance from the trivial diagram,
+the space 𝔻<sub>q</sub><sup>∞</sup> is <em>Polish</em> — complete and separable.
+That is a theorem about one class of diagrams under one distance, and an2-01
+already showed why the qualification cannot be dropped: on diagrams in general
+the bottleneck distance is an extended pseudometric, and Segment 3 shows that
+completeness is not even a well-posed question about a pseudometric.
+<br><br>
+<em>Second clause.</em> Stability, as tda1-07 has it from Oudot's Corollary 3.6,
+says that for 𝔮-tame f and g on the same space X,
+d<sub>b</sub>(dgm(f), dgm(g)) ≤ ‖f − g‖<sub>∞</sub>. Count the limits in that
+sentence: there are none. It relates two diagrams you already have. Completeness
+is not among its hypotheses and is used nowhere in its proof. What completeness
+does underwrite in the corpus is tda2-09's Theorem 13.10 — that a probability
+measure on diagram space has a non-empty Fréchet expectation — which is an
+existence statement in statistics, not in stability.
+<br><br>
+So read the strip as pointing at a real theorem with the wrong finger. The
+distinction it blurs is the one this unit is built to install: <strong>density
+lets you transfer a property to a limit you already have; completeness
+manufactures a limit you do not.</strong> Segment 3 makes that the payoff.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>A condition with no limit in it</h2>
+
+<div class="definition">
+<strong>Definition 3.4.1 (printed 59).</strong> A sequence {xₙ} in a metric space
+(X, d) is a <em>Cauchy sequence</em> if for each ε &gt; 0 there is an N ∈ ℕ such
+that d(xₙ, x_m) &lt; ε whenever n, m ≥ N.
+<br><br>
+<strong>Definition 8.2.3 (Abbott, printed 223).</strong> The same condition,
+with the two indices written m and n.
+<br><br>
+<span class="cite">Set this beside Definition 3.2.1 from an2-01: {xₙ} converges
+to a if for every ε there is an N with d(xₙ, a) &lt; ε for n ≥ N. The difference
+is one symbol. Definition 3.2.1 names a point before it starts quantifying over
+n; Definition 3.4.1 never names one.</span>
+</div>
+
+<p>That single missing symbol is the whole content of this unit, so it is worth
+being slow about. Lemma 3.2.2 said that xₙ → a is equivalent to d(xₙ, a) → 0 —
+one real sequence, and every theorem from an-05 onwards available. Try the same
+move on Definition 3.4.1 and there is nothing to move: d(xₙ, x_m) has two running
+indices, so it is not a sequence at all, and no amount of cleverness converts a
+doubly indexed array into one.</p>
+
+<p>The consequence is that completeness cannot be <em>derived</em> for a space.
+It has to be assumed about it, or proved for it by a separate argument. Lindström
+takes the first step of the comparison anyway, because one direction does go
+through.</p>
+
+<div class="theorem">
+<strong>Proposition 3.4.2 (printed 59–60).</strong> Every convergent sequence is
+a Cauchy sequence.
+<br><br>
+<em>Proof.</em> If a is the limit, take N with d(xₙ, a) &lt; ε/2 for n ≥ N. For
+n, m ≥ N the Triangle Inequality gives
+d(xₙ, x_m) ≤ d(xₙ, a) + d(a, x_m) &lt; ε/2 + ε/2 = ε. ∎
+<br><br>
+<span class="cite">Proved in the body. Note the ε/2: you are given one budget
+and must spend it on two legs of a journey, which is why the halving appears and
+why it will appear again in every proof in this unit.</span>
+</div>
+
+<div class="definition">
+<strong>Definition 3.4.3 (printed 60).</strong> A metric space is called
+<em>complete</em> if all Cauchy sequences converge.
+<br><br>
+<span class="cite">Lindström's Example 1: ℝⁿ is complete and ℚ is not.
+Example 2 is sharper and is the first hint of Segment 2 — on the set C[a, b] of
+continuous functions, an2-01's three metrics d₁, d₂, d₃ give three metric spaces
+of which <em>only d₁ is complete</em>, and he says "we shall prove this in the
+next chapter". The promise is kept at printed 101 as Theorem 4.6.2, whose proof
+cites Proposition 3.4.4 below; that is an2-08's page, not this one's.</span>
+</div>
+
+<p>The converse of Proposition 3.4.2 is exactly what fails, and the standard
+witness deserves stating carefully because it is easy to blame the wrong object.
+In ℚ, take yₙ = the decimal expansion of √2 truncated at n places: 1.4, 1.41,
+1.414, 1.4142, … <span class="cite">— Lindström introduces this sequence at
+printed 71 and displays it at printed 72</span>. It is Cauchy, since |yₙ − y_m| ≤ 10<sup>−min(n,m)</sup>. It has no
+limit in ℚ. Nothing about the sequence has changed between ℚ and ℝ; the terms are
+the same rational numbers and the distances between them are the same. What
+changed is <em>which points were available to be the limit</em>. Completeness is
+a statement about the ambient furniture, not about any sequence.</p>
+
+<div class="theorem">
+<strong>Proposition 3.4.4 (printed 60).</strong> Assume (X, d) is complete and
+A ⊆ X. Then (A, d_A) is complete if and only if A is closed.
+<br><br>
+<span class="cite">Proved in the body, both directions. The forward direction
+uses Proposition 3.3.7 to place the limit inside A; the reverse builds
+aₙ ∈ A ∩ B(a; 1/n) at a boundary point a ∉ A.</span>
+</div>
+
+<p>This proposition is the bridge between two words that behave completely
+differently, and mixing them up is the standard error. <strong>"Closed" is
+relative.</strong> A set is closed <em>in</em> a space, and the same set of points
+can be closed in one space and not in another — ℚ is closed in ℚ and not closed
+in ℝ. <strong>"Complete" is absolute.</strong> It is a property of the metric
+space (A, d_A) standing alone, with no ambient space anywhere in the definition.
+Proposition 3.4.4 says that when the ambient space happens to be complete, the
+two coincide. Take that hypothesis away and only one direction survives, which is
+Problem 2(b).</p>
+
+<div class="worked">
+<strong>Worked — the discrete metric is complete, and what that costs.</strong>
+<span class="cite">Lindström's Exercise 1 to §3.4.</span>
+<br><br>
+Let (X, d) be discrete and {xₙ} Cauchy. Take ε = 1/2. There is an N with
+d(xₙ, x_m) &lt; 1/2 for all n, m ≥ N. But d takes only the values 0 and 1, so
+d(xₙ, x_m) &lt; 1/2 forces d(xₙ, x_m) = 0, that is xₙ = x_m. The sequence is
+<em>constant</em> from N onwards, and a constant sequence converges to its value,
+which is a point of X. So every Cauchy sequence converges: (X, d) is complete. ∎
+<br><br>
+<strong>Now notice what has just been proved and refuse to be reassured by
+it.</strong> Take X = ℕ with the discrete metric. It is complete. It is closed in
+itself. It is bounded, since every distance is 0 or 1. And the sequence
+xₙ = n has no convergent subsequence at all
+<span class="cite">— Lindström's Example 1 to §3.5, printed 64</span>. If you
+expected closed-and-bounded to rule that out, the theorem you were reaching for
+is Corollary 3.5.5, which is a statement about ℝⁿ and nowhere else; it is
+an2-03's, and the hypothesis you dropped was "in ℝⁿ". Completeness was never the
+relevant condition, and this is the first of several places where a word imported
+from ℝⁿ arrives with its hypotheses stripped off.
+</div>
+
+<div class="worked fade">
+<strong>Faded — completeness passes to products.</strong>
+<span class="cite">Lindström's Exercise 2 to §3.4.</span> Let (X, d_X) and
+(Y, d_Y) be complete, and give X × Y the metric
+d((x₁, y₁), (x₂, y₂)) = d_X(x₁, x₂) + d_Y(y₁, y₂).
+<br><br>
+The whole proof rests on one sandwich. For any pair of points,
+max{d_X, d_Y} ≤ d ≤ d_X + d_Y, so d is small exactly when both coordinates are
+small — the same one-line move as an2-01 Problem 2(a)'s norm chain, and it is
+what makes "Cauchy in the product" and "Cauchy in each coordinate" the same
+condition.
+<br><br>
+⟨your step: run the sandwich in both directions. From d(pₙ, p_m) &lt; ε deduce
+that each coordinate sequence is Cauchy; from both coordinate sequences
+converging, deduce that the pair converges in d. Then say which of the two
+directions used which half of the sandwich, and check that neither used
+completeness — completeness is applied exactly once, and not in either
+direction.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which of these subsets of ℝ, with the inherited
+metric, is <em>not</em> complete?</p>
+<button onclick="check(this,false)">ℤ</button>
+<button onclick="check(this,true)" data-ok>{1/n : n ∈ ℕ}</button>
+<button onclick="check(this,false)">{0} ∪ {1/n : n ∈ ℕ}</button>
+<button onclick="check(this,false)">[0, 1]</button>
+<div class="explain">{1/n} alone. The sequence xₙ = 1/n is Cauchy in it — the
+terms are its own members and they huddle — but 0 is not a member, so there is
+nothing for it to converge to. Adding the single point 0 makes the set closed in
+ℝ and therefore complete by Proposition 3.4.4, which is why the third option is
+safe. ℤ is closed and so is [0, 1]. Note what is <em>not</em> the reason: {1/n}
+is bounded, and boundedness has nothing to do with it.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A colleague says: "A is closed in X, so
+(A, d_A) is complete — that is Proposition 3.4.4." When is that reasoning
+wrong?</p>
+<button onclick="check(this,false)">Never; that is exactly what the proposition says</button>
+<button onclick="check(this,true)" data-ok>Whenever X itself is not complete — take X = A = ℚ</button>
+<button onclick="check(this,false)">Whenever A is unbounded</button>
+<button onclick="check(this,false)">Whenever A is not closed in some larger space containing X</button>
+<div class="explain">Proposition 3.4.4 opens "Assume that (X, d) is a complete
+metric space", and the closed ⟹ complete direction consumes that hypothesis
+immediately — it produces a limit in X and only then places it in A. Drop it and
+the direction dies: ℚ is closed in ℚ, and ℚ is not complete. The other direction,
+complete ⟹ closed, survives without the hypothesis, and Problem 2(b) asks you to
+prove exactly that asymmetry. The fourth option is the relativity of "closed"
+stated correctly but pointed at the wrong gap.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>What the topology cannot see</h2>
+
+<p>an2-01 finished with the observation that the Manhattan, Euclidean and max
+metrics on ℝ² are three different functions with one collection of open sets, and
+drew the moral that a property of a metric space need not be a property of the
+metric. This segment runs that sentence backwards. Completeness is defined
+entirely in terms of the metric. Is it visible in the topology?</p>
+
+<p>Lindström asks half of this question, in Exercise 4 to §3.4. He calls two
+metrics on the same set <em>equivalent</em> when there are constants K and M with
+d₁ ≤ K d₂ and d₂ ≤ M d₁ everywhere, and asks you to show that completeness
+transfers between equivalent metrics. It does, and the proof is three lines
+(Problem 3(a)). But look at what the hypothesis is: <strong>a pair of
+inequalities between numbers, with constants that do not depend on the
+points.</strong></p>
+
+<p>Generating the same open sets is weaker than that, and the gap is exactly the
+uniformity. Same topology says: around each point, each kind of ball contains one
+of the other kind. The radius you get is allowed to depend on the point. A
+uniform constant is a stronger demand, and the definition of Cauchy — two running
+indices, no point named — is precisely the kind of statement that needs
+uniformity to survive a change of metric.</p>
+
+<p>So the prediction gate's answer is no, and here is the witness. On ℝ, put</p>
+
+<p style="text-align:center">ρ(x, y) = |arctan x − arctan y|.</p>
+
+<p>Lindström has already put arctan on the table, at printed 57, when he observed
+that arctan(ℝ) = (−π/2, π/2) is not closed. Here it does different work: it is a
+bounded, strictly increasing bijection of ℝ onto that interval, continuous with
+continuous inverse, and ρ is the ordinary distance transported along it.</p>
+
+<canvas id="rho" width="640" height="390" aria-label="The real line under the usual metric and under rho, showing the sequence 1,2,3,... marching off in one and accumulating at an absent endpoint in the other"></canvas>
+
+<p class="cite">One set, two metrics, the same open sets. Above, ℝ with the usual
+distance: the points xₙ = n march off with every gap equal to 1, so the sequence
+is not Cauchy and nothing is missing. Below, the same points under ρ: their
+images arctan n crowd towards π/2, the gaps shrink to zero, and the sequence
+becomes ρ-Cauchy. The open circle is the place it is heading, and there is no
+point of ℝ there — the interval is open, which is the observation Lindström makes
+at printed 57 for an unrelated purpose. The dashed lines are the identity map:
+the same point of ℝ, drawn twice.</p>
+
+<div class="guided-proof">
+<strong>Guided proof — ρ is a metric, has the same open sets as d, and is not
+complete.</strong>
+<br><br>
+Prove all three. Keep the parts separate and, at each one, name the property of
+arctan you are using: injectivity, continuity, continuity of the inverse, or
+boundedness. Exactly one property is used in each part and one of them is used
+twice.
+<br><br>
+Start: for the first part, notice that you are not being asked to verify anything
+about arctan itself — ρ is the pullback of a metric you already trust along a
+map, so two of Definition 3.1.1's three conditions are free.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>ρ is a metric.</strong> Symmetry and the Triangle Inequality are
+inherited: ρ(x, y) = |u − v| with u = arctan x, v = arctan y, and |·| already
+satisfies both. Non-negativity likewise, and the codomain is [0, ∞) — in fact
+[0, π). The only condition needing anything is the "only if" half of
+Definition 3.1.1(i): ρ(x, y) = 0 gives arctan x = arctan y, and
+<strong>injectivity</strong> of arctan gives x = y. That is the one place a
+property of the map is consumed, and it is the same half of the same condition
+that an2-01 found doing all the work.</p>
+<p><strong>Same open sets.</strong> A ρ-ball is B_ρ(a; r) = {x : |arctan x −
+arctan a| &lt; r}, which is the preimage under arctan of an interval — an open
+interval of ℝ containing a, by <strong>continuity of the inverse</strong> (tan
+carries the interval back to an interval). Conversely, given an ordinary open
+interval about a, <strong>continuity</strong> of arctan at a supplies an r with
+B_ρ(a; r) inside it. So each kind of ball contains one of the other around the
+same centre, and by Proposition 3.3.3 a set is ρ-open exactly when it is d-open.</p>
+<p><strong>Not complete.</strong> Take xₙ = n. Since arctan n → π/2, the real
+sequence {arctan n} is convergent, hence Cauchy by Proposition 3.4.2, so
+ρ(xₙ, x_m) = |arctan n − arctan m| is eventually as small as we like and {xₙ} is
+ρ-Cauchy. But for <em>any</em> a ∈ ℝ, ρ(n, a) → π/2 − arctan a, which is strictly
+positive because arctan a &lt; π/2 for every real a — this is
+<strong>boundedness</strong> of arctan, used as the statement that the supremum
+is never attained. So {xₙ} converges to no point at all, and (ℝ, ρ) is
+incomplete. ∎</p>
+<p><strong>Which of Lindström's two inequalities survives.</strong> ρ ≤ M d holds
+with M = 1: arctan has derivative 1/(1 + x²) ≤ 1, so the Mean Value Theorem gives
+|arctan x − arctan y| ≤ |x − y|. The other, d ≤ K ρ, fails for every K — take
+x = n and y = n + 1, where d = 1 while ρ(n, n+1) → 0, so any proposed K is beaten
+as soon as ρ(n, n+1) &lt; 1/K. Exercise 4 needs <em>both</em> inequalities, and
+this is the pair that shows why.</p>
+<p><strong>The moral, stated in the form you will reuse.</strong> Convergence,
+continuity, open and closed are topological — they can be said using only the
+collection of open sets. Cauchy, complete and bounded are not. ρ is bounded by π
+and d is unbounded on the same topology, which settles the last of those in one
+line.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Where precisely does the proof of Exercise 4 —
+completeness transfers between equivalent metrics — break if the constant K is
+allowed to depend on the two points?</p>
+<button onclick="check(this,false)">At the final step, where the limit is identified</button>
+<button onclick="check(this,true)" data-ok>Inside the Cauchy condition: N must be chosen before n and m are, so K must not depend on them</button>
+<button onclick="check(this,false)">It does not break; a pointwise K still gives a valid inequality at each pair</button>
+<button onclick="check(this,false)">At the step showing the two metrics have the same open sets</button>
+<div class="explain">The Cauchy condition fixes N first and then quantifies over
+all n, m ≥ N. To turn a d₂-Cauchy sequence into a d₁-Cauchy one you feed ε/K into
+the d₂ condition and get a single N that works for every subsequent pair — which
+requires K to be available <em>before</em> the pair is chosen. A pointwise K is
+indeed a valid inequality at each pair, as the third option says, and that is
+exactly why it is useless: you cannot extract one N from infinitely many
+inequalities with infinitely many constants. This is the same uniformity gap that
+separates continuity from uniform continuity, which is an2-05's opening
+subject.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Sort: which of these properties of a metric
+space can be stated using only its collection of open sets?</p>
+<button onclick="check(this,false)">All of: convergent, continuous, Cauchy, complete, bounded</button>
+<button onclick="check(this,true)" data-ok>Convergent and continuous only; Cauchy, complete and bounded are metric</button>
+<button onclick="check(this,false)">Convergent, continuous and Cauchy; complete and bounded are metric</button>
+<button onclick="check(this,false)">Only continuous; everything phrased with sequences is metric</button>
+<div class="explain">Convergence is "every open set containing a eventually
+contains xₙ", and continuity is Proposition 3.3.10's preimage statement — both
+mention no distance. Cauchy cannot be said that way, because it compares
+d(xₙ, x_m) across two running indices and an open set cannot tell you that one
+pair of points is closer than another. Complete then inherits the failure, since
+it quantifies over Cauchy sequences. Bounded fails too, and ρ against d is the
+one-line proof. The fourth option overshoots: convergence is phrased with a
+sequence and is perfectly topological.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 30 min</span>
+<h2>Building the limits, and what the construction does not promise</h2>
+
+<p>If a space is missing limits, add them. The difficulty is that the only raw
+material available is the space itself, so the new points have to be built out of
+the old ones — and the only things in the old space that <em>point at</em> a
+missing limit are the Cauchy sequences that fail to converge. Lindström's move is
+to stop treating those sequences as evidence for a point and start treating them
+as the point.</p>
+
+<div class="definition">
+<strong>Definition 3.7.1 (printed 71).</strong> D ⊆ X is <em>dense</em> in X if
+for each x ∈ X there is a sequence {yₙ} from D converging to x.
+<br><br>
+<strong>Proposition 3.7.2 (printed 72).</strong> D is dense in X if and only if
+for each x ∈ X and each δ &gt; 0 there is a y ∈ D with d(x, y) ≤ δ.
+<span class="cite">Left as Problem 1 to §3.7; the ≤ rather than &lt; is
+deliberate and Lemma 3.7.9 is where it earns its place.</span>
+<br><br>
+<strong>Definition 3.7.3 (printed 72).</strong> A <em>completion</em> of
+(X, d_X) is a metric space (X̄, d_X̄) such that (i) X ⊆ X̄ with d_X̄ restricting
+to d_X on X, and (ii) X is dense in X̄.
+</div>
+
+<div class="theorem">
+<strong>Proposition 3.7.4 (printed 72).</strong> Any two completions of (X, d_X)
+are isometric. <span class="cite">Proved in the body; it is what licenses the
+definite article in "<em>the</em> completion".</span>
+<br><br>
+<strong>Theorem 3.7.12 (printed 75).</strong> Every metric space has a
+completion. <span class="cite">Proved in the body, by the construction below.</span>
+</div>
+
+<p>The construction is one long verification and it is worth reading for its
+shape rather than its details. Let 𝒳 be the set of all Cauchy sequences in X, and
+declare {xₙ} ∼ {yₙ} when lim d(xₙ, yₙ) = 0. Let X̄ be the set of equivalence
+classes, and try to define</p>
+
+<p style="text-align:center">d̄([xₙ], [yₙ]) = lim d(xₙ, yₙ).</p>
+
+<p>Every word of that formula is a promise that has to be kept, and the lemmas
+keep them in order.</p>
+
+<div class="theorem">
+<strong>Lemma 3.7.5 (printed 73).</strong> For Cauchy {xₙ} and {yₙ}, the limit
+lim d(xₙ, yₙ) exists. <span class="cite">Proved, via Proposition 3.1.4 — an2-01's
+Inverse Triangle Inequality — showing {d(xₙ, yₙ)} is a Cauchy sequence of real
+numbers, and then invoking completeness of ℝ.</span>
+<br><br>
+<strong>Lemma 3.7.6 (printed 73).</strong> ∼ is an equivalence relation.
+<span class="cite">Proved: reflexivity, symmetry and transitivity, the last from
+the Triangle Inequality.</span>
+<br><br>
+<strong>Lemma 3.7.7 (printed 74).</strong> The limit is unchanged if either
+sequence is replaced by an equivalent one — so d̄ is well defined on classes.
+<span class="cite">Proved.</span>
+<br><br>
+<strong>Lemma 3.7.8 (printed 74).</strong> (X̄, d̄) is a metric space.
+<span class="cite">Proved, in a few lines, one for each condition.</span>
+</div>
+
+<p>Stop at the disproportion. Lemmas 3.7.5 to 3.7.7 take more than a page and
+Lemma 3.7.8 — the one that actually says "this is a metric space" — takes about
+one line per condition. That is not an accident of exposition. Look at what Lemma 3.7.8 has to
+prove hardest: positivity's "only if" half, that d̄([xₙ], [yₙ]) = 0 forces the
+two <em>classes</em> to be equal. And d̄([xₙ], [yₙ]) = 0 says lim d(xₙ, yₙ) = 0,
+which is the definition of ∼, which is [xₙ] = [yₙ]. <strong>The equivalence
+relation was chosen to make the hard axiom true by construction</strong>, and
+Lemmas 3.7.6 and 3.7.7 are the bill for that choice. an2-01 warned that condition
+(i) is the one most often false; here it has been arranged to be free, and the
+cost shows up two lemmas earlier.</p>
+
+<div class="theorem">
+<strong>Lemma 3.7.9 (printed 75).</strong> D = {x̄ : x ∈ X}, where x̄ is the
+class of the constant sequence, is dense in X̄. <span class="cite">Proved.</span>
+<br><br>
+<strong>Lemma 3.7.10 (printed 75).</strong> Every Cauchy sequence in D converges
+to an element of X̄. <span class="cite">Proved.</span>
+<br><br>
+<strong>Lemma 3.7.11 (printed 75).</strong> If D is dense in (Y, d) and every
+Cauchy sequence from D converges in Y, then (Y, d) is complete.
+<span class="cite">Proved here — and set as <strong>Exercise 8 to §3.4</strong>,
+printed 63, twelve pages earlier. The same sentence is an exercise in one section
+and a lemma in another.</span>
+</div>
+
+<p>Two details in that block repay attention. In Lemma 3.7.9, Lindström needs a
+member of D close to a given class [xₙ], and the obvious candidate — the class of
+the constant sequence at the <em>limit</em> of {xₙ} — is unavailable, because
+that limit is exactly what may not exist. He takes x = x_N for an N from the
+Cauchy condition instead: a term of the sequence rather than its destination.
+That substitution is the entire section in miniature. And note the shape of the
+estimate it produces: d̄(x̄, [xₙ]) is a <em>limit</em> of quantities each less
+than ε/2, and a limit of strict inequalities need not be strict, so what comes
+out is ≤ ε/2. That is the reason Proposition 3.7.2 is stated with ≤ rather than
+&lt;; Lindström then recovers a strict &lt; ε by having halved in advance.</p>
+
+<p>The last step is not decorative. Definition 3.7.3(i) demands X ⊆ X̄ as a set,
+and the elements of D are equivalence classes of sequences, not points of X — so
+Theorem 3.7.12's proof ends by swapping the copy back out for the originals,
+using that x ↦ x̄ is an embedding in the sense of Definition 3.1.3. Proposition
+3.7.4 then says nothing depended on which construction we ran.</p>
+
+<div class="worked fade">
+<strong>Faded — ℝ is the completion of ℚ, without doing the construction.</strong>
+<span class="cite">Lindström's Problem 4 to §3.7.</span>
+<br><br>
+Definition 3.7.3 has two clauses. Clause (i): ℚ ⊆ ℝ and the metric |x − y|
+restricts correctly — immediate. Clause (ii): ℚ is dense in ℝ, which is
+Definition 3.7.1 with the decimal expansions of §3.7's opening. So ℝ is
+<em>a</em> completion of ℚ.
+<br><br>
+⟨your step: you have verified a definition, not run a construction. Say what
+Proposition 3.7.4 now lets you conclude about the equivalence-class object built
+from Cauchy sequences of rationals, and write the one sentence explaining why the
+answer would be unsatisfying without it — what would "the completion of ℚ" mean
+if two constructions could disagree?⟩
+</div>
+
+<p>And now Lindström's own warning, which is the most useful sentence in the
+section and the one that connects it to the strip
+<span class="cite">— printed 76</span>: the theorem "doesn't solve all problems
+with incomplete spaces as there may be additional structure we want the
+completion to reflect. If, e.g., the original space consists of functions, we may
+want the completion also to consist of functions, but there is nothing in the
+construction above that guarantees that this is possible."</p>
+
+<p>Read that against what a new point of X̄ actually <em>is</em>: an equivalence
+class of Cauchy sequences of old points. Not a function. Not a diagram. Not
+anything of the original kind. So Theorem 3.7.12 gives you, for free and for
+every space:</p>
+
+<p style="text-align:center"><em>(A) this space has a completion</em></p>
+
+<p>and gives you nothing at all towards</p>
+
+<p style="text-align:center"><em>(B) this space is already complete</em>.</p>
+
+<p>(A) is cheap and says nothing about what the new points are. (B) is a theorem
+about one space with one metric, and it is the one that means the limits you
+wanted are objects of the kind you started with. Every useful completeness
+statement in the corpus is of type (B).</p>
+
+<div class="you-try">
+<strong>You try.</strong> The audit, in three steps, and the middle one is where
+the work is.
+<br><br>
+<em>The precondition.</em> Definition 3.4.3 says a space is complete if all
+Cauchy sequences <em>converge</em>. an2-01 established that on diagrams in
+general the bottleneck distance is an extended pseudometric — distinct diagrams
+at distance zero, values in [0, ∞]. Show that "complete" is not a well-posed
+question in that setting, by finding the step of Proposition 3.2.3 that fails and
+saying what "converge" then fails to mean.
+<br><br>
+<em>The first clause.</em> tda2-09 reports Dey and Wang's Definition 13.9, which
+defines 𝔻<sub>q</sub><sup>p</sup> by a finiteness condition, and their result
+that 𝔻<sub>q</sub><sup>∞</sup> is Polish. State exactly what that licenses about
+"diagram space", and say whether it is claim (A) or claim (B) above.
+<br><br>
+<em>The second clause.</em> Write out Oudot's Corollary 3.6 as tda1-07 has it and
+count its limits. Then find the theorem completeness really supports —
+tda2-09 reports Theorem 13.10 — and say what kind of statement it is. Finish by
+writing a corrected strip: one sentence, naming the space, naming the theorem,
+and not mentioning stability.
+<br><br>
+If you want the distinction in one line before you start, it is Lindström's own,
+at printed 62: "in a complete space you don't have to construct the limit object;
+you just have to check that the approximations form a Cauchy sequence."
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> tda1-07 proves converse stability by showing
+the pointwise finite-dimensional modules are dense in the 𝔮-tame ones — each 𝕍
+is the limit of its ε-smoothings 𝕍<sup>1/n</sup> — and then arguing by
+continuity. Which property is that argument using?</p>
+<button onclick="check(this,false)">Completeness — the limit 𝕍 is produced by the Cauchy sequence of smoothings</button>
+<button onclick="check(this,true)" data-ok>Density — 𝕍 is given in advance, and the smoothings approximate something already held</button>
+<button onclick="check(this,false)">Both, since density and completeness are equivalent for pseudometric spaces</button>
+<button onclick="check(this,false)">Neither; it is a compactness argument</button>
+<div class="explain">Density. The module 𝕍 is the thing being approximated, not
+the thing being produced — the ε-smoothings are built <em>from</em> it. Nothing
+in that argument needs a limit to exist, because the limit was the starting
+point; what it needs is that the approximations get arbitrarily close and that
+the function being evaluated is continuous. That is the exact division this unit
+installs: completeness manufactures, density transfers. The first option is the
+error the mission strip makes, transplanted one theorem to the left.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Which of these does Theorem 3.4.5, Banach's
+Fixed Point Theorem, use completeness for?</p>
+<button onclick="check(this,false)">To prove the fixed point is unique</button>
+<button onclick="check(this,true)" data-ok>To turn the Cauchy estimate on the iterates into an actual limit point</button>
+<button onclick="check(this,false)">To guarantee the contraction factor s is less than 1</button>
+<button onclick="check(this,false)">To prove the iterates form a Cauchy sequence</button>
+<div class="explain">One line, and one only: "Since (X, d) is complete, the
+sequence must converge to a point a." Everything before it is arithmetic with the
+contraction factor — the geometric-series bound
+d(xₙ, x_{n+k}) ≤ sⁿ d(x₀, x₁)/(1 − s) proves the iterates are Cauchy with no
+completeness anywhere — and everything after it is continuity. Uniqueness comes
+from d(a, b) ≤ s d(a, b) with s &lt; 1, which needs only Definition 3.1.1. This
+unit does not prove Theorem 3.4.5; an2-04 does. It is here because it is the
+cleanest example of Lindström's remark: the fixed point is produced without ever
+being written down.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file and reconstruct three claims and the
+line between them.
+<details><summary>Check against this</summary>
+1. <strong>Cauchy names no limit, and that is the whole problem.</strong>
+Definition 3.4.1 differs from Definition 3.2.1 by one symbol — the point a —
+and losing it means Lemma 3.2.2 has nothing to convert. Convergent ⟹ Cauchy
+(Proposition 3.4.2) always; the converse is what a space may or may not have, so
+completeness is assumed, not derived. Proposition 3.4.4 ties it to closure, and
+only when the ambient space is complete: "closed" is relative, "complete" is
+absolute.
+<br><br>
+2. <strong>Completeness is a property of the metric that the topology cannot
+see.</strong> Lindström's Exercise 4 transfers it between metrics related by two
+uniform inequalities, and uniformity is the point: ρ(x, y) = |arctan x − arctan y|
+has exactly the same open sets as the usual metric on ℝ and is not complete,
+because xₙ = n becomes Cauchy without acquiring a limit. Convergent and
+continuous are topological; Cauchy, complete and bounded are not. This is an2-01's
+closing moral run backwards.
+<br><br>
+3. <strong>The completion exists for free and promises almost nothing.</strong>
+Points of X̄ are equivalence classes of Cauchy sequences; the equivalence relation
+is chosen so that the hard metric axiom holds by construction, which is why
+Lemma 3.7.8 is six lines and Lemmas 3.7.5 to 3.7.7 are a page. Lindström's Remark
+at printed 76 is the limit of the result: nothing guarantees the new points are
+objects of the original kind. So "X has a completion" is cheap and "X is
+complete" is a theorem — and the difference is exactly the difference between
+density, which transfers a property to a limit you hold, and completeness, which
+manufactures a limit you do not.
+</details>
+</div>
+
+<footer>
+Sources: Lindström, <em>Spaces: An Introduction to Real Analysis</em>, §3.4
+"Complete spaces", printed 59–63, and §3.7 "The completion of a metric space",
+printed 71–76 (folio = PDF − 13, checked on each page cited). The opening remark
+that the least-upper-bound description cannot be generalised, Definition 3.4.1,
+and Proposition 3.4.2 with proof, printed 59. Definition 3.4.3, Example 1 (ℝⁿ
+complete, ℚ not), Example 2 (only d₁ of the three metrics on C[a,b] is complete,
+with the proof deferred to Chapter 4), the paragraph on approximation, and
+Proposition 3.4.4 with proof, printed 60. The definition of a contraction and
+Theorem 3.4.5 with proof, printed 61. The rate-of-convergence estimate (3.4.1),
+the methodological remark, and the start of the exercises, printed 62.
+Exercises 3, 4 and 8 to §3.4, printed 62–63. Example 1 to §3.5 and
+Corollary 3.5.5, printed 64. Definition 3.7.1 and the √2 expansion, printed 71.
+Proposition 3.7.2, Definition 3.7.3 and Proposition 3.7.4, printed 72. The
+preview of the construction and Lemma 3.7.5 with proof, printed 73.
+Lemma 3.7.6 with proof, printed 73–74. Lemma 3.7.7 and Lemma 3.7.8, both with
+proofs, printed 74. Lemma 3.7.9, Lemma 3.7.10, Lemma 3.7.11 and Theorem 3.7.12,
+all with proofs, printed 75. The closing Remark on additional structure and
+Problems 1, 3 and 4 to §3.7, printed 76. From an2-01's pages: Proposition 3.1.4
+and Definition 3.1.3, printed 47; Definition 3.2.1, printed 48; Lemma 3.2.2 and
+Proposition 3.2.3, printed 49; Proposition 3.3.3, printed 54; Proposition 3.3.7,
+printed 55; Proposition 3.3.10 and the arctan example, printed 56–57.
+<br><br>
+Abbott, <em>Understanding Analysis</em>, 2nd ed., §8.2, Definition 8.2.3, printed
+223 (folio = PDF − 12).
+<br><br>
+<em>Modality.</em> Lindström <strong>proves</strong> Proposition 3.4.2,
+Proposition 3.4.4, Theorem 3.4.5, Proposition 3.7.4, Lemma 3.7.5, Lemma 3.7.6,
+Lemma 3.7.7, Lemma 3.7.8, Lemma 3.7.9, Lemma 3.7.10, Lemma 3.7.11 and
+Theorem 3.7.12. He <strong>sets as an exercise</strong> Proposition 3.7.2
+(Problem 1 to §3.7), the equivalent-metrics transfer (Exercise 4 to §3.4), the
+completeness of the discrete metric (Exercise 1) and of a product (Exercise 2),
+and — the one worth recording — <strong>Lemma 3.7.11 itself</strong>, as
+Exercise 8 to §3.4, twelve pages before proving it. He <strong>states</strong>
+Example 2's claim that only d₁ is complete and <strong>defers</strong> its proof
+to Chapter 4, which is an2-08's. Corollary 3.5.5 is <strong>stated and proved</strong>
+at printed 64 and is cited here only to name a hypothesis this unit is dropping;
+it belongs to an2-03. Oudot's Corollary 3.6 and Dey and Wang's Definition 13.9
+and Theorem 13.10 are <strong>reported</strong> from tda1-07 and tda2-09; this
+unit opens neither book.
+<br><br>
+<em>Stated here but not in the source.</em> The metric ρ(x, y) = |arctan x −
+arctan y| and everything proved about it in Segment 2 is this lesson's
+construction. Lindström supplies arctan, at printed 57, and supplies the
+Lipschitz-equivalence criterion, as Exercise 4 to §3.4 — but he nowhere exhibits
+two topologically equivalent metrics of which only one is complete, and nowhere
+states that completeness fails to be a topological property. The classification
+of convergent, continuous, Cauchy, complete and bounded into topological and
+metric is likewise this lesson's, assembled from Proposition 3.3.10 and the ρ
+example. Both are flagged because a reader is entitled to know which sentences
+carry a textbook's authority and which carry only this unit's.
+<br><br>
+<em>Not established here.</em> Banach's Fixed Point Theorem — Theorem 3.4.5 is
+stated and its use of completeness located, but it is proved in an2-04, together
+with the differential-equations application Lindström signposts to §4.7.
+Compactness, total boundedness and Corollary 3.5.5's ℝⁿ-only converse — §3.5,
+§3.6 and §4.8, which are an2-03's. That d₁ is complete on C[a, b] — Lindström
+defers it to Chapter 4 and it is an2-08's. Normed and Banach spaces, where
+completeness meets a linear structure — §5.1 and §5.4, an2-07's. Uniform
+continuity, which Definition 4.1.1 introduces on printed 79 and which Self-check 3
+gestures at — an2-05's. Every claim about persistence diagrams reported in the
+warn block and Segment 3: the Polish property of 𝔻<sub>q</sub><sup>∞</sup> and
+Theorem 13.10 are tda2-09's reading of Dey and Wang, Corollary 3.6 and the
+ε-smoothing density argument are tda1-07's reading of Oudot, and the
+pseudometric verdict on the bottleneck distance is tda1-06's. This unit opens
+none of those books and proves none of those statements.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('rho'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var L=80, yT=110, yB=280;
+  var stepT=72, HALFPI=Math.PI/2, spanB=450;
+  function xt(n){ return L + n*stepT; }
+  function xb(n){ return L + Math.atan(n)*(spanB/HALFPI); }
+  g.font='13px Segoe UI,system-ui,sans-serif'; g.textAlign='left';
+
+  g.fillStyle='#9aa5b1';
+  g.fillText('the real line with the usual metric  d(x,y) = |x − y|', L, 78);
+  g.fillText('the real line with  ρ(x,y) = |arctan x − arctan y|', L, 240);
+
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(L-16,yT); g.lineTo(590,yT); g.stroke();
+  g.beginPath(); g.moveTo(584,yT-5); g.lineTo(590,yT); g.lineTo(584,yT+5); g.stroke();
+  g.beginPath(); g.moveTo(L-16,yB); g.lineTo(L+spanB,yB); g.stroke();
+
+  g.setLineDash([3,4]); g.strokeStyle='#3a4450';
+  for(var n=0;n<=6;n++){
+    g.beginPath(); g.moveTo(xt(n),yT+9); g.lineTo(xb(n),yB-9); g.stroke();
+  }
+  g.setLineDash([]);
+
+  for(var n=0;n<=6;n++){
+    g.fillStyle='#8ab4f8';
+    g.beginPath(); g.arc(xt(n),yT,4,0,6.2832); g.fill();
+    g.beginPath(); g.arc(xb(n),yB,4,0,6.2832); g.fill();
+  }
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  for(var n=0;n<=6;n++){ g.fillText(String(n), xt(n), yT+24); }
+
+  g.strokeStyle='#e06c75'; g.lineWidth=2;
+  g.beginPath(); g.arc(L+spanB,yB,6,0,6.2832); g.stroke();
+  g.fillStyle='#e06c75';
+  g.fillText('no real number here', L+spanB-14, yB+26);
+
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('gaps all equal 1 — not Cauchy, nothing missing', L, 156);
+  g.fillText('gaps shrink to 0 — Cauchy, and no limit exists', L, 336);
+})();
+</script>
+</body></html>
