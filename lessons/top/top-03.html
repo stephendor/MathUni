@@ -112,12 +112,13 @@ particular advantage over the one we have adopted".</p>
 A is closed in Y if and only if it equals the intersection of a closed set of X
 with Y.
 <br><br>
-<strong>Theorem 17.3 (printed 94–95).</strong> Let Y be a subspace of X. If A is
+<strong>Theorem 17.3 (printed 95).</strong> Let Y be a subspace of X. If A is
 closed in Y and Y is closed in X, then A is closed in X.
 <br><br>
-<span class="cite">Munkres states Theorem 17.3 and writes "we leave the proof to
-you" (printed 94). It is Problem 1(d), and it is the exact mirror of top-02's
-Lemma 16.2, which said the same thing with "open" in both places.</span>
+<span class="cite">Munkres announces the theorem at the foot of printed 94 with
+"we leave the proof to you", and the statement itself opens printed 95. It is
+Problem 1(d), and it is the exact mirror of top-02's Lemma 16.2, which said the
+same thing with "open" in both places.</span>
 </div>
 
 <div class="definition">
@@ -285,18 +286,28 @@ of (1,2) although neither lies in it.</div>
 </div>
 
 <div class="you-try">
-<strong>You try.</strong> Prove that A′ is closed, for every subset A of every
-space. Munkres does not state this in §17, so you are on your own for the
-statement as well as the proof.
+<strong>You try.</strong> <em>Decide</em> whether A′ is closed for every subset A
+of every space — prove it or produce a counterexample. Munkres does not state
+this in §17, so you are on your own for the verdict as well as the argument, and
+the verdict is the harder half. Do not assume the claim is true because it is
+the kind of sentence that usually is.
 <br><br>
-Take x ∈ (A′)‾ and a neighbourhood U of x; U meets A′ at some y. Now U is a
-neighbourhood of y as well, so U meets A in a point other than y. The care is in
-getting a point other than <strong>x</strong>: handle y = x and y ≠ x
-separately, and in the second case shrink U before you use it.
+Start on the proof and watch where it stops. Take x ∈ (A′)‾ and a neighbourhood
+U of x; U meets A′ at some y. Now U is a neighbourhood of y as well, so U meets A
+in a point other than y. The care is in getting a point other than
+<strong>x</strong>: if y = x you are already done, and if y ≠ x the natural move
+is to shrink U so that it excludes x. <strong>Ask what makes that shrinking
+legal.</strong> Name the property of {x} you are using, then ask whether every
+space has it.
 <br><br>
-Then decide whether (A′)′ = A′ always holds. Test A = {1/n} in ℝ before
-committing to an answer, and note that the two questions have different answers
-— which is the point of asking both.
+If it turns out that not every space does, the counterexample is very small —
+<strong>two points suffice</strong>, and all you need is a topology in which some
+one-point set fails to be closed. Segment 3 names the axiom you will have found,
+so hold your answer until then.
+<br><br>
+Then decide separately whether (A′)′ = A′ always holds. Test A = {1/n} in ℝ
+before committing. The two questions have different answers, which is the point
+of asking both.
 </div>
 </div>
 
@@ -381,6 +392,25 @@ hypothesis is not decorative. In (X, 𝒜) above, take A = {b} and x = a: every
 neighbourhood of a contains b ≠ a, so a is a limit point of A, and A has exactly
 one point. Theorem 17.9 would forbid that, and the space is not T₁.</p>
 
+<p><strong>This is the axiom the You-try was waiting for.</strong> The shrinking
+step — replacing a neighbourhood U of x by U − {x} and still having an open set —
+is legal exactly when {x} is closed, which is what T₁ asks of every one-point
+set. So the honest statement is <em>A′ is closed in every T₁ space</em>, and the
+claim is false without that hypothesis. The smallest witness has two points: let
+X = {a, b} carry the indiscrete topology 𝒯 = {∅, X}, and take A = {a}. Then b is
+a limit point of A, since its only neighbourhood X contains a ≠ b; and a is not,
+since A − {a} = ∅. So A′ = {b}, whose complement {a} is not open — A′ is not
+closed. Trace the broken proof on this space and it fails at the predicted spot:
+x = a lies in (A′)‾ = X, its only neighbourhood U = X meets A′ at y = b, and U
+does meet A in a point other than y — but that point is a, which is x itself, and
+there is no smaller neighbourhood to retreat to.</p>
+
+<p>Note what the counterexample did <strong>not</strong> need: no exotic space, no
+infinite construction, nothing beyond a topology with too few open sets to
+separate one point from another. A claim of the form "for every subset of every
+space" is refuted by whichever space is too coarse to run the proof, and the
+coarsest spaces are the smallest ones. Test suspicious universals there first.</p>
+
 <div class="selfcheck">
 <p><strong>Self-check 3.</strong> ℝ with the finite complement topology 𝒯_f.
 Which holds?</p>
@@ -455,8 +485,11 @@ Sources: Munkres, <em>Topology</em>, 2nd ed., §17 "Closed Sets and Limit Points
 printed 92–101 (folio = PDF − 17, checked on each page cited). The definition of
 a closed set, Examples 1–5 and the door riddle, p. 93. Theorem 17.1 with its De
 Morgan proof, the remark that one could axiomatise by closed sets instead, the
-definition of "closed in Y", Theorem 17.2, and the statement of Theorem 17.3,
-p. 94. Interior, closure, the inclusion Int A ⊂ A ⊂ Ā, the remark that the
+definition of "closed in Y", Theorem 17.2, and the sentence "we leave the proof
+to you" that closes the page, p. 94. The statement of Theorem 17.3 itself, which
+begins the next page, p. 95 — the theorem is announced on 94 and stated on 95,
+and both folios were read rather than counted. Interior, closure, the inclusion
+Int A ⊂ A ⊂ Ā, the remark that the
 interior will not be much used, the Ā-means-closure-in-X convention and
 Theorem 17.4, p. 95. The word "intersects", Theorem 17.5 with its
 contrapositive proof, the definition of "neighborhood" and Example 6, p. 96.
@@ -487,6 +520,14 @@ meets a proper non-empty clopen set but does not develop the theory. Compactness
 (top-10). The wider family of separation axioms, of which Hausdorff and T₁ are
 two — §31, printed 195 (top-11), which is also where Munkres promises to explain
 the "strange terminology" of the T-numbering.
+<br><br>
+<em>Stated here but not in the source.</em> "A′ is closed in every T₁ space" is
+<strong>not</strong> in Munkres §17 in any form — not as a theorem, not as an
+exercise. It is supplied by this unit, with its counterexample, because the
+unqualified version is a natural guess and §17 gives the reader T₁ without ever
+turning it on this question. Treat it as this lesson's claim and not as
+Munkres's: it is proved in the problem set, and the two-point counterexample was
+checked by exhausting every topology on two and on three points.
 </footer>
 
 <script>

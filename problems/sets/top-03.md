@@ -36,14 +36,16 @@ subsets of $\mathbb{R}$, one open and not closed, one closed and not open, one
 both, one neither.
 (c) Prove Theorem 17.2: for $Y$ a subspace of $X$, a set $A$ is closed in $Y$
 if and only if $A = C \cap Y$ for some $C$ closed in $X$.
-(d) Munkres states Theorem 17.3 — if $A$ is closed in $Y$ and $Y$ is closed in
-$X$ then $A$ is closed in $X$ — and writes "we leave the proof to you" (p. 94).
-Prove it. Then show the hypothesis "$Y$ closed in $X$" cannot be dropped, and
+(d) Munkres writes "we leave the proof to you" (p. 94) and then states
+Theorem 17.3 (p. 95) — if $A$ is closed in $Y$ and $Y$ is closed in $X$ then $A$
+is closed in $X$. Prove it. Then show the hypothesis "$Y$ closed in $X$" cannot be dropped, and
 say which result of top-02 this theorem is the exact mirror of.
 
 *(Munkres §17, p. 93 for the definition, Examples 1–5 and the riddle; p. 94 for
-Theorem 17.1, Theorem 17.2 and the statement of Theorem 17.3, whose proof is
-left to the reader; p. 95 for the statement of Theorem 17.3 as displayed.)*
+Theorem 17.1, Theorem 17.2 and the announcement "we leave the proof to you",
+which is the last sentence of that page; p. 95 for the statement of Theorem 17.3
+itself, which opens the next one. The theorem spans the page break; its
+statement does not.)*
 
 <details><summary>Nudge</summary>
 For (d), the counterexample lives in the same place as top-02's: take
@@ -178,13 +180,18 @@ come apart: for $C = \{0\} \cup (1,2)$ the closure is $\{0\} \cup [1,2]$ but the
 set of limit points is $[1,2]$ — so $0 \in C$ and $0 \notin C'$. Define
 "isolated point" in terms of Munkres's definitions and say why Theorem 17.6 is
 untroubled by this.
-(d) Prove that $A' $ is closed for every $A$, or find a counterexample. Then
-decide, with proof or counterexample, whether $(A')' = A'$ always.
+(d) Prove that $A'$ is closed for every $A$, or find a counterexample. The
+instruction is deliberate: decide which of the two you are being asked for
+before you start writing, and do not let the shape of the sentence decide for
+you. If it turns out to be false in general, find the hypothesis that rescues it
+and prove the rescued version. Then decide, separately and with proof or
+counterexample, whether $(A')' = A'$ always.
 
 *(Munkres §17, p. 97 for the definition of limit point, for Example 8 and for
-Theorem 17.6; p. 98 for Corollary 17.7. Parts (c) and (d) go beyond the section:
-"isolated point" is not Munkres's term here, and $A'$ closed is not stated in
-§17.)*
+Theorem 17.6; p. 98 for Corollary 17.7; p. 99 for the $T_1$ axiom. Parts (c) and
+(d) go beyond the section: "isolated point" is not Munkres's term here, and the
+closedness of $A'$ is not stated in §17 in any form — neither the true $T_1$
+version nor the false unqualified one.)*
 
 <details><summary>Nudge</summary>
 For the second half of (d), test $A = \{1/n\}$ in $\mathbb{R}$ and compute both
@@ -193,18 +200,30 @@ $A'$ and $(A')'$.
 <details><summary>Strategy</summary>
 (a) $A' \subset \bar{A}$ by Theorem 17.5; $A \subset \bar{A}$ by definition. For
 the reverse, take $x \in \bar{A}$ and split on whether $x \in A$.
-(d) For $A'$ closed, show $\overline{A'} \subset A'$: if $x \in \overline{A'}$
-then every neighbourhood of $x$ meets $A'$, and a point of $A'$ inside a
-neighbourhood drags points of $A$ in with it. Be careful to get a point of $A$
-different from $x$.
+(d) Try to show $\overline{A'} \subset A'$: if $x \in \overline{A'}$ then every
+neighbourhood of $x$ meets $A'$, and a point of $A'$ inside a neighbourhood
+drags points of $A$ in with it. The whole difficulty is getting a point of $A$
+different from $x$, and the only move available is to shrink the neighbourhood
+so that it excludes $x$. **Write down what that move assumes about $\{x\}$.**
+Then ask whether every topological space grants it. If some space does not, that
+space is your counterexample, and the assumption you wrote down is the
+hypothesis to add.
 </details>
 <details><summary>Partial</summary>
 (c) $x$ is an *isolated point* of $A$ if $x \in A$ and $x \notin A'$ —
 equivalently if some neighbourhood of $x$ meets $A$ only in $x$. Theorem 17.6 is
 untroubled because it takes a *union*: $0$ enters $\bar{C}$ through $C$, not
 through $C'$.
-(d) $A'$ is closed. But $(A')' = A'$ can fail: for $A = \{1/n\}$ we get
-$A' = \{0\}$ and $(A')' = \varnothing$.
+(d) **$A'$ need not be closed** — the claim as posed is false, and the
+counterexample has two points. Let $X = \{a,b\}$ carry the indiscrete topology
+$\mathcal{T} = \{\varnothing, X\}$ and take $A = \{a\}$. Then $b \in A'$, because
+$b$'s only neighbourhood is $X$ and $X$ contains $a \neq b$; and $a \notin A'$,
+because $A - \{a\} = \varnothing$. So $A' = \{b\}$, and $\{b\}$ is not closed —
+its complement $\{a\}$ is not open. What is true is that **$A'$ is closed in
+every $T_1$ space**, and $T_1$ is exactly the hypothesis the shrinking step
+needs. The second question is independent of all this: $(A')' = A'$ can fail even
+in $\mathbb{R}$, which is as separated as one could ask — for $A = \{1/n\}$ we
+get $A' = \{0\}$ and $(A')' = \varnothing$.
 </details>
 <details><summary>Worked start</summary>
 (a) ($\supset$) If $x \in A'$ then every neighbourhood of $x$ intersects $A$ —
@@ -218,11 +237,29 @@ $x \in A'$. ∎
 ⟨your step: say which hypothesis the phrase "automatically different from $x$"
 is consuming, and why the argument would need more care if $x$ were in $A$⟩
 
-(d) *$A'$ is closed.* Let $x \in \overline{A'}$ and let $U$ be a neighbourhood
-of $x$. Then $U$ meets $A'$, say at $y \in U \cap A'$.
-⟨your step: $U$ is a neighbourhood of $y$ too, so $U$ meets $A$ in a point other
-than $y$. Explain why you may further arrange that this point is other than
-$x$ — the case $y = x$ and the case $y \neq x$ need separating.⟩
+(d) *The attempt, run until it stops.* Let $x \in \overline{A'}$ and let $U$ be a
+neighbourhood of $x$. Then $U$ meets $A'$, say at $y \in U \cap A'$. If $y = x$
+then $x \in A'$ and there is nothing left to do, so suppose $y \neq x$. Now $U$
+is a neighbourhood of $y$ too, so $U$ meets $A$ in a point other than $y$ — but
+that point may be $x$ itself, which is not good enough. The repair is to run the
+argument on $U - \{x\}$ instead of $U$, and for that to be a neighbourhood of $y$
+it must be **open**.
+
+⟨your step: $U - \{x\} = U \cap (X - \{x\})$, so it is open as soon as $\{x\}$ is
+closed. Name the axiom that says every one-point set is closed, finish the proof
+under it, and state the theorem you have actually proved.⟩
+
+*Why the hypothesis cannot be dropped.* In $X = \{a,b\}$ with
+$\mathcal{T} = \{\varnothing, X\}$ and $A = \{a\}$, we have $A' = \{b\}$ and
+$\overline{A'} = X$, so $a \in \overline{A'} \setminus A'$. Watch the attempt
+fail at exactly the step above: $U = X$ is the only neighbourhood of $a$, it
+meets $A'$ at $y = b \neq a$, and it does meet $A$ in a point other than $b$ —
+namely $a$, which is $x$. And $U - \{x\} = \{b\}$ is not open, so there is
+nowhere to retreat to.
+
+⟨your step: confirm that this $X$ is not $T_1$, by naming the one-point set that
+is not closed, and check that Theorem 17.9 also fails here — exhibit a limit
+point whose neighbourhoods contain only finitely many points of $A$.⟩
 
 (b), (c) ⟨your step⟩
 </details>
