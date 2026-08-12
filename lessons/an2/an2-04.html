@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an2-04 — The contraction mapping theorem and applications</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+</style></head><body>
+<p class="cite">Analysis II · Nexus College</p>
+<h1>The contraction mapping theorem and applications <span class="cite">(an2-04)</span></h1>
+
+<div class="hook">
+an2-02 built the machinery for producing a limit you cannot write down, and
+an2-03 built the machinery for extracting one from a crowd. This unit spends
+both, on the same problem, and the answers disagree. Two theorems solve
+y′ = f(t, y), y(0) = y₀. One demands more of f and hands back a
+<em>unique</em> solution on <em>all</em> of [0, ∞), produced by an iteration whose
+error after n steps you can compute before running it. The other demands almost
+nothing and hands back <em>some</em> solution on <em>some</em> interval, with no
+uniqueness and no bound. Which one you get is decided by a single inequality.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Banach's Fixed Point Theorem says a
+contraction on a complete space has a unique fixed point, reached from any
+starting point. Which part of that conclusion does <em>completeness</em> pay
+for?</p>
+<button onclick="check(this,false)">Uniqueness — two fixed points would violate completeness</button>
+<button onclick="check(this,true)" data-ok>Existence, and nothing else: it turns the Cauchy estimate on the iterates into an actual point</button>
+<button onclick="check(this,false)">The rate of convergence, since the geometric bound needs limits to exist</button>
+<button onclick="check(this,false)">All three; the theorem is false in every incomplete space</button>
+<div class="explain">Existence alone, on one line of the proof. Uniqueness comes
+from d(a, b) ≤ s·d(a, b) with s &lt; 1 and never mentions the space. The
+geometric estimate on d(xₙ, x_{n+k}) is arithmetic with the contraction factor
+and holds in any metric space at all. The fourth option overshoots: a contraction
+on an incomplete space still has <em>at most</em> one fixed point, and may have
+one — take a constant map. What completeness supplies is the one thing the
+iteration cannot supply for itself, which is somewhere for it to land.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Fixed-point arguments recur wherever an algorithm's convergence must be proven, not merely hoped.</p>
+
+<div class="warn">
+<strong>This strip is true, and it is the first in the module that needs no
+rescoping — so the work is earning it rather than bounding it.</strong> Three
+things have to be in place before "not merely hoped" means anything precise.
+<br><br>
+<em>The theorem.</em> Theorem 3.4.5 turns an iteration into a proof: iterate
+anything, from anywhere, and you converge. <em>The estimate.</em> (3.4.1) turns
+"converges" into "converges this fast", and it is computable from two numbers
+before a single step is taken. <em>The hypothesis.</em> Completeness, without
+which neither is available. Segment 1 is those three.
+<br><br>
+Then the contrast, because a strip about proof rather than hope needs something
+to be contrasted with. Segment 3's Theorem 4.9.2 also produces a solution as the
+limit of computed approximations — Euler's method is an algorithm too — and its
+convergence proof gives you no rate, no uniqueness, and no way to tell which
+solution you computed. Lindström says it himself at printed 116: compactness
+methods "are strong in the sense that they can often prove local existence of
+solutions under very general conditions, but they are weak in the sense that they
+give very little information about the nature of the solution." That sentence is
+the strip's real content.
+<br><br>
+<em>Where the corpus stands.</em> tda2-09 reports that for the Fréchet mean on
+𝔻₂², "an iterative algorithm computing a local minimum exists" and "the
+computational question remains open". That is Theorem 4.9.2's situation, not
+Theorem 3.4.5's: an algorithm, a limit, and no rate. What would upgrade it is a
+contraction factor — and the corpus reports neither that there is one nor that
+there is not.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>One inequality, and everything that follows from it</h2>
+
+<div class="definition">
+<strong>Contraction <span class="cite">(printed 61)</span>.</strong> f : X → X is
+a <em>contraction</em> if there is a positive s &lt; 1 with
+d(f(x), f(y)) ≤ s·d(x, y) for all x, y ∈ X. Lindström's parenthesis is the whole
+definition: "note that the same s should work for all x, y ∈ X".
+<br><br>
+<span class="cite">He then asserts two things without proof. Every contraction is
+continuous — take δ = ε, which works at every point, so contractions are
+<em>uniformly</em> continuous; and his Example 2 to §4.1 goes further, observing
+that the set of <em>all</em> contractions on X is equicontinuous in the sense of
+Definition 4.1.3, with δ = ε serving every one of them at once. And by induction
+d(f<sup>∘n</sup>(x), f<sup>∘n</sup>(y)) ≤ sⁿ d(x, y).</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.4.5 (Banach's Fixed Point Theorem, printed 61).</strong> Let
+(X, d) be a complete metric space and f : X → X a contraction. Then f has a
+unique fixed point a, and for every starting point x₀ ∈ X the sequence
+x₀, x₁ = f(x₀), x₂ = f<sup>∘2</sup>(x₀), … converges to a.
+<span class="cite">Proved in the body.</span>
+</div>
+
+<p>The proof has three movements and it is worth separating them, because only
+one of them mentions the space at all.</p>
+
+<p><strong>Uniqueness</strong> is one line and needs no hypothesis beyond the
+contraction inequality: if f(a) = a and f(b) = b then
+d(a, b) = d(f(a), f(b)) ≤ s·d(a, b), so (1 − s)d(a, b) ≤ 0, so d(a, b) = 0, so
+a = b by the "only if" half of Definition 3.1.1(i). Note what this means for an
+incomplete space: a contraction there still has <em>at most</em> one fixed
+point.</p>
+
+<p><strong>The estimate</strong> is arithmetic. By repeated use of the Triangle
+Inequality and then the induction above,</p>
+
+<p style="text-align:center">d(xₙ, x_{n+k}) ≤ ∑<sub>i=0</sub><sup>k−1</sup>
+d(x_{n+i}, x_{n+i+1}) ≤ ∑<sub>i=0</sub><sup>k−1</sup> s<sup>n+i</sup> d(x₀, x₁)
+= s<sup>n</sup>(1 − s<sup>k</sup>)/(1 − s) · d(x₀, x₁) ≤ s<sup>n</sup>/(1 − s) · d(x₀, x₁),</p>
+
+<p>which is as small as you like for large n because s &lt; 1. A geometric series
+was summed and nothing about X was used, so the iterates form a Cauchy sequence
+in <em>any</em> metric space.</p>
+
+<p><strong>Existence</strong> is the third movement and it is one sentence long:
+"Since (X, d) is complete, the sequence must converge to a point a." Then
+xₙ₊₁ = f(xₙ) for every n, and taking limits — legitimate because f is continuous,
+which is the first thing we proved about contractions — gives a = f(a). That is
+the entire use of Definition 3.4.3 in the theorem.</p>
+
+<div class="theorem">
+<strong>The estimate (3.4.1) <span class="cite">(printed 62)</span>.</strong>
+Letting m → ∞ in the bound above,
+<br><br>
+<span style="display:block;text-align:center">d(xₙ, a) ≤ s<sup>n</sup>/(1 − s) · d(x₀, x₁).</span>
+<br>
+<span class="cite">Lindström: "This gives us complete control over the rate of
+convergence – if we know the contraction factor s and the length d(x₀, x₁) of the
+first step in the iteration process, we have very precise information about how
+good an approximation xₙ is of the fixed point. This is important in numerical
+applications of the method."</span>
+</div>
+
+<p>Read that against everything an2-03 proved. Theorem 3.5.10 says a continuous
+function on a compact set attains its minimum — and gives you no way whatever to
+say where, or how close the tenth term of a minimising sequence is. (3.4.1) is a
+different kind of object: two numbers in, and a decision about how many steps to
+run comes out, before any step is taken.</p>
+
+<canvas id="cobweb" width="640" height="400" aria-label="A cobweb diagram of the iteration x maps to 0.55x plus 0.3 converging to its fixed point, beside a table showing the error and the bound (3.4.1) agreeing at every step"></canvas>
+
+<p class="cite">The iteration xₙ₊₁ = 0.55·xₙ + 0.3 from x₀ = 0.05, staircasing to
+the fixed point a = 2/3 where the graph meets the diagonal. Each vertical step
+applies f; each horizontal step carries the output back to the input axis. The
+contraction factor is the <em>slope</em>, 0.55, and it is what makes the steps
+shrink. The table is the point of the figure: for this map the estimate (3.4.1)
+is not an over-estimate but an <strong>equality</strong>, at every n. That is a
+fact about affine contractions and it is proved in the box below — which means
+(3.4.1) cannot be improved in general, since a bound attained by an example is
+the best a theorem of that form can say.</p>
+
+<div class="guided-proof">
+<strong>Guided proof — (3.4.1) is attained, so it is sharp.</strong>
+<br><br>
+Let f(x) = sx + c on ℝ with 0 &lt; s &lt; 1. Show that f is a contraction with
+factor exactly s, find its fixed point a, and then prove that for
+<em>every</em> starting point x₀,
+<br><br>
+<span style="display:block;text-align:center">|xₙ − a| = s<sup>n</sup>/(1 − s) · |x₀ − x₁|,</span>
+<br>
+with equality, not merely ≤. Conclude that no constant smaller than 1/(1 − s) can
+replace the one in (3.4.1).
+<br><br>
+Start: compute x₁ − a in terms of x₀ − a, and separately compute x₁ − x₀ in terms
+of x₀ − a. Both are one line, and the second is the one people skip.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Contraction.</strong> |f(x) − f(y)| = |sx − sy| = s|x − y|, so s works
+and no smaller number does — the factor is exactly s. ℝ is complete, so
+Theorem 3.4.5 applies.</p>
+<p><strong>Fixed point.</strong> a = sa + c gives a = c/(1 − s), which exists
+because s ≠ 1.</p>
+<p><strong>The error.</strong> x₁ − a = f(x₀) − f(a) = s(x₀ − a), and by induction
+xₙ − a = s<sup>n</sup>(x₀ − a). So |xₙ − a| = s<sup>n</sup>|x₀ − a|.</p>
+<p><strong>The first step.</strong> x₁ − x₀ = sx₀ + c − x₀ = (s − 1)x₀ + c. Now
+substitute c = a(1 − s): x₁ − x₀ = (s − 1)x₀ + a(1 − s) = (1 − s)(a − x₀). So
+|x₁ − x₀| = (1 − s)|x₀ − a|.</p>
+<p><strong>Put them together.</strong>
+s<sup>n</sup>/(1 − s) · |x₀ − x₁| = s<sup>n</sup>/(1 − s) · (1 − s)|x₀ − a| =
+s<sup>n</sup>|x₀ − a| = |xₙ − a|. Equality at every n and every x₀. ∎</p>
+<p><strong>Why sharpness matters.</strong> (3.4.1) is a bound over all complete
+spaces and all contractions, and this family attains it. So any attempt to prove
+a better constant must fail on this example — the looseness you will see for
+other maps is not slack in the theorem, it is slack in those maps. Segment 2's
+Picard iteration on y′ = y overshoots by a factor of about 220, and the reason is
+that the exponential's Taylor error shrinks factorially while (3.4.1) can only
+promise geometrically.</p>
+<p><strong>Not in Lindström.</strong> He states (3.4.1) and calls it "very
+precise information"; he does not exhibit a case of equality. The computation
+above is this lesson's.</p>
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> f : (0, 1) → (0, 1), f(x) = x/2. It is a
+contraction with s = 1/2. How many fixed points?</p>
+<button onclick="check(this,false)">One, at x = 0 — Theorem 3.4.5 applies</button>
+<button onclick="check(this,true)" data-ok>None, and Theorem 3.4.5 does not apply because (0, 1) is not complete</button>
+<button onclick="check(this,false)">Infinitely many, since the iterates converge from every starting point</button>
+<button onclick="check(this,false)">One, but the theorem's hypotheses fail so it must be found by other means</button>
+<div class="explain">None. Every iterate sequence is Cauchy — the estimate is
+arithmetic and holds here — but 0 is not a point of (0, 1), so it converges to
+nothing in the space. an2-02's Proposition 3.4.4 says why: (0, 1) is not closed
+in the complete ℝ, so it is not complete. This is the cleanest demonstration that
+completeness is doing existence work and nothing else: uniqueness survives here
+in the vacuous form "at most one", and there is not one.</div>
+</div>
+
+<div class="worked fade">
+<strong>Faded — the map in your hand.</strong>
+<span class="cite">Lindström's Exercise 6 to §3.4, with Exercise 5 behind it.</span>
+<br><br>
+You are standing inside the area depicted on a map you are holding. Exactly one
+point of the map lies vertically above the point it depicts. Exercise 5 is the
+same statement stripped of scenery: a differentiable f : [0, 1] → [0, 1] with
+|f′(x)| &lt; s &lt; 1 on (0, 1) has exactly one fixed point.
+<br><br>
+For Exercise 5, the Mean Value Theorem converts the derivative bound into
+|f(x) − f(y)| ≤ s|x − y|, and [0, 1] is closed in ℝ, hence complete by
+Proposition 3.4.4.
+<br><br>
+⟨your step: for the map, say what X is, what f is, and what the contraction
+factor is in terms of the map's scale. Then name the two hypotheses of
+Theorem 3.4.5 that the physical setup is supplying silently — one is
+completeness, and the other is the one people forget, which is in the statement
+as "f : X → X".⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Lindström's Exercise 7 to §3.4: if
+f<sup>∘n</sup> is a contraction for some n, then f has a unique fixed point —
+even if f itself is not a contraction. Why does the fixed point of
+f<sup>∘n</sup> have to be fixed by f?</p>
+<button onclick="check(this,false)">Because f<sup>∘n</sup> and f always have the same fixed points, by definition</button>
+<button onclick="check(this,true)" data-ok>Because f(a) is also a fixed point of f<sup>∘n</sup>, and f<sup>∘n</sup> has only one</button>
+<button onclick="check(this,false)">Because f is continuous and continuity preserves fixed points</button>
+<button onclick="check(this,false)">It does not; f may have no fixed point, and the exercise asks only about f<sup>∘n</sup></button>
+<div class="explain">Let a be the unique fixed point of g = f<sup>∘n</sup>. Then
+g(f(a)) = f<sup>∘n</sup>(f(a)) = f(f<sup>∘n</sup>(a)) = f(a), so f(a) is a fixed
+point of g; uniqueness forces f(a) = a. The first option has the implication in
+the easy direction only — a fixed point of f is certainly fixed by
+f<sup>∘n</sup>, and the converse is what needs the argument. This matters in
+practice for exactly the reason Segment 2 will show: an operator can fail to be a
+contraction on a long interval while some iterate of it is one.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 30 min</span>
+<h2>A differential equation is a fixed-point problem</h2>
+
+<p>Lindström opens §4.7 with the question the whole chapter has been inviting:
+"So far it may seem that we have been creating a theory of metric spaces for its
+own sake. It's an impressive construction where things fit together nicely, but is
+it of any use?" <span class="cite">— printed 103</span></p>
+
+<p>The first move is to stop looking at the derivative. Integrating
+y′(t) = f(t, y(t)) with y(0) = y₀ gives</p>
+
+<p style="text-align:center">y(t) = y₀ + ∫₀<sup>t</sup> f(s, y(s)) ds,</p>
+
+<p>and differentiating goes back, so the two problems have the same solutions.
+That is not a cosmetic rewriting. Define F by
+F(z)(t) = y₀ + ∫₀<sup>t</sup> f(s, z(s)) ds. <strong>F accepts any continuous z
+and returns a differentiable function</strong>, so it is a self-map of
+C([0, a], ℝⁿ) — whereas "apply z ↦ z′" is not an operator on that space at all,
+because a continuous function need not be differentiable. The integral form is
+what makes the fixed-point framing possible, and a solution of the differential
+equation is exactly a fixed point of F.</p>
+
+<p class="cite">Lindström's aside, printed 104: "Don't worry if you feel a little
+dizzy; that's just normal at this stage! Note that F is a function acting on a
+function z to produce a new function u = F(z) – it takes some time to get used to
+such creatures!"</p>
+
+<div class="definition">
+<strong>Uniformly Lipschitz <span class="cite">(printed 105)</span>.</strong>
+f : [a, b] × ℝⁿ → ℝⁿ is <em>uniformly Lipschitz with constant K</em> if
+‖f(t, y) − f(t, z)‖ ≤ K‖y − z‖ for all t ∈ [a, b] and all y, z ∈ ℝⁿ.
+<br><br>
+<span class="cite">Lipschitz in the <em>second</em> variable, uniform in the
+<em>first</em> — the same K at every time. That asymmetry is what "uniformly"
+names, and it is what lets Theorem 4.7.2 extend its solution interval after
+interval without the constant degrading.</span>
+</div>
+
+<div class="theorem">
+<strong>Lemma 4.7.1 (printed 105).</strong> If f is continuous and uniformly
+Lipschitz with constant K on [0, ∞), and a &lt; 1/K, then
+F : C([0, a], ℝⁿ) → C([0, a], ℝⁿ) is a contraction.
+<span class="cite">Proved, in four inequalities.</span>
+<br><br>
+<strong>Theorem 4.7.2 (printed 105–106).</strong> Under the same hypotheses, the
+initial value problem y′ = f(t, y), y(0) = y₀ has a <em>unique</em> solution on
+all of [0, ∞). <span class="cite">Proved, from Lemma 4.7.1, Theorem 3.4.5, and
+Theorem 4.6.4 for the completeness of C([0, a], ℝⁿ) — printed 102, an2-08's.</span>
+</div>
+
+<div class="worked">
+<strong>Worked — Lemma 4.7.1, and the move you have now made three times.</strong>
+<br><br>
+For v, w ∈ C([0, a], ℝⁿ) and any t ∈ [0, a]:
+<br><br>
+‖F(v)(t) − F(w)(t)‖ = ‖∫₀<sup>t</sup> (f(s, v(s)) − f(s, w(s))) ds‖
+<br>
+&nbsp;&nbsp;≤ ∫₀<sup>t</sup> ‖f(s, v(s)) − f(s, w(s))‖ ds &nbsp;<span class="cite">(norm inside the integral)</span>
+<br>
+&nbsp;&nbsp;≤ ∫₀<sup>t</sup> K‖v(s) − w(s)‖ ds &nbsp;<span class="cite">(the Lipschitz condition, at each s)</span>
+<br>
+&nbsp;&nbsp;≤ K ∫₀<sup>a</sup> ρ(v, w) ds &nbsp;<span class="cite">(each value is at most the sup; and t ≤ a)</span>
+<br>
+&nbsp;&nbsp;= Ka · ρ(v, w).
+<br><br>
+The right-hand side does not depend on t, so it bounds every member of the set
+whose supremum is ρ(F(v), F(w)) — and therefore bounds that supremum:
+<br><br>
+<span style="display:block;text-align:center">ρ(F(v), F(w)) ≤ Ka · ρ(v, w),</span>
+<br>
+with Ka &lt; 1 by the choice of a. ∎
+<br><br>
+<strong>That last step is an2-01's, for the third time.</strong> "An upper bound
+for every member is an upper bound for the supremum" proved the sup metric's
+triangle inequality in an2-01, bounded the bottleneck infimum in an2-01's
+Self-check 5, and is now the whole reason an integral inequality becomes a
+statement about a metric on a function space. It is worth collecting.
+</div>
+
+<p>Theorem 4.7.2 then extends. Lemma 4.7.1 gives a unique solution on [0, a];
+repeat the argument on [a, 2a] with y(a) as the new initial value, and the two
+pieces agree because the integral splits. <strong>The crucial point is that the
+same a works every time</strong>, because a was chosen from K alone — a &lt; 1/K,
+with no reference to the initial value or to which interval you are on. So the
+intervals tile [0, ∞) and the solution is global.</p>
+
+<p>Lindström names the iteration <span class="cite">— printed 106</span>: "the
+fixed point in that theorem is obtained by iteration. This means that the
+solutions of our differential equation can be approximated by iterating the map
+F. In numerical analysis this way of obtaining an approximate solution is
+referred to as <em>Picard iteration</em>."</p>
+
+<div class="worked fade">
+<strong>Faded — Picard iteration on y′ = y, and the bound before the run.</strong>
+<br><br>
+Take y′ = y, y(0) = 1, so F(z)(t) = 1 + ∫₀<sup>t</sup> z(s) ds, and start from
+z₀ ≡ 1. Then
+<br><br>
+z₁(t) = 1 + ∫₀<sup>t</sup> 1 ds = 1 + t,&nbsp;&nbsp;
+z₂(t) = 1 + ∫₀<sup>t</sup> (1 + s) ds = 1 + t + t²/2,&nbsp;&nbsp;
+z₃(t) = 1 + t + t²/2 + t³/6.
+<br><br>
+Here K = 1, so take a = 1/2 and the contraction factor is Ka = 1/2.
+<br><br>
+⟨your step: compute z₄ and name the function whose Taylor polynomials these are.
+Then apply (3.4.1) with s = 1/2, n = 4 and ρ(z₀, z₁) = sup{t : t ∈ [0, 1/2]} to
+bound ρ(z₄, y) — and compare it with the true error at t = 1/2. The bound is
+about 220 times too big, and it was available before you evaluated a single
+iterate. Say which of those two facts is the one that matters.⟩
+</div>
+
+<h3>The two negative controls, which Lindström sets and does not work</h3>
+
+<p>Immediately after Theorem 4.7.2 <span class="cite">— printed 106</span>: "In
+the exercises you will see that the conditions in the theorem are important. If
+they fail, the equation may have more than one solution, or a solution defined
+only on a bounded interval." The theorem concludes two things, and the two
+exercises kill one each.</p>
+
+<table class="cmp">
+<tr><th>Equation</th><th>f continuous?</th><th>uniformly Lipschitz in y?</th><th>unique?</th><th>lives forever?</th></tr>
+<tr><td>y′ = y</td><td>yes</td><td>yes, K = 1</td><td>yes</td><td>yes</td></tr>
+<tr><td>y′ = 1 + y² <span class="cite">Ex. 1</span></td><td>yes</td><td><strong>no</strong></td><td>yes</td><td><strong>no</strong> — tan t dies at π/2</td></tr>
+<tr><td>y′ = (3/2)y<sup>1/3</sup> <span class="cite">Ex. 2</span></td><td>yes</td><td><strong>no</strong></td><td><strong>no</strong></td><td>yes</td></tr>
+</table>
+
+<p>The failures are independent, which is the point of having two. For
+y′ = 1 + y², ∂f/∂y = 2y is unbounded, so no single K works; the solution
+y = tan t exists and is unique and simply stops at π/2. Lindström returns to it
+at printed 115 with the sharper version: with y(0) = y₀ the solution is
+tan(t + arctan y₀), so the life span is π/2 − arctan y₀ and <em>depends on the
+initial condition</em> — which is exactly why the constant-length extension of
+Theorem 4.7.2 is unavailable. For y′ = (3/2)y<sup>1/3</sup>, the Lipschitz ratio
+(3/2)y<sup>−2/3</sup> blows up as y → 0⁺, which is precisely where the initial
+condition sits, and the family y_a(t) = 0 for t ≤ a, (t − a)<sup>3/2</sup> for
+t &gt; a solves the problem for every a ≥ 0.</p>
+
+<p class="cite"><strong>A note on the source, since the arithmetic must
+check.</strong> The per-page markdown of printed 106 renders Exercise 2's
+exponent as y<sup>1/4</sup>. That is inconsistent with the solution family printed
+beside it: (t − a)<sup>3/2</sup> has derivative (3/2)(t − a)<sup>1/2</sup>, which
+is (3/2)y<sup>1/3</sup> and not (3/2)y<sup>1/4</sup>. Whether the slip is the
+book's or the extraction's cannot be told from the markdown, so this unit uses the
+exponent that makes Lindström's own stated solutions solutions, and says so
+here.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Theorem 4.7.2's extension to
+[a, 2a], [2a, 3a], … cover all of [0, ∞), while Theorem 4.9.2's does not extend
+at all?</p>
+<button onclick="check(this,false)">Because Theorem 4.9.2's solution is not unique, so there is nothing to extend</button>
+<button onclick="check(this,true)" data-ok>Because 4.7.2's interval length depends only on K, while 4.9.2's depends on where the solution currently is</button>
+<button onclick="check(this,false)">Because Euler's method cannot be restarted from a computed value</button>
+<button onclick="check(this,false)">Because Arzelà–Ascoli applies only once to any sequence</button>
+<div class="explain">a &lt; 1/K is fixed in advance by the Lipschitz constant, so
+every interval has the same length and finitely many of them reach any T. In
+Theorem 4.9.2, a is chosen so that the Euler approximations cannot escape a box
+around the current position — so it depends on that position. Lindström at printed
+115: "the second interval may be very small compared to the first one, the third
+one even smaller, and so on. Even if we add an infinite number of intervals, we
+may still only cover a finite part of the real line." And he adds that this is
+not a defect of the proof: "The differential equation may only have solutions
+that survive for a finite amount of time." y′ = 1 + y² is that equation.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 25 min</span>
+<h2>The other engine, and what it costs</h2>
+
+<p>Drop the Lipschitz condition entirely and keep only continuity. Theorem 4.7.2
+is gone — there is no contraction and no K. §4.9 solves the problem anyway, with
+an2-03's machinery instead of an2-02's.</p>
+
+<p>The idea is Euler's method. Partition time into steps of length Δt, move along
+the current derivative on each step, and write s̲ for the largest grid point ≤ s.
+The resulting broken-line approximation satisfies</p>
+
+<p style="text-align:center">ŷ(t) = y₀ + ∫₀<sup>t</sup> f(s̲, ŷ(s̲)) ds
+= y₀ + ∫₀<sup>t</sup> f(s, ŷ(s)) ds + ∫₀<sup>t</sup> (f(s̲, ŷ(s̲)) − f(s, ŷ(s))) ds,</p>
+
+<p>and the last integral is exactly the amount by which ŷ fails to solve the
+equation. The proof's job is to make it vanish.</p>
+
+<div class="theorem">
+<strong>Lemma 4.9.1 (printed 113–114).</strong> If continuous ŷ_k → y uniformly,
+then ∫₀<sup>t</sup> f(s, ŷ_k(s)) ds → ∫₀<sup>t</sup> f(s, y(s)) ds uniformly.
+<span class="cite">Proved, using uniform continuity of f on a compact box —
+Proposition 4.1.2 — and the boundedness of a uniformly convergent sequence, which
+he flags "(prove this!)" and sets as Exercise 1 to §4.9.</span>
+<br><br>
+<strong>Theorem 4.9.2 (printed 114).</strong> If f : [0, ∞) × ℝ<sup>m</sup> →
+ℝ<sup>m</sup> is <em>merely continuous</em> and y₀ ∈ ℝ<sup>m</sup>, then there
+exist a &gt; 0 and y : [0, a] → ℝ<sup>m</sup> with y(0) = y₀ and
+y′(t) = f(t, y(t)) on [0, a]. <span class="cite">Proved, printed 114–115.</span>
+<br><br>
+<span class="cite">Lindström's Remark, attached to the statement: "Note that
+there is no uniqueness statement (the problem may have more than one solution),
+and that the solution is only guaranteed to exist on a bounded interval (it may
+disappear to infinity after finite time)."</span>
+</div>
+
+<p>The architecture is five steps, and compactness appears in three of them.
+Bound f on a big compact box C, using <strong>Theorem 3.5.10</strong>. Choose a so
+small that the Euler approximations cannot leave a smaller box A ⊆ C — possible
+because every derivative is bounded by M. Observe that {ŷₙ} is bounded, since it
+stays in A, and <em>equicontinuous</em>, since the derivatives are bounded by the
+same M for every n. Extract a uniformly convergent subsequence by
+<strong>Proposition 4.8.6</strong>, which is Arzelà–Ascoli's hard half. Pass to the
+limit, using Lemma 4.9.1 on one integral and uniform continuity of f on the
+compact A — <strong>Proposition 4.1.2</strong> again — on the other.</p>
+
+<p>Now Lindström's Remark, and where each half of it comes from. <em>No
+uniqueness</em> is the subsequence's fault: Proposition 4.8.6 produces
+<em>a</em> convergent subsequence, a different extraction may converge elsewhere,
+and nothing shows the whole sequence converges. For y′ = (3/2)y<sup>1/3</sup>
+nothing could, since the limits genuinely differ. <em>Only a bounded interval</em>
+is the box's fault: a was chosen to keep the approximations inside A, and that
+choice depends on M, which depends on the box, which depends on where the solution
+currently is.</p>
+
+<table class="cmp">
+<tr><th></th><th>Theorem 4.7.2</th><th>Theorem 4.9.2</th></tr>
+<tr><td>hypothesis on f</td><td>continuous <strong>and uniformly Lipschitz</strong></td><td>continuous</td></tr>
+<tr><td>engine</td><td>Theorem 3.4.5 — completeness</td><td>Proposition 4.8.6 — compactness</td></tr>
+<tr><td>interval</td><td>all of [0, ∞)</td><td>some [0, a], a not controlled</td></tr>
+<tr><td>uniqueness</td><td>yes</td><td>no</td></tr>
+<tr><td>error bound</td><td>(3.4.1), computable in advance</td><td>none</td></tr>
+<tr><td>which solution?</td><td>the one the iteration converges to, and it is the only one</td><td>unknown — a subsequence was chosen</td></tr>
+</table>
+
+<p>Lindström's summary <span class="cite">— printed 115–116</span>: "Compactness
+methods are strong in the sense that they can often prove local existence of
+solutions under very general conditions, but they are weak in the sense that they
+give very little information about the nature of the solution. But just knowing
+that a solution exists is often a good starting point for further
+explorations."</p>
+
+<div class="you-try">
+<strong>You try.</strong> Earning the strip, in three parts.
+<br><br>
+<em>What makes an iteration a proof.</em> Name the theorem, the estimate, and the
+one hypothesis on the space without which neither is available. Then say what
+"not merely hoped" rules out — write the sentence so that it distinguishes a
+quantitative question you can answer from one you cannot.
+<br><br>
+<em>The contrast.</em> Euler's method is an algorithm and Theorem 4.9.2 is a
+convergence proof. List everything it does not give you. Then decide whether the
+strip's phrase applies to it, and say why. Lindström's sentence at printed 116 is
+your answer; use it.
+<br><br>
+<em>Locating it in the corpus.</em> tda2-09 reports that for the Fréchet mean on
+𝔻₂² "an iterative algorithm computing a local minimum exists" and "the
+computational question remains open". Say which of this unit's two theorems that
+situation resembles, and what would have to be exhibited to move it to the other.
+Then state carefully what the corpus does <em>not</em> report — it does not say
+the algorithm is a contraction, and it does not say it is not.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which step of Theorem 4.9.2's proof is
+responsible for the absence of uniqueness?</p>
+<button onclick="check(this,false)">Bounding f on the compact box, since the bound M is not unique</button>
+<button onclick="check(this,true)" data-ok>Extracting a subsequence — a different extraction may converge to a different solution</button>
+<button onclick="check(this,false)">Lemma 4.9.1, which only gives uniform convergence of the integrals</button>
+<button onclick="check(this,false)">The choice of a, which is not unique either</button>
+<div class="explain">The subsequence. Proposition 4.8.6 says a bounded
+equicontinuous sequence <em>has</em> a convergent subsequence; it says nothing
+about which, and nothing forces two extractions to agree. For
+y′ = (3/2)y<sup>1/3</sup> they demonstrably do not, since that problem has a
+one-parameter family of solutions. Compare Theorem 3.4.5, where the limit is
+independent of the starting point, let alone of any extraction — that
+independence is what uniqueness <em>is</em>.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> You need to solve y′ = f(t, y) numerically to
+three decimal places and certify the answer. Which theorem do you want to apply,
+and what do you have to check first?</p>
+<button onclick="check(this,false)">Theorem 4.9.2, because it needs the weakest hypothesis and so is easiest to apply</button>
+<button onclick="check(this,true)" data-ok>Theorem 4.7.2 — and first check that f is uniformly Lipschitz in y, which is what buys (3.4.1)</button>
+<button onclick="check(this,false)">Either; both produce convergent sequences of approximations</button>
+<button onclick="check(this,false)">Theorem 3.5.10, since three decimal places is a statement about an attained bound</button>
+<div class="explain">Theorem 4.7.2, and the thing to check is the uniform
+Lipschitz condition, because that is what makes the Picard operator a contraction
+and hands you (3.4.1). "Certify" is the operative word: Theorem 4.9.2 gives you a
+convergent subsequence of Euler approximations and no way to say how close any of
+them is, so "three decimal places" is not a question you can ask of it. The
+fourth option confuses attaining a bound with computing one — Theorem 3.5.10 says
+a minimum exists and never where.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> For which of these is (3.4.1) an equality
+rather than a strict inequality?</p>
+<button onclick="check(this,false)">Every contraction, since the proof only uses the triangle inequality</button>
+<button onclick="check(this,true)" data-ok>An affine contraction x ↦ sx + c, at every n and every starting point</button>
+<button onclick="check(this,false)">None — a bound derived from a geometric series is never attained</button>
+<button onclick="check(this,false)">Only when the starting point is already the fixed point</button>
+<div class="explain">Affine contractions, as the guided proof shows: xₙ − a =
+sⁿ(x₀ − a) and x₁ − x₀ = (1 − s)(a − x₀), so the two sides of (3.4.1) coincide
+identically. That makes (3.4.1) sharp — no smaller constant than 1/(1 − s) can
+work in general. The fourth option describes the degenerate case where both sides
+are 0, which is true and is not what sharpness means. The first is wrong for the
+Picard example, where the bound overshoots by a factor of about 220.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file and reconstruct three claims.
+<details><summary>Check against this</summary>
+1. <strong>Theorem 3.4.5 has three separable movements and completeness pays for
+exactly one.</strong> Uniqueness is d(a,b) ≤ s·d(a,b) and needs no space.
+The Cauchy estimate is a geometric series and needs no space. Existence is one
+sentence and is the whole use of Definition 3.4.3 — take it away, as in
+f(x) = x/2 on (0,1), and the iterates are still Cauchy and there is still nothing
+to converge to. (3.4.1) then converts convergence into a rate, and it is sharp:
+an affine contraction attains it.
+<br><br>
+2. <strong>An initial value problem becomes a fixed-point problem by
+integrating.</strong> F(z)(t) = y₀ + ∫f(s, z(s))ds is a self-map of
+C([0,a], ℝⁿ) precisely because integration accepts continuous input, which
+differentiation does not. Lemma 4.7.1 makes it a contraction with factor Ka once
+a &lt; 1/K, and since a depends on K alone the solution extends interval by
+interval to all of [0, ∞). Both of Theorem 4.7.2's conclusions rest on the
+uniform Lipschitz condition, and Lindström's two exercises kill one each:
+y′ = 1 + y² loses global existence, y′ = (3/2)y<sup>1/3</sup> loses uniqueness.
+<br><br>
+3. <strong>Continuity alone still buys existence, and nothing else.</strong>
+Theorem 4.9.2 runs Euler's method, notes the approximations are bounded and
+equicontinuous because their derivatives share a bound, and extracts a
+convergent subsequence with Proposition 4.8.6. Uniqueness dies with the
+subsequence; global existence dies with the box. The two theorems are the two
+engines of an2-02 and an2-03 applied to one problem, and the trade is
+Lindström's own sentence: compactness proves local existence under very general
+conditions and tells you very little about what it produced.
+</details>
+</div>
+
+<footer>
+Sources: Lindström, <em>Spaces: An Introduction to Real Analysis</em> — §3.4, the
+contraction half, printed 61–63; §4.7 "Applications to differential equations",
+printed 103–107; §4.9 "Differential equations revisited", printed 112–116 (folio
+= PDF − 13, checked on each page cited). The definition of a contraction, the two
+assertions about contractions, and Theorem 3.4.5 with the start of its proof,
+printed 61. The end of that proof, the estimate (3.4.1) with the remark on rate
+of convergence, the methodological remark on not constructing the limit, and the
+start of the exercises, printed 62. Exercises 1–8 to §3.4, printed 62–63. The
+opening question of §4.7, printed 103. The vector notation, the passage from
+(4.7.1) to (4.7.2), the operator F and the "a little dizzy" aside, printed 104.
+The uniform Lipschitz condition, Lemma 4.7.1 with its Remark and proof, and the
+statement of Theorem 4.7.2, printed 105. The end of that proof, the sentence that
+the conditions are important, and the Picard iteration Remark, printed 106.
+Exercises 1, 2 and 3 to §4.7, printed 106–107. Euler's method and the two forms
+of ŷ, printed 112–113. Lemma 4.9.1 with the start of its proof, printed 113. The
+end of that proof, Theorem 4.9.2 with its Remark, and the start of its proof,
+printed 114. The rest of the proof and the Remark on non-extension with
+y(t) = tan(t + arctan y₀), printed 115. The paragraph on compactness arguments,
+printed 115–116. Exercises 1, 2 and 3 to §4.9, printed 116. Carried from
+an2-01 to an2-03: Definition 3.1.1, printed 44; Proposition 3.2.3 and
+Proposition 3.2.5, printed 49–50; Definition 3.4.1 and Definition 3.4.3, printed
+59–60; Proposition 3.4.4, printed 60; Theorem 3.5.10, printed 65–66;
+Proposition 4.8.6, printed 109; Theorem 4.8.9, printed 110–111. Named from other
+units' sections: Proposition 4.1.2 and Definition 4.1.3 with Example 2, printed
+80 (an2-05's); Theorem 4.6.4, printed 102 (an2-08's).
+<br><br>
+<em>Modality.</em> Lindström <strong>proves</strong> Theorem 3.4.5 with the
+estimate (3.4.1), Lemma 4.7.1, Theorem 4.7.2, Lemma 4.9.1 and Theorem 4.9.2. He
+<strong>asserts without proof</strong> that every contraction is continuous
+("prove this!") and that d(f<sup>∘n</sup>(x), f<sup>∘n</sup>(y)) ≤ sⁿd(x, y) "by
+induction it is easy to see"; likewise the boundedness of a uniformly convergent
+sequence inside Lemma 4.9.1's proof, flagged "(prove this!)" and set as
+Exercise 1 to §4.9. He <strong>sets as exercises, and does not work</strong>, the
+two negative controls on Theorem 4.7.2 — Exercise 1 to §4.7 (global existence
+fails for y′ = 1 + y²) and Exercise 2 (uniqueness fails for
+y′ = (3/2)y<sup>1/3</sup>) — together with Exercises 5, 6 and 7 to §3.4 and
+Exercise 3 to §4.9. He <strong>states the trade-off in his own voice</strong> at
+printed 115–116, and that sentence is quoted rather than paraphrased. The
+Dey–Wang statements about the Fréchet-mean algorithm are
+<strong>reported</strong> from tda2-09; this unit does not open that book.
+<br><br>
+<em>Stated here but not in the source.</em> That (3.4.1) is <em>attained</em> by
+an affine contraction, hence sharp. Lindström states the estimate and calls it
+"very precise information"; he exhibits no case of equality and does not raise
+the question of the constant. The computation in the guided proof, the figure's
+table, and the conclusion that no constant below 1/(1 − s) can replace it are all
+this lesson's. The numerical comparison in the Picard example — bound 1/16
+against a true error of 2.84 × 10⁻⁴ — is likewise computed here. Flagged because
+a reader is entitled to know which sentences carry a textbook's authority and
+which carry only this unit's.
+<br><br>
+<em>A source discrepancy, recorded rather than smoothed.</em> The per-page
+markdown of printed 106 gives Exercise 2's equation as
+y′ = (3/2)y<sup>1/4</sup>, which is inconsistent with the solution family
+(t − a)<sup>3/2</sup> printed immediately below it. The exponent that makes those
+functions solutions is 1/3. Whether the error is the book's or the extraction's
+cannot be determined from the markdown; this unit uses 1/3 and says so in
+Segment 2 and in the problem set.
+<br><br>
+<em>Not established here.</em> The completeness of C([0, a], ℝⁿ) — Theorem 4.6.4,
+printed 102, an2-08's, used here as a hypothesis-supplier only. Uniform
+continuity and Proposition 4.1.2, and equicontinuity beyond
+Definition 4.1.3 — §4.1, an2-05's. Arzelà–Ascoli itself, Theorem 4.8.9, and
+Proposition 4.8.6's proof — an2-03's, invoked here and not reproved. The
+Fundamental Theorem of Calculus, used silently in the passage between the
+differential and integral forms — an-13's. The Inverse and Implicit Function
+Theorems, which Lindström says at printed 62 will use Theorem 3.4.5 in his
+Chapter 6 — an2-09's. Everything about persistence diagrams in the warn block and
+Segment 3 is tda2-09's reading of Dey and Wang, reported and not verified here.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('cobweb'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var X0=80, X1=370, Y0=340, Y1=50, S=0.55, C0=0.30, A=C0/(1-S), x0=0.05;
+  function X(t){ return X0+(X1-X0)*t; }
+  function Y(v){ return Y0-(Y0-Y1)*v; }
+  function f(x){ return S*x+C0; }
+  g.font='12px Segoe UI,system-ui,sans-serif';
+
+  g.fillStyle='#9aa5b1'; g.textAlign='left';
+  g.fillText('f(x) = 0.55x + 0.3   on [0, 1]', X0, 40);
+
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(X0,Y0); g.lineTo(X1,Y0); g.stroke();
+  g.beginPath(); g.moveTo(X0,Y0); g.lineTo(X0,Y1); g.stroke();
+
+  g.strokeStyle='#3a4450'; g.setLineDash([4,4]);
+  g.beginPath(); g.moveTo(X(0),Y(0)); g.lineTo(X(1),Y(1)); g.stroke();
+  g.setLineDash([]);
+
+  g.strokeStyle='#8ab4f8'; g.lineWidth=2;
+  g.beginPath(); g.moveTo(X(0),Y(f(0))); g.lineTo(X(1),Y(f(1))); g.stroke();
+
+  g.strokeStyle='#d8a657'; g.lineWidth=1.5;
+  g.beginPath();
+  var x=x0; g.moveTo(X(x),Y(x));
+  for(var i=0;i<7;i++){
+    var y=f(x);
+    g.lineTo(X(x),Y(y));
+    g.lineTo(X(y),Y(y));
+    x=y;
+  }
+  g.stroke();
+
+  g.fillStyle='#4caf82';
+  g.beginPath(); g.arc(X(A),Y(A),5,0,6.2832); g.fill();
+  g.fillStyle='#4caf82'; g.textAlign='left';
+  g.fillText('a = 2/3', X(A)+10, Y(A)+16);
+
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('0', X0, Y0+18);
+  g.fillText('1', X1, Y0+18);
+  g.fillText('x0', X(x0), Y0+18);
+  g.textAlign='right';
+  g.fillText('1', X0-8, Y1+5);
+
+  var L=400;
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('s = 0.55,  d(x0, x1) = 0.2775', L, 70);
+  g.fillText('bound = s^n · d(x0, x1)/(1 − s)', L, 90);
+  g.fillStyle='#8ab4f8';
+  g.fillText('n', L, 122);
+  g.fillText('|xn − a|', L+34, 122);
+  g.fillText('bound', L+114, 122);
+  g.fillStyle='#e8e8e8';
+  var xn=x0, d01=Math.abs(f(x0)-x0);
+  for(var n=0;n<=5;n++){
+    var yy=146+n*22;
+    g.fillText(String(n), L, yy);
+    g.fillText(Math.abs(xn-A).toFixed(4), L+34, yy);
+    g.fillText((Math.pow(S,n)*d01/(1-S)).toFixed(4), L+114, yy);
+    xn=f(xn);
+  }
+  g.fillStyle='#4caf82';
+  g.fillText('equal at every n:', L, 302);
+  g.fillText('(3.4.1) is attained here', L, 320);
+})();
+</script>
+</body></html>
