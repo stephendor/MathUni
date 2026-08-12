@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-12 — The quotient topology</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>The quotient topology <span class="cite">(top-12)</span></h1>
+
+<div class="hook">
+Glue the edges of a square and a torus falls out — the construction algebraic
+topology is built on. (Compare la-09, aa-09, aa-16.) Munkres opens §22 with a
+warning that this one is different in kind: "Unlike the topologies we have
+already considered in this chapter, the quotient topology is not a natural
+generalization of something you have already studied in analysis." Everything
+before this came from ℝ. This comes from cutting and pasting.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> To build a space by gluing, you
+choose which points to identify — a partition of X. Predict how much freedom
+remains in choosing the topology on the set of pieces.</p>
+<button onclick="check(this,false)">A great deal — any topology making the gluing map continuous will do</button>
+<button onclick="check(this,true)" data-ok>None: exactly one topology makes the gluing map a quotient map</button>
+<button onclick="check(this,false)">Two — a finest and a coarsest, and you pick</button>
+<div class="explain">None. Munkres states it on printed 138: for a surjection
+p : X → A "there exists exactly one topology 𝒯 on A relative to which p is a
+quotient map". The uniqueness is what the biconditional in the definition buys —
+mere continuity would leave the indiscrete topology as an option, and every
+topology between.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Quotients build every cell complex; the fourth and most geometric rehearsal of the collapse move.</p>
+
+<div class="warn">
+<strong>Cell complexes are not in §22.</strong> Munkres builds quotient spaces
+here and gives two of them by partition — the ball with its boundary collapsed
+(Example 4) and the square with its edges identified (Example 5) — but the word
+"cell complex" does not appear, and neither does any general construction of one.
+That is Hatcher ch. 0, which is top-13's source; this unit supplies the machine,
+not the objects built with it.
+<br><br>
+<em>And the strip's "fourth rehearsal" points at three units that do not exist.</em>
+The hook names la-09, aa-09 and aa-16 as the earlier rehearsals of the collapse
+move. All three are S1 syllabus units whose lessons have not been written, so
+nothing here can lean on them, and nothing here does.
+<br><br>
+<em>What §22 does deliver — and it is what tda2-06 was promised.</em> That unit,
+already shipped, says the Reeb graph "is the quotient of X by the relation 'lies
+in the same connected component of a level set of f' — top-12's quotient topology
+applied to a scalar field". §22 supplies exactly that: the equivalence between a
+partition and a relation (printed 139), the unique topology on the set of classes
+(printed 138), and Theorem 22.2's universal property for maps out of it. It
+supplies nothing about the result being a graph, and nothing about its being
+Hausdorff — Corollary 22.3(b) needs a Hausdorff target handed to it, which a bare
+partition does not provide.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Quotient maps, and the topology they force</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 137).</strong> Let X and Y be topological
+spaces; let p : X → Y be a surjective map. The map p is said to be a
+<em>quotient map</em> provided a subset U of Y is open in Y <strong>if and only
+if</strong> p⁻¹(U) is open in X.
+</div>
+
+<p>The "only if" half alone is continuity. The other half is the strengthening,
+and it is what makes the notion useful: it says Y carries no more open sets than
+X forces on it. A continuous surjection need not be a quotient map — top-04's
+F : [0,1) → S¹ is a continuous bijection whose inverse is discontinuous, so some
+subset of S¹ has open preimage without being open.</p>
+
+<p>Two sufficient conditions are worth having. A surjective continuous map that
+is an <strong>open map</strong> is a quotient map: if p⁻¹(U) is open then
+p(p⁻¹(U)) = U is open, using surjectivity for the equality. The same argument
+with closed sets shows a surjective continuous <strong>closed</strong> map is a
+quotient map. Neither reverses, and Munkres's Example 2 shows the two conditions
+are themselves independent: π₁ : ℝ × ℝ → ℝ is open — it carries a basis element
+U × V to U — and is not closed, since the hyperbola xy = 1 is closed in the plane
+and projects onto ℝ − {0}.</p>
+
+<div class="definition">
+<strong>Definitions (Munkres, printed 138–139).</strong> If X is a space, A is a
+set, and p : X → A is surjective, then there exists <em>exactly one</em> topology
+𝒯 on A relative to which p is a quotient map; it is called the <em>quotient
+topology induced by p</em>.
+<br><br>
+Let X* be a partition of X into disjoint subsets whose union is X, and let
+p : X → X* carry each point to the element containing it. In the quotient
+topology induced by p, the space X* is called a <em>quotient space</em> of X.
+</div>
+
+<p>And here is the sentence tda2-06 leans on, printed 139: "Given X*, there is an
+equivalence relation on X of which the elements of X* are the equivalence
+classes." The two data are interchangeable — a partition gives the relation "same
+block", a relation gives the partition into classes — so "the quotient of X by an
+equivalence relation ∼" is a definition rather than a licence. Munkres adds the
+names <em>identification space</em> and <em>decomposition space</em>, and a
+description worth memorising: "the typical open set of X* is a collection of
+equivalence classes whose <em>union</em> is an open set of X."</p>
+
+<canvas id="sq" width="640" height="380" aria-label="The unit square with its edges identified. Single arrowheads on the bottom and top edges show they are glued in the same direction, and double arrowheads on the left and right edges likewise. An interior point is marked as a one-point element of the partition; a matching pair of points on the left and right edges is joined by a dashed line as a two-point element; another matching pair on the bottom and top edges likewise; and all four corners are marked and linked as a single four-point element."></canvas>
+
+<div class="worked">
+<strong>Worked example — Example 5, read as a partition rather than as a picture.</strong>
+Munkres's X is the square [0,1] × [0,1], and X* consists of:
+<br>• all one-point sets {x × y} with 0 &lt; x &lt; 1 and 0 &lt; y &lt; 1;
+<br>• the two-point sets {x × 0, x × 1} for 0 &lt; x &lt; 1;
+<br>• the two-point sets {0 × y, 1 × y} for 0 &lt; y &lt; 1;
+<br>• the four-point set {0 × 0, 0 × 1, 1 × 0, 1 × 1}.
+<br><br>
+<em>Why the corner class has four points and not two.</em> Both identifications
+act on it. The corner 0 × 0 is glued to 1 × 0 by the left–right rule and to
+0 × 1 by the bottom–top rule; chasing both gives 1 × 1 as well. Any class must be
+closed under both relations, so the four corners collapse to a single point of
+X*. Every other class is closed under at most one.
+<br><br>
+<em>What a saturated open set looks like.</em> Munkres's own description: an open
+set of X that "equals a union of elements of X*". So an open disc in the interior
+is saturated; an open strip along the left edge is <em>not</em>, unless the
+matching strip along the right edge is included with it; and any saturated open
+set meeting a corner must contain a quarter-disc at all four corners at once.
+<br><br>
+<em>What §22 does and does not then say.</em> It constructs X* and describes its
+open sets. It does <strong>not</strong> prove X* is homeomorphic to a torus —
+Example 5 states the partition and the figures illustrate it, and that is all.
+The same holds for Example 4, where Munkres writes only "One can show that X* is
+homeomorphic with the subspace of ℝ³ called the unit 2-sphere".
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> How many topologies on a set A make a given
+surjection p : X → A a quotient map?</p>
+<button onclick="check(this,true)" data-ok>Exactly one</button>
+<button onclick="check(this,false)">At least one, usually many</button>
+<button onclick="check(this,false)">One if X is Hausdorff, otherwise none</button>
+<button onclick="check(this,false)">Two — the finest and the coarsest such</button>
+<div class="explain">Exactly one, printed 138. The definition is a
+biconditional, so it <em>determines</em> which subsets are open: U is open iff
+p⁻¹(U) is. Merely requiring p continuous would allow many topologies — the
+indiscrete one always works — which is why "quotient map" is more than
+"continuous surjection".</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The universal property, which is what everyone actually uses</h2>
+
+<div class="theorem">
+<strong>Theorem 22.1 (printed 140).</strong> Let p : X → Y be a quotient map; let
+A be a subspace of X that is <em>saturated</em> with respect to p; let
+q : A → p(A) be the restriction of p.
+<br>(1) If A is either open or closed in X, then q is a quotient map.
+<br>(2) If p is either an open map or a closed map, then q is a quotient map.
+<br><br>
+<strong>Theorem 22.2 (printed 142).</strong> Let p : X → Y be a quotient map. Let
+Z be a space and let g : X → Z be a map that is constant on each set p⁻¹({y}),
+for y ∈ Y. Then g induces a map f : Y → Z such that f ∘ p = g. The induced map f
+is continuous if and only if g is continuous; f is a quotient map if and only if
+g is a quotient map.
+<br><br>
+<strong>Corollary 22.3 (printed 142).</strong> Let g : X → Z be a surjective
+continuous map, and let X* = {g⁻¹({z}) : z ∈ Z} with the quotient topology.
+(a) g induces a bijective continuous f : X* → Z, which is a homeomorphism if and
+only if g is a quotient map. (b) If Z is Hausdorff, so is X*.
+</div>
+
+<div class="worked">
+<strong>Worked example — Theorem 22.2's continuity clause, in one identity.</strong>
+Suppose g is continuous and let V be open in Z. Then g⁻¹(V) is open in X. Now
+<br>g⁻¹(V) = p⁻¹(f⁻¹(V)),
+<br>because f ∘ p = g means x ∈ g⁻¹(V) ⟺ g(x) ∈ V ⟺ f(p(x)) ∈ V ⟺
+p(x) ∈ f⁻¹(V) ⟺ x ∈ p⁻¹(f⁻¹(V)).
+<br><br>
+So p⁻¹(f⁻¹(V)) is open in X. And <em>because p is a quotient map</em> — this is
+the "if" half of the biconditional, the half that continuity alone would not give
+— it follows that f⁻¹(V) is open in Y. Hence f is continuous. ∎
+<br><br>
+<em>This is the property at1-01 and at1-02 were promised.</em> Both, already on
+the shelf, use the phrasing "a map out of a quotient is continuous exactly when
+its composite with the quotient map is". That is precisely Theorem 22.2's
+continuity clause, and nothing more: it says nothing about f being injective,
+surjective, open or a homeomorphism. Those are separate clauses, and
+Corollary 22.3 is where they are collected.
+<br><br>
+<em>Note what makes it worth having.</em> Maps <em>into</em> a quotient are hard —
+you would have to know the quotient's open sets. Maps <em>out</em> of one are
+easy, because the theorem hands the question back to X, where you started.
+<br><br>
+<em>Compare the two neighbouring tools.</em> Theorem 18.3, the pasting lemma of
+top-04, also builds a map out of a decomposition — but from closed pieces on
+which the map is already given, and it needs them to agree on overlaps.
+Theorem 22.2 needs no agreement condition, because being constant on fibres is
+the agreement condition. And Theorem 19.6 of top-05 is the mirror image: it
+governs maps <em>into</em> a product coordinatewise, which is exactly the
+direction Theorem 22.2 does not help with.
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove Corollary 22.3(a), and then combine it with
+top-08's Theorem 26.6 to get a usable criterion.
+<br><br>
+Specifically: show that if X is compact, Z is Hausdorff, and g : X → Z is a
+continuous surjection, then X* is homeomorphic to Z.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+<em>Corollary 22.3(a).</em> The map g is constant on each g⁻¹({z}) by
+construction, so <strong>Theorem 22.2</strong> induces a continuous
+f : X* → Z with f ∘ p = g. It is surjective because g is, and injective because
+distinct elements of X* are distinct fibres g⁻¹({z}) and g⁻¹({z′}) with z ≠ z′.
+So f is a continuous bijection.
+<br><br>
+<em>The criterion.</em> Suppose X is compact, Z Hausdorff, g continuous and
+surjective.
+<br>• X* = p(X) is compact, being a continuous image of a compact space
+(<strong>Theorem 26.5</strong>) — p is continuous because every quotient map is.
+<br>• f : X* → Z is a continuous bijection, by the paragraph above.
+<br>• Z is Hausdorff by hypothesis.
+<br>By <strong>Theorem 26.6</strong> of top-08, f is a homeomorphism. Hence
+X* ≅ Z. ∎
+<br><br>
+<em>What this buys, and what it still costs.</em> It converts "is this quotient
+the space I think it is?" into "can I write down a continuous surjection onto
+that space?" — no inverse to construct, no open sets to chase. For Munkres's
+Example 4, applying it would need a continuous surjection from the closed unit
+ball onto S² whose point-preimages are exactly the elements of his partition.
+He does not construct one; he writes "One can show that…", and the construction
+is left. So even with the criterion in hand, Example 4's conclusion remains
+something this unit has been told rather than shown.
+</details>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Theorem 22.1, and what saturation is for.</strong>
+Let p : X → Y be a quotient map and A ⊂ X saturated, meaning A contains every
+fibre p⁻¹({y}) that it meets.
+<br><br>
+<em>The two identities the proof runs on.</em> For V ⊂ p(A): every point of
+p⁻¹(V) lies in a fibre that meets A, hence lies in A by saturation, so
+q⁻¹(V) = p⁻¹(V). And for U ⊂ A, p(U) = q(U) trivially.
+<br><br>
+⟨your step: prove case (1) with A open. Take V ⊂ p(A) with q⁻¹(V) open in A;
+promote it to open in X — Lemma 16.2 of top-02 is the promotion, and you should
+check its hypothesis rather than assume it — then use the identity and the fact
+that p is a quotient map.⟩
+<br><br>
+⟨your step: say what fails without saturation. Give a quotient map and a
+non-saturated open subspace whose restriction is not a quotient map, and identify
+which of the two identities above breaks.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Theorem 22.2 makes which kind of map easy to
+handle?</p>
+<button onclick="check(this,true)" data-ok>Maps out of a quotient</button>
+<button onclick="check(this,false)">Maps into a quotient</button>
+<button onclick="check(this,false)">Both equally</button>
+<button onclick="check(this,false)">Maps between two quotients</button>
+<div class="explain">Out of. The theorem replaces a question about f : Y → Z,
+where Y's topology is defined indirectly, with a question about g : X → Z on the
+original space. Maps <em>into</em> a quotient get no such help, and Munkres's
+Example 7 — the product of two quotient maps need not be a quotient map — is a
+reminder that quotients do not combine freely.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>What a quotient can destroy</h2>
+
+<p>Almost every property in this module survives subspaces and products.
+Quotients are the operation that does not respect them. Corollary 22.3(b) looks
+like a Hausdorff-preservation statement and is not: it says that if the quotient
+happens to map bijectively onto a Hausdorff Z, then it is Hausdorff — the
+Hausdorffness is imported, not generated.</p>
+
+<p>The honest statement is that a quotient of a Hausdorff space need not be
+Hausdorff. Collapse ℤ ⊂ ℝ to a single point: any saturated open set containing ℤ
+must contain an interval about <em>every</em> integer, and there is no way to
+separate the collapsed point from a nearby ordinary point without one such
+interval intruding. So ℝ is Hausdorff, normal, metrizable — everything top-06 and
+top-11 could ask — and its quotient is not even Hausdorff.</p>
+
+<div class="you-try">
+<strong>You try.</strong> Work Munkres's Example 6, printed 142–143.
+<br><br>
+X is the union of the segments [0,1] × {n} for n ∈ ℤ₊ — countably many disjoint
+segments. Z is the union of the segments through the points x × (x/n) — countably
+many segments sharing an endpoint at the origin. There is an obvious surjection
+X → Z gluing all the left endpoints together.
+<br><br>
+Show it is a continuous bijection off the glued point and a continuous
+surjection everywhere, and then show it is <em>not</em> a quotient map by
+exhibiting a set with open preimage that is not open in Z. Then say which
+hypothesis of the guided proof's criterion fails — there is exactly one, and
+naming it is the point of the exercise.
+<br><br>
+Finally, connect it back: which of the three clauses of Corollary 22.3(a) does
+this example show cannot be dropped?
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Is a quotient of a Hausdorff space Hausdorff?</p>
+<button onclick="check(this,false)">Yes, by Corollary 22.3(b)</button>
+<button onclick="check(this,true)" data-ok>Not in general — ℝ with ℤ collapsed is a counterexample</button>
+<button onclick="check(this,false)">Yes, provided the partition is finite</button>
+<button onclick="check(this,false)">Only if the quotient map is closed</button>
+<div class="explain">Not in general. Corollary 22.3(b) assumes a Hausdorff Z and
+a map onto it — it imports the property rather than proving it. Collapsing ℤ in ℝ
+gives a non-Hausdorff quotient of a metric space. This is the operation that
+breaks the pattern of the last several units, where subspaces and products
+preserved almost everything.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> tda2-06 says the Reeb graph is "the quotient of
+X by the relation 'lies in the same connected component of a level set'". What
+does §22 guarantee about the result?</p>
+<button onclick="check(this,true)" data-ok>That it is a topological space, with a unique topology and a universal property</button>
+<button onclick="check(this,false)">That it is a graph</button>
+<button onclick="check(this,false)">That it is Hausdorff</button>
+<button onclick="check(this,false)">That it is compact whenever X is</button>
+<div class="explain">Only the first. §22 turns the relation into a partition
+(printed 139), gives the set of classes its unique quotient topology (printed
+138), and hands you Theorem 22.2 for maps out of it. Being a graph is an extra
+hypothesis — tda2-06's own source imposes a tameness condition for exactly that
+reason — and Hausdorffness would need Corollary 22.3(b)'s imported target.
+Compactness <em>is</em> inherited, by Theorem 26.5, but §22 does not say so; you
+have to fetch it from top-08.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In Example 5's partition of the square, how
+many points are in the class containing the corner 0 × 0?</p>
+<button onclick="check(this,false)">Two — it is glued to one other corner</button>
+<button onclick="check(this,true)" data-ok>Four — both identifications act on it</button>
+<button onclick="check(this,false)">One — corners are not identified</button>
+<button onclick="check(this,false)">Infinitely many</button>
+<div class="explain">Four. The left–right rule glues 0 × 0 to 1 × 0, the
+bottom–top rule glues it to 0 × 1, and closing under both brings in 1 × 1. A
+class must be closed under the whole relation, which is why the corner class is
+the only one of its size in Munkres's list.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>A quotient map is a continuous surjection with the converse clause
+attached</strong>, and that clause is what forces uniqueness: for a surjection
+p : X → A there is exactly one topology making p a quotient map. Open maps and
+closed maps are two sufficient conditions, independent of each other — π₁ on
+ℝ × ℝ is open and not closed.
+<br><br>
+2. <strong>A partition and an equivalence relation are the same data</strong>
+(printed 139), so "the quotient of X by ∼" is defined, and its open sets are the
+collections of classes whose union is open in X. Example 5's square has four kinds
+of class, and the corner class has four points because it must be closed under
+both identifications.
+<br><br>
+3. <strong>Theorem 22.2 makes maps out of a quotient easy and says nothing about
+maps in.</strong> Its proof is the single identity g⁻¹(V) = p⁻¹(f⁻¹(V)) plus the
+quotient map's biconditional. Corollary 22.3 with top-08's Theorem 26.6 turns it
+into a working criterion — compact source, Hausdorff target, continuous
+surjection, and the quotient <em>is</em> the target. But quotients destroy what
+subspaces and products preserved: collapse ℤ in ℝ and Hausdorffness is gone.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed., §22 "The Quotient Topology", printed
+136–147 (folio = PDF − 17, checked on each page cited). The opening warning that
+the quotient topology "is not a natural generalization of something you have
+already studied in analysis", and the cut-and-paste motivation, printed 136. The
+definition of a quotient map, of open and closed maps and of saturated sets, with
+Examples 1 and 2, p. 137. The uniqueness of the quotient topology induced by a
+surjection, and Example 3, p. 138. The partition definition of a quotient space,
+the equivalence-relation remark, the identification-space and decomposition-space
+names, the description of the typical open set, and Examples 4 and 5, p. 139.
+Theorem 22.1 with its proof, p. 140. Theorem 22.2 and Corollary 22.3 with their
+proofs, p. 142. Example 6, pp. 142–143. Example 7, that the product of two
+quotient maps need not be a quotient map, p. 143.
+<br><br>
+<em>Modality.</em> Munkres <em>states</em> rather than proves the identification
+of both his headline quotients. Of Example 4 he writes "One can show that X* is
+homeomorphic with the subspace of ℝ³ called the unit 2-sphere"; Example 5 gives
+the partition of the square and its figures and stops. So this lesson constructs
+both quotients and does not assert that either is a sphere or a torus — the
+guided proof supplies the criterion that would settle it, and names what is still
+missing.
+<br><br>
+<em>Not established here.</em> Cell complexes, cones and suspensions — Hatcher
+ch. 0, which is top-13's source; the word does not appear in §22. That the square's
+quotient is homeomorphic to the torus, or the ball's to S² — stated, not proved,
+as above. Whether a Reeb graph is a graph, which tda2-06's own source secures with
+a tameness hypothesis rather than from §22. The three earlier "rehearsals of the
+collapse move" named in this unit's hook — la-09, aa-09 and aa-16 — are S1
+syllabus units whose lessons do not exist, and nothing here depends on them.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('sq'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var L=200,R=440,T=64,B=304;
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
+  g.fillText('Munkres §22, Example 5 — the partition of the square', 320, 36);
+  g.strokeStyle='#9aa5b1'; g.lineWidth=2;
+  g.strokeRect(L,T,R-L,B-T);
+  function head(x,y,dx,dy,col){g.fillStyle=col;var a=Math.atan2(dy,dx);
+    g.beginPath();g.moveTo(x,y);
+    g.lineTo(x-11*Math.cos(a-0.42),y-11*Math.sin(a-0.42));
+    g.lineTo(x-11*Math.cos(a+0.42),y-11*Math.sin(a+0.42));
+    g.closePath();g.fill();}
+  head(322,B,1,0,'#8ab4f8'); head(322,T,1,0,'#8ab4f8');
+  head(L,182,0,-1,'#d8a657'); head(R,182,0,-1,'#d8a657');
+  head(346,B,1,0,'#8ab4f8'); head(346,T,1,0,'#8ab4f8');
+  function dot(x,y,col){g.fillStyle=col;g.beginPath();g.arc(x,y,5,0,6.2832);g.fill();}
+  function link(x0,y0,x1,y1,col){g.save();g.setLineDash([4,4]);g.strokeStyle=col;g.lineWidth=1.5;
+    g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke();g.restore();}
+  dot(300,150,'#4caf82');
+  link(L,236,R,236,'#e06c75'); dot(L,236,'#e06c75'); dot(R,236,'#e06c75');
+  link(380,B,380,T,'#8ab4f8'); dot(380,B,'#8ab4f8'); dot(380,T,'#8ab4f8');
+  link(L,T,R,T,'#d8a657'); link(L,B,R,B,'#d8a657');
+  link(L,T,L,B,'#d8a657'); link(R,T,R,B,'#d8a657');
+  [[L,T],[R,T],[L,B],[R,B]].forEach(function(p){dot(p[0],p[1],'#d8a657');});
+  g.font='11px Segoe UI,system-ui,sans-serif'; g.textAlign='left';
+  g.fillStyle='#4caf82'; g.fillText('one-point class', 452, 154);
+  g.fillStyle='#e06c75'; g.fillText('two-point class', 452, 240);
+  g.textAlign='right';
+  g.fillStyle='#8ab4f8'; g.fillText('two-point class', 188, 100);
+  g.fillStyle='#d8a657'; g.fillText('four-point class', 188, 292);
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#9aa5b1';
+  g.fillText('a saturated open set is one that contains every class it meets', 320, 336);
+  g.fillText('§22 constructs this quotient; it does not prove the result is a torus', 320, 358);
+})();
+</script>
+</body></html>

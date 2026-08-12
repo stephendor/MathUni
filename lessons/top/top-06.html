@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-06 — The metric topology</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>The metric topology <span class="cite">(top-06)</span></h1>
+
+<div class="hook">
+Every metric space is a topological space — so all of an-14 was secretly
+topology already. The bridge is one line: declare the ε-balls a basis, and the
+topology follows. What is worth noticing is the traffic on it. Distances give
+you a topology, always. Topologies give you back a metric only sometimes, and
+Munkres spends most of §20 finding out for which spaces — the answer for ℝ^J
+turning out to depend on whether the index set is countable and on which of three
+topologies you meant.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A point cloud is a finite set with
+distances on it — a finite metric space. Predict what topology those distances
+induce on it.</p>
+<button onclick="check(this,false)">Something that varies with the distances, and records the clusters</button>
+<button onclick="check(this,true)" data-ok>The discrete topology, whatever the distances are</button>
+<button onclick="check(this,false)">The indiscrete topology, since no set is far from another</button>
+<div class="explain">The discrete topology, and the proof is three lines from the
+definitions in §20 — take ε to be the distance from x to its nearest neighbour,
+which is positive because the set is finite, and B(x,ε) = {x}. Every singleton is
+open. So the metric topology of a point cloud records its cardinality and
+nothing else: two point clouds with the same number of points have literally the
+same topology. That is not a defect of the bridge; it is why TDA does not cross
+it directly.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Point clouds are metric spaces; this is the bridge from their distances to their topology.</p>
+
+<div class="warn">
+<strong>The bridge exists and leads nowhere useful, and §20 is enough to prove
+it.</strong>
+<br><br>
+The first clause of the strip is exactly right: a point cloud is a finite metric
+space, and §20's definition applies to it verbatim. The second clause is where
+the trouble is. Run the construction and you get the <em>discrete</em> topology,
+every time, for every point cloud, whatever the distances are — see the
+prediction gate above and Problem 1(c), which proves it from the metric axioms
+and nothing else. All the geometry is discarded in the crossing.
+<br><br>
+So "the bridge from their distances to their topology" is a bridge whose far
+side carries no information. That is not a small caveat: it is the reason the
+whole apparatus of filtrations exists. TDA does not take the metric topology of
+a point cloud. It builds a <em>family</em> of spaces indexed by a scale
+parameter — Vietoris–Rips and Čech complexes in lab-02, filtrations in tda1-01 —
+so that the distances are read off at every scale rather than collapsed at one.
+<br><br>
+<em>What §20 and §21 do give the mission.</em> Theorem 21.1 makes the ε-δ
+language available on any metric space, which is the language stability is
+written in; and Theorem 21.6, the uniform limit theorem, is where sup-norm
+control first buys a topological conclusion. Neither mentions data. an-14, named
+in the hook, is a syllabus unit whose lesson does not exist.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>From distances to open sets</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 119).</strong> A <em>metric</em> on a set X
+is a function d : X × X → ℝ having the following properties:
+<br>(1) d(x,y) ≥ 0 for all x, y ∈ X; equality holds if and only if x = y.
+<br>(2) d(x,y) = d(y,x) for all x, y ∈ X.
+<br>(3) (Triangle inequality) d(x,y) + d(y,z) ≥ d(x,z), for all x, y, z ∈ X.
+<br><br>
+The <em>ε-ball centred at x</em> is B_d(x,ε) = {y : d(x,y) &lt; ε}. The collection
+of all ε-balls, for x ∈ X and ε &gt; 0, is a basis for a topology on X, called the
+<em>metric topology</em> induced by d.
+</div>
+
+<p>The basis check has one step that gets used constantly afterwards, so it is
+worth naming rather than passing over: if y lies in B(x,ε), then the ball
+<em>centred at y</em> of radius δ = ε − d(x,y) is contained in B(x,ε). The proof
+is the triangle inequality once. Everything else — condition (2) for a basis,
+Lemma 20.2, the comparison arguments in Theorem 20.3 — is that step applied
+twice and a minimum taken.</p>
+
+<div class="theorem">
+<strong>Theorem 20.1 (printed 121).</strong> Let X be a metric space with metric
+d. Define d̄(x,y) = min{d(x,y), 1}. Then d̄ is a metric that induces the same
+topology as d. It is called the <em>standard bounded metric</em> corresponding
+to d.
+<br><br>
+<strong>Lemma 20.2 (printed 122).</strong> Let d and d′ be two metrics on X
+inducing 𝒯 and 𝒯′. Then 𝒯′ is finer than 𝒯 if and only if for each x in X and
+each ε &gt; 0 there exists δ &gt; 0 such that B_{d′}(x,δ) ⊂ B_d(x,ε).
+<br><br>
+<strong>Theorem 20.3 (printed 122).</strong> The topologies on ℝⁿ induced by the
+euclidean metric d and the square metric ρ are the same as the product topology
+on ℝⁿ.
+</div>
+
+<p>Lemma 20.2 is Lemma 13.3 of top-02 with one extra move. Lemma 13.3 hands you
+a basis element inside; here you need a ball <em>centred at x</em> inside, and
+the centring step is exactly the one from the basis check. Theorem 20.3 is then
+two inequalities — ρ ≤ d ≤ √n·ρ — fed through Lemma 20.2 once each. Note that
+√n is a constant only because n is finite; that is the first hint of what breaks
+for infinite products.</p>
+
+<canvas id="fin" width="640" height="400" aria-label="Five points of a finite metric space in the plane, each surrounded by a dashed circle of radius equal to the distance from that point to its nearest neighbour. Each circle contains only its own centre, with the nearest other point lying exactly on the boundary and therefore excluded from the open ball."></canvas>
+
+<div class="worked">
+<strong>Worked example — a point cloud's metric topology is discrete.</strong>
+Let (X, d) be a metric space with X finite and at least two points. Fix x ∈ X and
+put
+<br>ε_x = min{ d(x,y) : y ∈ X, y ≠ x }.
+<br><br>
+The set being minimised over is finite and non-empty, so the minimum is attained
+— this is where finiteness is spent — and ε_x &gt; 0 by axiom (1), since each such
+y differs from x. Now
+<br>B(x, ε_x) = {y : d(x,y) &lt; ε_x} = {x},
+<br>because any y ≠ x has d(x,y) ≥ ε_x by the definition of the minimum, and the
+ball is <em>open</em>: the nearest neighbour sits exactly on the boundary and is
+excluded. So {x} is open. Every subset of X is a union of singletons, hence open.
+The topology is discrete. ∎
+<br><br>
+<em>The degenerate cases, so the statement holds without exception.</em> If
+|X| = 1 the minimum above is over the empty set and the argument does not run —
+but the only topology on a one-point set is already discrete (and indiscrete;
+top-01 Problem 2(c)). If X = ∅ there is one topology. So: every finite metric
+space carries the discrete topology.
+<br><br>
+<em>What follows.</em> The metric topology of a finite metric space does not
+depend on d at all. Two point clouds of the same size are homeomorphic. The
+crossing from distances to topology, taken directly, keeps the cardinality and
+throws away every distance — which is the content of the picture above and the
+bound on this unit's mission strip.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why is ε_x &gt; 0 in the argument above?</p>
+<button onclick="check(this,false)">Because d is continuous</button>
+<button onclick="check(this,true)" data-ok>Because it is a minimum of finitely many strictly positive numbers</button>
+<button onclick="check(this,false)">Because the triangle inequality forces it</button>
+<button onclick="check(this,false)">It need not be — the argument assumes the points are distinct</button>
+<div class="explain">A minimum over a finite non-empty set is attained, and each
+d(x,y) with y ≠ x is strictly positive by metric axiom (1). Both halves matter:
+drop finiteness and you get an infimum that may be 0 — which is precisely why an
+infinite metric space need not be discrete. The last option confuses the point:
+the points <em>are</em> distinct, that is the hypothesis y ≠ x.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>ℝ^J: three topologies, and which of them a metric can reach</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 124).</strong> Given an index set J and
+points x = (x_α), y = (y_α) of ℝ^J, define
+<br>ρ̄(x,y) = sup{ d̄(x_α, y_α) : α ∈ J },
+<br>where d̄ is the standard bounded metric on ℝ. This is the <em>uniform
+metric</em> on ℝ^J, and the topology it induces is the <em>uniform topology</em>.
+</div>
+
+<div class="theorem">
+<strong>Theorem 20.4 (printed 124).</strong> The uniform topology on ℝ^J is finer
+than the product topology and coarser than the box topology; these three
+topologies are all different if J is infinite.
+<br><br>
+<strong>Theorem 20.5 (printed 125).</strong> Let d̄(a,b) = min{|a−b|, 1} be the
+standard bounded metric on ℝ. If x and y are two points of ℝ^ω, define
+D(x,y) = sup{ d̄(x_i, y_i) / i }. Then D is a metric that induces the product
+topology on ℝ^ω.
+<br><br>
+<span class="cite">Of Theorem 20.4's last clause Munkres writes: "Showing these
+three topologies are different if J is infinite is a task we leave to the
+exercises" (printed 125). The strictness is <em>stated</em> here and proved
+nowhere in §20; Problem 3(b) does one half of it.</span>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — where the finiteness clause is spent in Theorem 20.4.</strong>
+Take a product-topology basis element ∏U_α about a point x. By top-05's
+Theorem 19.1 there are only finitely many indices α₁,…,α_n with U_α ≠ ℝ. For each
+i choose ε_i &gt; 0 with the ε_i-ball about x_{α_i} in the d̄ metric inside
+U_{α_i}, and put ε = min{ε₁,…,ε_n}.
+<br><br>
+⟨your step: show that B_ρ̄(x, ε) ⊂ ∏U_α. Take z with ρ̄(x,z) &lt; ε and say what
+that gives you about d̄(x_α, z_α) for <em>every</em> α — including the α where
+U_α = ℝ, which need no argument at all.⟩
+<br><br>
+⟨your step: now say in one sentence why the step "put ε = min{ε₁,…,ε_n}" is the
+one that needs Theorem 19.1, and what would go wrong with an infimum over
+infinitely many ε_i.⟩
+<br><br>
+This is the same shape as top-05's Theorem 19.6 — the product topology's
+finiteness clause is what lets a construction over finitely many coordinates
+control all of them at once.
+</div>
+
+<p>Munkres records on printed 125 what is and is not settled: "the only one of
+these cases where ℝ^J is metrizable is the case where J is countable and ℝ^J has
+the product topology. As we shall see." Theorem 20.5 proves the positive half by
+exhibiting the metric D. The negative half — that ℝ^J is not metrizable in the
+box topology for infinite J, nor in the product topology for uncountable J — is
+asserted here and not proved in §20.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which topology on ℝ^ω does Theorem 20.5 show
+to be metrizable?</p>
+<button onclick="check(this,false)">The box topology</button>
+<button onclick="check(this,true)" data-ok>The product topology, and only that one</button>
+<button onclick="check(this,false)">The uniform topology, since ρ̄ is a metric</button>
+<button onclick="check(this,false)">All three, since they coincide on ℝ^ω</button>
+<div class="explain">The product topology. Note the trap in the third option:
+ρ̄ <em>is</em> a metric, so the uniform topology is metrizable by definition —
+but that is not what Theorem 20.5 says, and the uniform topology is a different
+topology from the product one on ℝ^ω by Theorem 20.4. The fourth option
+contradicts Theorem 20.4's last clause outright.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Theorem 20.3 uses the bound d ≤ √n·ρ. What
+fails when n is replaced by an infinite index set?</p>
+<button onclick="check(this,false)">The square metric stops being a metric</button>
+<button onclick="check(this,true)" data-ok>There is no finite constant, so Lemma 20.2 has no δ to offer</button>
+<button onclick="check(this,false)">The euclidean metric becomes discontinuous</button>
+<button onclick="check(this,false)">Nothing fails; the proof goes through verbatim</button>
+<div class="explain">√n is a constant for each fixed n, so δ = ε/√n serves
+uniformly. Let n grow and the constant grows without limit, so Lemma 20.2's
+δ-for-every-ε cannot be produced. This is the arithmetic behind Munkres's
+statement that ℝ^J is not metrizable in the box topology for infinite J.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Epsilons return, sequences almost suffice, and uniform limits</h2>
+
+<div class="theorem">
+<strong>Theorem 21.1 (printed 129).</strong> Let f : X → Y with X and Y
+metrizable with metrics d_X and d_Y. Then continuity of f is equivalent to the
+requirement that given x ∈ X and ε &gt; 0 there exists δ &gt; 0 such that
+d_X(x,y) &lt; δ ⟹ d_Y(f(x), f(y)) &lt; ε.
+<br><br>
+<strong>Lemma 21.2, the sequence lemma (printed 130).</strong> Let X be a
+topological space and A ⊂ X. If there is a sequence of points of A converging to
+x, then x ∈ Ā; the converse holds if X is metrizable.
+<br><br>
+<strong>Theorem 21.3 (printed 130).</strong> Let f : X → Y. If f is continuous
+then for every convergent sequence x_n → x in X, the sequence f(x_n) converges
+to f(x). The converse holds if X is metrizable.
+</div>
+
+<p>This is the debt top-04 left. There Munkres said the ε-δ definition and the
+convergent-sequence definition "do not generalize to arbitrary spaces; they will
+be treated when we study metric spaces" (printed 104). Theorem 21.1 and
+Theorem 21.3 are the payment, and both come with the hypothesis attached rather
+than hidden.</p>
+
+<p>The hypotheses are worth reading closely. Lemma 21.2's easy half needs
+nothing; the converse needs X metrizable, and uses it only to supply the shrinking
+balls B_d(x, 1/n) to choose points from. Theorem 21.3's converse then inherits
+the same hypothesis on X, and Munkres notes parenthetically in the proof that
+"metrizability of Y is not needed" — the sequence lemma is applied in the domain
+only.</p>
+
+<p>He then draws the moral himself, on printed 130: "in proving Lemma 21.2 and
+Theorem 21.3 we did not use the full strength of the hypothesis that the space X
+is metrizable. All we really needed was the countable collection B_d(x, 1/n) of
+balls about x." That observation becomes the <strong>first countability
+axiom</strong> — X has a countable basis at x if there are neighbourhoods
+{U_n} of x such that any neighbourhood of x contains at least one U_n, and X is
+first countable if this holds at every point. The repair to Lemma 21.2's proof is
+to replace B_d(x, 1/n) by B_n = U₁ ∩ U₂ ∩ ⋯ ∩ U_n. The intersection is taken
+rather than using U_n directly for one reason: the U_n need not shrink, and the
+B_n are decreasing by construction, which is what makes "for all i ≥ N" work.</p>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove Lemma 21.2, both halves, and mark the exact
+sentence in which metrizability is used.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+<em>Forwards, with no hypothesis on X.</em> Suppose x_n → x with every x_n ∈ A.
+Let U be a neighbourhood of x. By the definition of convergence there is N with
+x_n ∈ U for all n ≥ N; in particular U contains a point of A. Since U was an
+arbitrary neighbourhood, Theorem 17.5(a) gives x ∈ Ā.
+<br><br>
+<em>Converse, X metrizable.</em> Let d be a metric for the topology of X and let
+x ∈ Ā. For each positive integer n the ball B_d(x, 1/n) is a neighbourhood of x,
+so by Theorem 17.5(a) it meets A; <strong>choose x_n ∈ B_d(x, 1/n) ∩ A</strong>.
+That sentence is the whole use of metrizability — it is what supplies a
+<em>countable</em> family of neighbourhoods shrinking to x.
+<br><br>
+Now x_n → x. Let U be any open set containing x. Since the balls form a basis, U
+contains some B_d(x, ε) centred at x. Choose N with 1/N &lt; ε. Then for i ≥ N we
+have x_i ∈ B_d(x, 1/i) ⊂ B_d(x, 1/N) ⊂ B_d(x, ε) ⊂ U. So U contains x_i for all
+i ≥ N, which is convergence. ∎
+<br><br>
+<em>What the hypothesis is really doing.</em> Not metrics — countability. Replace
+B_d(x, 1/n) throughout by B_n = U₁ ∩ ⋯ ∩ U_n for a countable basis {U_n} at x and
+the argument is unchanged, which is Munkres's own remark and the reason he
+defines first countability at this point rather than in Chapter 4. A space with
+no countable basis at some point can have a point in Ā that is the limit of no
+sequence from A at all.
+</details>
+</div>
+
+<div class="theorem">
+<strong>Lemma 21.4 (printed 131).</strong> The addition, subtraction and
+multiplication operations are continuous functions from ℝ × ℝ into ℝ; and the
+quotient operation is a continuous function from ℝ × (ℝ − {0}) into ℝ.
+<br><br>
+<strong>Theorem 21.5 (printed 131).</strong> If X is a topological space and
+f, g : X → ℝ are continuous, then f + g, f − g and f·g are continuous. If
+g(x) ≠ 0 for all x, then f/g is continuous.
+<br><br>
+<strong>Theorem 21.6, the uniform limit theorem (printed 132).</strong> Let
+f_n : X → Y be a sequence of continuous functions from the topological space X to
+the metric space Y. If (f_n) converges uniformly to f, then f is continuous.
+<br><br>
+<span class="cite">Munkres does not prove Lemma 21.4: "You have probably seen
+this lemma proved before; it is a standard 'ε-δ argument.' If not, a proof is
+outlined in Exercise 12 below" (printed 131). It is Problem 5(a) here. Note also
+that it is a statement about maps <em>out of</em> a product — the case top-04
+warned had no general criterion — which is exactly why it needs a hands-on ε-δ
+argument rather than a theorem.</span>
+</div>
+
+<p>Theorem 21.5's proof is four lines and reuses top-04 twice. The map
+h(x) = f(x) × g(x) into ℝ × ℝ is continuous by Theorem 18.4, since its
+coordinate functions are f and g; then f + g is the composite of h with the
+addition map, continuous by Theorem 18.2(c). So the arithmetic of continuous
+real-valued functions is not a new fact about ℝ at all — it is Lemma 21.4 plus
+two rules already in hand.</p>
+
+<div class="worked">
+<strong>Worked example — Theorem 21.6, and where each ε/3 comes from.</strong>
+Let V be open in Y and x₀ ∈ f⁻¹(V); write y₀ = f(x₀). We find a neighbourhood U
+of x₀ with f(U) ⊂ V.
+<br><br>
+Choose ε with B(y₀, ε) ⊂ V. Using <em>uniform</em> convergence, choose N so that
+d(f_n(x), f(x)) &lt; ε/3 for all n ≥ N <strong>and all x ∈ X</strong>. Using
+continuity of f_N, choose a neighbourhood U of x₀ with
+f_N(U) ⊂ B(f_N(x₀), ε/3).
+<br><br>
+Then for x ∈ U:
+<br>d(f(x), f_N(x)) &lt; ε/3  (by the choice of N — at the point x),
+<br>d(f_N(x), f_N(x₀)) &lt; ε/3  (by the choice of U),
+<br>d(f_N(x₀), f(x₀)) &lt; ε/3  (by the choice of N — at the point x₀).
+<br>The triangle inequality applied twice gives d(f(x), y₀) &lt; ε, so
+f(U) ⊂ B(y₀, ε) ⊂ V. ∎
+<br><br>
+<em>Which hypothesis does the work.</em> The single N serves at two different
+points, x and x₀, and x was not known when N was chosen. That is exactly what
+<em>uniform</em> convergence supplies and pointwise convergence does not: an N
+independent of the point. Delete the words "and all x" from the definition and
+the first and third inequalities can no longer be had together.
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Munkres remarks that "uniformity of convergence depends
+not only on the topology of Y but also on its metric" (printed 131).
+<br><br>
+Make it precise. By Theorem 20.1, a metric d and its standard bounded companion
+d̄ = min{d, 1} induce the <em>same</em> topology on Y. Find a sequence f_n and a
+limit f for which convergence is uniform in one of the two metrics and not in the
+other. Then say which of d, d̄ can host the failure, and why the other cannot.
+<br><br>
+Finally, reconcile this with Theorem 21.6: if the hypothesis is
+metric-dependent, in what sense is the conclusion not? Answer by pointing at the
+definition of "continuous".
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In Theorem 21.3's converse, whose
+metrizability is needed?</p>
+<button onclick="check(this,true)" data-ok>X's only — Munkres says so in the proof</button>
+<button onclick="check(this,false)">Both X's and Y's</button>
+<button onclick="check(this,false)">Y's only</button>
+<button onclick="check(this,false)">Neither; the converse holds in general</button>
+<div class="explain">X's only. The converse applies Lemma 21.2 twice, both times
+in the domain — once to get a sequence in A converging to x, once to conclude
+f(x) ∈ f(A)‾ — and the second use is the <em>easy</em> half of the lemma, which
+needs no hypothesis. Munkres flags it parenthetically: "(Note that metrizability
+of Y is not needed.)"</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why is Lemma 21.4 not a corollary of
+Theorem 18.4?</p>
+<button onclick="check(this,false)">Because ℝ × ℝ is not a product space</button>
+<button onclick="check(this,true)" data-ok>Because addition is a map out of a product, not into one</button>
+<button onclick="check(this,false)">Because addition is not continuous in each variable separately</button>
+<button onclick="check(this,false)">Because ℝ is not metrizable</button>
+<div class="explain">Theorem 18.4 characterises maps <em>into</em> a product by
+their coordinate functions. Addition goes ℝ × ℝ → ℝ — out of a product — which
+top-04 recorded as the case with no useful criterion. So Lemma 21.4 has to be
+done by hand, and Munkres outsources it to Exercise 12. Addition <em>is</em>
+continuous in each variable separately, but by top-04's Exercise 12 that would
+prove nothing.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>Every metric induces a topology, and the induced topology can be much
+less than the metric.</strong> The ε-balls are a basis, by the triangle
+inequality applied once; Theorem 20.1 shows a metric can be replaced by a
+bounded one without changing the topology at all, and the finite case shows the
+collapse at its most extreme — every finite metric space is discrete, so a point
+cloud's metric topology records only how many points there are.
+<br><br>
+2. <strong>Going the other way is hard, and ℝ^J is where you see it.</strong>
+Theorem 20.3 metrizes ℝⁿ two ways and identifies the result with the product
+topology, on a bound d ≤ √n·ρ whose constant is finite only because n is.
+Theorem 20.4 places a third topology, the uniform, strictly between product and
+box for infinite J; Theorem 20.5 metrizes the product topology on ℝ^ω with
+D = sup{d̄(x_i,y_i)/i}; and Munkres states, without proving it here, that these
+are the only metrizable cases.
+<br><br>
+3. <strong>With a metric in the domain, sequences and epsilons come back —
+almost.</strong> Theorem 21.1 restores ε-δ; Lemma 21.2 and Theorem 21.3 restore
+sequences, but only for metrizable X, and the real hypothesis is countability
+rather than metrics, which is why first countability is defined at this point.
+Theorem 21.5 builds continuous functions arithmetically off Lemma 21.4 — a map
+out of a product, hence proved by hand — and Theorem 21.6 shows that uniform
+convergence, an ε/3 argument in which one N serves at two points at once,
+preserves continuity.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed. (folio = PDF − 17, checked on each
+page cited). <strong>§20 "The Metric Topology", printed 119–128:</strong> the
+metric axioms, the ε-ball and the metric topology, p. 119; the basis
+verification, pp. 119–120; metrizable spaces, metric spaces and bounded sets,
+pp. 120–121; Theorem 20.1 and the standard bounded metric, p. 121; the norm, the
+euclidean and square metrics, p. 121; Lemma 20.2 with its proof, p. 122;
+Theorem 20.3, pp. 122–123; the uniform metric and uniform topology, p. 124;
+Theorem 20.4 with its proof and the sentence deferring the strictness to the
+exercises, pp. 124–125; the metrizability claim and Theorem 20.5, p. 125.
+<strong>§21 "The Metric Topology (continued)", printed 129–135:</strong> the
+opening survey of subspaces, order topologies, the Hausdorff axiom and products,
+p. 129; Theorem 21.1 with its proof, pp. 129–130; Lemma 21.2 and Theorem 21.3
+with the parenthetical remark on Y, p. 130; the first countability axiom and the
+B_n repair, pp. 130–131; Lemma 21.4 with its deferral, Theorem 21.5, the
+definition of uniform convergence and the remark that uniformity depends on the
+metric, p. 131; Theorem 21.6 with its ε/3 proof, pp. 131–132.
+<br><br>
+<em>Modality.</em> Lemma 21.4 is <em>stated</em> and not proved — Munkres sends
+the reader to Exercise 12 — and appears here as a problem, never as a worked
+example. The strictness clause of Theorem 20.4 is stated and left "to the
+exercises" (p. 125). The negative half of the metrizability claim on p. 125 is
+asserted with "as we shall see" and is not proved in §20. The check that a
+subspace of a metric space is metrized by the restricted metric, and that
+countable products of metrizable spaces are metrizable, are both left to the
+reader on p. 129.
+<br><br>
+<em>Not established here.</em> Which spaces are metrizable in general — the
+metrization theorems are §34 and §40, printed 214 and 248, far outside this unit,
+and this lesson asserts nothing about their content. Connectedness and
+compactness in metric spaces — §23 and §26, printed 148 and 163 (top-07,
+top-08); compactness of metric spaces specifically is §45, printed 275. The
+first countability axiom gets only its definition here; §30, printed 190
+(top-10), is where it is studied. Filtrations, Vietoris–Rips and Čech complexes —
+the construction the mission bound points to — are lab-02 and tda1-01, and
+nothing about them is in §20 or §21.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('fin'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var P=[[180,190],[270,170],[250,240],[360,205],[430,255]];
+  function dist(a,b){return Math.sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));}
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
+  g.fillText('a finite metric space, with B(x, ε_x) drawn at ε_x = distance to the nearest other point', 320, 40);
+  g.save(); g.setLineDash([4,4]); g.strokeStyle='#8ab4f8'; g.lineWidth=1.5;
+  P.forEach(function(p,i){
+    var e=Infinity;
+    P.forEach(function(q,j){ if(i!==j){ var t=dist(p,q); if(t<e) e=t; } });
+    g.beginPath(); g.arc(p[0],p[1],e,0,6.2832); g.stroke();
+  });
+  g.restore();
+  P.forEach(function(p){ g.fillStyle='#4caf82'; g.beginPath(); g.arc(p[0],p[1],5,0,6.2832); g.fill(); });
+  g.fillStyle='#9aa5b1'; g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillText('each ball contains only its own centre — the nearest point lies on the boundary, which the open ball excludes', 320, 352);
+  g.fillStyle='#e06c75';
+  g.fillText('so every singleton is open: the metric topology of any finite metric space is discrete', 320, 376);
+})();
+</script>
+</body></html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-11 — Separation axioms and normal spaces</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>Separation axioms and normal spaces <span class="cite">(top-11)</span></h1>
+
+<div class="hook">
+Can points be told apart by open sets? Hausdorff and beyond — a ladder of how
+polite a space is. It is a ladder in strength: normal implies regular implies
+Hausdorff, once one-point sets are closed. It is emphatically not a ladder in
+behaviour, and that is the surprise of these two sections. The two lower rungs
+survive subspaces and products; the top rung does not, and Munkres opens §32 by
+calling the name "normal" a misnomer for exactly that reason.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Hausdorff and regularity both pass
+to subspaces and to arbitrary products. Predict whether normality — the strongest
+of the three — does too.</p>
+<button onclick="check(this,false)">Yes, a fortiori: stronger properties inherit at least as well</button>
+<button onclick="check(this,true)" data-ok>No — Munkres says outright there is no analogous theorem</button>
+<button onclick="check(this,false)">Yes for subspaces, no for products</button>
+<div class="explain">No. Immediately after Theorem 31.2 Munkres writes: "There
+is no analogous theorem for normal spaces, as we shall see shortly, in this
+section and the next." ℝ_ℓ is normal (Example 2, printed 198) and the Sorgenfrey
+plane ℝ_ℓ² is not (Example 3). Strength and good behaviour come apart here, which
+is the point of the diagram below.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Hausdorffness is the sanity axiom persistence diagrams and their limits silently assume.</p>
+
+<div class="warn">
+<strong>The strip is an expectation about an object §31 never constructs.</strong>
+<br><br>
+There are no persistence diagrams in §31 or §32. For "diagram space is Hausdorff"
+to be a theorem rather than an assumption, someone must first put a topology on
+that space — and tda1-05, already shipped, established that <em>neither of its
+own sources defines a metric on diagrams</em>, deferring it to tda1-06. So the
+strip names a property of a space this module does not build, and the word
+"silently" is doing real work: the assumption is invisible precisely because the
+object is introduced later.
+<br><br>
+What §§31–32 do provide is the route, once the object exists. Theorem 32.2 says
+metrizable ⇒ normal, and the ladder gives normal ⇒ regular ⇒ Hausdorff. So a
+metric on diagram space would settle the strip in one line. Until then the strip
+is a prediction about tda1-06, not a consequence of Munkres.
+<br><br>
+<em>And the sample, again.</em> A point cloud is discrete (top-06), metrized by
+its own metric, so distinct points x ≠ y sit in disjoint balls of radius
+d(x,y)/2: it is Hausdorff. That is the eighth property in this module to come out
+true of a point cloud by an argument that finiteness settles in advance.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The ladder, and the clause that makes it one</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 195).</strong> Suppose that one-point sets
+are closed in X. Then X is said to be <em>regular</em> if for each pair
+consisting of a point x and a closed set B disjoint from x, there exist disjoint
+open sets containing x and B, respectively. The space X is said to be
+<em>normal</em> if for each pair A, B of disjoint closed sets of X, there exist
+disjoint open sets containing A and B, respectively.
+</div>
+
+<p>The opening clause is not decoration. Munkres explains it in a parenthesis on
+the same page: without it, "A two-point space in the indiscrete topology
+satisfies the other part of the definitions of regularity and normality, even
+though it is not Hausdorff." Check that against the space {a,b} with topology
+{∅, X}: the only closed sets are ∅ and X, so the only (point, disjoint closed
+set) pair has the closed set empty, and ∅ together with X separates them
+vacuously. With the clause in place, regular ⇒ Hausdorff and normal ⇒ regular;
+without it, neither implication holds.</p>
+
+<p>He also draws a line back to top-07. These axioms are called
+<em>separation</em> axioms because they involve separating sets by disjoint open
+sets — but in the connectedness sense the two open sets had to have union the
+whole space, and here "the open sets need not satisfy this condition" (printed
+196). ℝ is regular and connected, so it separates points from closed sets in one
+sense and admits no separation at all in the other.</p>
+
+<div class="theorem">
+<strong>Lemma 31.1 (printed 196).</strong> Let X be a topological space. Let
+one-point sets in X be closed.
+<br>(a) X is regular if and only if given a point x of X and a neighbourhood U of
+x, there is a neighbourhood V of x such that V̄ ⊂ U.
+<br>(b) X is normal if and only if given a closed set A and an open set U
+containing A, there is an open set V containing A such that V̄ ⊂ U.
+<br><br>
+<span class="cite">Munkres proves (a) and disposes of (b) in one sentence: "This
+proof uses exactly the same argument; one just replaces the point x by the set A
+throughout." Problem 1(c) makes you do the replacement and check that claim.</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 31.2 (printed 196).</strong>
+<br>(a) A subspace of a Hausdorff space is Hausdorff; a product of Hausdorff
+spaces is Hausdorff.
+<br>(b) A subspace of a regular space is regular; a product of regular spaces is
+regular.
+<br><br>
+<span class="cite">And then, in Munkres's own words: "There is no analogous
+theorem for normal spaces, as we shall see shortly, in this section and the
+next."</span>
+</div>
+
+<canvas id="ladder" width="640" height="340" aria-label="Three stacked boxes reading normal, regular and Hausdorff, with downward arrows showing that each implies the one below. To the right, two columns record whether each property passes to subspaces and to products: regular and Hausdorff pass to both, while normal fails for products, with its subspace behaviour marked as not settled in these sections."></canvas>
+
+<div class="worked">
+<strong>Worked example — where Theorem 31.2(b)'s product proof spends its
+hypotheses.</strong>
+Let {X_α} be regular and X = ∏X_α. By part (a), X is Hausdorff, so one-point sets
+are closed and Lemma 31.1(a) is available.
+<br><br>
+Take x ∈ X and a neighbourhood U. Choose a basis element ∏U_α about x inside U.
+For each α pick a neighbourhood V_α of x_α with V̄_α ⊂ U_α — regularity, via
+Lemma 31.1(a) — and then Munkres adds a clause that reads like housekeeping:
+"<em>if it happens that U_α = X_α, choose V_α = X_α.</em>"
+<br><br>
+<em>That clause is load-bearing.</em> By top-05's Theorem 19.1 a
+product-topology basis element must have U_α = X_α for all but finitely many α.
+Without the clause you would be free to pick a proper V_α in infinitely many
+coordinates, and then V = ∏V_α would not be open in the product topology at all —
+the construction would leave the topology it is working in.
+<br><br>
+<em>And then one citation does the rest.</em> "Since V̄ = ∏V̄_α by
+<strong>Theorem 19.5</strong>, it follows at once that V̄ ⊂ ∏U_α ⊂ U." That is
+top-05's identification of the closure of a product with the product of closures
+— an <em>equality</em>, not merely an inclusion, which is why the coordinatewise
+choices assemble into a statement about the single set V. Lemma 31.1(a) then
+returns the verdict: X is regular.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why do Munkres's definitions of regular and
+normal begin "Suppose that one-point sets are closed in X"?</p>
+<button onclick="check(this,true)" data-ok>Without it, regular would not imply Hausdorff</button>
+<button onclick="check(this,false)">To make the closed sets form a topology</button>
+<button onclick="check(this,false)">Because closures are only defined for T₁ spaces</button>
+<button onclick="check(this,false)">It is a convention with no mathematical content</button>
+<div class="explain">Munkres gives the counterexample himself: the two-point
+indiscrete space satisfies the separation clauses vacuously — its only closed
+sets are ∅ and X — and is not Hausdorff. The clause is what makes the ladder a
+ladder.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Three ways to be normal</h2>
+
+<div class="theorem">
+<strong>Theorem 32.1 (printed 200).</strong> Every regular space with a countable
+basis is normal.
+<br><br>
+<strong>Theorem 32.2 (printed 202).</strong> Every metrizable space is normal.
+<br><br>
+<strong>Theorem 32.3 (printed 202).</strong> Every compact Hausdorff space is
+normal.
+<br><br>
+<strong>Theorem 32.4 (printed 203).</strong> Every well-ordered set X is normal
+in the order topology.
+</div>
+
+<p>Munkres introduces these as "three important sets of hypotheses under which
+normality of a space is assured", and prefaces §32 with a judgement worth
+keeping: "In one sense, the term 'normal' is something of a misnomer, for normal
+spaces are not as well-behaved as one might wish. On the other hand, most of the
+spaces with which we are familiar do satisfy this axiom." Both halves are true at
+once, and the four theorems are the second half.</p>
+
+<div class="worked fade">
+<strong>Faded example — Theorem 32.1's trick, and why it needs the counting.</strong>
+Let X be regular with a countable basis, and A, B disjoint closed sets. Each
+x ∈ A has a neighbourhood missing B; shrink it by Lemma 31.1(a); then take a
+basis element inside. Since the basis is countable, the resulting cover of A is
+countable — index it {U_n}, with each Ū_n missing B. Symmetrically get {V_n}
+covering B with each V̄_n missing A.
+<br><br>
+The unions ⋃U_n and ⋃V_n need not be disjoint. Munkres's trick:
+<br>U′_n = U_n − ⋃_{i ≤ n} V̄_i,  V′_n = V_n − ⋃_{i ≤ n} Ū_i.
+<br><br>
+⟨your step: show each U′_n is open. Which fact about a <em>finite</em> union of
+closed sets are you using, and where did the finiteness come from?⟩
+<br><br>
+⟨your step: show {U′_n} still covers A. The reason is short — what is true of
+every point of A with respect to every V̄_i?⟩
+<br><br>
+⟨your step: show U′ = ⋃U′_n and V′ = ⋃V′_n are disjoint, by supposing
+x ∈ U′_j ∩ V′_k and splitting on j ≤ k. Write out both contradictions.⟩
+<br><br>
+<em>Where the countable basis is spent.</em> Not on the shrinking — that is
+regularity — but on the <em>indexing</em>. Without a countable cover there is no
+"⋃_{i ≤ n}", and the sets being subtracted would not be finite unions, so U′_n
+need not be open. That single step is why second countability appears in the
+hypothesis of a theorem about separation.
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove Theorem 32.3: every compact Hausdorff space
+is normal.
+<br><br>
+Use top-08's results rather than re-running their proofs, and say at each step
+which one you are invoking.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+Let X be compact Hausdorff and let A, B be disjoint closed subsets.
+<br><br>
+<em>One-point sets are closed.</em> X is Hausdorff, so by
+<strong>Theorem 17.8</strong> every finite point set is closed — the hypothesis
+Munkres's definition of normality requires.
+<br><br>
+<em>A and B are compact.</em> Each is closed in the compact space X, hence
+compact by <strong>Theorem 26.2</strong>.
+<br><br>
+<em>Separate a point from B.</em> Fix a ∈ A. For each b ∈ B, Hausdorffness gives
+disjoint open U_b ∋ a and V_b ∋ b. The V_b cover the compact B, so finitely many
+V_{b₁}, …, V_{b_n} do; put V^a = V_{b₁} ∪ ⋯ ∪ V_{b_n} and
+U^a = U_{b₁} ∩ ⋯ ∩ U_{b_n}. Then U^a is open — a <em>finite</em> intersection —
+contains a, and is disjoint from V^a ⊃ B. This is exactly the argument
+<strong>Theorem 26.3</strong> uses to show a compact subspace of a Hausdorff
+space is closed, run one level up.
+<br><br>
+<em>Separate A from B.</em> The sets U^a for a ∈ A cover the compact A, so
+finitely many U^{a₁}, …, U^{a_m} do. Put U = U^{a₁} ∪ ⋯ ∪ U^{a_m} and
+V = V^{a₁} ∩ ⋯ ∩ V^{a_m}. Then U is open and contains A; V is open — again a
+finite intersection — and contains B, since each V^{a_i} does; and U ∩ V = ∅,
+because a point of U lies in some U^{a_i}, which is disjoint from V^{a_i} ⊇ V. ∎
+<br><br>
+<em>The shape.</em> Compactness is used twice, and each time it is the
+<em>finiteness</em> of the subcover that makes an intersection of open sets open.
+That is the same expenditure as in top-08's tube lemma and in Theorem 26.3, and
+it is worth recognising as one move rather than three.
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which theorem gives you that every metric space
+is normal?</p>
+<button onclick="check(this,false)">Theorem 32.1, since metric spaces have countable bases</button>
+<button onclick="check(this,true)" data-ok>Theorem 32.2, which needs no countability at all</button>
+<button onclick="check(this,false)">Theorem 32.3, since metric spaces are Hausdorff</button>
+<button onclick="check(this,false)">Theorem 32.4</button>
+<div class="explain">Theorem 32.2. The first option's premise is false — a metric
+space need not be second-countable, as top-10's Example 2 showed for the uniform
+ℝ<sup>ω</sup> — so 32.1 does not cover the general case. Theorem 32.3 needs
+compactness, which metric spaces need not have.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In Theorem 32.1's proof, what is the countable
+basis actually used for?</p>
+<button onclick="check(this,false)">To shrink each neighbourhood so its closure fits inside</button>
+<button onclick="check(this,true)" data-ok>To index the covers by ℤ₊, so that ⋃_{i ≤ n} is a finite union</button>
+<button onclick="check(this,false)">To make the space metrizable</button>
+<button onclick="check(this,false)">To ensure A and B are closed</button>
+<div class="explain">The indexing. Shrinking is regularity, via Lemma 31.1(a).
+The countable basis is what makes the covers of A and B countable, and hence what
+makes ⋃_{i ≤ n} V̄_i a finite union of closed sets — which is what keeps
+U′_n open.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The examples that separate the rungs</h2>
+
+<p>Munkres separates the three axioms with two spaces already in hand from
+earlier units. <strong>ℝ_K is Hausdorff and not regular</strong> (Example 1,
+printed 197): distinct points sit in disjoint open intervals, but the set
+K = {1/n} is closed in ℝ_K and cannot be separated from the point 0, because
+every basis element about 0 has the form (a,b) − K and every open set containing
+K contains intervals about the 1/n that reach into it.</p>
+
+<p><strong>ℝ_ℓ is normal</strong> (Example 2, printed 198): for disjoint closed
+A, B choose [a, x_a) missing B for each a ∈ A and [b, x_b) missing A for each
+b ∈ B, and take unions. <strong>The Sorgenfrey plane ℝ_ℓ² is not normal</strong>
+(Example 3, printed 198). So normality is lost by squaring a normal space, which
+is what Munkres promised when he denied the analogue of Theorem 31.2.</p>
+
+<div class="you-try">
+<strong>You try.</strong> Verify the ℝ_K half — that K is closed and that 0 and K
+cannot be separated.
+<br><br>
+First show ℝ_K − K is open, treating x ≠ 0 and x = 0 separately; the second case
+is where the K-topology's extra basis elements earn their place. Then suppose
+U ∋ 0 and V ⊇ K are open and disjoint, take a basis element (a,b) − K ⊂ U, and
+find a point of V inside it — for large n the point 1/n lies in (a,b), and any
+basis element of V about 1/n must contain points just below it.
+<br><br>
+Then answer the structural question: which rung does this example separate from
+which, and why can the same space not be used to separate normal from regular?
+</div>
+
+<div class="warn">
+<strong>A promise this unit did not find redeemed.</strong> top-03 recorded
+Munkres saying of the T₁ axiom's name: "We shall explain the reason for this
+strange terminology in Chapter 4" (printed 99). §31 and §32 are the separation
+sections of Chapter 4, and searching both for that explanation turns up
+<em>nothing</em>: Munkres defines regular and normal without T-numbers anywhere
+in these two sections, and the words T₃ and T₄ do not appear. What he does
+instead is give the implications directly — regular ⇒ Hausdorff, normal ⇒ regular
+— and separate them with examples.
+<br><br>
+Recorded as a search result, not as a claim about the rest of the book: the
+explanation may well appear in a later section of Chapter 4 that this unit does
+not read. What is certain is that §§31–32 do not contain it.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> ℝ_ℓ is normal and ℝ_ℓ² is not. What does that
+pair establish?</p>
+<button onclick="check(this,true)" data-ok>Normality is not preserved by finite products</button>
+<button onclick="check(this,false)">Normality is not preserved by subspaces</button>
+<button onclick="check(this,false)">ℝ_ℓ is not regular</button>
+<button onclick="check(this,false)">The product topology on ℝ_ℓ² is not the box topology</button>
+<div class="explain">Products — and finite ones at that, which is the sharper
+statement. Compare Theorem 31.2, where Hausdorff and regular survive
+<em>arbitrary</em> products. The third option is false: ℝ_ℓ is normal, hence
+regular. The fourth is true but irrelevant here, and in fact for a finite product
+the two topologies agree by top-05's Theorem 19.1.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Is diagram space Hausdorff?</p>
+<button onclick="check(this,false)">Yes — Theorem 32.2 applies</button>
+<button onclick="check(this,true)" data-ok>Not answerable here: §§31–32 never put a topology on it</button>
+<button onclick="check(this,false)">No — persistence diagrams are multisets, which are never Hausdorff</button>
+<button onclick="check(this,false)">Yes, because it is a subspace of ℝ²</button>
+<div class="explain">Not answerable from these sections. Theorem 32.2 would give
+it in one line <em>from a metric</em>, and tda1-05 established that neither of its
+sources supplies one, deferring to tda1-06. Until the metric exists there is no
+space for the theorem to apply to — which is what the mission bound above says,
+and why the strip's word "silently" is apt.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>The ladder needs its clause.</strong> Regular ⇒ Hausdorff and normal ⇒
+regular hold only because both definitions begin by requiring one-point sets to
+be closed; the two-point indiscrete space satisfies the separation clauses
+vacuously and is not Hausdorff. Lemma 31.1 restates both axioms as shrinking
+conditions — a neighbourhood whose closure fits inside — which is the form every
+later proof uses, and its own proof is Theorem 17.5(a) applied once, to see that
+a point with a neighbourhood missing V lies outside V̄.
+<br><br>
+2. <strong>Strength and good behaviour come apart at the top rung.</strong>
+Theorem 31.2 carries Hausdorff and regular through subspaces and arbitrary
+products, the product argument leaning on Theorem 19.5's equality of closures and
+on a clause that keeps V inside the product topology. Normality passes through
+neither: ℝ_ℓ is normal and ℝ_ℓ² is not. Munkres calls the name a misnomer for
+this reason.
+<br><br>
+3. <strong>Normality is nonetheless common, by four routes.</strong> Regular with
+a countable basis (32.1, where the basis is spent on indexing so that ⋃_{i≤n} is
+finite), metrizable (32.2), compact Hausdorff (32.3, where compactness is spent
+twice on making finite intersections open), well-ordered in the order topology
+(32.4). And ℝ_K separates Hausdorff from regular, so the rungs are genuinely
+distinct.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed. (folio = PDF − 17, checked on each
+page cited). <strong>§31 "The Separation Axioms", printed 195–199:</strong> the
+definitions of regular and normal, the parenthesis about the two-point indiscrete
+space, and the remark distinguishing this sense of "separation" from the
+connectedness sense, pp. 195–196; Lemma 31.1 with its proof, p. 196;
+Theorem 31.2 with its proof, and the sentence denying the analogue for normal
+spaces, p. 196; Example 1 on ℝ_K, p. 197; Examples 2 and 3 on ℝ_ℓ and the
+Sorgenfrey plane, p. 198.
+<strong>§32 "Normal Spaces", printed 200–206:</strong> the opening remarks
+including the "misnomer" judgement, and Theorem 32.1, p. 200; its proof with the
+U′_n / V′_n trick, pp. 200–201; Theorem 32.2 and Theorem 32.3, p. 202;
+Theorem 32.4 and Examples 1 and 2, p. 203.
+<br><br>
+<em>Modality.</em> Lemma 31.1(b) is disposed of in one sentence — "This proof
+uses exactly the same argument; one just replaces the point x by the set A
+throughout" — and is a problem here rather than a worked example. Example 1 of
+§32, that ℝ^J is not normal for uncountable J, is explicitly <em>stated and not
+proved</em>: "The proof is fairly difficult; we leave it as a challenging
+exercise (see Exercise 9)." It is used in the problem set only as a cited input.
+Example 3 of §31 asserts that the Sorgenfrey plane is not normal without proving
+it in that section.
+<br><br>
+<em>Not established here.</em> The explanation of the T₁ / T-axiom terminology
+that top-03 recorded Munkres promising for Chapter 4: it is not in §31 or §32,
+and this unit records that as a search result over those two sections only. The
+Urysohn lemma — §33, printed 207 — and the Urysohn metrization theorem — §34,
+printed 214 — which are what the normality theorems exist to feed; §32 names both
+as coming "later in this chapter" and this unit reads neither. The Tietze
+extension theorem, §35, printed 219. Persistence diagrams, their metric and their
+limits are absent from §§31–32; the metric is tda1-06's, and tda1-05 recorded that
+neither of its sources supplies one.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('ladder'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var rows=[{y:104,t:'normal',sub:'–',prod:'✗'},
+            {y:172,t:'regular',sub:'✓',prod:'✓'},
+            {y:240,t:'Hausdorff',sub:'✓',prod:'✓'}];
+  var BX=60,BW=210,BH=40;
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
+  g.fillText('stronger going up — better behaved going down', 320, 40);
+  g.font='11px Segoe UI,system-ui,sans-serif'; g.fillStyle='#8ab4f8';
+  g.fillText('subspaces', 400, 70); g.fillText('products', 520, 70);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(60,80); g.lineTo(590,80); g.stroke();
+  rows.forEach(function(r,i){
+    g.fillStyle='#1a2027'; g.strokeStyle='#8ab4f8'; g.lineWidth=1.5;
+    g.beginPath(); g.rect(BX,r.y-BH/2,BW,BH); g.fill(); g.stroke();
+    g.fillStyle='#e8e8e8'; g.font='13px Segoe UI,system-ui,sans-serif'; g.textAlign='center';
+    g.fillText(r.t, BX+BW/2, r.y+5);
+    g.font='15px Segoe UI,system-ui,sans-serif';
+    g.fillStyle = r.sub==='✓' ? '#4caf82' : (r.sub==='✗' ? '#e06c75' : '#5a6672');
+    g.fillText(r.sub, 400, r.y+5);
+    g.fillStyle = r.prod==='✓' ? '#4caf82' : (r.prod==='✗' ? '#e06c75' : '#5a6672');
+    g.fillText(r.prod, 520, r.y+5);
+    if(i<rows.length-1){
+      var y0=r.y+BH/2, y1=rows[i+1].y-BH/2, x=BX+BW/2;
+      g.strokeStyle='#9aa5b1'; g.fillStyle='#9aa5b1'; g.lineWidth=2;
+      g.beginPath(); g.moveTo(x,y0); g.lineTo(x,y1); g.stroke();
+      g.beginPath(); g.moveTo(x,y1); g.lineTo(x-6,y1-9); g.lineTo(x+6,y1-9); g.closePath(); g.fill();
+      g.font='11px Segoe UI,system-ui,sans-serif'; g.textAlign='left';
+      g.fillText('implies', x+10, (y0+y1)/2+4);
+    }
+  });
+  g.textAlign='center'; g.font='11px Segoe UI,system-ui,sans-serif'; g.fillStyle='#9aa5b1';
+  g.fillText('✓ Theorem 31.2   ✗ ℝℓ normal, ℝℓ² not (§31 Examples 2–3)   – not settled in §§31–32', 320, 296);
+  g.fillText('one-point sets closed is part of both upper definitions — without it the arrows fail', 320, 318);
+})();
+</script>
+</body></html>

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-04 — Continuous functions and homeomorphisms</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>Continuous functions and homeomorphisms <span class="cite">(top-04)</span></h1>
+
+<div class="hook">
+Continuity with no epsilons: preimages of open sets are open. (You proved this
+shape in an-10.) One line, no metric, no sequences — and Munkres immediately
+warns what it costs. The ε-δ definition and the convergent-sequence definition
+"do not generalize to arbitrary spaces; they will be treated when we study
+metric spaces" (printed 104). So this is not a restatement of the calculus
+definition dressed up. It is a definition that agrees with it on ℝ, works where
+it cannot, and is strictly less informative about individual points until you
+put a metric back.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Theorem 18.4 will say that a map
+<em>into</em> a product is continuous exactly when both its coordinate functions
+are. Predict the dual: is a map <em>out of</em> a product continuous exactly when
+it is continuous in each variable separately?</p>
+<button onclick="check(this,false)">Yes — the two statements are dual</button>
+<button onclick="check(this,true)" data-ok>No, and Munkres says there is no useful criterion at all</button>
+<button onclick="check(this,false)">Yes, provided both factors are Hausdorff</button>
+<div class="explain">No. Munkres's sentence on printed 110 is blunt: "There is
+no useful criterion for the continuity of a map f : A × B → X whose
+<em>domain</em> is a product space", and the separate-continuity conjecture "is
+not true". His Exercise 12 is the witness, and the canvas below draws it. This
+is the asymmetry at1-01 was relying on when it insisted a homotopy is one
+jointly continuous map on X × I.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A homeomorphism is topology's notion of 'same shape' — the equivalence TDA measures everything against.</p>
+
+<div class="warn">
+<strong>The strip names the wrong equivalence, and §18 gives the material to
+say so.</strong>
+<br><br>
+What §18 establishes is precise and worth having. A homeomorphism gives "a
+bijective correspondence not only between X and Y but between the collections of
+open sets", so any property "entirely expressed in terms of the topology" of one
+transfers to the other — Munkres's <em>topological property</em>, printed 105.
+Homeomorphic spaces are indistinguishable by anything topology can say.
+<br><br>
+But "the equivalence TDA measures everything against" is not that. The
+invariants TDA computes are constant on a strictly <em>coarser</em> relation:
+at1-01, already on the shelf, works with <strong>homotopy equivalence</strong>.
+That relation really is coarser, and one line settles it — ℝ deformation
+retracts onto {0} by f_t(x) = (1 − t)x, so ℝ is homotopy equivalent to a
+one-point space, while no homeomorphism between them can exist because a
+homeomorphism is in particular a bijection. Homology cannot distinguish spaces
+that homotopy equivalence identifies, so it is not measuring against
+homeomorphism. The implication runs one way only: homeomorphic ⇒ same
+topological properties ⇒ same homology, and the converse fails in exactly the
+direction that matters for data.
+<br><br>
+<em>And there is no TDA in §18.</em> Nothing on printed 102–111 mentions
+homology, persistence or data. What this unit supplies is the notion of sameness
+that at1-01 will then deliberately weaken.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Continuity, and how little of it you have to check</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 102).</strong> Let X and Y be topological
+spaces. A function f : X → Y is said to be <em>continuous</em> if for each open
+subset V of Y, the set f⁻¹(V) is an open subset of X.
+</div>
+
+<p>Munkres attaches a caution on the same page: continuity "depends not only
+upon the function f itself, but also on the topologies specified for its domain
+and range", and one may say f is continuous <em>relative</em> to specified
+topologies. That is not pedantry. The identity map on ℝ is continuous in one
+direction between the standard and lower limit topologies and not in the other,
+which is his Example 3 (printed 104) and the cleanest instance of the general
+fact: the identity (X, 𝒯) → (X, 𝒯′) is continuous exactly when 𝒯 is finer
+than 𝒯′.</p>
+
+<p>Two reductions make the definition workable (printed 103). If Y's topology
+comes from a basis, it is enough that f⁻¹(B) be open for every basis element,
+because Lemma 13.1 (top-02) writes V = ⋃B_α, giving f⁻¹(V) = ⋃f⁻¹(B_α). If it
+comes from a subbasis, it is
+enough for every subbasis element, because a basis element is a finite
+intersection S₁ ∩ ⋯ ∩ Sₙ and f⁻¹ of it is f⁻¹(S₁) ∩ ⋯ ∩ f⁻¹(Sₙ). The whole
+force is that <em>preimage commutes with both unions and intersections</em> —
+which image does not, and that asymmetry is why the definition is stated with
+preimages.</p>
+
+<div class="theorem">
+<strong>Theorem 18.1 (printed 104).</strong> Let X and Y be topological spaces;
+let f : X → Y. Then the following are equivalent:
+<br>(1) f is continuous.
+<br>(2) For every subset A of X, one has f(Ā) ⊂ f(A)‾.
+<br>(3) For every closed set B of Y, the set f⁻¹(B) is closed in X.
+<br>(4) For each x ∈ X and each neighbourhood V of f(x), there is a
+neighbourhood U of x such that f(U) ⊂ V.
+<br><br>
+If the condition in (4) holds for the point x of X, we say that f is
+<em>continuous at the point x</em>.
+</div>
+
+<div class="worked">
+<strong>Worked example — (1) ⇒ (2), and why the inclusion is only an
+inclusion.</strong>
+Assume f continuous and let A ⊂ X. Take x ∈ Ā; we show f(x) ∈ f(A)‾.
+Let V be a neighbourhood of f(x). Then f⁻¹(V) is open by continuity and contains
+x, so it is a neighbourhood of x. Since x ∈ Ā, Theorem 17.5(a) says f⁻¹(V) meets
+A, at some point y. Then f(y) ∈ V ∩ f(A), so V meets f(A). As V was arbitrary,
+Theorem 17.5(a) gives f(x) ∈ f(A)‾.
+<br><br>
+<em>Only an inclusion.</em> Take f : ℝ → ℝ, f(x) = arctan x, and A = ℝ. Then
+Ā = ℝ and f(Ā) = (−π/2, π/2), while f(A)‾ = [−π/2, π/2]. The right-hand side is
+strictly larger. What went missing is the two endpoints: they are limits of
+values of f without being values of f, and no amount of continuity supplies
+them. Equality for every A is a strictly stronger condition — it holds when f is
+a homeomorphism, by applying (2) to f and to f⁻¹ and combining.
+<br><br>
+<em>Munkres's proof pattern.</em> He shows (1) ⇒ (2) ⇒ (3) ⇒ (1) and
+(1) ⇒ (4) ⇒ (1), which is five implications rather than the twelve a naive
+reading demands. The first cycle makes any of (1), (2), (3) reach any other by
+composition; the second ties (4) to the cycle in both directions. Choosing the
+cycle is the whole economy of the proof.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which identity map is continuous?</p>
+<button onclick="check(this,false)">ℝ → ℝ_ℓ, because ℝ_ℓ has more open sets</button>
+<button onclick="check(this,true)" data-ok>ℝ_ℓ → ℝ, because the domain is the finer topology</button>
+<button onclick="check(this,false)">Both, since the underlying map is the identity</button>
+<button onclick="check(this,false)">Neither</button>
+<div class="explain">ℝ_ℓ → ℝ. Continuity of the identity (X,𝒯) → (X,𝒯′) means
+every 𝒯′-open set is 𝒯-open, i.e. 𝒯 is finer — so the finer topology must be on
+the <em>domain</em>. Munkres's Example 3, printed 104: f⁻¹([a,b)) = [a,b) is not
+open in ℝ, while g⁻¹((a,b)) = (a,b) is open in ℝ_ℓ. The first option gets the
+direction exactly backwards, which is the commonest error here.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which clause of Theorem 18.1 is the one you
+would use to prove that the preimage of a closed set is closed?</p>
+<button onclick="check(this,false)">(1), by taking complements twice</button>
+<button onclick="check(this,true)" data-ok>(3) — it is exactly that statement</button>
+<button onclick="check(this,false)">(2), applied to the complement</button>
+<button onclick="check(this,false)">(4), pointwise</button>
+<div class="explain">(3). The whole point of Theorem 18.1 is that these four are
+interchangeable, so the work is choosing the face that already says what you
+want. Clause (2) is the awkward one to compute with, because it quantifies over
+every subset A and both sides are closures.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Homeomorphism: sameness, and three ways it fails</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 105).</strong> Let f : X → Y be a
+bijection. If both f and f⁻¹ are continuous, f is called a
+<em>homeomorphism</em>. Equivalently: a bijective correspondence f : X → Y such
+that f(U) is open if and only if U is open.
+<br><br>
+A property of X entirely expressed in terms of the topology of X is called a
+<em>topological property</em> of X. If f : X → Y is injective and continuous and
+the restriction f : X → f(X) is a homeomorphism onto the image with its subspace
+topology, then f is a <em>topological imbedding</em>, or simply an
+<em>imbedding</em>.
+</div>
+
+<p>Munkres draws the algebraic analogy explicitly: an isomorphism is a bijective
+correspondence preserving algebraic structure, and a homeomorphism is the
+topological counterpart. The consequence he actually uses is the one in the
+middle of the definition — the correspondence is between the <em>collections of
+open sets</em>, so anything sayable in terms of open sets transfers.</p>
+
+<div class="worked">
+<strong>Worked example — a continuous bijection that is not a homeomorphism.</strong>
+Munkres's Example 6, printed 106–107. Let S¹ = {(x,y) : x² + y² = 1} as a
+subspace of ℝ², and let F : [0,1) → S¹ be F(t) = (cos 2πt, sin 2πt). It is
+bijective and continuous.
+<br><br>
+Take U = [0, 1/4). It is open in [0,1): U = [0,1) ∩ (−1/4, 1/4), an intersection
+of an open set of ℝ with the subspace, so it is open by the definition of the
+subspace topology (top-02).
+<br><br>
+Its image F(U) is the quarter-arc from p = F(0) = (1,0) anticlockwise, including
+p. It is <em>not</em> open in S¹. To see it, note that openness in S¹ means being
+V ∩ S¹ for some V open in ℝ², so we must show that no open V of ℝ² containing p
+has V ∩ S¹ ⊂ F(U). But any such V contains a disc about p, and that disc meets
+S¹ on both sides of p — including at points F(t) with t just below 1, which are
+not in F(U). So F(U) is not open, F does not carry open sets to open sets, and
+F is not a homeomorphism.
+<br><br>
+<em>What the failure is.</em> F is a continuous bijection that has "glued" the
+two ends of the interval; the inverse has to tear them apart, and tearing is not
+continuous. Note that nothing is wrong with F — it is the standard way to wrap
+an interval on a circle, and at1-04 will use it. What is wrong is expecting a
+continuous bijection to be a homeomorphism.
+</div>
+
+<div class="worked fade">
+<strong>Faded example — the same map, a different codomain, and Example 7.</strong>
+Munkres expands the range: g : [0,1) → ℝ² is F followed by the inclusion
+S¹ ↪ ℝ². He calls g "a continuous injective map that is not an imbedding".
+<br><br>
+g is still continuous, by Theorem 18.2(e) — expanding the range preserves
+continuity. It is still injective. So what fails?
+<br><br>
+⟨your step: write down what "g is an imbedding" would require, and identify the
+space g(X) with its subspace topology. Is it the same space as when the codomain
+was S¹? Conclude that Example 7 is Example 6 restated, and say what expanding
+the range has actually changed — and what it has not.⟩
+<br><br>
+⟨your step: Theorem 18.2(e) also says <em>restricting</em> the range preserves
+continuity, provided the smaller space contains the image. Say why that rule
+cannot be used to repair g, and which direction of the homeomorphism condition
+it never touches.⟩
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Munkres's Example 5, printed 106, asserts that
+F(x) = x/(1 − x²) is a homeomorphism (−1,1) → ℝ, and gives <em>two</em> proofs:
+one via order-preservation and the order topology, one via the algebra of
+continuous functions from calculus.
+<br><br>
+Reconstruct the first — the topological one. F is a bijective order-preserving
+correspondence, so it carries a basis element of the order topology on (−1,1)
+onto a basis element of the order topology on ℝ, and back. Say why that makes it
+a homeomorphism for the <em>order</em> topologies, and then say which result of
+top-02 lets you conclude it for the subspace topology on (−1,1) — checking the
+hypothesis rather than assuming it.
+<br><br>
+Then use the resulting homeomorphism to show that "bounded" is <strong>not</strong>
+a topological property, and say why that does not contradict Munkres's claim
+that homeomorphisms preserve every topological property.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which is a topological property of a subset of
+ℝ?</p>
+<button onclick="check(this,false)">Being bounded</button>
+<button onclick="check(this,true)" data-ok>Being Hausdorff</button>
+<button onclick="check(this,false)">Having length 1</button>
+<button onclick="check(this,false)">Containing the number 0</button>
+<div class="explain">Hausdorff — it is stated entirely in terms of open sets, so
+a homeomorphism transports it. Boundedness is not: (−1,1) and ℝ are homeomorphic
+by Example 5's F(x) = x/(1 − x²), and exactly one of them is bounded. Length and
+membership are not even expressible in terms of the topology.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Building continuous maps — and the one place the machinery stops</h2>
+
+<div class="theorem">
+<strong>Theorem 18.2, rules for constructing continuous functions (printed
+107–108).</strong> Let X, Y, Z be topological spaces.
+<br>(a) <em>Constant function.</em> If f maps all of X to a single point y₀, f is
+continuous.
+<br>(b) <em>Inclusion.</em> If A is a subspace of X, the inclusion j : A → X is
+continuous.
+<br>(c) <em>Composites.</em> If f : X → Y and g : Y → Z are continuous, so is
+g ∘ f.
+<br>(d) <em>Restricting the domain.</em> If f : X → Y is continuous and A is a
+subspace of X, then f|A is continuous.
+<br>(e) <em>Restricting or expanding the range.</em> If f(X) ⊂ Z ⊂ Y then
+X → Z is continuous; if Z has Y as a subspace then X → Z is continuous.
+<br>(f) <em>Local formulation.</em> f : X → Y is continuous if X can be written
+as a union of open sets U_α such that f|U_α is continuous for each α.
+<br><br>
+<strong>Theorem 18.3, the pasting lemma (printed 108).</strong> Let X = A ∪ B
+where A and B are closed in X. Let f : A → Y and g : B → Y be continuous. If
+f(x) = g(x) for every x ∈ A ∩ B, then f and g combine to give a continuous
+h : X → Y with h = f on A and h = g on B.
+</div>
+
+<p>The pasting lemma is proved on closed sets, using Theorem 18.1(3) to work
+with preimages of closed sets throughout, and top-03's Theorem 17.3 to promote
+"closed in A" to "closed in X", finishing with Theorem 17.1(3), which makes the
+union of the two promoted preimages closed. Munkres then notes that the lemma "also holds if
+A and B are open sets in X; this is just a special case of the local formulation
+of continuity". The reduction runs one way only: an open two-set cover is
+literally an instance of 18.2(f)'s hypothesis, whereas a <em>closed</em> cover is
+not, which is why 18.3 needs its own proof.</p>
+
+<p>His Example 8 (printed 109) is three functions in a row, and the third is the
+one to remember. h(x) = x for x ≤ 0 and x/2 for x ≥ 0 is continuous: closed
+pieces, agreeing on the overlap {0}. k(x) = x − 2 for x ≤ 0 and x + 2 for x ≥ 0
+is not a function at all — at 0 the two formulas give −2 and 2. And l(x) = x − 2
+for x &lt; 0, x + 2 for x ≥ 0 <em>is</em> a function with two continuous pieces,
+and is not continuous: l⁻¹((1,3)) = [0,1), which is not open. The pieces of l are
+(−∞,0) and [0,∞) — one open, one closed — so neither version of the lemma
+applies, and the conclusion duly fails.</p>
+
+<div class="theorem">
+<strong>Theorem 18.4, maps into products (printed 110).</strong> Let
+f : A → X × Y be given by f(a) = (f₁(a), f₂(a)). Then f is continuous if and
+only if f₁ : A → X and f₂ : A → Y are continuous. The maps f₁ and f₂ are the
+<em>coordinate functions</em> of f.
+</div>
+
+<div class="warn">
+<strong>And then the machinery stops.</strong> Munkres, immediately after
+Theorem 18.4, printed 110, in full:
+<br><br>
+"There is no useful criterion for the continuity of a map f : A × B → X whose
+<em>domain</em> is a product space. One might conjecture that f is continuous if
+it is continuous 'in each variable separately,' but this conjecture is not true.
+(See Exercise 12.)"
+<br><br>
+Note the asymmetry precisely. <em>Into</em> a product: a clean biconditional,
+because the basis elements of the product are rectangles and f⁻¹(U × V) splits
+as f₁⁻¹(U) ∩ f₂⁻¹(V). <em>Out of</em> a product: nothing. The obvious guess is
+false, and Munkres does not offer a replacement.
+</div>
+
+<canvas id="sep" width="640" height="392" aria-label="A square centred on the origin with its two coordinate axes drawn in green and its main diagonal drawn in red. The function F equals zero along both axes and one half along the diagonal away from the origin, so approaching the origin along an axis and along the diagonal gives different values and F has no limit at the origin."></canvas>
+
+<div class="worked">
+<strong>Worked example — Exercise 12, the witness.</strong>
+Munkres sets this and does not work it (printed 112). Define
+F : ℝ × ℝ → ℝ by F(x,y) = xy/(x² + y²) for (x,y) ≠ (0,0), and F(0,0) = 0.
+<br><br>
+<em>Separately continuous.</em> Fix y₀ ≠ 0. Then x ↦ xy₀/(x² + y₀²) is a
+quotient of polynomials whose denominator never vanishes, hence continuous. Fix
+y₀ = 0: then F(x, 0) = 0 for every x, including x = 0, a constant map, continuous
+by Theorem 18.2(a). By symmetry the same holds in the other variable. So F is
+continuous in each variable separately, everywhere.
+<br><br>
+<em>Not continuous.</em> Compute along the diagonal:
+g(x) = F(x,x) = x²/(x² + x²) = 1/2 for x ≠ 0, while g(0) = F(0,0) = 0. So g is
+discontinuous at 0. But the diagonal map d(x) = (x,x) is continuous by
+Theorem 18.4 — its coordinate functions are both the identity — and g = F ∘ d.
+If F were continuous, g would be continuous by Theorem 18.2(c). It is not.
+Hence F is not continuous, and the failure is at the origin.
+<br><br>
+<em>Read the picture.</em> Along either axis F is identically 0. Along the
+diagonal it is identically 1/2 away from the origin. Every neighbourhood of the
+origin contains points of both kinds, so F takes both values arbitrarily close to
+(0,0) and no single value can be its limit there. Separate continuity only ever
+looks along the two green lines.
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove that continuity implies separate
+continuity — so that the failure above is genuinely one-directional.
+<br><br>
+Precisely: let F : X × Y → Z be continuous and fix y₀ ∈ Y. Show that
+x ↦ F(x, y₀) is continuous X → Z. Build the map you need out of Theorem 18.4 and
+Theorem 18.2 rather than checking preimages by hand.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+Define ι : X → X × Y by ι(x) = (x, y₀). Its coordinate functions are the
+identity 𝟙_X : X → X and the constant map c : X → Y with value y₀. The identity
+is continuous — it is the inclusion of X in itself, Theorem 18.2(b), or directly
+from the definition — and the constant map is continuous by Theorem 18.2(a). By
+<strong>Theorem 18.4</strong>, ι is therefore continuous.
+<br><br>
+Now F(·, y₀) = F ∘ ι, a composite of continuous maps, hence continuous by
+<strong>Theorem 18.2(c)</strong>. The argument for F(x₀, ·) is identical with the
+roles of the factors exchanged. ∎
+<br><br>
+<em>Where the converse would have to go, and cannot.</em> To run this backwards
+you would need to build F itself out of its slices, and there is no rule that
+does that: Theorem 18.4 constructs maps <em>into</em> a product from their
+components, and nothing constructs a map <em>out of</em> one from its
+restrictions. The two green lines in the picture are exactly the slices this
+proof uses, and Exercise 12's F is continuous on every one of them while being
+discontinuous at the point they all pass through.
+</details>
+</div>
+
+<div class="warn">
+<strong>Why at1-01 phrased its definition the way it did.</strong> at1-01 quotes
+Hatcher's deformation retraction as a family of maps f_t : X → X with the
+continuity clause "the associated map X × I → X, (x,t) ↦ f_t(x), is
+continuous" — and then says, in its own voice: "It is not the statement that
+each f_t is continuous. It is the stronger statement that the single map on the
+product X × I is continuous — jointly in the point and the time. Every
+verification you do in this unit will turn on that distinction (top-04)."
+<br><br>
+This is that distinction, and the guided proof above settles the logic of it.
+"Each f_t is continuous" is separate continuity in the t-slices. Joint continuity
+implies it and is not implied by it, and no theorem in §18 can close the gap,
+because the gap is exactly where Munkres says there is no useful criterion. So a
+family satisfying the weak condition need not assemble into a homotopy at all,
+and every continuity check in at1-01 has to be run on the product.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why does Munkres's Exercise 12 function F
+fail to be continuous?</p>
+<button onclick="check(this,false)">Because the formula is undefined at the origin</button>
+<button onclick="check(this,true)" data-ok>Because F ∘ d is discontinuous at 0, where d(x) = (x,x)</button>
+<button onclick="check(this,false)">Because it is unbounded near the origin</button>
+<button onclick="check(this,false)">Because it is not continuous in the first variable</button>
+<div class="explain">The composite with the diagonal is discontinuous, and d is
+continuous by Theorem 18.4, so Theorem 18.2(c) forces F to be discontinuous.
+The formula is not undefined at the origin — the second clause defines it to be
+0, which is the whole point. F is bounded: |xy| ≤ (x²+y²)/2 gives |F| ≤ 1/2. And
+F <em>is</em> continuous in the first variable, which is the trap.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which piece of Example 8 fails which
+hypothesis of Theorem 18.3?</p>
+<button onclick="check(this,false)">l fails the agreement hypothesis</button>
+<button onclick="check(this,true)" data-ok>k fails agreement; l fails that both pieces are closed</button>
+<button onclick="check(this,false)">Both fail the agreement hypothesis</button>
+<button onclick="check(this,false)">Neither fails a hypothesis; the theorem is just not sharp</button>
+<div class="explain">k's two formulas give −2 and 2 at x = 0, so they do not
+agree on the overlap — indeed k is not a function. l is a perfectly good function
+whose pieces are (−∞,0) and [0,∞): one open, one closed, so it is covered by
+neither the closed version nor the open version of the lemma. And l really is
+discontinuous, with l⁻¹((1,3)) = [0,1) as Munkres's witness.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>Continuity is stated with preimages because preimage commutes with
+both unions and intersections</strong>, which is what makes the basis and
+subbasis reductions work. Theorem 18.1 then gives four interchangeable faces —
+open preimages, closures, closed preimages, and the pointwise neighbourhood
+condition — and the art is picking the face that already says what you want.
+Continuity is relative to the topologies, and the identity map on a set is
+continuous exactly when the domain carries the finer one.
+<br><br>
+2. <strong>A homeomorphism is a bijection between the open-set collections, so
+it preserves exactly the topological properties.</strong> A continuous bijection
+need not be one — F : [0,1) → S¹ glues two ends, and the inverse would have to
+tear. Expanding the codomain does not change this (Example 7 is Example 6
+again), because being an imbedding is a statement about the image with its
+subspace topology.
+<br><br>
+3. <strong>The construction kit is generous into a product and empty out of
+one.</strong> Theorem 18.2 and the pasting lemma build maps freely;
+Theorem 18.4 makes maps into a product a matter of their coordinates. But
+Munkres states plainly that there is no useful criterion for maps out of a
+product, and Exercise 12's F — separately continuous everywhere, discontinuous at
+the origin, with F(x,x) ≡ 1/2 — is the witness. That one-way implication is why
+at1-01's homotopies are single maps on X × I and not families of maps.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed., §18 "Continuous Functions", printed
+102–111 (folio = PDF − 17, checked on each page cited). The definition of
+continuity and the remark that it is relative to the topologies, p. 102. The
+basis and subbasis reductions and Example 1, p. 103. Example 2 on p. 103–104;
+Example 3 and the note that the ε-δ and convergent-sequence definitions do not
+generalise, p. 104. Theorem 18.1, its proof and the definition of continuity at a
+point, pp. 104–105. The definitions of homeomorphism, topological property and
+imbedding, and the analogy with isomorphism, p. 105. Examples 4 and 5, p. 106;
+the S¹ half of Example 6 and Example 7, p. 107. Theorem 18.2 with its proof,
+pp. 107–108. Theorem 18.3 with its proof, p. 108; the remark that it also holds
+for open pieces, and Example 8's three displays, p. 109. Theorem 18.4, its
+proof, the paragraph denying any criterion for maps out of a product, and
+Example 9, p. 110. The deferrals of algebraic combinations and of the Uniform
+Limit Theorem to §21, pp. 110–111. Exercise 12, p. 112.
+<br><br>
+<em>Modality.</em> Exercise 12's function is <em>set</em> by Munkres, not worked:
+he asserts in the body that the separate-continuity conjecture "is not true" and
+points at the exercise. The lesson works it because at1-01 already depends on the
+conclusion. Example 1's converse direction — ε-δ implies the topological
+definition — is likewise left to the reader ("we leave it to you", p. 103) and is
+Problem 1(d). Example 5's claim that F(x) = x/(1 − x²) is a homeomorphism is
+given two proof sketches rather than a proof, both leaning on facts from
+calculus; the You-try reconstructs the topological one.
+<br><br>
+<em>Not established here.</em> The ε-δ and convergent-sequence characterisations
+of continuity, deferred by Munkres to metric spaces — §21, printed 129 (top-06).
+Sums, differences, products and quotients of continuous real-valued functions,
+and the Uniform Limit Theorem, both deferred to §21 (top-06). The product
+topology on arbitrary products, on which Theorem 18.4's generalisation depends —
+§19, printed 112 (top-05). Homotopy and homotopy equivalence, the coarser
+relation the mission bound refers to — Hatcher ch. 0, at1-01. Homology and
+persistence appear nowhere in §18; an-10, named in the hook, is a syllabus unit
+whose lesson does not exist and nothing here depends on it.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('sep'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var L=200,R=460,T=60,B=320,cx=330,cy=190;
+  g.textAlign='center'; g.font='13px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
+  g.fillText('F(x,y) = xy / (x² + y²),  with F(0,0) = 0', 320, 36);
+  g.strokeStyle='#2a333d'; g.lineWidth=1; g.strokeRect(L,T,R-L,B-T);
+  g.strokeStyle='#4caf82'; g.lineWidth=3;
+  g.beginPath(); g.moveTo(L,cy); g.lineTo(R,cy); g.stroke();
+  g.beginPath(); g.moveTo(cx,T); g.lineTo(cx,B); g.stroke();
+  g.strokeStyle='#e06c75'; g.lineWidth=3;
+  g.beginPath(); g.moveTo(L,B); g.lineTo(R,T); g.stroke();
+  function arrow(x0,y0,x1,y1,col){g.strokeStyle=col;g.fillStyle=col;g.lineWidth=2;
+    g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke();
+    var a=Math.atan2(y1-y0,x1-x0);
+    g.beginPath();g.moveTo(x1,y1);
+    g.lineTo(x1-9*Math.cos(a-0.4),y1-9*Math.sin(a-0.4));
+    g.lineTo(x1-9*Math.cos(a+0.4),y1-9*Math.sin(a+0.4));
+    g.closePath();g.fill();}
+  arrow(424,cy,362,cy,'#4caf82');
+  arrow(398,122,356,164,'#e06c75');
+  g.fillStyle='#e8e8e8'; g.beginPath(); g.arc(cx,cy,4,0,6.2832); g.fill();
+  g.textAlign='left'; g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillStyle='#4caf82'; g.fillText('F ≡ 0 on both axes', 470, 194);
+  g.fillStyle='#e06c75'; g.fillText('F ≡ ½ on y = x', 470, 74);
+  g.textAlign='center'; g.fillStyle='#9aa5b1';
+  g.fillText('continuous in each variable separately — and discontinuous at the origin', 320, 350);
+  g.fillText('Munkres §18, Exercise 12: why at1-01 insists on joint continuity on X × I', 320, 372);
+})();
+</script>
+</body></html>

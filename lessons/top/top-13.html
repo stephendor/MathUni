@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-13 — Quotient constructions: cones, suspension, CW complexes</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>Quotient constructions: cones, suspension, CW complexes <span class="cite">(top-13)</span></h1>
+
+<div class="hook">
+Cone a space to a point, suspend it, or build it cell by cell — the Lego kit of
+algebraic topology. Every piece of the kit is one construction wearing different
+clothes: take a product with an interval, or a disjoint union, and collapse
+something. Cone, suspension, join, wedge, smash, and the attaching step of a cell
+complex are six instances of top-12's §22, and once you see that, the only thing
+left to check in each case is which subspace gets collapsed.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> The cone is CX = (X × I)/(X × {0})
+and the suspension collapses both ends of X × I. Predict how many
+<em>non-singleton</em> classes each partition has.</p>
+<button onclick="check(this,true)" data-ok>One for the cone, two for the suspension</button>
+<button onclick="check(this,false)">Infinitely many for both — every level of I is collapsed</button>
+<button onclick="check(this,false)">One for each, since collapsing is a single operation</button>
+<div class="explain">One and two. Everything with 0 &lt; t &lt; 1 is left alone —
+those points are singleton classes — and the collapsing happens only at the ends.
+That is the whole content of the definitions, and it is why the two constructions
+differ by exactly one class.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Finite simplicial and CW complexes are the spaces whose homology a computer can compute — the on-ramp to at1 and the lab.</p>
+
+<div class="warn">
+<strong>Three of the strip's four nouns are absent from the pages this unit
+reads, and the fourth is the interesting one.</strong>
+<br><br>
+Searching Munkres §22 and Hatcher's "Cell Complexes" and "Operations on Spaces"
+(printed 5–10): <em>simplicial complexes</em> — not present; Hatcher introduces
+them with simplicial homology in Chapter 2, which is at1-07's. <em>Homology</em> —
+not present. <em>An algorithm, or any notion of computation</em> — not present;
+that is lab-02 and lab-03. So "the spaces whose homology a computer can compute"
+is a forward promise about three later modules, and this unit supplies only the
+spaces.
+<br><br>
+<em>But "finite" is present, and it earns its place.</em> Hatcher, printed 8, on
+products of cell complexes: "The topology on X × Y as a cell complex is sometimes
+finer than the product topology, with more open sets than the product topology
+has, though the two topologies coincide if either X or Y has only finitely many
+cells, or if both X and Y have countably many cells." So the word "finite" in the
+strip is not a convenience of implementation — it is a hypothesis under which the
+cell structure and the product topology agree. That is a real content-bearing
+clause, and it is the one part of the strip these pages support.
+<br><br>
+<em>And Hatcher defers the rest.</em> He writes on printed 5 that the reader
+"who wonders about various point-set topological questions lurking in the
+background of the following discussion should consult the Appendix for details",
+and that even the explanation of the letters "CW" is given there. This unit does
+not read the Appendix and asserts nothing from it.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Cone and suspension: two partitions of X × I</h2>
+
+<div class="definition">
+<strong>Definitions (Hatcher, printed 8).</strong> For a space X, the
+<em>suspension</em> SX is the quotient of X × I obtained by collapsing X × {0} to
+one point and X × {1} to another point. One can regard SX as a double cone on X,
+the union of two copies of the <em>cone</em> CX = (X × I)/(X × {0}).
+</div>
+
+<canvas id="cone" width="640" height="348" aria-label="Three panels. The first shows the product of a space with the unit interval as a rectangle, with its bottom edge marked in red and its top edge in blue. The second shows the cone, a triangle whose bottom vertex is the red collapsed end. The third shows the suspension, a rhombus with a red vertex at the bottom and a blue vertex at the top, both ends having been collapsed."></canvas>
+
+<div class="worked">
+<strong>Worked example — the two partitions, written out.</strong>
+Both constructions are top-12's machinery with a different subspace chosen.
+<br><br>
+<em>Cone.</em> Partition X × I into
+<br>• the singletons {(x,t)} for x ∈ X and 0 &lt; t ≤ 1, and
+<br>• the single class X × {0}.
+<br>Every point is in exactly one class and the classes are disjoint, so this is a
+partition; there is exactly <strong>one</strong> non-singleton class. Give the set
+of classes the quotient topology of §22 and you have CX.
+<br><br>
+<em>Suspension.</em> Same, but with two big classes: X × {0} and X × {1}, and
+singletons for 0 &lt; t &lt; 1. Exactly <strong>two</strong> non-singleton
+classes.
+<br><br>
+<em>Saturated open sets.</em> By top-12's description, an open set of the
+quotient is a collection of classes whose union is open in X × I. So a saturated
+open set of CX containing the cone point must contain <em>all</em> of X × {0} —
+and, being open in the product, must therefore contain X × [0, ε) for some ε in
+the case where X is compact. That is what makes the cone point's neighbourhoods
+large.
+<br><br>
+<em>The double cone, made precise.</em> Hatcher's remark is a statement about
+subspaces: the images under the quotient map of X × [0, 1/2] and X × [1/2, 1] are
+each homeomorphic to CX, their union is SX, and they meet in the image of
+X × {1/2}, a copy of X. Note that this is a claim about subspaces of SX, not a
+new construction.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A saturated open set of X × I containing the
+cone class must contain —</p>
+<button onclick="check(this,true)" data-ok>all of X × {0}</button>
+<button onclick="check(this,false)">all of X × I</button>
+<button onclick="check(this,false)">only a neighbourhood of one point of X × {0}</button>
+<button onclick="check(this,false)">nothing extra — saturation is automatic</button>
+<div class="explain">All of X × {0}, because saturation means containing every
+class it meets and X × {0} is a single class. That is exactly Munkres's
+description on printed 139 — "the typical open set of X* is a collection of
+equivalence classes whose union is an open set of X" — applied here.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The universal property, and suspending a map</h2>
+
+<div class="theorem">
+<strong>Theorem 22.2 (Munkres, printed 142).</strong> Let p : X → Y be a quotient
+map. Let Z be a space and let g : X → Z be a map that is constant on each set
+p⁻¹({y}), for y ∈ Y. Then g induces a map f : Y → Z such that f ∘ p = g. The
+induced map f is continuous if and only if g is continuous; f is a quotient map
+if and only if g is a quotient map.
+<br><br>
+<span class="cite">at1-01 and at1-02, both already shipped, cite <em>this
+unit</em> for the property in the form "a map out of a quotient is continuous
+exactly when its composite with the quotient map is". That is Theorem 22.2's
+continuity clause, no more and no less — it says nothing about f being injective,
+surjective or open. It lives in §22, which is the resource of top-12 and of this
+unit alike; top-12 proves it and this unit uses it.</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — suspending a map, which is the property's first real use.</strong>
+Hatcher, printed 8: "a map f : X → Y suspends to Sf : SX → SY, the quotient map
+of f × 𝟙 : X × I → Y × I." Unpacked, that is an application of Theorem 22.2.
+<br><br>
+Write p_X : X × I → SX and p_Y : Y × I → SY for the quotient maps, and set
+g = p_Y ∘ (f × 𝟙) : X × I → SY. It is continuous, being a composite of continuous
+maps.
+<br><br>
+<em>g is constant on the fibres of p_X.</em> There are three kinds.
+<br>• On a singleton {(x,t)} with 0 &lt; t &lt; 1, any map is constant.
+<br>• On X × {0}: (f × 𝟙)(x, 0) = (f(x), 0) for every x, and every point of
+Y × {0} is sent by p_Y to the same point — the first suspension point of SY. So g
+is constant there.
+<br>• On X × {1}: identically, landing on the second suspension point of SY.
+<br><br>
+By <strong>Theorem 22.2</strong>, g induces a map Sf : SX → SY with
+Sf ∘ p_X = g, and Sf is continuous because g is. ∎
+<br><br>
+<em>What you did not have to do.</em> You never described a single open set of
+SX. The whole point of the universal property is that maps out of a quotient are
+settled upstairs, in the space you started with, where you can see everything.
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove that S(g ∘ f) = Sg ∘ Sf and
+S(𝟙_X) = 𝟙_{SX}.
+<br><br>
+Both follow from one observation about maps that agree after composing with a
+surjection. State that observation first, then apply it twice.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+<em>The observation.</em> If p : A → B is surjective and u, v : B → C satisfy
+u ∘ p = v ∘ p, then u = v. Indeed, given b ∈ B choose a with p(a) = b; then
+u(b) = u(p(a)) = v(p(a)) = v(b).
+<br><br>
+<em>Identities.</em> S(𝟙_X) is by definition the map induced by
+p_X ∘ (𝟙_X × 𝟙) = p_X. And 𝟙_{SX} also satisfies 𝟙_{SX} ∘ p_X = p_X. Since p_X
+is surjective — every quotient map is — the observation gives
+S(𝟙_X) = 𝟙_{SX}.
+<br><br>
+<em>Composites.</em> Let f : X → Y and g : Y → Z. By construction
+Sf ∘ p_X = p_Y ∘ (f × 𝟙) and Sg ∘ p_Y = p_Z ∘ (g × 𝟙). Hence
+<br>(Sg ∘ Sf) ∘ p_X = Sg ∘ (p_Y ∘ (f × 𝟙)) = (Sg ∘ p_Y) ∘ (f × 𝟙)
+= p_Z ∘ (g × 𝟙) ∘ (f × 𝟙) = p_Z ∘ ((g ∘ f) × 𝟙).
+<br>But S(g ∘ f) is defined by exactly the equation
+S(g ∘ f) ∘ p_X = p_Z ∘ ((g ∘ f) × 𝟙). By the observation, with p_X surjective,
+S(g ∘ f) = Sg ∘ Sf. ∎
+<br><br>
+<em>What this is and is not.</em> Preserving identities and composites is what a
+functor does, and cat-01 has the vocabulary. But §22 gives no category here, and
+this lesson claims none — only the two equations, proved from surjectivity of the
+quotient map.
+</details>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — the rest of the kit, as partitions.</strong>
+Hatcher's remaining three constructions, printed 9–10, are the same move again.
+<br><br>
+<em>Join.</em> X * Y is the quotient of X × Y × I under (x, y₁, 0) ∼ (x, y₂, 0)
+and (x₁, y, 1) ∼ (x₂, y, 1).
+<br>⟨your step: write down the partition. For t = 0 the classes are indexed by
+X; for t = 1 by Y; and for 0 &lt; t &lt; 1 they are singletons. Say which of the
+five constructions this is the only one <em>not</em> of the form "collapse one
+subspace to one point", and why.⟩
+<br><br>
+<em>Wedge sum.</em> X ∨ Y is the quotient of X ⨿ Y identifying chosen points x₀
+and y₀ to a single point.
+<br>⟨your step: write down the partition, and then prove S¹ ∨ S¹ is homeomorphic
+to a figure eight using Corollary 22.3 with top-08's Theorem 26.6 — check
+compactness of S¹ ⨿ S¹ and Hausdorffness of the figure eight rather than
+assuming them.⟩
+<br><br>
+<em>Smash product.</em> X ∧ Y = (X × Y)/(X ∨ Y), where X ∨ Y is identified with
+X × {y₀} ∪ {x₀} × Y inside X × Y.
+<br>⟨your step: verify that this union really is a copy of the wedge sum — the
+point is what the two pieces have in common, and there is exactly one such
+point.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does Sf exist as a continuous map?</p>
+<button onclick="check(this,false)">Because f × 𝟙 is a quotient map</button>
+<button onclick="check(this,true)" data-ok>Because p_Y ∘ (f × 𝟙) is constant on the fibres of p_X, so Theorem 22.2 applies</button>
+<button onclick="check(this,false)">Because SX and SY are homeomorphic</button>
+<button onclick="check(this,false)">Because suspension is a functor</button>
+<div class="explain">The second. f × 𝟙 need not be a quotient map at all —
+top-12's Example 7 records that products of quotient maps need not be — and the
+existence of Sf does not require it. The last option inverts the logic: the
+functoriality is a <em>consequence</em> of the construction, proved in the guided
+proof, not a reason for it.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Cell complexes, and where the topology is chosen rather than found</h2>
+
+<div class="definition">
+<strong>Construction (Hatcher, printed 5).</strong> A cell complex is built
+inductively: start with a discrete set X⁰, whose points are 0-cells; form the
+n-skeleton Xⁿ from X<sup>n−1</sup> by attaching n-cells e<sup>n</sup><sub>α</sub>
+via maps φ_α : S<sup>n−1</sup> → X<sup>n−1</sup>; and either stop at a finite
+stage or take X = ⋃_n Xⁿ with the weak topology — a set A ⊂ X is open if and only
+if A ∩ Xⁿ is open in Xⁿ for each n.
+</div>
+
+<p>The attaching step is a quotient, and saying so makes the universal property
+available. Xⁿ is the quotient of X<sup>n−1</sup> ⨿ (⨿_α D<sup>n</sup><sub>α</sub>)
+by the partition whose class at y ∈ X<sup>n−1</sup> is {y} together with every
+boundary point mapping to y, and whose other classes are the singletons of the
+open cells. Theorem 22.2 then says: <em>a map out of Xⁿ is continuous exactly
+when its restrictions to X<sup>n−1</sup> and to each disc are continuous and
+agree on the boundaries.</em> That is the sentence at1-01 and at1-02 use, in the
+place they use it.</p>
+
+<p>Theorem 22.1 has a use here too, but the saturated subspace to take is not the
+obvious one. X<sup>n−1</sup> by itself is <em>not</em> saturated: it meets the
+class of y ∈ X<sup>n−1</sup> without containing the boundary points
+φ<sub>α</sub>⁻¹(y) that belong to that class. What <em>is</em> saturated — and
+closed — is X<sup>n−1</sup> ⨿ (⨿<sub>α</sub> ∂D<sup>n</sup><sub>α</sub>), since
+every class either lies wholly inside it or is a singleton in an open cell. So
+Theorem 22.1(1) applies to that subspace, and the restriction of the attaching map
+to it is again a quotient map onto X<sup>n−1</sup>. Separately, the disjoint union
+of the open cells is saturated and open, and its restriction is a quotient map
+too — which is the sense in which the cells are attached without disturbing what
+was already there.</p>
+
+<p>The weak topology is a <em>condition</em>, not a consequence. X is being
+defined as a set with a topology chosen, and nothing about the skeleta forces
+that choice. Hatcher says as much implicitly by deferring: on printed 5 he tells
+the reader with point-set questions to consult the Appendix, and adds that the
+explanation of the letters "CW" is given there too.</p>
+
+<div class="warn">
+<strong>The one place the mission strip's "finite" is earned.</strong>
+Hatcher, printed 8, on products: "The topology on X × Y as a cell complex is
+sometimes finer than the product topology, with more open sets than the product
+topology has, though the two topologies coincide if either X or Y has only
+finitely many cells, or if both X and Y have countably many cells."
+<br><br>
+Read that as a statement about two topologies on one set. The cell-complex
+topology on X × Y and the product topology of top-05 — whose basis Theorem 19.1
+describes, with all but finitely many factors equal to the whole space — are both
+defined; they need not be equal; and finiteness of one factor is a sufficient
+condition for equality.
+So "finite CW complexes" is not shorthand for "small enough to compute with" — it
+is a hypothesis under which two constructions that could disagree do not.
+<br><br>
+He adds "In practice this subtle issue of point-set topology rarely causes
+problems, however", which is a judgement about practice and not a theorem, and
+this lesson records it as his.
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Two boundary questions, both about units already on the
+shelf.
+<br><br>
+First: at1-02 is titled "CW complexes and operations on spaces" and reads Hatcher
+pp. 5–14; this unit reads pp. 5–10. Its problem set says its operations "are
+top-13's quotient constructions". Set out what each unit owns. at1-02 has the
+homotopy-theoretic half — Proposition 0.17, collapsing a contractible subcomplex,
+the two criteria for homotopy equivalence — and this unit has the point-set half.
+Then find the one result both could reasonably claim, and say where you think it
+should live.
+<br><br>
+Second: at1-01 attributes the universal property to top-13, and Theorem 22.2 is
+in §22 — which is top-12's resource and also this unit's. Decide whether at1-01's
+citation is satisfied as written, and what a syllabus pass ought to do about two
+units sharing one section.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which appears in the pages this unit reads —
+Munkres §22 and Hatcher printed 5–10?</p>
+<button onclick="check(this,false)">Simplicial complexes</button>
+<button onclick="check(this,false)">Homology</button>
+<button onclick="check(this,true)" data-ok>"Finite" as a hypothesis, on printed 8</button>
+<button onclick="check(this,false)">An algorithm for computing anything</button>
+<div class="explain">Only the third. Hatcher's product warning makes finiteness a
+hypothesis under which the cell-complex and product topologies agree. Simplicial
+complexes arrive with simplicial homology in his Chapter 2 (at1-07); homology and
+computation are absent from these pages entirely, which is why three of the
+mission strip's four nouns are bounded rather than taught.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The weak topology on X = ⋃Xⁿ is —</p>
+<button onclick="check(this,true)" data-ok>a condition imposed as part of the definition</button>
+<button onclick="check(this,false)">forced by the topologies on the skeleta</button>
+<button onclick="check(this,false)">the same as the subspace topology from some ℝᴺ</button>
+<button onclick="check(this,false)">the quotient topology of the attaching maps</button>
+<div class="explain">A condition. Nothing about the skeleta determines a topology
+on their union; Hatcher <em>declares</em> that A is open iff A ∩ Xⁿ is open for
+every n. The fourth option is the near-miss worth naming: each individual
+attaching step <em>is</em> a quotient, but the passage to the infinite union is a
+separate choice.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which of the six constructions in this unit is
+not of the form "collapse one subspace to one point"?</p>
+<button onclick="check(this,false)">The cone</button>
+<button onclick="check(this,false)">The wedge sum</button>
+<button onclick="check(this,true)" data-ok>The join — it collapses two families of subspaces, one at each end</button>
+<button onclick="check(this,false)">The smash product</button>
+<div class="explain">The join. At t = 0 it collapses each {x} × Y × {0} to a
+point, one class for each x ∈ X, and at t = 1 each X × {y} × {1}. That is two
+whole families of classes, not one subspace. The suspension is the borderline
+case — two subspaces, each to its own point — and the cone, wedge and smash each
+collapse a single subspace.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>Every construction in the kit is one move.</strong> Take a product
+with I, or a disjoint union, and collapse. Cone: one non-singleton class,
+X × {0}. Suspension: two. Join: two whole families, one at each end of I. Wedge
+and smash: one each. The only thing to check in a new case is which subspace is
+collapsed, and top-12's §22 supplies the topology.
+<br><br>
+2. <strong>Theorem 22.2 is what makes the kit usable.</strong> Maps out of a
+quotient are settled in the space upstairs, so suspending a map needs no
+description of a single open set of SX — only the observation that
+p_Y ∘ (f × 𝟙) is constant on the fibres of p_X. Functoriality then follows from
+surjectivity of the quotient map alone, and this is the property at1-01 and
+at1-02 were promised.
+<br><br>
+3. <strong>Cell complexes are quotients at each stage and a choice at the
+limit.</strong> The attaching step is a quotient of a disjoint union, so a map out
+of Xⁿ is continuous exactly when its restrictions are and they agree on
+boundaries. The weak topology on the union is imposed, not derived. And Hatcher's
+warning on printed 8 — that the cell-complex topology on a product can be
+strictly finer than the product topology, unless one factor is finite — is the
+one place the mission strip's word "finite" is doing mathematical work.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed., §22 "The Quotient Topology", printed
+136–147 (folio = PDF − 17), for the quotient machinery and Theorem 22.2,
+printed 142. Hatcher, <em>Algebraic Topology</em>, ch. 0 (folio = PDF − 9, checked
+on each page cited): "Cell Complexes", the inductive construction, the weak
+topology and the deferral of point-set questions and of the meaning of "CW" to
+the Appendix, printed 5; "Operations on Spaces" — products and the warning that
+the cell-complex topology on X × Y may be finer than the product topology, the
+suspension, the cone, and the suspension of a map, printed 8; the join, printed 9;
+the wedge sum and the smash product, printed 10.
+<br><br>
+<em>Modality and unit boundaries.</em> Hatcher <em>defers</em> the point-set
+background of cell complexes to his Appendix, including the explanation of the
+letters "CW"; this unit does not read it and asserts nothing from it. His remark
+that the product subtlety "rarely causes problems" is a judgement about practice,
+recorded as his rather than adopted. <strong>at1-02 reads the same Hatcher pages
+as this unit</strong> (its sources are pp. 5–14) and owns the homotopy-theoretic
+half — Proposition 0.17, collapsing a contractible subcomplex, the two criteria
+for homotopy equivalence. Nothing in this lesson uses homotopy equivalence. And
+at1-01 attributes the universal property to top-13 while Theorem 22.2 lives in
+§22, which is simultaneously top-12's resource and this unit's; the overlap is
+recorded for the syllabus pass rather than resolved here.
+<br><br>
+<em>Not established here.</em> Simplicial complexes — not in these pages;
+Hatcher introduces them with simplicial homology in Chapter 2 (at1-07). Homology
+of any kind, and any algorithm for computing it — absent from both sources read,
+and the business of at1-07, lab-02 and lab-03. That CS¹ is a disc or SS¹ is S² —
+Hatcher names S<sup>n</sup> as the motivating example of suspension without
+proving the homeomorphism, and top-12 recorded that Munkres proves neither of his
+two headline identifications either. The Appendix's results on CW complexes.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('cone'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
+  g.fillText('collapse one end, or both — Hatcher, printed 8', 320, 36);
+  // panel 1: X x I
+  g.strokeStyle='#9aa5b1'; g.lineWidth=2;
+  g.strokeRect(60,80,120,180);
+  g.strokeStyle='#e06c75'; g.lineWidth=4;
+  g.beginPath(); g.moveTo(60,260); g.lineTo(180,260); g.stroke();
+  g.strokeStyle='#8ab4f8';
+  g.beginPath(); g.moveTo(60,80); g.lineTo(180,80); g.stroke();
+  // panel 2: cone (apex at bottom = collapsed X x {0})
+  g.strokeStyle='#9aa5b1'; g.lineWidth=2;
+  g.beginPath(); g.moveTo(260,80); g.lineTo(380,80); g.lineTo(320,260); g.closePath(); g.stroke();
+  g.strokeStyle='#8ab4f8'; g.lineWidth=4;
+  g.beginPath(); g.moveTo(260,80); g.lineTo(380,80); g.stroke();
+  g.fillStyle='#e06c75'; g.beginPath(); g.arc(320,260,7,0,6.2832); g.fill();
+  // panel 3: suspension
+  g.strokeStyle='#9aa5b1'; g.lineWidth=2;
+  g.beginPath(); g.moveTo(520,80); g.lineTo(580,170); g.lineTo(520,260); g.lineTo(460,170); g.closePath(); g.stroke();
+  g.fillStyle='#8ab4f8'; g.beginPath(); g.arc(520,80,7,0,6.2832); g.fill();
+  g.fillStyle='#e06c75'; g.beginPath(); g.arc(520,260,7,0,6.2832); g.fill();
+  // arrows
+  function arrow(x0,x1,y){g.strokeStyle='#9aa5b1';g.fillStyle='#9aa5b1';g.lineWidth=2;
+    g.beginPath();g.moveTo(x0,y);g.lineTo(x1,y);g.stroke();
+    g.beginPath();g.moveTo(x1,y);g.lineTo(x1-10,y-6);g.lineTo(x1-10,y+6);g.closePath();g.fill();}
+  arrow(192,248,170); arrow(392,448,170);
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
+  g.fillText('X × I', 120, 288);
+  g.fillText('CX = (X × I)/(X × {0})', 320, 288);
+  g.fillText('SX — both ends collapsed', 520, 288);
+  g.font='11px Segoe UI,system-ui,sans-serif'; g.fillStyle='#9aa5b1';
+  g.fillText('one non-singleton class for CX, two for SX — everything with 0 < t < 1 is left alone', 320, 322);
+})();
+</script>
+</body></html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-01 — Topological spaces and open sets</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>Topological spaces and open sets <span class="cite">(top-01)</span></h1>
+
+<div class="hook">
+Forget distance. Keep only which sets are open — and almost all of analysis
+still works. That is not a slogan anyone arrived at quickly: Munkres opens §12
+by recording that Fréchet, Hausdorff and others spent the first decades of the
+twentieth century proposing rival definitions before the community settled on
+one, wanting it broad enough to cover euclidean space, infinite-dimensional
+euclidean space and function spaces all at once, and narrow enough that the
+standard theorems would still hold. What they landed on is three lines long, and
+two of those lines are about unions and intersections.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> The third axiom will ask that
+<em>finite</em> intersections of open sets be open. Is that word "finite" doing
+real work, or is it there for tidiness — could the axiom just as well have said
+"arbitrary"?</p>
+<button onclick="check(this,false)">Tidiness — arbitrary would be equivalent</button>
+<button onclick="check(this,true)" data-ok>Real work — arbitrary would collapse the definition</button>
+<button onclick="check(this,false)">Real work, but only for uncountable families</button>
+<div class="explain">Real work, and it collapses fast. In segment 2 you will
+intersect countably many open sets of ℤ — each the complement of a single point
+— and land on a set that is not open. Countability is not the threshold either:
+a countably infinite family is already enough to break it.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A topology is the minimal structure on which continuity, and therefore homology, can be defined.</p>
+
+<div class="warn">
+<strong>The strip reaches past this unit, and past this section.</strong> Three
+bounds, all read off §12 itself.
+<br><br>
+<em>Continuity is not here.</em> §12 defines the structure and stops. Munkres
+defines a continuous function in §18 (printed 102), which is top-04's subject;
+nothing on printed 75–78 mentions continuity except the chapter's opening
+promise that it is coming.
+<br><br>
+<em>Homology is much further off.</em> Munkres reaches homology only in Part II
+and only for surfaces (§75, printed 454). It is at1-07 that builds it in
+general. Nothing in this unit licenses the word.
+<br><br>
+<em>"Minimal" is not Munkres's claim.</em> His own account of how the definition
+was chosen (printed 75–76) is a tradeoff, not a minimality theorem: the
+mathematicians involved "wanted, of course, a definition that was as broad as
+possible" so as to include the useful examples, "but they also wanted the
+definition to be narrow enough that the standard theorems about these familiar
+spaces would hold". Breadth traded against strength, settled by practice over
+decades. §12 proves nothing about structures weaker than a topology, and does
+not claim none would serve.
+<br><br>
+What this unit does establish is the middle clause of the strip made concrete:
+what the structure <em>is</em>, and how to tell whether something is one.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Three axioms, and what they refuse</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 76).</strong> A <em>topology</em> on a set
+X is a collection 𝒯 of subsets of X having the following properties:
+<br>(1) ∅ and X are in 𝒯.
+<br>(2) The union of the elements of any subcollection of 𝒯 is in 𝒯.
+<br>(3) The intersection of the elements of any finite subcollection of 𝒯 is in 𝒯.
+<br><br>
+A set X for which a topology 𝒯 has been specified is called a
+<em>topological space</em>. A subset U of X is an <em>open set</em> of X if U
+belongs to 𝒯.
+</div>
+
+<p>Read what that does <em>not</em> say. There is no distance, no metric, no
+sequence, no limit. "Open" is not a property a set has; it is a label the
+collection 𝒯 hands out, and a different 𝒯 on the same X hands it out
+differently. Munkres's own phrasing on printed 76 is worth keeping: a
+topological space is a set X together with a collection of subsets of X,
+<em>called</em> open sets, such that ∅ and X are both open and such that
+arbitrary unions and finite intersections of open sets are open.</p>
+
+<p>Two conventions are buried in axioms (2) and (3), and both surface in the
+problems.</p>
+
+<p><strong>The empty subcollection.</strong> Axiom (2) says "any subcollection",
+and the empty subcollection is one of them. The union over no sets is ∅; the
+intersection over no sets, taken inside X, is X. So axioms (2) and (3) already
+deliver what axiom (1) asks for. The axioms overlap; they do not conflict. Axiom
+(1) is still worth stating separately, because it is the one a candidate
+collection fails without any set arithmetic at all — see the collection 𝒟 in
+Problem 1.</p>
+
+<p><strong>Finite means: check two.</strong> Axiom (3) quantifies over finite
+subcollections, but you never have to verify more than pairs.</p>
+
+<div class="theorem">
+<strong>Lemma (pairs suffice).</strong> Let 𝒯 be a collection of subsets of X
+containing ∅ and X and closed under arbitrary unions. If U ∩ V ∈ 𝒯 whenever
+U, V ∈ 𝒯, then 𝒯 is a topology on X.
+<br><br>
+<em>Proof.</em> Axioms (1) and (2) are hypotheses. For axiom (3), induct on the
+number n of members. For n = 0 the intersection is X ∈ 𝒯, and for n = 1 it is
+the member itself. Suppose every intersection of n − 1 members lies in 𝒯, and
+let U₁, …, Uₙ ∈ 𝒯. Then U₁ ∩ ⋯ ∩ Uₙ = (U₁ ∩ ⋯ ∩ Uₙ₋₁) ∩ Uₙ. The bracket lies in
+𝒯 by the inductive hypothesis, and the whole is an intersection of two members
+of 𝒯, hence in 𝒯. ∎
+<br><br>
+Only the last paragraph needs the pairwise hypothesis; the union hypothesis is
+carried purely to supply axiom (2), so that the conclusion can be the whole
+definition rather than one third of it.
+<br><br>
+<span class="cite">This is a sub-step, not one of Munkres's results — §12 numbers
+nothing at all. It is stated here because Problem 1(c) asks for it and because
+every verification below quietly uses it.</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — running the checklist, and naming the witness.</strong>
+Let X = {a, b, c} and consider
+<br>𝒞 = {∅, X, {a,b}, {b,c}}.
+<br><br>
+<em>Axiom (1).</em> ∅ ∈ 𝒞 and X ∈ 𝒞. Pass.
+<br>
+<em>Axiom (3), by the Lemma, so pairs only.</em> The pairs involving ∅ give ∅,
+and those involving X give the other member; both are in 𝒞. The one remaining
+pair is {a,b} ∩ {b,c} = {b}. And {b} ∉ 𝒞. <strong>Fail</strong>, witnessed by
+{a,b} and {b,c}.
+<br><br>
+Stop there. A collection that fails an axiom is not a topology, and the
+remaining checks tell you nothing you can use. Note the shape of the answer: not
+"𝒞 is not a topology" but "𝒞 fails axiom (3), and here are the two sets". The
+witness is the part that is checkable.
+<br><br>
+<em>Order of attack.</em> Run (1), then (3), then (2). Axiom (1) is a glance.
+Axiom (3) needs only pairs and usually breaks first, because a collection built
+by hand tends to have few members and their overlaps are unplanned. Axiom (2) is
+the long check, so do it last and only if the others survive.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which of these is a topology on X = {a, b, c}?</p>
+<button onclick="check(this,false)">{∅, X, {a}, {b}}</button>
+<button onclick="check(this,true)" data-ok>{∅, X, {b}, {a,b}, {b,c}}</button>
+<button onclick="check(this,false)">{X, {a}, {a,b}}</button>
+<button onclick="check(this,false)">{∅, X, {a,b}, {b,c}}</button>
+<div class="explain">The second. The first fails (2): {a} ∪ {b} = {a,b} is
+absent. The third fails (1): ∅ is missing — and note it is closed under both
+unions and intersections as it stands, which is exactly why axiom (1) must be
+stated rather than derived. The fourth is 𝒞 above, failing (3). For the winner,
+the pairwise intersections are {b} ∩ {a,b} = {b}, {b} ∩ {b,c} = {b} and
+{a,b} ∩ {b,c} = {b}, all present; the unions are {a,b} ∪ {b,c} = X and the rest
+absorb into X.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Munkres writes 𝒯′ ⊃ 𝒯 for "𝒯′ is finer than
+𝒯". Does that permit 𝒯′ = 𝒯?</p>
+<button onclick="check(this,true)" data-ok>Yes — he uses ⊂ and ⊃ non-strictly</button>
+<button onclick="check(this,false)">No — ⊃ always means proper containment</button>
+<button onclick="check(this,false)">Only when X is finite</button>
+<div class="explain">Yes. Munkres's ⊂ means "is a subset of", and he reserves a
+separate phrase for the proper case: "if 𝒯′ <em>properly</em> contains 𝒯, we say
+that 𝒯′ is <em>strictly finer</em>" (printed 77). Every topology is therefore
+finer than itself, which is what makes "finer" reflexive in Problem 5(a). This
+is a live reading trap — many later authors use ⊂ for proper containment.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Four topologies that live on every set</h2>
+
+<p>Munkres's Examples 2–4 (printed 77) are not illustrations. They are the
+supply of counterexamples the rest of the subject runs on, and three of the five
+problems are set inside them.</p>
+
+<div class="definition">
+<strong>Examples 2–4 (Munkres, printed 77).</strong>
+<br><em>Discrete topology:</em> for any set X, the collection of <em>all</em>
+subsets of X.
+<br><em>Indiscrete</em> (or <em>trivial</em>) <em>topology:</em> the collection
+consisting of X and ∅ only.
+<br><em>Finite complement topology 𝒯_f:</em> all subsets U of X such that X − U
+either is finite or is all of X.
+<br><em>Countable complement topology 𝒯_c:</em> all subsets U of X such that
+X − U either is countable or is all of X.
+</div>
+
+<p>The two-clause shape of 𝒯_f and 𝒯_c is easy to skim past and it is load-bearing.
+The second clause, "or is all of X", is there for exactly one set: U = ∅, whose
+complement is X and need not be finite. Without it, ∅ would not be open and
+axiom (1) would fail on the spot.</p>
+
+<div class="worked">
+<strong>Worked example — 𝒯_f is a topology, with De Morgan doing the work.</strong>
+Munkres's argument, printed 77, in full.
+<br><br>
+<em>Axiom (1).</em> X ∈ 𝒯_f since X − X = ∅ is finite; ∅ ∈ 𝒯_f since X − ∅ = X
+is all of X, by the second clause.
+<br><br>
+<em>Axiom (2).</em> Let {U_α} be a family of nonempty members. Then
+<br>X − ⋃ U_α = ⋂ (X − U_α),
+<br>and this is a subset of any single one of the finite sets X − U_α, hence
+finite. So ⋃ U_α ∈ 𝒯_f. The fact used is that <em>a subset of a finite set is
+finite</em> — and it says nothing about how many α there are, which is precisely
+why axiom (2) may be stated for arbitrary subcollections.
+<br><br>
+<em>Axiom (3).</em> Let U₁, …, Uₙ be nonempty members. Then
+<br>X − ⋂ᵢ₌₁ⁿ Uᵢ = ⋃ᵢ₌₁ⁿ (X − Uᵢ),
+<br>a finite union of finite sets, therefore finite. So ⋂ Uᵢ ∈ 𝒯_f. The fact used
+is that <em>a finite union of finite sets is finite</em> — and this one does
+depend on n being finite. An infinite union of finite sets can be infinite, and
+the argument has nothing to fall back on.
+<br><br>
+<em>Why "nonempty".</em> Munkres states both halves for nonempty members, and
+the reason is a sentence, not a subtlety: if some U_α = ∅ then X − U_α = X,
+which is not finite when X is infinite, so "each set X − U_α is finite" is
+simply false. Dispose of the empty cases by hand. In a union, dropping empty
+members changes nothing. In an intersection, one empty member makes the whole
+intersection ∅, which is in 𝒯_f by the second clause. Problem 3(b) asks you to
+write this out so the proof stands without the restriction.
+</div>
+
+<div class="worked fade">
+<strong>Faded example — the countably infinite family that breaks axiom (3).</strong>
+Work inside 𝒯_f on X = ℤ.
+<br><br>
+For each n ≥ 1 put Uₙ = ℤ − {n}. Each Uₙ ∈ 𝒯_f, because ℤ − Uₙ = {n} is finite.
+Now intersect all of them:
+<br>⋂_{n ≥ 1} Uₙ = ℤ − {1, 2, 3, …}, which is {…, −2, −1, 0}.
+<br><br>
+⟨your step: compute the complement ℤ − ⋂ Uₙ explicitly, then test it against
+<em>both</em> clauses of the definition of 𝒯_f — is it finite, and is it all
+of ℤ?⟩
+<br><br>
+⟨your step: say in one sentence which line of the worked example above fails
+when n is allowed to run over an infinite index set, and why the union half is
+untouched by the same substitution.⟩
+<br><br>
+This is the answer to the prediction gate. The word "finite" in axiom (3) is not
+tidiness, and a countably infinite family is already enough to break it — no
+uncountability required.
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Munkres gives Example 4 and then says only: "Then 𝒯_c
+is a topology on X, as you can check." He states it; he does not verify it.
+<br><br>
+Verify it. Run the same three axioms, following the shape of the 𝒯_f argument
+above, and identify the one fact about countable sets that has to replace "a
+finite union of finite sets is finite". Confirm that your replacement is
+actually true before you lean on it.
+<br><br>
+Then answer the question Munkres does not ask: is 𝒯_f ⊂ 𝒯_c always? Is the
+containment ever strict, and for which X? That is Problem 4, and part (c) has a
+trap in it worth walking into deliberately.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> On a <em>finite</em> set X, what is 𝒯_f?</p>
+<button onclick="check(this,false)">The indiscrete topology</button>
+<button onclick="check(this,true)" data-ok>The discrete topology</button>
+<button onclick="check(this,false)">Neither — it is a genuinely new topology</button>
+<button onclick="check(this,false)">It is not a topology when X is finite</button>
+<div class="explain">Discrete. If X is finite then every subset of X is finite,
+so every X − U is finite, so every subset U is open. The same argument shows
+𝒯_c is discrete whenever X is merely countable, which is Problem 4(d).</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Take X = ℤ and D the set of even integers.
+Where does U = ℤ − D sit?</p>
+<button onclick="check(this,false)">In 𝒯_f and in 𝒯_c</button>
+<button onclick="check(this,true)" data-ok>In 𝒯_c but not in 𝒯_f</button>
+<button onclick="check(this,false)">In 𝒯_f but not in 𝒯_c</button>
+<button onclick="check(this,false)">In neither</button>
+<div class="explain">ℤ − U = D is countably infinite. Countable, so U ∈ 𝒯_c.
+Infinite and not all of ℤ, so U ∉ 𝒯_f. This is the witness for Problem 4(c),
+and it is the reason the natural guess there — that 𝒯_f ⊊ 𝒯_c needs X
+uncountable — is wrong. Any infinite X will do.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Comparing topologies, and a metaphor that only half works</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 77).</strong> Suppose that 𝒯 and 𝒯′ are two
+topologies on a given set X. If 𝒯′ ⊃ 𝒯, we say that 𝒯′ is <em>finer</em> than
+𝒯; if 𝒯′ <em>properly</em> contains 𝒯, we say that 𝒯′ is <em>strictly finer</em>
+than 𝒯. We also say that 𝒯 is <em>coarser</em> than 𝒯′, or <em>strictly
+coarser</em>, in these two respective situations. We say 𝒯 is <em>comparable</em>
+with 𝒯′ if either 𝒯′ ⊃ 𝒯 or 𝒯 ⊃ 𝒯′.
+</div>
+
+<p>"Finer" <em>is</em> containment of collections. That single observation
+settles most of Problem 5(a): reflexivity, antisymmetry and transitivity are
+inherited from ⊆ on sets and need no topology at all. What does not come free is
+totality — and Munkres denies it in the next paragraph: "Two topologies on X
+need not be comparable, of course."</p>
+
+<p>The diagram below is the smallest honest picture of that. Five topologies on
+X = {a, b, c}, ordered upward by fineness; an upward edge means the lower is
+contained in the upper.</p>
+
+<canvas id="hasse" width="640" height="360" aria-label="A Hasse diagram of five topologies on the three-point set {a,b,c}, ordered by fineness. At the bottom is the indiscrete topology, containing only the empty set and X. Above it, side by side and joined by a dashed line marked not comparable, are the topology adding {a} and the topology adding {b}. Above both is the topology containing the empty set, X, {a}, {b} and {a,b}. At the top is the discrete topology of all eight subsets."></canvas>
+
+<div class="warn">
+<strong>Read the dashed edge, not just the solid ones.</strong> The two middle
+topologies 𝒯₁ = {∅, X, {a}} and 𝒯₂ = {∅, X, {b}} are incomparable: {a} ∉ 𝒯₂ and
+{b} ∉ 𝒯₁. So there is no answer to "which of these two is finer". They do have a
+coarsest common refinement — the topology above them — but that is a topology
+you have to <em>build</em>, and it is strictly larger than the bare union
+𝒯₁ ∪ 𝒯₂ = {∅, X, {a}, {b}}, which is not a topology at all: it fails axiom (2),
+since {a} ∪ {b} = {a,b} is missing. Unions of topologies break; intersections do
+not. That asymmetry is Problem 5(b) and 5(c).
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Let {𝒯ᵢ}ᵢ∈I be a non-empty family of topologies
+on a set X. Prove that ⋂ᵢ∈I 𝒯ᵢ is a topology on X.
+<br><br>
+Write out all three axioms. In the axiom (2) step, say explicitly where you use
+that each 𝒯ᵢ is closed under unions of <em>arbitrary</em> subcollections rather
+than just finite ones.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+Write 𝒯 = ⋂ᵢ∈I 𝒯ᵢ. Note first that 𝒯 is a collection of subsets of X, since each
+𝒯ᵢ is.
+<br><br>
+<em>Axiom (1).</em> Each 𝒯ᵢ contains ∅ and X, so both lie in the intersection of
+all of them; hence ∅, X ∈ 𝒯.
+<br><br>
+<em>Axiom (2).</em> Let {U_α}α∈J be any subcollection of 𝒯. Fix i ∈ I. Every
+U_α lies in 𝒯, hence in 𝒯ᵢ, so {U_α}α∈J is a subcollection of 𝒯ᵢ — of the same
+size J, whatever that size is. Because 𝒯ᵢ satisfies axiom (2) for
+<em>arbitrary</em> subcollections, ⋃α U_α ∈ 𝒯ᵢ. This is the step that needs the
+full strength of axiom (2): the family we were handed may be of any cardinality,
+and it must be fed to each 𝒯ᵢ whole. Since i was arbitrary, ⋃α U_α lies in every
+𝒯ᵢ and so in 𝒯.
+<br><br>
+<em>Axiom (3).</em> The same argument with a finite subcollection U₁, …, Uₙ of
+𝒯: for each i these all lie in 𝒯ᵢ, so ⋂ᵢ₌₁ⁿ Uᵢ ∈ 𝒯ᵢ by axiom (3) for 𝒯ᵢ, and
+therefore ⋂ᵢ₌₁ⁿ Uᵢ ∈ 𝒯. (By the Lemma of segment 1 it would have sufficed to do
+the case n = 2.)
+<br><br>
+Hence 𝒯 satisfies all three axioms and is a topology on X. ∎
+<br><br>
+Two remarks. The hypothesis that I is non-empty matters only for bookkeeping: an
+intersection over no topologies is not defined by this argument, though the
+convention "everything in the ambient set" would give the discrete topology.
+And nothing here is special about topologies — the same proof works for any
+notion defined by closure conditions, which is why intersections behave and
+unions do not.
+</details>
+</div>
+
+<div class="worked">
+<strong>Worked example — the two extremes bound everything.</strong>
+Let 𝒯 be any topology on X, let 𝒫 be the discrete topology and 𝒥 the indiscrete.
+<br><br>
+Every member of 𝒯 is a subset of X, and 𝒫 is by definition the collection of all
+subsets of X. So 𝒯 ⊂ 𝒫: the discrete topology is finer than every topology on X.
+<br>Conversely 𝒥 = {∅, X}, and axiom (1) puts both of those in 𝒯. So 𝒥 ⊂ 𝒯: the
+indiscrete topology is coarser than every topology on X.
+<br><br>
+<em>The degenerate case, which Problem 2(c) asks for in full.</em> When do the
+two extremes coincide? Exactly when X has at most one point. For a one-point set,
+the subsets are ∅ and X, so both collections are {∅, X}. For X = ∅ the two
+collections are again equal, and there is a wrinkle worth stating: ∅ and X are
+then the <em>same set</em>, so the collection {∅, X} = {∅} has one member, not
+two. Whenever X has at least two points, pick x ∈ X with {x} ≠ X; then {x} is in
+𝒫 and not in 𝒥, and the two are distinct.
+</div>
+
+<div class="worked fade">
+<strong>Faded example — assessing Munkres's gravel.</strong>
+His image, printed 77: a topological space is "something like a truckload full of
+gravel — the pebbles and all unions of collections of pebbles being the open
+sets", and smashing the pebbles smaller enlarges the collection of open sets, so
+the topology "like the gravel, is said to have been made finer".
+<br><br>
+<em>What it gets right.</em> A topology can be presented by a small generating
+collection together with all its unions, rather than by listing every open set.
+That is a real and central idea — it is what §13 will call a basis (top-02) —
+and the metaphor is placed here to prepare it.
+<br><br>
+⟨your step: name what the image gets wrong about the <em>shape</em> of the open
+sets. Gravel pebbles are disjoint; are the generators of a topology? Test the
+image against 𝒜 = {∅, X, {b}, {a,b}, {b,c}} from Problem 1, whose two
+two-element members {a,b} and {b,c} overlap in {b} without either containing the
+other.⟩
+<br><br>
+⟨your step: name what it gets wrong about the <em>structure</em> of the set of
+all topologies on X. Two truckloads of gravel can always be ranked by how finely
+each was smashed. Can two topologies always be ranked? Cite the diagram above,
+and Munkres's own sentence in the very next paragraph.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> 𝒯₁ = {∅, X, {a}} and 𝒯₂ = {∅, X, {b}} on
+X = {a,b,c}. Which is true of 𝒯₁ ∩ 𝒯₂ and 𝒯₁ ∪ 𝒯₂?</p>
+<button onclick="check(this,false)">Both are topologies</button>
+<button onclick="check(this,true)" data-ok>The intersection is; the union is not</button>
+<button onclick="check(this,false)">The union is; the intersection is not</button>
+<button onclick="check(this,false)">Neither is</button>
+<div class="explain">𝒯₁ ∩ 𝒯₂ = {∅, X}, the indiscrete topology — an instance of
+the guided proof. 𝒯₁ ∪ 𝒯₂ = {∅, X, {a}, {b}} fails axiom (2), because
+{a} ∪ {b} = {a,b} is not a member. It is the collection ℬ of Problem 1, met
+again from a different direction.</div>
+</div>
+
+<p>One last thing to carry forward, from printed 78. Some authors say
+"larger"/"smaller" for finer/coarser, which is harmless. Others say
+"weaker"/"stronger" — and Munkres warns that analysts and topologists use those
+two words in <em>opposite</em> senses for the same inclusion. He declines to use
+them at all, and so will we. If you meet "weak topology" in another book, read
+the surrounding definitions before assuming which containment is meant.</p>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton from nothing. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>A topology is three closure conditions on a collection of subsets</strong>
+— contains ∅ and X, closed under arbitrary unions, closed under finite
+intersections — and "open" means nothing more than "member of that collection".
+So the same set carries many topologies, and the discrete and indiscrete ones
+bracket them all.
+<br><br>
+2. <strong>The asymmetry between (2) and (3) is real, and 𝒯_f exhibits it.</strong>
+The union half of the 𝒯_f proof needs only "a subset of a finite set is finite",
+which is indifferent to how many sets there are; the intersection half needs "a
+finite union of finite sets is finite", which is not. Intersecting the ℤ − {n}
+for n ≥ 1 produces a set whose complement is infinite and proper — not open. So
+axiom (3) could not have said "arbitrary".
+<br><br>
+3. <strong>"Finer" is containment, so the topologies on X form a partial order
+and not a chain.</strong> Reflexivity, antisymmetry and transitivity are free;
+totality fails, with {∅,X,{a}} and {∅,X,{b}} as witnesses. Intersections of
+topologies are topologies — the closure conditions are all of the form "if these
+are in, that is in", and such conditions survive intersection — while unions of
+topologies generally are not, because a union can supply two sets without
+supplying what they generate.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed., §12 "Topological Spaces",
+printed pp. 75–78 (PDF 92–95; folio = PDF − 17, checked on each page cited).
+Definition of a topology, topological space and open set, p. 76. Examples 2–4 —
+discrete, indiscrete/trivial, finite complement 𝒯_f with proof, and countable
+complement 𝒯_c — p. 77; Munkres <em>states</em> 𝒯_c and leaves its verification
+to the reader ("as you can check"), which is why it appears here as a
+<em>You try</em> and not as a worked example. Definition of finer, strictly
+finer, coarser, comparable, p. 77, together with the gravel passage and the
+remark that two topologies need not be comparable. The larger/smaller and
+weaker/stronger terminology, and Munkres's warning about the latter, p. 78. The
+historical paragraph quoted in the hook and in the mission bound, pp. 75–76.
+<br><br>
+<em>Not established here.</em> Continuity — Munkres §18, printed 102 (top-04).
+Bases, and therefore the standard topology on ℝ — §13, printed 78 (top-02); no
+argument in this unit or its problem set may use an open interval as an example
+of an open set. Homology, which the mission strip names, is not in this chapter
+at all; Munkres reaches it only for surfaces in §75, printed 454, and the general
+construction is at1-07. The strip's word "minimal" is not Munkres's and is not
+established anywhere in §12. The Lemma of segment 1 (pairs suffice) is a
+sub-step stated and proved here, not a result of Munkres's — §12 numbers nothing,
+which is also why this unit's coverage gate has no numbered references to check.
+Problems 4(b)–(d) and 5(a)–(d) are derived from §12's definitions; §12 states
+none of them.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('hasse'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var nodes=[
+    {x:320,y:48,w:210,t:'discrete',s:'all 8 subsets'},
+    {x:320,y:130,w:236,t:'ℱ',s:'∅, X, {a}, {b}, {a,b}'},
+    {x:150,y:214,w:150,t:'\u{1D4AF}₁',s:'∅, X, {a}'},
+    {x:490,y:214,w:150,t:'\u{1D4AF}₂',s:'∅, X, {b}'},
+    {x:320,y:296,w:180,t:'indiscrete',s:'∅, X'}
+  ];
+  var edges=[[4,2],[4,3],[2,1],[3,1],[1,0]];
+  var H=34;
+  g.strokeStyle='#4a5a6a'; g.lineWidth=1.5;
+  edges.forEach(function(e){
+    var a=nodes[e[0]], b=nodes[e[1]];
+    g.beginPath(); g.moveTo(a.x,a.y-H/2); g.lineTo(b.x,b.y+H/2); g.stroke();
+  });
+  g.save(); g.setLineDash([5,4]); g.strokeStyle='#e06c75';
+  g.beginPath(); g.moveTo(225,214); g.lineTo(415,214); g.stroke(); g.restore();
+  g.fillStyle='#e06c75'; g.font='12px Segoe UI,system-ui,sans-serif'; g.textAlign='center';
+  g.fillText('not comparable', 320, 206);
+  nodes.forEach(function(n){
+    var x=n.x-n.w/2, y=n.y-H/2;
+    g.fillStyle='#1a2027'; g.strokeStyle='#8ab4f8'; g.lineWidth=1.5;
+    g.beginPath(); g.rect(x,y,n.w,H); g.fill(); g.stroke();
+    g.textAlign='center';
+    g.fillStyle='#8ab4f8'; g.font='bold 12px Segoe UI,system-ui,sans-serif';
+    g.fillText(n.t, n.x, n.y-2);
+    g.fillStyle='#9aa5b1'; g.font='11px Segoe UI,system-ui,sans-serif';
+    g.fillText(n.s, n.x, n.y+12);
+  });
+  g.fillStyle='#9aa5b1'; g.font='12px Segoe UI,system-ui,sans-serif'; g.textAlign='center';
+  g.fillText('upward = finer  (an edge means the lower is contained in the upper)', 320, 338);
+})();
+</script>
+</body></html>

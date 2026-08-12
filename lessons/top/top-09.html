@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-09 — Limit-point and local compactness</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>Limit-point and local compactness <span class="cite">(top-09)</span></h1>
+
+<div class="hook">
+Three flavours of compactness — and when the neighbourhood, not the whole space,
+is what behaves finitely. The three flavours are the interesting part, because
+they are genuinely three: covering compactness, limit point compactness and
+sequential compactness are different properties, with Munkres giving explicit
+spaces that have one and not another. They collapse into one thing only under a
+hypothesis, and Theorem 28.2 names it.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> "Compact", "every infinite subset
+has a limit point", and "every sequence has a convergent subsequence". Predict
+how many of these three are equivalent in a general topological space.</p>
+<button onclick="check(this,false)">All three — they are standard synonyms</button>
+<button onclick="check(this,true)" data-ok>None of the equivalences holds in general; one implication does</button>
+<button onclick="check(this,false)">Exactly two of them, the sequential ones</button>
+<div class="explain">One implication survives: compact ⇒ limit point compact,
+which is the positive half of Theorem 28.1. The rest fail in general, and
+Munkres supplies the witnesses — ℤ₊ × Y with Y indiscrete is limit point compact
+and not compact (Example 1, printed 178). Theorem 28.2 says all three coincide
+<em>if X is metrizable</em>, and that hypothesis is doing all the work in the
+familiar cases.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Local compactness underwrites the well-behaved spaces (manifolds) that real data is sampled from.</p>
+
+<div class="warn">
+<strong>Half of the strip's vocabulary is not defined in these sections.</strong>
+<br><br>
+§29 defines local compactness and proves a good deal about it. It defines no
+<em>manifold</em>. In Munkres the word first appears in the Chapter 4
+introduction, printed 189, glossed in passing as "the higher-dimensional
+analogue of a surface", and manifolds are the subject of §36 "Imbeddings of
+Manifolds", printed 224 — neither of which this unit reads beyond that sentence.
+<br><br>
+So the strip asserts an implication — manifolds are locally compact, therefore
+local compactness underwrites them — of which §29 supplies exactly one term. The
+implication is not stated here, not proved here, and could not be, because one of
+its two notions is undefined in this chapter. What §29 does supply is everything
+about the term it <em>does</em> define, including Theorem 29.1's construction of a
+one-point compactification and Theorem 29.2's neighbourhood criterion.
+<br><br>
+<em>And the strip cannot be applied to the sample.</em> A point cloud is finite,
+hence discrete (top-06), hence compact (top-08), hence locally compact —
+trivially, since {x} is an open compact neighbourhood. That is now the third
+property in three units to come out vacuously true of a point cloud from
+finiteness alone. If local compactness underwrites anything for TDA, it does so
+for the space being sampled, not for the sample; §29 does not say so, and neither
+does this unit.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Three properties, and the hypothesis that fuses them</h2>
+
+<div class="definition">
+<strong>Definitions (Munkres, printed 178–179).</strong> A space X is said to be
+<em>limit point compact</em> if every infinite subset of X has a limit point.
+<br><br>
+If (x_n) is a sequence in X and n₁ &lt; n₂ &lt; ⋯ is an increasing sequence of
+positive integers, the sequence (y_i) with y_i = x_{n_i} is a
+<em>subsequence</em>. The space X is <em>sequentially compact</em> if every
+sequence of points of X has a convergent subsequence.
+</div>
+
+<div class="theorem">
+<strong>Theorem 28.1 (printed 178).</strong> Compactness implies limit point
+compactness, but not conversely.
+<br><br>
+<strong>Theorem 28.2 (printed 179).</strong> Let X be a metrizable space. Then
+the following are equivalent: (1) X is compact; (2) X is limit point compact;
+(3) X is sequentially compact.
+</div>
+
+<p>The positive half of Theorem 28.1 is a contraposition worth having in hand.
+An infinite A ⊂ X with no limit point contains all its limit points vacuously,
+so it is closed by <strong>Corollary 17.7</strong> of top-03; and each a ∈ A has a
+neighbourhood meeting A only in a. Those neighbourhoods together with X − A cover
+X, and each captures a single point of the infinite A, so no finite subfamily
+covers. Note also what Theorem 28.2 is not: it says nothing about non-metrizable
+spaces, and the sequence machinery it rests on — <strong>Lemma 21.2</strong> of
+top-06 — carried the same hypothesis for the same reason.</p>
+
+<canvas id="three" width="640" height="340" aria-label="Three labelled boxes in a row reading compact, limit point compact, and sequentially compact. A solid arrow runs from compact to limit point compact labelled Theorem 28.1; a dashed arrow runs back the other way crossed out and labelled as failing, with the counterexample named. Beneath all three a bracket records that Theorem 28.2 makes them equivalent when the space is metrizable."></canvas>
+
+<div class="worked">
+<strong>Worked example — Munkres's Example 1, and why the counterexample is so
+cheap.</strong>
+Let Y = {y₁, y₂} with the indiscrete topology {∅, Y}, and let
+X = ℤ₊ × Y with the product topology.
+<br><br>
+<em>X is limit point compact.</em> A basis for X consists of the sets {n} × Y:
+ℤ₊ is discrete in the order topology (top-02, §14 Example 3), and Y has only the
+two open sets. Now take any non-empty A ⊂ X and pick (n, y₁) ∈ A. Every open set
+containing (n, y₂) contains a basis element about it, hence contains all of
+{n} × Y, hence contains (n, y₁) — a point of A different from (n, y₂). So
+(n, y₂) is a limit point of A. Indeed <em>every</em> non-empty subset has a limit
+point, not merely every infinite one.
+<br><br>
+<em>X is not compact.</em> The sets U_n = {n} × Y form an open covering, and they
+are pairwise disjoint and non-empty, so no proper subcollection covers X — in
+particular no finite one.
+<br><br>
+<em>Why this costs so little.</em> The two points of each fibre {n} × Y have
+<strong>exactly the same neighbourhoods</strong>. X fails the T₁ axiom, so limit
+points are almost free: each point of a pair is a limit point of the singleton
+containing the other. That is the general lesson of Example 1 — limit point
+compactness is weak precisely where points are not separated, which is why
+Theorem 28.2 can only recover the equivalence once a metric is present and the
+space is therefore Hausdorff.
+</div>
+
+<div class="worked fade">
+<strong>Faded example — (2) ⇒ (3), and the hypothesis inside the hypothesis.</strong>
+Let X be metrizable and limit point compact, and let (x_n) be a sequence. Put
+A = {x_n : n ∈ ℤ₊}.
+<br><br>
+<em>If A is finite,</em> some value is taken infinitely often, and those indices
+give a constant subsequence, convergent trivially.
+<br><br>
+<em>If A is infinite,</em> it has a limit point x. Choose n₁ with x_{n₁} ∈ B(x,1).
+Given n_{i−1}, Munkres writes: "Because the ball B(x, 1/i) intersects A in
+infinitely many points, we can choose an index n_i &gt; n_{i−1}…"
+<br><br>
+⟨your step: that sentence is a citation in disguise. Name the theorem of top-03
+that upgrades "x is a limit point of A" to "every neighbourhood of x meets A in
+infinitely many points", state its hypothesis, and check that hypothesis against
+a metrizable X — you will need two steps, not one.⟩
+<br><br>
+⟨your step: finish the proof by showing (x_{n_i}) → x, and say what would break
+if the balls did not meet A infinitely often.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which implication among the three properties
+holds with no hypothesis at all?</p>
+<button onclick="check(this,true)" data-ok>compact ⇒ limit point compact</button>
+<button onclick="check(this,false)">limit point compact ⇒ compact</button>
+<button onclick="check(this,false)">sequentially compact ⇒ compact</button>
+<button onclick="check(this,false)">None — all three need metrizability</button>
+<div class="explain">Compact ⇒ limit point compact, the positive half of
+Theorem 28.1. The second is refuted by ℤ₊ × Y. The third does hold for
+metrizable spaces by Theorem 28.2, but not in general, and Theorem 28.2 is where
+the hypothesis is stated. Nothing here is hypothesis-free except the first.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Local compactness: finiteness in the neighbourhood</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 182).</strong> A space X is said to be
+<em>locally compact at x</em> if there is some compact subspace C of X that
+contains a neighbourhood of x. If X is locally compact at each of its points, X
+is said simply to be <em>locally compact</em>.
+</div>
+
+<p>Read the definition carefully: C must be compact and must <em>contain</em> a
+neighbourhood — C need not itself be a neighbourhood. That looseness is what
+makes ℝ locally compact by the one-line argument of Example 1: x lies in some
+(a,b), which lies in the compact [a,b].</p>
+
+<p>Munkres's three examples are worth the contrast. ℝⁿ is locally compact,
+because a basis element lies in a product of closed intervals, compact by
+Corollary 27.2 and Theorem 26.7. ℝ<sup>ω</sup> is <em>not</em>, and his reason is
+worth quoting: "<em>none</em> of its basis elements are contained in compact
+subspaces". By top-05's <strong>Theorem 19.1</strong> a product-topology basis
+element has U_n = ℝ for all but finitely many n, so it is unbounded in each of
+those coordinates; pushing a would-be compact superset through a projection —
+continuous by <strong>Theorem 19.6</strong> — would give a compact, hence closed
+and bounded (<strong>Theorem 27.3</strong>), subset of ℝ containing all of ℝ.
+And every simply ordered set with the least upper bound
+property is locally compact, since a basis element lies in a closed interval,
+compact by Theorem 27.1. He also records, without proof, that ℚ is not locally
+compact: "as you can check."</p>
+
+<div class="theorem">
+<strong>Theorem 29.1 (printed 183).</strong> Let X be a space. Then X is locally
+compact Hausdorff if and only if there exists a space Y satisfying: (1) X is a
+subspace of Y; (2) the set Y − X consists of a single point; (3) Y is a compact
+Hausdorff space. If Y and Y′ are two spaces satisfying these conditions, then
+there is a homeomorphism of Y with Y′ that equals the identity map on X.
+<br><br>
+<strong>Theorem 29.2 (printed 185).</strong> Let X be a Hausdorff space. Then X
+is locally compact if and only if given x in X, and given a neighbourhood U of x,
+there is a neighbourhood V of x such that V̄ is compact and V̄ ⊂ U.
+<br><br>
+<strong>Corollary 29.3 (printed 185).</strong> Let X be locally compact
+Hausdorff, let A be a subspace of X. If A is closed in X or open in X, then A is
+locally compact.
+<br><br>
+<strong>Corollary 29.4 (printed 185).</strong> A space X is homeomorphic to an
+open subspace of a compact Hausdorff space if and only if X is locally compact
+Hausdorff.
+</div>
+
+<p>The uniqueness clause of Theorem 29.1 is what licenses the definite article
+in "<em>the</em> one-point compactification", and Munkres's proof of it is a
+model of using top-08 economically. If U is open in Y and contains the extra
+point p, then C = Y − U is closed in the compact Y, hence compact
+(<strong>Theorem 26.2</strong>); C lies in X, so it is compact as a subspace of
+Y′; and Y′ being Hausdorff makes C closed there (<strong>Theorem 26.3</strong>).
+So h(U) = Y′ − C is open. Two theorems, applied once each, and the whole case is
+done. The other case — U not containing p — is <strong>Lemma 16.2</strong> of
+top-02: U is open in X and X is open in Y′, so U is open in Y′.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why is ℝ<sup>ω</sup> not locally compact in the
+product topology?</p>
+<button onclick="check(this,false)">Because it is not metrizable</button>
+<button onclick="check(this,true)" data-ok>Because no basis element lies inside a compact set</button>
+<button onclick="check(this,false)">Because it is not Hausdorff</button>
+<button onclick="check(this,false)">Because it is infinite-dimensional, and compactness needs finite dimension</button>
+<div class="explain">Munkres's own reason, printed 182: none of its basis
+elements are contained in compact subspaces. A product-topology basis element
+leaves all but finitely many coordinates equal to ℝ, so it is unbounded in each
+of those. Note ℝ<sup>ω</sup> in the product topology <em>is</em> metrizable
+(top-06, Theorem 20.5) and <em>is</em> Hausdorff (Theorem 19.4), so the first and
+third options are false as statements, not merely irrelevant.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Corollary 29.3 says a subspace of a locally
+compact Hausdorff space is locally compact when it is —</p>
+<button onclick="check(this,false)">any subspace at all</button>
+<button onclick="check(this,true)" data-ok>closed in X, or open in X</button>
+<button onclick="check(this,false)">compact</button>
+<button onclick="check(this,false)">dense in X</button>
+<div class="explain">Closed or open. Arbitrary subspaces will not do: ℚ ⊂ ℝ is
+the standard counterexample, and Munkres flags it in Example 1 as something to
+check. Note "dense" is exactly the wrong guess — ℚ is dense in ℝ.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Compactifying, and what the sample cannot tell you</h2>
+
+<div class="definition">
+<strong>Definition (Munkres, printed 185).</strong> If Y is a compact Hausdorff
+space and X is a proper subspace of Y whose closure equals Y, then Y is said to
+be a <em>compactification</em> of X. If Y − X equals a single point, then Y is
+called the <em>one-point compactification</em> of X.
+</div>
+
+<p>Munkres's Example 4 records that the one-point compactification of ℝ is
+homeomorphic to the circle, and of ℝ² to the sphere S², with ℂ ∪ {∞} known as
+the Riemann sphere — and adds "as you may readily check", leaving the
+verification to the reader. It is a good check to do with Theorem 26.6 in hand:
+build a continuous bijection from the compactification onto the circle and let
+compact-to-Hausdorff supply the inverse for free.</p>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Show that a finite metric space is locally
+compact, and then say what the answer is worth.
+<br><br>
+Use only the definition of local compactness and the two facts already
+established: that a finite metric space is discrete (top-06), and that a finite
+space is compact (top-08).
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+Let X be a finite metric space and fix x ∈ X. By top-06's Problem 1(c) the metric
+topology on X is discrete, so {x} is open and is therefore a neighbourhood of x.
+By Munkres's §26 Example 3 every finite space is compact, so {x} — being a finite
+subspace — is compact. Thus {x} is a compact subspace of X containing a
+neighbourhood of x, namely {x} itself. Hence X is locally compact at x, and as x
+was arbitrary, X is locally compact. ∎
+<br><br>
+<em>What it is worth.</em> Nothing about the data. Every step used finiteness and
+no step used a distance. This is now the third consecutive verdict of that shape:
+<br>• top-06 — a point cloud's metric topology is <strong>discrete</strong>,
+whatever the distances;
+<br>• top-08 — a point cloud is <strong>compact</strong>, because every open
+covering of a finite space is finite;
+<br>• here — a point cloud is <strong>locally compact</strong>, because
+singletons are open and compact.
+<br><br>
+Three true statements, none of which distinguishes one point cloud from another
+of the same size. Any mission claim of the form "the data is X, so the theorems
+apply" has to be checked against this pattern: if the property follows from
+finiteness alone, it is carrying no information about the data, and the object
+the theorem needs must be something else — the space being sampled, or the
+filtration's parameter interval.
+</details>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Munkres asserts in Example 1, printed 182, that "the
+subspace ℚ of rational numbers is not locally compact, as you can check." Check
+it.
+<br><br>
+Fix q ∈ ℚ and suppose C ⊂ ℚ is compact and contains a neighbourhood of q, which
+you may take to be ℚ ∩ (a,b) with a &lt; q &lt; b. Now ℚ is metrizable, so
+Theorem 28.2 applies to C: compact and sequentially compact are the same thing
+there. Build a sequence in ℚ ∩ (a,b) converging in ℝ to an irrational, and ask
+what its subsequences can converge to <em>in ℚ</em>.
+<br><br>
+Then say which hypothesis of Corollary 29.3 ℚ fails as a subspace of ℝ — it is
+neither closed nor open — and note that this is the counterexample showing local
+compactness is not inherited by arbitrary subspaces.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Is a point cloud locally compact?</p>
+<button onclick="check(this,true)" data-ok>Yes, trivially — {x} is an open compact neighbourhood</button>
+<button onclick="check(this,false)">Only if the ambient space is locally compact</button>
+<button onclick="check(this,false)">No — discrete spaces are not locally compact</button>
+<button onclick="check(this,false)">Only if the point cloud is closed in ℝⁿ</button>
+<div class="explain">Yes, and for the third time by an argument that never
+consults a distance. Note the third option is wrong even for infinite discrete
+spaces: ℤ is discrete and locally compact, since {n} is compact. What fails for
+infinite discrete spaces is compactness, not local compactness.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where does Munkres define a manifold?</p>
+<button onclick="check(this,false)">In §29, alongside local compactness</button>
+<button onclick="check(this,true)" data-ok>In §36, printed 224 — not in this chapter at all</button>
+<button onclick="check(this,false)">In §28, as an example of a limit point compact space</button>
+<button onclick="check(this,false)">He never uses the word</button>
+<div class="explain">§36 "Imbeddings of Manifolds", printed 224. The word appears
+earlier only in the Chapter 4 introduction, printed 189, glossed in passing as
+"the higher-dimensional analogue of a surface". This unit reads neither beyond
+that sentence — which is why the mission strip's claim about manifolds is
+bounded rather than developed.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>The three compactness properties are three.</strong> Only
+compact ⇒ limit point compact holds in general (Theorem 28.1). ℤ₊ × Y with Y
+indiscrete is limit point compact and not compact, and it is cheap because the
+two points of each fibre have identical neighbourhoods — limit points are easy
+exactly where points are not separated.
+<br><br>
+2. <strong>Metrizability collapses them (Theorem 28.2)</strong>, and the proof of
+(2) ⇒ (3) leans on Theorem 17.9, which needs T₁ — supplied in two steps, because
+a metric space is Hausdorff (top-06, §21) and a Hausdorff space is T₁ by
+<strong>Theorem 17.8</strong>. Hausdorffness itself survives products and
+subspaces by <strong>Theorem 17.11</strong>, which is why the hypothesis is cheap
+to carry. So the familiar equivalence of "compact" and "sequentially compact" is
+a theorem about metric spaces, not a definition.
+<br><br>
+3. <strong>Local compactness asks the neighbourhood, not the space, to behave.</strong>
+ℝ and ℝⁿ have it; ℝ<sup>ω</sup> and ℚ do not. Theorem 29.1 makes it exactly the
+condition for a one-point compactification to exist, with uniqueness proved by
+Theorems 26.2 and 26.3 applied once each; Theorem 29.2 gives the neighbourhood
+criterion; Corollary 29.3 restricts inheritance to closed and open subspaces.
+And a point cloud has all three compactness properties trivially, from
+finiteness — which is what the mission bound turns on.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed. (folio = PDF − 17, checked on each
+page cited). <strong>§28 "Limit Point Compactness", printed 178–181:</strong> the
+definition of limit point compactness, Theorem 28.1 and Examples 1 and 2,
+p. 178; subsequences, sequential compactness and Theorem 28.2, p. 179; the
+(2) ⇒ (3) argument, pp. 179–180; Example 3 on S_Ω and S̄_Ω, p. 181.
+<strong>§29 "Local Compactness", printed 182–189:</strong> the definition of
+local compactness and Examples 1 and 2, p. 182; Example 3, p. 183; Theorem 29.1
+with its two steps, pp. 183–185; the definitions of compactification and
+one-point compactification, and Example 4, p. 185; Theorem 29.2,
+Corollary 29.3 and Corollary 29.4, p. 185.
+<br><br>
+<em>Modality.</em> Munkres leaves several claims to the reader in these sections
+and this unit treats each as set rather than proved: that ℚ is not locally
+compact ("as you can check", p. 182), that the one-point compactification of ℝ is
+the circle and of ℝ² the sphere ("as you may readily check", p. 185), and that
+S_Ω satisfies the sequence lemma ("as you can readily check", p. 181). All appear
+as problems or as the You-try, never as worked examples.
+<br><br>
+<em>Not established here.</em> Manifolds — Munkres defines them in §36, printed
+224; the word appears at printed 189 only in the Chapter 4 introduction, and this
+unit reads neither section beyond the sentence quoted. The countability axioms,
+including the second — §30, printed 190 (top-10). The separation axioms beyond
+Hausdorff, which §29's hypotheses lean on throughout — §31, printed 195
+(top-11). The Tychonoff theorem and the Stone–Čech compactification, the other
+compactification story — §37 and §38, printed 230 and 237, outside this unit.
+Nothing about data, sampling or filtrations is in §28 or §29.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('three'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var boxes=[{cx:120,w:124,t:'compact'},{cx:320,w:182,t:'limit point compact'},{cx:520,w:176,t:'sequentially compact'}];
+  var cy=140,H=44;
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
+  g.fillText('three properties, not three names for one', 320, 44);
+  boxes.forEach(function(b){
+    g.fillStyle='#1a2027'; g.strokeStyle='#8ab4f8'; g.lineWidth=1.5;
+    g.beginPath(); g.rect(b.cx-b.w/2,cy-H/2,b.w,H); g.fill(); g.stroke();
+    g.fillStyle='#e8e8e8'; g.font='12px Segoe UI,system-ui,sans-serif';
+    g.fillText(b.t,b.cx,cy+4);
+  });
+  function arrow(x0,y0,x1,y1,col,dash){g.save();if(dash)g.setLineDash([5,4]);
+    g.strokeStyle=col;g.fillStyle=col;g.lineWidth=2;
+    g.beginPath();g.moveTo(x0,y0);g.lineTo(x1,y1);g.stroke();g.restore();
+    var a=Math.atan2(y1-y0,x1-x0);g.fillStyle=col;
+    g.beginPath();g.moveTo(x1,y1);
+    g.lineTo(x1-9*Math.cos(a-0.4),y1-9*Math.sin(a-0.4));
+    g.lineTo(x1-9*Math.cos(a+0.4),y1-9*Math.sin(a+0.4));
+    g.closePath();g.fill();}
+  arrow(184,128,227,128,'#4caf82',false);
+  g.fillStyle='#4caf82'; g.font='11px Segoe UI,system-ui,sans-serif';
+  g.fillText('28.1',205,118);
+  arrow(227,158,184,158,'#e06c75',true);
+  g.strokeStyle='#e06c75'; g.lineWidth=2;
+  g.beginPath(); g.moveTo(199,150); g.lineTo(211,166); g.moveTo(211,150); g.lineTo(199,166); g.stroke();
+  g.fillStyle='#e06c75'; g.fillText('fails: ℤ₊ × Y',205,182);
+  g.strokeStyle='#9aa5b1'; g.lineWidth=1.5;
+  g.beginPath(); g.moveTo(58,232); g.lineTo(608,232); g.stroke();
+  [120,320,520].forEach(function(x){g.beginPath();g.moveTo(x,232);g.lineTo(x,220);g.stroke();});
+  g.fillStyle='#9aa5b1'; g.font='12px Segoe UI,system-ui,sans-serif';
+  g.fillText('Theorem 28.2: if X is metrizable, all three are equivalent', 320, 256);
+  g.fillText('Munkres §28 — Examples 1 and 2 separate them; a metric collapses them', 320, 300);
+})();
+</script>
+</body></html>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>top-10 — The countability axioms</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Topology · Nexus College</p>
+<h1>The countability axioms <span class="cite">(top-10)</span></h1>
+
+<div class="hook">
+How small is your space's basis? Second-countability quietly powers half the
+metrization results. Quietly is right — §30 proves no metrization theorem at all,
+and the axiom's real work here is retrospective: it is the hypothesis top-06's
+proofs were actually using while claiming to need a metric. Munkres said so at
+the time, on printed 130, and Theorem 30.1 is that remark promoted to a theorem.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> top-06's sequence lemma held for
+metrizable spaces. Predict what its proof <em>actually</em> needed.</p>
+<button onclick="check(this,false)">The triangle inequality, to nest the balls</button>
+<button onclick="check(this,true)" data-ok>Only a countable family of neighbourhoods shrinking to the point</button>
+<button onclick="check(this,false)">Completeness of the metric</button>
+<div class="explain">Only countability. Munkres flagged it on printed 130: "All
+we really needed was the countable collection B_d(x, 1/n) of balls about x." The
+metric produced that family; nothing else about it was used. Theorem 30.1 states
+the lemma with first countability as the hypothesis, and the proof is the same
+proof with B_d(x,1/n) replaced by B_n = U₁ ∩ ⋯ ∩ U_n.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Countability separates the pathological spaces from the ones data can actually sample.</p>
+
+<div class="warn">
+<strong>A finite discrete space satisfies all four countability properties, and
+that is the fourth such verdict in a row.</strong>
+<br><br>
+Let X be a point cloud. By top-06 its metric topology is discrete, so the
+singletons form a basis — and there are finitely many of them, so X is
+<em>second-countable</em>, hence first-countable, and hence Lindelöf and
+separable by Theorem 30.3. All four, from finiteness, with no distance consulted.
+<br><br>
+Set that beside the running tally: top-06 found the point cloud
+<strong>discrete</strong>, top-08 found it <strong>compact</strong>, top-09 found
+it <strong>locally compact</strong>, and now all four countability axioms hold.
+Seven properties, seven verdicts, none of which distinguishes one point cloud
+from another of the same size. So countability does not separate anything about
+the data. If it separates the spaces "data can actually sample", it does so for
+the sampled space — and §30 says nothing about sampling.
+<br><br>
+<em>The hook's "half" is not a claim this unit can assess.</em> §30 proves no
+metrization theorem. Munkres states the goal in his Chapter 4 introduction,
+printed 189 — second countability plus regularity gives metrizability — and
+proves it in §34, printed 214. There is a second metrization theorem at §40,
+printed 248, whose <em>title</em> is all this unit has seen. Counting the
+fraction of metrization results that use second countability would need their
+statements, and we have not read them.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Two axioms, and the debt from §21 repaid</h2>
+
+<div class="definition">
+<strong>Definitions (Munkres, printed 190–191).</strong> A space X is said to
+have a <em>countable basis at x</em> if there is a countable collection ℬ of
+neighbourhoods of x such that each neighbourhood of x contains at least one of
+the elements of ℬ. A space that has a countable basis at each of its points is
+said to satisfy the <em>first countability axiom</em>, or to be
+<em>first-countable</em>.
+<br><br>
+If a space X has a countable basis for its topology, then X is said to satisfy
+the <em>second countability axiom</em>, or to be <em>second-countable</em>.
+</div>
+
+<p>Second-countable implies first-countable, and the argument is one line: given
+a countable basis ℬ, the subcollection of members containing x is countable and
+is a countable basis at x. The converse fails, and Munkres gives two witnesses in
+this section alone.</p>
+
+<div class="theorem">
+<strong>Theorem 30.1 (printed 191).</strong> Let X be a topological space.
+<br>(a) Let A be a subset of X. If there is a sequence of points of A converging
+to x, then x ∈ Ā; the converse holds if X is first-countable.
+<br>(b) Let f : X → Y. If f is continuous, then for every convergent sequence
+x_n → x in X, the sequence f(x_n) converges to f(x). The converse holds if X is
+first-countable.
+</div>
+
+<p>Put that beside top-06. <strong>Lemma 21.2</strong> and
+<strong>Theorem 21.3</strong> are word for word the same statements with
+"metrizable" where "first-countable" now stands. The proofs are also the same
+proof: replace the balls B_d(x, 1/n) by B_n = U₁ ∩ ⋯ ∩ U_n for a countable basis
+{U_n} at x, and everything goes through. The intersection is taken rather than
+using U_n directly because the U_n need not shrink, and the argument's last step
+— "x_i ∈ U for all i ≥ N" — needs a decreasing family.</p>
+
+<p>Every metrizable space is first-countable, since {B_d(x, 1/n)} is a countable
+basis at x. The converse fails: S_Ω is first-countable, as Munkres records in §28
+(printed 181, left to the reader), and is not metrizable, because it is limit
+point compact and not compact while top-09's <strong>Theorem 28.2</strong>
+forbids that combination in a metrizable space.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which hypothesis does Theorem 30.1 use where
+top-06's Lemma 21.2 used metrizability?</p>
+<button onclick="check(this,true)" data-ok>First countability — a countable basis at each point</button>
+<button onclick="check(this,false)">Second countability — a countable basis for the topology</button>
+<button onclick="check(this,false)">Hausdorffness</button>
+<button onclick="check(this,false)">Compactness</button>
+<div class="explain">First countability, and only that. Second countability
+would be more than needed — the argument is local, taking place entirely inside
+neighbourhoods of one point x. Munkres makes the point explicitly when he defines
+first countability in §21 rather than waiting for §30: the axiom is named at the
+moment the proof reveals what it wanted.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>What survives, what does not, and the table</h2>
+
+<div class="theorem">
+<strong>Theorem 30.2 (printed 191).</strong> A subspace of a first-countable
+space is first-countable, and a countable product of first-countable spaces is
+first-countable. A subspace of a second-countable space is second-countable, and
+a countable product of second-countable spaces is second-countable.
+<br><br>
+<strong>Theorem 30.3 (printed 192).</strong> Suppose that X has a countable
+basis. Then: (a) every open covering of X contains a countable subcollection
+covering X; (b) there exists a countable subset of X that is dense in X.
+</div>
+
+<p>Munkres names the two properties of Theorem 30.3 — a space with (a) is
+<strong>Lindelöf</strong>, one with (b) is <strong>separable</strong>, "an
+unfortunate choice of terminology", since it collides with the separation axioms
+of §31 and has nothing to do with them. His assessment is worth quoting because
+it is unusually flat: "We shall not use these properties to prove any theorems,
+but one of them — the Lindelöf condition — will be useful in dealing with some
+examples."</p>
+
+<p>And they are badly behaved. Second countability passes to subspaces and to
+countable products, by Theorem 30.2. Lindelöf does neither: Munkres's Example 5
+gives a Lindelöf space with a non-Lindelöf subspace (the ordered square, whose
+subspace I × (0,1) splits into uncountably many disjoint open pieces), and
+Example 4 gives a Lindelöf space whose square is not (ℝ_ℓ, and the Sorgenfrey
+plane ℝ_ℓ²). That contrast is the reason second countability is the axiom the
+book actually uses.</p>
+
+<p>Theorem 30.2's two halves reuse machinery already in hand. The subspace clause
+is <strong>Lemma 16.1</strong> of top-02 — intersecting a basis with a subspace
+gives a basis — plus the observation that the image of a countable set is
+countable. The product clause is top-05's <strong>Theorem 19.1</strong>: a
+product-topology basis element differs from the whole space in only finitely many
+coordinates, so it is determined by a finite subset of the index set together
+with one basis element from each of those factors, and a countable index set
+makes the totality of such data countable. And Example 5's opening claim that the
+ordered square is Lindelöf is top-08's <strong>Theorem 27.1</strong> in disguise:
+the ordered square is a closed interval in a linear continuum, hence compact,
+hence Lindelöf, since a finite subcover is in particular a countable one.</p>
+
+<canvas id="tbl" width="640" height="378" aria-label="A table of five spaces against four countability properties. The real line and the countable product of copies of the real line satisfy all four. The uniform topology on that product is first countable but not second countable, with its Lindelof and separability status not settled in this section. The lower limit topology is first countable, Lindelof and separable but not second countable. The Sorgenfrey plane is first countable, not second countable and not Lindelof, with separability not settled."></canvas>
+
+<div class="worked">
+<strong>Worked example — Example 2, and the uncountable discrete subspace.</strong>
+Munkres shows ℝ<sup>ω</sup> in the <em>uniform</em> topology is first-countable —
+it is metrizable, by the uniform metric ρ̄ of top-06 — and not second-countable.
+His route is a lemma worth extracting.
+<br><br>
+<em>Lemma.</em> If X has a countable basis ℬ, every discrete subspace A of X is
+countable. Proof: for each a ∈ A the set {a} is open in A, so {a} = U ∩ A for some
+U open in X; choose B_a ∈ ℬ with a ∈ B_a ⊂ U, so that B_a ∩ A = {a}. The map
+a ↦ B_a is injective — if B_a = B_{a'} then {a} = B_a ∩ A = {a'} — and lands in a
+countable set. ∎
+<br><br>
+<em>The uncountable discrete subspace.</em> Let A ⊂ ℝ<sup>ω</sup> be the set of
+sequences with every entry 0 or 1. Two distinct such sequences differ in some
+coordinate by exactly 1, so their uniform distance ρ̄ is exactly 1; hence the
+ρ̄-balls of radius 1/2 about them are disjoint and each meets A in one point. So
+A is discrete. And A is uncountable, being in bijection with the set of all
+subsets of ℤ₊.
+<br><br>
+By the lemma, ℝ<sup>ω</sup> in the uniform topology has no countable basis.
+<br><br>
+<em>Note which topology this is.</em> In the <em>product</em> topology
+ℝ<sup>ω</sup> <strong>is</strong> second-countable (Example 1). The two verdicts
+differ because the topologies differ — top-06's <strong>Theorem 20.4</strong>
+places the uniform strictly between product and box for infinite index sets, and
+<strong>Theorem 20.5</strong> metrizes the product one separately. Naming the
+topology is not pedantry here; it changes the answer.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Is ℝ<sup>ω</sup> second-countable?</p>
+<button onclick="check(this,false)">Yes, always</button>
+<button onclick="check(this,false)">No, never — it is an infinite product</button>
+<button onclick="check(this,true)" data-ok>In the product topology yes; in the uniform topology no</button>
+<button onclick="check(this,false)">Only if ℝ carries the lower limit topology</button>
+<div class="explain">It depends on the topology, which is the whole point of
+Examples 1 and 2. Product: the products of rational-endpoint intervals with all
+but finitely many factors equal to ℝ form a countable basis. Uniform: the 0–1
+sequences form an uncountable discrete subspace, which a countable basis
+forbids.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which of these passes to arbitrary subspaces?</p>
+<button onclick="check(this,true)" data-ok>Second countability</button>
+<button onclick="check(this,false)">Lindelöf</button>
+<button onclick="check(this,false)">Both</button>
+<button onclick="check(this,false)">Neither</button>
+<div class="explain">Second countability, by Theorem 30.2 — intersect the basis
+with the subspace. Lindelöf does not: Munkres's Example 5 has the ordered square,
+compact and therefore Lindelöf, with the subspace I × (0,1) failing, because that
+subspace is the union of uncountably many disjoint non-empty open sets and no
+proper subcollection covers it.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Reading the table honestly</h2>
+
+<p>The table above has twenty cells and three of them are blank. That is not an
+omission; it is the state of the evidence. §30 does not say whether the uniform
+ℝ<sup>ω</sup> is Lindelöf or separable, and does not say whether the Sorgenfrey
+plane is separable. Every other cell has a source, and the sources are worth
+tracing because several are derived rather than stated.</p>
+
+<div class="worked fade">
+<strong>Faded example — deriving the ℝ_ℓ² row.</strong>
+Munkres states only one thing about ℝ_ℓ² in §30: Example 4 shows it is
+<em>not</em> Lindelöf. The other entries in its row are derived from
+Theorem 30.2 together with Example 3's verdict on ℝ_ℓ.
+<br><br>
+<em>First-countable.</em> ℝ_ℓ is first-countable (Example 3). ℝ_ℓ² is a finite
+product, hence a countable one, so Theorem 30.2's product clause applies. ✓
+<br><br>
+⟨your step: <em>not</em> second-countable. ℝ_ℓ is not (Example 3). Realise ℝ_ℓ as
+a subspace of ℝ_ℓ² — which subspace? — and then apply the <em>subspace</em>
+clause of Theorem 30.2 contrapositively. Write out why that direction is the one
+you need.⟩
+<br><br>
+⟨your step: separable — say why neither Theorem 30.2 nor Theorem 30.3 settles it,
+and therefore why the cell is blank rather than guessed. Note in particular that
+Theorem 30.3 runs from second countability to separability and not back.⟩
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof.</strong> Prove Theorem 30.3: a space with a countable basis
+is Lindelöf and separable.
+<br><br>
+Both parts. In the Lindelöf part, be careful that you choose one member of the
+<em>cover</em> per basis element used, not per point.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Model answer</summary>
+Let ℬ = {B_n}_{n ∈ ℤ₊} be a countable basis for X.
+<br><br>
+<em>(a) Lindelöf.</em> Let 𝒜 be an open covering of X. Let N be the set of
+indices n for which there exists some A ∈ 𝒜 with B_n ⊂ A; for each such n choose
+one such A and call it A_n. The collection {A_n : n ∈ N} is countable, being
+indexed by a subset of ℤ₊.
+<br>It covers X. Given x ∈ X, pick A ∈ 𝒜 with x ∈ A; by the definition of a basis
+there is n with x ∈ B_n ⊂ A, so n ∈ N, and x ∈ B_n ⊂ A_n. ∎
+<br><br>
+<em>The care point.</em> Choosing one A per <em>point</em> would give a family
+indexed by X, which is no smaller than what you started with. The countability
+comes from indexing the choice by the basis, and the basis is countable.
+<br><br>
+<em>(b) Separable.</em> Discard the empty members of ℬ and choose x_n ∈ B_n for
+each remaining n; let D be the set of chosen points, countable as the image of a
+subset of ℤ₊.
+<br>D is dense. Let x ∈ X and let B_n be any basis element containing x. Then
+B_n is non-empty, so it was not discarded, and x_n ∈ B_n ∩ D. So every basis
+element containing x meets D, and <strong>Theorem 17.5(b)</strong> of top-03 —
+the basis form of the closure criterion — gives x ∈ D̄. Hence D̄ = X. ∎
+<br><br>
+<em>Why 17.5(b) and not 17.5(a).</em> The hypothesis we have is about basis
+elements, not about all open sets; 17.5(a) would require checking every
+neighbourhood, and there is no countable supply of those. The basis form is what
+makes the countable choice sufficient.
+</details>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Munkres notes that Lindelöf and separable are each
+"equivalent to the second countability axiom when the space is metrizable (see
+Exercise 5)" — stated in the body, proved in an exercise.
+<br><br>
+State the three-way equivalence for metrizable spaces. Then answer his practical
+point, printed 192: "It is often easier, for instance, to show that a space X has
+a countable dense subset than it is to show that X has a countable basis. If the
+space is metrizable (as it usually is in analysis), it follows that X is
+second-countable as well."
+<br><br>
+Say which direction of the equivalence that argument uses, and construct the
+countable basis from a countable dense set D and a metric — the balls you want
+are indexed by D × ℚ₊.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why does Munkres call "separable" an
+unfortunate choice of terminology?</p>
+<button onclick="check(this,true)" data-ok>It collides with the separation axioms, which are unrelated</button>
+<button onclick="check(this,false)">Because separable spaces cannot be separated</button>
+<button onclick="check(this,false)">Because it means different things in analysis and topology</button>
+<button onclick="check(this,false)">Because Lindelöf spaces are also separable</button>
+<button onclick="check(this,false)">Because it is not a topological property</button>
+<div class="explain">The collision is with the <em>separation</em> axioms —
+Hausdorff, regular, normal — which are §31's subject and have nothing to do with
+having a countable dense subset. The last option is wrong on the facts:
+separability is stated purely in terms of open sets and closures, so it is a
+topological property in the sense of top-04.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> A point cloud, as a topological space. Which
+countability properties does it have?</p>
+<button onclick="check(this,true)" data-ok>All four, trivially — the singletons are a finite basis</button>
+<button onclick="check(this,false)">First-countable only</button>
+<button onclick="check(this,false)">None — a discrete topology has no countable basis</button>
+<button onclick="check(this,false)">It depends on the distances between the points</button>
+<div class="explain">All four. Its topology is discrete (top-06), so the
+singletons are a basis; there are finitely many, so it is second-countable, hence
+first-countable and — by Theorem 30.3 — Lindelöf and separable. The third option
+is true of <em>uncountable</em> discrete spaces and false here. The fourth is the
+one to notice: the answer is independent of every distance, which is the fourth
+time in this module that a property of a point cloud has turned out to be settled
+by finiteness alone.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>Theorem 30.1 is a debt repaid.</strong> top-06's sequence lemma and
+sequential-continuity theorem were stated for metrizable spaces and proved using
+only a countable shrinking family of neighbourhoods. First countability is that
+hypothesis named, and the proof is unchanged once B_d(x,1/n) is replaced by
+B_n = U₁ ∩ ⋯ ∩ U_n — the intersection being needed because the U_n need not
+shrink on their own.
+<br><br>
+2. <strong>Second countability is the axiom that behaves.</strong> It passes to
+subspaces and countable products (Theorem 30.2) and implies both Lindelöf and
+separable (Theorem 30.3). Lindelöf passes to neither — the ordered square loses
+it on a subspace, ℝ_ℓ loses it on a square — which is why Munkres says he will
+not prove theorems with these two and uses them only on examples.
+<br><br>
+3. <strong>The examples pull the axioms apart, and the topology has to be
+named.</strong> ℝ<sup>ω</sup> is second-countable in the product topology and not
+in the uniform one, the obstruction being an uncountable discrete subspace of 0–1
+sequences at mutual distance 1. ℝ_ℓ has every countability property but the
+second. And the table has three blank cells, because §30 does not settle them —
+which is a result about the section, not about the spaces.
+</details>
+</div>
+
+<footer>
+Sources: Munkres, <em>Topology</em>, 2nd ed., §30 "The Countability Axioms",
+printed 190–194 (folio = PDF − 17, checked on each page cited). The first
+countability axiom, p. 190. The second countability axiom, Theorem 30.1,
+Theorem 30.2 with its proof, and Examples 1 and 2, p. 191. Theorem 30.3, the
+definitions of Lindelöf and separable, the remark that "separable" is "an
+unfortunate choice of terminology", the assessment "We shall not use these
+properties to prove any theorems", the metrizable equivalence with its reference
+to Exercise 5, and the analysis remark, p. 192. Example 3 on ℝ_ℓ, pp. 192–193.
+Example 4, the Sorgenfrey plane, p. 193. Example 5, the ordered square's
+subspace, p. 194. The Chapter 4 introduction quoted in the mission bound, p. 189.
+Munkres's §21 remark that only the countable collection of balls was needed,
+p. 130.
+<br><br>
+<em>Modality.</em> The three-way equivalence of second countability, Lindelöf and
+separability for metrizable spaces is <em>stated</em> in the body and left to
+Exercise 5; it appears here as the You-try and is not used to prove anything. The
+first-countability half of Theorem 30.2 is given only as "The proof for the first
+countability axiom is similar", and is a problem here. That S_Ω is first-countable
+is left to the reader in §28, p. 181, and is cited as such.
+<br><br>
+<em>Not established here.</em> Any metrization theorem. Munkres describes the
+Urysohn metrization theorem in one sentence in the Chapter 4 introduction,
+printed 189, and proves it in §34, printed 214; §40, printed 248, carries the
+title of another metrization theorem whose statement this unit has not read, so
+no count of "how many" use second countability is attempted. The separation
+axioms with which "separable" collides — §31, printed 195 (top-11). The three
+blank cells of the table — whether the uniform ℝ<sup>ω</sup> is Lindelöf or
+separable, and whether ℝ_ℓ² is separable — are not settled in §30 and are not
+settled here. Nothing about data or sampling appears in §30.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('tbl'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var cols=[292,368,448,548], hdr=['1st','2nd','Lindelöf','separable'];
+  var rows=[
+    {y:126,t:'ℝ (standard)',v:['✓','✓','✓','✓']},
+    {y:166,t:'ℝᵒ (product)',v:['✓','✓','✓','✓']},
+    {y:206,t:'ℝᵒ (uniform)',v:['✓','✗','–','–']},
+    {y:246,t:'ℝℓ (lower limit)',v:['✓','✗','✓','✓']},
+    {y:286,t:'ℝℓ² (Sorgenfrey)',v:['✓','✗','✗','–']}
+  ];
+  g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
+  g.fillText('what §30 settles, and what it leaves blank', 320, 40);
+  g.font='11px Segoe UI,system-ui,sans-serif'; g.fillStyle='#8ab4f8';
+  hdr.forEach(function(h,i){ g.fillText(h, cols[i], 76); });
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(30,90); g.lineTo(610,90); g.stroke();
+  rows.forEach(function(r){
+    g.textAlign='left'; g.fillStyle='#e8e8e8'; g.font='12px Segoe UI,system-ui,sans-serif';
+    g.fillText(r.t, 30, r.y+4);
+    g.textAlign='center'; g.font='14px Segoe UI,system-ui,sans-serif';
+    r.v.forEach(function(v,i){
+      g.fillStyle = v==='✓' ? '#4caf82' : (v==='✗' ? '#e06c75' : '#5a6672');
+      g.fillText(v, cols[i], r.y+5);
+    });
+    g.strokeStyle='#1a2027'; g.lineWidth=1;
+    g.beginPath(); g.moveTo(30,r.y+18); g.lineTo(610,r.y+18); g.stroke();
+  });
+  g.textAlign='center'; g.font='11px Segoe UI,system-ui,sans-serif'; g.fillStyle='#9aa5b1';
+  g.fillText('✓ holds   ✗ fails   – not settled in §30', 320, 326);
+  g.fillText('sources: Examples 1–4, Theorem 30.2 (ℝℓ² row derived), Theorem 30.3', 320, 344);
+})();
+</script>
+</body></html>
