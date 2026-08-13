@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an2-08 — Function spaces: C[a,b]</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+</style></head><body>
+<p class="cite">Analysis II · Nexus College</p>
+<h1>Function spaces: C[a,b] <span class="cite">(an2-08)</span></h1>
+
+<div class="hook">
+Five units of this module have leaned on one theorem. an2-02, an2-03, an2-04,
+an2-05, an2-06 and an2-07 all cite <strong>Theorem 4.6.4</strong> — C(X, Y) is a
+complete metric space when X is compact and Y complete — and every one of them
+records it as "an2-08's page, printed 102". Turn to printed 102. Lindström states
+the theorem and gives no proof: it "sums up the results above". The summary is
+correct and this lesson assembles it. But the verb that six lessons have been
+implying is the wrong one, and finding that out is the first thing this unit does.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Is the set of continuous functions a
+closed subset of the set of all functions [0, 1] → ℝ?</p>
+<button onclick="check(this,false)">Yes — a limit of continuous functions is continuous</button>
+<button onclick="check(this,false)">No — xⁿ converges to a discontinuous function</button>
+<button onclick="check(this,true)" data-ok>The question is incomplete: closed in which topology? Yes in the uniform one, no in the pointwise one</button>
+<button onclick="check(this,false)">Yes, provided the ambient space is given the sup metric, which is the only metric available</button>
+<div class="explain">Closedness is not a property of a set. It is a relation
+between a set and a topology on the ambient space, and this is the cleanest place
+in the module to feel that. Under the uniform metric ρ, C<sub>b</sub>(X, Y) is
+closed in B(X, Y) — Lindström's Proposition 4.6.1. Under the topology of
+pointwise convergence, which Munkres identifies as the product topology, it is
+not: gₙ(x) = xⁿ converges pointwise to the step function, and that is
+<em>the same sequence</em> an2-05 used to show a pointwise limit of continuous
+functions need not be continuous. The two facts are one fact in two vocabularies.
+The fourth option's error is the parenthesis: Munkres exhibits three inequivalent
+topologies on a function space and the sup metric induces only one of them.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Filtration functions live in C(X); treating a whole space of functions as one object is the key move.</p>
+
+<div class="warn">
+<strong>The strip is right, and this unit's job is to say <em>which</em> one
+object — because there are three, and only compactness makes two of them
+agree.</strong>
+<br><br>
+<em>The move is real, and Lindström names it.</em> "We shall now take a bold step
+and consider functions as elements in metric spaces. As we shall see later in the
+chapter, this will make it possible to use results from the theory of metric
+spaces to prove theorems about functions." That is the strip's second clause, and
+an2-04 already cashed it: Banach's Theorem 3.4.5 proved a differential equation
+had a solution, because the solution was a fixed point in a complete function
+space.
+<br><br>
+<em>But "C(X)" is not one object.</em> Munkres's <strong>Theorem 46.7</strong>
+gives three topologies on the same set — uniform ⊃ compact convergence ⊃
+pointwise — and they are genuinely different. The first two coincide
+<strong>exactly when X is compact</strong>. So a claim indexed to "C(X)" is
+ambiguous until the domain's compactness is settled, and a claim written with
+‖f − g‖<sub>∞</sub> is in the finest of the three.
+<br><br>
+<em>And without compactness the metric does not exist.</em> Lindström's warning
+at printed 102 is blunt: the supremum "can be infinite when f and g are just
+assumed to be continuous. As a metric is not allowed to take infinite values,
+this creates problems for the theory." His Exercise 1 to §4.6 is f(x) = x,
+g(x) = 0 on ℝ. So a stability bound of the shape tda1-07 reports —
+d<sub>b</sub>(dgm f, dgm g) ≤ ‖f − g‖<sub>∞</sub> — presupposes that the right
+side is finite, and <strong>Proposition 4.6.3</strong> is what guarantees it: X
+compact.
+<br><br>
+<em>No syllabus action on the strip.</em> Both clauses are true. The constraint is
+that "filtration functions live in C(X)" is a claim with a hypothesis attached to
+X, and the hypothesis is compactness. Everything attributed to tda1-07 here is
+reported from that lesson and through it from Oudot; this unit opens neither.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>Making a space out of functions, and the first thing that must be checked</h2>
+
+<p>Before ρ(f, g) = sup{d<sub>Y</sub>(f(x), g(x)) : x ∈ X} can be a metric it must
+be a <em>number</em>, and for arbitrary continuous f and g it is not. Lindström's
+first move is therefore to restrict to bounded functions and prove finiteness by
+hand: fix a ∈ X, take M<sub>a</sub> and N<sub>a</sub> bounding f and g away from
+their values at a, and then for every x</p>
+
+<p style="text-align:center">d<sub>Y</sub>(f(x), g(x)) ≤ d<sub>Y</sub>(f(x), f(a))
++ d<sub>Y</sub>(f(a), g(a)) + d<sub>Y</sub>(g(a), g(x)) ≤ M<sub>a</sub> +
+d<sub>Y</sub>(f(a), g(a)) + N<sub>a</sub>.</p>
+
+<p>The bound does not mention x, which is the whole of the argument and also the
+whole of the next one.</p>
+
+<div class="theorem">
+<strong>Proposition 4.5.1 (printed 99).</strong> ρ is a metric on
+B(X, Y) = {f : X → Y bounded}. <span class="cite"><strong>Proved</strong> for the
+triangle inequality; positivity and symmetry are <strong>set as
+Exercise 4</strong>.</span>
+<br><br>
+<strong>Proposition 4.5.2 (printed 100).</strong> {f<sub>n</sub>} → f in
+(B(X, Y), ρ) if and only if f<sub>n</sub> → f uniformly.
+<span class="cite"><strong>Proved</strong>, in two lines, by quoting an2-05's
+Proposition 4.2.3.</span>
+</div>
+
+<p>Proposition 4.5.2 is the hinge of the unit and it says something worth pausing
+over: <em>uniform convergence was never a new kind of convergence</em>. It is
+ordinary metric convergence, in a metric space nobody had built yet. an2-05 spent
+a unit on a distinction of quantifiers; this page says the distinction was between
+convergence in one metric space and convergence in a product, and the rest of the
+module has been working in the first without saying so.</p>
+
+<div class="theorem">
+<strong>Theorem 4.5.3 (printed 100).</strong> If (Y, d<sub>Y</sub>) is complete,
+so is (B(X, Y), ρ). <span class="cite"><strong>Proved</strong> in three stages —
+pointwise limit from completeness of Y, upgrade to uniform, boundedness of the
+limit; the third stage is <strong>set as Exercise 5</strong>.</span>
+</div>
+
+<p>Note the shape, because it will repeat: the completeness comes from Y and
+nothing is asked of X at all — not compactness, not even a topology, since a
+bounded function needs only a set for a domain. This is an2-07's Theorem 5.4.8 in
+a different costume, and for the same reason: every limit taken is a limit in the
+codomain.</p>
+
+<div class="worked">
+<strong>Worked — two distances, computed.</strong>
+<span class="cite">Lindström's Exercises 1 and 2 to §4.5, printed 100, both set
+and neither worked.</span>
+<br><br>
+<em>f(x) = x and g(x) = x² on [0, 1].</em> ρ(f, g) = max<sub>[0,1]</sub>(x − x²).
+Differentiate: 1 − 2x = 0 at x = ½, where the value is ¼. The endpoints give 0.
+So <strong>ρ(f, g) = ¼</strong>.
+<br><br>
+<em>f(x) = sin x and g(x) = cos x on [0, 2π].</em> |sin x − cos x| =
+√2 |sin(x − π/4)|, whose maximum over a full period is √2, attained at
+x = 3π/4 and x = 7π/4. So <strong>ρ(f, g) = √2</strong>.
+<br><br>
+Lindström's own comment on this: "The metric ρ is mainly used for theoretical
+purpose, and we don't have to find the exact distance between two functions very
+often, but in some cases it's possible using techniques you know from calculus."
+Both of these are maximisation problems in one variable, which is what the sup
+metric always reduces to on a compact interval.
+</div>
+
+<div class="theorem">
+<strong>Proposition 4.6.1 (printed 101).</strong> C<sub>b</sub>(X, Y) is a
+<em>closed</em> subset of B(X, Y). <span class="cite"><strong>Proved</strong>,
+and the proof is three citations long: <strong>Proposition 3.3.7</strong>
+(an2-01's) reduces closedness to sequences; <strong>Proposition 4.5.2</strong>
+turns ρ-convergence into uniform convergence; <strong>Proposition 4.2.4</strong>
+(an2-05's) says the uniform limit is continuous.</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Theorem 4.5.3 assumes Y complete and assumes
+nothing about X. Why is that not surprising?</p>
+<button onclick="check(this,false)">Because X is compact in every application, so the hypothesis would be free</button>
+<button onclick="check(this,true)" data-ok>Because every limit in the proof is a limit of values, taken in Y at a fixed x</button>
+<button onclick="check(this,false)">Because B(X, Y) is defined without reference to any structure on Y either</button>
+<button onclick="check(this,false)">Because completeness is a topological property and X contributes no topology</button>
+<div class="explain">Every limit is in the codomain. Fix x; the values
+{f<sub>n</sub>(x)} are Cauchy in Y because d<sub>Y</sub>(f<sub>n</sub>(x),
+f<sub>m</sub>(x)) ≤ ρ(f<sub>n</sub>, f<sub>m</sub>), and completeness of Y
+produces f(x). X is only ever a place to stand. This is an2-07's Theorem 5.4.8 in
+different notation — ℒ(V, W) is complete when W is, with no hypothesis on V — and
+the reason is the same one. The fourth option is false twice over: an2-02
+established that completeness is <em>not</em> a topological property, and X does
+carry a topology here whenever it is a metric space.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Now the page six lessons have been citing.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>Printed 101 and 102, read carefully</h2>
+
+<div class="theorem">
+<strong>Theorem 4.6.2 (printed 101).</strong> If Y is complete, so is
+(C<sub>b</sub>(X, Y), ρ). <span class="cite"><strong>Proved</strong>, in three
+lines: B(X, Y) is complete by Theorem 4.5.3, C<sub>b</sub> is closed in it by
+Proposition 4.6.1, and a closed subspace of a complete space is complete by
+<strong>Proposition 3.4.4</strong> — which is an2-02's, and which an2-02's lesson
+already flagged as the promise Lindström makes in Chapter 3 and keeps here.</span>
+<br><br>
+<strong>Proposition 4.6.3 (printed 102).</strong> If X is compact, every
+continuous f : X → Y is bounded. <span class="cite"><strong>Proved</strong>: the
+function h(x) = d<sub>Y</sub>(f(x), f(a)) is continuous by the inverse triangle
+inequality <strong>Proposition 3.1.4</strong>, and attains a maximum by the
+Extreme Value Theorem <strong>Theorem 3.5.10</strong>.</span>
+</div>
+
+<p>The displayed inequality inside that last proof carries a slip worth noticing,
+because reading past it is how one learns to read past worse things. It renders as
+|h(x) − h(y)| = |d<sub>Y</sub>(f(x), a) − d<sub>Y</sub>(f(y), a)| ≤
+d<sub>Y</sub>(f(x), f(y)) — but a ∈ X and f(x) ∈ Y, so d<sub>Y</sub>(f(x), a) is
+not a well-formed expression. The intended middle term is
+|d<sub>Y</sub>(f(x), f(a)) − d<sub>Y</sub>(f(y), f(a))|, which is exactly h's
+definition and exactly what Proposition 3.1.4 bounds. The proof is right; the
+line is mistyped.</p>
+
+<div class="theorem">
+<strong>Theorem 4.6.4 (printed 102).</strong> Let X be compact. Then ρ is a
+metric on C(X, Y), and if Y is complete so is (C(X, Y), ρ).
+<span class="cite"><strong>States.</strong> Lindström's words before it: "The
+following theorem sums up the results above for X compact." No proof follows, and
+no exercise is attached. This is the theorem cited by six earlier lessons of this
+module.</span>
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof — supply what the page does not.</strong>
+<br><br>
+Prove Theorem 4.6.4 from the results above it. There are exactly two steps and
+each consumes exactly one hypothesis; identify which. Then answer the question the
+exercise is really for: the six earlier lessons citing this theorem — were they
+relying on something false, something unproved, or something proved elsewhere?
+<br><br>
+Available: Proposition 4.5.1, Theorem 4.5.3, Proposition 4.6.1, Theorem 4.6.2,
+Proposition 4.6.3, and an2-02's Proposition 3.4.4.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Step 1 — that ρ is a metric on C(X, Y).</strong> X is compact, so by
+Proposition 4.6.3 every continuous f : X → Y is bounded; hence
+C(X, Y) = C<sub>b</sub>(X, Y) as sets. On C<sub>b</sub>(X, Y) ⊆ B(X, Y) the
+function ρ is finite and is a metric, by Proposition 4.5.1 restricted to a
+subset. This step consumes <strong>compactness of X</strong> and nothing else — Y
+is not asked to be complete, or anything.</p>
+<p><strong>Step 2 — that it is complete.</strong> Y complete gives
+(C<sub>b</sub>(X, Y), ρ) complete by Theorem 4.6.2. Since the two sets are equal
+by Step 1 and carry the same ρ, (C(X, Y), ρ) is complete. This step consumes
+<strong>completeness of Y</strong> and nothing else. ∎</p>
+<p><strong>What the proof is made of, unwound.</strong> Theorem 4.6.2 is
+Theorem 4.5.3 (B complete) plus Proposition 4.6.1 (C<sub>b</sub> closed in B)
+plus Proposition 3.4.4 (closed in complete is complete). Proposition 4.6.1 is
+Proposition 3.3.7 plus Proposition 4.5.2 plus Proposition 4.2.4. So the theorem
+six lessons have cited rests on one result from an2-01, one from an2-02, one from
+an2-03 and one from an2-05, and this unit is where they meet.</p>
+<p><strong>The answer to the real question: something proved elsewhere.</strong>
+The theorem is true and every ingredient is proved on the facing pages, so no
+citing lesson asserted anything false. What no lesson may write is "Lindström
+proves Theorem 4.6.4": the correct verb for printed 102 is <em>states</em>.
+Munkres does prove it — <strong>Theorem 43.6</strong> at printed 267 says
+𝒞(X, Y) and ℬ(X, Y) are closed in Y<sup>X</sup> under the uniform metric and
+hence complete when Y is, and at printed 268 he adds the compact case in running
+text: "If X is a compact space, then every continuous function f : X → Y is
+bounded; hence the sup metric is defined on 𝒞(X, Y)... so it is also complete
+under the sup metric ρ." That is Theorem 4.6.4, with a proof, in the other book.
+§43 is outside this unit's cited range and is taken here for this purpose only.</p>
+</details>
+</div>
+
+<div class="worked fade">
+<strong>Faded — the same set, closed and not closed.</strong>
+<span class="cite">Lindström's Proposition 4.6.1, printed 101, against Munkres's
+Example 1, printed 282.</span>
+<br><br>
+Munkres takes g<sub>n</sub>(x) = xⁿ on I = [0, 1]. For 0 ≤ x &lt; 1, xⁿ → 0; at
+x = 1, 1ⁿ = 1. By <strong>Theorem 46.1</strong>, convergence in the topology of
+pointwise convergence <em>is</em> pointwise convergence, so g<sub>n</sub> → g in
+ℝ<sup>I</sup> with g the step function — every g<sub>n</sub> continuous, the limit
+not. So 𝒞(I, ℝ) is not closed in ℝ<sup>I</sup> in that topology.
+<br><br>
+⟨your step: Proposition 4.6.1 says C<sub>b</sub>(X, Y) <em>is</em> closed in
+B(X, Y). Both are statements about the same set of continuous functions. Say which
+hypothesis of Proposition 4.6.1's proof has silently failed in Munkres's example —
+name the step and the result it cites — and then state in one sentence what
+"closed" is a property of. You have met g<sub>n</sub>(x) = xⁿ twice before: it is
+an2-05's Example 6.2.2(ii) and the faded example of an2-05's Segment 3.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> What is the correct modality for
+Theorem 4.6.4 at Lindström printed 102?</p>
+<button onclick="check(this,false)">proves — the argument is the two propositions immediately before it</button>
+<button onclick="check(this,true)" data-ok>states — no proof and no exercise; the assembly is left implicit</button>
+<button onclick="check(this,false)">sets-as-exercise — it is Exercise 4 to §4.6</button>
+<button onclick="check(this,false)">applies — he uses it in §4.7 without claiming it</button>
+<div class="explain">States. Lindström writes "The following theorem sums up the
+results above for X compact", gives the statement, and moves to the exercises;
+Exercise 4 to §4.6 is the truncated metric, an entirely different matter. The
+first option is the tempting one and it confuses two things: the theorem
+<em>follows</em> from Proposition 4.6.3 and Theorem 4.6.2 in two lines, and the
+page still does not contain those two lines. This is the distinction the modality
+field exists for, and it is the reason a citation's verb is checked against the
+page and never inferred from how easy the proof would be.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Lindström has a metric. Munkres asks what
+happens without one.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 30 min</span>
+<h2>Three topologies, and the one the corpus is written in</h2>
+
+<canvas id="tops" width="640" height="360" role="img"
+ aria-label="Three panels showing a fixed function f and a competitor g. In the first, only three vertical intervals constrain g and it strays far between them. In the second, an epsilon-band constrains g over the left half only and it departs on the right. In the third, the band covers the whole interval and g stays inside everywhere."></canvas>
+<p class="cite" style="text-align:center">One basis element around f in each of
+Munkres's three topologies, with a competitor g inside it. <em>Pointwise:</em>
+finitely many vertical intervals; g may do anything between them.
+<em>Compact convergence:</em> an ε-band over a compact C ⊂ X only; g departs
+outside C. <em>Uniform:</em> the band covers everything. The first two coincide
+when X is discrete and the last two when X is compact — Theorem 46.7.</p>
+
+<div class="definition">
+<strong>Theorem 46.1 (Munkres, printed 282).</strong> Convergence in the topology
+of pointwise convergence is pointwise convergence. <span class="cite">Proved in
+one sentence: the pointwise topology on Y<sup>X</sup> <em>is</em> the product
+topology, so this is Munkres's Lemma 43.3 restated. top-05's subject, arriving
+from the other side.</span>
+<br><br>
+<strong>Theorem 46.2 (printed 283).</strong> Convergence in the topology of
+compact convergence is uniform convergence on every compact subspace.
+<span class="cite">Stated; no proof and no exercise.</span>
+<br><br>
+<strong>Theorem 46.7 (printed 285).</strong> (uniform) ⊃ (compact convergence) ⊃
+(pointwise). If X is compact the first two coincide; if X is discrete the last
+two do. <span class="cite">Stated — "whose proof is straightforward" — and
+<strong>set as Exercise 2</strong>.</span>
+</div>
+
+<p>Theorem 46.7 is the sentence the strip needs. "Filtration functions live in
+C(X)" names a set; it does not name a topology; and there are three. For a
+compact X the top two agree and the ambiguity is harmless, which is the case the
+corpus is always in — but it is harmless <em>because of a hypothesis</em>, not
+because the question does not arise.</p>
+
+<div class="theorem">
+<strong>Lemma 46.3 (printed 283).</strong> Locally compact, or first countable,
+implies compactly generated. <span class="cite"><strong>Proved</strong>, both
+clauses.</span>
+<br><br>
+<strong>Lemma 46.4 (printed 284).</strong> On a compactly generated X, a function
+is continuous as soon as each restriction to a compact subspace is.
+<span class="cite"><strong>Proved.</strong></span>
+<br><br>
+<strong>Theorem 46.5 (printed 284).</strong> For X compactly generated and Y
+metric, 𝒞(X, Y) is closed in Y<sup>X</sup> in the topology of compact
+convergence. <span class="cite"><strong>Proved.</strong></span>
+<strong>Corollary 46.6 (printed 284).</strong> Hence a compact-convergence limit
+of continuous functions is continuous. <span class="cite">Stated; immediate.</span>
+</div>
+
+<p>Lemma 46.3 has two clauses and an2-03 explains why. C([0, 1], ℝ) with the sup
+metric is <strong>not locally compact</strong> — an2-03 recorded that as
+Lindström's Exercise 7 to §4.8 — so the first clause fails for it. But it is a
+metric space, hence first countable, so the second clause applies and it is
+compactly generated anyway. A lemma with a redundant-looking second hypothesis is
+usually carrying a case the first one loses.</p>
+
+<div class="theorem">
+<strong>Theorem 46.8 (printed 285–286).</strong> On 𝒞(X, Y) with Y metric, the
+compact-open topology and the topology of compact convergence coincide.
+<span class="cite"><strong>Proved</strong>, both inclusions.</span>
+<br><br>
+<strong>Corollary 46.9 (printed 286).</strong> The compact-convergence topology
+on 𝒞(X, Y) <em>does not depend on the metric of Y</em>. Hence if X is compact,
+neither does the uniform topology. <span class="cite">Stated; immediate from
+Theorem 46.8, whose statement of the compact-open topology mentions no
+metric.</span>
+</div>
+
+<p>One row of that table deserves a second look. an2-05's <strong>Theorem 6.2.6</strong> —
+a uniform limit of continuous functions is continuous — was proved there by an ε/3
+argument about quantifiers. Proposition 4.6.1 and Munkres's Theorem 46.5 say the same
+thing as a statement about a <em>set</em>: 𝒞 is closed in the ambient function space.
+The ε/3 argument is what closedness costs when you have not yet built the space it is
+closed in.</p>
+
+<p>That is an2-02's lesson, one level up. an2-02 showed that completeness is a
+property of the metric and not of the topology, with ρ(x, y) = |arctan x − arctan y|
+on ℝ as the witness — same open sets as the usual metric, not complete. Here the
+same split appears on a space of functions: the <em>topology</em> of C(X, Y) is
+determined by the topology of Y alone, while the <em>metric</em> ρ and every
+estimate written with it depend on which metric on Y was chosen. Completeness sits
+on the metric side of that line, which is why Theorem 4.6.4 has "Y complete" in
+its hypotheses and Corollary 46.9 does not.</p>
+
+<table class="cmp">
+<tr><th>claim about C(X, Y)</th><th>metric or topology?</th><th>authority</th></tr>
+<tr><td>which sequences converge</td><td>topology</td><td>Theorem 46.7, Corollary 46.9</td></tr>
+<tr><td>the limit of continuous functions is continuous</td><td>topology</td><td>Theorem 46.5, Corollary 46.6, Proposition 4.6.1 — and an2-05's Theorem 6.2.6, which is this row stated for sequences</td></tr>
+<tr><td>the value ρ(f, g), and every ε-estimate</td><td><strong>metric</strong></td><td>Proposition 4.5.1</td></tr>
+<tr><td>completeness</td><td><strong>metric</strong></td><td>Theorem 4.6.4, Theorem 43.6; an2-02 for why</td></tr>
+<tr><td>whether ρ is defined at all</td><td><strong>metric</strong>, and needs X compact</td><td>Proposition 4.6.3</td></tr>
+</table>
+
+<div class="theorem">
+<strong>Theorem 46.10 (printed 286).</strong> For X locally compact Hausdorff,
+the evaluation map e : X × 𝒞(X, Y) → Y, e(x, f) = f(x), is continuous in the
+compact-open topology. <span class="cite"><strong>Proved.</strong></span>
+<br><br>
+<strong>Theorem 46.11 (printed 287).</strong> Given f : X × Z → Y, define
+F : Z → 𝒞(X, Y) by (F(z))(x) = f(x, z). If f is continuous then so is F; the
+converse holds if X is locally compact Hausdorff.
+<span class="cite"><strong>Proved</strong>, both directions, the forward one via
+the tube lemma of Munkres's §26.</span>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Three things, and the first closes a loop the corpus
+opened three semesters ago.
+<br><br>
+<em>The exponential law and top-04's insistence.</em> top-04 promised at1-01 that
+a homotopy is one <strong>jointly</strong> continuous map on X × I, not a family
+of continuous maps. Take Z = I in Theorem 46.11 and state the exact relationship
+between the two descriptions. Say which direction is free, which needs X locally
+compact Hausdorff, and therefore which of the two descriptions is the stronger
+one. Then say why top-04 was right to insist.
+<br><br>
+<em>The compactness the strip needs.</em> Do Lindström's Exercise 1 to §4.6: find
+f, g ∈ C(ℝ, ℝ) with sup|f − g| = ∞. Then name the two repairs the corpus has —
+one is §4.6's own (restrict the space), the other is Exercise 4 to §4.6 (truncate
+the metric on Y, d̄ = min(d, 1)) — and say what each costs. Munkres uses the
+second as his default and records ρ̃ = min(ρ, 1) on ℬ(X, Y) at printed 268.
+<br><br>
+<em>Which topology the stability bound is in.</em> Write the bound tda1-07
+reports, d<sub>b</sub>(dgm f, dgm g) ≤ ‖f − g‖<sub>∞</sub>, and say which of
+Munkres's three topologies it is a statement in, what it presupposes about the
+domain, and what it would become in the topology of compact convergence instead —
+one bound, or a family of them? Report what you take from tda1-07; do not verify
+it here.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Corollary 46.9 says the topology of C(X, Y) does
+not depend on the metric of Y. an2-07 exhibited two inequivalent norms on
+C([0, 1], ℝ). Is that a counterexample?</p>
+<button onclick="check(this,false)">Yes — it exhibits two metrics on a function space with different topologies</button>
+<button onclick="check(this,true)" data-ok>No — the corollary varies the metric on Y, and ‖·‖₁ does not arise from any metric on Y by the sup construction</button>
+<button onclick="check(this,false)">No — the corollary requires X compact, and [0, 1] is compact, so it does not apply</button>
+<button onclick="check(this,false)">Yes, but only because C([0, 1], ℝ) is not compactly generated</button>
+<div class="explain">The corollary's scope is the metrics on the
+<em>codomain</em>. Replace d on Y by any metric inducing the same topology and
+the compact-convergence topology on 𝒞(X, Y) is unchanged; for compact X so is the
+uniform topology. an2-07's ‖f‖₁ = ∫|f| is a metric on the function space built by
+integration, not by taking a supremum of d<sub>Y</sub>-distances, so no choice of
+metric on Y produces it. The third option inverts the hypothesis — compactness of
+X is what makes the <em>second</em> sentence of the corollary available. The
+fourth is false on its facts: C([0, 1], ℝ) is first countable, hence compactly
+generated by Lemma 46.3.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Theorem 46.11's converse needs X locally compact
+Hausdorff. What does that mean for homotopies?</p>
+<button onclick="check(this,false)">Nothing — the two descriptions of a homotopy are equivalent for all X</button>
+<button onclick="check(this,true)" data-ok>A jointly continuous H : X × I → Y always gives a continuous path in 𝒞(X, Y); the converse can fail, so joint continuity is the stronger definition</button>
+<button onclick="check(this,false)">A continuous path in 𝒞(X, Y) always gives a jointly continuous H; the converse can fail</button>
+<button onclick="check(this,false)">Both directions fail without local compactness, so homotopy must be defined on the product</button>
+<div class="explain">Joint continuity is the stronger notion, and that is exactly
+what top-04 told at1-01. Theorem 46.11's free direction is f continuous ⟹ F
+continuous, with no hypothesis on X; the converse is the one that buys local
+compactness and Hausdorffness. So defining a homotopy as a continuous path
+t ↦ h<sub>t</sub> in the function space is a genuinely weaker definition on a
+badly behaved X, while defining it as a map on X × I always gives the strong
+version. The third option has the directions exactly reversed. The fourth
+overstates: the free direction is free.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Lindström's Exercise 6 to §4.5 (printed 101)
+defines c₀ as the <em>bounded</em> real sequences under the sup metric; his
+Example 1 to §5.2 (printed 140) defines c₀ as the sequences tending to 0. What is
+going on?</p>
+<button onclick="check(this,false)">They are the same space; a bounded sequence has a convergent subsequence, hence tends to 0</button>
+<button onclick="check(this,true)" data-ok>They are different spaces sharing one name; the second is the standard meaning of c₀ and the first is usually called ℓ<sup>∞</sup></button>
+<button onclick="check(this,false)">The exercise is a misprint and its claim is false as stated</button>
+<button onclick="check(this,false)">The two agree because the sup metric is only defined on bounded sequences</button>
+<div class="explain">A notation collision, and both of Lindström's claims are true
+of the object he defines in each place. Every null sequence is bounded, so §5.2's
+space sits inside §4.5's; the constant sequence 1 is bounded and not null, so the
+inclusion is strict. Exercise 6's space is complete — it is B(ℕ, ℝ) with ρ, so
+Theorem 4.5.3 gives it — and §5.2's has {e<sub>k</sub>} as a basis, which the
+bounded sequences do not. Standard usage reserves c₀ for the null sequences and
+calls the bounded ones ℓ<sup>∞</sup>. The first option's reasoning is wrong twice:
+a bounded sequence need not converge, and a convergent subsequence would not make
+the sequence null.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Which of these is a property of the metric ρ
+rather than of the topology it generates?</p>
+<button onclick="check(this,false)">That a limit of continuous functions is continuous</button>
+<button onclick="check(this,false)">That gₙ → g in C([0,1], ℝ) for a given sequence</button>
+<button onclick="check(this,true)" data-ok>That C(X, Y) is complete</button>
+<button onclick="check(this,false)">That C(X, Y) is closed in Y<sup>X</sup> under the uniform topology</button>
+<div class="explain">Completeness — and an2-02 is where that was settled, with
+ρ(x, y) = |arctan x − arctan y| on ℝ generating the usual topology and failing to
+be complete. Corollary 46.9 is the same point read forwards: the topology of
+𝒞(X, Y) is determined by the topology of Y, so anything topological about the
+function space survives a change of metric on Y, while ρ's numerical values and
+completeness need not. The other three options are all topological statements:
+closedness, convergence of a specified sequence, and preservation of continuity
+under limits are each phrased entirely in terms of open sets.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file and reconstruct three claims.
+<details><summary>Check against this</summary>
+1. <strong>The bold step is to make functions the points, and the first cost is
+finiteness.</strong> ρ(f, g) = sup d<sub>Y</sub>(f(x), g(x)) needs bounded
+functions to be a number at all; Proposition 4.5.1 makes it a metric on B(X, Y),
+Proposition 4.5.2 identifies ρ-convergence with uniform convergence — so an2-05's
+whole subject was metric convergence in a space nobody had built — and
+Theorem 4.5.3 inherits completeness from Y with no hypothesis on X whatever.
+<br><br>
+2. <strong>Theorem 4.6.4 is stated, not proved, and assembling it is two
+steps.</strong> Compactness of X gives C(X, Y) = C<sub>b</sub>(X, Y) by
+Proposition 4.6.3, so ρ is a metric there; completeness of Y gives completeness by
+Theorem 4.6.2, which is Theorem 4.5.3 plus Proposition 4.6.1 plus an2-02's
+Proposition 3.4.4. Munkres proves the corresponding statement outright at
+printed 267–268 as Theorem 43.5 and Theorem 43.6. Six earlier lessons cited a true
+theorem; none of them may say Lindström proved it.
+<br><br>
+3. <strong>"C(X)" names a set and three topologies, and only compactness makes
+two of them agree.</strong> Theorem 46.7 orders them uniform ⊃ compact convergence
+⊃ pointwise; Theorem 46.8 identifies the middle one with the compact-open
+topology, which mentions no metric, and Corollary 46.9 concludes that the topology
+does not depend on the metric of Y. Completeness stays on the metric side of that
+line — which is an2-02's finding, one level up. And xⁿ shows the same set of
+continuous functions closed under the uniform topology and not under the
+pointwise one.
+</details>
+</div>
+
+<footer>
+<strong>Sources, page by page.</strong> Every printed page below was read; the
+folio was checked on the page, not inferred from a section heading.
+<br><br>
+Lindström, <em>Spaces: An Introduction to Real Analysis</em>, §4.5 "Spaces of
+bounded functions", printed 99–101; §4.6 "Spaces of bounded, continuous
+functions", printed 101–103 (folio = PDF − 13). The §4.5 heading with its
+"bold step" paragraph, the definition of a bounded function, the finiteness
+argument for ρ, and Proposition 4.5.1 with the triangle inequality proved and the
+other two conditions set as Exercise 4, printed 99. Proposition 4.5.2 with proof,
+Theorem 4.5.3 with proof, the remark on computing ρ by calculus, and
+Exercises 1–4 to §4.5, printed 100. Exercises 5–7 to §4.5 including Exercise 6's
+c₀, the §4.6 heading with its "too large" paragraph, the definition of
+C<sub>b</sub>(X, Y), Proposition 4.6.1 with proof, and Theorem 4.6.2 with proof,
+printed 101. The warning about infinite suprema, Proposition 4.6.3 with proof,
+Theorem 4.6.4 <em>stated</em>, and Exercises 1–3 to §4.6, printed 102. The rest of
+Exercise 3, Exercise 4 (the truncated metric, in seven parts), and the §4.7
+heading naming Theorem 3.4.5 and the completeness of C([a, b], ℝⁿ), printed 103.
+<br><br>
+Munkres, <em>Topology</em>, 2nd ed., §46 "Pointwise and Compact Convergence",
+printed 281–289 (folio = PDF − 17). The §46 opening and the definition of the
+topology of pointwise convergence, printed 281. Theorem 46.1 with proof, the
+identification of that topology with the product topology, and Example 1 with
+xⁿ, printed 282. The definition of the topology of compact convergence,
+Theorem 46.2 stated, the definition of compactly generated, and Lemma 46.3 with
+proof, printed 283. Lemma 46.4 with proof, Theorem 46.5 with proof, and
+Corollary 46.6, printed 284. Theorem 46.7 stated, the definition of the
+compact-open topology, and Theorem 46.8 with the first half of its proof,
+printed 285. The second half of that proof, Corollary 46.9, and Theorem 46.10
+with proof, printed 286. The definition of the induced map and Theorem 46.11 with
+proof and Figure 46.2, printed 287. Exercises 1–6 to §46 including Exercise 2
+(prove Theorem 46.7), Exercise 3 and Exercise 6(b), printed 288–289. From §43,
+outside this unit's range and taken for one purpose only: Theorem 43.5 and
+Theorem 43.6, both with proof, printed 267; the relation ρ̃ = min(ρ, 1) on
+ℬ(X, Y) and the compact-case remark, printed 268.
+<br><br>
+Carried from earlier units: Proposition 3.1.4, printed 47, and
+Proposition 3.3.7, printed 55 (an2-01's); Definition 3.4.3, printed 60, and
+Proposition 3.4.4, printed 60 (an2-02's); Theorem 3.4.5, printed 61 (an2-04's);
+Theorem 3.5.10, printed 65 (an2-03's); Proposition 4.2.3 and Proposition 4.2.4,
+printed 81 and 83, and Theorem 6.2.6 of Abbott, printed 160 (an2-05's); Proposition 5.1.3, printed 135 (an2-07's).
+<br><br>
+<em>Modality.</em> Lindström <strong>proves</strong> Proposition 4.5.1 (the
+triangle inequality only), Proposition 4.5.2, Theorem 4.5.3 (two of three
+stages), Proposition 4.6.1, Theorem 4.6.2 and Proposition 4.6.3. He
+<strong>sets as exercises</strong> positivity and symmetry of ρ (Exercise 4 to
+§4.5), the boundedness of the limit in Theorem 4.5.3 (Exercise 5), the
+completeness of the bounded sequences (Exercise 6), the unbounded-supremum example
+(Exercise 1 to §4.6) and the truncated metric in full (Exercise 4 to §4.6). He
+<strong>states</strong> <strong>Theorem 4.6.4</strong>, with the words "sums up
+the results above", no proof and no exercise — <strong>and this is the theorem
+cited as a completeness supplier by an2-02, an2-03, an2-04, an2-05, an2-06 and
+an2-07</strong>. Munkres <strong>proves</strong> Theorem 46.1, Lemma 46.3,
+Lemma 46.4, Theorem 46.5, Theorem 46.8, Theorem 46.10, Theorem 46.11,
+Theorem 43.5 and Theorem 43.6; <strong>states</strong> Theorem 46.2 and
+Corollary 46.6 and Corollary 46.9; and <strong>states and sets as an
+exercise</strong> Theorem 46.7 (Exercise 2, "whose proof is straightforward").
+Everything about persistence diagrams is <strong>reported</strong> from tda1-07
+and through it from Oudot; this unit opens neither.
+<br><br>
+<em>Stated here but not in the source.</em> The proof of Theorem 4.6.4 in the
+guided proof is this lesson's assembly of Lindström's own ingredients, and the
+identification of Munkres's Theorem 43.6 plus the printed-268 remark as the same
+statement proved is likewise this lesson's — neither book cites the other. The
+observation that Theorem 4.5.3 has the same shape as an2-07's Theorem 5.4.8, and
+for the same reason, is this lesson's. The pairing of Proposition 4.6.1 with
+Munkres's Example 1 as one set closed in one topology and not another, with xⁿ as
+a single witness, is this lesson's; the two appear in different books and neither
+remarks on the other. The reading of Corollary 46.9 as an2-02's metric-versus-
+topology distinction one level up, and the table sorting claims about C(X, Y) into
+metric and topological, are this lesson's. The exact values ρ = ¼ and ρ = √2 in
+the worked example are computed here; Lindström sets both as exercises. The c₀
+collision between Exercise 6 to §4.5 and Example 1 to §5.2, and the identification
+of the first space as ℓ<sup>∞</sup> in standard usage, are this lesson's.
+<br><br>
+<em>Stated here as a correction to the source.</em> The displayed inequality
+inside Proposition 4.6.3's proof at printed 102 renders as
+|d<sub>Y</sub>(f(x), a) − d<sub>Y</sub>(f(y), a)|, which is ill-formed since
+a ∈ X and the metric is on Y; the intended expression is
+|d<sub>Y</sub>(f(x), f(a)) − d<sub>Y</sub>(f(y), f(a))|, matching h's own
+definition two lines above. Similarly, the proof of Proposition 4.5.1 at printed
+99 says "if f, g, h are three functions in C(X, Y)" where the proposition is about
+B(X, Y). Both are typographical; neither affects an argument.
+<br><br>
+<em>Not established here.</em> The tube lemma of Munkres's §26, used inside
+Theorem 46.11's proof — top-08's neighbourhood, and not opened here. Munkres's
+Lemma 43.3 on the product topology, quoted inside Theorem 46.1's proof — top-05's.
+Ascoli's theorem, Theorem 47.1 at printed 290, which characterises the compact
+subspaces of 𝒞(X, Y) in the topology of compact convergence — an2-03 took
+Arzelà–Ascoli from Lindström's Theorem 4.8.9 at printed 110–111 and this unit does
+not open §47. The completion of a metric space, Theorem 43.7 at printed 269 —
+an2-02's. Inner product spaces and Hilbert structure — Lindström §5.3, printed
+142–149, and an2-07's warn block records why no S2 unit reaches it. Riemann
+integration, used in the exercises to §4.6 and established by no S1 unit, as
+an2-06 recorded. Everything about persistence diagrams, filtration functions and
+the stability bound is tda1-07's reading of Oudot, reported and not verified here;
+in particular no claim is made that any result of this unit bounds a bottleneck
+distance.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('tops'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  g.font='12px Segoe UI,system-ui,sans-serif';
+
+  var Y0=282, Y1=94, VMAX=1.1, EPS=0.11;
+  var panels=[{x0:44,x1:206,t:'pointwise'},{x0:239,x1:401,t:'compact convergence'},{x0:434,x1:596,t:'uniform'}];
+  function f(x){ return 0.55+0.25*Math.sin(2*Math.PI*x); }
+  function g1(x){ return f(x)+0.24*Math.sin(Math.PI*(x-0.2)/0.3); }
+  function g2(x){ return f(x)+0.07*Math.sin(12*Math.PI*x)+(x>0.5?0.62*Math.pow(x-0.5,1.5):0); }
+  function g3(x){ return f(x)+0.08*Math.sin(12*Math.PI*x); }
+  var comps=[g1,g2,g3];
+
+  for(var p=0;p<3;p++){
+    var P=panels[p];
+    var X0=P.x0, X1=P.x1;
+    var TX=function(x){ return X0+(X1-X0)*x; };
+    var TY=function(v){ return Y0-(Y0-Y1)*(v/VMAX); };
+
+    g.fillStyle='#9aa5b1'; g.textAlign='center';
+    g.fillText(P.t, (X0+X1)/2, 44);
+
+    g.strokeStyle='#2a333d'; g.lineWidth=1;
+    g.beginPath(); g.moveTo(X0-8,Y0); g.lineTo(X1+8,Y0); g.stroke();
+
+    // the constraint region
+    g.strokeStyle='#4caf82'; g.lineWidth=1.5;
+    if(p===0){
+      var pts=[0.2,0.5,0.8];
+      for(var q=0;q<3;q++){
+        var xv=pts[q];
+        g.beginPath();
+        g.moveTo(TX(xv),TY(f(xv)-EPS)); g.lineTo(TX(xv),TY(f(xv)+EPS));
+        g.stroke();
+      }
+    } else {
+      var hi = (p===1)?0.5:1.0;
+      for(var s=0;s<2;s++){
+        var off = (s===0)? EPS : -EPS;
+        g.beginPath();
+        for(var k=0;k<=200;k++){
+          var x=hi*k/200, yy=TY(f(x)+off);
+          if(k===0) g.moveTo(TX(x),yy); else g.lineTo(TX(x),yy);
+        }
+        g.stroke();
+      }
+    }
+
+    // f
+    g.strokeStyle='#e8e8e8'; g.lineWidth=2; g.beginPath();
+    for(var k2=0;k2<=200;k2++){
+      var x2=k2/200;
+      if(k2===0) g.moveTo(TX(x2),TY(f(x2))); else g.lineTo(TX(x2),TY(f(x2)));
+    }
+    g.stroke();
+
+    // competitor
+    g.strokeStyle='#e06c75'; g.lineWidth=2; g.beginPath();
+    for(var k3=0;k3<=300;k3++){
+      var x3=k3/300, v3=comps[p](x3);
+      if(k3===0) g.moveTo(TX(x3),TY(v3)); else g.lineTo(TX(x3),TY(v3));
+    }
+    g.stroke();
+
+    g.fillStyle='#9aa5b1'; g.textAlign='center';
+    g.fillText('0', X0, Y0+18);
+    g.fillText('1', TX(1), Y0+18);
+  }
+
+  g.fillStyle='#e8e8e8'; g.textAlign='left';
+  g.fillText('f', 48, 82);
+  g.fillStyle='#e06c75';
+  g.fillText('g', 62, 82);
+  g.fillStyle='#4caf82';
+  g.fillText('the constraint', 78, 82);
+
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('finitely many points', 125, 320);
+  g.fillText('one compact C ⊂ X', 320, 320);
+  g.fillText('all of X', 515, 320);
+})();
+</script>
+</body></html>
