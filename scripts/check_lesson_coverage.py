@@ -50,8 +50,23 @@ def _expand_range_refs(text):
     return expanded
 
 
+def _canonical(ref):
+    """Collapse the whitespace inside a citation to a single space.
+
+    Obs 2026-08-10: ``REF_PATTERN`` puts ``\\s+`` between keyword and number, and
+    ``\\s+`` eats newlines, so a citation wrapped across lines matches as
+    ``"Corollary\\n3.6"``. Comparing that literal against the lesson then fails
+    unless the lesson happens to wrap at the same word, which produced three
+    false failures in S3 and a fourth in ``lab-05``. Reflowing the prose makes
+    the symptom go away and is the wrong repair: the citation was always well
+    formed and it is the comparison that was line-break sensitive. Canonicalising
+    both sides fixes it where it belongs.
+    """
+    return re.sub(r"\s+", " ", ref)
+
+
 def find_refs(problem_set_text):
-    refs = {m.group(0) for m in REF_PATTERN.finditer(problem_set_text)}
+    refs = {_canonical(m.group(0)) for m in REF_PATTERN.finditer(problem_set_text)}
     refs |= _expand_range_refs(problem_set_text)
     return sorted(refs)
 
@@ -65,7 +80,11 @@ def find_missing_refs(problem_set_text, lesson_html_text):
     lesson_expanded = lesson_html_text + " " + " ".join(_expand_range_refs(lesson_html_text))
     missing = []
     for r in refs:
-        boundary_pattern = re.compile(re.escape(r) + r"(?!\d)(?!\.\d)")
+        # Match the lesson's own wrapping too: the keyword and number may be
+        # separated by any run of whitespace there for the same reason.
+        keyword, _, number = r.partition(" ")
+        boundary_pattern = re.compile(
+            re.escape(keyword) + r"\s+" + re.escape(number) + r"(?!\d)(?!\.\d)")
         if not boundary_pattern.search(lesson_expanded):
             missing.append(r)
     return missing

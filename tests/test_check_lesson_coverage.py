@@ -1,4 +1,4 @@
-from scripts.check_lesson_coverage import find_missing_refs, main
+from scripts.check_lesson_coverage import find_missing_refs, find_refs, main
 
 
 def test_no_refs_in_problem_set_means_nothing_missing():
@@ -91,3 +91,28 @@ def test_range_citation_does_not_mask_a_genuinely_untaught_number():
     problem_set = "Use Definition 11.9."
     lesson = "<p>See Definitions 5.1-5.2 for something unrelated.</p>"
     assert find_missing_refs(problem_set, lesson) == ["Definition 11.9"]
+
+
+def test_citation_wrapped_across_lines_is_canonicalised():
+    """Obs 2026-08-10: `\s+` eats newlines, so a wrapped citation used to
+    produce an unmatchable ref and a false failure."""
+    problem_set = "See Corollary\n3.6 for the bound."
+    assert find_refs(problem_set) == ["Corollary 3.6"]
+
+
+def test_wrapped_citation_is_covered_by_an_unwrapped_lesson():
+    problem_set = "See Corollary\n3.6 for the bound."
+    lesson = "<p>Corollary 3.6 gives the bound.</p>"
+    assert find_missing_refs(problem_set, lesson) == []
+
+
+def test_unwrapped_citation_is_covered_by_a_wrapped_lesson():
+    problem_set = "See Corollary 3.6 for the bound."
+    lesson = "<p>Corollary\n3.6 gives the bound.</p>"
+    assert find_missing_refs(problem_set, lesson) == []
+
+
+def test_wrapping_does_not_make_an_absent_ref_look_present():
+    problem_set = "See Corollary\n3.6 for the bound."
+    lesson = "<p>Corollary 3.7 is a different result.</p>"
+    assert find_missing_refs(problem_set, lesson) == ["Corollary 3.6"]
