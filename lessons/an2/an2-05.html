@@ -204,9 +204,11 @@ convergence with convergence in which metric space?</p>
 triangle inequality; an2-02 recorded Lindström's Example 2, that of the three
 metrics on C[a,b] only d₁ is complete; Theorem 4.6.4 supplies that completeness at
 printed 102. The integral metric d₂ induces a genuinely different notion of
-convergence — the tents of Segment 2 converge to 0 in d₂-terms of pointwise
-values yet not in d₁, and their integrals do not even converge to the right
-number.</div>
+convergence, and the tents of Segment 2 separate all three: they converge to 0
+<em>pointwise</em>, but d₁(fₙ, 0) = n → ∞ and d₂(fₙ, 0) = ½ for every n, since
+every tent has area exactly ½. So they converge in neither metric, and their
+integrals do not converge to the integral of the limit. Pointwise convergence is
+the odd one out here — it is the one with no metric on C[a,b] behind it.</div>
 </div>
 </div>
 
@@ -294,9 +296,14 @@ vertically says nothing about its slope; these compensate by oscillating faster.
 <div class="explain">The ε/(b − a). Uniform closeness gives a bound on the
 <em>integrand</em>, and turning that into a bound on the <em>integral</em> costs
 a factor equal to the length of the interval — which must be finite for the
-trade to be worth anything. On [0, ∞), take fₙ = 1/n on [0, n] and 0 beyond:
-sup|fₙ| = 1/n → 0, so fₙ → 0 uniformly, while ∫₀<sup>∞</sup> fₙ = 1 for every n.
-The first option names a true fact that is not the reason; the fourth confuses
+trade to be worth anything. On [0, ∞), take fₙ equal to 1/n on [0, n], falling
+linearly to 0 across [n, n + 1], and 0 beyond — continuous, as Proposition 4.3.1
+requires of its functions, so the witness actually tests the hypothesis under
+discussion. Then sup|fₙ| = 1/n → 0, so fₙ → 0 uniformly, while
+∫₀<sup>∞</sup> fₙ = 1 + 1/(2n) → 1, not 0. (The lazy version of this witness,
+1/n on [0, n] and 0 after, has a jump at x = n and so is not continuous; it
+would refute nothing, because Proposition 4.3.1 never claimed it.) The first
+option names a true fact that is not the reason; the fourth confuses
 integrability with the estimate.</div>
 </div>
 </div>

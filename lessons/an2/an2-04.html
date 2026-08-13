@@ -493,8 +493,17 @@ compact A — <strong>Proposition 4.1.2</strong> again — on the other.</p>
 <p>Now Lindström's Remark, and where each half of it comes from. <em>No
 uniqueness</em> is the subsequence's fault: Proposition 4.8.6 produces
 <em>a</em> convergent subsequence, a different extraction may converge elsewhere,
-and nothing shows the whole sequence converges. For y′ = (3/2)y<sup>1/3</sup>
-nothing could, since the limits genuinely differ. <em>Only a bounded interval</em>
+and nothing shows the whole sequence converges. For y′ = (3/2)y<sup>1/3</sup>,
+y(0) = 0, no proof of this shape could deliver uniqueness, because the problem
+genuinely has a one-parameter family of solutions. Be exact about what that
+example does and does not show, though: it does <em>not</em> show two extractions
+from this sequence disagreeing. Euler's method started at y(0) = 0 reads the
+slope as (3/2)·0<sup>1/3</sup> = 0 at the first grid point and therefore at every
+grid point, so every ŷ<sub>n</sub> is identically zero and every subsequence
+converges to the same solution, the zero one. The other members of the family are
+not obtained by extracting differently; they are not produced at all. That is a
+sharper indictment than non-uniqueness of the limit — the theorem hands you one
+solution and gives no signal that others exist. <em>Only a bounded interval</em>
 is the box's fault: a was chosen to keep the approximations inside A, and that
 choice depends on M, which depends on the box, which depends on where the solution
 currently is.</p>
@@ -546,9 +555,11 @@ responsible for the absence of uniqueness?</p>
 <button onclick="check(this,false)">The choice of a, which is not unique either</button>
 <div class="explain">The subsequence. Proposition 4.8.6 says a bounded
 equicontinuous sequence <em>has</em> a convergent subsequence; it says nothing
-about which, and nothing forces two extractions to agree. For
-y′ = (3/2)y<sup>1/3</sup> they demonstrably do not, since that problem has a
-one-parameter family of solutions. Compare Theorem 3.4.5, where the limit is
+about which, and nothing forces two extractions to agree. Note what the standard
+example does and does not establish: y′ = (3/2)y<sup>1/3</sup>, y(0) = 0 has a
+one-parameter family of solutions, so the <em>theorem</em> cannot be strengthened
+to uniqueness — but its own Euler polygons are all identically zero, so its
+extractions do in fact all agree. Compare Theorem 3.4.5, where the limit is
 independent of the starting point, let alone of any extraction — that
 independence is what uniqueness <em>is</em>.</div>
 </div>

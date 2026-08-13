@@ -75,8 +75,10 @@ as the diagrams at finite (p, q)-Wasserstein distance from the trivial diagram,
 the space 𝔻<sub>q</sub><sup>∞</sup> is <em>Polish</em> — complete and separable.
 That is a theorem about one class of diagrams under one distance, and an2-01
 already showed why the qualification cannot be dropped: on diagrams in general
-the bottleneck distance is an extended pseudometric, and Segment 3 shows that
-completeness is not even a well-posed question about a pseudometric.
+the bottleneck distance is an extended pseudometric, and Segment 3 shows what a
+pseudometric costs — completeness still <em>means</em> something, but limits stop
+being unique, so "the limit of a Cauchy sequence of diagrams" names a whole
+zero-distance class rather than a diagram.
 <br><br>
 <em>Second clause.</em> Stability, as tda1-07 has it from Oudot's Corollary 3.6,
 says that for 𝔮-tame f and g on the same space X,
@@ -542,9 +544,13 @@ the work is.
 <em>The precondition.</em> Definition 3.4.3 says a space is complete if all
 Cauchy sequences <em>converge</em>. an2-01 established that on diagrams in
 general the bottleneck distance is an extended pseudometric — distinct diagrams
-at distance zero, values in [0, ∞]. Show that "complete" is not a well-posed
-question in that setting, by finding the step of Proposition 3.2.3 that fails and
-saying what "converge" then fails to mean.
+at distance zero, values in [0, ∞]. Find the step of Proposition 3.2.3 that
+fails there, and then say exactly what it costs — the proposition's proof runs
+on the triangle inequality until its last line, where it spends the "only if"
+half of (i). Be precise about the damage: "x<sub>n</sub> → x" still means what
+it always meant, and so does "complete", but "<em>the</em> limit" does not,
+because the zero-distance class of a limit is a limit too. Say which of the two
+— convergence, or uniqueness of the limit — the strip's claim actually needs.
 <br><br>
 <em>The first clause.</em> tda2-09 reports Dey and Wang's Definition 13.9, which
 defines 𝔻<sub>q</sub><sup>p</sup> by a finiteness condition, and their result

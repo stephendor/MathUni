@@ -199,15 +199,18 @@ every index are the same string.⟩
 (This is Abbott's Exercise 8.2.1(d).)</p>
 <button onclick="check(this,false)">Yes — it is symmetric and non-negative</button>
 <button onclick="check(this,true)" data-ok>No — it fails (i) at a single point, before any pair is considered</button>
-<button onclick="check(this,false)">No — it fails the triangle inequality</button>
+<button onclick="check(this,false)">No — the triangle inequality is the only clause that fails</button>
 <button onclick="check(this,false)">No — it fails symmetry</button>
 <div class="explain">No, and the fastest refutation needs only one point. Take
 x = (1, 1): then d(x, x) = |1·1 + 1·1| = 2 ≠ 0, so a point is at distance 2 from
 itself. Condition (i) is dead. Symmetry does in fact hold — swapping x and y
-leaves x₁x₂ + y₁y₂ unchanged — so the second option is wrong about which
-condition fails, and the "yes" option is wrong because non-negativity is only
-half of (i). This is the pattern to internalise: when a proposed distance is not
-one, look for the failure at a <em>single point</em> first.</div>
+leaves x₁x₂ + y₁y₂ unchanged — so the last option is wrong, and the "yes" option
+is wrong because non-negativity is only half of (i). The third option is wrong
+only in the word <em>only</em>: the triangle inequality does fail too, at
+x = y = (1, 1) and z = (1, −1), where d(x, y) = 2 but d(x, z) = d(z, y) = 0. That
+is the honest picture, and it is also why the habit matters — when a proposed
+distance is not one, look for the failure at a <em>single point</em> first, and
+you are done before you have to hunt for a triple.</div>
 </div>
 
 <div class="selfcheck">

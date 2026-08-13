@@ -34,12 +34,13 @@ table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-s
 <h1>Function spaces: C[a,b] <span class="cite">(an2-08)</span></h1>
 
 <div class="hook">
-Five units of this module have leaned on one theorem. an2-02, an2-03, an2-04,
-an2-05, an2-06 and an2-07 all cite <strong>Theorem 4.6.4</strong> — C(X, Y) is a
+Five units of this module have leaned on one theorem. an2-03, an2-04, an2-05,
+an2-06 and an2-07 all cite <strong>Theorem 4.6.4</strong> — C(X, Y) is a
 complete metric space when X is compact and Y complete — and every one of them
-records it as "an2-08's page, printed 102". Turn to printed 102. Lindström states
-the theorem and gives no proof: it "sums up the results above". The summary is
-correct and this lesson assembles it. But the verb that six lessons have been
+records it as "an2-08's page, printed 102". (an2-02 leans on the same page for a
+different result, Theorem 4.6.2, and says so.) Turn to printed 102. Lindström
+states the theorem and gives no proof: it "sums up the results above". The summary
+is correct and this lesson assembles it. But the verb those five lessons have been
 implying is the wrong one, and finding that out is the first thing this unit does.
 </div>
 
@@ -195,7 +196,7 @@ carry a topology here whenever it is a metric space.</div>
 </div>
 </div>
 
-<div class="break">☕ Break — 5 min. Now the page six lessons have been citing.</div>
+<div class="break">☕ Break — 5 min. Now the page five lessons have been citing.</div>
 
 <div class="segment">
 <span class="timebox">Segment 2 · 25 min</span>
@@ -230,7 +231,7 @@ line is mistyped.</p>
 metric on C(X, Y), and if Y is complete so is (C(X, Y), ρ).
 <span class="cite"><strong>States.</strong> Lindström's words before it: "The
 following theorem sums up the results above for X compact." No proof follows, and
-no exercise is attached. This is the theorem cited by six earlier lessons of this
+no exercise is attached. This is the theorem cited by five earlier lessons of this
 module.</span>
 </div>
 
@@ -239,7 +240,7 @@ module.</span>
 <br><br>
 Prove Theorem 4.6.4 from the results above it. There are exactly two steps and
 each consumes exactly one hypothesis; identify which. Then answer the question the
-exercise is really for: the six earlier lessons citing this theorem — were they
+exercise is really for: the five earlier lessons citing this theorem — were they
 relying on something false, something unproved, or something proved elsewhere?
 <br><br>
 Available: Proposition 4.5.1, Theorem 4.5.3, Proposition 4.6.1, Theorem 4.6.2,
@@ -260,7 +261,7 @@ by Step 1 and carry the same ρ, (C(X, Y), ρ) is complete. This step consumes
 Theorem 4.5.3 (B complete) plus Proposition 4.6.1 (C<sub>b</sub> closed in B)
 plus Proposition 3.4.4 (closed in complete is complete). Proposition 4.6.1 is
 Proposition 3.3.7 plus Proposition 4.5.2 plus Proposition 4.2.4. So the theorem
-six lessons have cited rests on one result from an2-01, one from an2-02, one from
+five lessons have cited rests on one result from an2-01, one from an2-02, one from
 an2-03 and one from an2-05, and this unit is where they meet.</p>
 <p><strong>The answer to the real question: something proved elsewhere.</strong>
 The theorem is true and every ingredient is proved on the facing pages, so no
@@ -387,7 +388,16 @@ Theorem 46.8, whose statement of the compact-open topology mentions no
 metric.</span>
 </div>
 
-<p>One row of that table deserves a second look. an2-05's <strong>Theorem 6.2.6</strong> —
+<table class="cmp">
+<tr><th>claim about C(X, Y)</th><th>metric or topology?</th><th>authority</th></tr>
+<tr><td>which sequences converge</td><td>topology</td><td>Theorem 46.7, Corollary 46.9</td></tr>
+<tr><td>the limit of continuous functions is continuous</td><td>topology</td><td>Theorem 46.5, Corollary 46.6, Proposition 4.6.1 — and an2-05's Theorem 6.2.6, which is this row stated for sequences</td></tr>
+<tr><td>the value ρ(f, g), and every ε-estimate</td><td><strong>metric</strong></td><td>Proposition 4.5.1</td></tr>
+<tr><td>completeness</td><td><strong>metric</strong></td><td>Theorem 4.6.4, Theorem 43.6; an2-02 for why</td></tr>
+<tr><td>whether ρ is finite on all of 𝒞(X, Y)</td><td><strong>metric</strong>, and needs a hypothesis — X compact is <em>one</em> sufficient condition, not a necessary one</td><td>Proposition 4.5.1 for ℬ(X, Y) with no hypothesis at all; Proposition 4.6.3 for 𝒞(X, Y) with X compact; Munkres's bounded metric d̄ = min(d, 1) for the general repair</td></tr>
+</table>
+
+<p>The second row of that table deserves a second look. an2-05's <strong>Theorem 6.2.6</strong> —
 a uniform limit of continuous functions is continuous — was proved there by an ε/3
 argument about quantifiers. Proposition 4.6.1 and Munkres's Theorem 46.5 say the same
 thing as a statement about a <em>set</em>: 𝒞 is closed in the ambient function space.
@@ -402,15 +412,6 @@ determined by the topology of Y alone, while the <em>metric</em> ρ and every
 estimate written with it depend on which metric on Y was chosen. Completeness sits
 on the metric side of that line, which is why Theorem 4.6.4 has "Y complete" in
 its hypotheses and Corollary 46.9 does not.</p>
-
-<table class="cmp">
-<tr><th>claim about C(X, Y)</th><th>metric or topology?</th><th>authority</th></tr>
-<tr><td>which sequences converge</td><td>topology</td><td>Theorem 46.7, Corollary 46.9</td></tr>
-<tr><td>the limit of continuous functions is continuous</td><td>topology</td><td>Theorem 46.5, Corollary 46.6, Proposition 4.6.1 — and an2-05's Theorem 6.2.6, which is this row stated for sequences</td></tr>
-<tr><td>the value ρ(f, g), and every ε-estimate</td><td><strong>metric</strong></td><td>Proposition 4.5.1</td></tr>
-<tr><td>completeness</td><td><strong>metric</strong></td><td>Theorem 4.6.4, Theorem 43.6; an2-02 for why</td></tr>
-<tr><td>whether ρ is defined at all</td><td><strong>metric</strong>, and needs X compact</td><td>Proposition 4.6.3</td></tr>
-</table>
 
 <div class="theorem">
 <strong>Theorem 46.10 (printed 286).</strong> For X locally compact Hausdorff,

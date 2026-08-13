@@ -389,11 +389,23 @@ E<sub>N</sub>(x) = f(x) − S<sub>N</sub>(x) = f<sup>(N+1)</sup>(c)x<sup>N+1</su
 Theorem and <strong>completed by Exercises 6.6.7 and 6.6.8</strong>.</span>
 </div>
 
-<p><strong>Example 6.6.2 (printed 179).</strong> For sin x on [−2, 2] and
-S₅(x) = x − x³/3! + x⁵/5!, the theorem gives E₅(x) = −cos(c)x⁶/6!, so
-|E₅(x)| ≤ 2⁶/6! = 64/720 = 0.0889 — Abbott's ".089". The step that makes this
-work is that |cos c| ≤ 1 <em>whatever c is</em>, and that is not a property of the
-remainder formula. It is a property of sin.</p>
+<p><strong>Example 6.6.2 (printed 179), and a misprint worth catching.</strong>
+For sin x on [−2, 2] and S₅(x) = x − x³/3! + x⁵/5!, the theorem gives
+E₅(x) = f⁽⁶⁾(c)x⁶/6!. Differentiate sin six times — cos, −sin, −cos, sin, cos,
+−sin — and the numerator is <strong>−sin(c)</strong>. <strong>The page prints
+−cos(c).</strong> That is Abbott's slip, not the extraction's: printed 179 in the
+PDF carries "E₅(x) = sin(x) − S₅(x) = (−cos(c)/6!)x⁶" and then "|cos(c)| ≤ 1".
+Nothing downstream breaks, because the bound he needs holds for either — |sin c|
+≤ 1 just as |cos c| ≤ 1 — so |E₅(x)| ≤ 2⁶/6! = 64/720 = 0.0889, his ".089", is
+correct as printed.</p>
+
+<p>Keep the reason it does not break, because it is the point of the example. The
+step that makes the estimate work is that the sixth derivative of sin is bounded
+by 1 <em>whatever c is</em>, and that is not a property of the remainder formula.
+It is a property of sin — which is why an error in <em>naming</em> the sixth
+derivative costs nothing here and would cost everything for a function whose
+derivatives grow. Cite this example for the mechanism, and if you cite the
+formula, cite it corrected.</p>
 
 <div class="theorem">
 <strong>The epilogue's criterion (printed 181).</strong> If there is a single M

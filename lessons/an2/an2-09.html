@@ -50,11 +50,13 @@ derivative at 0 in every direction. Which follows?</p>
 <button onclick="check(this,false)">F is differentiable at 0 provided the map r ↦ F′(0; r) happens to be linear</button>
 <button onclick="check(this,true)" data-ok>Nothing — F need not even be continuous at 0</button>
 <button onclick="check(this,false)">F is continuous at 0, though possibly not differentiable</button>
-<div class="explain">Nothing at all. F(x, y) = x²y/(x⁴ + y²), with F(0, 0) = 0,
-has F(tr)/t → 0 along every line, so every directional derivative at the origin
-exists and equals 0 — and the map r ↦ 0 is perfectly linear and bounded, killing
-the second option. But along the parabola y = x² the function is constantly ½, so
-F is not continuous at 0, which kills the fourth; and by Proposition 6.1.4
+<div class="explain">Nothing at all. F(x, y) = x³y/(x⁶ + y²), with F(0, 0) = 0,
+has F(tr)/t → 0 along every line — for r = (a, b) with b ≠ 0,
+F(tr)/t = t·a³b/(t⁴a⁶ + b²) → 0, and along the x-axis F is identically 0 — so
+every directional derivative at the origin exists and equals 0, and the map
+r ↦ 0 is perfectly linear and bounded, killing the second option. But along the
+curve y = x³ the function is constantly ½, so F is not continuous at 0, which
+kills the fourth; and by Proposition 6.1.4
 differentiability would force continuity. Proposition 6.1.11 runs one way only:
 it says what F′(a) <em>must</em> be if it exists, which is a method for producing
 a candidate and never a proof that the candidate works.</div>
@@ -350,7 +352,7 @@ a product is determined coordinatewise, and each coordinate is F composed with a
 bounded linear projection — Exercise 4 to §6.1. Proposition 6.6.2 runs one way
 only because a map <em>out of</em> a product is not determined by its restrictions
 to the factors: knowing F along each axis through a says nothing about F off the
-axes, and the prediction gate's F(x, y) = x²y/(x⁴ + y²) is exactly that failure.
+axes, and the prediction gate's F(x, y) = x³y/(x⁶ + y²) is exactly that failure.
 Theorem 6.6.3 is what it costs to reverse it — continuity of F, plus continuity of
 the partials.</p>
 
@@ -493,8 +495,8 @@ tuple of its components, and each component is a bounded linear projection
 composed with F — so Exercise 4 to §6.1 and Proposition 6.1.7 give both
 directions. A map out of a product is not recoverable from its restrictions to
 the factors, and the counterexample is the prediction gate's
-x²y/(x⁴ + y²): all axis-directional derivatives exist at 0 and the function is
-not even continuous there. Theorem 6.6.3 is the price of reversing 6.6.2, and its
+x³y/(x⁶ + y²): every directional derivative exists at 0 and equals 0, and the
+function is not even continuous there. Theorem 6.6.3 is the price of reversing 6.6.2, and its
 extra hypotheses — F continuous at a, the partials continuous at a — are exactly
 what pay it. The fourth option has the hypotheses backwards.</div>
 </div>
@@ -551,7 +553,8 @@ never states it.
 Proposition 6.1.11 says that if F′(a) exists it is given by the directional
 derivatives, so Example 1's computation identifies the Jacobian as the
 <em>matrix of</em> F′(a) — not as the derivative. The converse fails:
-x²y/(x⁴ + y²) has every directional derivative at 0 and is not continuous there.
+x³y/(x⁶ + y²) has every directional derivative at 0 — all of them zero, so the
+candidate map is even linear — and is not continuous there.
 Proposition 6.2.1 gives a usable sufficient condition and is <em>stated</em>, with
 its proof deferred to §6.6.
 <br><br>
@@ -606,10 +609,10 @@ printed 173, not 174.</strong> PDF 186 carries the chapter title "Differential
 Calculus in Normed Spaces" and a full page of introduction, with the folio 173 at
 the foot; §6.1's heading is on the next page, printed 174, together with
 Definition 6.1.1. This is a <strong>counterexample to the pattern an2-07
-recorded</strong> — Chapters 3 and 5 both put the first section's heading on the
-chapter-opener page, and Chapter 6 does not. Two instances were not a rule. The
-only reliable procedure remains the one the plan already states: read the folio
-off the page you cite.
+recorded</strong> — Chapters 3, 4 and 5 all put the first section's heading on
+the chapter-opener page, at 43, 79 and 133, and Chapter 6 does not. Three
+instances out of four were still not a rule. The only reliable procedure remains
+the one the plan already states: read the folio off the page you cite.
 <br><br>
 <em>Modality.</em> Lindström <strong>proves</strong> Lemma 6.1.2,
 Proposition 6.1.4, Proposition 6.1.5, Proposition 6.1.7, Proposition 6.1.8,
@@ -635,7 +638,7 @@ lesson's; Lindström states the two results side by side and does not compare th
 hypotheses. The reading of Definition 6.1.1's word "bounded" through an2-07's
 Theorem 5.4.5, and the identification of Proposition 6.1.4's failure point as the
 operator-norm step, are this lesson's — Lindström says the assumption "turns out to
-be essential" and does not say where. The counterexample x²y/(x⁴ + y²) in the
+be essential" and does not say where. The counterexample x³y/(x⁶ + y²) in the
 prediction gate and Self-check 4 is standard and is worked here; Lindström refers
 to Exercise 11 of §6.1 without reproducing it, and this lesson does not claim to
 quote that exercise. The explanation of the 6.6.2 / 6.6.4 asymmetry as

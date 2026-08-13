@@ -36,9 +36,12 @@ table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-s
 <div class="hook">
 You have known since school that a continuous function on a closed bounded
 interval attains its maximum, and you have probably filed "closed and bounded"
-as what makes that work. It is not. "Closed and bounded" is a fact about ℝⁿ and
-about nothing else — there is a complete, closed, bounded metric space in this
-lesson with a sequence that has no convergent subsequence at all. The property
+as what makes that work. It is not. "Closed and bounded" is a theorem about ℝⁿ,
+not a definition of compactness — there is a complete, closed, bounded metric
+space in this lesson with a sequence that has no convergent subsequence at all.
+(How far the ℝⁿ theorem does reach is a real question and not this unit's: an2-07
+answers it for normed spaces, where finite dimension is exactly the dividing
+line.) The property
 that actually does the work has a different name, and this unit is about what
 has to replace boundedness once you leave ℝⁿ: <em>total boundedness</em> in
 general, and <em>equicontinuity</em> in a space of functions. Same repair, twice.
@@ -188,10 +191,17 @@ Put M = sup{f(x) : x ∈ K}. We are not yet entitled to assume M is finite, so
 allow M = ∞ for now — this is the step the short proof hides.
 <br><br>
 Choose xₙ ∈ K with f(xₙ) → M. Compactness gives a subsequence x_{n_k} → c ∈ K.
-Then f(x_{n_k}) → M, since it is a subsequence of a sequence tending to M
-(Proposition 3.5.1); and f(x_{n_k}) → f(c), by <strong>Proposition 3.2.9</strong>,
-the version of Proposition 3.2.5 for functions defined on a subset. Limits in ℝ
-are unique, so f(c) = M.
+Then f(x_{n_k}) → M — and this step has two cases, which is exactly what allowing
+M = ∞ costs. If M is finite, it is <strong>Proposition 3.5.1</strong>: a
+subsequence of a convergent sequence converges to the same limit. If M = ∞ the
+proposition does not apply, because 3.5.1 is stated for convergence to a point;
+what you use instead is the definition of f(xₙ) → ∞ directly — every tail beats
+every bound, so every tail of every subsequence does too. Either way
+f(x_{n_k}) → M. Meanwhile f(x_{n_k}) → f(c), by <strong>Proposition
+3.2.9</strong>, the version of Proposition 3.2.5 for functions defined on a
+subset. In the finite case, uniqueness of limits in ℝ gives f(c) = M; in the
+divergent case f(x_{n_k}) cannot both exceed every bound and converge to the real
+number f(c), so M = ∞ is impossible and we are back in the first case.
 <br><br>
 <strong>And that is where M = ∞ died.</strong> It was never assumed away; it was
 excluded by the conclusion, because f(c) is a real number. The theorem proves
@@ -371,10 +381,14 @@ strictly positive. <span class="cite">Proved, by the Lipschitz bound
 <strong>Theorem 3.6.4 (printed 70).</strong> Compact ⟺ open covering property.
 <span class="cite">Proved. Some authors call it the Heine–Borel theorem.</span>
 <br><br>
-<strong>Corollary 3.6.5 (printed 70).</strong> The reformulation by closed sets:
-if a family ℱ of closed sets has the finite intersection property over K — every
-finite subfamily meets K — then K ∩ ⋂ℱ ≠ ∅. <span class="cite">Stated, with
-"Proof. Left to the reader (see Exercise 7)."</span>
+<strong>Corollary 3.6.5 (printed 70).</strong> The reformulation by closed sets,
+and it is an <em>equivalence</em>: for K a subset of a metric space X, (i) K is
+compact <strong>if and only if</strong> (ii) whenever a family ℱ of closed sets
+has the finite intersection property over K — every finite subfamily meets K —
+then K ∩ ⋂ℱ ≠ ∅. <span class="cite">Stated, with "Proof. Left to the reader (see
+Exercise 7)." <strong>Compactness is not optional here</strong>: without it (ii)
+is false, as K = ℝ with Fₙ = [n, ∞) shows — every finite subfamily meets ℝ and
+the total intersection is empty.</span>
 </div>
 
 <p>Lemma 3.6.3 has a parenthesis that is easy to skim past and should not be:
