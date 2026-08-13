@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an2-05 — Uniform convergence of derivatives and integrals</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+</style></head><body>
+<p class="cite">Analysis II · Nexus College</p>
+<h1>Uniform convergence of derivatives and integrals <span class="cite">(an2-05)</span></h1>
+
+<div class="hook">
+Abbott does something in this chapter that textbooks almost never do: he writes
+out a proof that <em>does not work</em>, lets it break, and shows you the
+fracture. He attempts to prove that a pointwise limit of continuous functions is
+continuous, gets two of three terms under control, and then stops — "the value of
+n depends on the point x". The repair is not a cleverer argument. It is moving one
+quantifier, and the whole of this unit is what that single move does and does not
+buy you.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Suppose fₙ → f uniformly on [0, 1]
+and every fₙ is differentiable. Which of these is guaranteed?</p>
+<button onclick="check(this,false)">f is differentiable, and fₙ′ → f′ pointwise</button>
+<button onclick="check(this,false)">f is differentiable, though fₙ′ may converge to something else</button>
+<button onclick="check(this,true)" data-ok>Nothing about derivatives at all — f need not even be differentiable</button>
+<button onclick="check(this,false)">fₙ′ converges uniformly, but possibly not to f′</button>
+<div class="explain">Nothing. Two separate failures are on record and this unit
+uses both. Abbott's Example 6.2.2(iii) has differentiable hₙ(x) =
+x<sup>1+1/(2n−1)</sup> converging <em>uniformly</em> on [−1, 1] to |x|, which is
+not differentiable at 0 — so the second option is out. Lindström's Example 3 has
+sin(nx)/n → 0 uniformly, with a limit that <em>is</em> differentiable, while the
+derivatives cos(nx) fail to converge anywhere useful — so the first and fourth
+are out. Uniform convergence is a statement about <em>values</em>. Derivatives are
+about slopes, and the figure in Segment 3 shows a family squeezed into a strip of
+width 2/n whose steepest slope is 1 for every n.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Sup-norm (uniform) control is the exact language the persistence stability theorem is written in.</p>
+
+<div class="warn">
+<strong>The strip is true, and unusually literal — so the work is saying what
+follows from it, which is less than it sounds.</strong>
+<br><br>
+<em>The identification is exact.</em> tda1-07 states stability as Oudot's
+Corollary 3.6: for 𝔮-tame f and g on the same space X,
+d<sub>b</sub>(dgm(f), dgm(g)) ≤ ‖f − g‖<sub>∞</sub>. That sup norm is an2-01's sup
+metric d₁ on C(X), and by Proposition 4.2.3 below, smallness in it <em>is</em>
+uniform convergence. The strip's "exact language" is not a metaphor: the
+hypothesis of the stability theorem is a statement in the metric space an2-01
+built, and this unit is what that metric space controls.
+<br><br>
+<em>And what it controls is a specific list.</em> Sup-norm closeness transfers
+continuity (Theorem 6.2.6) and the value of an integral (Proposition 4.3.1). It
+does <strong>not</strong> transfer differentiability, and it does not transfer the
+value of a derivative — Segment 3's figure is the counterexample. So a hypothesis
+of the form ‖f − g‖<sub>∞</sub> ≤ ε licenses nothing whatever about gradients of
+filter functions, and any claim that needs one has smuggled in a second
+hypothesis nobody assumed.
+<br><br>
+<em>A parallel, offered as a parallel.</em> tda1-07's own audit found that
+d<sub>b</sub>(X, Y) ≤ ε controls the longest bar and controls neither a count
+above a threshold nor the total persistence. That has the same <em>shape</em> as
+this unit's transfer table — a bound in one metric controls exactly the
+functionals Lipschitz for that metric — but it is an analogy and not a deduction.
+d<sub>b</sub> lives on multisets in the plane and ‖·‖<sub>∞</sub> on functions,
+and Corollary 3.6 is a one-way inequality between them. Nothing here transports a
+result from either side to the other.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>One quantifier, and a proof written to fail</h2>
+
+<div class="definition">
+<strong>Definition 6.2.1 / Definition 4.2.1 — pointwise.</strong> fₙ → f
+<em>pointwise</em> on A if for each x and each ε &gt; 0 there is N with
+|fₙ(x) − f(x)| &lt; ε for n ≥ N.
+<br><br>
+<strong>Definition 6.2.3 / Definition 4.2.2 — uniform.</strong> fₙ → f
+<em>uniformly</em> on A if for each ε &gt; 0 there is N such that for n ≥ N,
+|fₙ(x) − f(x)| &lt; ε <em>for all x ∈ A</em>.
+<br><br>
+<span class="cite">Abbott at printed 154 and 157; Lindström at printed 81. Two
+books, two wordings, one difference — where "for all x" sits relative to "there
+is N". Lindström's gloss: "the N in the last sentence of the definition depends
+on x — we may need a much larger N for some x's than for others."</span>
+</div>
+
+<p>Abbott makes the gap numerical before he makes it formal. For gₙ(x) = xⁿ on
+[0, 1] <span class="cite">— Example 6.2.2(ii), printed 155</span>, getting within
+1/3 of the limit needs n ≥ 2 at x = 1/2, and n ≥ 11 at x = 9/10. At x = 0.99 it
+needs n ≥ 110, and as x → 1⁻ the requirement runs off to infinity. There is no
+largest N, which is precisely why no single N exists.</p>
+
+<div class="worked">
+<strong>Worked — the proof that does not work, and exactly where.</strong>
+<span class="cite">Abbott, printed 156–157.</span>
+<br><br>
+Claim (false): a pointwise limit of continuous functions is continuous. Fix c and
+ε &gt; 0. By the triangle inequality — Abbott: "we should really call this the
+quadrilateral inequality" —
+<br><br>
+|f(x) − f(c)| ≤ <strong>(I)</strong> |f(x) − fₙ(x)| + <strong>(II)</strong>
+|fₙ(x) − fₙ(c)| + <strong>(III)</strong> |fₙ(c) − f(c)|.
+<br><br>
+<em>(III) is fine.</em> c is <strong>fixed</strong>, so pointwise convergence at
+that one point gives an N with (III) &lt; ε/3.
+<br><br>
+<em>(II) is fine.</em> N is now chosen, and f_N is continuous at c, so there is a
+δ &gt; 0 with (II) &lt; ε/3 whenever |x − c| &lt; δ.
+<br><br>
+<em>(I) is not fine, and the reason is an ordering.</em> We need
+|f_N(x) − f(x)| &lt; ε/3 for <em>all</em> x within δ of c. But x was not fixed —
+it ranges over an interval that only came into existence at the previous step,
+after N was spent. Abbott: "The values of x depend on δ, which depends on the
+choice of N. Thus, we cannot go back and simply choose a different N."
+<br><br>
+<strong>What the repair is.</strong> Not a better argument — the same argument.
+Definition 6.2.3 supplies an N that works at every x simultaneously, so the N
+chosen for (III) also serves (I). Nothing else in the proof changes, which is the
+cleanest available demonstration that the distinction is about quantifier order
+and nothing more.
+</div>
+
+<div class="theorem">
+<strong>Theorem 6.2.6 (printed 160) / Proposition 4.2.4 (printed 83).</strong> A
+uniform limit of continuous functions is continuous. <span class="cite">Both
+proved, by the same ε/3 argument; Lindström names the technique, calling such
+arguments "ε/3-arguments" and adding that "it's quite instructive to take a
+closer look at the proof to see where it fails for pointwise convergence".</span>
+<br><br>
+<strong>Proposition 4.2.3 (printed 81).</strong> fₙ → f uniformly if and only if
+sup{d_Y(fₙ(x), f(x)) : x ∈ X} → 0. <span class="cite">Proved. Lindström flags a
+subtlety inside: "note that we may have unstrict inequality ≤ for the supremum
+although we have strict inequality &lt; for each x ∈ X" — the same phenomenon
+that put a ≤ into an2-02's Proposition 3.7.2 — there it was Lemma 3.7.9's proof
+producing a limit of strict inequalities, here it is a supremum of them.</span>
+<br><br>
+<strong>Theorem 6.2.5 (printed 160).</strong> Cauchy criterion: (fₙ) converges
+uniformly on A if and only if for every ε there is N with |fₙ(x) − f_m(x)| &lt; ε
+for all m, n ≥ N and all x ∈ A. <span class="cite">Stated; proof set as
+Exercise 6.2.6.</span>
+</div>
+
+<p>Proposition 4.2.3 is the sentence that connects this unit to the previous
+four. The supremum in it is an2-01's sup metric d₁ on C[a, b]. So <strong>uniform
+convergence is convergence in d₁</strong>, by Lemma 3.2.2; "uniformly Cauchy" is
+Definition 3.4.1 in that metric; and Theorem 6.2.5 asserting that the two coincide
+is exactly the statement that the space is <em>complete</em> — which is an2-08's
+Theorem 4.6.4. Three units' worth of machinery turns out to have been about this
+one notion all along.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In the doomed proof, which term fails, and
+why?</p>
+<button onclick="check(this,false)">(II), because f<sub>N</sub> is only continuous at c and x may be far away</button>
+<button onclick="check(this,true)" data-ok>(I), because N was fixed before the interval of x's existed</button>
+<button onclick="check(this,false)">(III), because pointwise convergence gives nothing at a single point</button>
+<button onclick="check(this,false)">All three; pointwise convergence controls none of them</button>
+<div class="explain">(I). Term (III) is evaluated at the single fixed point c,
+where pointwise convergence is exactly enough. Term (II) is continuity of one
+function, which holds by hypothesis and delivers δ. Term (I) needs the same N to
+work at every x in (c − δ, c + δ), and pointwise convergence gives an N per point
+with no bound across them — Abbott's numbers for xⁿ show the N required growing
+without limit as x → 1⁻. The fourth option is wrong in a way worth noticing: two
+of the three terms are perfectly controlled, and a proof that fails at one step is
+not a proof that fails everywhere.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Proposition 4.2.3 identifies uniform
+convergence with convergence in which metric space?</p>
+<button onclick="check(this,false)">(C[a,b], d₂) with the integral metric of an2-01</button>
+<button onclick="check(this,true)" data-ok>(C[a,b], d₁) with the sup metric — so an2-01's and an2-02's results all apply</button>
+<button onclick="check(this,false)">The discrete metric space on the set of functions</button>
+<button onclick="check(this,false)">None; uniform convergence is not metrisable</button>
+<div class="explain">The sup metric. an2-01 proved d₁ is a metric and worked its
+triangle inequality; an2-02 recorded Lindström's Example 2, that of the three
+metrics on C[a,b] only d₁ is complete; Theorem 4.6.4 supplies that completeness at
+printed 102. The integral metric d₂ induces a genuinely different notion of
+convergence, and the tents of Segment 2 separate all three: they converge to 0
+<em>pointwise</em>, but d₁(fₙ, 0) = n → ∞ and d₂(fₙ, 0) = ½ for every n, since
+every tent has area exactly ½. So they converge in neither metric, and their
+integrals do not converge to the integral of the limit. Pointwise convergence is
+the odd one out here — it is the one with no metric on C[a,b] behind it.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>Integration: uniform convergence is enough</h2>
+
+<p>Lindström opens §4.3 with the two questions plainly
+<span class="cite">— printed 86</span>: "Assume that we have a sequence of
+functions {fₙ} converging to a limit function f. If we integrate the functions
+fₙ, will the integrals converge to the integral of f? And if we differentiate the
+fₙ's, will the derivatives converge to f′?" The answers are yes-with-a-hypothesis
+and no, and the asymmetry is the subject of this unit's second half.</p>
+
+<div class="theorem">
+<strong>Proposition 4.3.1 (printed 87).</strong> If continuous fₙ → f uniformly
+on [a, b], then Fₙ(x) = ∫ₐˣ fₙ converges uniformly to F(x) = ∫ₐˣ f.
+<span class="cite">Proved.</span>
+<br><br>
+<strong>Corollary 4.3.2 (printed 87).</strong> The same with an arbitrary lower
+limit x₀ ∈ [a, b]. <span class="cite">Proved, by splitting the integral.</span>
+<br><br>
+<strong>Corollary 4.3.3 (printed 88).</strong> A uniformly convergent series of
+continuous functions may be integrated term by term.
+<span class="cite">Proved, from 4.3.2 applied to the partial sums.</span>
+</div>
+
+<p>Proposition 4.3.1's proof is three lines and it is worth watching the ε move.
+Uniform convergence gives N with |f(t) − fₙ(t)| &lt; ε/(b − a) for every t, and
+then</p>
+
+<p style="text-align:center">|F(x) − Fₙ(x)| ≤ ∫ₐˣ |f(t) − fₙ(t)| dt ≤
+∫ₐᵇ ε/(b − a) dt = ε,</p>
+
+<p>with a bound independent of x, so the convergence is uniform. <strong>The
+interval had to be bounded twice over</strong>: once to divide by b − a at all,
+and once to replace the upper limit x by b. On [0, ∞) neither step is available
+and the proposition is false.</p>
+
+<p>Lindström attaches a warning to Corollary 4.3.3 that is worth keeping
+<span class="cite">— printed 88</span>: "This formula may look obvious, but it
+does not in general hold for series that only converge pointwise. As we shall see
+many times later in the book, interchanging integrals and infinite sums is quite
+a tricky business."</p>
+
+<div class="worked fade">
+<strong>Faded — the tent, and why pointwise is not enough.</strong>
+<span class="cite">Lindström's Example 1 to §4.3, printed 86–87.</span>
+<br><br>
+Let fₙ : [0, 1] → ℝ be 0 outside [0, 1/n] and rise linearly to height n at
+1/(2n), returning to 0 at 1/n. Each fₙ is continuous.
+<br><br>
+For any fixed x &gt; 0, once n &gt; 1/x the point x is outside the support, so
+fₙ(x) = 0; and fₙ(0) = 0 for every n. So fₙ → 0 <em>pointwise</em> on [0, 1].
+<br><br>
+⟨your step: compute ∫₀¹ fₙ as the area of a triangle with base 1/n and height n,
+observe that it does not depend on n, and conclude that ∫₀¹ fₙ does not converge
+to ∫₀¹ 0. Then use Proposition 4.2.3 to show the convergence is not uniform, by
+computing one supremum — and say how badly it fails, since the number you get does
+not merely fail to tend to 0.⟩
+</div>
+
+<canvas id="fail" width="640" height="360" aria-label="Left: tent functions of height n and base one over n, all with integral one half, converging pointwise to zero. Right: sin(nx) over n for n = 4, 8, 16, squeezed into a shrinking strip but all leaving the origin along the line y equals x."></canvas>
+
+<p class="cite"><strong>The two failures, side by side.</strong> Left: the tents
+of Lindström's Example 1, drawn for n = 2, 3, 4. Every one has area exactly ½ —
+base 1/n, height n — so the integrals are constant while the functions tend
+pointwise to 0. Pointwise convergence loses the integral because the discrepancy
+can be enormous on a set that is shrinking fast enough. Right: sin(nx)/n for
+n = 4, 8, 16, with the strip |y| ≤ 1/16 marked. These converge <em>uniformly</em>
+to 0, since the sup distance is exactly 1/n — and every one of them leaves the
+origin along the dashed line y = x, because the derivative at 0 is cos 0 = 1
+whatever n is. Uniform convergence loses the derivative because squeezing a graph
+vertically says nothing about its slope; these compensate by oscillating faster.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Proposition 4.3.1 need a
+<em>bounded</em> interval?</p>
+<button onclick="check(this,false)">Because unbounded intervals are not compact, and Theorem 4.6.4 fails there</button>
+<button onclick="check(this,true)" data-ok>Because the proof divides ε by b − a, and on an unbounded interval there is no such number</button>
+<button onclick="check(this,false)">It does not; the proposition holds on [0, ∞) with the same proof</button>
+<button onclick="check(this,false)">Because continuous functions on unbounded intervals need not be integrable</button>
+<div class="explain">The ε/(b − a). Uniform closeness gives a bound on the
+<em>integrand</em>, and turning that into a bound on the <em>integral</em> costs
+a factor equal to the length of the interval — which must be finite for the
+trade to be worth anything. On [0, ∞), take fₙ equal to 1/n on [0, n], falling
+linearly to 0 across [n, n + 1], and 0 beyond — continuous, as Proposition 4.3.1
+requires of its functions, so the witness actually tests the hypothesis under
+discussion. Then sup|fₙ| = 1/n → 0, so fₙ → 0 uniformly, while
+∫₀<sup>∞</sup> fₙ = 1 + 1/(2n) → 1, not 0. (The lazy version of this witness,
+1/n on [0, n] and 0 after, has a jump at x = n and so is not continuous; it
+would refute nothing, because Proposition 4.3.1 never claimed it.) The first
+option names a true fact that is not the reason; the fourth confuses
+integrability with the estimate.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 30 min</span>
+<h2>Differentiation: uniform convergence is not enough, and two books pay
+differently</h2>
+
+<p>Lindström is blunt about the asymmetry <span class="cite">— printed 89</span>:
+differentiation "is a much trickier business than integration as integration
+often helps to smoothen functions while differentiation tends to make them more
+irregular". His Example 3 is the figure's right-hand panel: {sin(nx)/n} converges
+uniformly to 0 and {cos nx} does not converge at all. His explanation is exactly
+what the panel draws — "although they live in an increasingly narrower strip
+around the x-axis, they are all equally steep at their steepest".</p>
+
+<p>Abbott's Example 6.2.2(iii) is the other failure:
+hₙ(x) = x<sup>1+1/(2n−1)</sup> on [−1, 1] converges to |x|. Every hₙ is
+differentiable and the limit is not, so there is nothing for the derivatives to
+converge <em>to</em>. Two genuinely distinct ways for the question to have no
+answer, and both are excluded by hypothesising convergence of the derivatives
+rather than of the functions.</p>
+
+<div class="theorem">
+<strong>Theorem 6.3.1 (Abbott, printed 164).</strong> If fₙ → f pointwise on
+[a, b], each fₙ differentiable, and (fₙ′) → g uniformly, then f is differentiable
+and f′ = g. <span class="cite">Proved, by splitting the difference quotient into
+three and applying the Mean Value Theorem to f_m − fₙ.</span>
+<br><br>
+<strong>Theorem 6.3.2 (printed 166).</strong> If (fₙ′) converges uniformly and
+fₙ(x₀) converges at one point x₀, then (fₙ) converges uniformly.
+<span class="cite">Stated; proof set as Exercise 6.3.5.</span>
+<br><br>
+<strong>Theorem 6.3.3 (printed 166).</strong> The two combined: uniform
+convergence of the derivatives plus convergence at one point gives uniform
+convergence of the functions, differentiability of the limit, and f′ = g.
+</div>
+
+<p>Abbott is candid that the hypothesis looks circular — "This may sound as though
+we are assuming what it is we would like to prove, and there is some validity to
+this complaint. The more hypotheses a proposition has, the more difficult it is to
+apply." And the single point in Theorem 6.3.2 is not a technicality: "Two
+functions with the same derivative may differ by a constant." Take fₙ ≡ n; the
+derivatives converge uniformly to 0 and the functions converge nowhere.</p>
+
+<div class="theorem">
+<strong>Proposition 4.3.5 (Lindström, printed 90).</strong> Let {fₙ} be
+differentiable on [a, b], with <em>continuous</em> derivatives fₙ′ converging
+uniformly to g, and suppose {fₙ(x₀)} converges for some x₀. Then {fₙ} converges
+uniformly to a differentiable f with f′ = g. <span class="cite">Proved — and the
+proof is three lines: "The proposition is just Corollary 4.3.2 in a convenient
+disguise."</span>
+<br><br>
+<strong>Corollary 4.3.6 (printed 90).</strong> The series form: term-by-term
+differentiation, under the same conditions. <span class="cite">Stated, with
+"Proof. Left to the reader."</span>
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof — the same theorem at two prices.</strong>
+<br><br>
+Prove Proposition 4.3.5 Lindström's way: apply Corollary 4.3.2 to {fₙ′}, use the
+Fundamental Theorem of Calculus to identify ∫<sub>x₀</sub><sup>x</sup> fₙ′ with
+fₙ(x) − fₙ(x₀), and finish. Then answer the comparison question: Lindström's
+statement has one hypothesis Abbott's Theorem 6.3.3 does not. Name it, say where
+in your proof it was spent, and decide whether Proposition 4.3.5 is a
+<em>corollary</em> of Theorem 6.3.3.
+<br><br>
+Start: Lindström calls his own result one that "may look ugly and unsatisfactory,
+but it gives us the information we shall need". Take that seriously — the question
+is not which statement is better but what each purchase costs.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>The proof.</strong> The fₙ′ are continuous and converge uniformly to
+g, so Corollary 4.3.2 applies to them: ∫<sub>x₀</sub><sup>x</sup> fₙ′(t) dt
+converges uniformly to ∫<sub>x₀</sub><sup>x</sup> g(t) dt. By the Fundamental
+Theorem of Calculus the left side is fₙ(x) − fₙ(x₀), so</p>
+<p style="text-align:center">fₙ(x) − fₙ(x₀) → ∫<sub>x₀</sub><sup>x</sup> g(t) dt
+uniformly on [a, b].</p>
+<p>Since fₙ(x₀) → b for some real b, the functions fₙ converge uniformly to
+f(x) = b + ∫<sub>x₀</sub><sup>x</sup> g(t) dt. By the Fundamental Theorem of
+Calculus again, f′ = g. ∎</p>
+<p><strong>The extra hypothesis, and where it was spent — twice.</strong>
+Continuity of the derivatives. First, Corollary 4.3.2 is stated for
+<em>continuous</em> functions, so without it the very first line is unavailable.
+Second, the closing appeal to the Fundamental Theorem needs the integrand g
+continuous — which is free here, by Proposition 4.2.4, precisely because the fₙ′
+were continuous and converged uniformly. Remove the hypothesis and both ends of
+the argument fail.</p>
+<p><strong>Is it a corollary of Theorem 6.3.3?</strong> Yes. Lindström's
+hypotheses are Abbott's plus continuity of the fₙ′, so every situation
+Proposition 4.3.5 covers is one Theorem 6.3.3 already covers, with the same
+conclusion. Abbott's is the stronger theorem.</p>
+<p><strong>So what did Lindström buy?</strong> Not generality — proof length, and
+reuse. His argument spends only machinery he has already built two pages earlier,
+where Abbott's needs the Mean Value Theorem applied to f_m − fₙ and the Cauchy
+criterion for uniform convergence. And he needs the result for §4.4's power
+series, where the derivatives are polynomials and continuity is free, so the extra
+hypothesis costs him nothing at the point of use. "Shorter proof" and "weaker
+theorem" are one fact seen from two sides; a book that says so out loud is doing
+the reader a favour, and Lindström says so.</p>
+</details>
+</div>
+
+<div class="worked fade">
+<strong>Faded — a sequence that converges uniformly with derivatives that do
+not.</strong> <span class="cite">Abbott's Exercise 6.3.2.</span>
+<br><br>
+Let gₙ(x) = xⁿ/n on [0, 1]. Then sup|gₙ| = 1/n → 0, so gₙ → 0 uniformly by
+Proposition 4.2.3; the limit g = 0 is differentiable with g′ = 0.
+<br><br>
+⟨your step: compute gₙ′ and identify its pointwise limit on [0, 1]. Decide
+whether that convergence is uniform — Theorem 6.2.6 settles it in one line, from
+a property of the limit function. Then compare lim gₙ′ with g′, and name which
+hypothesis of Theorem 6.3.3 has failed and which conclusion failed with it. You
+have met this sequence of derivatives twice before: it is an2-03's figure and
+Abbott's Example 6.2.2(ii).⟩
+</div>
+
+<table class="cmp">
+<tr><th>property of the fₙ</th><th>transfers under uniform convergence?</th><th>authority</th></tr>
+<tr><td>continuity</td><td>yes</td><td>Theorem 6.2.6, Proposition 4.2.4</td></tr>
+<tr><td>uniform continuity</td><td>yes</td><td>Abbott's Exercise 6.2.7</td></tr>
+<tr><td>the value of ∫ₐᵇ</td><td>yes, on a bounded interval</td><td>Proposition 4.3.1</td></tr>
+<tr><td>boundedness</td><td>yes</td><td>uniform closeness to one bounded function</td></tr>
+<tr><td>differentiability</td><td><strong>no</strong></td><td>Example 6.2.2(iii): x<sup>1+1/(2n−1)</sup> → |x|</td></tr>
+<tr><td>the value of f′</td><td><strong>no</strong></td><td>Lindström's Example 3: sin(nx)/n → 0, cos nx diverges</td></tr>
+</table>
+
+<p>That table is the unit, and it is also the answer to the strip. A hypothesis
+of the form ‖f − g‖<sub>∞</sub> ≤ ε is a statement about the rows above the line
+and about none of the rows below it.</p>
+
+<div class="you-try">
+<strong>You try.</strong> The audit, in three parts, and none of them is a
+correction.
+<br><br>
+<em>The identification.</em> Write Oudot's Corollary 3.6 as tda1-07 has it. Using
+Proposition 4.2.3 and Self-check 2, say what "‖f − g‖<sub>∞</sub> small" is a
+statement <em>in</em> — name the metric space, from an2-01 — and say why the strip's
+word "exact" is earned rather than decorative.
+<br><br>
+<em>The consequence.</em> Using the table, list what a sup-norm hypothesis on the
+filter function licenses and what it does not. Then take a concrete claim — "the
+gradient of the filtration is stable under small perturbations of the function" —
+and say precisely which additional hypothesis it needs, and which of this unit's
+theorems would supply the conclusion once that hypothesis is in hand.
+<br><br>
+<em>The parallel, kept as a parallel.</em> tda1-07's audit found that a bound on
+d<sub>b</sub> controls the longest bar and controls neither a threshold count nor
+the total persistence. Say what that finding and your table have in common as
+<em>kinds</em> of statement. Then write one sentence saying why this is an analogy
+and not a deduction — the two metrics live on different objects, and Corollary 3.6
+runs in one direction only.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> "fₙ → f uniformly and each fₙ is smooth, so f′
+is the limit of fₙ′." What is wrong?</p>
+<button onclick="check(this,false)">Nothing, provided each fₙ is smooth rather than merely differentiable</button>
+<button onclick="check(this,true)" data-ok>The hypothesis is on the wrong sequence: it must be (fₙ′) that converges uniformly, not (fₙ)</button>
+<button onclick="check(this,false)">f′ exists but the convergence of fₙ′ is only pointwise</button>
+<button onclick="check(this,false)">It is right on a bounded interval and wrong on an unbounded one</button>
+<div class="explain">The hypothesis is attached to the wrong sequence.
+sin(nx)/n is smooth — infinitely differentiable — converges uniformly to 0, and
+its derivatives cos(nx) converge nowhere; boundedness of the interval is
+irrelevant, since the failure already happens on [0, 1]. Theorem 6.3.3 puts the
+uniformity where it is needed: on (fₙ′), plus convergence of (fₙ) at a single
+point. Abbott's own comment on that is worth remembering — it "may sound as though
+we are assuming what it is we would like to prove", and the answer is that the
+conclusion is about f′, which is not what was assumed.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Lindström gives the Weierstrass M-test twice:
+as Exercise 11 to §4.2 (printed 85) and as Proposition 4.3.4 (printed 89), where
+it is stated and proved. What does the duplication tell you about citing him?</p>
+<button onclick="check(this,false)">Nothing — an exercise and a proposition with the same content are interchangeable citations</button>
+<button onclick="check(this,true)" data-ok>That the modality depends on which occurrence you cite, so the page must be checked and not inferred from the section</button>
+<button onclick="check(this,false)">That the exercise is a misprint, since a book would not do both</button>
+<button onclick="check(this,false)">That Proposition 4.3.4 is the harder version, with extra hypotheses</button>
+<div class="explain">The modality is a property of the occurrence, not of the
+result. Writing "Lindström sets the M-test as an exercise" is true of printed 85
+and false of printed 89, where he proves it in full; the two statements have the
+same content. This is the second time in an2 that one of his results carries two
+modalities — an2-02 found Lemma 3.7.11 set as Exercise 8 to §3.4 on printed 63 and
+proved on printed 75. The practical consequence is that a citation's verb must be
+checked against the page cited, which is what the modality field in these lessons'
+footers exists to record.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Four uniformity conditions have now appeared.
+Match each to what its single δ, N or K must <em>not</em> depend on.</p>
+<button onclick="check(this,false)">All four say the same thing in different notation</button>
+<button onclick="check(this,true)" data-ok>Uniform continuity — the point; equicontinuity — the point and the function; uniform convergence — the point; uniform Lipschitz — the time variable</button>
+<button onclick="check(this,false)">Uniform continuity — ε; equicontinuity — the family; uniform convergence — n; uniform Lipschitz — the space</button>
+<button onclick="check(this,false)">Uniform continuity and uniform convergence are the same condition applied to different objects</button>
+<div class="explain">Definition 4.1.1 asks one δ for all points; Definition 4.1.3
+asks one δ for all points <em>and all members of the family</em>, which is why
+an2-03's Arzelà–Ascoli needed it; Definition 4.2.2 asks one N for all points; and
+an2-04's uniform Lipschitz condition asks one K for all times t, with the
+Lipschitz estimate itself in the space variable. Every one of them is the same
+edit — a quantifier moved leftwards — and every one of them is the hypothesis that
+makes some theorem true. The fourth option is tempting and wrong: uniform
+continuity is about one function's modulus, uniform convergence about a sequence's
+approach, and neither implies the other.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file and reconstruct three claims.
+<details><summary>Check against this</summary>
+1. <strong>The distinction is one quantifier, and Abbott's failed proof locates
+it exactly.</strong> Of the three terms in |f(x) − f(c)|, two are controlled by
+pointwise convergence and continuity; the third needs one N to serve every x in
+an interval that only existed after N was chosen. Definition 6.2.3 supplies
+exactly that and the same argument then closes. By Proposition 4.2.3 uniform
+convergence <em>is</em> convergence in an2-01's sup metric, so Theorem 6.2.5 and
+completeness (Theorem 4.6.4) are an2-02's questions asked again.
+<br><br>
+2. <strong>Integration survives uniform convergence; pointwise convergence loses
+it.</strong> Proposition 4.3.1 costs a factor b − a, so the interval must be
+bounded — twice, in the proof. The tents of Example 1 have integral ½ for every n
+and tend pointwise to 0, and Corollary 4.3.3 carries the result to series with
+Lindström's warning attached: interchanging integrals and infinite sums is tricky
+and this is the case where it is safe.
+<br><br>
+3. <strong>Differentiation survives nothing, and the hypothesis has to move to
+the derivatives.</strong> sin(nx)/n → 0 uniformly with derivatives that diverge;
+x<sup>1+1/(2n−1)</sup> → |x| uniformly with a limit that is not differentiable.
+Theorem 6.3.3 assumes (fₙ′) uniformly convergent plus one point of agreement — one
+point, because functions with equal derivatives can differ by a constant.
+Lindström's Proposition 4.3.5 adds continuity of the fₙ′ and gets a three-line
+proof by routing through Corollary 4.3.2 and the Fundamental Theorem of Calculus;
+it is a corollary of Abbott's theorem, and the extra hypothesis buys brevity
+rather than strength.
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em>, 2nd ed., §6.2 "Uniform
+Convergence of a Sequence of Functions", printed 154–163, and §6.3 "Uniform
+Convergence and Differentiation", printed 164–167 (folio = PDF − 12, checked on
+each page cited). The opening of §6.2 and Definition 6.2.1, printed 154.
+Example 6.2.2 with parts (ii) and (iii) and Figure 6.3, printed 155–156. The
+doomed proof of continuity of a pointwise limit, printed 156. Its failure, the
+numerical illustration with x = 1/2 and x = 9/10, and Definition 6.2.3, printed
+157. Example 6.2.4, printed 158. Theorem 6.2.5 with its proof set as
+Exercise 6.2.6, and Theorem 6.2.6 with proof, printed 160. Exercises 6.2.1 to
+6.2.16, including 6.2.7 and 6.2.11 used in the transfer table and 6.2.15 and
+6.2.16 which set equicontinuity and Arzelà–Ascoli as exercises, printed 160–163.
+The opening of §6.3 with the remark on assuming what one wants to prove, and
+Theorem 6.3.1 with the start of its proof, printed 164. The Mean Value Theorem
+step, printed 165. Theorem 6.3.2 with its proof set as Exercise 6.3.5,
+Theorem 6.3.3, and Exercises 6.3.1 to 6.3.3, printed 166. Exercises 6.3.4 and
+6.3.5, printed 167.
+<br><br>
+Lindström, <em>Spaces: An Introduction to Real Analysis</em>, §4.1 "Modes of
+continuity", printed 79–81; §4.2 "Modes of convergence", printed 81–86; §4.3
+"Integrating and differentiating sequences", printed 86–92 (folio = PDF − 13).
+Definition 4.1.1 and Example 1, printed 79. Proposition 4.1.2 with proof,
+Definition 4.1.3 and Example 2, printed 80. The opening of §4.2,
+Definition 4.2.1, Definition 4.2.2 and Proposition 4.2.3 with proof, printed 81.
+Examples 1 and 2 with Figures 4.2.1 and 4.2.2, printed 82–83. Proposition 4.2.4
+with proof and the remark on ε/3-arguments, printed 83. Example 3, printed 84.
+Exercises 1–12 to §4.2, including Exercise 9 (the pointwise counterexample to
+Lemma 4.8.8) and Exercise 11 (the M-test, set and named), printed 85–86. The
+opening of §4.3 with its two questions, and Example 1 with Figure 4.3.1, printed
+86. The value of ∫₀¹ fₙ, Proposition 4.3.1 with proof, and Corollary 4.3.2 with
+proof, printed 87. Corollary 4.3.3 with proof and the warning about interchanging
+integrals and infinite sums, printed 88. Proposition 4.3.4 with proof, Example 2,
+and Example 3, printed 89. Proposition 4.3.5 with proof, Corollary 4.3.6 with
+"Proof. Left to the reader", and the start of Example 4, printed 90.
+<br><br>
+Carried from earlier units: Definition 3.1.1 and Proposition 3.1.4, printed 44
+and 47; Lemma 3.2.2 and Proposition 3.2.5, printed 49–50; Definition 3.4.1,
+printed 59; Lemma 4.8.8, printed 110 (an2-03's). Named from another unit's
+section: Theorem 4.6.4, printed 102 (an2-08's).
+<br><br>
+<em>Modality.</em> Abbott <strong>proves</strong> Theorem 6.2.6 and
+Theorem 6.3.1, and <strong>states and sets as exercises</strong> Theorem 6.2.5
+(Exercise 6.2.6) and Theorem 6.3.2 (Exercise 6.3.5), with Theorem 6.3.3 obtained
+by combining them. He <strong>writes out a proof in order to break it</strong> at
+printed 156–157, which is a modality with no name in the register and is recorded
+here as such. Lindström <strong>proves</strong> Proposition 4.1.2,
+Proposition 4.2.3, Proposition 4.2.4, Proposition 4.3.1, Corollary 4.3.2,
+Corollary 4.3.3, Proposition 4.3.4 and Proposition 4.3.5, and
+<strong>leaves to the reader</strong> Corollary 4.3.6.
+<strong>The Weierstrass M-test carries two modalities in this book</strong>: set
+and named as Exercise 11 to §4.2 at printed 85, and stated and proved as
+Proposition 4.3.4 at printed 89. Both are recorded because a citation's verb is a
+property of the page cited, not of the result — the second such case in an2 after
+Lemma 3.7.11. Oudot's Corollary 3.6 is <strong>reported</strong> from tda1-07;
+this unit does not open that book.
+<br><br>
+<em>Stated here but not in the source.</em> That Proposition 4.3.5 is a corollary
+of Theorem 6.3.3 — neither book cites the other, and the comparison, the location
+of the extra hypothesis at both ends of Lindström's proof, and the conclusion that
+the extra assumption buys brevity rather than strength are this lesson's. The
+transfer table is assembled here from results and exercises stated separately in
+the two books. The counterexample in Self-check 3 showing Proposition 4.3.1 fails
+on [0, ∞) is likewise this lesson's; Lindström states the proposition for [a, b]
+and does not discuss the unbounded case.
+<br><br>
+<em>Not established here.</em> The Weierstrass M-test in its own right, and series
+of functions generally — Abbott §6.4–6.6 and Lindström §4.10–4.11, which are
+an2-06's; Proposition 4.3.4 is quoted here only because Corollary 4.3.3 needs a
+way to certify uniform convergence. Power series — Lindström §4.4, printed 92
+onwards. The completeness of C[a, b] under the sup metric — Theorem 4.6.4,
+printed 102, an2-08's, used here as a hypothesis-supplier only. Arzelà–Ascoli and
+equicontinuity in earnest — an2-03's, though Abbott's Exercises 6.2.15 and 6.2.16
+set both from scratch at printed 163. The Fundamental Theorem of Calculus, used
+twice in the guided proof, and Riemann integration under it: assumed throughout
+and established by no S1 unit — the an module runs an-01 to an-14 with no
+integration unit in it, and an-13 is uniform convergence, not the integral. Everything about persistence diagrams in the
+warn block and the You-try is tda1-07's reading of Oudot, reported and not
+verified here; in particular no claim is made that any result of this unit
+transfers to the bottleneck distance.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('fail'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  g.font='12px Segoe UI,system-ui,sans-serif';
+
+  // ---- left panel: tents ----
+  var LX0=60, LX1=280, LY0=290, LY1=70, LYMAX=4.5;
+  function LX(x){ return LX0+(LX1-LX0)*x; }
+  function LY(v){ return LY0-(LY0-LY1)*(v/LYMAX); }
+  g.fillStyle='#9aa5b1'; g.textAlign='left';
+  g.fillText('pointwise → 0,  but ∫ = ½ always', LX0-10, 42);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(LX0-10,LY0); g.lineTo(LX1+10,LY0); g.stroke();
+  g.beginPath(); g.moveTo(LX0,LY0+10); g.lineTo(LX0,LY1-6); g.stroke();
+  var tents=[[2,'#4caf82'],[3,'#8ab4f8'],[4,'#e06c75']];
+  for(var i=0;i<tents.length;i++){
+    var n=tents[i][0];
+    g.strokeStyle=tents[i][1]; g.lineWidth=2;
+    g.beginPath();
+    g.moveTo(LX(0),LY(0));
+    g.lineTo(LX(1/(2*n)),LY(n));
+    g.lineTo(LX(1/n),LY(0));
+    g.lineTo(LX(1),LY(0));
+    g.stroke();
+    g.fillStyle=tents[i][1];
+    g.fillText('n='+n, LX(1/(2*n))+4, LY(n)-4);
+  }
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('0', LX0, LY0+18);
+  g.fillText('1', LX(1), LY0+18);
+
+  // ---- right panel: sin(nx)/n ----
+  var RX0=350, RX1=558, RY=180, RXMAX=0.5, RSC=366.67;
+  function RX(x){ return RX0+(RX1-RX0)*(x/RXMAX); }
+  function RY_(v){ return RY-v*RSC; }
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('uniform → 0,  but slopes never shrink', RX0-10, 42);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(RX0-10,RY); g.lineTo(RX1+6,RY); g.stroke();
+  g.beginPath(); g.moveTo(RX0,RY_(0.3)); g.lineTo(RX0,RY_(-0.3)); g.stroke();
+
+  g.strokeStyle='#3a4450'; g.setLineDash([3,4]);
+  g.beginPath(); g.moveTo(RX0,RY_(1/16)); g.lineTo(RX1,RY_(1/16)); g.stroke();
+  g.beginPath(); g.moveTo(RX0,RY_(-1/16)); g.lineTo(RX1,RY_(-1/16)); g.stroke();
+  g.beginPath(); g.moveTo(RX(0),RY_(0)); g.lineTo(RX(0.3),RY_(0.3)); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle='#3a4450';
+  g.fillText('y = x', RX(0.3)+4, RY_(0.3)+4);
+  g.fillText('±1/16', RX1-40, RY_(1/16)-5);
+
+  var curves=[[4,'#4caf82'],[8,'#8ab4f8'],[16,'#e06c75']];
+  for(var j=0;j<curves.length;j++){
+    var m=curves[j][0];
+    g.strokeStyle=curves[j][1]; g.lineWidth=2; g.beginPath();
+    for(var k=0;k<=1200;k++){
+      var x=RXMAX*k/1200, v=Math.sin(m*x)/m;
+      if(k===0) g.moveTo(RX(x),RY_(v)); else g.lineTo(RX(x),RY_(v));
+    }
+    g.stroke();
+    g.fillStyle=curves[j][1];
+    g.fillText('n='+m, RX1+2, RY_(Math.sin(m*RXMAX)/m)+4);
+  }
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('0', RX0-8, RY+16);
+
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('tents: base 1/n, height n', LX0-10, 322);
+  g.fillText('sin(nx)/n, all with slope 1 at 0', RX0-10, 322);
+})();
+</script>
+</body></html>

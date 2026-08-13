@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an2-03 — Compactness: sequential, total boundedness, Arzelà–Ascoli</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+</style></head><body>
+<p class="cite">Analysis II · Nexus College</p>
+<h1>Compactness: sequential, total boundedness, Arzelà–Ascoli <span class="cite">(an2-03)</span></h1>
+
+<div class="hook">
+You have known since school that a continuous function on a closed bounded
+interval attains its maximum, and you have probably filed "closed and bounded"
+as what makes that work. It is not. "Closed and bounded" is a theorem about ℝⁿ,
+not a definition of compactness — there is a complete, closed, bounded metric
+space in this lesson with a sequence that has no convergent subsequence at all.
+(How far the ℝⁿ theorem does reach is a real question and not this unit's: an2-07
+answers it for normed spaces, where finite dimension is exactly the dividing
+line.) The property
+that actually does the work has a different name, and this unit is about what
+has to replace boundedness once you leave ℝⁿ: <em>total boundedness</em> in
+general, and <em>equicontinuity</em> in a space of functions. Same repair, twice.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Take ℕ = {1, 2, 3, …} with the
+discrete metric: every distinct pair is at distance 1. Which of these does it
+fail?</p>
+<button onclick="check(this,false)">It is not bounded — the points go off to infinity</button>
+<button onclick="check(this,false)">It is not complete — the sequence 1, 2, 3, … is Cauchy with no limit</button>
+<button onclick="check(this,true)" data-ok>It is closed, bounded and complete, and still has a sequence with no convergent subsequence</button>
+<button onclick="check(this,false)">It is not closed, because it has no largest element</button>
+<div class="explain">The third. Every distance is 0 or 1, so the diameter is 1 and
+the space is bounded; it is the whole space, so it is closed in itself; and
+an2-02's worked example proved every discrete space complete, because a Cauchy
+sequence there is eventually constant. Yet xₙ = n has no convergent subsequence,
+for the same reason: d(n, m) = 1 for n ≠ m, so no subsequence is even Cauchy.
+The second option gets this backwards — 1, 2, 3, … is <em>not</em> Cauchy here.
+This is Lindström's Example 1 to §3.5, and it is the counterexample the whole
+unit is organised around.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Compactness of diagram and function spaces is the engine behind existence proofs in stability theory.</p>
+
+<div class="warn">
+<strong>The strip is quoted exactly. Its central claim is the best-supported of
+any strip in this module, and the two spaces it names are the wrong two.</strong>
+<br><br>
+<em>What is right.</em> tda1-06 reads Oudot at his printed 51: a compactness
+argument shows the bottleneck infimum "is always attained when P, Q are locally
+finite multisets in ℝ² ∖ Δ", which is exactly what upgrades the extended
+pseudometric of an2-01 into a true distance on that class — and by Oudot's
+Theorem 1.13 the class contains every 𝔮-tame module's diagram. So compactness
+really is the engine, and the specific thing it delivers has a name in this unit:
+<strong>an infimum over a compact set is attained</strong>, which is
+Theorem 3.5.10, the Extreme Value Theorem. Segment 1 is about that theorem and
+Segment 3 sends you back here.
+<br><br>
+<em>"Function spaces".</em> Lindström's Exercise 7 to §4.8 asks you to show that
+C([0, 1], ℝ) is not even <em>locally</em> compact. Segment 3 does it. So no
+function space in this unit is compact; what Theorem 4.8.9 characterises is which
+<em>subsets</em> of one are — and equicontinuity is the price.
+<br><br>
+<em>"Diagram space".</em> tda2-09 reports that 𝔻<sub>q</sub><sup>∞</sup> is
+Polish, meaning complete and separable. This unit proves compact ⟹ complete
+(Proposition 3.5.7) and compact ⟹ separable (Proposition 4.8.3), so Polish is
+strictly weaker, and the prediction gate's space is the counterexample to the
+converse. The corpus therefore establishes nothing at all about compactness of
+diagram space, in either direction.
+<br><br>
+<em>"In stability theory".</em> Both places the corpus reaches for compactness,
+it reaches past its own pages: tda1-06 records that Oudot attributes the
+attainment argument to a reference and does not reproduce it, and tda1-07 records
+that "the compactness argument needed when dgm(𝕌ₓ) is infinite is referred to
+[72, §4.8] and not carried out". The one place compactness visibly does existence
+work in the corpus is tda2-09's Theorem 13.10 — a probability measure with
+<em>compact support</em> has a non-empty Fréchet expectation. Read the strip,
+then, as naming the right mechanism in the wrong two spaces and the wrong branch
+of the theory.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>What compactness is, and the one theorem it exists for</h2>
+
+<div class="definition">
+<strong>Definition 3.5.2 (printed 63).</strong> A subset K of (X, d) is
+<em>compact</em> if every sequence in K has a subsequence converging to a point
+<em>in K</em>. The space (X, d) is compact if X is.
+<br><br>
+<strong>Definition 3.5.3 (printed 63).</strong> A ⊆ X is <em>bounded</em> if
+there is an M ∈ ℝ with d(a, b) ≤ M for all a, b ∈ A.
+<br><br>
+<strong>Proposition 3.5.1 (printed 63).</strong> If {xₙ} converges to a, so does
+every subsequence. <span class="cite">Stated, and left as Problem 2 to §3.5 —
+"I leave the first result as an exercise".</span>
+<br><br>
+<span class="cite">Lindström attaches a Remark to Definition 3.5.2 and it is
+the whole definition in one sentence: "It is easy to overlook that the limit of
+the subsequence has to lie in the set K, but this is a crucial part of the
+definition." Every counterexample in this unit is that clause failing.</span>
+</div>
+
+<p>Take the Remark at its word straight away. In ℝ, the open interval (0, 1) has
+the property that every sequence in it has a subsequence converging — in ℝ. It is
+not compact, because 1/n has every subsequence converging to 0, which is not a
+member. Compactness is not "sequences behave"; it is "sequences behave
+<em>and stay inside</em>", and the second half is what makes it a strong
+condition.</p>
+
+<div class="theorem">
+<strong>Proposition 3.5.4 (printed 64).</strong> Every compact set is closed and
+bounded. <span class="cite">Proved, contrapositively, in two halves.</span>
+<br><br>
+<strong>Corollary 3.5.5 (printed 64).</strong> A subset of ℝⁿ is compact if and
+only if it is closed and bounded. <span class="cite">Proved, from the
+Bolzano–Weierstrass Theorem 2.3.3 — an-08's, and quoted by Lindström from his
+own §2.3.</span>
+</div>
+
+<p><strong>Read the hypothesis of Corollary 3.5.5 out loud: <em>a subset of
+ℝⁿ</em>.</strong> Lindström's next line is "Unfortunately, the corollary doesn't
+hold for metric spaces in general", and his Example 1 is the prediction gate's
+space: ℕ with the discrete metric is complete, closed and bounded, and xₙ = n has
+no convergent subsequence. Nothing was wrong with the sequence; there is simply
+no mechanism in a bare metric space forcing infinitely many points into a small
+region. In ℝⁿ that mechanism is Bolzano–Weierstrass, and it is a theorem about
+ℝⁿ.</p>
+
+<div class="theorem">
+<strong>Lemma 3.5.6 (printed 65).</strong> A Cauchy sequence with a convergent
+subsequence converges, to the same limit. <span class="cite">Proved, ε/2.</span>
+<br><br>
+<strong>Proposition 3.5.7 (printed 65).</strong> Every compact metric space is
+complete. <span class="cite">Proved, in two lines from the lemma.</span>
+<br><br>
+<strong>Proposition 3.5.8 (printed 65).</strong> A closed subset of a compact set
+is compact. <span class="cite">Proved.</span>
+<br><br>
+<strong>Proposition 3.5.9 (printed 65).</strong> Continuous images of compact
+sets are compact. <span class="cite">Proved, via Proposition 3.2.5.</span>
+</div>
+
+<p>Proposition 3.5.7 fixes compactness above completeness in the hierarchy:
+compact ⟹ complete (Definition 3.4.3), and never the reverse — ℝ is complete and
+not compact, and so is the prediction gate's ℕ. Proposition 3.5.9 is worth one
+extra beat, because it goes the opposite way from everything an2-01 taught you.
+Continuity controls <em>preimages</em>: preimages of open sets are open, preimages
+of closed sets are closed. Compactness is the one property that travels
+<em>forward</em>, along the image — and Problem 1(e) asks for the preimage
+counterexample, which is a constant map.</p>
+
+<div class="theorem">
+<strong>Theorem 3.5.10 (The Extreme Value Theorem, printed 65–66).</strong> If K
+is a nonempty compact subset of (X, d) and f : K → ℝ is continuous, then f has
+maximum and minimum points in K: there are c, d ∈ K with f(d) ≤ f(x) ≤ f(c) for
+all x ∈ K. <span class="cite">Proved, the maximum half in the body, the minimum
+half left as Problem 3. Lindström gives two proofs and prefers the longer.</span>
+</div>
+
+<div class="worked">
+<strong>Worked — the Extreme Value Theorem, Lindström's longer route, and where
+the infinity goes.</strong>
+<br><br>
+Put M = sup{f(x) : x ∈ K}. We are not yet entitled to assume M is finite, so
+allow M = ∞ for now — this is the step the short proof hides.
+<br><br>
+Choose xₙ ∈ K with f(xₙ) → M. Compactness gives a subsequence x_{n_k} → c ∈ K.
+Then f(x_{n_k}) → M — and this step has two cases, which is exactly what allowing
+M = ∞ costs. If M is finite, it is <strong>Proposition 3.5.1</strong>: a
+subsequence of a convergent sequence converges to the same limit. If M = ∞ the
+proposition does not apply, because 3.5.1 is stated for convergence to a point;
+what you use instead is the definition of f(xₙ) → ∞ directly — every tail beats
+every bound, so every tail of every subsequence does too. Either way
+f(x_{n_k}) → M. Meanwhile f(x_{n_k}) → f(c), by <strong>Proposition
+3.2.9</strong>, the version of Proposition 3.2.5 for functions defined on a
+subset. In the finite case, uniqueness of limits in ℝ gives f(c) = M; in the
+divergent case f(x_{n_k}) cannot both exceed every bound and converge to the real
+number f(c), so M = ∞ is impossible and we are back in the first case.
+<br><br>
+<strong>And that is where M = ∞ died.</strong> It was never assumed away; it was
+excluded by the conclusion, because f(c) is a real number. The theorem proves
+boundedness of f and attainment of the bound in one stroke, and the sequence
+extraction is doing both jobs at once. ∎
+<br><br>
+<span class="cite">Lindström's Remark on printed 66 gives the short proof:
+Proposition 3.5.9 makes f(K) compact, hence closed and bounded by
+Proposition 3.5.4, hence containing its own sup and inf. He prefers the long one
+because it "gives a better feeling for what is going on" — and Problem 2(b) asks
+you to say what that feeling is. Note that the long proof hands you the maximum
+<em>point</em> as an explicit limit; the short one hands you only the
+value.</span>
+</div>
+
+<div class="worked fade">
+<strong>Faded — positive continuous functions on a compact space are bounded away
+from zero.</strong> <span class="cite">Lindström's Problem 7 to §3.5.</span>
+<br><br>
+Let (X, d) be compact and f : X → ℝ continuous with f(x) &gt; 0 for every x. Show
+there is a real a &gt; 0 with f(x) &gt; a for all x.
+<br><br>
+The whole proof is one application of Theorem 3.5.10 and one arithmetic step.
+<br><br>
+⟨your step: apply the Extreme Value Theorem to f, name the point where the
+minimum is attained and the value there, and produce a. Then — and this is the
+part that matters — take X = (0, 1) and f(x) = x, and say which clause of the
+argument breaks. The conclusion is not "positive continuous functions are bounded
+away from zero"; it is a conclusion about positive continuous functions
+<em>on a compact space</em>, and the difference is one attained infimum.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which implication is <em>false</em>?</p>
+<button onclick="check(this,false)">Compact ⟹ complete</button>
+<button onclick="check(this,false)">Compact ⟹ closed and bounded</button>
+<button onclick="check(this,true)" data-ok>Complete, closed and bounded ⟹ compact</button>
+<button onclick="check(this,false)">A closed subset of a compact set is compact</button>
+<div class="explain">The third, and the prediction gate already refuted it — ℕ
+with the discrete metric has all three hypotheses and no convergent subsequence
+of xₙ = n. The first is Proposition 3.5.7, the second Proposition 3.5.4, the
+fourth Proposition 3.5.8. The tempting reason to believe the third is
+Corollary 3.5.5, which is true and carries the hypothesis "a subset of ℝⁿ" —
+dropping a hypothesis while keeping the conclusion is the single most common way
+a true theorem becomes a false one.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Problem 2(e) replaces Banach's Theorem 3.4.5 by:
+X compact and d(f(x), f(y)) &lt; d(x, y) for all x ≠ y — strict, with no uniform
+factor s &lt; 1. That f still has a unique fixed point. What has compactness
+bought, and what has been lost?</p>
+<button onclick="check(this,false)">Nothing is lost; compactness is simply a stronger hypothesis than completeness</button>
+<button onclick="check(this,true)" data-ok>It buys the attained minimum of g(x) = d(x, f(x)); it loses the convergence rate (3.4.1)</button>
+<button onclick="check(this,false)">It buys uniqueness, which Banach's theorem does not give</button>
+<button onclick="check(this,false)">It buys completeness, which the new hypotheses no longer assume</button>
+<div class="explain">Compactness makes g(x) = d(x, f(x)) attain its minimum, and
+if that minimum were positive at c then g(f(c)) &lt; g(c) contradicts minimality —
+so the minimum is 0 and c is fixed. What is lost is the estimate (3.4.1): Banach's
+proof produces the fixed point as the limit of an explicit iteration with a
+geometric error bound, and this one produces it as a minimiser with no rate at
+all. The fourth option is true as a fact (Proposition 3.5.7) but it is not what
+compactness is buying here — completeness alone would not give the minimum.
+Uniqueness comes from the strict inequality in both theorems.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 30 min</span>
+<h2>The repair, and a source that supplies its own negative control</h2>
+
+<p>If "bounded" is the hypothesis that fails to generalise, the question is what
+to put in its place. Boundedness is a statement at a single scale: one number M
+bounds every distance. Total boundedness is the same statement made to hold at
+<em>every</em> scale, with a finite count allowed to grow as the scale shrinks.</p>
+
+<div class="definition">
+<strong>Definition 3.5.11 (printed 66).</strong> A ⊆ X is <em>totally bounded</em>
+if for each ε &gt; 0 there are finitely many balls B(a₁, ε), …, B(aₙ, ε) with
+centres in A that cover A.
+</div>
+
+<div class="theorem">
+<strong>Proposition 3.5.12 (printed 66).</strong> Every compact set is totally
+bounded. <span class="cite">Proved, contrapositively, by constructing a sequence
+with d(xₙ, x_m) ≥ ε for every n ≠ m.</span>
+<br><br>
+<strong>Theorem 3.5.13 (printed 66–67).</strong> A subset A of a
+<em>complete</em> metric space X is compact if and only if it is closed and
+totally bounded. <span class="cite">Proved, by nesting balls of radius 1, ½, ⅓, …
+each containing infinitely many terms and reading a subsequence off the
+nesting.</span>
+</div>
+
+<p>The sequence Proposition 3.5.12 builds — every pair at distance at least ε —
+is the prediction gate's space wearing a different hat, and it is why the
+discrete ℕ was the right counterexample all along. An infinite discrete space is
+bounded and not totally bounded: at any ε &lt; 1 every ball is a single point, so
+no finite collection covers.</p>
+
+<div class="guided-proof">
+<strong>Guided proof — total boundedness is the right repair, and completeness is
+what makes it work.</strong>
+<br><br>
+Two parts. First prove Proposition 3.5.12. Then run Lindström's own negative
+control, Exercise 10 to §3.5, on the completeness hypothesis of
+Theorem 3.5.13: with the usual metric on ℚ, show that A = {q ∈ ℚ : 0 ≤ q ≤ 2} is
+closed in ℚ and totally bounded, but not compact.
+<br><br>
+Start: for the first part, argue contrapositively and build the sequence greedily
+— pick any x₁, then any point outside B(x₁, ε), then any point outside both
+balls, and keep going. The construction never stops precisely because no finite
+collection covers.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>Proposition 3.5.12.</strong> Suppose A is not totally bounded: some
+ε &gt; 0 admits no finite covering by ε-balls. Pick x₁ ∈ A. Since B(x₁, ε) does
+not cover A, pick x₂ ∈ A ∖ B(x₁, ε). Since B(x₁, ε) ∪ B(x₂, ε) does not cover A,
+pick x₃ outside both. Continuing, we get {xₙ} with
+xₙ ∉ B(x₁, ε) ∪ … ∪ B(x_{n−1}, ε), so d(xₙ, x_m) ≥ ε for all n ≠ m. No
+subsequence of such a sequence is Cauchy, so by Proposition 3.4.2 no subsequence
+converges, and A is not compact. ∎</p>
+<p><strong>Exercise 10.</strong> <em>Totally bounded.</em> Given ε &gt; 0, choose
+rationals 0 = q₀ &lt; q₁ &lt; … &lt; q_N = 2 with consecutive gaps below ε; the
+finitely many balls B(qᵢ, ε) cover A. <em>Closed in ℚ.</em> Its complement in ℚ
+is {q &lt; 0} ∪ {q &gt; 2}, a union of two sets open in ℚ. <em>Not compact.</em>
+The rational decimal truncations of √2 form a sequence in A; every subsequence
+converges in ℝ to √2, so no subsequence converges to a point of A, since a limit
+in A would be a second limit in ℝ and Proposition 3.2.3 forbids that.</p>
+<p><strong>Which hypothesis was load-bearing, and it is not the obvious
+one.</strong> A is closed — genuinely closed, in the space it lives in. The
+temptation is to say it "has a hole at √2", but √2 is not a point of ℚ and
+closedness is relative, as an2-02's Proposition 3.4.4 insisted. What fails is the
+completeness of the <em>ambient</em> space: the nesting construction in
+Theorem 3.5.13's proof produces a Cauchy subsequence, and nothing in ℚ turns a
+Cauchy sequence into a limit. Lindström says so before stating the theorem —
+"we have now added the assumption that X is complete – without this condition,
+the statement is false (see Exercise 10)".</p>
+<p><strong>Worth noticing about the source.</strong> A textbook stating a theorem
+with a hypothesis, asserting the theorem is false without it, and pointing at the
+exercise that exhibits the failure is a source shipping its own watched failure.
+It is rarer than it should be, and it is the reason you can trust the hypothesis
+is not decoration.</p>
+</details>
+</div>
+
+<h3>The third description, which is the one that survives</h3>
+
+<p>Lindström opens §3.6 by saying why he is about to do the whole thing again:
+the covering description "is also the right one to use if one wants to extend the
+concept of compactness to even more general spaces, <em>topological spaces</em>.
+In such spaces, sequences are not always an efficient tool, and it is better to
+have a description of compactness in terms of coverings by open sets."
+<span class="cite">— printed 68–69. top-08 is the syllabus unit that takes
+compactness up there; nothing in an2 assumes it.</span></p>
+
+<div class="definition">
+<strong>Definition 3.6.1 (printed 69).</strong> K has the <em>open covering
+property</em> if every open covering of K has a finite subcovering.
+<span class="cite">Lindström notes the term is not standard and "will disappear
+once we have proved that it is equivalent to compactness".</span>
+</div>
+
+<div class="theorem">
+<strong>Proposition 3.6.2 (printed 69).</strong> Open covering property ⟹
+compact. <span class="cite">Proved, contrapositively, after an observation:
+if no subsequence converges to x, some ball around x holds only finitely many
+terms.</span>
+<br><br>
+<strong>Lemma 3.6.3 (printed 70).</strong> For an open covering 𝒪 of A, the
+function f(x) = sup{r &lt; 1 : B(x; r) ⊆ O for some O ∈ 𝒪} is continuous and
+strictly positive. <span class="cite">Proved, by the Lipschitz bound
+|f(x) − f(y)| ≤ d(x, y), so δ = ε works.</span>
+<br><br>
+<strong>Theorem 3.6.4 (printed 70).</strong> Compact ⟺ open covering property.
+<span class="cite">Proved. Some authors call it the Heine–Borel theorem.</span>
+<br><br>
+<strong>Corollary 3.6.5 (printed 70).</strong> The reformulation by closed sets,
+and it is an <em>equivalence</em>: for K a subset of a metric space X, (i) K is
+compact <strong>if and only if</strong> (ii) whenever a family ℱ of closed sets
+has the finite intersection property over K — every finite subfamily meets K —
+then K ∩ ⋂ℱ ≠ ∅. <span class="cite">Stated, with "Proof. Left to the reader (see
+Exercise 7)." <strong>Compactness is not optional here</strong>: without it (ii)
+is false, as K = ℝ with Fₙ = [n, ∞) shows — every finite subfamily meets ℝ and
+the total intersection is empty.</span>
+</div>
+
+<p>Lemma 3.6.3 has a parenthesis that is easy to skim past and should not be:
+"the strange cut-off at 1 in the definition of f(x) below is just to make sure
+that the function is finite". Without it f could be a supremum over an unbounded
+set of radii — not a real number, so not something Theorem 3.5.10 can be applied
+to. That is an2-01 Problem 2(d) again: a supremum over an unbounded set falls out
+of Definition 3.1.1's codomain [0, ∞) before any condition is tested.</p>
+
+<p>Now trace the dependency of Theorem 3.6.4, because it is the opposite of what
+the phrase "alternative description" suggests. The hard direction goes
+<em>from</em> the sequential definition <em>to</em> the covering property, and it
+passes through Theorem 3.5.10 (to get a positive minimum r for Lemma 3.6.3's
+function) and Proposition 3.5.12 (to cover K by finitely many balls of radius
+r/2). Both of those are metric facts. In a space with no distance, Lemma 3.6.3's
+function cannot even be written down — it is a supremum of <em>radii</em> — so
+the covering property has to be taken as the definition rather than derived. That
+is exactly Lindström's stated reason for preferring it.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Lindström quotes an argument that every locally
+compact space is complete, in order to have it refuted — Problem 11(c) to §3.5.
+It says: since d(xₙ, x_m) gets small, "we can find an r &gt; 0 such that
+B̄(xₙ, r) is compact, and x_m ∈ B̄(xₙ, r) for all m ≥ n". Where is the error?</p>
+<button onclick="check(this,false)">Compact sets need not be closed, so B̄(xₙ, r) may not contain its limit points</button>
+<button onclick="check(this,true)" data-ok>Local compactness gives a radius per point; the argument needs one radius for a whole tail, and the radii can shrink to zero</button>
+<button onclick="check(this,false)">A subsequence of a Cauchy sequence converging does not make the sequence converge</button>
+<button onclick="check(this,false)">There is no error; the counterexample must be wrong</button>
+<div class="explain">The quantifiers have been swapped. Local compactness says:
+for each a there <em>exists</em> r_a &gt; 0 with B̄(a; r_a) compact. The argument
+reads it as though one r served every point. In X = ℝ ∖ {0}, as xₙ approaches the
+missing 0 the available radii shrink to zero, and no fixed r works for a tail.
+The third option describes Lemma 3.5.6, which is true and is in fact the last
+step of the quoted argument — the only correct step in it. This is the same
+uniformity failure as an2-02's Self-check 3, and it is the third time in two
+units that a proof has broken at a quantifier and not at a theorem.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 30 min</span>
+<h2>The same repair, for functions</h2>
+
+<div class="definition">
+<strong>Definition 4.8.1 (printed 107).</strong> A ⊆ X is <em>dense</em> if every
+x ∈ X is the limit of a sequence from A. <span class="cite">Definition 3.7.1
+repeated; Lindström restates Proposition 3.7.2 alongside it.</span>
+<br><br>
+<strong>Definition 4.8.2 (printed 107).</strong> (X, d) is <em>separable</em> if
+it has a countable dense subset.
+<br><br>
+<strong>Definition 4.8.4 (printed 108).</strong> A family ℱ of functions
+X → Y is <em>equicontinuous</em> if for every ε &gt; 0 there is one δ &gt; 0 such
+that d_Y(f(x), f(y)) &lt; ε whenever d_X(x, y) &lt; δ — <em>for every f ∈ ℱ at
+once</em>. <span class="cite">Definition 4.1.3 repeated from printed 80.</span>
+</div>
+
+<p>Read Definition 4.8.4 against Definition 4.1.1, uniform continuity: that one
+demands a single δ across all <em>points</em>; this one demands a single δ across
+all points <em>and all functions in the family</em>. Two uniformities stacked.
+And Proposition 4.1.2 — on a compact domain, continuous implies uniformly
+continuous — closes the first of them for free, which is why compactness of X is
+a standing hypothesis from here on.</p>
+
+<div class="theorem">
+<strong>Proposition 4.8.3 (printed 108).</strong> Every compact metric space is
+separable, and the countable dense set A can be chosen so that for each δ &gt; 0
+there is a <em>finite</em> A_δ ⊆ A with everything within δ of it.
+<span class="cite">Proved, from Proposition 3.5.12: take the centres of the
+1/n-ball coverings, for all n.</span>
+<br><br>
+<strong>Lemma 4.8.5 (printed 108–109).</strong> For an equicontinuous sequence in
+C(X, Y) with X compact and Y complete, convergence at every point of such a
+dense A is enough to force convergence in C(X, Y). <span class="cite">Proved, by
+an ε/4 argument with three legs.</span>
+<br><br>
+<strong>Proposition 4.8.6 (printed 109).</strong> If X is compact and {fₙ} is a
+bounded, equicontinuous sequence in C(X, ℝᵐ), then {fₙ} has a convergent
+subsequence. <span class="cite">Proved, by the diagonal argument. This is the
+hard half of Arzelà–Ascoli.</span>
+</div>
+
+<p>Two things about Proposition 4.8.3 that Lemma 4.8.5 then spends. Countability
+is what the diagonal argument needs — you cannot index the stages of a diagonal
+construction by an uncountable set. The <em>finite</em> A_δ is what the ε/4
+argument needs, because it takes a maximum over A_δ and a maximum of infinitely
+many things is not available. Both halves of one proposition, each cashed
+separately.</p>
+
+<div class="theorem">
+<strong>Corollary 4.8.7 (printed 110).</strong> For X compact, every bounded,
+closed, equicontinuous 𝒦 ⊆ C(X, ℝᵐ) is compact. <span class="cite">Proved, in
+three lines from Proposition 4.8.6.</span>
+<br><br>
+<strong>Lemma 4.8.8 (printed 110).</strong> If continuous fₙ → f
+<em>uniformly</em> and xₙ → a, then fₙ(xₙ) → f(a). <span class="cite">Proved,
+using Proposition 4.2.4 (an2-05's) for continuity of f. Lindström's Remark:
+"This lemma is not as obvious as it may seem – it is not true if we replace
+uniform convergence by pointwise!"</span>
+<br><br>
+<strong>Theorem 4.8.9 (The Arzelà–Ascoli Theorem, printed 110–111).</strong> Let
+X be a compact metric space. A subset 𝒦 of C(X, ℝᵐ) is compact if and only if it
+is closed, bounded and equicontinuous. <span class="cite">Proved; the remaining
+direction is a contradiction argument using Lemma 4.8.8.</span>
+</div>
+
+<p>So here is the whole unit on one line each.</p>
+
+<table class="cmp">
+<tr><th>Setting</th><th>Compact ⟺</th><th>What replaced "bounded"</th></tr>
+<tr><td>ℝⁿ <span class="cite">Corollary 3.5.5</span></td>
+<td>closed and bounded</td>
+<td>nothing — this is the special case</td></tr>
+<tr><td>any complete X <span class="cite">Theorem 3.5.13</span></td>
+<td>closed and totally bounded</td>
+<td>a finite cover at <em>every</em> scale</td></tr>
+<tr><td>C(X, ℝᵐ), X compact <span class="cite">Theorem 4.8.9</span></td>
+<td>closed, bounded and equicontinuous</td>
+<td>one δ for every function at once</td></tr>
+</table>
+
+<p>The second and third rows describe the same objects, and that is not a
+coincidence you should leave unexamined. Theorem 4.6.4 — an2-08's page, printed
+102 — says C(X, ℝᵐ) is complete when X is compact, so Theorem 3.5.13 applies to
+it. Two if-and-only-if characterisations of one property force their hypotheses
+to agree: <strong>for a closed subset of C(X, ℝᵐ) with X compact, totally bounded
+and bounded-plus-equicontinuous are the same condition.</strong> Lindström
+nowhere says this; it is assembled here from his two theorems, and it is flagged
+in the footer.</p>
+
+<canvas id="xn" width="640" height="380" aria-label="The functions x, x squared, x to the fourth and so on up to x to the sixty-fourth on the unit interval, fanning towards the corner at (1,1)"></canvas>
+
+<p class="cite">fₙ(x) = xⁿ on [0, 1], for n = 1, 2, 4, 8, 16, 32, 64. Every one
+is continuous and every one has sup norm exactly 1, so the family is bounded — and
+it is not equicontinuous, which the shaded strip shows: fix any δ and look at the
+window (1 − δ, 1]. f₁ moves by δ across it; f₆₄ moves from nearly 0 to 1. No
+single δ can serve every n, which is precisely Definition 4.8.4 failing. By
+Proposition 4.8.6 read backwards, that is forced: if the family were
+equicontinuous it would have a uniformly convergent subsequence, whose limit
+would be continuous by Proposition 4.2.4 — but every subsequence converges
+pointwise to the function that is 0 on [0, 1) and 1 at 1, and uniform convergence
+implies pointwise, so that discontinuous function would have to be the limit.</p>
+
+<div class="worked fade">
+<strong>Faded — C([0, 1], ℝ) is not even locally compact.</strong>
+<span class="cite">Lindström's Exercise 7 to §4.8.</span>
+<br><br>
+A space is locally compact if every point has a compact closed ball around it.
+For ℝᵐ this is immediate: closed balls are closed and bounded, so
+Corollary 3.5.5 applies. For C([0, 1], ℝ) it fails at every point and every
+radius, and the functions in the figure are the reason.
+<br><br>
+Fix any g ∈ C([0, 1], ℝ) and any r &gt; 0, and set fₙ = g + r·xⁿ. Then
+‖fₙ − g‖<sub>∞</sub> = r·sup|xⁿ| = r, so every fₙ lies in the closed ball
+B̄(g; r).
+<br><br>
+⟨your step: suppose B̄(g; r) were compact. Extract a convergent subsequence of
+{fₙ}, subtract g, and derive a contradiction from the caption above. Then say
+which of the three conditions of Theorem 4.8.9 the closed ball satisfies and
+which it fails — it is closed and bounded, and one condition short, at every
+centre and every radius.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Lindström warns that Lemma 4.8.8 fails for
+pointwise convergence. Which family witnesses that?</p>
+<button onclick="check(this,false)">fₙ(x) = x/n on [0,1], with xₙ = 1</button>
+<button onclick="check(this,true)" data-ok>A spike of height 1 at x = 1/n, zero outside a shrinking interval, with xₙ = 1/n</button>
+<button onclick="check(this,false)">fₙ(x) = xⁿ on [0,1], with xₙ = 1</button>
+<button onclick="check(this,false)">No family does; the lemma is true for pointwise convergence and the Remark is a slip</button>
+<div class="explain">The moving spike. Let fₙ be piecewise linear, 0 outside
+(1/(n+1), 1/(n−1)) and 1 at 1/n. Each fₙ is continuous; fₙ → 0 pointwise, since
+each fixed x &gt; 0 is eventually outside the shrinking support and fₙ(0) = 0.
+But with xₙ = 1/n → 0 we get fₙ(xₙ) = 1, which does not tend to f(0) = 0. The
+third option fails because xₙ = 1 is a constant sequence and fₙ(1) = 1 → 1, which
+is the pointwise limit's value at 1 — no contradiction. The first converges
+uniformly, so the lemma applies to it and nothing goes wrong.</div>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> The audit, in four parts, and the first one is a
+compliment rather than a correction.
+<br><br>
+<em>What is right.</em> tda1-06 reports Oudot at printed 51: a compactness
+argument shows the bottleneck infimum "is always attained when P, Q are locally
+finite multisets in ℝ² ∖ Δ", which is what makes d_b a true distance there, and
+Theorem 1.13 puts every 𝔮-tame module's diagram in that class. Name the theorem
+of this unit that "an infimum over a compact set is attained" <em>is</em>, and
+say which problem of the set you have just done is the same argument in
+miniature.
+<br><br>
+<em>"Function spaces."</em> You have just shown C([0, 1], ℝ) is not locally
+compact. Say what Theorem 4.8.9 therefore does and does not assert, and rewrite
+the phrase into something true.
+<br><br>
+<em>"Diagram space."</em> tda2-09 reports 𝔻<sub>q</sub><sup>∞</sup> is Polish.
+Using Proposition 3.5.7 and Proposition 4.8.3, say which way the implication runs
+between Polish and compact, give the counterexample to the other direction, and
+then state carefully what the corpus does and does not settle. Be careful not to
+overshoot: you are not entitled to conclude that diagram space is non-compact
+either.
+<br><br>
+<em>"In stability theory."</em> Both corpus appeals to compactness point outside
+their own pages — tda1-06 records Oudot attributing the attainment argument to a
+reference, and tda1-07 records the compactness step of the stability proof being
+"referred to [72, §4.8] and not carried out". The one visible existence use is
+Theorem 13.10, reported by tda2-09, whose hypothesis is compact support. Write
+the corrected strip: one sentence, naming what is compact, what it delivers, and
+where.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> "Diagram space is Polish, so it is compact,
+which is why infima over it are attained." How many errors?</p>
+<button onclick="check(this,false)">None — Polish means complete and separable, and compact spaces are exactly those</button>
+<button onclick="check(this,false)">One: Polish does not imply compact, but the rest follows</button>
+<button onclick="check(this,true)" data-ok>Two: the implication runs the other way, and the corpus's attainment result is not an infimum over diagram space</button>
+<button onclick="check(this,false)">Two: Polish does not imply compact, and infima over compact sets need not be attained</button>
+<div class="explain">Two, and the fourth option gets the second one wrong —
+infima over compact sets <em>are</em> attained, which is Theorem 3.5.10 and the
+whole point of the unit. The first error: Proposition 3.5.7 and Proposition 4.8.3
+give compact ⟹ complete and compact ⟹ separable, so compact ⟹ Polish and not
+conversely; ℝ and the prediction gate's ℕ are both Polish and not compact. The
+second: the infimum Oudot's argument attains is the bottleneck infimum over
+<em>matchings</em> between two given diagrams, not an infimum over the space of
+diagrams — and neither tda1-06 nor this unit says which set the argument's
+compactness belongs to, because Oudot refers that proof out.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> A closed, bounded subset of C([0,1], ℝ) that is
+<em>not</em> equicontinuous — what can you conclude about it from
+Theorem 4.8.9?</p>
+<button onclick="check(this,false)">Nothing; the theorem only gives a sufficient condition</button>
+<button onclick="check(this,true)" data-ok>That it is not compact, since the theorem is an equivalence</button>
+<button onclick="check(this,false)">That it is not complete</button>
+<button onclick="check(this,false)">That it has no convergent sequences</button>
+<div class="explain">Not compact. Theorem 4.8.9 is an "if and only if", so
+failing any one of the three conditions rules compactness out — which is exactly
+how the faded example shows the closed balls are not compact. The first option
+would be right about Corollary 4.8.7, which gives only the sufficient half;
+Theorem 4.8.9 is the upgrade. The third is wrong: the set is closed in the
+complete space C([0,1], ℝ), so Proposition 3.4.4 makes it complete. That pair —
+complete and not compact — is the point of Self-check 5.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file and reconstruct three claims.
+<details><summary>Check against this</summary>
+1. <strong>Compactness is "every sequence has a subsequence converging inside",
+and the last two words are the whole definition.</strong> It implies closed and
+bounded (3.5.4), complete (3.5.7), totally bounded (3.5.12) and separable
+(4.8.3); it travels forward along continuous maps (3.5.9) where openness and
+closedness travel backward; and the reason to want it is Theorem 3.5.10 — a
+continuous real function on a compact set attains its bounds, so an infimum over
+a compact set is <em>reached</em>, not merely approached.
+<br><br>
+2. <strong>"Closed and bounded" is a theorem about ℝⁿ (3.5.5) and generalises by
+strengthening boundedness, not by dropping hypotheses.</strong> ℕ discrete is
+closed, bounded, complete and not compact. The repair is total boundedness plus
+ambient completeness (3.5.13), and Lindström supplies the watched failure himself
+— ℚ ∩ [0, 2] is closed in ℚ and totally bounded and not compact. The covering
+description (3.6.1, 3.6.4) is a third equivalent, derived <em>from</em> the
+sequential one through 3.5.10 and 3.5.12, and it is the one that survives with no
+metric present.
+<br><br>
+3. <strong>In function spaces the same repair is called equicontinuity.</strong>
+Theorem 4.8.9: for compact X, a subset of C(X, ℝᵐ) is compact iff closed,
+bounded and equicontinuous. Boundedness controls the values; equicontinuity
+controls how fast they may move, one δ for the whole family. No function space is
+itself compact — C([0,1], ℝ) is not even locally compact, and xⁿ in a closed ball
+is the reason. Compactness here is always a property of subsets.
+</details>
+</div>
+
+<footer>
+Sources: Lindström, <em>Spaces: An Introduction to Real Analysis</em>, §3.5
+"Compact sets", printed 63–68; §3.6 "An alternative description of compactness",
+printed 68–71; §4.8 "Compact sets of continuous functions", printed 107–112
+(folio = PDF − 13, checked on each page cited). Proposition 3.5.1 (left as
+Problem 2), Definition 3.5.2 with its Remark, and Definition 3.5.3, printed 63.
+Proposition 3.5.4 with proof, Corollary 3.5.5 with proof, and Example 1 (ℕ
+discrete), printed 64. Lemma 3.5.6, Proposition 3.5.7, Proposition 3.5.8 and
+Proposition 3.5.9, all with proofs, and the statement of Theorem 3.5.10, printed
+65. The proof of Theorem 3.5.10, the Remark giving the shorter proof,
+Definition 3.5.11, Proposition 3.5.12 with proof, the warning that Theorem 3.5.13
+needs completeness, and its statement, printed 66. The proof of Theorem 3.5.13
+and Problems 1–7 to §3.5, printed 67. Problems 8–16 to §3.5 and the opening of
+§3.6, printed 68. The definition of an open covering, Definition 3.6.1, the
+observation about balls holding finitely many terms, and Proposition 3.6.2 with
+proof, printed 69. Lemma 3.6.3 with proof and the parenthesis about the cut-off
+at 1, Theorem 3.6.4 with proof, the finite intersection property, and
+Corollary 3.6.5, printed 70. "Left to the reader (see Exercise 7)" and Problems
+1–7 to §3.6, printed 71. The opening of §4.8, Definition 4.8.1, the restatement
+of Proposition 3.7.2 and Definition 4.8.2, printed 107. Proposition 4.8.3 with
+proof and its Remark, Definition 4.8.4, and Lemma 4.8.5 with the start of its
+proof, printed 108. The end of that proof and Proposition 4.8.6 with proof,
+printed 109. Corollary 4.8.7 with proof, Lemma 4.8.8 with its Remark and proof,
+and Theorem 4.8.9 with the start of its proof, printed 110. The end of that proof
+and Exercises 1 to 6(a), printed 111. The rest of Exercise 6 and Exercises 7 and
+8, printed 112. Carried from an2-01 and an2-02: Definition 3.1.1 and
+Proposition 3.1.4, printed 44 and 47; Proposition 3.2.3, Proposition 3.2.5 and
+Proposition 3.2.9, printed 49–51; Proposition 3.3.7 and Proposition 3.3.12,
+printed 55 and 57; Proposition 3.4.2, Definition 3.4.3, Proposition 3.4.4 and
+Theorem 3.4.5, printed 59–61; Definition 3.7.1, Proposition 3.7.2 and
+Proposition 3.7.4, printed 71–72. Named from other units' sections:
+Definition 4.1.1, printed 79; Proposition 4.1.2 and Definition 4.1.3, printed 80
+(an2-05's); Proposition 4.2.4, printed 81 onwards (an2-05's); Proposition 4.6.3
+and Theorem 4.6.4, printed 102 (an2-08's). Bolzano–Weierstrass is Lindström's
+Theorem 2.3.3, quoted by him from his own §2.3 and belonging to an-08.
+<br><br>
+<em>Modality.</em> Lindström <strong>proves</strong> Proposition 3.5.4,
+Corollary 3.5.5, Lemma 3.5.6, Proposition 3.5.7, Proposition 3.5.8,
+Proposition 3.5.9, the maximum half of Theorem 3.5.10, Proposition 3.5.12,
+Theorem 3.5.13, Proposition 3.6.2, Lemma 3.6.3, Theorem 3.6.4,
+Proposition 4.8.3, Lemma 4.8.5, Proposition 4.8.6, Corollary 4.8.7,
+Lemma 4.8.8 and Theorem 4.8.9. He <strong>states and sets as an exercise</strong>
+Proposition 3.5.1 ("I leave the first result as an exercise", Problem 2 to §3.5),
+the minimum half of Theorem 3.5.10 (Problem 3), and Corollary 3.6.5 ("Left to the
+reader (see Exercise 7)"). He <strong>states and refutes</strong> the argument
+quoted in Self-check 3, which is his own Problem 11(c) and is quoted here as he
+quotes it — as a thing to be found wrong. He <strong>asserts a failure and points
+at its witness</strong> for Theorem 3.5.13's completeness hypothesis: "without
+this condition, the statement is false (see Exercise 10)". Oudot's Theorem 1.13
+and the attainment argument, and Dey and Wang's Theorem 13.10, are
+<strong>reported</strong> from tda1-06, tda1-07 and tda2-09; this unit opens
+neither book.
+<br><br>
+<em>Stated here but not in the source.</em> That for a closed subset of
+C(X, ℝᵐ) with X compact, "totally bounded" and "bounded and equicontinuous" are
+the same condition. Lindström proves Theorem 3.5.13 and Theorem 4.8.9 and never
+puts them side by side; the equivalence follows because both characterise
+compactness for the same objects, once Theorem 4.6.4 supplies the completeness
+that Theorem 3.5.13 requires. The reading of the figure — that {xⁿ} fails
+Definition 4.8.4 — is likewise assembled here, from Proposition 4.8.6 run
+backwards and Proposition 4.2.4; Lindström sets the non-local-compactness of
+C([0,1], ℝ) as Exercise 7 and gives no argument. Both are flagged because a
+reader is entitled to know which sentences carry a textbook's authority and which
+carry only this unit's.
+<br><br>
+<em>Not established here.</em> The Bolzano–Weierstrass Theorem 2.3.3, quoted and
+not proved; it is an-08's. Uniform convergence in its own right, and
+Proposition 4.2.4 — Lindström's §4.2, an2-05's. Uniform continuity beyond
+Definition 4.1.1 and Proposition 4.1.2, and equicontinuity's role in the
+existence theory for differential equations — §4.1 and §4.9, an2-05's and
+an2-04's. That C(X, ℝᵐ) is complete: Theorem 4.6.4, printed 102, an2-08's, and
+used here only as a hypothesis-supplier. Compactness in a topological space,
+where the covering property is the definition rather than a theorem — top-08,
+which is not a prerequisite of this unit and is not assumed by it. Every claim
+about persistence diagrams in the warn block and Segment 3: the attainment
+argument and Theorem 1.13 are tda1-06's reading of Oudot, the referred-out
+compactness step is tda1-07's, and Theorem 13.10 and the Polish property are
+tda2-09's reading of Dey and Wang. This unit opens none of those books and proves
+none of those statements.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('xn'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var X0=90, X1=530, Y0=300, Y1=70;
+  function X(t){ return X0+(X1-X0)*t; }
+  function Y(v){ return Y0-(Y0-Y1)*v; }
+  g.font='13px Segoe UI,system-ui,sans-serif';
+
+  var dlt=0.15;
+  g.fillStyle='#1c2630';
+  g.fillRect(X(1-dlt), Y1-6, X(1)-X(1-dlt), Y0-Y1+6);
+
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(X0-10,Y0); g.lineTo(X1+16,Y0); g.stroke();
+  g.beginPath(); g.moveTo(X0,Y0+10); g.lineTo(X0,Y1-10); g.stroke();
+
+  var ns=[1,2,4,8,16,32,64];
+  var cols=['#4caf82','#8ab4f8','#d8a657','#e06c75','#b48ead','#56c8d8','#e8e8e8'];
+  for(var i=0;i<ns.length;i++){
+    var n=ns[i];
+    g.strokeStyle=cols[i]; g.lineWidth=2; g.beginPath();
+    for(var k=0;k<=2000;k++){
+      var t=k/2000, v=Math.pow(t,n);
+      if(k===0) g.moveTo(X(t),Y(v)); else g.lineTo(X(t),Y(v));
+    }
+    g.stroke();
+  }
+
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('0', X0, Y0+20);
+  g.fillText('1', X(1), Y0+20);
+  g.textAlign='right';
+  g.fillText('1', X0-8, Y1+5);
+  g.textAlign='left';
+  g.fillText('f(x) = x', X1+6, Y(1)+4);
+
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('n = 1, 2, 4, 8, 16, 32, 64 — every one has sup norm 1', X0-10, 44);
+  g.textAlign='center'; g.fillStyle='#9aa5b1';
+  g.fillText('one δ-window at x = 1, seven different amounts of movement', (X0+X1)/2, 340);
+})();
+</script>
+</body></html>

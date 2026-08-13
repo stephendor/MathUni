@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an2-01 — Metric-space topology, deepened</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Analysis II · Nexus College</p>
+<h1>Metric-space topology, deepened <span class="cite">(an2-01)</span></h1>
+
+<div class="hook">
+Three conditions on a two-variable function, and every argument you know about
+sequences and continuity in ℝ runs again — on the plane, on messages, on
+functions, on sets. Lindström opens the chapter with the complaint that motivates
+it: it "becomes quite boring to perform almost the same arguments over and over
+again in new settings", and asks whether the results can be proved "once and for
+all". The answer is yes, and the price is exactly three conditions.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Of the three conditions on a
+distance — that it is zero only between equal points, that it is symmetric, and
+that going direct beats going via a third point — which one do you expect to be
+the one that fails most often when someone proposes a "distance" that turns out
+not to be one?</p>
+<button onclick="check(this,false)">The triangle inequality — it is the hardest to verify</button>
+<button onclick="check(this,true)" data-ok>The first one, and usually its "only if" half</button>
+<button onclick="check(this,false)">Symmetry — real-world distances often are not symmetric</button>
+<div class="explain">The first, and almost always the half that says d(x,y) = 0
+forces x = y. You will run seven candidates through the checklist in Problem 1
+and find that <em>not one of them</em> fails symmetry or the triangle
+inequality. The triangle inequality is the one that is hardest to <em>prove</em>
+when it holds; condition (i) is the one that is most often <em>false</em>. Those
+are different questions, and confusing them is how a proposed distance gets
+called a metric on the strength of the difficult verification while the easy one
+was never run. It is also, as the last segment shows, exactly what happens to
+the distance between persistence diagrams.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The space of persistence diagrams is a metric space; fluency here is fluency there.</p>
+
+<div class="warn">
+<strong>The strip is quoted exactly, and its first clause is false as it
+stands.</strong> This unit's sources contain no persistence diagram — Lindström
+is a real-analysis text and Abbott's §8.2 is about metric spaces and the Baire
+category theorem. So nothing here can confirm or deny the first clause on its
+own evidence. But the corpus has already settled it downstream, and the answer is
+no: tda1-06 reads Oudot at his printed 51, where the bottleneck distance "is an
+extended pseudometric … It is not a true distance though", with two distinct
+diagrams exhibited at distance zero. The claim becomes true only after the class
+of diagrams is restricted — to locally finite multisets off the diagonal, which
+is what tda1-06 establishes, and which tda1-05 gets from Oudot's Theorem 1.13,
+the result that every 𝔮-tame module has a diagram in that class.
+<br><br>
+So read the strip as a promise about the <em>second</em> clause. Fluency here
+really is fluency there, and the specific form it takes is that you will be able
+to run the three conditions as a checklist on a proposed distance and find which
+one breaks. tda1-05 has already committed you to doing exactly that: its
+Problem 5(c) says "take an2-01's axioms for a metric space and apply them as a
+checklist". This unit supplies that checklist, and the last segment shows that
+the checklist returns a failure on the headline application — which is the
+reason it is worth having rather than a reason to distrust it.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>Three conditions, and the seven candidates that test them</h2>
+
+<p>Two books state the same definition on this page, and it is worth having both
+because they are worded differently and you will need both wordings.</p>
+
+<div class="definition">
+<strong>Definition 3.1.1 (Lindström, printed 44).</strong> A metric space (X, d)
+consists of a nonempty set X and a function d : X × X → [0, ∞) such that:
+<br><br>
+(i) <em>(Positivity)</em> For all x, y ∈ X, d(x, y) ≥ 0, with equality if and
+only if x = y.
+<br>
+(ii) <em>(Symmetry)</em> For all x, y ∈ X, d(x, y) = d(y, x).
+<br>
+(iii) <em>(Triangle Inequality)</em> For all x, y, z ∈ X,
+d(x, y) ≤ d(x, z) + d(z, y).
+<br><br>
+A function d satisfying (i)–(iii) is called a <em>metric</em> on X.
+<br><br>
+<strong>Definition 8.2.1 (Abbott, printed 222).</strong> Given a set X, a
+function d : X × X → <strong>R</strong> is a <em>metric</em> on X if for all
+x, y ∈ X: (i) d(x, y) ≥ 0 with d(x, y) = 0 if and only if x = y; (ii)
+d(x, y) = d(y, x); and (iii) for all z ∈ X, d(x, y) ≤ d(x, z) + d(z, y).
+<br><br>
+<span class="cite">The same three conditions. Lindström names them, which is why
+this unit's checklist uses his names; Abbott numbers them, which is why the
+problem set quotes his numbering when it runs his exercises. One real
+difference: Lindström builds non-negativity into the <em>codomain</em>
+[0, ∞), Abbott into condition (i). That difference is invisible until something
+takes the value ∞, and then it decides which condition gets the blame — the last
+segment turns on this.</span>
+</div>
+
+<p>Notice how little has been assumed. There is no addition on X, no ordering, no
+dimension, no smoothness — X is a bare set. Everything the theory proves will
+therefore hold for every example at once, which is Lindström's stated reason for
+the chapter. Here is the variety he offers, and it is worth reading as a
+<em>range</em> rather than a list <span class="cite">— Examples 1–7, printed
+44–47</span>.</p>
+
+<ul>
+<li><strong>ℝ</strong> with d(x, y) = |x − y|, and <strong>ℝⁿ</strong> with the
+Euclidean distance. Both triangle inequalities are inherited from the ones you
+already have for numbers and vectors.</li>
+<li><strong>The Manhattan metric</strong> on ℝ², |x₁ − y₁| + |x₂ − y₂| — a
+genuinely different metric on the same set as the Euclidean one.</li>
+<li><strong>The Hamming metric</strong> on messages of fixed length K: the number
+of positions at which two messages differ. The set is finite, there is no
+geometry at all, and it is used to measure transmission corruption.</li>
+<li><strong>Metrics on functions</strong>: on the continuous functions
+[a, b] → ℝ, the sup metric d₁(f, g) = sup{|f(x) − g(x)|}, the integral metric
+d₂(f, g) = ∫|f − g|, and d₃ with the square-integral. Lindström's comment is the
+one to keep: having several metrics "doesn't mean that one of them is 'right'
+and the others 'wrong', but that they are useful for different purposes".</li>
+<li><strong>The discrete metric</strong> on any non-empty set: 0 between equal
+points, 1 between distinct ones. Lindström recommends it as a first test — "if
+you want to check whether a phenomenon from ℝⁿ generalizes to all metric spaces,
+it's often a good idea first to see what happens in these spaces".</li>
+<li><strong>The subspace metric</strong>: restrict d to a non-empty subset A.</li>
+</ul>
+
+<div class="worked">
+<strong>Worked — the sup metric is a metric, and the one move that matters.</strong>
+<br><br>
+Take X = C[a, b] and d₁(f, g) = sup{|f(x) − g(x)| : x ∈ [a, b]}.
+<br><br>
+<em>The supremum is a real number.</em> f − g is continuous on the closed
+bounded interval [a, b], hence bounded, so the set has a real upper bound. Both
+hypotheses were used: continuity of f and g, and closed-boundedness of [a, b].
+Drop either and d₁ can be +∞, which Definition 3.1.1's codomain forbids.
+<br><br>
+<em>(i).</em> d₁ ≥ 0 as a supremum of non-negative numbers. If d₁(f, g) = 0 then
+|f(x) − g(x)| ≤ 0 for every x, so f = g pointwise, so f = g.
+<br><br>
+<em>(ii).</em> |f(x) − g(x)| = |g(x) − f(x)| for each x, so the two sets are the
+same set and have the same supremum.
+<br><br>
+<em>(iii).</em> Fix x. Then
+|f(x) − h(x)| ≤ |f(x) − g(x)| + |g(x) − h(x)| ≤ d₁(f, g) + d₁(g, h),
+because each term is at most the supremum it sits under. So the fixed number
+d₁(f, g) + d₁(g, h) is an upper bound for <em>every</em> member of the set whose
+supremum is d₁(f, h) — and therefore an upper bound for that supremum. Hence
+d₁(f, h) ≤ d₁(f, g) + d₁(g, h). ∎
+<br><br>
+<strong>Mark that last move.</strong> "An upper bound for every member is an
+upper bound for the supremum" is the entire content of the triangle inequality
+here, and it will come back in the final segment in a form that looks nothing
+like it.
+</div>
+
+<div class="worked fade">
+<strong>Faded — the Hamming metric.</strong> Messages are strings of length K,
+and d(x, y) counts the indices n with xₙ ≠ yₙ. Lindström writes only "it is not
+hard to check" and makes it Exercise 1.
+<br><br>
+Write [P] for 1 if P holds and 0 otherwise, so that d(x, y) = Σₙ [xₙ ≠ yₙ].
+<br><br>
+<em>(iii).</em> Fix an index n. If xₙ = zₙ the left side is 0 and there is
+nothing to prove. If xₙ ≠ zₙ, then yₙ cannot equal both xₙ and zₙ, so at least
+one of [xₙ ≠ yₙ], [yₙ ≠ zₙ] is 1. Either way
+[xₙ ≠ zₙ] ≤ [xₙ ≠ yₙ] + [yₙ ≠ zₙ].
+<br><br>
+⟨your step: sum this over n = 1, …, K and say why summing finitely many valid
+inequalities is legitimate. Then say what (i) and (ii) amount to here — each is
+one line, and (i)'s "only if" half is the statement that two strings agreeing at
+every index are the same string.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> On ℝ², is d(x, y) = |x₁x₂ + y₁y₂| a metric?
+(This is Abbott's Exercise 8.2.1(d).)</p>
+<button onclick="check(this,false)">Yes — it is symmetric and non-negative</button>
+<button onclick="check(this,true)" data-ok>No — it fails (i) at a single point, before any pair is considered</button>
+<button onclick="check(this,false)">No — the triangle inequality is the only clause that fails</button>
+<button onclick="check(this,false)">No — it fails symmetry</button>
+<div class="explain">No, and the fastest refutation needs only one point. Take
+x = (1, 1): then d(x, x) = |1·1 + 1·1| = 2 ≠ 0, so a point is at distance 2 from
+itself. Condition (i) is dead. Symmetry does in fact hold — swapping x and y
+leaves x₁x₂ + y₁y₂ unchanged — so the last option is wrong, and the "yes" option
+is wrong because non-negativity is only half of (i). The third option is wrong
+only in the word <em>only</em>: the triangle inequality does fail too, at
+x = y = (1, 1) and z = (1, −1), where d(x, y) = 2 but d(x, z) = d(z, y) = 0. That
+is the honest picture, and it is also why the habit matters — when a proposed
+distance is not one, look for the failure at a <em>single point</em> first, and
+you are done before you have to hunt for a triple.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> On C[0, 1], is d(f, g) = |f(1) − g(1)| a
+metric? (Abbott's Exercise 8.2.2(b).)</p>
+<button onclick="check(this,false)">Yes</button>
+<button onclick="check(this,true)" data-ok>No — it fails only the "only if" half of (i), so it is a pseudometric</button>
+<button onclick="check(this,false)">No — it fails the triangle inequality, since evaluation at 1 is not additive</button>
+<button onclick="check(this,false)">No — d(f, f) ≠ 0 in general</button>
+<div class="explain">No, and the failure is precisely located. Take f(x) = x and
+g(x) = x². These are different elements of C[0, 1], but f(1) = g(1) = 1, so
+d(f, g) = 0 without f = g. Everything else holds: d(f, f) = 0, symmetry is
+immediate, and the triangle inequality is inherited from |·| on ℝ. A function
+satisfying every condition except the "only if" half of (i) is called a
+<em>pseudometric</em>, and the name matters — it is exactly the word Oudot uses
+for the bottleneck distance, as the last segment shows.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>Convergence and continuity, replayed once for all spaces</h2>
+
+<div class="definition">
+<strong>Definition 3.2.1 (printed 48).</strong> A sequence {xₙ} in a metric space
+(X, d) <em>converges</em> to a ∈ X if for every ε &gt; 0 there is an N ∈ ℕ such
+that d(xₙ, a) &lt; ε for all n ≥ N.
+<br><br>
+<strong>Definition 3.2.4 (printed 49).</strong> f : X → Y is <em>continuous at</em>
+a ∈ X if for every ε &gt; 0 there is a δ &gt; 0 such that
+d_Y(f(x), f(a)) &lt; ε whenever d_X(x, a) &lt; δ. By Definition 3.2.7, f is
+<em>continuous</em> if it is continuous at every point.
+<br><br>
+<span class="cite">Word for word the definitions from ℝ, with |x − y| replaced by
+d(x, y) — which is the entire idea of the chapter.</span>
+</div>
+
+<div class="theorem">
+<strong>Lemma 3.2.2 (printed 49).</strong> A sequence {xₙ} in (X, d) converges to
+a if and only if lim d(xₙ, a) = 0.
+<br><br>
+<strong>Proposition 3.2.3 (printed 49).</strong> A sequence in a metric space
+cannot converge to more than one point.
+<br><br>
+<strong>Proposition 3.2.5 (printed 50).</strong> f is continuous at a if and only
+if f(xₙ) → f(a) for every sequence xₙ → a.
+<br><br>
+<span class="cite">All three proved in the body. Lindström adds, after 3.2.3:
+"Observe how we used the conditions in Definition 3.1.1 in the proof above. So
+far they are all we know about metric spaces."</span>
+</div>
+
+<p>Lemma 3.2.2 looks like a restatement and is in fact the workhorse. It converts
+a question about a sequence in a space with no arithmetic into a question about a
+sequence of <em>real numbers</em>, where every tool from an-05 onward applies.
+The conversion has a limit, though, and it is worth seeing where: Abbott's
+Cauchy condition <span class="cite">(Definition 8.2.3, printed 223)</span> asks
+that d(x_m, xₙ) &lt; ε for all m, n ≥ N, and there is no single real sequence to
+take the limit of, because there is no named point in the second slot. That is
+why completeness is a separate idea and not a corollary — and it is an2-02's
+whole subject.</p>
+
+<div class="guided-proof">
+<strong>Guided proof — limits are unique, and exactly which condition does it.</strong>
+<br><br>
+Suppose xₙ → a and xₙ → b. Prove a = b, and as you go, label every step with the
+condition of Definition 3.1.1 it uses. There are three such steps and no others;
+Lindström's remark above is a claim you should check rather than accept.
+<br><br>
+Start: the Triangle Inequality gives d(a, b) ≤ d(a, xₙ) + d(xₙ, b) for every n.
+Note that the left side does not depend on n and the right side does.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p>By <strong>(iii), the Triangle Inequality</strong>, for every n,
+d(a, b) ≤ d(a, xₙ) + d(xₙ, b).</p>
+<p>By <strong>(ii), Symmetry</strong>, d(a, xₙ) = d(xₙ, a). Since xₙ → a and
+xₙ → b, Lemma 3.2.2 gives d(xₙ, a) → 0 and d(xₙ, b) → 0.</p>
+<p>The number d(a, b) is a single constant that is ≤ the n-th term of a sequence
+tending to 0, for every n. So d(a, b) ≤ 0. Combined with d ≥ 0 we get
+d(a, b) = 0.</p>
+<p>By <strong>(i), Positivity</strong> — its "only if" half — a = b. ∎</p>
+<p><strong>Where each condition was indispensable.</strong> (iii) produced the
+inequality; there is no other way to relate d(a, b) to distances involving xₙ.
+(ii) let the two convergence hypotheses, both phrased as d(xₙ, ·), be used in an
+expression that wanted d(a, xₙ). (i) converted the numerical conclusion
+d(a, b) = 0 into the set-theoretic conclusion a = b — and this is the step with
+no counterpart outside metric spaces.</p>
+<p><strong>Why that last observation is the important one.</strong> Take Munkres's
+three-point space X = {a, b, c} with topology {∅, X, {b}, {a,b}, {b,c}}. The
+constant sequence xₙ = b converges to a, to b <em>and</em> to c, because every
+open set containing a or c also contains b. Proposition 3.2.3 forbids that in a
+metric space — so this topology comes from no metric. A topology has no numerical
+quantity that could be zero, hence no counterpart of (i)'s "only if" half, and
+separating points has to be imposed as an extra axiom instead. That axiom is
+Hausdorff's, and top-03 is where it is imposed. <em>Every metric space is
+Hausdorff, and the proof is this proposition.</em></p>
+</details>
+</div>
+
+<div class="worked fade">
+<strong>Faded — convergence in a discrete space.</strong> Let (X, d) be
+discrete: d(x, y) = 0 if x = y and 1 otherwise. Lindström's Exercise 1 to §3.2
+asks you to show xₙ → a if and only if xₙ = a for all sufficiently large n.
+<br><br>
+One direction: if xₙ = a for n ≥ N, then d(xₙ, a) = 0 for n ≥ N, and every ε
+works.
+<br><br>
+⟨your step: for the converse, take ε = 1/2 in Definition 3.2.1 and read off what
+d(xₙ, a) &lt; 1/2 can possibly mean when d takes only the values 0 and 1. Then
+say what has become of Lemma 3.2.2 here — the sequence d(xₙ, a) is a sequence
+of what, and what does "converging to 0" reduce to?⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which of these does Lemma 3.2.2 convert into a
+question about a single sequence of real numbers?</p>
+<button onclick="check(this,false)">Whether {xₙ} is Cauchy</button>
+<button onclick="check(this,true)" data-ok>Whether {xₙ} converges to a specified point a</button>
+<button onclick="check(this,false)">Whether {xₙ} converges to something</button>
+<button onclick="check(this,false)">All three, equally</button>
+<div class="explain">Only the second. Lemma 3.2.2 needs a <em>named</em> limit to
+put in the second slot of d, and then d(xₙ, a) is one real sequence. "Is it
+Cauchy?" involves d(x_m, xₙ) with two running indices — not a sequence.
+"Does it converge to something?" hides an existential quantifier over a, so
+there is no single a to name. The gap between the second and third options is
+precisely the gap that completeness fills, and it is why an2-02 exists.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 30 min</span>
+<h2>Balls, open sets, and a topology nobody asked for</h2>
+
+<div class="definition">
+<strong>Definition 3.3.1 (printed 52).</strong> For a ∈ X and r &gt; 0, the
+<em>open ball</em> is B(a; r) = {x ∈ X : d(x, a) &lt; r}, and the <em>closed
+ball</em> is B̄(a; r) = {x ∈ X : d(x, a) ≤ r}.
+<br><br>
+<strong>Definition 3.3.2 (printed 53).</strong> Relative to a subset A, a point x
+is <em>interior</em> if some B(x; r) ⊆ A, <em>exterior</em> if some
+B(x; r) ⊆ Aᶜ, and a <em>boundary point</em> if every B(x; r) meets both A and
+Aᶜ. A is <em>open</em> if it contains none of its boundary points, and
+<em>closed</em> if it contains all of them.
+<br><br>
+<span class="cite">Abbott takes the other route, defining the ε-neighbourhood
+V_ε(x) = {y : d(x, y) &lt; ε} at printed 224 and building openness from it.
+Proposition 3.3.3 is the bridge: A is open if and only if every point of A is an
+interior point of A. The two definitions agree, and the problem set proves it.</span>
+</div>
+
+<p>Lindström warns that balls "may look quite different from ordinary balls": in
+the Manhattan metric a ball "looks like an ace of diamonds", and in the discrete
+metric it is either a single point or the whole space. He is not being decorative
+— the shapes are the subject of the figure below.</p>
+
+<div class="theorem">
+<strong>Lemma 3.3.6 (printed 54).</strong> Every open ball B(a; r) is an open
+set; every closed ball is a closed set.
+<br><br>
+<strong>Proposition 3.3.10 (printed 56).</strong> f : X → Y is continuous if and
+only if f⁻¹(V) is open in X for every open V ⊆ Y.
+<br><br>
+<strong>Proposition 3.3.12 (printed 57).</strong> Arbitrary unions of open sets
+are open; finite intersections of open sets are open.
+<br><br>
+<strong>Proposition 3.3.13 (printed 58).</strong> Arbitrary intersections of
+closed sets are closed; finite unions of closed sets are closed.
+<br><br>
+<span class="cite">Lindström proves Lemma 3.3.6 for open balls and sets the
+closed half as Exercise 5. He proves Proposition 3.3.10. He states 3.3.12 and
+3.3.13 and sends both proofs to Exercises 11 and 12, which also ask for the
+counterexamples showing "finite" cannot be dropped.</span>
+</div>
+
+<p>Lemma 3.3.6 is not the tautology its wording suggests. "Open ball" was defined
+by a strict inequality and "open set" by boundary points; that the first satisfies
+the second is a theorem, and its proof is where the Triangle Inequality earns its
+keep. Given x ∈ B(a; r), set ε = r − d(x, a), which is strictly positive
+<em>because the ball is open</em>. For y ∈ B(x; ε),</p>
+
+<p style="text-align:center">d(y, a) ≤ d(y, x) + d(x, a) &lt; ε + d(x, a) = r,</p>
+
+<p>so B(x; ε) ⊆ B(a; r) <span class="cite">— printed 54</span>. Every step after
+the first is arithmetic; the first step is condition (iii).</p>
+
+<p>Now read Proposition 3.3.10 again and count what it mentions. A function, two
+spaces, preimages, and open sets. <strong>No ε, no δ, no distance.</strong> The
+definition of continuity has been rewritten in a vocabulary from which the metric
+has vanished — and Lindström says out loud what that is for
+<span class="cite">(printed 57)</span>: "As already mentioned, the results above
+are important when we try to extend the notion of continuity to topological
+spaces. In such spaces we don't have a notion of distance, only a concept of open
+sets. <em>We shall not look at topological spaces in this book</em>, but I would
+still like to point out that from a topological point of view, the crucial
+properties of open and closed sets are the following" — and then 3.3.12 and
+3.3.13.</p>
+
+<p>Take the hint. Collect 𝒯_d = {U ⊆ X : U is open}. Then ∅ and X are in it,
+arbitrary unions stay in it by 3.3.12(a), and finite intersections stay in it by
+3.3.12(b). Those are exactly the three axioms of a topology. <strong>Every metric
+space carries a topology, produced by the metric without anyone asking for
+one</strong> — and continuity in the metric sense agrees with continuity defined
+purely from that topology, which is the content of 3.3.10.</p>
+
+<p>One warning before the figure. It would be natural to expect the metric to be
+recoverable from the topology it generates. It is not, and the next figure is the
+counterexample.</p>
+
+<canvas id="balls" width="640" height="364" aria-label="Unit balls of the Manhattan, Euclidean and max metrics on the plane, nested"></canvas>
+
+<p class="cite">The unit balls B(0; 1) of three metrics on ℝ², on one set of
+axes: the Manhattan diamond inside the Euclidean disc inside the max-metric
+square. The inclusions are strict — three visibly different sets — although all
+three boundaries pass through the same four points (±1, 0) and (0, ±1), where
+the three norms agree. Along the diagonal they are as far apart as they get: the
+diamond meets it at Euclidean distance 1/√2 from the origin, the disc at 1, the
+square at √2. Yet all three metrics generate the <em>same</em> topology, because
+each ball of one kind contains a ball of each other kind around the same centre:
+from
+‖v‖_∞ ≤ ‖v‖₂ ≤ ‖v‖₁ ≤ 2‖v‖_∞ one gets B₁(a; r) ⊆ B₂(a; r) ⊆ B_∞(a; r) and back
+again with rescaled radii. Lindström sets the Manhattan case as Exercise 2 to
+§3.3.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The three unit balls above are visibly
+different sets, yet the three metrics have exactly the same open sets. What is
+the resolution?</p>
+<button onclick="check(this,false)">The figure is only approximate; the balls really do coincide</button>
+<button onclick="check(this,true)" data-ok>An open set need only be a union of balls, not a ball</button>
+<button onclick="check(this,false)">Two of the three metrics generate the same topology and the third does not</button>
+<button onclick="check(this,false)">The metrics agree on open sets but disagree on closed ones</button>
+<div class="explain">An open set is one all of whose points are interior — that
+is, each point has <em>some</em> ball inside the set. It need not be a ball
+itself. Since every ‖·‖₁-ball contains a ‖·‖₂-ball around the same centre and
+conversely, a set that passes the test for one metric passes it for the other,
+even though the individual balls never coincide. The fourth option cannot be
+right for a reason worth noticing: closed means complement-open
+(Proposition 3.3.4), so agreeing on open sets forces agreeing on closed ones.</div>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> A discrete metric space, all the way through.
+<br><br>
+Show that in a discrete space every open ball is a singleton or the whole space;
+that consequently <em>every</em> subset is open; that every subset is therefore
+also closed; and that every function from a discrete space to any metric space is
+continuous.
+<br><br>
+Then answer the question that makes it worth doing: the last claim has an
+ε–δ proof, and it also has a one-line proof. Find the one-line proof, and say
+which proposition of this segment made it one line. If your argument still
+mentions ε, you have not found it.
+<br><br>
+Finally, name the topology 𝒯_d that the discrete metric generates, and say what
+that makes of the phrase "the topology contains all the information the metric
+had". <span class="cite">Lindström's Exercise 1 to §3.3.</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> tda1-05 will hand you these axioms as a
+checklist for the bottleneck distance between persistence diagrams, and asks
+which is "least obviously true" for a distance defined by optimising over
+matchings. tda1-06 then reads Oudot's verdict. Which condition actually fails?</p>
+<button onclick="check(this,false)">(iii), the triangle inequality — composing two optimal matchings need not be optimal</button>
+<button onclick="check(this,true)" data-ok>(i), and the codomain too — distinct diagrams sit at distance zero, and the value can be infinite</button>
+<button onclick="check(this,false)">(ii), symmetry, because a partial matching has a direction</button>
+<button onclick="check(this,false)">None — it is a metric, which is what the mission strip says</button>
+<div class="explain">(i), in its "only if" half — and before that, the codomain.
+tda1-06 reports Oudot at printed 51: the bottleneck distance "is an extended
+pseudometric … It is not a true distance though", exhibiting ℚ² ∖ Δ and
+(ℚ+√2)² ∖ Δ as distinct multisets at distance zero. "Pseudometric" names the
+failure of (i)'s "only if" half — the same failure as Self-check 2's
+|f(1) − g(1)| — and "extended" names a codomain of [0, ∞] rather than
+Definition 3.1.1's [0, ∞). The triangle inequality, the one that looked hardest,
+holds: composing an ε-matching with an ε′-matching gives an (ε+ε′)-matching, and
+one witness bounds an infimum — the same move as "an upper bound for every
+member is an upper bound for the supremum" in Segment 1's worked example, run in
+the opposite direction. The last option is the mission strip, and it is
+false as stated: the claim becomes true only on locally finite multisets in
+ℝ² ∖ Δ, which is where tda1-06 establishes it.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file, look away, and reconstruct the
+argument skeleton. Three claims, and why each forces the next.
+<details><summary>Check against this</summary>
+1. <strong>Three conditions on a bare set buy the whole vocabulary.</strong>
+Definition 3.1.1 assumes no arithmetic, no order, no dimension, so every theorem
+proved from it holds simultaneously on ℝⁿ, on messages, on function spaces and
+on any set at all with the discrete metric. The checklist is short enough to run
+on a candidate, and running it is a skill: the condition that is hardest to
+<em>prove</em> — (iii) — is not the condition most often <em>false</em>, which
+is (i)'s "only if" half.
+<br><br>
+2. <strong>Convergence and continuity transfer verbatim, and Lemma 3.2.2 is why.</strong>
+Replacing |x − y| by d(x, y) in the definitions costs nothing, and
+d(xₙ, a) → 0 turns a question in an arbitrary space into a question about one
+real sequence. Uniqueness of limits (3.2.3) follows from the three conditions
+alone, and its final step is (i) — which is why no topology with a
+non-Hausdorff pathology can come from a metric. The transfer stops at the
+Cauchy condition, which has no named limit, and that gap is completeness.
+<br><br>
+3. <strong>The metric generates a topology and is then partly forgotten.</strong>
+Open balls are open sets (3.3.6, by the Triangle Inequality); unions and finite
+intersections of open sets are open (3.3.12); so 𝒯_d is a topology, and
+continuity has a formulation (3.3.10) mentioning no distance at all. The
+forgetting is real: the Manhattan, Euclidean and max metrics are three different
+functions with three visibly different unit balls and one common topology. A
+property of a metric space need not be a property of the metric.
+</details>
+</div>
+
+<footer>
+Sources: Lindström, <em>Spaces: An Introduction to Real Analysis</em>, ch. 3
+"Metric Spaces", printed 43–59 (folio = PDF − 13, checked on each page cited).
+The chapter opening and §3.1's first paragraphs, printed 43. Definition 3.1.1
+with its three named conditions, the informal motivation preceding it, and
+Examples 1–3, printed 44. Examples 4 and 5 with the three function metrics,
+printed 45. The remark that no metric is "right", Example 6 (discrete) and
+Example 7 (subspace), printed 46. Definition 3.1.2 (isometry),
+Definition 3.1.3 (embedding) and Proposition 3.1.4 (Inverse Triangle Inequality)
+with proof, printed 47. Exercises for §3.1, printed 48. Definition 3.2.1,
+printed 48. Lemma 3.2.2, Proposition 3.2.3 with proof and the remark following
+it, printed 49. Definition 3.2.4 and Proposition 3.2.5 with proof, printed
+49–50. Proposition 3.2.6, Definition 3.2.7, Definition 3.2.8 and
+Proposition 3.2.9, printed 51. Definition 3.3.1, printed 52. The three positions
+of a point, Definition 3.3.2, and the "ace of diamonds" remark, printed 53.
+Proposition 3.3.3, Proposition 3.3.4 with proof, Proposition 3.3.5 and
+Lemma 3.3.6 with the open-ball half proved, printed 54. Proposition 3.3.7 and
+Lemma 3.3.8, printed 55. Proposition 3.3.9 and Proposition 3.3.10 with proof,
+printed 56. Example 1 (x² and arctan), the disclaimer about topological spaces
+and Proposition 3.3.12, printed 57. Proposition 3.3.13 and the exercises,
+printed 58.
+<br><br>
+Abbott, <em>Understanding Analysis</em>, 2nd ed., §8.2 "Metric Spaces and the
+Baire Category Theorem", printed 222–227 (folio = PDF − 12). Definition 8.2.1
+and Exercises 8.2.1, 8.2.2, 8.2.3, printed 222. Definition 8.2.2,
+Definition 8.2.3, Definition 8.2.4 and the "sup norm" remark, printed 223.
+Definition 8.2.6 (ε-neighbourhood) and Definition 8.2.7, printed 224.
+<br><br>
+<em>Modality.</em> Lindström <strong>proves</strong> Proposition 3.1.4,
+Proposition 3.2.3, Proposition 3.2.5, Proposition 3.2.6, Proposition 3.3.4,
+Proposition 3.3.10 and the open-ball half of Lemma 3.3.6. He
+<strong>states</strong> Proposition 3.3.12 and Proposition 3.3.13 and
+<strong>sets their proofs as exercises</strong> (11 and 12), together with the
+counterexamples that show "finite" cannot be dropped; he leaves
+Proposition 3.3.5 to the reader "with the warning that it is not quite as obvious
+as it may seem", and the closed-ball half of Lemma 3.3.6 as Exercise 5. He
+<strong>disclaims</strong> topological spaces outright — "We shall not look at
+topological spaces in this book" (printed 57) — which is why this lesson derives
+𝒯_d rather than citing him for it. Abbott <strong>states</strong>
+Definition 8.2.1 and <strong>sets the entire verification as exercises</strong>
+(8.2.1, 8.2.2, 8.2.3), none worked in the text.
+<br><br>
+<em>Stated here but not in the source.</em> That 𝒯_d satisfies the three axioms
+of a topology is assembled in this lesson from Lindström's Propositions 3.3.12
+and 3.3.13 plus the openness of ∅ and X; he supplies every ingredient and
+explicitly declines to draw the conclusion. The remark that every metric space is
+Hausdorff is likewise this lesson's, read off Proposition 3.2.3; Lindström never
+uses the word. Both are flagged because a reader is entitled to know which
+sentences carry a textbook's authority and which carry only this unit's.
+<br><br>
+<em>Not established here.</em> Completeness and the Cauchy condition beyond
+Abbott's Definition 8.2.3 — Lindström §3.4, printed 59 (an2-02), where the
+completion is also built. Compactness, total boundedness and Arzelà–Ascoli —
+§3.5, §3.6 and §4.8 (an2-03); Abbott's Definition 8.2.7 is stated on printed 224
+and not used. The contraction mapping theorem — §3.4 and §4.7 (an2-04). The
+Baire category theorem — Abbott's Theorem 8.2.11, printed 226, whose proof he
+distributes across Exercises 8.2.13 and 8.2.14; nothing in this unit needs it.
+Normed spaces, where the metric comes from a length — §5.1 (an2-07). Topological
+spaces in their own right, without a metric to generate them — that is top-01,
+which assumes no metric at all and is not a prerequisite of this unit. The
+bottleneck and interleaving distances, and every claim about diagram space
+reported in Segment 3 — those are tda1-05 and tda1-06, and this unit opens
+neither Oudot nor Edelsbrunner.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('balls'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  var cx=320, cy=168, R=110;
+  function axes(){
+    g.strokeStyle='#2a333d'; g.lineWidth=1;
+    g.beginPath(); g.moveTo(cx-R-28,cy); g.lineTo(cx+R+28,cy); g.stroke();
+    g.beginPath(); g.moveTo(cx,cy-R-28); g.lineTo(cx,cy+R+28); g.stroke();
+  }
+  function square(col){
+    g.strokeStyle=col; g.lineWidth=2;
+    g.strokeRect(cx-R,cy-R,2*R,2*R);
+  }
+  function disc(col){
+    g.strokeStyle=col; g.lineWidth=2;
+    g.beginPath(); g.arc(cx,cy,R,0,6.2832); g.stroke();
+  }
+  function diamond(col){
+    g.strokeStyle=col; g.lineWidth=2;
+    g.beginPath(); g.moveTo(cx,cy-R); g.lineTo(cx+R,cy);
+    g.lineTo(cx,cy+R); g.lineTo(cx-R,cy); g.closePath(); g.stroke();
+  }
+  axes();
+  square('#e06c75');
+  disc('#8ab4f8');
+  diamond('#4caf82');
+  g.font='13px Segoe UI,system-ui,sans-serif'; g.textAlign='left';
+  g.fillStyle='#e06c75'; g.fillText('max metric  B∞(0;1)', 470, 62);
+  g.fillStyle='#8ab4f8'; g.fillText('Euclidean  B2(0;1)', 470, 82);
+  g.fillStyle='#4caf82'; g.fillText('Manhattan  B1(0;1)', 470, 102);
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('B1  ⊂  B2  ⊂  B∞', cx, cy+R+50);
+  g.textAlign='left';
+  g.fillStyle='#9aa5b1';
+  g.fillText('(1,0)', cx+R+4, cy+16);
+  g.fillText('(0,1)', cx+6, cy-R-6);
+})();
+</script>
+</body></html>
