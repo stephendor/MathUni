@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an2-07 — Normed and Banach spaces</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+</style></head><body>
+<p class="cite">Analysis II · Nexus College</p>
+<h1>Normed and Banach spaces <span class="cite">(an2-07)</span></h1>
+
+<div class="hook">
+an2-05 left you a fact with no reason attached. Uniform convergence transfers
+continuity, boundedness and the value of an integral, and it does not transfer the
+value of a derivative — witness sin(nx)/n → 0 with cos(nx) converging nowhere.
+That looked like an unlucky example. It is not. Lindström's Example 4 to §5.4 is
+the same two functions, and it says what is actually wrong: differentiation is an
+<em>unbounded linear operator</em>, and for a linear map, unbounded and
+discontinuous are the same word. Every unbounded operator manufactures a
+counterexample of exactly that shape, on demand.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A : V → W is linear between normed
+spaces and continuous at the single point <strong>0</strong>. What follows?</p>
+<button onclick="check(this,false)">A is continuous at every point, but need not be uniformly continuous</button>
+<button onclick="check(this,false)">Nothing beyond continuity at 0 without a hypothesis on the dimension of V</button>
+<button onclick="check(this,true)" data-ok>A is uniformly continuous on all of V, and satisfies ‖A(u)‖ ≤ M‖u‖ for some M</button>
+<button onclick="check(this,false)">A is continuous everywhere if and only if V is complete</button>
+<div class="explain">All three conditions coincide, and Theorem 5.4.5 is the
+statement that they do. Linearity is what collapses them: continuity at
+<strong>0</strong> forces a growth bound (Lemma 5.4.4, proved contrapositively),
+and a growth bound forces uniform continuity in one line, because
+A(u) − A(v) = A(u − v) turns a difference of values into the value at a
+difference — which is exactly the step no non-linear map may take. Neither
+completeness nor dimension appears anywhere in the theorem.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Feature spaces for vectorised diagrams are normed spaces; kernels live in complete (Banach) ones.</p>
+
+<div class="warn">
+<strong>The first clause is right, the second is true and one structure short —
+and the downstream unit that uses kernels already says the stronger thing.</strong>
+<br><br>
+<em>Clause one.</em> A vectorisation sends a diagram to an element of a function
+space carrying a norm, so "feature spaces are normed spaces" is exactly right and
+this unit is the one that makes it a statement rather than a phrase.
+<br><br>
+<em>Clause two, and what it leaves out.</em> tda2-09 builds the persistence scale
+space kernel as k<sub>σ</sub>(D, E) = ⟨Φ<sub>σ</sub>(D), Φ<sub>σ</sub>(E)⟩ in
+𝓛²(Ω) — an <strong>inner product</strong> of feature vectors — and it opens with
+its own strip saying that diagram space "is a metric space but not a Hilbert
+space, which is precisely why lab-06's landscapes, images and kernels exist". An
+inner product is not part of the data of a Banach space. It is
+<strong>Definition 5.3.1</strong>, at printed 142, in §5.3 — one section past this
+unit's cited range, and stated here for that reason and not developed. Completeness
+is necessary; it is the inner product that makes a kernel a kernel.
+<br><br>
+<em>So the strip is not false.</em> Every space named is normed, and the ones in
+use are complete. "Banach" is the weaker true word where "Hilbert" is the
+available one, and a reader who takes the strip as a specification of the
+structure needed will under-build. <strong>For the syllabus pass: an2-07 either
+reaches §5.3, or the strip's second clause should say Hilbert and point at the
+unit that supplies it.</strong>
+<br><br>
+Everything attributed to tda2-09 here is reported from that lesson and, through
+it, from Dey and Wang §13.1. This unit opens neither book.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>A norm is a metric that knows about scaling</h2>
+
+<div class="definition">
+<strong>Definition 5.1.1 (printed 133–134).</strong> A <em>vector space</em> over
+𝕂 = ℝ or ℂ: a set with addition and scalar multiplication satisfying eight
+axioms.
+<br><br>
+<strong>Definition 5.1.2 (printed 134).</strong> A <em>norm</em> on a vector space
+V is ‖·‖ : V → ℝ with
+(i) ‖u‖ ≥ 0, with equality iff u = <strong>0</strong>;
+(ii) ‖αu‖ = |α|‖u‖;
+(iii) ‖u + v‖ ≤ ‖u‖ + ‖v‖.
+The pair (V, ‖·‖) is a <em>normed space</em>.
+<br><br>
+<span class="cite">Compare an2-01's Definition 3.1.1, whose three clauses were
+positivity, <em>symmetry</em> and the triangle inequality. Clause (ii) here has
+no metric counterpart at all, and clause (i) of a metric — symmetry — has no norm
+counterpart, because it is a consequence.</span>
+</div>
+
+<div class="theorem">
+<strong>Proposition 5.1.3 (printed 135).</strong> If (V, ‖·‖) is a normed space,
+then d(u, v) = ‖u − v‖ is a metric on V. <span class="cite"><strong>Proved.</strong></span>
+</div>
+
+<p>The proof's accounting is the point. Positivity of d is norm clause (i);
+symmetry of d is norm clause (ii) with α = −1; the triangle inequality of d is
+norm clause (iii) after inserting w. So homogeneity, the clause with no metric
+counterpart, is what <em>produces</em> the metric axiom with no norm counterpart —
+and it has capacity left over, since it applies to every α and only α = −1 was
+spent.</p>
+
+<p>That leftover capacity is exactly what a metric cannot supply, and Lindström's
+Exercise 6 to §5.1 makes it precise: on any V ≠ {<strong>0</strong>}, the
+<em>discrete</em> metric is generated by no norm. Take u ≠ <strong>0</strong>.
+The discrete metric gives d(u, <strong>0</strong>) = d(2u, <strong>0</strong>) = 1,
+while any norm gives ‖2u‖ = 2‖u‖. A metric may be blind to scale; a norm never
+is.</p>
+
+<div class="worked">
+<strong>Worked — the three norms you have already been using.</strong>
+<span class="cite">Lindström's Examples 1, 2 and 3, printed 134–135.</span>
+<br><br>
+<em>Example 1.</em> The euclidean norm ‖x‖ = √(x₁² + ⋯ + x<sub>n</sub>²) on ℝⁿ,
+and its complex counterpart with |z<sub>i</sub>|² on ℂⁿ.
+<br><br>
+<em>Example 2.</em> For X a compact metric space, ‖f‖ = sup{|f(x)| : x ∈ X} on
+C(X, ℝ). This is the <strong>supremum norm</strong>, and by Proposition 5.1.3 the
+metric it generates is an2-01's d₁ — the same object, now with a name that
+records why it behaves well under addition.
+<br><br>
+<em>Example 3.</em> On C([a, b], ℝ), ‖f‖₁ = ∫ₐᵇ|f| and
+‖f‖₂ = (∫ₐᵇ|f|²)<sup>1/2</sup>, the L¹ and L² norms. Also an2-01's, and also
+now visible as norms rather than as three unrelated metrics.
+<br><br>
+<em>What has changed.</em> Nothing about the spaces. What has changed is that the
+three are now comparable, because they live on one vector space and a norm is a
+thing you can put an inequality between. Segment 2 is that comparison.
+</div>
+
+<div class="theorem">
+<strong>Proposition 5.1.4 (printed 136).</strong> In a normed space:
+(i) x<sub>n</sub> → x implies ‖x<sub>n</sub>‖ → ‖x‖;
+(ii) x<sub>n</sub> → x and y<sub>n</sub> → y imply x<sub>n</sub> + y<sub>n</sub> → x + y;
+(iii) x<sub>n</sub> → x and α<sub>n</sub> → α imply α<sub>n</sub>x<sub>n</sub> → αx.
+<span class="cite">(i) and (iii) <strong>proved</strong>; (ii) <strong>left to
+the reader</strong>. The proof of (i) uses the inverse triangle inequality for
+norms, ‖u‖ − ‖v‖ ≤ ‖u − v‖ — Lindström's (5.1.2), obtained from an2-01's
+Proposition 3.1.4 by putting x = <strong>0</strong>, y = u, z = v.</span>
+</div>
+
+<p>Note what (iii) quietly consumes: its proof needs {‖x<sub>n</sub>‖} bounded,
+and gets it from (i), since a convergent real sequence is bounded. The parts are
+in dependency order, which is worth noticing because it is the pattern of the
+whole chapter — the algebraic operations become continuous, and every later proof
+spends that.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Every norm gives a metric. Does every metric on
+a vector space come from a norm?</p>
+<button onclick="check(this,false)">Yes — define ‖u‖ = d(u, 0) and check the axioms</button>
+<button onclick="check(this,true)" data-ok>No — the discrete metric on any V ≠ {0} is generated by no norm</button>
+<button onclick="check(this,false)">Only if the metric is bounded</button>
+<button onclick="check(this,false)">Only in finite dimensions, where Theorem 5.1.7 applies</button>
+<div class="explain">No, and the first option is the near-miss worth
+understanding: ‖u‖ := d(u, <strong>0</strong>) always satisfies positivity, and
+it satisfies the triangle inequality when d is translation-invariant, but nothing
+makes it homogeneous. The discrete metric is the cleanest witness:
+d(2u, <strong>0</strong>) = d(u, <strong>0</strong>) = 1 for every u ≠
+<strong>0</strong>, while homogeneity would force the first to be twice the
+second. This is Lindström's Exercise 6 to §5.1. Boundedness is a symptom rather
+than the criterion — the discrete metric happens to be bounded, but so is
+min(d, 1) for any norm-induced d, and that too is generated by no norm. And
+Theorem 5.1.7 is about comparing norms, not about which metrics are norms.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. One extra axiom. Now watch what it decides.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>Which norm you use: never, and always</h2>
+
+<div class="definition">
+<strong>Definition 5.1.5 (printed 137).</strong> Two norms ‖·‖₁ and ‖·‖₂ on the
+same V are <em>equivalent</em> if there are positive constants K₁, K₂ with
+‖x‖₁ ≤ K₁‖x‖₂ and ‖x‖₂ ≤ K₂‖x‖₁ for all x.
+<br><br>
+<strong>Proposition 5.1.6 (printed 137–138).</strong> Equivalent norms have the
+same convergent sequences, the same open, closed and compact sets, and the same
+continuous maps into and out of the space. <span class="cite">Stated in three
+parts; "the proofs are left to the reader", and Exercise 8 sets them.</span>
+</div>
+
+<canvas id="norms" width="640" height="360" role="img"
+ aria-label="Left: the unit balls of the 1-norm, 2-norm and supremum norm in the plane, nested as a diamond inside a circle inside a square. Right: three tent functions on the unit interval, each of height one and base one over n, whose supremum norms are all equal to one while their integrals shrink."></canvas>
+<p class="cite" style="text-align:center">Left, in ℝ²: the three unit balls nest,
+B₁ ⊆ B₂ ⊆ B<sub>∞</sub>, and the nesting factors <em>are</em> the equivalence
+constants of Definition 5.1.5. Right, in C([0, 1], ℝ): Lindström's Example 4,
+tents of height 1 on a base of width 1/n. Every one has supremum norm 1; their
+L¹ norms are 1/(2n) and shrink to 0. Same question, opposite answers, and the
+only difference is the dimension.</p>
+
+<div class="theorem">
+<strong>Theorem 5.1.7 (printed 138).</strong> All norms on ℝⁿ are equivalent.
+<span class="cite"><strong>Proved</strong> in full.</span>
+</div>
+
+<p>The proof has two halves and they are not alike. For K₁ = nB with
+B = max<sub>i</sub>|e<sub>i</sub>|, expand x in the standard basis and apply the
+triangle inequality and homogeneity of the unknown norm: pure algebra, no limits.
+For K₂ the argument is analytic and it is where an2-03 is spent. Define
+f(x) = |x|; the estimate |f(x) − f(y)| ≤ |x − y| ≤ K₁‖x − y‖ shows f is
+continuous for the euclidean norm — <em>using the K₁ just obtained</em>. The
+euclidean unit sphere is compact, so f attains a minimum a there by the Extreme
+Value Theorem <strong>Theorem 3.5.10</strong>, and a &gt; 0 because no nonzero
+vector has zero norm. Then K₂ = 1/a.</p>
+
+<p>That is precisely the step that cannot survive into infinite dimensions, and
+an2-03 already recorded why: closed and bounded implies compact is a fact about
+ℝⁿ, and C([0, 1], ℝ) is not even locally compact. So there is no minimum to
+attain, and the right-hand panel of the figure shows what happens instead.</p>
+
+<div class="worked fade">
+<strong>Faded — two tent families with opposite morals.</strong>
+<span class="cite">Lindström's Example 4 to §5.1, printed 136–137, against his
+Example 1 to §4.3, printed 86, which an2-05 used.</span>
+<br><br>
+<em>§5.1's tents.</em> f<sub>n</sub> rises linearly from 0 to 1 on [0, 1/2n],
+falls back to 0 on [1/2n, 1/n], and is 0 thereafter. Then
+‖f<sub>n</sub>‖₁ = ½·(1/n)·1 = 1/(2n) → 0, the area of a triangle; and
+‖f<sub>n</sub>‖<sub>∞</sub> = 1 for every n. So f<sub>n</sub> → 0 in ‖·‖₁ and does
+not converge to 0 in ‖·‖<sub>∞</sub>, and by Proposition 5.1.6(i) the two norms
+are <strong>not equivalent</strong> on C([0, 1], ℝ).
+<br><br>
+⟨your step: §4.3's tents have base 1/n and <em>height n</em>. Compute both norms
+for that family. One of the two families has a constant ‖·‖₁ and the other a
+constant ‖·‖<sub>∞</sub> — say which, and say what each family is a
+counterexample to. They are not counterexamples to the same thing, and drawing
+them side by side is how the confusion starts.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Where exactly does the proof of Theorem 5.1.7
+fail for C([0, 1], ℝ) with the two norms of the figure?</p>
+<button onclick="check(this,false)">At the first half: the basis expansion has infinitely many terms</button>
+<button onclick="check(this,true)" data-ok>At the compactness of the unit sphere, so f attains no positive minimum</button>
+<button onclick="check(this,false)">Nowhere — the proof is valid, and the two norms are in fact equivalent</button>
+<button onclick="check(this,false)">At the continuity of f, which needs the space to be complete</button>
+<div class="explain">At the compact unit sphere. The first half genuinely has no
+infinite-dimensional analogue either, but it is not where the proof <em>breaks</em>
+— it is where the proof <em>stops being available</em>, and the difference matters
+because the failure is exhibitable: the tents have ‖f<sub>n</sub>‖<sub>∞</sub> = 1,
+so they lie on the supremum-norm unit sphere, and their ‖·‖₁ values 1/(2n) tend to
+0 without ever reaching it. The infimum is 0 and is not attained, which is the
+minimum that Theorem 3.5.10 would have supplied and does not. Completeness is a
+red herring: C([0, 1], ℝ) <em>is</em> complete in the supremum norm
+(Theorem 4.6.4, an2-08's), and the norms are still inequivalent.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Now add completeness to the linear structure
+and see what an old theorem turns out to have been.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 30 min</span>
+<h2>Banach, and the M-test's real content</h2>
+
+<div class="definition">
+<strong>Banach space (printed 141).</strong> Lindström's whole definition:
+"A complete normed space is known as a <em>Banach space</em>." Nothing new —
+Definition 5.1.2 for the norm, Proposition 5.1.3 for the metric it generates, and
+an2-02's <strong>Definition 3.4.3</strong> of completeness applied to that metric.
+<span class="cite">This sentence is in <strong>§5.2</strong>, printed 141, which
+is one section outside this unit's cited range. Taken here, with
+Proposition 5.2.3 below, and nothing else from that section.</span>
+<br><br>
+<strong>Definition 5.2.1 (printed 140).</strong> Σ<sub>k</sub> u<sub>k</sub> in a
+normed space is the limit of the partial sums, when it exists.
+<strong>Definition 5.2.2 (printed 140).</strong> {e<sub>k</sub>} is a
+<em>basis</em> if each x is Σ α<sub>k</sub>e<sub>k</sub> for a unique scalar
+sequence.
+</div>
+
+<p>Lindström flags Definition 5.2.1 as "rather treacherous — it seems to be a
+purely algebraic relationship, but it does, in fact, depend on which norm we are
+using", and Segment 2 is the proof that the warning has teeth: the same equation
+u = Σ u<sub>k</sub> can be true in ‖·‖₁ and false in ‖·‖<sub>∞</sub> on one and
+the same space.</p>
+
+<div class="theorem">
+<strong>Proposition 5.2.3 (printed 141).</strong> A normed space V is complete if
+and only if every absolutely convergent series converges — where
+Σ u<sub>k</sub> converges <em>absolutely</em> means Σ ‖u<sub>k</sub>‖ converges.
+<span class="cite"><strong>Proved</strong>, both directions. The converse
+extracts a subsequence with ‖x<sub>n<sub>i+1</sub></sub> − x<sub>n<sub>i</sub></sub>‖
+&lt; 2<sup>−i</sup>, telescopes, and finishes with an2-03's
+<strong>Lemma 3.5.6</strong>: a Cauchy sequence with a convergent subsequence
+converges.</span>
+</div>
+
+<div class="guided-proof">
+<strong>Guided proof — an2-06's M-test was a theorem about completeness, and its
+proof was a completeness proof in disguise.</strong>
+<br><br>
+an2-06 proved <strong>Proposition 4.3.4</strong>: if |v<sub>n</sub>(x)| ≤
+M<sub>n</sub> for all x ∈ A and Σ M<sub>n</sub> converges, then Σ v<sub>n</sub>
+converges uniformly on A.
+<br><br>
+Do three things. <em>First</em>, restate that as a claim about a normed space —
+name the space, name the norm, and say what the hypothesis Σ M<sub>n</sub> &lt; ∞
+becomes in it. <em>Second</em>, identify which half of Proposition 5.2.3 the
+restated claim is, and therefore what it presupposes about that space.
+<em>Third</em>, go back to an2-06's proof and point to the exact place where the
+presupposition was discharged — because no completeness theorem was cited there.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>The space.</strong> B(A, ℝ), the bounded real-valued functions on the
+set A, with the supremum norm ‖v‖<sub>∞</sub> = sup<sub>x∈A</sub>|v(x)|. The
+hypothesis |v<sub>n</sub>(x)| ≤ M<sub>n</sub> says ‖v<sub>n</sub>‖<sub>∞</sub> ≤
+M<sub>n</sub>, so Σ ‖v<sub>n</sub>‖<sub>∞</sub> ≤ Σ M<sub>n</sub> &lt; ∞: the
+series is <strong>absolutely convergent in B(A, ℝ)</strong>. And by an2-05's
+Proposition 4.2.3, uniform convergence on A <em>is</em> convergence in
+‖·‖<sub>∞</sub>. So the M-test reads: an absolutely convergent series in
+B(A, ℝ) converges.</p>
+<p><strong>Which half.</strong> The <em>forward</em> half of Proposition 5.2.3 —
+"complete ⟹ absolutely convergent series converge". It therefore presupposes that
+B(A, ℝ) is complete. Note the direction: the M-test is not a criterion for
+completeness, it is a consequence of one.</p>
+<p><strong>Where an2-06 paid for it.</strong> Look at the two halves of that
+proof. The first fixes x, observes |s<sub>m</sub>(x) − s<sub>n</sub>(x)| ≤
+|S<sub>m</sub> − S<sub>n</sub>|, and invokes completeness of <em>ℝ</em> to get a
+limit s(x). The second produces the x-free bound |s(x) − s<sub>n</sub>(x)| ≤
+Σ<sub>k&gt;n</sub> M<sub>k</sub> &lt; ε. Those two steps together are a proof
+that B(A, ℝ) is complete, run on the sequence in hand instead of in general:
+pointwise limit from completeness of the target of the values, then a uniform tail
+estimate to upgrade pointwise to uniform. Lindström could not have said so at
+printed 89, because he has no normed spaces until printed 133.</p>
+<p><strong>What the reframing is worth.</strong> Two things. It tells you the
+M-test's hypothesis Σ M<sub>n</sub> &lt; ∞ is not a technical convenience but
+absolute convergence, the exact notion Proposition 5.2.3 says characterises
+completeness. And it tells you where to look when the M-test fails: an2-06's
+Σ (−1)ⁿxⁿ/n on [0, 1] converges uniformly with Σ‖f<sub>n</sub>‖<sub>∞</sub> = Σ1/n
+divergent, which is now recognisable as the ordinary fact that convergence does
+not imply absolute convergence — true in ℝ, and true here for the same reason.</p>
+</details>
+</div>
+
+<div class="definition">
+<strong>Definition 5.4.1 (printed 150).</strong> A : V → W between vector spaces
+is a <em>linear operator</em> if A(αu) = αA(u) and A(u + v) = A(u) + A(v). When
+W = 𝕂 it is called a <em>functional</em>.
+<br><br>
+<strong>Definition 5.4.2 (printed 151).</strong> A linear operator between normed
+spaces is <em>bounded</em> if there is M ∈ ℝ with ‖A(u)‖<sub>W</sub> ≤
+M‖u‖<sub>V</sub> for all u. The least such M is the <em>operator norm</em>
+‖A‖ = sup{‖A(u)‖<sub>W</sub>/‖u‖<sub>V</sub> : u ≠ <strong>0</strong>}, equally
+sup{‖A(u)‖<sub>W</sub> : ‖u‖<sub>V</sub> = 1} — his formula (5.4.3), set as
+Exercise 4.
+</div>
+
+<p>Lindström warns in the same breath that "the terminology here is rather
+treacherous as a bounded operator is <em>not</em> a bounded function in the sense
+of, e.g., the Extreme Value Theorem 3.5.10", and gives the one-line reason: if
+A(u) ≠ <strong>0</strong>, then ‖A(αu)‖ = |α|‖A(u)‖ grows without limit. A
+nonzero bounded operator has unbounded range, always. "Bounded" means bounded on
+the unit ball, which for a linear map is a growth rate.</p>
+
+<div class="theorem">
+<strong>Lemma 5.4.3 (printed 152).</strong> A bounded linear operator is
+uniformly continuous. <span class="cite"><strong>Proved</strong>: take
+δ = ε/‖A‖.</span>
+<br><br>
+<strong>Lemma 5.4.4 (printed 152).</strong> A linear operator continuous at
+<strong>0</strong> is bounded. <span class="cite"><strong>Proved</strong>,
+contrapositively, via v<sub>n</sub> = u<sub>n</sub>/(M<sub>n</sub>‖u<sub>n</sub>‖)
+with ‖v<sub>n</sub>‖ = 1/M<sub>n</sub> → 0 and ‖A(v<sub>n</sub>)‖ = 1; the
+conclusion uses an2-01's <strong>Proposition 3.2.5</strong>.</span>
+<br><br>
+<strong>Theorem 5.4.5 (printed 152).</strong> For a linear A : V → W, these are
+equivalent: (i) bounded; (ii) uniformly continuous; (iii) continuous at
+<strong>0</strong>. <span class="cite"><strong>Proved</strong>, by assembling the
+two lemmas.</span>
+</div>
+
+<p>Lemma 5.4.3's proof is where linearity does its work, in a single equality:
+‖A(u) − A(v)‖ = ‖A(u − v)‖ ≤ ‖A‖‖u − v‖. A difference of values has become the
+value at a difference, and the δ that results mentions neither u nor v. No
+non-linear function may make that move, which is why for a general continuous map
+the three conditions are three conditions.</p>
+
+<div class="worked">
+<strong>Worked — and now the debt from an2-05 is paid.</strong>
+<span class="cite">Lindström's Examples 3 and 4 to §5.4, printed 152.</span>
+<br><br>
+<em>Bounded.</em> On C([a, b], ℝ) with the supremum norm, B(u)(x) = ∫ₐˣ u
+satisfies |B(u)(x)| ≤ ∫ₐˣ|u| ≤ ‖u‖(x − a) ≤ ‖u‖(b − a), so ‖B‖ ≤ b − a. Taking
+u ≡ 1 gives B(u)(x) = x − a and ‖B(u)‖ = b − a, so ‖B‖ = b − a exactly.
+Integration is a bounded operator.
+<br><br>
+<em>Unbounded.</em> Let D(f) = f′ on the same norm. Take u<sub>n</sub> = sin(nx):
+then ‖u<sub>n</sub>‖ = 1 and ‖D(u<sub>n</sub>)‖ = ‖n cos(nx)‖ = n. So no M works
+and D is unbounded. Lindström adds the sentence this whole unit has been walking
+towards: that unboundedness "is the source of a lot of trouble, e.g., the rather
+unsatisfactory conditions we had to enforce in our treatment of differentiation of
+series in <strong>Proposition 4.3.5</strong>."
+<br><br>
+<em>And therefore.</em> By Theorem 5.4.5, D unbounded means D is not continuous at
+<strong>0</strong>: there must be f<sub>n</sub> → 0 in the supremum norm with
+D(f<sub>n</sub>) ↛ 0. Normalise Lindström's own witnesses — f<sub>n</sub> =
+u<sub>n</sub>/n = sin(nx)/n has ‖f<sub>n</sub>‖ = 1/n → 0 and ‖D(f<sub>n</sub>)‖ =
+‖cos(nx)‖ = 1 for every n. That is an2-05's counterexample, and it has just been
+<em>manufactured</em> rather than found. Any unbounded operator yields one.
+</div>
+
+<table class="cmp">
+<tr><th>an2-05 said</th><th>an2-07 says why</th></tr>
+<tr><td>uniform convergence transfers continuity</td><td>the inclusion of C(X, ℝ) into itself is the identity; nothing is being applied</td></tr>
+<tr><td>it transfers the value of ∫ₐᵇ</td><td>integration is a <strong>bounded</strong> operator, ‖B‖ = b − a, hence continuous (Theorem 5.4.5)</td></tr>
+<tr><td>it does <strong>not</strong> transfer the value of f′</td><td>differentiation is <strong>unbounded</strong>, hence discontinuous, hence does not commute with limits</td></tr>
+<tr><td>Proposition 4.3.5 needs the hypothesis on (f<sub>n</sub>′)</td><td>the hypothesis moves the uniformity to the image side, where D has already done its damage</td></tr>
+</table>
+
+<div class="theorem">
+<strong>Definition 5.4.6 (printed 153).</strong> ℒ(V, W) is the set of bounded
+linear maps V → W, a vector space under the obvious operations.
+<br><br>
+<strong>Proposition 5.4.7 (printed 153).</strong> The operator norm is a norm on
+ℒ(V, W). <span class="cite"><strong>Proved.</strong></span>
+<br><br>
+<strong>Theorem 5.4.8 (printed 153–154).</strong> If W is complete, so is
+ℒ(V, W). <span class="cite"><strong>Proved</strong>, in four stages.</span>
+</div>
+
+<p>Read the hypothesis of Theorem 5.4.8 again: it is about W alone. V is never
+asked to be anything but a normed space — every limit in the proof is a limit in
+W, taken at a fixed u ∈ V. One consequence is worth stating on its own: the dual
+space ℒ(V, ℝ) is a Banach space for <em>every</em> normed V, complete or not.</p>
+
+<div class="you-try">
+<strong>You try.</strong> Three things, and the third is the strip.
+<br><br>
+<em>The four stages.</em> Prove Theorem 5.4.8: construct A pointwise using
+completeness of W; check A is linear; check A is bounded (the step uses the
+inverse triangle inequality to bound {‖A<sub>n</sub>‖}); check A<sub>n</sub> → A
+<em>in operator norm</em>, which is not the same as pointwise. Then say where
+Proposition 5.1.4(i) is used, and why "≤ ε" rather than "&lt; ε" is all the last
+stage can honestly claim.
+<br><br>
+<em>Three ways to get a Banach space.</em> Theorem 5.4.8 (a hypothesis on the
+codomain), Proposition 5.1.8 (a construction: products of complete spaces are
+complete — proved nowhere, "left to the reader"), and Theorem 4.6.4, which is
+an2-08's page and says C([a, b], ℝ) is complete in the supremum norm. Classify
+each as codomain, construction, or genuinely new fact. Then say which of the three
+the guided proof's M-test actually rests on — and why that answer explains the
+shape of an2-06's proof.
+<br><br>
+<em>The strip.</em> Write out tda2-09's definition of the persistence scale space
+kernel and identify the operation in it that Definition 5.1.2 does not supply.
+State Definition 5.3.1. Then decide whether "Banach" in the strip is false,
+imprecise, or merely weaker than available — and say what a reader who took the
+strip as a specification would fail to build.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> "A is a bounded linear operator" means:</p>
+<button onclick="check(this,false)">The range of A is a bounded subset of W</button>
+<button onclick="check(this,true)" data-ok>‖A(u)‖ ≤ M‖u‖ for some M and all u — equivalently, A is bounded on the unit ball</button>
+<button onclick="check(this,false)">A maps bounded sets to bounded sets, which for a linear map is the same as being bounded on every set</button>
+<button onclick="check(this,false)">A is continuous and V is finite-dimensional</button>
+<div class="explain">A growth bound. Lindström calls the terminology
+"treacherous" for exactly the reason the first option is wrong: if
+A(u) ≠ <strong>0</strong> then ‖A(αu)‖ = |α|‖A(u)‖ is unbounded in α, so a
+<em>nonzero</em> bounded operator never has bounded range. The third option is
+true in its first clause and false in its second — bounded linear maps do carry
+bounded sets to bounded sets, but "bounded on every set" would be the first
+option again. And no dimension hypothesis appears anywhere: Theorem 5.4.5 holds
+between arbitrary normed spaces, which is what makes the unbounded D of
+Example 4 possible at all.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Theorem 5.4.8 says ℒ(V, W) is complete when —</p>
+<button onclick="check(this,false)">V and W are both complete</button>
+<button onclick="check(this,true)" data-ok>W is complete; V need only be normed</button>
+<button onclick="check(this,false)">V is complete; W need only be normed</button>
+<button onclick="check(this,false)">V is complete and finite-dimensional</button>
+<div class="explain">W alone. Trace the proof: the only limit taken is
+lim<sub>n</sub> A<sub>n</sub>(u), which lives in W, and completeness of W is what
+makes it exist. V supplies vectors to evaluate at and is asked for nothing else.
+The consequence worth remembering is that ℒ(V, ℝ) — the dual of V — is a Banach
+space whatever V is, because ℝ is complete. If the roles were reversed the
+theorem would be far less useful: one usually knows the codomain and not the
+domain.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> The strip says kernels live in Banach spaces.
+What is the most accurate correction?</p>
+<button onclick="check(this,false)">It is false — kernel feature spaces are not complete</button>
+<button onclick="check(this,true)" data-ok>It is true but weaker than available: a kernel is an inner product, and that is Hilbert structure, not Banach</button>
+<button onclick="check(this,false)">It is true and complete as stated; "Hilbert" would add nothing a kernel uses</button>
+<button onclick="check(this,false)">It should say "metric space", since the bottleneck distance is not a norm</button>
+<div class="explain">True, and one structure short. tda2-09 defines
+k<sub>σ</sub>(D, E) = ⟨Φ<sub>σ</sub>(D), Φ<sub>σ</sub>(E)⟩ — an inner product of
+feature vectors in 𝓛²(Ω) — and its own strip says diagram space "is a metric
+space but not a Hilbert space, which is precisely why lab-06's landscapes, images
+and kernels exist". An inner product is Definition 5.3.1, printed 142, and is no
+part of Definition 5.1.2. The first option is wrong on the facts; the fourth
+confuses the source space of the feature map with the target. The failure mode is
+practical: a reader who builds only to the strip gets completeness and no
+reproducing property.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Two tent families, both base 1/n on [0, 1].
+§4.3's has height n; §5.1's has height 1. What is each a counterexample to?</p>
+<button onclick="check(this,false)">Both to the same thing — that pointwise convergence implies uniform convergence</button>
+<button onclick="check(this,true)" data-ok>Height n: that one may pass to the limit inside ∫. Height 1: that convergence in one norm implies convergence in another</button>
+<button onclick="check(this,false)">Height n: that two norms may be inequivalent. Height 1: that ∫ and lim need not commute</button>
+<button onclick="check(this,false)">Neither is a counterexample; both converge to 0 in every norm on C([0,1], ℝ)</button>
+<div class="explain">Opposite constants, opposite morals. §4.3's tents have
+‖f<sub>n</sub>‖₁ = ½ for every n and ‖f<sub>n</sub>‖<sub>∞</sub> = n → ∞: they go
+to 0 at every point while the integral never moves, which is the failure of
+lim ∫ = ∫ lim under pointwise convergence. §5.1's tents have
+‖f<sub>n</sub>‖<sub>∞</sub> = 1 for every n and ‖f<sub>n</sub>‖₁ = 1/(2n) → 0:
+convergence in ‖·‖₁, no convergence in ‖·‖<sub>∞</sub>, hence by
+Proposition 5.1.6(i) the norms are inequivalent. The third option has them exactly
+swapped, which is the mistake the picture invites.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file and reconstruct three claims.
+<details><summary>Check against this</summary>
+1. <strong>A norm is a metric plus homogeneity, and homogeneity is what a metric
+cannot fake.</strong> Proposition 5.1.3 turns a norm into a metric, spending
+clause (ii) to produce symmetry; the converse fails, and the discrete metric on
+any nonzero vector space is the witness. What the extra axiom buys is
+comparability: Definition 5.1.5 can compare two norms, and Proposition 5.1.6 says
+equivalent norms agree about convergence, openness, compactness and continuity.
+<br><br>
+2. <strong>In finite dimensions the choice of norm never matters, and in infinite
+dimensions it always might.</strong> Theorem 5.1.7 proves all norms on ℝⁿ
+equivalent, and the half of the proof that is not algebra runs on compactness of
+the euclidean unit sphere and Theorem 3.5.10. Lindström's Example 4 shows the
+supremum and L¹ norms on C([0, 1], ℝ) are inequivalent: tents of height 1 and
+base 1/n have ‖·‖<sub>∞</sub> = 1 always and ‖·‖₁ = 1/(2n) → 0.
+<br><br>
+3. <strong>Completeness plus linearity re-reads two earlier units.</strong>
+Proposition 5.2.3 characterises completeness by absolutely convergent series, and
+an2-06's M-test is its forward half for the supremum norm — which is why an2-06's
+proof had to establish that completeness by hand. Theorem 5.4.5 collapses bounded,
+continuous-at-0 and uniformly continuous into one condition for linear maps, and
+Lindström's Example 4 to §5.4 shows differentiation is unbounded and integration
+is not. That is the mechanism behind an2-05's transfer table, and it makes the
+missing row inevitable rather than unlucky.
+</details>
+</div>
+
+<footer>
+<strong>Sources, page by page.</strong> Every printed page below was read; the
+folio was checked on the page, not inferred from a section heading.
+<br><br>
+Lindström, <em>Spaces: An Introduction to Real Analysis</em>, §5.1 "Normed
+spaces", printed 133–139; §5.2 "Infinite sums and bases", printed 140–142, used
+only for the definition of a Banach space and Proposition 5.2.3; §5.4 "Linear
+operators", printed 150–155 (folio = PDF − 13). The Chapter 5 opening, the §5.1
+heading and Definition 5.1.1(i), printed 133. The remaining axioms of
+Definition 5.1.1, Definition 5.1.2, and Examples 1 and 2, printed 134. Example 3
+with the L¹ and L² norms, and Proposition 5.1.3 with proof and the remark
+introducing (5.1.1), printed 135. Formula (5.1.2), Proposition 5.1.4 with proofs
+of (i) and (iii) and (ii) "left to the reader", and the setup of Example 4,
+printed 136. Figure 5.1.1, both norm computations for Example 4,
+Definition 5.1.5, and Proposition 5.1.6(i)–(ii), printed 137.
+Proposition 5.1.6(iii), Theorem 5.1.7 with proof, and the setup of product
+spaces, printed 138. The product norm, Proposition 5.1.8 with "Proof. Left to the
+reader", and Exercises 1–12 to §5.1 including Exercises 6, 8 and 9, printed 139.
+The §5.2 heading, Definition 5.2.1 with its remark on treacherous notation, and
+Definition 5.2.2, printed 140. The c₀ basis, the definition of a Banach space,
+absolute convergence, Proposition 5.2.3 with proof, and Exercises 1–3a to §5.2,
+printed 141. The §5.3 heading and Definition 5.3.1, printed 142 — stated in the
+warn block and in Self-check 5, and not developed. The §5.4 heading,
+Definition 5.4.1 and formulas (5.4.1) and (5.4.2), printed 150. Examples 1 and 2,
+Definition 5.4.2, the remark on the terminology, the operator norm and (5.4.3),
+printed 151. Examples 3 and 4, Lemma 5.4.3 with proof, Lemma 5.4.4 with proof,
+and Theorem 5.4.5 with proof, printed 152. Definition 5.4.6, Proposition 5.4.7
+with proof, and the statement of Theorem 5.4.8, printed 153. The proof of
+Theorem 5.4.8 and Exercises 1–5 to §5.4, printed 154.
+<br><br>
+Carried from earlier units: Definition 3.1.1, printed 44, and
+Proposition 3.1.4, printed 47 (an2-01's); Proposition 3.2.5, printed 50
+(an2-01's); Definition 3.4.3, printed 60 (an2-02's); Lemma 3.5.6 and
+Theorem 3.5.10, both printed 65 (an2-03's); Proposition 4.3.4, printed 89
+(an2-06's), and Proposition 4.3.5, printed 90 (an2-05's). Named from another
+unit's section: Theorem 4.6.4, printed 102 (an2-08's).
+<br><br>
+<em>One extraction anomaly, stated rather than smoothed.</em> The per-page
+markdown renders the Inverse Triangle Inequality for norms <em>without</em> its
+outer absolute-value bars — as ‖u‖ − ‖v‖ ≤ ‖u − v‖ — at printed 136 in formula
+(5.1.2), inside the proof of Proposition 5.1.4(i), and in Exercise 5 to §5.1; but
+<em>with</em> them inside the proof of Theorem 5.4.8 at printed 154, and with them
+in the metric version, Proposition 3.1.4, at printed 47. Both readings are true
+statements and the proofs that use them work either way, so nothing here depends
+on the choice. This lesson quotes the barless form where Lindström's pages render
+it barless. The discrepancy is not adjudicable from the markdown and is recorded
+rather than resolved.
+<br><br>
+<em>Two folio corrections, both found by reading the page.</em> <strong>Chapter 5
+opens on printed 133, not 134.</strong> PDF 146 carries the chapter title
+"Normed Spaces and Linear Operators", the §5.1 heading <em>and</em>
+Definition 5.1.1(i), with the folio 133 at the foot — exactly the pattern an2-01
+found for Chapter 3, whose opener carried the §3.1 heading on printed 43. And
+<strong>Lemma 3.5.6 and Theorem 3.5.10 are both on printed 65</strong>, PDF 78.
+<br><br>
+<em>Modality.</em> Lindström <strong>proves</strong> Proposition 5.1.3,
+Proposition 5.1.4(i) and (iii), Theorem 5.1.7, Proposition 5.2.3, Lemma 5.4.3,
+Lemma 5.4.4, Theorem 5.4.5, Proposition 5.4.7 and Theorem 5.4.8. He
+<strong>leaves to the reader</strong> Proposition 5.1.4(ii),
+Proposition 5.1.6 in all three parts (Exercise 8), and Proposition 5.1.8. He
+<strong>sets as exercises</strong> the alternative operator-norm formula (5.4.3)
+(Exercise 4 to §5.4), the discrete-metric obstruction used in Segment 1
+(Exercise 6 to §5.1), the reduction opening Theorem 5.1.7's proof (Exercise 9),
+and the continuity of the evaluation functional (Exercise 5 to §5.4). He
+<strong>states without proof</strong> nothing used here. Everything attributed to
+tda2-09 — the persistence scale space kernel, its feature map, and the assertion
+that diagram space is not a Hilbert space — is <strong>reported</strong> from that
+lesson and through it from Dey and Wang §13.1; this unit opens neither.
+<br><br>
+<em>Stated here but not in the source.</em> The identification of an2-06's
+Weierstrass M-test with the forward half of Proposition 5.2.3, and the reading of
+an2-06's two-part proof as an inline proof that B(A, ℝ) is complete, are this
+lesson's; Lindström proves both results and never connects them, and could not
+have at printed 89. The comparison table between an2-05's transfer rows and the
+boundedness of the operators involved is this lesson's assembly — Lindström
+supplies the sentence naming Proposition 4.3.5 as the casualty, and none of the
+other three rows. The observation that the two tent families have opposite
+constants and opposite morals is this lesson's; the two examples are eighty pages
+apart and neither refers to the other. The exact value ‖B‖ = b − a (Lindström
+proves only ≤) and the exact value ‖F‖ = 1 for the evaluation functional are
+computed here. The remark that ℒ(V, ℝ) is a Banach space for every normed V is
+this lesson's reading of Theorem 5.4.8's hypothesis; Lindström does not draw it.
+<br><br>
+<em>Not established here.</em> Inner product spaces, orthogonality and Hilbert
+spaces — §5.3, printed 142–149, one section outside this unit's range and named
+in the warn block only. Bases in the sense of Definition 5.2.2, and the
+distinction between Schauder and Hamel bases that Lindström footnotes at
+printed 140 — §5.2, and no S2 unit carries it. Inverse operators, the Neumann
+series and Banach's Lemma — §5.5, printed 155–160, an2-09's neighbourhood.
+Baire's Category Theorem — §5.6, printed 161 onwards; an2-02 already recorded
+that Abbott's Theorem 8.2.11 version is unused in this module. That
+C([a, b], ℝ) is complete in the supremum norm — Theorem 4.6.4, printed 102,
+an2-08's, quoted here twice as a hypothesis-supplier and proved in neither place.
+Riemann integration, used in Examples 3 to §5.1 and §5.4 and established by no S1
+unit, as an2-06 recorded. Everything about persistence diagrams, feature maps and
+kernels is tda2-09's reading of Dey and Wang, reported and not verified here; in
+particular no claim is made that any result of this unit establishes positive
+definiteness of any kernel.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('norms'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  g.font='12px Segoe UI,system-ui,sans-serif';
+
+  // ---- left panel: the three unit balls in R^2 ----
+  var cx=170, cy=196, R=94;
+  g.fillStyle='#9aa5b1'; g.textAlign='left';
+  g.fillText('R²: every norm agrees with every other', 58, 44);
+
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(cx-R-16,cy); g.lineTo(cx+R+16,cy); g.stroke();
+  g.beginPath(); g.moveTo(cx,cy-R-16); g.lineTo(cx,cy+R+16); g.stroke();
+
+  // sup-norm ball: square
+  g.strokeStyle='#e06c75'; g.lineWidth=2;
+  g.strokeRect(cx-R, cy-R, 2*R, 2*R);
+  // 2-norm ball: circle
+  g.strokeStyle='#8ab4f8'; g.lineWidth=2;
+  g.beginPath(); g.arc(cx, cy, R, 0, 2*Math.PI); g.stroke();
+  // 1-norm ball: diamond
+  g.strokeStyle='#4caf82'; g.lineWidth=2;
+  g.beginPath();
+  g.moveTo(cx+R,cy); g.lineTo(cx,cy-R); g.lineTo(cx-R,cy); g.lineTo(cx,cy+R);
+  g.closePath(); g.stroke();
+
+  g.fillStyle='#4caf82'; g.fillText('‖·‖₁', cx+8, cy-26);
+  g.fillStyle='#8ab4f8'; g.fillText('‖·‖₂', cx+54, cy-52);
+  g.fillStyle='#e06c75'; g.fillText('‖·‖∞', cx+R-34, cy-R+16);
+
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('‖x‖∞ ≤ ‖x‖₂ ≤ ‖x‖₁ ≤ √2 ‖x‖₂ ≤ 2 ‖x‖∞', cx, cy+R+34);
+
+  // ---- right panel: tents of height 1, base 1/n ----
+  var X0=372, X1=572, Y0=290, Y1=110;
+  function TX(x){ return X0+(X1-X0)*x; }
+  function TY(v){ return Y0-(Y0-Y1)*v; }
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('C([0,1],R): two norms disagree', X0-12, 44);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(X0-10,Y0); g.lineTo(X1+10,Y0); g.stroke();
+  g.beginPath(); g.moveTo(X0,Y0+10); g.lineTo(X0,Y1-22); g.stroke();
+
+  g.strokeStyle='#3a4450'; g.setLineDash([3,4]); g.lineWidth=1;
+  g.beginPath(); g.moveTo(X0,TY(1)); g.lineTo(X1,TY(1)); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle='#3a4450'; g.textAlign='right';
+  g.fillText('‖f‖∞ = 1', X1, TY(1)-6);
+
+  var fam=[[2,'#d8a657'],[4,'#8ab4f8'],[8,'#4caf82']];
+  g.textAlign='left';
+  for(var j=0;j<fam.length;j++){
+    var n=fam[j][0];
+    g.strokeStyle=fam[j][1]; g.lineWidth=2;
+    g.beginPath();
+    g.moveTo(TX(0),TY(0));
+    g.lineTo(TX(1/(2*n)),TY(1));
+    g.lineTo(TX(1/n),TY(0));
+    g.lineTo(TX(1),TY(0));
+    g.stroke();
+    g.fillStyle=fam[j][1];
+    g.fillRect(X1-72, 152+j*17, 12, 3);
+    g.fillText('n = '+n+',  ‖f‖₁ = '+(n===2?'¼':(n===4?'⅛':'1/16')), X1-56, 156+j*17);
+  }
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('0', X0, Y0+18);
+  g.fillText('1', TX(1), Y0+18);
+
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('nesting factors = equivalence constants', 58, 330);
+  g.fillText('‖f‖₁ = 1/(2n) → 0, ‖f‖∞ = 1 always', X0-12, 330);
+})();
+</script>
+</body></html>
