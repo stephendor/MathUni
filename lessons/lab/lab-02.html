@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab-02 — Simplicial complexes: Vietoris–Rips and Čech</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+code{background:#0c1013;border:1px solid #2a333d;border-radius:4px;padding:.05rem .3rem;font-size:.92rem}
+pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.88rem;line-height:1.45}
+</style></head><body>
+<p class="cite">Computational Lab · Nexus College</p>
+<h1>Simplicial complexes: Vietoris–Rips and Čech <span class="cite">(lab-02)</span></h1>
+
+<div class="hook">
+lab-01 left the complex as a black box, and the black box has a seam in it. There
+are two standard constructions, they are not the same, and the asymmetry between
+them is the opposite of what convenience would suggest: the one with a theorem
+attaching it to the data is the one nobody computes, and the one everybody
+computes has no such theorem. An equilateral triangle of side 1 is enough to
+separate them. Three balls of radius 0.5 around its corners meet in pairs and
+share no common point, so the union has a hole in the middle — and Vietoris–Rips
+fills it in.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Three points form an equilateral
+triangle of side 1. Put a closed ball of radius 0.5 at each corner. Which
+statement about the union of the three balls is right?</p>
+<button onclick="check(this,false)">The three balls have a common point, so the union is contractible</button>
+<button onclick="check(this,true)" data-ok>They meet pairwise but share no point, so the union has a hole and is homotopy equivalent to a circle</button>
+<button onclick="check(this,false)">They meet pairwise and the union is contractible anyway, since each pairwise overlap is contractible</button>
+<button onclick="check(this,false)">Adjacent balls are tangent and the union is three discs joined at two points</button>
+<div class="explain">A hole. Each pair of corners is at distance exactly 1 = 2 ×
+0.5, so the balls touch — they meet, in a single point per pair, which is why the
+fourth option is nearly right and wrong about the count. For a common point you
+would need one point within 0.5 of all three corners, and the closest candidate
+is the circumcentre at distance <strong>0.57735</strong>. That exceeds 0.5, so
+there is no common point and the middle of the triangle is uncovered. The third
+option is the one worth dwelling on: pairwise-contractible overlaps do
+<em>not</em> give a contractible union, and the whole content of the Nerve
+Theorem is which combinatorial data does control the homotopy type.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Vietoris-Rips and Cech complexes are how raw points become something with computable homology.</p>
+
+<div class="warn">
+<strong>The strip is true, and it names the two in the wrong order.</strong>
+<br><br>
+<em>Both constructions do turn points into something with computable homology.</em>
+That is not in dispute, and lab-01's pipeline already ran one of them.
+<br><br>
+<em>But only one of the two is connected to the data by a theorem.</em> The
+<strong>Čech</strong> complex at radius r is the nerve of the balls of radius r,
+and the <strong>Nerve Theorem</strong> — Edelsbrunner and Harer, printed 71 —
+says the nerve of a finite collection of closed convex sets has the homotopy type
+of their union. So Čech(r) is homotopy equivalent to the r-thickening of the
+data. <strong>Vietoris–Rips is the nerve of nothing</strong>, and the Nerve
+Theorem says nothing about it at all.
+<br><br>
+<em>The strip names Vietoris–Rips first, and a reader who stops at the strip will
+take them for interchangeable routes to one answer.</em> They are not: Segment 2
+exhibits a case where the union of balls is homotopy equivalent to a circle and
+the Vietoris–Rips complex is contractible. <strong>No syllabus action — the
+strip is accurate and its ordering misleads</strong>, which is the mildest form
+this finding takes and still worth recording.
+<br><br>
+<em>Not claimed here.</em> That either complex recovers the shape the points were
+sampled from. Both are statements about the <em>thickened data</em> at one
+radius; getting from there to the sampled object needs lab-05.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>One triangle, three filtration values, none of them wrong</h2>
+
+<p>Take the equilateral triangle of side 1 and ask both libraries when the
+2-simplex appears.</p>
+
+<pre>simplex    Rips filtration        Cech filtration
+(0, 1)     1.00000                0.50000
+(0, 2)     1.00000                0.50000
+(1, 2)     1.00000                0.50000
+(0, 1, 2)  1.00000                0.57735</pre>
+
+<p>Two separate things are visible. On the <strong>edges</strong> the two columns
+differ by a clean factor of two, every time. On the <strong>triangle</strong> they
+differ by 1.00000 against 0.57735, which is not a factor of two, and that is the
+mathematically interesting half.</p>
+
+<div class="definition">
+<strong>What each library is measuring.</strong> gudhi's <code>RipsComplex</code>
+filters by the <em>diameter</em> — the longest edge. gudhi's Čech filters by the
+<em>radius</em> of the smallest enclosing ball. On two points those are the same
+number up to a factor of two, because the smallest ball around two points has the
+segment joining them as a diameter. On three points they part company.
+<span class="cite">Edelsbrunner writes Rips(r) = {σ : diam σ ≤ 2r}, so his r is
+gudhi's <code>max_edge_length</code> halved. Three conventions, one triangle.</span>
+</div>
+
+<p>And then the default. Reading the Čech values without setting the flag gives a
+third number:</p>
+
+<pre>Cech, default             0.333333
+Cech, output_squared_values=False  0.577350
+square root of the default        0.577350
+1/sqrt(3), the circumradius       0.577350</pre>
+
+<p>So the same 2-simplex carries <strong>1.00000, 0.57735 and 0.33333</strong>,
+and every one is correct. 0.57735 is 1/√3, the circumradius of a unit equilateral
+triangle; 0.33333 is its square, because
+<code>DelaunayCechComplex.create_simplex_tree()</code> returns squared values
+unless told otherwise. This is lab-01's rule arriving with teeth: <strong>an
+API's default is part of the citation</strong>, and here the default squares
+every number on the page.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A report says "the triangle enters the
+filtration at 0.33". What is missing?</p>
+<button onclick="check(this,false)">Nothing — 0.33 is the Čech value and Čech is the standard construction</button>
+<button onclick="check(this,false)">Only the units; filtration values are radii and should carry them</button>
+<button onclick="check(this,true)" data-ok>The construction, the library version, and the squaring flag — all three change the number</button>
+<button onclick="check(this,false)">The number of points, since filtration values scale with the size of the complex</button>
+<div class="explain">All three. Rips or Čech changes 1.00000 to 0.57735;
+<code>output_squared_values</code> changes 0.57735 to 0.33333; and the parameter
+convention — Edelsbrunner's radius r against gudhi's
+<code>max_edge_length</code> = 2r — moves it again. A reader given "0.33" cannot
+recover which object is being described. The fourth option is a genuine
+misconception worth killing: filtration values are distances in the data's own
+units and do not scale with the number of points at all.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Then the theorem, and which complex has it.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 30 min</span>
+<h2>The Nerve Theorem, and the complex that does not get it</h2>
+
+<div class="theorem">
+<strong>Nerve Theorem (printed 71).</strong> Let ℱ be a finite collection of
+closed, convex sets in Euclidean space. Then the nerve of ℱ and the union of the
+sets in ℱ have the same homotopy type.
+<span class="cite"><strong>Stated without proof</strong> — Edelsbrunner and Harer
+say so in the sentence introducing it, "a fundamental result which we state
+formally but without proof". They then note the hypothesis can be relaxed: if the
+union is triangulable, the sets are closed, and every non-empty common
+intersection is contractible, the conclusion survives.</span>
+</div>
+
+<p>The Čech complex of S at radius r <em>is</em> the nerve of the closed balls of
+radius r about the points of S <span class="cite">(printed 72)</span>. Closed
+balls are closed and convex, which is the hypothesis word for word. So:</p>
+
+<div class="theorem">
+<strong>What Čech buys.</strong> Čech(r) is homotopy equivalent to the union of
+the balls of radius r about the data — the <em>r-thickening</em> of the point
+cloud. Its homology is the homology of a geometric object you can point at.
+</div>
+
+<p>Now Vietoris–Rips. Edelsbrunner motivates it as a shortcut at printed 74:
+"Instead of checking all subcollections, we may just check pairs and add 2- and
+higher-dimensional simplices whenever we can." That gives
+Rips(r) = {σ ⊆ S : diam σ ≤ 2r}. <strong>It is not the nerve of any collection of
+convex sets, and the Nerve Theorem gives exactly nothing about it.</strong></p>
+
+<canvas id="fig" width="640" height="330" aria-label="Two panels, each showing an equilateral triangle of side one with a disc at each corner. Left, radius 0.5: the discs touch in pairs and leave an uncovered curved triangle in the middle, so the union has a hole. Right, radius 0.57735: the discs overlap and all three meet at the circumcentre, so the middle is covered and the union is contractible."></canvas>
+
+<p class="cite"><strong>The whole unit in one picture.</strong> Left, radius
+<strong>0.5</strong>: each pair of discs touches, and the circumcentre — marked —
+sits at distance 0.57735 from every corner, so it is <em>outside</em> all three
+discs and the middle is uncovered. The union is homotopy equivalent to a circle.
+Čech(0.5) is the hollow triangle, three edges and no face, and gets that right.
+<strong>Rips(0.5) fills the face in</strong>, because all three edges are present
+and Rips asks nothing further, and so reports a contractible complex for a union
+with a hole. Right, radius <strong>0.57735</strong>: the discs now reach the
+circumcentre, the three-way intersection is that single point, Čech acquires the
+2-simplex, and the two complexes agree. The gap between the panels is the entire
+difference between the constructions.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> At r = 0.5 in the figure, Rips(0.5) is
+contractible and the union of balls is homotopy equivalent to a circle. What has
+gone wrong?</p>
+<button onclick="check(this,false)">A bug — Rips should not contain a simplex whose balls do not all meet</button>
+<button onclick="check(this,false)">Nothing is wrong, because Rips is homotopy equivalent to the union at a different radius</button>
+<button onclick="check(this,true)" data-ok>Nothing is wrong with Rips; it was never claimed to model the union, and here it demonstrably does not</button>
+<button onclick="check(this,false)">The triangle is degenerate; for points in general position Rips and Čech agree</button>
+<div class="explain">Nothing is wrong, and nothing was promised. Rips(r) is
+<em>defined</em> to contain every simplex its edges warrant — that is the whole
+shortcut — so containing this face is correct behaviour, not a bug. The second
+option is the tempting error: the Vietoris–Rips Lemma gives
+<em>containments</em> between complexes at radii differing by √2, and containment
+is not homotopy equivalence. There is no radius at which Rips(0.5) is claimed to
+be homotopy equivalent to any union of balls. The fourth is false too — the
+equilateral triangle is as general as any other, and small perturbations of it
+behave the same way.</div>
+</div>
+
+<div class="theorem">
+<strong>Vietoris–Rips Lemma (printed 74).</strong> For S a finite set of points in
+some Euclidean space and r ≥ 0, Vietoris-Rips(r) ⊆ Čech(√2 · r).
+<span class="cite"><strong>Proved</strong>, printed 74–75, by computing the
+distance from the origin to the barycentre of a standard d-simplex. Note the
+contrast with the Nerve Theorem on the facing pages, which is stated and not
+proved — the modality differs between two results this lesson uses side by
+side.</span>
+</div>
+
+<p>With the immediate containment Čech(r) ⊆ Rips(r), that sandwiches one complex
+between two copies of the other. Checked on twelve random points:</p>
+
+<pre>r      |Cech(r)|  |Rips(r)|  Cech(r) not in Rips(r) Rips(r) not in Cech(sqrt2 r)
+0.15   9          9          0                      0
+0.25   45         45         0                      0
+0.35   135        139        0                      0</pre>
+
+<p>The counts agree at 0.15 and 0.25 and differ by four at 0.35. That is not
+luck: on <strong>1-simplices the two definitions coincide</strong>, since the
+smallest ball around two points has radius exactly half their distance. The
+complexes can only diverge once 2-simplices appear, and the four extra simplices
+at r = 0.35 are triples of diameter at most 0.7 whose smallest enclosing ball
+exceeds 0.35 — Segment 1's triangle, four times over.</p>
+
+<div class="worked">
+<strong>Worked — what a green column is worth.</strong>
+<br><br>
+Both violation columns read zero at all three radii. It is tempting to call that
+confirmation of the Vietoris–Rips Lemma. It is not, and the reason is lab-01
+Problem 1(c) again.
+<br><br>
+Čech(r) ⊆ Rips(r) is immediate from the definitions, and Rips(r) ⊆ Čech(√2 r) is
+<em>proved</em> at printed 74–75. A run cannot confirm a theorem and could not
+have refuted one. What a non-zero entry would have meant is that the
+enclosing-ball routine or the diameter computation is wrong.
+<span class="cite">So the honest label for that table is <strong>"the code agrees
+with two things already proved"</strong> — which is exactly what you want from a
+test, and is not evidence about the mathematics.</span>
+</div>
+
+<div class="guided-proof">
+<strong>Guided — find the smallest constant that could work.</strong>
+<br><br>
+The lemma's constant is √2 ≈ 1.41421. Before reading on, use the figure to bound
+it from below. The equilateral triangle of side 1 is in Rips(r) for r = 0.5, and
+in Čech(ρ) only once ρ reaches the circumradius. Write down the inequality any
+working constant c must satisfy for this one simplex, and solve it.
+<textarea class="proof-input" placeholder="The inequality, and the bound it gives on c."></textarea>
+<details class="model-answer"><summary>The bound, and why √2 and not that</summary>
+The triangle is in Rips(0.5) and enters Čech at ρ = 1/√3 = 0.57735. For
+Rips(r) ⊆ Čech(c·r) to hold at r = 0.5 we need c · 0.5 ≥ 1/√3, so
+<strong>c ≥ 2/√3 ≈ 1.15470</strong>.
+<br><br>
+So no constant below 1.1547 can work, and in particular <strong>c = 1 is
+false</strong> — the triangle at r = 0.5 is the counterexample, which is the
+figure's left panel read as a refutation.
+<br><br>
+But 1.1547 is the bound from <em>one triangle in the plane</em>. Edelsbrunner's
+proof works in every dimension, and it is the regular d-simplex as d grows that
+forces the constant up: the distance from the barycentre of a standard d-simplex
+to its vertices approaches √2 times half the edge length. So √2 is the supremum
+over all dimensions, and in the plane alone the lemma is not tight. If you
+derived 1.1547 and wondered why the book says √2, that gap <em>is</em> the answer,
+and it is worth noticing that a lemma can be sharp in general and slack in the
+case you are actually computing.
+</details>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 20 min</span>
+<h2>Why anyone computes the one without the theorem</h2>
+
+<div class="worked fade">
+<strong>Faded — Rips is its own 1-skeleton.</strong>
+<span class="cite">gudhi 3.13.0, <code>RipsComplex</code> with
+<code>points=</code> against <code>distance_matrix=</code>.</span>
+<br><br>
+Building Rips from the twelve points' coordinates and from their distance matrix
+gives literally the same list of simplices: <code>True</code>, 151 simplices
+either way.
+<br><br>
+That is not a coincidence about this data. A simplex is in Rips(r) exactly when
+all of its edges are, so the <strong>1-skeleton determines the whole complex</strong>
+— and the 1-skeleton is nothing but the pairwise distances.
+<br><br>
+⟨your step: this is the reason lab-01 insisted that <code>D</code> is the metric
+space and <code>X</code> is only a set of coordinates. Say what Čech needs that
+<code>D</code> does not supply, and then decide whether Čech can be defined at
+all on a finite metric space that came with no ambient Euclidean space — and if
+it can, what happens to the Nerve Theorem.⟩
+</div>
+
+<p>The costs, for twelve points up to dimension 2:</p>
+
+<table class="cmp">
+<tr><th>construction</th><th>what it must compute</th><th>count here</th><th>growth</th></tr>
+<tr><td>Vietoris–Rips</td><td>pairwise distances, then nothing else</td><td>66</td><td>O(n²), independent of the top dimension</td></tr>
+<tr><td>Čech</td><td>one smallest-enclosing-ball problem per simplex</td><td>220 triples, on top of the 66 pairs</td><td>O(n<sup>k+1</sup>) for top dimension k</td></tr>
+</table>
+
+<p>That exponent is the whole story. <strong>Čech has the theorem and Rips has
+the algorithm</strong>, and the Vietoris–Rips Lemma is the device for borrowing
+the first at a cost of √2 in radius.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A report computes Rips and wants to say
+something about the shape of the data. Which sentence is defensible?</p>
+<button onclick="check(this,false)">"Rips(r) is homotopy equivalent to the r-thickening of the data."</button>
+<button onclick="check(this,false)">"Rips and Čech have the same persistent homology, so the distinction does not matter in practice."</button>
+<button onclick="check(this,true)" data-ok>"Čech(r) ⊆ Rips(r) ⊆ Čech(√2 r), so a feature persisting across more than a factor of √2 in radius is present in the Čech filtration too."</button>
+<button onclick="check(this,false)">"Rips overestimates the complex, so any feature it finds is genuinely present."</button>
+<div class="explain">The third. The first is the Nerve Theorem misapplied to the
+complex that does not have it — Segment 2's figure refutes it outright. The
+second is false as stated: the two filtrations are genuinely different, as the
+139-against-135 count shows, and their diagrams differ. The fourth inverts the
+logic — Rips containing <em>more</em> simplices means it can <em>destroy</em>
+features by filling them in, which is exactly what happens at r = 0.5 in the
+figure, so "any feature it finds is genuinely present" is precisely backwards.
+The third sentence concedes what must be conceded: features narrower than the √2
+band are not distinguished by this argument at all.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> gudhi 3.13.0 ships
+<code>RipsComplex</code>, <code>AlphaComplex</code> and
+<code>DelaunayCechComplex</code>, and no <code>CechComplex</code>. Why?</p>
+<button onclick="check(this,false)">Čech is patented or licence-encumbered</button>
+<button onclick="check(this,true)" data-ok>Plain Čech is intractable on real inputs, and the Delaunay-restricted version is small and has the same persistent homology in general position</button>
+<button onclick="check(this,false)">Čech is a special case of Rips, so shipping it would be redundant</button>
+<button onclick="check(this,false)">Čech is only defined in the plane, and the library is dimension-agnostic</button>
+<div class="explain">Tractability. Plain Čech tests one enclosing-ball problem per
+candidate simplex, so it invites users to launch something O(n<sup>k+1</sup>).
+<code>DelaunayCechComplex</code> computes the Čech filtration restricted to the
+Delaunay triangulation, which is far smaller and, for points in general position,
+carries the same persistent homology. The third option has the containment
+backwards, and it is worth being clear that neither is a special case of the
+other. <strong>But the substitution has a price:</strong> the two complexes are
+genuinely different, so a claim about the Čech <em>complex</em> — as opposed to
+its persistent homology — cannot be read off the Delaunay version, and Segment
+2's simplex-counting table could not have been produced with it. That is why the
+problem set implements the enclosing-ball test by hand.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Gate 1 cross-checks that a lesson covers every
+numbered result its problem set cites. Run on this unit it reports
+<code>UNCHECKED checked 0 refs</code>. Which is the defect?</p>
+<button onclick="check(this,false)">The problem set, which should cite its results properly</button>
+<button onclick="check(this,false)">The gate, whose pattern is too narrow and should be widened to catch named results</button>
+<button onclick="check(this,true)" data-ok>Neither; Edelsbrunner numbers nothing, and the defect would be reading the exit code as coverage</button>
+<button onclick="check(this,false)">Edelsbrunner, whose citation style is incompatible with automated checking</button>
+<div class="explain">Neither. Edelsbrunner and Harer label results by
+<em>name</em> — Helly's Theorem, Nerve Theorem, Vietoris–Rips Lemma — and never
+by number, so the gate's pattern of keyword-then-digit matches nothing in this
+unit. The gate encodes the citation style of the numbered textbooks the other
+modules use, and that style is not universal. The set is citing correctly; the
+book is written correctly. <strong>What would be defective is treating the
+resulting exit 0 as a coverage result.</strong> The honest <code>--min-refs</code>
+for a lab set sourced from this book is 0, stated with the reason, and the
+checking this unit does have comes from gate 9 and the source read-back instead.
+<br><br>
+There is a second blind spot, and this unit walked into it. The problem set's
+first draft illustrated the gate's pattern by writing two example references out
+in full. The gate read them as citations <em>by this unit</em> and reported both
+missing from this lesson. It cannot distinguish <strong>use from mention</strong>,
+and no widening of the pattern can, because an example of the pattern is an
+instance of it. A coverage gate can be run against prose that cites; it cannot be
+run against prose that is about citing.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close this lesson and reconstruct, with no code and
+no book:
+<br><br>
+1. The two definitions, Čech(r) and Rips(r), in the parameter convention
+Edelsbrunner uses — and the two places where gudhi differs from it.
+<br>
+2. The Nerve Theorem's hypothesis, why balls satisfy it, and the one-sentence
+consequence for Čech.
+<br>
+3. The equilateral triangle at r = 0.5: which complex contains the 2-simplex,
+what the union of balls is homotopy equivalent to, and which of the two gets it
+right.
+<br>
+4. The sandwich, with its constant, and the lower bound 2/√3 that the triangle
+forces.
+<br><br>
+Then answer without computing: if you doubled every coordinate of the twelve
+points, which of the numbers 9, 45, 135, 139 would change, and which would not?
+</div>
+
+<script>
+function check(btn, ok){
+  var box = btn.closest('.selfcheck');
+  if(box.classList.contains('answered')) return;
+  box.classList.add('answered');
+  var buttons = box.querySelectorAll('button');
+  for(var i = 0; i < buttons.length; i++){
+    if(buttons[i].hasAttribute('data-ok')) buttons[i].classList.add('correct');
+  }
+  if(!ok) btn.classList.add('wrong');
+}
+</script>
+
+<script>
+(function(){
+  var c = document.getElementById('fig');
+  if(!c || !c.getContext) return;
+  var g = c.getContext('2d');
+  g.fillStyle = '#0c1013'; g.fillRect(0, 0, 640, 330);
+
+  var S = 95;                                   // one unit of data = 95 px
+  var TRI = [[0, 0], [1, 0], [0.5, Math.sqrt(3) / 2]];
+  var CC = [0.5, Math.sqrt(3) / 6];             // circumcentre
+  var RC = Math.sqrt(1 / 3);                    // circumradius, 0.57735
+
+  // Panel origins chosen so the widest disc clears the canvas edge: at radius
+  // 0.57735 the drawing spans x in [-0.577, 1.577], y in [-0.577, 1.443].
+  function panel(ox, oy, r, label, ringColour){
+    function px(x){ return ox + S * x; }
+    function py(y){ return oy - S * y; }
+
+    // discs first, so vertices and the centre mark sit on top
+    g.fillStyle = 'rgba(138,180,248,0.13)';
+    g.strokeStyle = ringColour; g.lineWidth = 1.4;
+    for(var i = 0; i < 3; i++){
+      g.beginPath();
+      g.arc(px(TRI[i][0]), py(TRI[i][1]), S * r, 0, 2 * Math.PI);
+      g.fill(); g.stroke();
+    }
+
+    // the triangle's edges
+    g.strokeStyle = '#e8e8e8'; g.lineWidth = 1.6;
+    g.beginPath();
+    g.moveTo(px(TRI[0][0]), py(TRI[0][1]));
+    g.lineTo(px(TRI[1][0]), py(TRI[1][1]));
+    g.lineTo(px(TRI[2][0]), py(TRI[2][1]));
+    g.closePath(); g.stroke();
+
+    // vertices
+    g.fillStyle = '#e8e8e8';
+    for(var i = 0; i < 3; i++){
+      g.beginPath(); g.arc(px(TRI[i][0]), py(TRI[i][1]), 3.4, 0, 2 * Math.PI); g.fill();
+    }
+
+    // the circumcentre: outside every disc on the left, on all three on the right
+    g.fillStyle = r < RC ? '#e06c75' : '#4caf82';
+    g.beginPath(); g.arc(px(CC[0]), py(CC[1]), 3.6, 0, 2 * Math.PI); g.fill();
+
+    g.font = '12px sans-serif'; g.fillStyle = '#e8e8e8';
+    g.fillText(label, ox - 62, 268);
+    g.font = '11px sans-serif'; g.fillStyle = '#9aa5b1';
+    if(r < RC){
+      g.fillText('circumcentre uncovered', ox - 62, 286);
+      g.fillText('union ≃ circle; Rips fills the face', ox - 62, 302);
+    } else {
+      g.fillText('circumcentre covered, once', ox - 62, 286);
+      g.fillText('union contractible; the two agree', ox - 62, 302);
+    }
+  }
+
+  panel(133, 172, 0.5, 'r = 0.5', '#e06c75');
+  panel(438, 172, RC, 'r = 0.57735', '#4caf82');
+})();
+</script>
+
+<footer>
+<em>Sources, page by page.</em> Edelsbrunner and Harer, <em>Computational
+Topology: An Introduction</em>, §III.2 "Convex Set Systems": Helly's Theorem,
+printed 69; nerves and the <strong>Nerve Theorem</strong>, printed 71, with
+Figure III.6 — the four sets whose union is a disc with three holes and whose
+nerve is a sphere — on the same page; the Čech complex as the nerve of a ball
+collection, and the remark that the only difference from Vietoris–Rips in that
+figure "is the tenth triangle, which belongs only to the former", printed 72; the
+Vietoris–Rips complex and the <strong>Vietoris–Rips Lemma</strong>, printed 74,
+with its proof completed printed 75. Folio = PDF − 12, verified by reading the
+running head off each page cited.
+<br><br>
+<em>Modality.</em> Edelsbrunner <strong>states without proof</strong> the Nerve
+Theorem, and says so himself in the sentence introducing it. He
+<strong>proves</strong> the Vietoris–Rips Lemma, printed 74–75, and
+<strong>states</strong> Helly's Theorem. Two results this lesson uses on facing
+pages have different modalities, and the lesson says which is which where it uses
+them. <strong>He numbers none of his results</strong> — they are named — which is
+why gate 1 reports zero references for this unit rather than a coverage figure.
+<br><br>
+<em>Sources, by execution.</em> Every number is output from the problem set's
+code blocks, run in the pinned environment — Python 3.11.11, gudhi 3.13.0,
+giotto-tda 0.6.2, numpy 1.26.4 — and re-derived by gate 9. API surfaces:
+<code>gudhi.RipsComplex</code> with <code>max_edge_length</code>,
+<code>distance_matrix</code> and <code>max_dimension</code>;
+<code>gudhi.DelaunayCechComplex</code> with
+<code>output_squared_values</code>; <code>SimplexTree.filtration</code>,
+<code>get_simplices</code>, <code>num_simplices</code>.
+<br><br>
+<em>Stated here but not in the source.</em> The reading of the three filtration
+values 1.00000 / 0.57735 / 0.33333 as one citation problem is this lesson's;
+Edelsbrunner discusses no library. The lower bound 2/√3 on the sandwich constant
+is this lesson's arithmetic from his lemma and his figure, and he does not remark
+that the constant is slack in the plane. The observation that gudhi ships no
+<code>CechComplex</code> is a fact about gudhi 3.13.0, established by reading
+<code>dir(gudhi)</code>, and is not in any book.
+<br><br>
+<em>Not established here.</em> That either complex recovers the homotopy type of
+whatever the points were sampled from — both theorems in this unit are about the
+<em>thickened data</em> at a fixed radius, and the inference to the underlying
+object needs lab-05. That Delaunay-Čech and Čech have the same persistent
+homology: that is reported as the reason gudhi ships the former, and is neither
+proved nor verified here. Nothing in this unit computes persistence; the
+filtrations are built and inspected, and lab-03 reduces them.
+</footer>
+</body></html>
