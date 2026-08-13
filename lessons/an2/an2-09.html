@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an2-09 — Differentiation in R^n</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+</style></head><body>
+<p class="cite">Analysis II · Nexus College</p>
+<h1>Differentiation in R<sup>n</sup> <span class="cite">(an2-09)</span></h1>
+
+<div class="hook">
+Lindström's definition of the derivative has one word in it that no calculus
+course mentions: the derivative of F at a is a <strong>bounded</strong>, linear
+map. In ℝⁿ the word costs nothing — every linear map on ℝⁿ is bounded — and he
+warns you anyway: "the assumption that F′(a) is bounded turns out to be
+essential." an2-07 is why. A linear map that is not bounded is not continuous
+(Theorem 5.4.5), and a "linear approximation" that is not continuous approximates
+nothing. The whole of the previous unit is standing inside one adjective.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> F : ℝ² → ℝ has a directional
+derivative at 0 in every direction. Which follows?</p>
+<button onclick="check(this,false)">F is differentiable at 0, and its derivative is r ↦ F′(0; r)</button>
+<button onclick="check(this,false)">F is differentiable at 0 provided the map r ↦ F′(0; r) happens to be linear</button>
+<button onclick="check(this,true)" data-ok>Nothing — F need not even be continuous at 0</button>
+<button onclick="check(this,false)">F is continuous at 0, though possibly not differentiable</button>
+<div class="explain">Nothing at all. F(x, y) = x²y/(x⁴ + y²), with F(0, 0) = 0,
+has F(tr)/t → 0 along every line, so every directional derivative at the origin
+exists and equals 0 — and the map r ↦ 0 is perfectly linear and bounded, killing
+the second option. But along the parabola y = x² the function is constantly ½, so
+F is not continuous at 0, which kills the fourth; and by Proposition 6.1.4
+differentiability would force continuity. Proposition 6.1.11 runs one way only:
+it says what F′(a) <em>must</em> be if it exists, which is a method for producing
+a candidate and never a proof that the candidate works.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Morse theory and gradient-based filtrations need the multivariable derivative treated honestly.</p>
+
+<div class="warn">
+<strong>The strip is right about what is needed, and the honest treatment turns
+out to constrain the mission rather than serve it.</strong>
+<br><br>
+<em>The gradient is not the derivative.</em> §6.2 at printed 183 gives, for a
+scalar f on ℝⁿ, f′(a)(r) = ∇f(a) · r. Read that right to left: ∇f(a) is the
+vector that <em>represents</em> the derivative through the dot product. The
+derivative is the linear functional; the gradient is its image under an
+identification that needs an <strong>inner product</strong> to exist. That is
+an2-07's Definition 5.3.1, at printed 142, which an2-07 recorded as sitting one
+section outside its range and which no S2 unit develops. On ℝⁿ it is free. On
+C([0,1], ℝ) with the supremum norm there is no such vector at all — the derivative
+is a bounded linear functional and nothing identifies it with an element of the
+space.
+<br><br>
+<em>And an2-05's constraint still binds.</em> Sup-norm closeness of two functions
+transfers continuity, boundedness and the value of an integral, and transfers
+<strong>neither differentiability nor the value of a derivative</strong>. an2-07
+supplied the mechanism: differentiation is an unbounded operator. Nothing in this
+unit repeals it. So a filtration argument that perturbs a filter function
+uniformly and then reasons about ∇f has changed hypothesis without saying so.
+<br><br>
+<em>What "treated honestly" therefore has to mean.</em> Three things, in order:
+the derivative is the linear map (Definition 6.1.1); the gradient is a
+representation available only where an inner product is; and a bound on
+‖f − g‖<sub>∞</sub> licenses nothing about ∇f − ∇g. This unit establishes the
+first two and an2-05 established the third. <strong>No syllabus action on the
+strip — but the constraint belongs in any downstream unit that builds a filtration
+from a gradient and then perturbs the function.</strong> Everything about Morse
+theory and persistence here is reported from tda1-07 and tda2-09; this unit opens
+neither.
+<br><br>
+<em>Separately, the unit's cited source is the wrong subject.</em> The syllabus
+gives "Oxford M2 notes (multivariable analysis)"; that file is vector calculus —
+multiple integrals, polar Jacobians, div, curl, the divergence theorem — with
+<strong>zero occurrences of "linear map"</strong>, which is what the hook
+promises. Authored from Lindström Chapter 6 instead; recorded for the syllabus
+pass.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>The derivative is a map, and it is unique</h2>
+
+<div class="definition">
+<strong>Definition 6.1.1 (printed 174).</strong> For X, Y normed, O ⊆ X open and
+F : O → Y, a <em>derivative of F at a</em> is a <strong>bounded, linear</strong>
+map A : X → Y such that σ(r) = F(a + r) − F(a) − A(r) satisfies
+<br><br>
+<span style="display:block;text-align:center">lim<sub>r→0</sub> ‖σ(r)‖ / ‖r‖ = 0.</span>
+<br>
+<span class="cite">Lindström's framing, from the chapter opening at printed 173:
+the point of a linear approximation "doesn't just mean that the quantities get
+closer and closer — that is a triviality as they both approach 0. The real point
+is that they get closer and closer <em>even compared to the size of r</em>."</span>
+<br><br>
+<strong>Definition 6.1.3 (printed 175).</strong> If such an A exists, F is
+<em>differentiable at a</em> and A is written F′(a).
+</div>
+
+<canvas id="deriv" width="640" height="360" role="img"
+ aria-label="Left: the graph of the sine near a point, with its tangent line and a second line of the wrong slope through the same point. Right: the error ratio plotted against r for both lines; the tangent's ratio falls to zero while the wrong line's ratio levels off at the slope error."></canvas>
+<p class="cite" style="text-align:center">Left: f(x) = sin x near a = 0.5, with
+the tangent (slope cos 0.5 = 0.8776) and a wrong line through the same point
+(slope + 0.6). Both pass through (a, f(a)); only one is the derivative.
+Right: the quantity Definition 6.1.1 actually tests, |f(a+r) − f(a) − A·r| / |r|,
+for each. The tangent's ratio falls to 0; the wrong line's levels off at 0.6, the
+slope error. <em>Every</em> line through the point makes the numerator small — it
+is the division by |r| that picks out one.</p>
+
+<div class="theorem">
+<strong>Lemma 6.1.2 (printed 174–175).</strong> F has at most one derivative at a
+point. <span class="cite"><strong>Proved.</strong> The proof puts r = tx for a
+fixed x and lets t → 0, using linearity twice to pull t outside A and B.</span>
+<br><br>
+<strong>Proposition 6.1.4 (printed 176).</strong> Differentiable at a implies
+continuous at a. <span class="cite"><strong>Proved.</strong></span>
+<br><br>
+<strong>Proposition 6.1.5 (printed 176).</strong> A bounded linear F is
+differentiable everywhere with F′(a) = F.
+<strong>Proposition 6.1.6 (printed 176).</strong> A constant map has derivative
+0. <span class="cite">6.1.5 <strong>proved</strong>; 6.1.6
+<strong>set as Exercise 1</strong> to §6.1.</span>
+<br><br>
+<strong>Proposition 6.1.7 (printed 176).</strong> (F + G)′(a) = F′(a) + G′(a).
+<strong>Proposition 6.1.8 (printed 177).</strong> The product rule for αF with α
+scalar-valued. <span class="cite">Both <strong>proved</strong>.</span>
+</div>
+
+<p>Proposition 6.1.4's proof is where the adjective earns its keep. Write
+F(a + r) − F(a) = F′(a)(r) + σ(r). The second term vanishes because
+‖σ(r)‖/‖r‖ → 0. The first vanishes because ‖F′(a)(r)‖ ≤ ‖F′(a)‖ ‖r‖ — and
+<em>that</em> inequality is an2-07's operator-norm bound, available only for a
+bounded map. Drop the word "bounded" from Definition 6.1.1 and by
+<strong>Theorem 5.4.5</strong> the candidate need not be continuous at 0, so there
+are r → 0 with ‖F′(a)(r)‖ = 1, and the first term does not vanish. The
+approximation would fail to approximate.</p>
+
+<div class="theorem">
+<strong>Theorem 6.1.9 — the Chain Rule (printed 178).</strong> If G is
+differentiable at a and F at b = G(a), then F ∘ G is differentiable at a with
+<br><br>
+<span style="display:block;text-align:center">(F ∘ G)′(a) = F′(G(a)) ∘ G′(a).</span>
+<br>
+<span class="cite"><strong>Proved.</strong> Note the ∘: a
+<em>composition</em> of linear maps, where the one-variable rule has a product of
+numbers.</span>
+</div>
+
+<div class="worked">
+<strong>Worked — why the two chain rules are one chain rule.</strong>
+<br><br>
+Take X = Y = Z = ℝ. By Lindström's Exercise 6 to §6.1, every linear map ℝ → ℝ is
+multiplication by a number, and the correspondence A ↦ A(1) is a norm-preserving
+bijection ℒ(ℝ, ℝ) → ℝ. Under it, f′(a) as a <em>map</em> corresponds to f′(a) as
+a <em>number</em>, and composition of "multiply by u" with "multiply by v" is
+"multiply by uv".
+<br><br>
+So (F ∘ G)′(a) = F′(G(a)) ∘ G′(a) reads, under the correspondence, as
+(f ∘ g)′(a) = f′(g(a)) · g′(a). Same theorem, and the general form is the one that
+survives when ℝ is replaced by a space with no multiplication in it.
+<br><br>
+<em>Two immediate consequences, both Lindström's exercises.</em> Exercise 2: an
+affine map F(x) = A(x) + c with A bounded linear has F′(a) = A at every a — by
+Proposition 6.1.7 the derivative of a sum is the sum, by Proposition 6.1.5 the
+first piece is A, by Proposition 6.1.6 the constant contributes 0. The derivative
+forgets the translation, which is the content of "the derivative is the linear
+part". Exercise 4: if A is bounded linear and G differentiable then
+(A ∘ G)′ = A ∘ G′ — a special case of the chain rule, using
+Proposition 6.1.5 to supply A′.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Definition 6.1.1 require the derivative
+to be <em>bounded</em> as well as linear?</p>
+<button onclick="check(this,false)">To make the limit in the definition exist; without it the ratio could be undefined</button>
+<button onclick="check(this,true)" data-ok>So that ‖F′(a)(r)‖ ≤ ‖F′(a)‖‖r‖ is available — which is what makes Proposition 6.1.4 and the chain rule work</button>
+<button onclick="check(this,false)">To guarantee uniqueness, since Lemma 6.1.2 fails for unbounded candidates</button>
+<button onclick="check(this,false)">It is a convention with no content: every linear map between normed spaces is bounded</button>
+<div class="explain">The operator-norm bound. It is the step that makes
+F′(a)(r) → 0 as r → 0 in Proposition 6.1.4's proof, and it appears again inside
+the chain rule when the error term of the outer function is estimated. The first
+option is wrong: the ratio ‖σ(r)‖/‖r‖ is a well-defined nonnegative number for any
+candidate. The third is wrong: Lemma 6.1.2's proof uses linearity and the two
+limit hypotheses and never the operator norm. The fourth is the one worth
+dwelling on — it is true in ℝⁿ, which is why calculus never mentions it, and false
+in general, with an2-07's differentiation operator D(f) = f′ on C([0,1], ℝ) as the
+standing counterexample.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. You can now recognise a derivative. Finding
+one is a different problem.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>Producing a candidate, and what the Jacobian actually is</h2>
+
+<div class="definition">
+<strong>Definition 6.1.10 (printed 180).</strong> The <em>directional derivative</em>
+of F at a in the direction r is F′(a; r) = lim<sub>t→0</sub>
+(F(a + tr) − F(a)) / t, when it exists.
+<br><br>
+<strong>Proposition 6.1.11 (printed 180).</strong> If F is differentiable at a
+then F′(a; r) exists for every r and equals F′(a)(r).
+<span class="cite"><strong>Proved.</strong></span>
+</div>
+
+<p>Lindström is explicit about what that proposition is for, and it is not a
+theorem about directional derivatives: "In many cases, the directional derivative
+is a good tool for producing a candidate for the derivative... Once we have
+computed the directional derivative F′(a; r), we know from the previous section
+that if there is a derivative, it has to be given by F′(a)(r) = F′(a; r). But we
+have to be careful." The implication runs one way. The prediction gate above is
+the direction that fails.</p>
+
+<div class="worked">
+<strong>Worked — where the Jacobian comes from, and what it is.</strong>
+<span class="cite">Lindström's Example 1, printed 183.</span>
+<br><br>
+Let F : ℝⁿ → ℝᵐ be differentiable at a. F′(a) is a linear map ℝⁿ → ℝᵐ, so it has
+an m × n matrix A in the standard bases, and the j-th column of A is
+F′(a)(e<sub>j</sub>). By Proposition 6.1.11 that equals the directional derivative
+F′(a; e<sub>j</sub>), which is
+<br><br>
+<span style="display:block;text-align:center">lim<sub>t→0</sub> (F(a + te<sub>j</sub>) − F(a)) / t = (∂F₁/∂x<sub>j</sub>(a), …, ∂F<sub>m</sub>/∂x<sub>j</sub>(a))<sup>T</sup>.</span>
+<br>
+So A is the Jacobian JF(a), and F′(a)(r) = JF(a) r. For a scalar f this reduces to
+f′(a)(r) = ∇f(a) · r.
+<br><br>
+<strong>What has been proved, exactly.</strong> That the Jacobian is the
+<em>matrix of</em> the derivative with respect to the standard bases — not that
+the derivative is the Jacobian. The derivative is basis-free, which is why the
+chain rule is composition rather than matrix multiplication in disguise, and why
+the same Definition 6.1.1 works on C([0,1], ℝ) where no basis exists. And
+Lindström adds his own warning immediately: "That the Jacobian matrix exists does
+not mean that the function is differentiable — we saw in Exercise 11 of the
+previous section that F may fail to be differentiable even if all directional
+derivatives exist."
+</div>
+
+<div class="theorem">
+<strong>Proposition 6.2.1 (printed 184).</strong> If all partials ∂F<sub>i</sub>/∂x<sub>j</sub>
+exist in O ⊆ ℝⁿ and are continuous at a, then F is differentiable at a.
+<span class="cite"><strong>States, with the proof deferred.</strong> Lindström:
+"As we shall prove a more general version of this result in Section 6.6, I skip
+the proof here." §6.6 is in this unit, and Segment 3 collects the debt.</span>
+</div>
+
+<div class="worked fade">
+<strong>Faded — a derivative in infinite dimensions.</strong>
+<span class="cite">Lindström's Example 2, printed 184–185.</span>
+<br><br>
+Let X = Y = C([0,1], ℝ) with the supremum norm — complete, by
+<strong>Theorem 4.6.4</strong>, an2-08's page — and F(y)(x) = ∫₀ˣ y(s)² ds. The
+directional derivative:
+<br><br>
+<span style="display:block;text-align:center">F′(y; r)(x) = lim<sub>t→0</sub> (1/t) ∫₀ˣ [(y + tr)² − y²] ds = lim<sub>t→0</sub> ∫₀ˣ [2y r + t r²] ds = ∫₀ˣ 2y(s) r(s) ds.</span>
+<br>
+So the only candidate is A(r)(x) = ∫₀ˣ 2y(s) r(s) ds.
+<br><br>
+⟨your step: candidate in hand, verify it against Definition 6.1.1, which
+Proposition 6.1.11 has <em>not</em> done for you. Three checks. (i) A is linear in
+r. (ii) A is <strong>bounded</strong>, with ‖A‖ ≤ 2‖y‖ — the clause that would be
+invisible in ℝⁿ. (iii) σ(r)(x) = ∫₀ˣ r(s)² ds satisfies ‖σ(r)‖/‖r‖ → 0. Do all
+three, and name the two properties of the supremum norm the bound in (iii) uses.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> "F : ℝⁿ → ℝᵐ has a Jacobian matrix at a,
+therefore F is differentiable at a." What is wrong?</p>
+<button onclick="check(this,false)">Nothing, provided the partials are continuous — and existence of the Jacobian means exactly that</button>
+<button onclick="check(this,true)" data-ok>Existence of the entries only says the partials exist; differentiability needs the error to be o(‖r‖), which the entries do not control</button>
+<button onclick="check(this,false)">The Jacobian must also be invertible</button>
+<button onclick="check(this,false)">The Jacobian is the derivative only if m = n</button>
+<div class="explain">The entries of JF(a) are n·m particular directional
+derivatives, and Proposition 6.1.11 says that <em>if</em> F is differentiable they
+are the matrix of F′(a). The converse is false, and Lindström says so on the same
+page: F may fail to be differentiable even when all directional derivatives exist,
+let alone the n axis-directional ones. The first option confuses existence of
+partials with continuity of them — that stronger hypothesis is
+Proposition 6.2.1, and it does suffice. Invertibility is irrelevant until
+Theorem 6.7.1, and the shape m × n is irrelevant throughout.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. One deferral is about to be paid, and one is
+about to be located.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 30 min</span>
+<h2>Partial derivatives pay a debt, and Chapter 3 collects one</h2>
+
+<div class="theorem">
+<strong>Definition 6.6.1 (printed 202).</strong> For X = X₁ × ⋯ × X<sub>n</sub>,
+the i-th <em>partial derivative</em> ∂F/∂x<sub>i</sub>(a) is the derivative of the
+partial map F<sup>i</sup><sub>a</sub> obtained by freezing every coordinate but
+the i-th. <span class="cite">Note what it is: a bounded linear map
+X<sub>i</sub> → Y, not a number.</span>
+<br><br>
+<strong>Proposition 6.6.2 (printed 202).</strong> Differentiable at a implies all
+partials exist there, with ∂F/∂x<sub>i</sub>(a) = F′(a) restricted to the i-th
+factor. <span class="cite"><strong>Proved</strong>, and the proof is one line of
+bookkeeping rather than an appeal to anything: with r&#770;<sub>i</sub> the vector
+that is r<sub>i</sub> in slot i and <strong>0</strong> elsewhere, the error term of
+F<sup>i</sup><sub>a</sub> at a<sub>i</sub> <em>is</em> the error term of F at a
+evaluated at r&#770;<sub>i</sub>. Definition 6.1.1 does the rest.</span>
+<br><br>
+<strong>Theorem 6.6.3 (printed 203).</strong> If F is continuous at a and the
+partials exist in U and are continuous at a, then F is differentiable at a and
+F′(a)(r) = Σ<sub>i</sub> ∂F/∂x<sub>i</sub>(a)(r<sub>i</sub>).
+<span class="cite"><strong>Proved</strong> — the general version promised at
+printed 184. The proof telescopes F(y) − F(a) into n differences each moving one
+coordinate, and shows every line is o(‖r‖); Lindström demonstrates on the last
+line and leaves the pattern.</span>
+<br><br>
+<strong>Proposition 6.6.4 (printed 204).</strong> A map into a product is
+differentiable <em>if and only if</em> every component is.
+<strong>Proposition 6.6.5 (printed 205).</strong> The two decompositions combined.
+<span class="cite">Both <strong>proved</strong>.</span>
+</div>
+
+<p>Compare the quantifier shapes of 6.6.2 and 6.6.4 and the asymmetry is the
+point. Proposition 6.6.4 is an <em>if and only if</em> because a map <em>into</em>
+a product is determined coordinatewise, and each coordinate is F composed with a
+bounded linear projection — Exercise 4 to §6.1. Proposition 6.6.2 runs one way
+only because a map <em>out of</em> a product is not determined by its restrictions
+to the factors: knowing F along each axis through a says nothing about F off the
+axes, and the prediction gate's F(x, y) = x²y/(x⁴ + y²) is exactly that failure.
+Theorem 6.6.3 is what it costs to reverse it — continuity of F, plus continuity of
+the partials.</p>
+
+<div class="guided-proof">
+<strong>Guided proof — collect the deferral, and check that it is not a
+circle.</strong>
+<br><br>
+Assemble <strong>Proposition 6.2.1</strong> from <strong>Theorem 6.6.3</strong>
+and <strong>Proposition 6.6.5</strong>. Then do the part that matters: verify that
+the deferral is genuine rather than circular. Proposition 6.2.1 appears at
+printed 184 and its proof at printed 203–205; a reader who found §6.6 citing 6.2.1
+would have a loop, not a postponement. Check every result §6.6 uses.
+<br><br>
+Then one hypothesis question. Theorem 6.6.3 assumes F <em>continuous at a</em>
+where Proposition 6.2.1 does not. Is 6.2.1 quietly assuming more than it states,
+or is the hypothesis free in ℝⁿ?
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>The assembly.</strong> Take X<sub>i</sub> = ℝ for i = 1, …, n and
+Y<sub>j</sub> = ℝ for j = 1, …, m. Then X₁ × ⋯ × X<sub>n</sub> = ℝⁿ, the partial
+derivatives ∂F<sub>i</sub>/∂x<sub>j</sub> are the ordinary ones, and
+Proposition 6.6.5 — the product-domain and product-codomain statement together —
+says precisely that F is differentiable at a. That is Proposition 6.2.1. ∎</p>
+<p><strong>The circularity check.</strong> Walk §6.6's dependencies.
+Proposition 6.6.2 argues directly from Definition 6.1.1, by identifying its error
+term with F's own error term at r&#770;<sub>i</sub>. Theorem 6.6.3 argues directly
+from Definition 6.1.1 by telescoping.
+Proposition 6.6.4 uses the bounded linear projections and Proposition 6.1.7.
+Proposition 6.6.5 uses Theorem 6.6.3 and Proposition 6.6.4. <strong>None of them
+cites Proposition 6.2.1</strong>, directly or transitively. The deferral is
+genuine.</p>
+<p><strong>The hypothesis.</strong> Free in ℝⁿ. If all partials exist on an open
+set and are continuous at a, they are bounded on a neighbourhood of a, and
+telescoping one coordinate at a time with the one-variable Mean Value Theorem
+gives |F(y) − F(a)| ≤ C‖y − a‖ near a — so F is continuous at a automatically.
+Theorem 6.6.3 states continuity as a hypothesis because in a general normed space
+that Mean Value argument is not available: there is no one-variable interval to
+apply it on. So Proposition 6.2.1 assumes nothing extra, and Theorem 6.6.3 is
+genuinely more general at the price of one hypothesis that ℝⁿ supplies for
+free.</p>
+<p><strong>Why this was worth checking.</strong> A deferred proof is a claim about
+the book's dependency graph, and the claim is falsifiable. an2-08 found the
+opposite case on Lindström's own pages — Theorem 4.6.4 stated as a summary of
+results that do prove it, with no proof written — and an2-02 found a deferral
+that lands four sections later in another chapter. Here the deferral lands
+nineteen pages later, inside this same unit, and is honoured.</p>
+</details>
+</div>
+
+<div class="theorem">
+<strong>Theorem 6.7.1 — Inverse Function Theorem (printed 206).</strong> Let X and
+Y be <strong>complete</strong> normed spaces, U ⊆ X open, F : U → Y
+differentiable, and a ∈ U a point at which F′ is continuous and F′(a) is
+invertible. Then F has a local inverse G at a, differentiable at b = F(a) with
+G′(b) = F′(a)<sup>−1</sup>.
+<span class="cite"><strong>Proved</strong>, via the two lemmas below.
+<strong>§6.7 is outside this unit's cited range</strong> and printed 206–208 is
+taken for one purpose: it is where an2-02's forward promise lands.</span>
+<br><br>
+<strong>Lemma 6.7.2 — Perturbation Lemma (printed 207).</strong> On a complete X,
+if H : B̄(0, r) → X has H(0) = 0 and is Lipschitz with a small enough constant,
+then x + H(x) = y has a unique solution in the ball for all sufficiently small y.
+<span class="cite"><strong>Proved</strong>, and here is the collection:
+Lindström writes "We shall now use <strong>Banach's Fixed Point Theorem
+3.4.5</strong> to prove this", and applies it to K(x) = y − H(x).</span>
+<br><br>
+<strong>Lemma 6.7.3 (printed 208).</strong> A normalised L with L(0) = 0 and
+L′(0) = I is injective on a small closed ball and has a differentiable local
+inverse M with M′(0) = I. <span class="cite"><strong>Proved.</strong></span>
+</div>
+
+<p>an2-02 recorded Lindström saying at printed 62 that Theorem 3.4.5 would be used
+in Chapter 6 for the Inverse and Implicit Function Theorems, and an2-04's lesson
+passed the promise forward as "Chapter 6 — an2-09's". Printed 207 is where it is
+kept, and the mechanism is exact: solving x + H(x) = y is finding a fixed point of
+K(x) = y − H(x), the Lipschitz bound on H makes K a contraction, and
+<strong>Definition 3.4.3</strong>'s completeness — inherited by the closed ball —
+is what turns a contraction into a solution. Every hypothesis of Theorem 6.7.1
+that is not about differentiation is there to feed that one lemma.</p>
+
+<table class="cmp">
+<tr><th>hypothesis of Theorem 6.7.1</th><th>what it feeds</th><th>established in</th></tr>
+<tr><td>X, Y complete</td><td>Banach's Theorem 3.4.5, inside Lemma 6.7.2</td><td>an2-02, an2-04</td></tr>
+<tr><td>F differentiable on U</td><td>Definition 6.1.1 and the chain rule</td><td>this unit</td></tr>
+<tr><td>F′ continuous at a</td><td>continuity into ℒ(X, Y) in the operator norm</td><td>an2-07, Definition 5.4.6</td></tr>
+<tr><td>F′(a) invertible</td><td>the normalisation to Lemma 6.7.3's L</td><td>Lindström §5.5, in no S2 unit</td></tr>
+</table>
+
+<div class="you-try">
+<strong>You try.</strong> Three things, and the third is the strip.
+<br><br>
+<em>The lemma where Banach is spent.</em> Prove Lemma 6.7.2. Rewrite
+x + H(x) = y as a fixed-point problem for K(x) = y − H(x) and check the two things
+Theorem 3.4.5 requires: that K maps B̄(0, r) into itself, and that K is a
+contraction. Say which hypothesis of the lemma supplies each, where H(0) = 0 is
+used, and where the <em>closedness</em> of the ball matters.
+<br><br>
+<em>The derivative as a map into a space.</em> For each a, F′(a) ∈ ℒ(X, Y), so F′
+is a map O → ℒ(X, Y). Using an2-07's <strong>Theorem 5.4.8</strong>, say when that
+codomain is a Banach space and what is required of X. Then say what "F′ is
+continuous at a" means and in which norm — this is Theorem 6.7.1's third
+hypothesis, and it is not the same as F being continuously differentiable in any
+coordinate sense.
+<br><br>
+<em>The strip.</em> Write out f′(a)(r) = ∇f(a) · r and say what the dot product is
+doing — name the structure, cite an2-07's <strong>Definition 5.3.1</strong>, and
+say whether it is available on C([0,1], ℝ) with the supremum norm. Then combine
+with an2-05's transfer table into one sentence about what a gradient-based
+filtration may and may not assume when its filter function is perturbed
+uniformly. Report what you take from tda1-07 and tda2-09; verify none of it here.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Where does completeness enter Theorem 6.7.1,
+given that nothing in §6.1, §6.2 or §6.6 needs it?</p>
+<button onclick="check(this,false)">In the differentiability of the local inverse, which is a limit argument</button>
+<button onclick="check(this,true)" data-ok>Through Lemma 6.7.2, which proves solvability by applying Banach's Theorem 3.4.5 on a closed ball</button>
+<button onclick="check(this,false)">In the invertibility of F′(a), since bounded operators need a Banach space to be invertible</button>
+<button onclick="check(this,false)">In Theorem 5.4.8, to make ℒ(X, Y) complete so that F′ has somewhere to live</button>
+<div class="explain">Through the Perturbation Lemma. Lindström says so by name:
+"We shall now use Banach's Fixed Point Theorem 3.4.5 to prove this." Banach's
+theorem needs a complete metric space, the closed ball inherits completeness from
+X by an2-02's Proposition 3.4.4, and without it a contraction still shrinks
+distances and still produces a Cauchy sequence of iterates — with nothing to
+guarantee a limit. The fourth option is a real theorem misapplied: Theorem 5.4.8
+would need Y complete, not X, and F′ lands in ℒ(X, Y) whether or not that space is
+complete. This is the destination of the promise Lindström made at printed 62 and
+an2-02 recorded.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Proposition 6.6.2 is one-directional and
+Proposition 6.6.4 is an if-and-only-if. Why the asymmetry?</p>
+<button onclick="check(this,false)">An accident of Lindström's proof technique; both are equivalences</button>
+<button onclick="check(this,true)" data-ok>6.6.4 decomposes the codomain, where projections are bounded linear maps; 6.6.2 decomposes the domain, and axis behaviour does not determine off-axis behaviour</button>
+<button onclick="check(this,false)">Because products of finitely many spaces behave differently from products of infinitely many</button>
+<button onclick="check(this,false)">Because 6.6.4 assumes continuity of F and 6.6.2 does not</button>
+<div class="explain">Codomain versus domain. A map into a product is exactly the
+tuple of its components, and each component is a bounded linear projection
+composed with F — so Exercise 4 to §6.1 and Proposition 6.1.7 give both
+directions. A map out of a product is not recoverable from its restrictions to
+the factors, and the counterexample is the prediction gate's
+x²y/(x⁴ + y²): all axis-directional derivatives exist at 0 and the function is
+not even continuous there. Theorem 6.6.3 is the price of reversing 6.6.2, and its
+extra hypotheses — F continuous at a, the partials continuous at a — are exactly
+what pay it. The fourth option has the hypotheses backwards.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which is the honest statement of the
+relationship between ∇f(a) and f′(a)?</p>
+<button onclick="check(this,false)">They are the same object written two ways; ∇ is notation for the derivative</button>
+<button onclick="check(this,true)" data-ok>f′(a) is the linear functional; ∇f(a) is the vector representing it through an inner product, which not every normed space has</button>
+<button onclick="check(this,false)">∇f(a) is the derivative and f′(a) is its matrix in the standard basis</button>
+<button onclick="check(this,false)">∇f(a) is the derivative of f and f′(a) is the derivative of the map a ↦ ∇f(a)</button>
+<div class="explain">A representation, not an identity. Lindström's formula
+f′(a)(r) = ∇f(a) · r says that the linear functional f′(a) is <em>computed</em> by
+dotting against a particular vector, and the dot product is an inner product —
+an2-07's Definition 5.3.1, printed 142, one section outside that unit's range and
+developed in no S2 unit. On ℝⁿ the representation always exists and is unique. On
+C([0,1], ℝ) with the supremum norm there is no inner product at all, so a
+differentiable functional has a derivative and no gradient. The third option
+inverts the roles; the fourth describes the second derivative.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Lindström defers Proposition 6.2.1's proof to
+§6.6. What had to be checked before that could be reported as a deferral?</p>
+<button onclick="check(this,false)">That §6.6 is in the same chapter, so the reader can find it</button>
+<button onclick="check(this,true)" data-ok>That no result §6.6 uses cites Proposition 6.2.1, so the postponement is not a circle</button>
+<button onclick="check(this,false)">That Theorem 6.6.3 has the same hypotheses as Proposition 6.2.1</button>
+<button onclick="check(this,false)">Nothing — an author's statement that a proof comes later is a citation like any other</button>
+<div class="explain">Non-circularity. A deferred proof is a claim about the
+book's dependency graph and it is falsifiable: if any of Proposition 6.6.2,
+Theorem 6.6.3, Proposition 6.6.4 or Proposition 6.6.5 cited 6.2.1, the postponement
+would be a loop. The guided proof walks all four and none does. The third option
+is false and interestingly so — Theorem 6.6.3 has an <em>extra</em> hypothesis,
+continuity of F, which the guided proof shows is free in ℝⁿ. The fourth is the
+attitude this module exists to correct: an author's forward reference is a claim
+to be verified against the destination page, exactly as an2-08 verified
+Theorem 4.6.4's and found it stated rather than proved.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file and reconstruct three claims.
+<details><summary>Check against this</summary>
+1. <strong>The derivative is a bounded linear map, and both adjectives are
+load-bearing.</strong> Definition 6.1.1 asks that F(a + r) − F(a) − A(r) be
+o(‖r‖); Lemma 6.1.2 shows there is at most one such A, by putting r = tx and
+letting t → 0. Boundedness is what gives ‖F′(a)(r)‖ ≤ ‖F′(a)‖‖r‖, which is what
+makes Proposition 6.1.4 and the chain rule work — and by an2-07's Theorem 5.4.5 an
+unbounded linear map is discontinuous, so a linear approximation that is not
+bounded does not approximate. In ℝⁿ the hypothesis is free, which is why calculus
+never states it.
+<br><br>
+2. <strong>Directional derivatives produce a candidate and prove nothing.</strong>
+Proposition 6.1.11 says that if F′(a) exists it is given by the directional
+derivatives, so Example 1's computation identifies the Jacobian as the
+<em>matrix of</em> F′(a) — not as the derivative. The converse fails:
+x²y/(x⁴ + y²) has every directional derivative at 0 and is not continuous there.
+Proposition 6.2.1 gives a usable sufficient condition and is <em>stated</em>, with
+its proof deferred to §6.6.
+<br><br>
+3. <strong>Both deferrals in this unit's neighbourhood are honoured, and one of
+them lands outside the range.</strong> Theorem 6.6.3 is the general version
+promised at printed 184, proved by telescoping one coordinate at a time, and
+nothing in §6.6 cites 6.2.1, so the postponement is genuine. The older promise —
+an2-02's record of Lindström saying at printed 62 that Theorem 3.4.5 would prove
+the Inverse and Implicit Function Theorems — is kept at printed 207, inside
+Lemma 6.7.2, where solving x + H(x) = y becomes a fixed-point problem for
+K(x) = y − H(x). §6.7 is one section past this unit's cited range.
+</details>
+</div>
+
+<footer>
+<strong>Sources, page by page.</strong> Every printed page below was read; the
+folio was checked on the page, not inferred from a section heading.
+<br><br>
+Lindström, <em>Spaces: An Introduction to Real Analysis</em>, §6.1 "The
+derivative", printed 174–182; §6.2 "Finding derivatives", printed 182–190; §6.6
+"Partial derivatives", printed 201–205; and §6.7, printed 206–208, for
+Theorem 6.7.1, Lemma 6.7.2 and Lemma 6.7.3 only (folio = PDF − 13). The Chapter 6
+opening with the linear-approximation discussion and the o(r) explanation,
+printed 173. The end of that discussion, the notational convention on norms, the
+§6.1 heading, Definition 6.1.1 and Lemma 6.1.2, printed 174. The end of
+Lemma 6.1.2's proof, Definition 6.1.3, and the paragraph on traps containing the
+sentence that boundedness "turns out to be essential", printed 175.
+Proposition 6.1.4 with proof, Proposition 6.1.5 with proof, Proposition 6.1.6
+(Exercise 1) and Proposition 6.1.7, printed 176. Proposition 6.1.8 with proof,
+printed 177. Theorem 6.1.9 with proof, printed 178. Definition 6.1.10 and
+Proposition 6.1.11 with proof, printed 180. Exercises 1–9 to §6.1, printed 181.
+The §6.2 heading and its opening on producing candidates, printed 182. Example 1
+with the Jacobian and the gradient, and the warning about directional derivatives
+naming Exercise 11 of §6.1, printed 183. Proposition 6.2.1 with its deferral to
+§6.6, and the start of Example 2, printed 184. The §6.6 heading and its opening on
+product structures, printed 201. Definition 6.6.1 and Proposition 6.6.2 with
+proof, printed 202. Theorem 6.6.3 with proof, printed 203. Proposition 6.6.4 with
+proof, printed 204. Proposition 6.6.5 and the exercises to §6.6, printed 205. The
+§6.7 heading and Theorem 6.7.1, printed 206. Lemma 6.7.2 with proof, citing
+Banach's Fixed Point Theorem 3.4.5 by name, printed 207. Lemma 6.7.3, printed 208.
+<br><br>
+Carried from earlier units: Definition 3.4.3, printed 60, and
+Proposition 3.4.4, printed 60 (an2-02's); Theorem 3.4.5, printed 61, and the
+forward promise at printed 62 (an2-04's); Theorem 4.6.4, printed 102 (an2-08's);
+Definition 5.1.2, printed 134, Proposition 5.1.3, printed 135, Definition 5.4.2,
+printed 151, Theorem 5.4.5, printed 152, Definition 5.4.6 and Theorem 5.4.8,
+printed 153–154 (an2-07's). Named and not developed: Definition 5.3.1,
+printed 142.
+<br><br>
+<em>A folio correction, and a rule withdrawn.</em> <strong>Chapter 6 opens on
+printed 173, not 174.</strong> PDF 186 carries the chapter title "Differential
+Calculus in Normed Spaces" and a full page of introduction, with the folio 173 at
+the foot; §6.1's heading is on the next page, printed 174, together with
+Definition 6.1.1. This is a <strong>counterexample to the pattern an2-07
+recorded</strong> — Chapters 3 and 5 both put the first section's heading on the
+chapter-opener page, and Chapter 6 does not. Two instances were not a rule. The
+only reliable procedure remains the one the plan already states: read the folio
+off the page you cite.
+<br><br>
+<em>Modality.</em> Lindström <strong>proves</strong> Lemma 6.1.2,
+Proposition 6.1.4, Proposition 6.1.5, Proposition 6.1.7, Proposition 6.1.8,
+Theorem 6.1.9, Proposition 6.1.11, Proposition 6.6.2, Theorem 6.6.3,
+Proposition 6.6.4, Proposition 6.6.5, Theorem 6.7.1, Lemma 6.7.2 and Lemma 6.7.3.
+He <strong>sets as an exercise</strong> Proposition 6.1.6 (Exercise 1 to §6.1),
+together with the affine computation (Exercise 2), the bounded-linear
+post-composition (Exercise 4), and the identification of ℒ(ℝ, Y) with Y
+(Exercise 6). He <strong>states with the proof deferred</strong>
+<strong>Proposition 6.2.1</strong>: "As we shall prove a more general version of
+this result in Section 6.6, I skip the proof here." That deferral is honoured by
+Theorem 6.6.3 and checked for circularity in the guided proof — a distinct
+modality from an2-08's finding, where Theorem 4.6.4 was stated with <em>no</em>
+forward pointer at all. Everything about Morse theory, filtrations and persistence
+is <strong>reported</strong> from tda1-07 and tda2-09; this unit opens neither.
+<br><br>
+<em>Stated here but not in the source.</em> The circularity check on §6.6 — that
+none of Propositions 6.6.2, 6.6.4, 6.6.5 or Theorem 6.6.3 cites Proposition 6.2.1
+— is this lesson's; Lindström asserts the deferral and does not verify it. The
+argument that Theorem 6.6.3's continuity hypothesis is free in ℝⁿ, via local
+boundedness of the partials and the one-variable Mean Value Theorem, is this
+lesson's; Lindström states the two results side by side and does not compare their
+hypotheses. The reading of Definition 6.1.1's word "bounded" through an2-07's
+Theorem 5.4.5, and the identification of Proposition 6.1.4's failure point as the
+operator-norm step, are this lesson's — Lindström says the assumption "turns out to
+be essential" and does not say where. The counterexample x²y/(x⁴ + y²) in the
+prediction gate and Self-check 4 is standard and is worked here; Lindström refers
+to Exercise 11 of §6.1 without reproducing it, and this lesson does not claim to
+quote that exercise. The explanation of the 6.6.2 / 6.6.4 asymmetry as
+domain-versus-codomain decomposition is this lesson's. The table sorting
+Theorem 6.7.1's four hypotheses by what each feeds is this lesson's assembly.
+<br><br>
+<em>Not established here.</em> Invertibility of bounded operators, the Neumann
+series and Banach's Lemma — Lindström §5.5, printed 155–160, which supplies
+Theorem 6.7.1's fourth hypothesis and which no S2 unit covers. The Implicit
+Function Theorem — §6.8 onwards, not opened. Inner product spaces and Hilbert
+structure — §5.3, printed 142–149; Definition 5.3.1 is named in the warn block and
+in Self-check 5 and is not developed, exactly as an2-07 recorded. Higher
+derivatives, Taylor's formula in normed spaces, and everything else in §6.3–§6.5.
+Riemann integration, used in Example 2 and established by no S1 unit, as an2-06
+recorded. The Mean Value Theorem, used in the guided proof's hypothesis argument —
+an-12's. Everything about Morse theory, gradient-based filtrations and persistence
+diagrams is tda1-07's and tda2-09's reading of Oudot and of Dey and Wang,
+reported and not verified here; in particular no claim is made that any result of
+this unit bounds any distance between diagrams.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('deriv'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  g.font='12px Segoe UI,system-ui,sans-serif';
+  var A0=0.5, SLOPE=Math.cos(0.5), BAD=SLOPE+0.6, FA=Math.sin(0.5);
+
+  // ---- left panel: f, tangent, wrong line ----
+  var LX0=56, LX1=286, LY0=288, LY1=76;
+  var XA=-0.1, XB=1.1, VA=-0.2, VB=1.2;
+  function LX(x){ return LX0+(LX1-LX0)*(x-XA)/(XB-XA); }
+  function LY(v){ return LY0-(LY0-LY1)*(v-VA)/(VB-VA); }
+  g.fillStyle='#9aa5b1'; g.textAlign='left';
+  g.fillText('two lines through (a, f(a))', LX0-10, 44);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(LX(XA),LY(0)); g.lineTo(LX(XB),LY(0)); g.stroke();
+  g.beginPath(); g.moveTo(LX(A0),LY(VA)); g.lineTo(LX(A0),LY(VB)); g.stroke();
+
+  g.strokeStyle='#e06c75'; g.lineWidth=2; g.beginPath();
+  g.moveTo(LX(XA),LY(FA+BAD*(XA-A0))); g.lineTo(LX(XB),LY(FA+BAD*(XB-A0))); g.stroke();
+  g.strokeStyle='#4caf82'; g.lineWidth=2; g.beginPath();
+  g.moveTo(LX(XA),LY(FA+SLOPE*(XA-A0))); g.lineTo(LX(XB),LY(FA+SLOPE*(XB-A0))); g.stroke();
+
+  g.strokeStyle='#e8e8e8'; g.lineWidth=2.5; g.beginPath();
+  for(var k=0;k<=300;k++){ var x=XA+(XB-XA)*k/300;
+    if(k===0) g.moveTo(LX(x),LY(Math.sin(x))); else g.lineTo(LX(x),LY(Math.sin(x))); }
+  g.stroke();
+
+  g.fillStyle='#4caf82'; g.fillText('tangent', LX(0.72), LY(1.02));
+  g.fillStyle='#e06c75'; g.fillText('slope + 0.6', LX(0.62), LY(0.30));
+  g.fillStyle='#e8e8e8'; g.fillText('f = sin', LX(-0.05), LY(0.42));
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('a', LX(A0), LY0+18);
+
+  // ---- right panel: the error ratio ----
+  var RX0=372, RX1=592, RY0=288, RY1=76, RMAX=0.6, RVMAX=0.9;
+  function RX(r){ return RX0+(RX1-RX0)*(r/RMAX); }
+  function RY(v){ return RY0-(RY0-RY1)*(v/RVMAX); }
+  function ratio(r,A){ return Math.abs(Math.sin(A0+r)-FA-A*r)/r; }
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('|f(a+r) − f(a) − A·r| / |r|', RX0-12, 44);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(RX0-8,RY0); g.lineTo(RX1+8,RY0); g.stroke();
+  g.beginPath(); g.moveTo(RX0,RY0+8); g.lineTo(RX0,RY1-6); g.stroke();
+
+  g.strokeStyle='#3a4450'; g.setLineDash([3,4]);
+  g.beginPath(); g.moveTo(RX0,RY(0.6)); g.lineTo(RX1,RY(0.6)); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle='#3a4450'; g.textAlign='right';
+  g.fillText('0.6', RX1, RY(0.6)-6);
+
+  g.textAlign='left';
+  var pair=[[SLOPE,'#4caf82'],[BAD,'#e06c75']];
+  for(var j=0;j<2;j++){
+    g.strokeStyle=pair[j][1]; g.lineWidth=2; g.beginPath();
+    for(var m=1;m<=300;m++){ var r=RMAX*m/300, v=ratio(r,pair[j][0]);
+      if(m===1) g.moveTo(RX(r),RY(v)); else g.lineTo(RX(r),RY(v)); }
+    g.stroke();
+  }
+  g.fillStyle='#4caf82'; g.fillText('→ 0', RX(0.30), RY(0.02));
+  g.fillStyle='#e06c75'; g.fillText('→ 0.6', RX(0.16), RY(0.70));
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('0', RX0, RY0+18);
+  g.fillText('r = 0.6', RX(RMAX), RY0+18);
+
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('both pass through the point', LX0-10, 326);
+  g.fillText('only one is o(r)', RX0-12, 326);
+})();
+</script>
+</body></html>
