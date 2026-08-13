@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an2-06 — Series of functions; the Weierstrass M-test and approximation</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+</style></head><body>
+<p class="cite">Analysis II · Nexus College</p>
+<h1>Series of functions; the Weierstrass M-test and approximation <span class="cite">(an2-06)</span></h1>
+
+<div class="hook">
+There is a function on the real line that is infinitely differentiable, is zero
+only at the origin, and whose Taylor series converges — uniformly, on all of ℝ —
+to the constant function 0. Cauchy found it in 1821 and it ended a century of
+confidence. So the hook's promise, "approximate ANY continuous function by
+polynomials", is not something Taylor can deliver even for the most beautifully
+behaved functions there are. It is delivered instead by a theorem that assumes
+<em>less</em>: no derivatives at all, only continuity, and a closed bounded
+interval.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Let f be infinitely differentiable on
+ℝ and let S<sub>N</sub> be its Taylor partial sums at 0. Which is guaranteed?</p>
+<button onclick="check(this,false)">S<sub>N</sub>(x) → f(x) for every x, though perhaps not uniformly</button>
+<button onclick="check(this,false)">S<sub>N</sub>(x) → f(x) on some interval (−R, R) with R &gt; 0</button>
+<button onclick="check(this,false)">S<sub>N</sub> converges somewhere, and where it converges the limit is f</button>
+<button onclick="check(this,true)" data-ok>Only that S<sub>N</sub>(0) = f(0) — the series may converge everywhere and equal f nowhere else</button>
+<div class="explain">Only the value at the origin. For g(x) = e<sup>−1/x²</sup>
+(with g(0) = 0) every derivative at 0 vanishes, so every Taylor coefficient is 0
+and S<sub>N</sub> is the zero function for every N. That series converges
+uniformly on all of ℝ — it is constant — and agrees with g at the single point
+x = 0. So the third option fails too: the series converges everywhere and the
+limit is not f anywhere except the origin. What Taylor's formula establishes is a
+conditional (if a power series for f exists, its coefficients are forced), and the
+counterexample shows the antecedent can fail for a function with every derivative
+you could ask for.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Uniform approximation justifies discretising a continuous signal before you compute its topology.</p>
+
+<div class="warn">
+<strong>The strip is true and it names the wrong theorem — the mechanism it needs
+is real, and it is not the one this unit proves.</strong>
+<br><br>
+<em>What the chain actually is.</em> tda1-07 reports Oudot's Corollary 3.6:
+d<sub>b</sub>(dgm f, dgm g) ≤ ‖f − g‖<sub>∞</sub>. an2-05 established that
+smallness in ‖·‖<sub>∞</sub> is exactly uniform closeness in an2-01's sup metric.
+So <em>if</em> a discretisation replaces the signal f by some g with
+‖f − g‖<sub>∞</sub> small, the diagrams are close. That much is sound, and it is
+what "uniform approximation justifies discretising" means.
+<br><br>
+<em>But Theorem 4.10.1 is not the theorem that supplies the g.</em> Discretising
+a signal replaces it with a sampled object — a step or piecewise-linear
+interpolant on a finite grid. Weierstrass' Theorem says nothing about that class:
+it produces <strong>polynomials</strong>, and produces them by an existence
+argument. What actually bounds ‖f − f<sub>grid</sub>‖<sub>∞</sub> is uniform
+continuity of f on a compact domain — Proposition 4.1.2, an2-05's page, resting
+on an2-03's compactness — together with the grid spacing. The strip's mechanism is
+uniform continuity plus stability; this unit's theorem is a different and stronger
+statement about which functions can serve as approximants.
+<br><br>
+<em>And it comes with no rate.</em> Theorem 4.10.1 is pure existence. It names no
+n as a function of ε, so it cannot tell you how fine a grid to take. Bernstein's
+Proposition 4.10.3 does give an explicit sequence, and the figure in Segment 3
+measures it: on f(x) = |x − ½| the worst error falls from 0.1875 to 0.1367 to
+0.0982 as N runs 4, 8, 16 — a factor near 1.4 per doubling, not near 2. A theorem
+that guarantees convergence guarantees nothing about affording it.
+<br><br>
+<em>No syllabus action on the strip.</em> The claim is true. The correction is to
+the reasoning that would be offered for it: cite uniform continuity and stability,
+not Weierstrass, when the question is how fine to sample.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>A series is a sequence, so only one thing here is new</h2>
+
+<div class="definition">
+<strong>Definition 6.4.1 (Abbott, printed 167).</strong> For f<sub>n</sub>
+defined on A ⊆ ℝ, the series Σ f<sub>n</sub> <em>converges pointwise</em> on A to
+f if the sequence of partial sums s<sub>k</sub> = f₁ + ⋯ + f<sub>k</sub>
+converges pointwise to f; it <em>converges uniformly</em> if (s<sub>k</sub>)
+converges uniformly.
+<br><br>
+<span class="cite">Read the definition twice. It defines nothing new about
+series: it defines a series to be the sequence of its partial sums, in whichever
+of an2-05's two senses is named. Everything an2-05 proved about sequences
+therefore applies here, with the only work being to check that a partial sum
+inherits the property in question — and a partial sum is a finite sum, so it
+always does.</span>
+</div>
+
+<p>That is why the first two theorems of §6.4 are one line each.</p>
+
+<div class="theorem">
+<strong>Theorem 6.4.2 (printed 167).</strong> If the f<sub>n</sub> are continuous
+on A and Σ f<sub>n</sub> converges uniformly to f, then f is continuous.
+<span class="cite">Abbott's entire proof: "Apply Theorem 6.2.6 to the partial
+sums." <strong>Proved.</strong></span>
+<br><br>
+<strong>Theorem 6.4.3 (printed 168).</strong> If the f<sub>n</sub> are
+differentiable on [a, b], Σ f<sub>n</sub>′ converges uniformly to g, and
+Σ f<sub>n</sub>(x₀) converges at some x₀, then Σ f<sub>n</sub> converges
+uniformly to a differentiable f with f′ = g. <span class="cite">"Apply
+Theorem 6.3.3 to the partial sums", plus the observation that
+s<sub>k</sub>′ = f₁′ + ⋯ + f<sub>k</sub>′ for a finite sum.
+<strong>Proved.</strong></span>
+</div>
+
+<p>Notice which sequence carries the uniformity in Theorem 6.4.3. It is the
+series of <em>derivatives</em>, and the original series is assumed to converge at
+only one point. That ordering is an2-05's Theorem 6.3.3 verbatim, and it is the
+reason Segment 2 has to establish convergence of a differentiated series
+<em>before</em> it may differentiate anything.</p>
+
+<p>So what is genuinely new? Not a transfer theorem — a <em>test</em>. Uniform
+convergence is a statement about a sequence of functions, and until now the only
+way to certify it has been to compute a supremum and watch it go to zero. For a
+series, there is a shortcut that turns the question into one about numbers.</p>
+
+<div class="theorem">
+<strong>Corollary 6.4.5 — Weierstrass M-test (Abbott, printed 168).</strong> Let
+f<sub>n</sub> be defined on A ⊆ ℝ and let M<sub>n</sub> &gt; 0 satisfy
+|f<sub>n</sub>(x)| ≤ M<sub>n</sub> for all x ∈ A. If Σ M<sub>n</sub> converges,
+then Σ f<sub>n</sub> converges uniformly on A. <span class="cite">Stated as a
+corollary of Theorem 6.4.4; <strong>proof set as Exercise 6.4.2</strong>.</span>
+<br><br>
+<strong>Proposition 4.3.4 — Weierstrass' M-test (Lindström, printed 89).</strong>
+Let v<sub>n</sub> : A → ℝ be functions on <em>any</em> set A, and suppose there is
+a convergent series Σ M<sub>n</sub> of nonnegative numbers with
+|v<sub>n</sub>(x)| ≤ M<sub>n</sub> for all n and all x ∈ A. Then Σ v<sub>n</sub>
+converges uniformly on A. <span class="cite"><strong>Proved</strong>, in
+full.</span>
+</div>
+
+<p>The two statements have the same content and three differences, and only the
+first two are visible. Abbott's A is a subset of ℝ; Lindström's is an arbitrary
+set, which is the honest statement, because nothing in the proof touches A at all.
+Abbott asks M<sub>n</sub> &gt; 0 where Lindström asks only M<sub>n</sub> ≥ 0.
+And Abbott sets the proof as an exercise where Lindström gives it — a difference
+that appears in neither statement and decides which book this lesson cites when
+it says "and here is why".</p>
+
+<p>The third difference has a consequence worth tracing. Abbott's M-test is a
+corollary of <strong>Theorem 6.4.4</strong>, the Cauchy criterion for uniform
+convergence of series, which he states at printed 168 with no proof and no
+exercise attached; and Theorem 6.4.4 is an2-05's <strong>Theorem 6.2.5</strong>
+applied to partial sums, whose own proof was set as Exercise 6.2.6. Lindström's
+proof does not pass through any of that. It uses the completeness of ℝ directly,
+and it is four lines long.</p>
+
+<div class="worked">
+<strong>Worked — the M-test, proved.</strong> <span class="cite">Following
+Lindström, printed 89.</span>
+<br><br>
+Let s<sub>n</sub>(x) = Σ<sub>k≤n</sub> v<sub>k</sub>(x) and
+S<sub>n</sub> = Σ<sub>k≤n</sub> M<sub>k</sub>.
+<br><br>
+<em>Pointwise first.</em> Σ M<sub>n</sub> converges, so (S<sub>n</sub>) is Cauchy
+in ℝ. For m &gt; n and any x ∈ A,
+<br><br>
+<span style="display:block;text-align:center">|s<sub>m</sub>(x) − s<sub>n</sub>(x)| = |Σ<sub>k=n+1</sub><sup>m</sup> v<sub>k</sub>(x)| ≤ Σ<sub>k=n+1</sub><sup>m</sup> |v<sub>k</sub>(x)| ≤ Σ<sub>k=n+1</sub><sup>m</sup> M<sub>k</sub> = |S<sub>m</sub> − S<sub>n</sub>|,</span>
+<br>
+so {s<sub>n</sub>(x)} is Cauchy in ℝ for each fixed x, and <em>completeness of
+ℝ</em> gives a limit s(x). That is one limit per point: pointwise convergence and
+nothing more.
+<br><br>
+<em>Then uniformly.</em> Write S = Σ<sub>k=0</sub><sup>∞</sup> M<sub>k</sub>.
+Given ε &gt; 0 there is N with S − S<sub>n</sub> = Σ<sub>k&gt;n</sub>
+M<sub>k</sub> &lt; ε for all n ≥ N. Then for every x ∈ A and every n ≥ N,
+<br><br>
+<span style="display:block;text-align:center">|s(x) − s<sub>n</sub>(x)| = |Σ<sub>k&gt;n</sub> v<sub>k</sub>(x)| ≤ Σ<sub>k&gt;n</sub> |v<sub>k</sub>(x)| ≤ Σ<sub>k&gt;n</sub> M<sub>k</sub> &lt; ε.</span>
+<br>
+The N came from a statement about numbers and was never a function of x. That is
+the whole trick, and it is why the second half is a separate argument rather than
+a consequence of the first: the first half produces an N for each x, which is
+precisely what an2-05 spent a unit distinguishing from what is wanted here. ∎
+</div>
+
+<div class="worked fade">
+<strong>Faded — where the M-test reaches and where it stops.</strong>
+<span class="cite">Abbott's Exercises 6.4.3 and 6.4.6, both set and neither
+worked.</span>
+<br><br>
+For g(x) = Σ cos(2ⁿx)/2ⁿ: |cos(2ⁿx)/2ⁿ| ≤ 2<sup>−n</sup> for every real x, and
+Σ 2<sup>−n</sup> = 1 converges. So the series converges uniformly on all of ℝ by
+Proposition 4.3.4, each term is continuous, and Theorem 6.4.2 gives g continuous.
+<br><br>
+⟨your step: now take f(x) = Σ<sub>n≥1</sub> xⁿ/n on [0, 1). Compute
+sup<sub>x∈[0,1)</sub> of the tail Σ<sub>k&gt;m</sub> xᵏ/k — the terms are
+positive, so the supremum is a limit as x → 1⁻ — and conclude that the series does
+<em>not</em> converge uniformly on [0, 1). Then fix x₀ ∈ (0, 1), choose c with
+x₀ &lt; c &lt; 1, and run the M-test on [0, c] to prove f continuous at x₀. Say in
+one sentence which property of continuity makes that legitimate.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which of these is the genuinely new content of
+Abbott's §6.4?</p>
+<button onclick="check(this,false)">That a uniformly convergent series of continuous functions has a continuous sum</button>
+<button onclick="check(this,false)">That a series may be differentiated term by term when the differentiated series converges uniformly</button>
+<button onclick="check(this,true)" data-ok>A sufficient condition for uniform convergence that can be checked without looking at the functions</button>
+<button onclick="check(this,false)">That the partial sums of a series of continuous functions are continuous</button>
+<div class="explain">The M-test. The first two options are Theorem 6.4.2 and
+Theorem 6.4.3, and Abbott's proofs of both are single sentences delegating to
+an2-05's Theorem 6.2.6 and Theorem 6.3.3 — they are the sequence results read
+through Definition 6.4.1, not new mathematics. The fourth is the finite-sum
+observation that makes those delegations legal. What was missing before §6.4 was
+a way to <em>certify</em> uniform convergence, and the M-test supplies one that
+reduces the question to the convergence of a series of numbers.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A lesson wants to write "the M-test is proved
+in the source". Which citation makes that true?</p>
+<button onclick="check(this,false)">Abbott, Corollary 6.4.5, printed 168</button>
+<button onclick="check(this,true)" data-ok>Lindström, Proposition 4.3.4, printed 89</button>
+<button onclick="check(this,false)">Lindström, Exercise 11 to §4.2, printed 85</button>
+<button onclick="check(this,false)">Abbott, Theorem 6.4.4, printed 168, from which it follows</button>
+<div class="explain">Only Proposition 4.3.4. Abbott states Corollary 6.4.5 and
+sets its proof as Exercise 6.4.2; Lindström's printed 85 occurrence is Exercise 11
+to §4.2, set and named; and Theorem 6.4.4 is stated at printed 168 with neither a
+proof nor an exercise, being an2-05's Theorem 6.2.5 — itself set as
+Exercise 6.2.6 — in series clothing. So Abbott's route to the M-test passes
+through two results that are not established where they stand. This is the same
+lesson an2-05 drew from Lemma 3.7.11 and from the M-test's own double life in
+Lindström: the verb of a citation is a property of the page, not of the
+result.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. One test, and the rest of §6.4 was an2-05 in
+different notation.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>Power series: how far the M-test reaches, and who takes over</h2>
+
+<p>A power series Σ a<sub>n</sub>xⁿ is the best case for the M-test, and the
+gap between "best case" and "everything" is exactly one endpoint.</p>
+
+<div class="theorem">
+<strong>Theorem 6.5.1 (printed 170).</strong> If Σ a<sub>n</sub>xⁿ converges at
+x₀, it converges absolutely for every x with |x| &lt; |x₀|.
+<span class="cite"><strong>Proved</strong>: convergence makes (a<sub>n</sub>x₀ⁿ)
+bounded by some M, then |a<sub>n</sub>xⁿ| ≤ M|x/x₀|ⁿ and geometric comparison
+finishes it.</span>
+<br><br>
+<strong>Theorem 6.5.2 (printed 170).</strong> If the series converges absolutely
+at x₀ then it converges uniformly on [−c, c], c = |x₀|.
+<span class="cite">Stated; proof is Exercise 6.5.5 — "a straightforward
+application of the Weierstrass M-Test", with M<sub>n</sub> = |a<sub>n</sub>|cⁿ.</span>
+</div>
+
+<p>Theorem 6.5.1 makes the convergence set an interval about 0, with radius R,
+and says nothing about its endpoints — the inequality is strict. Theorem 6.5.2
+then covers the endpoint too, <em>provided the convergence there is absolute</em>,
+because then M<sub>n</sub> = |a<sub>n</sub>|Rⁿ sums. If the convergence at x = R
+is merely conditional, Σ|a<sub>n</sub>|Rⁿ diverges, the M<sub>n</sub> are gone,
+and the M-test has nothing to offer. That is the whole difficulty, and it is why
+§6.5 needs a second, harder tool.</p>
+
+<div class="theorem">
+<strong>Lemma 6.5.3 — Abel's Lemma (printed 171).</strong> If
+b₁ ≥ b₂ ≥ ⋯ ≥ 0 and the partial sums of Σ a<sub>n</sub> are bounded by A, then
+|a₁b₁ + ⋯ + a<sub>n</sub>b<sub>n</sub>| ≤ 2Ab₁ for every n.
+<span class="cite">Stated; proof delegated to Exercises 2.7.12 and 2.7.14(b),
+two chapters earlier.</span>
+<br><br>
+<strong>Theorem 6.5.4 — Abel's Theorem (printed 172).</strong> If
+g(x) = Σ a<sub>n</sub>xⁿ converges at x = R &gt; 0, the series converges
+uniformly on [0, R]. <span class="cite"><strong>Proved</strong> — one of only two
+complete proofs in the section.</span>
+</div>
+
+<p>Abbott says out loud why the triangle inequality cannot replace Lemma 6.5.3:
+if A bounded the partial sums of Σ|a<sub>n</sub>| the lemma "would be a simple
+exercise in the triangle inequality", and conditional convergence is exactly the
+hypothesis that denies us that. The lemma is applied to the factored form
+Σ (a<sub>n</sub>Rⁿ)(x/R)ⁿ, where (x/R)ⁿ is the monotone decreasing sequence and
+the tail sums of Σ a<sub>n</sub>Rⁿ supply the bound A = ε/2.</p>
+
+<div class="theorem">
+<strong>Theorem 6.5.5 (printed 172).</strong> Pointwise convergence on A implies
+uniform convergence on every compact K ⊆ A. <span class="cite">Stated; proof is
+Exercise 6.5.6, assembling 6.5.1, 6.5.2 and Abel.</span>
+<br><br>
+<strong>Theorem 6.5.6 (printed 173).</strong> If Σ a<sub>n</sub>xⁿ converges on
+(−R, R), so does the differentiated series Σ n a<sub>n</sub>x<sup>n−1</sup>.
+<span class="cite">Stated; proof is Exercise 6.5.7.</span>
+<br><br>
+<strong>Theorem 6.5.7 (printed 173).</strong> A power series is continuous on its
+interval of convergence, infinitely differentiable on (−R, R), and every
+derivative is obtained term by term. <span class="cite">Derivative formula and
+induction proved; continuity "requested in the exercises".</span>
+</div>
+
+<p>Theorem 6.5.6 is not a convenience — it is a precondition. The hypotheses of
+Theorem 6.4.3 require the <em>differentiated</em> series to converge uniformly
+before anything may be differentiated, so a proof of Theorem 6.5.7 that reached
+for term-by-term differentiation first would be circular. Abbott's own warning is
+that we must know it "beforehand". And the radius is the right invariant here but
+the endpoint is not: Σ (−x)ⁿ/n converges at x = 1 while its differentiated series
+does not.</p>
+
+<table class="cmp">
+<tr><th>result in Abbott §6.5</th><th>what the page does</th><th>where the proof lives</th></tr>
+<tr><td>Theorem 6.5.1</td><td><strong>proves</strong></td><td>printed 170</td></tr>
+<tr><td>Theorem 6.5.2</td><td>states</td><td>Exercise 6.5.5</td></tr>
+<tr><td>Lemma 6.5.3</td><td>states</td><td>Exercises 2.7.12, 2.7.14(b)</td></tr>
+<tr><td>Theorem 6.5.4</td><td><strong>proves</strong></td><td>printed 172</td></tr>
+<tr><td>Theorem 6.5.5</td><td>states</td><td>Exercise 6.5.6</td></tr>
+<tr><td>Theorem 6.5.6</td><td>states</td><td>Exercise 6.5.7</td></tr>
+<tr><td>Theorem 6.5.7</td><td>partly proves</td><td>printed 173, plus exercises</td></tr>
+</table>
+
+<p>Two of seven. The table is not a complaint about the book — the delegated
+proofs are genuinely short, and Abbott says which exercise carries each. It is a
+constraint on how the section may be cited: "Abbott §6.5" <em>locates</em> all
+seven results and <em>establishes</em> two, and a lesson that writes "Abbott
+proves" of Theorem 6.5.2 has said something false about a true theorem.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Σ (−1)ⁿxⁿ/n converges uniformly on [0, 1], yet
+Σ<sub>n</sub> sup<sub>[0,1]</sub>|(−1)ⁿxⁿ/n| = Σ 1/n diverges. What does this
+show?</p>
+<button onclick="check(this,false)">The M-test has been applied incorrectly; the correct M<sub>n</sub> are smaller</button>
+<button onclick="check(this,true)" data-ok>The M-test is sufficient and not necessary — its failure refutes nothing</button>
+<button onclick="check(this,false)">The convergence is uniform on [0, 1) but not on [0, 1]</button>
+<button onclick="check(this,false)">Uniform convergence of a series requires absolute convergence, so one of the two claims is wrong</button>
+<div class="explain">Sufficiency only. M<sub>n</sub> = sup|f<sub>n</sub>| is the
+smallest choice that can work, so no better M<sub>n</sub> exists and the test is
+genuinely unavailable — yet the series does converge uniformly on all of [0, 1],
+by Theorem 6.5.4, since it converges at x = 1 (alternating harmonic). The fourth
+option inverts the truth: uniform convergence does not imply absolute convergence,
+and this series is the standard witness. What a failed M-test licenses is silence,
+not a negative conclusion.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Everything so far has assumed a series and
+asked where it converges. Now reverse the question.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 30 min</span>
+<h2>Taylor converges to the wrong thing; Weierstrass assumes less and gets more</h2>
+
+<p>Given f, can we find a power series for it? Taylor's formula answers the
+easier half. Assume f(x) = Σ a<sub>n</sub>xⁿ on some interval; differentiate
+term by term N times — legitimate by Theorem 6.5.7 — and set x = 0 to get
+a<sub>N</sub> = f<sup>(N)</sup>(0)/N!. Abbott is emphatic about the shape of what
+this establishes: "we assumed that f actually had a power series representation."
+The coefficients are forced <em>if</em> a representation exists. Whether one
+exists is untouched.</p>
+
+<div class="theorem">
+<strong>Theorem 6.6.1 — Lagrange's Remainder Theorem (printed 178–179).</strong>
+Let f be infinitely differentiable on (−R, R), put
+a<sub>n</sub> = f<sup>(n)</sup>(0)/n! and S<sub>N</sub> = a₀ + ⋯ +
+a<sub>N</sub>x<sup>N</sup>. For x ≠ 0 there is a c with |c| &lt; |x| such that
+E<sub>N</sub>(x) = f(x) − S<sub>N</sub>(x) = f<sup>(N+1)</sup>(c)x<sup>N+1</sup>/(N+1)!.
+<span class="cite">Proof begun at printed 179 via the Generalized Mean Value
+Theorem and <strong>completed by Exercises 6.6.7 and 6.6.8</strong>.</span>
+</div>
+
+<p><strong>Example 6.6.2 (printed 179).</strong> For sin x on [−2, 2] and
+S₅(x) = x − x³/3! + x⁵/5!, the theorem gives E₅(x) = −cos(c)x⁶/6!, so
+|E₅(x)| ≤ 2⁶/6! = 64/720 = 0.0889 — Abbott's ".089". The step that makes this
+work is that |cos c| ≤ 1 <em>whatever c is</em>, and that is not a property of the
+remainder formula. It is a property of sin.</p>
+
+<div class="theorem">
+<strong>The epilogue's criterion (printed 181).</strong> If there is a single M
+with |f<sup>(N+1)</sup>(c)| ≤ M for all c ∈ (−R, R) and all N, then
+E<sub>N</sub>(x) → 0 and S<sub>N</sub> → f on (−R, R). <span class="cite">Stated,
+with the (N+1)! -beats-x<sup>N+1</sup> argument given in one line. Abbott adds
+that weaker growth conditions also suffice.</span>
+</div>
+
+<p>And here is the function that ends the story. Let g(x) = e<sup>−1/x²</sup> for
+x ≠ 0 and g(0) = 0. Both books present it and <em>neither proves anything about
+it</em>: Abbott sets every step as Exercises 6.6.9–6.6.12 at printed 180,
+Lindström as Exercise 3 to §4.10 at printed 122. Abbott attributes it to Cauchy,
+1821. The verification, which is yours to do in the problem set, is that
+g<sup>(n)</sup>(x) = e<sup>−1/x²</sup>P<sub>n</sub>(x)/x<sup>N<sub>n</sub></sup>
+for x ≠ 0 and g<sup>(n)</sup>(0) = 0 for every n. So every Taylor coefficient is
+zero, S<sub>N</sub> is the zero function for every N, that sequence converges
+uniformly on all of ℝ, and its limit agrees with g at exactly one point.</p>
+
+<canvas id="approx" width="640" height="360" role="img"
+ aria-label="Left: e to the minus one over x squared on the unit interval against its Taylor partial sums, which are identically zero. Right: the absolute value of x minus one half, with its Bernstein polynomials for N equal to 4, 8 and 16 approaching it from above."></canvas>
+<p class="cite" style="text-align:center">Left: g(x) = e<sup>−1/x²</sup> and
+S<sub>N</sub> ≡ 0, the same picture for every N. Right: f(x) = |x − ½|, which is
+not differentiable at ½, with Bernstein polynomials p₄, p₈, p₁₆. Two failures of
+Taylor and one success of Weierstrass, drawn to the same scale of difficulty.</p>
+
+<div class="guided-proof">
+<strong>Guided proof — what the counterexample proves about <em>all</em> the
+derivatives of g, computed from none of them.</strong>
+<br><br>
+Theorem 6.6.1 is a theorem, so it is true of g: for every N and every x ≠ 0 there
+is a c with |c| &lt; |x| and g(x) = g<sup>(N+1)</sup>(c)x<sup>N+1</sup>/(N+1)!.
+Nothing is wrong with the remainder formula. Use the epilogue's criterion, in
+contrapositive, to deduce that no bound M can exist with
+|g<sup>(N+1)</sup>(c)| ≤ M for all c ∈ (−R, R) and all N — for <em>any</em>
+R &gt; 0. Then write one sentence saying which conjecture the example refutes and
+one saying which it does not.
+<br><br>
+You may use only: g is infinitely differentiable, S<sub>N</sub> ≡ 0, and
+g(x) &gt; 0 for x ≠ 0. Do not differentiate g.
+<textarea class="proof-input" aria-label="Write your proof here"></textarea>
+<details class="model-answer"><summary>Reveal the model answer</summary>
+<p><strong>The deduction.</strong> Fix R &gt; 0 and suppose such an M existed on
+(−R, R). By the epilogue's criterion, E<sub>N</sub>(x) → 0 for every
+x ∈ (−R, R), that is, S<sub>N</sub>(x) → g(x). But S<sub>N</sub> ≡ 0 for every N,
+so the left side is 0 and we get g(x) = 0 for all x ∈ (−R, R). Taking x = R/2
+gives e<sup>−4/R²</sup> = 0, which is false. Hence no such M exists — and since R
+was arbitrary, none exists on any interval about 0. ∎</p>
+<p><strong>What that argument is.</strong> A statement about the entire family
+{g<sup>(N)</sup>}<sub>N∈ℕ</sub> on a whole interval, obtained from one value of g
+and the fact that its Taylor coefficients vanish. No derivative of g was
+computed. The work is done by reading the epilogue's sufficient condition
+backwards: whatever else is true of g, it cannot satisfy that condition, because
+if it did the conclusion would follow and the conclusion is false.</p>
+<p><strong>What the example refutes.</strong> That every infinitely
+differentiable function is the sum of its Taylor series near 0 — the conjecture
+Abbott says "effectively ended" with Cauchy's discovery in 1821.</p>
+<p><strong>What it does not refute.</strong> Theorem 6.6.1, which is true of g and
+remains exact; the epilogue's criterion, which is sufficient and never claimed
+necessary; or the existence of <em>some</em> polynomial approximation to g. The
+last of these is important: g is continuous on [−1, 1], so Theorem 4.10.1 applies
+to it and polynomials converging uniformly to g on [−1, 1] certainly exist. What
+fails is only that the <em>Taylor</em> polynomials are among them.</p>
+</details>
+</div>
+
+<p>That last point is the turn of the unit. The Taylor construction failed, and
+the reason it failed is that it asks for too much: one series, whose partial sums
+are nested, whose coefficients are extracted from the behaviour of f at a single
+point. Weierstrass asks for something weaker in every respect.</p>
+
+<div class="theorem">
+<strong>Theorem 4.10.1 — Weierstrass' Theorem (Lindström, printed 116).</strong>
+The polynomials are dense in C([a, b], ℝ): for each continuous f : [a, b] → ℝ
+there is a sequence of polynomials {p<sub>n</sub>} converging uniformly to f.
+<span class="cite"><strong>Proved</strong>, twice — probabilistically via
+Bernstein at printed 117–119, analytically via kernels at printed 119–121, then
+transported from [0, 1] to [a, b] at printed 121.</span>
+</div>
+
+<p>Compare the two claims with their quantifiers in order. <em>Taylor:</em> there
+is one sequence (a<sub>n</sub>), determined by f's derivatives at 0, such that for
+all x the nested partial sums converge to f(x). <em>Weierstrass:</em> there is a
+sequence of polynomials p<sub>n</sub>, subject to no relation whatever between
+p<sub>n</sub> and p<sub>n+1</sub>, converging uniformly to f. And Taylor needs f
+infinitely differentiable where Weierstrass needs f merely continuous — which is
+Lindström's stated motive for the theorem: "Most continuous functions are not
+differentiable at all."</p>
+
+<div class="theorem">
+<strong>Lemma 4.10.2 — Chebyshev's inequality (printed 118).</strong> For a
+bounded random variable X with mean x, E(𝟙<sub>{|x−X|≥δ}</sub>) ≤ Var(X)/δ².
+<span class="cite"><strong>Proved</strong>, in two lines, from the pointwise
+inequality δ²𝟙<sub>{|x−X|≥δ}</sub> ≤ (x − X)².</span>
+<br><br>
+<strong>Proposition 4.10.3 (printed 118).</strong> For continuous f : [0, 1] → ℝ
+the Bernstein polynomials p<sub>N</sub>(x) = Σ<sub>k=0</sub><sup>N</sup>
+f(k/N)·C(N,k)·x<sup>k</sup>(1−x)<sup>N−k</sup> converge uniformly to f.
+<span class="cite"><strong>Proved</strong>, printed 118–119.</span>
+</div>
+
+<p>Two properties of [0, 1] are consumed by that proof and they are the same
+property twice: compactness. It gives uniform continuity of f by
+Proposition 4.1.2, which controls E(𝟙<sub>{|x−X<sub>n</sub>|&lt;δ}</sub>|f(x) −
+f(X<sub>n</sub>)|) ≤ ε/2; and it gives boundedness of f, supplying the M in the
+Chebyshev half. Lindström names Proposition 4.1.2 explicitly here and asserts the
+boundedness without a citation — "since f is a continuous function on a compact
+interval, it must be bounded by a constant M" — where two sections later, in
+Lemma 4.11.3, he does name the Extreme Value Theorem 3.5.10 for the same step.
+Both halves would fail on an open or unbounded interval, and Segment 3's last
+item shows they must.</p>
+
+<div class="theorem">
+<strong>Lemma 4.10.4 (printed 120).</strong> The normalising constants of the
+kernels P<sub>n</sub>(x) = c<sub>n</sub>(1 − x²)ⁿ satisfy c<sub>n</sub> &lt; √n.
+<span class="cite"><strong>Proved</strong>, from (1 − x²)ⁿ ≥ 1 − nx² on [−1, 1].</span>
+<br><br>
+<strong>Proposition 4.10.5 (printed 120–121).</strong> The convolutions
+p<sub>n</sub>(x) = ∫<sub>−1</sub><sup>1</sup> f(x + t)P<sub>n</sub>(t) dt are
+polynomials converging uniformly to f on [0, 1], for continuous f vanishing at
+both endpoints. <span class="cite"><strong>Proved</strong>.</span>
+</div>
+
+<p>Lindström's second proof is the one to keep in mind for the mission strip,
+because it is <em>constructive in appearance and not in force</em>. The kernels
+concentrate: ∫<sub>−1</sub><sup>1</sup>P<sub>n</sub> = 1 for every n while the
+mass collects nearer and nearer 0, so p<sub>n</sub>(x) is a weighted average of
+values of f close to x. The three-way split of the integral — over [−1, −δ],
+[−δ, δ], [δ, 1] — is exactly that picture: the middle piece is small because f
+barely moves, the outer pieces are small because the kernel barely weighs.</p>
+
+<div class="you-try">
+<strong>You try.</strong> The strip audit, in three parts. None of them is a
+correction to the strip.
+<br><br>
+<em>The chain that works.</em> Write out the implication that does justify
+discretisation: from a bound on ‖f − g‖<sub>∞</sub>, through an2-05's
+identification of that norm with an2-01's sup metric, to tda1-07's report of
+Oudot's Corollary 3.6. Say which step is this module's and which is reported.
+<br><br>
+<em>The theorem that is not doing the work.</em> Say why Theorem 4.10.1 is not
+what supplies the g in that chain when g is a sampled signal, and name the result
+that does. Then say what Theorem 4.10.1 <em>does</em> add that no sampling
+argument gives.
+<br><br>
+<em>The rate that does not exist.</em> Theorem 4.10.1 asserts existence with no n
+attached to any ε. Using the figure's three measured errors for f(x) = |x − ½| —
+0.1875, 0.1367, 0.0982 at N = 4, 8, 16 — estimate how the worst Bernstein error
+falls with N, and say what that means for anyone who wants a grid fine enough to
+guarantee a stated bottleneck bound.
+</div>
+
+<div class="theorem">
+<strong>Definition 4.11.1 (printed 123).</strong> A nonempty 𝒜 ⊆ C(X, ℝ) on a
+compact metric space X is an <em>algebra</em> if cf ∈ 𝒜 for f ∈ 𝒜 and c ∈ ℝ, and
+f + g, fg ∈ 𝒜 for f, g ∈ 𝒜.
+<br><br>
+<strong>Definition 4.11.5 (printed 125).</strong> 𝒜 <em>separates points</em> if
+for distinct a, b ∈ X some f ∈ 𝒜 has f(a) ≠ f(b); it <em>does not vanish
+anywhere</em> if for each a ∈ X some g ∈ 𝒜 has g(a) ≠ 0.
+<br><br>
+<strong>Theorem 4.11.9 — Stone–Weierstrass, version 2 (printed 127).</strong> If
+𝒜 is an algebra in C(X, ℝ) that separates points and does not vanish anywhere,
+then 𝒜 is dense in C(X, ℝ). <span class="cite">Proved by reducing to
+<strong>Theorem 4.11.6</strong> (printed 126, the closed-algebra version, proved
+in full), with the closure-is-an-algebra details left to Exercise 8.</span>
+</div>
+
+<p>Examples 2 and 3 at printed 124 show the two hypotheses are not decoration:
+{f : f(a) = 0} and {f : f(a) = f(b)} are closed algebras that are not all of
+C(X, ℝ), and they fail exactly the non-vanishing and the separating condition
+respectively. And there is a structural fact about the proof worth carrying away.
+Theorem 4.11.6 runs on <strong>Lemma 4.11.4</strong> (max and min of finitely
+many members stay in a closed algebra), which runs on <strong>Lemma 4.11.3</strong>
+(|f| ∈ 𝒜 when f ∈ 𝒜), whose proof at printed 124–125 applies <em>Weierstrass'
+Theorem</em> on C([−N, N], ℝ) to the absolute-value function t ↦ |t| — routed
+through <strong>Lemma 4.11.2</strong>, which is why the approximating polynomial
+must first be adjusted to have zero constant term. So Stone–Weierstrass
+generalises Theorem 4.10.1 in reach and <em>consumes</em> it in proof. It does not
+replace it.</p>
+
+<div class="worked fade">
+<strong>Faded — where "ANY continuous function" stops.</strong>
+<span class="cite">Lindström's Exercises 1 and 2 to §4.10, printed 122, both set
+and neither worked.</span>
+<br><br>
+No sequence of polynomials converges uniformly to e<sup>x</sup> on ℝ. Suppose
+p<sub>n</sub> → e<sup>x</sup> uniformly; then (p<sub>n</sub>) is uniformly Cauchy,
+so some N has sup<sub>ℝ</sub>|p<sub>n</sub> − p<sub>N</sub>| ≤ 1 for n ≥ N. A
+polynomial bounded on all of ℝ is constant, so p<sub>n</sub> = p<sub>N</sub> +
+c<sub>n</sub>; the c<sub>n</sub> converge (evaluate at 0), and e<sup>x</sup> =
+p<sub>N</sub>(x) + c. But a polynomial of degree d has vanishing (d+1)-st
+derivative and e<sup>x</sup> does not.
+<br><br>
+⟨your step: now show no sequence of polynomials converges uniformly to 1/x on
+(0, 1). The obstruction is different — start by showing that uniform convergence
+on (0, 1) of functions that are continuous on [0, 1] forces uniform convergence on
+[0, 1], and then find the contradiction in one more line. Finally, name which
+hypothesis of Theorem 4.10.1 each of the two failures violates, and say which
+an2-03 characterisation of that hypothesis you are using.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Cauchy's g has Taylor series identically 0.
+Which statement is <em>false</em>?</p>
+<button onclick="check(this,false)">The Taylor series of g converges uniformly on every interval</button>
+<button onclick="check(this,false)">Lagrange's Remainder Theorem holds for g and gives no useful bound</button>
+<button onclick="check(this,true)" data-ok>No sequence of polynomials converges uniformly to g on [−1, 1]</button>
+<button onclick="check(this,false)">g is infinitely differentiable and every derivative vanishes at 0</button>
+<div class="explain">The third is false, and it is the tempting one. g is
+continuous on the closed bounded interval [−1, 1], so Theorem 4.10.1 applies
+directly and polynomials converging uniformly to g exist — Bernstein even names a
+sequence. What Cauchy's example kills is the claim that the <em>Taylor</em>
+polynomials are such a sequence. The other three are all true: S<sub>N</sub> ≡ 0
+converges uniformly everywhere because it is constant; Theorem 6.6.1 is a
+theorem and holds for g, yielding an exact but unusable identity because
+g<sup>(N+1)</sup>(c) admits no uniform bound; and the vanishing of every
+derivative at 0 is the content of Exercises 6.6.9–6.6.11.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> What is the essential difference between "the
+Taylor series of f converges to f" and Theorem 4.10.1?</p>
+<button onclick="check(this,false)">Theorem 4.10.1 gives uniform convergence where Taylor gives only pointwise</button>
+<button onclick="check(this,true)" data-ok>Theorem 4.10.1 quantifies over unrelated sequences of polynomials and needs no derivatives</button>
+<button onclick="check(this,false)">Theorem 4.10.1 is about [a, b] and Taylor about (−R, R), which is a difference of domain only</button>
+<button onclick="check(this,false)">Taylor's polynomials have degree N and Weierstrass's have unbounded degree</button>
+<button onclick="check(this,false)">Theorem 4.10.1 is constructive and Taylor is not</button>
+<div class="explain">Two things at once, and both matter. Taylor's partial sums
+are nested — S<sub>N+1</sub> is S<sub>N</sub> plus one term — and every
+coefficient is read off f's derivatives at a single point, so the whole sequence
+is determined by local data. Weierstrass permits p<sub>n+1</sub> to have nothing
+to do with p<sub>n</sub>, and asks only that f be continuous. The first option is
+wrong because Taylor convergence can also be uniform, as it is for sin on
+[−R, R]; the third mistakes a hypothesis for a habitat; the fourth is true of
+Bernstein but is not the essential point; the fifth is backwards, since Bernstein
+writes p<sub>N</sub> down explicitly while Theorem 4.10.1 attaches no rate to
+it.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Weierstrass' Theorem fails for 1/x on (0, 1)
+and for e<sup>x</sup> on ℝ. What do the two failures have in common?</p>
+<button onclick="check(this,false)">In both cases the function is unbounded, and boundedness is the missing hypothesis</button>
+<button onclick="check(this,true)" data-ok>In both cases the domain fails to be compact, which is the hypothesis "[a, b]"</button>
+<button onclick="check(this,false)">In both cases the function fails to be uniformly continuous on its domain</button>
+<button onclick="check(this,false)">Nothing — one is a failure of the theorem and the other of the proof technique</button>
+<div class="explain">The domain, not the function. Theorem 4.10.1's only
+hypothesis on f is continuity; its hypothesis on the domain is that it be a closed
+bounded interval, which for subsets of ℝ is an2-03's characterisation of
+compactness. (0, 1) is bounded and not closed; ℝ is closed and not bounded; each
+fails one clause and one is enough. The first option is a symptom rather than the
+cause — unboundedness of f on its domain is what the two proofs exploit, but a
+bounded function can fail too, and sin(1/x) on (0, 1) does. Note also what
+survives: 1/x is continuous on any [a, b] ⊆ (0, 1), and there Theorem 4.10.1
+applies without difficulty.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close the file and reconstruct three claims.
+<details><summary>Check against this</summary>
+1. <strong>A series is a sequence of partial sums, so §6.4 adds one thing: a
+test.</strong> Definition 6.4.1 makes Theorem 6.4.2 and Theorem 6.4.3 one-line
+consequences of an2-05's Theorem 6.2.6 and Theorem 6.3.3. The Weierstrass M-test
+converts a question about uniform convergence of functions into the convergence
+of a series of numbers, and the reason it works is that the tail bound
+Σ<sub>k&gt;n</sub>M<sub>k</sub> was never a function of x. Lindström proves it as
+Proposition 4.3.4; Abbott states it as Corollary 6.4.5 and sets the proof.
+<br><br>
+2. <strong>Taylor's series can converge and be wrong.</strong> Taylor's formula is
+a conditional — if a power series representation exists, the coefficients are
+forced. Cauchy's g(x) = e<sup>−1/x²</sup> has every derivative zero at the origin,
+so its Taylor series is identically 0, converges uniformly on ℝ, and equals g only
+at 0. Lagrange's Theorem 6.6.1 remains true of g and gives no bound, because the
+epilogue's sufficient condition — one M dominating every f<sup>(N+1)</sup> —
+provably fails for g, as the guided proof shows without differentiating it once.
+<br><br>
+3. <strong>Weierstrass assumes less and delivers what Taylor could not, on a
+compact interval and with no rate.</strong> Theorem 4.10.1 needs only continuity,
+and permits every approximating polynomial to be unrelated to the last. Both of
+Lindström's proofs spend compactness of [0, 1] twice over — uniform continuity by
+Proposition 4.1.2 and boundedness by Theorem 3.5.10 — and the two exercises at
+printed 122 show that neither spend may be avoided. Theorem 4.11.9 extends the
+statement to any algebra separating points and not vanishing anywhere, and its
+proof consumes Theorem 4.10.1 through Lemma 4.11.3 rather than replacing it.
+</details>
+</div>
+
+<footer>
+<strong>Sources, page by page.</strong> Every printed page below was read; the
+folio was checked on the page, not inferred from a section heading.
+<br><br>
+Abbott, <em>Understanding Analysis</em>, 2nd ed., §6.4 "Series of Functions",
+printed 167–169; §6.5 "Power Series", printed 169–175; §6.6 "Taylor Series",
+printed 176–180; §6.7 "Epilogue", printed 181–182 (folio = PDF − 12). The end of
+§6.3 with Theorem 6.3.2, Theorem 6.3.3 and Exercises 6.3.1–6.3.3, printed 166.
+The opening of §6.4, Definition 6.4.1 and Theorem 6.4.2 with proof, printed 167.
+Theorem 6.4.3 with proof, Theorem 6.4.4, Corollary 6.4.5, and Exercises 6.4.1–6.4.3,
+printed 168. Exercises 6.4.4–6.4.8 and the opening of §6.5, printed 169.
+Theorem 6.5.1 with proof and Theorem 6.5.2, printed 170. Lemma 6.5.3 and the
+remark on the triangle inequality, printed 171. Theorem 6.5.4 with proof and
+Theorem 6.5.5, printed 172. Theorem 6.5.6, Theorem 6.5.7 and the endpoint remark
+about Σ (−x)ⁿ/n, printed 173. Exercises 6.5.1–6.5.7, printed 174;
+Exercises 6.5.8–6.5.12, printed 175. The opening of §6.6 and the substitution
+leading to the arctan series, printed 176. Exercises 6.6.1–6.6.4 and Taylor's formula for the coefficients,
+printed 177. Lagrange's Remainder Theorem 6.6.1, statement beginning printed 178
+with the error formula displayed on printed 179. Example 6.6.2 and
+Exercises 6.6.5–6.6.7, printed 179. Exercise 6.6.8, the counterexample g, and
+Exercises 6.6.9–6.6.12, printed 180. The epilogue's criterion and the attribution
+to Cauchy in 1821, printed 181.
+<br><br>
+Lindström, <em>Spaces: An Introduction to Real Analysis</em>, §4.3 "Integrating
+and differentiating sequences", printed 86–92; §4.10 "Polynomials are dense in
+the continuous functions", printed 116–122; §4.11 "The Stone–Weierstrass
+Theorem", printed 123–130 (folio = PDF − 13). Proposition 4.3.4 with proof and
+Example 2, printed 89. Corollary 4.3.3 with proof, printed 88. Corollary 4.3.6
+with "Proof. Left to the reader", printed 90. The end of §4.9, the opening of
+§4.10 and Theorem 4.10.1, printed 116. Bernstein's setup, printed 117.
+Lemma 4.10.2 with proof and Proposition 4.10.3 with proof, printed 118. The end of
+Bernstein's proof and the start of the analytic proof with the kernels
+P<sub>n</sub> and Figure 4.10.1, printed 119. Lemma 4.10.4 with proof and
+Proposition 4.10.5 with proof, printed 120. The end of that proof and the change
+of variable to [a, b], printed 121. The remark on why the theorem is useful, and
+Exercises 1–5 to §4.10 including Exercise 3 (Cauchy's counterexample), printed
+122. Definition 4.11.1 and the end of Exercise 6, printed 123. Examples 1–3,
+Lemma 4.11.2 with proof and Lemma 4.11.3, printed 124. The end of Lemma 4.11.3's
+proof, Lemma 4.11.4 with proof and Definition 4.11.5, printed 125. Theorem 4.11.6,
+Lemma 4.11.7, Corollary 4.11.8 and the start of the main proof, printed 126. The
+end of that proof, Theorem 4.11.9 and Example 4, printed 127. Exercises 1–3 to
+§4.11, printed 129; Exercises 4–11 including Exercises 5 and 6, printed 130.
+<br><br>
+Carried from earlier units: Proposition 4.1.2 and Proposition 4.2.4, printed 80
+and 83 (an2-05's); Theorem 3.5.10, the Extreme Value Theorem, printed 65, and
+Theorem 3.6.4, the open-covering characterisation, printed 70 (an2-03's);
+Theorem 6.2.5 and Theorem 6.2.6, printed 160, and Theorem 6.3.3, printed 166
+(an2-05's).
+<br><br>
+<em>Modality.</em> Abbott <strong>proves</strong> Theorem 6.4.2, Theorem 6.4.3,
+Theorem 6.5.1 and Theorem 6.5.4; <strong>states</strong> Theorem 6.4.4 with
+neither proof nor exercise attached; <strong>states and sets as exercises</strong>
+Corollary 6.4.5 (Exercise 6.4.2), Theorem 6.5.2 (Exercise 6.5.5), Lemma 6.5.3
+(Exercises 2.7.12 and 2.7.14(b)), Theorem 6.5.5 (Exercise 6.5.6) and
+Theorem 6.5.6 (Exercise 6.5.7); and <strong>partly proves</strong> Theorem 6.5.7
+and Theorem 6.6.1, whose argument he begins and completes through
+Exercises 6.6.7 and 6.6.8. Cauchy's counterexample is <strong>presented and set
+as exercises</strong> in both books — Abbott's Exercises 6.6.9–6.6.12 at printed
+180, Lindström's Exercise 3 to §4.10 at printed 122 — and is
+<strong>proved by neither</strong>; this lesson's guided proof is therefore its own
+work, and reasons only from properties both books assert. Lindström
+<strong>proves</strong> Proposition 4.3.4, Theorem 4.10.1 (twice), Lemma 4.10.2,
+Proposition 4.10.3, Lemma 4.10.4, Proposition 4.10.5, Lemma 4.11.2, Lemma 4.11.3,
+Lemma 4.11.4 and Theorem 4.11.6, and <strong>proves with details delegated</strong>
+Theorem 4.11.9 (Exercise 8). The bounds on Theorem 4.10.1 — 1/x on (0, 1) and
+e<sup>x</sup> on ℝ — are Lindström's <strong>Exercises 1 and 2</strong> to §4.10,
+set and not worked. Oudot's Corollary 3.6 is <strong>reported</strong> from
+tda1-07; this unit does not open that book.
+<br><br>
+<em>Stated here but not in the source.</em> The modality table for §6.5 is
+assembled here by reading each of Abbott's seven results against its own page; he
+nowhere summarises which he proves. The side-by-side comparison of the two
+M-tests, and the observation that Abbott's route passes through Theorem 6.4.4 and
+Theorem 6.2.5 without proving either, are this lesson's — neither book comments on
+the other. The guided proof's deduction that no uniform bound on g's derivatives
+exists is this lesson's, assembled from Abbott's epilogue criterion read in
+contrapositive; Abbott states the criterion and does not apply it to g. The claim
+that Stone–Weierstrass <em>consumes</em> Theorem 4.10.1 is this lesson's reading
+of Lemma 4.11.3's proof, which does apply Weierstrass' Theorem to t ↦ |t| but is
+not described by Lindström as a dependency. The three numerical errors quoted for
+the Bernstein polynomials of |x − ½| — 0.1875, 0.1367 and 0.0982 at N = 4, 8, 16 —
+were computed for this lesson and are not in either book; so is the observation
+that they fall by roughly a factor 1.4 per doubling of N. The proof of the
+e<sup>x</sup> exercise in the second faded example is this lesson's; Lindström sets
+the exercise and gives no hint.
+<br><br>
+<em>Not established here.</em> Abbott's Algebraic Continuity Theorem 4.3.4 and
+his Theorem 5.2.4 on derivatives of finite sums, both quoted inside his one-line
+proofs, and both an-10's and an-12's. (Abbott's Theorem 4.3.4 and Lindström's
+Proposition 4.3.4 share their digits and are unrelated: the first is algebraic
+continuity, the second is the M-test.) The Generalized Mean Value Theorem 5.3.5
+behind Lagrange's remainder — an-12's. Summation by parts, which carries
+Lemma 6.5.3, and which Abbott places in §2.7 — an-06's. The probability facts
+behind Bernstein's proof: Lindström derives E(X<sub>N</sub>) and
+Var(X<sub>N</sub>) from independence and offers a purely analytic reconstruction
+in Exercise 6 to §4.10, which this lesson does not carry out. Fourier series and
+the trigonometric-polynomial corollaries of Stone–Weierstrass, printed 128–129 —
+Lindström's Chapter 9, in no S2 unit. The completeness of C([a, b], ℝ), needed to
+make "dense in C([a, b], ℝ)" a statement about a complete space — Theorem 4.6.4,
+printed 102, an2-08's. Everything about persistence diagrams in the warn block and
+the You-try is tda1-07's reading of Oudot, reported and not verified here; in
+particular no claim is made that Theorem 4.10.1 bounds any bottleneck distance,
+and the figure's three error values are about Bernstein approximation only.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script>
+<script>
+(function(){
+  var c=document.getElementById('approx'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+  g.font='12px Segoe UI,system-ui,sans-serif';
+
+  // ---- left panel: e^{-1/x^2} against its Taylor partial sums (all zero) ----
+  var LX0=62, LX1=282, LY0=290, LY1=80, LMAX=0.40;
+  function LX(x){ return LX0+(LX1-LX0)*x; }
+  function LY(v){ return LY0-(LY0-LY1)*(v/LMAX); }
+  g.fillStyle='#9aa5b1'; g.textAlign='left';
+  g.fillText('Taylor: the series is right there, and it is 0', LX0-12, 44);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(LX0-10,LY0); g.lineTo(LX1+10,LY0); g.stroke();
+  g.beginPath(); g.moveTo(LX0,LY0+10); g.lineTo(LX0,LY1-6); g.stroke();
+
+  g.strokeStyle='#4caf82'; g.lineWidth=2; g.beginPath();
+  for(var k=0;k<=600;k++){
+    var x=k/600, v=(x===0)?0:Math.exp(-1/(x*x));
+    if(k===0) g.moveTo(LX(x),LY(v)); else g.lineTo(LX(x),LY(v));
+  }
+  g.stroke();
+  g.fillStyle='#4caf82';
+  g.fillText('g(x) = e^(-1/x²)', LX(0.30), LY(0.30));
+
+  // drawn last so the zero line reads as continuous: for x below about 0.45 the
+  // curve and the line agree to within a pixel, which is the point of the panel
+  g.strokeStyle='#e06c75'; g.lineWidth=2;
+  g.beginPath(); g.moveTo(LX(0),LY(0)); g.lineTo(LX(1),LY(0)); g.stroke();
+  g.fillStyle='#e06c75';
+  g.fillText('S_N for every N', LX(0.30), LY(0)-8);
+
+  g.strokeStyle='#8ab4f8'; g.lineWidth=1.5; g.setLineDash([4,4]);
+  g.beginPath(); g.moveTo(LX(1),LY(0)); g.lineTo(LX(1),LY(Math.exp(-1))); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle='#8ab4f8'; g.textAlign='right';
+  g.fillText('gap 0.368', LX(1)-4, LY(0.19));
+
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('0', LX0, LY0+18);
+  g.fillText('1', LX(1), LY0+18);
+
+  // ---- right panel: |x - 1/2| and its Bernstein polynomials ----
+  var RX0=372, RX1=572, RY0=290, RY1=80, RMAX=0.60;
+  function RX(x){ return RX0+(RX1-RX0)*x; }
+  function RY(v){ return RY0-(RY0-RY1)*(v/RMAX); }
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('Bernstein: no derivative needed', RX0-12, 44);
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(RX0-10,RY0); g.lineTo(RX1+10,RY0); g.stroke();
+  g.beginPath(); g.moveTo(RX0,RY0+10); g.lineTo(RX0,RY1-6); g.stroke();
+
+  g.strokeStyle='#e8e8e8'; g.lineWidth=2.5;
+  g.beginPath();
+  g.moveTo(RX(0),RY(0.5)); g.lineTo(RX(0.5),RY(0)); g.lineTo(RX(1),RY(0.5));
+  g.stroke();
+
+  function binom(n,k){ var r=1; for(var i=0;i<k;i++){ r=r*(n-i)/(i+1); } return r; }
+  function bern(N,x){
+    var s=0;
+    for(var i=0;i<=N;i++){ s+=Math.abs(i/N-0.5)*binom(N,i)*Math.pow(x,i)*Math.pow(1-x,N-i); }
+    return s;
+  }
+  var fam=[[4,'#d8a657'],[8,'#8ab4f8'],[16,'#4caf82']];
+  for(var j=0;j<fam.length;j++){
+    var N=fam[j][0];
+    g.strokeStyle=fam[j][1]; g.lineWidth=2; g.beginPath();
+    for(var m=0;m<=400;m++){
+      var t=m/400, w=bern(N,t);
+      if(m===0) g.moveTo(RX(t),RY(w)); else g.lineTo(RX(t),RY(w));
+    }
+    g.stroke();
+    g.fillStyle=fam[j][1];
+    g.fillRect(RX0+10, 66+j*16, 14, 3);
+    g.fillText('N = '+N, RX0+30, 70+j*16);
+  }
+  g.fillStyle='#9aa5b1'; g.textAlign='center';
+  g.fillText('0', RX0, RY0+18);
+  g.fillText('½', RX(0.5), RY0+18);
+  g.fillText('1', RX(1), RY0+18);
+
+  g.textAlign='left'; g.fillStyle='#9aa5b1';
+  g.fillText('converges uniformly to 0, equals g only at 0', LX0-12, 328);
+  g.fillText('worst error 0.1875, 0.1367, 0.0982', RX0-12, 328);
+})();
+</script>
+</body></html>
