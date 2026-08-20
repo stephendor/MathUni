@@ -511,14 +511,25 @@ scikit-learn 1.3.2, numpy 1.26.4 — and re-derived by gate 9. API surfaces:
 <code>StratifiedKFold</code>.
 <br><br>
 <em>An environment fact, stated rather than worked around silently.</em>
-<strong><code>sklearn.ensemble</code> does not import in the environment built
-from this repository's lockfile.</strong> <code>resources/lab-requirements.txt</code>
-pins scikit-learn 1.3.2; in the resulting install, <code>sklearn/ensemble/</code>
-holds its Python sources and none of its compiled extensions, while 55 compiled
-extensions are present elsewhere in the package. Every classifier here is
-<code>LogisticRegression</code>, which is independently the right choice for
-determinism under gate 9. Recorded because "the environment is pinned" and "the
-environment works" are different claims.
+This unit was drafted against a <strong>broken environment, while gate 9 reported
+<code>pins verified</code> throughout</strong>. The first draft used
+<code>RandomForestClassifier</code>, and <code>import sklearn.ensemble</code>
+failed: the subpackage held its Python sources and none of its compiled
+extensions, while 55 were present elsewhere in scikit-learn.
+<code>igraph._igraph</code> was missing too, and several
+<code>.dist-info</code> directories had no <code>RECORD</code> file — an
+incomplete install. All the while
+<code>importlib.metadata.version("scikit-learn")</code> returned
+<code>"1.3.2"</code>, which is all gate 9 asks. Re-running the lockfile's own
+documented rebuild repaired every package and changed no version:
+<strong>the lockfile was right and the environment was wrong, and nothing
+distinguished them.</strong> Gate 9 then <em>did</em> fire — on the repair,
+failing this set's <code>env</code> block because the recorded output had
+changed. The convention that follows: <strong>a lab <code>env</code> block should
+import the specific modules its later blocks use</strong>, so a broken subpackage
+appears as a gate-9 diff instead of a green run. This unit's does;
+<code>lab-01</code> to <code>lab-06</code> predate the rule.
+<code>LogisticRegression</code> is kept, on determinism grounds.
 <br><br>
 <em>Stated here but not in the source.</em> The whole experimental design — the two
 classes, the moment baseline, the whitening, the label permutation — is this

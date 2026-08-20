@@ -27,14 +27,27 @@ Theorem 13.1, which is what the landscape amplitude feature inherits; lab-05's �
    the only source in this programme that says what a "mean" of topological
    summaries even is. It is used as a primary source and the divergence is
    recorded for the syllabus pass, alongside the identical finding for `lab-06`.
-2. **`sklearn.ensemble` does not import in the environment built from this
-   repository's own lockfile.** `resources/lab-requirements.txt` pins
-   scikit-learn 1.3.2; in the environment built from it, `sklearn/ensemble/`
-   contains its Python sources and **none** of its compiled extensions, while 55
-   compiled extensions are present elsewhere in the package. Every classifier in
-   this unit is therefore `LogisticRegression`, which is also the right choice on
-   determinism grounds. Recorded because "the environment is pinned" and "the
-   environment works" are different claims and only gate 9 checks either.
+2. **This unit was drafted against a broken environment, and gate 9 said
+   `pins verified` the whole time.** The first draft's classifier was
+   `RandomForestClassifier`, and `import sklearn.ensemble` failed:
+   `ModuleNotFoundError: No module named 'sklearn.ensemble._gradient_boosting'`.
+   `sklearn/ensemble/` held its Python sources and **none** of its compiled
+   extensions, while 55 were present elsewhere in the package; `igraph._igraph`
+   was missing too, and several `.dist-info` directories had no `RECORD` file —
+   the signature of an incomplete install. Throughout,
+   `importlib.metadata.version("scikit-learn")` returned `"1.3.2"` and gate 9
+   passed, because it compares metadata strings and imports nothing.
+   Re-running the lockfile's own documented rebuild —
+   `uv pip install --reinstall -r resources/lab-requirements.txt` — repaired
+   every package and changed no version. **The lockfile was correct; the
+   environment was not, and no check could tell them apart.** Gate 9 then caught
+   the repair, failing this set's `env` block because the recorded output no
+   longer matched — the gate working, in the opposite direction, on a difference
+   that mattered. `LogisticRegression` is kept, on determinism grounds. **The
+   convention this produces: a lab `env` block should import the specific modules
+   its later blocks use**, so that a broken subpackage shows up as a gate-9 diff
+   rather than as a green run. This set's `env` block does; `lab-01` to `lab-06`
+   predate the rule.
 
 ## The environment
 
@@ -63,7 +76,7 @@ python            3.11.11
 giotto-tda        0.6.2
 scikit-learn      1.3.2
 numpy             1.26.4
-sklearn.ensemble  ModuleNotFoundError: No module named 'sklearn.ensemble._gradient_boosting'
+sklearn.ensemble  imports
 ```
 
 ---
