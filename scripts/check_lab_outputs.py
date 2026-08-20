@@ -18,15 +18,32 @@ This gate re-derives the three things that claim depends on:
    compared with its recorded pair.
 3. **Determinism.** The whole file runs twice by default. Unseeded randomness
    produces a set whose outputs are true once and false thereafter, which is
-   exactly the failure a single run cannot see. ``--repeat 1`` opts out.
+   exactly the failure a single run cannot see. ``--repeat 1`` opts out. Every
+   repeat is also checked for blocks that raised or never ran, because a block
+   that succeeds once and fails afterwards produces the same stdout both times.
+4. **That the pinned packages load.** ``importlib.metadata`` reads a
+   ``.dist-info`` directory and imports nothing, so a distribution missing its
+   compiled extensions reports its pinned version and fails several blocks
+   later. The ``env`` block must therefore import every module the set uses, at
+   the submodule it uses; this gate checks that statically before running.
 
 Only blocks carrying ``id=`` participate, so a set can still show code the
 reader is meant to complete without the gate trying to run it.
+
+``--parse-only`` performs 1's structural half and 4 without executing anything,
+which is the part that needs no lab interpreter and so the part CI can run.
+
+This gate **executes the repository's own content** in the interpreter it is
+pointed at, with the invoking environment inherited. That is the same trust
+level as the test suite, and it is not a sandbox: point it only at a checkout
+you would run ``pytest`` on.
 """
 import argparse
+import ast
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -74,7 +91,13 @@ def parse_env_pins(markdown_text):
             if pin is None:
                 raise LabSetError(
                     "env block line is not 'name==version': %r" % line)
-            pins[pin.group(1)] = pin.group(2)
+            name, pinned = pin.group(1), pin.group(2)
+            if name in pins and pins[name] != pinned:
+                raise LabSetError(
+                    "env block pins %s at both %s and %s: the recorded "
+                    "environment is contradictory, so no interpreter can "
+                    "satisfy it" % (name, pins[name], pinned))
+            pins[name] = pinned
     return pins
 
 
@@ -113,6 +136,101 @@ def parse_blocks(markdown_text):
             raise LabSetError("output block '%s' matches no python block" % block_id)
 
     return [(bid, body, outputs[bid]) for bid, body in code]
+
+
+_DYNAMIC_IMPORT = ("__import__", "import_module")
+
+
+def _is_dynamic_import(node):
+    if not isinstance(node, ast.Call):
+        return False
+    function = node.func
+    name = getattr(function, "id", None) or getattr(function, "attr", None)
+    return name in _DYNAMIC_IMPORT
+
+
+def _strings(node):
+    return {child.value for child in ast.walk(node)
+            if isinstance(child, ast.Constant) and isinstance(child.value, str)}
+
+
+def _module_targets(tree):
+    """Return the dotted module paths an AST loads.
+
+    ``import gtda.mapper`` is an ``Import`` node, but a block that probes a list
+    of names loads them through ``__import__(name)``, where the names are string
+    constants. Only constants that reach such a call count: an ``env`` block
+    also loops over *distribution* names to print their versions, and a
+    distribution name that happens to match a module name would otherwise
+    satisfy this check without anything being imported.
+    """
+    modules = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                modules.add(alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            if node.level == 0 and node.module:
+                modules.add(node.module)
+        elif _is_dynamic_import(node):
+            for argument in node.args:
+                modules |= _strings(argument)
+        elif isinstance(node, ast.For):
+            if any(_is_dynamic_import(inner)
+                   for statement in node.body
+                   for inner in ast.walk(statement)):
+                modules |= _strings(node.iter)
+    return modules
+
+
+def check_env_imports(blocks):
+    """Return failure lines for modules the ``env`` block never imports.
+
+    The environment pins are metadata: ``importlib.metadata.version`` reads a
+    ``.dist-info`` directory and never loads the package, so a distribution
+    whose compiled extensions are missing reports its pinned version happily
+    and fails only later, in a block whose diff looks like a content error.
+    Requiring the ``env`` block to import every module the set actually uses —
+    at the submodule it uses, since a broken subpackage is the failure that
+    occurs — turns that into an ``env`` diff on the first block instead.
+    """
+    env_code = [code for bid, code, _ in blocks if bid == "env"]
+    used = {}
+    for block_id, code, _ in blocks:
+        if block_id == "env":
+            continue
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            continue
+        for module in _module_targets(tree):
+            used.setdefault(module, block_id)
+
+    external = {module: bid for module, bid in used.items()
+                if module.split(".")[0] not in sys.stdlib_module_names}
+    if not external:
+        return []
+    if not env_code:
+        return ["FAIL no env block, so the %d module(s) the set imports are "
+                "never loaded before the outputs are attributed to them"
+                % len(external)]
+
+    declared = set()
+    for code in env_code:
+        try:
+            tree = ast.parse(code)
+        except SyntaxError:
+            continue
+        declared |= _module_targets(tree)
+
+    failures = []
+    for module in sorted(external):
+        if module not in declared:
+            failures.append(
+                "FAIL env does not import %s, which block '%s' uses: a pin "
+                "verified from metadata alone does not establish that the "
+                "module loads" % (module, external[module]))
+    return failures
 
 
 DRIVER = r'''
@@ -162,18 +280,24 @@ def run_blocks(python_executable, blocks, pins, timeout=900):
     spec = {"blocks": [[bid, code] for bid, code, _ in blocks],
             "pins": sorted(pins)}
     workdir = tempfile.mkdtemp(prefix="labgate-")
-    spec_path = os.path.join(workdir, "spec.json")
-    driver_path = os.path.join(workdir, "driver.py")
-    with open(spec_path, "w", encoding="utf-8") as handle:
-        json.dump(spec, handle)
-    with open(driver_path, "w", encoding="utf-8") as handle:
-        handle.write(DRIVER)
-    environment = dict(os.environ, PYTHONIOENCODING="utf-8", PYTHONHASHSEED="0")
-    completed = subprocess.run(
-        [python_executable, driver_path, spec_path],
-        capture_output=True, text=True, encoding="utf-8",
-        timeout=timeout, env=environment,
-    )
+    try:
+        spec_path = os.path.join(workdir, "spec.json")
+        driver_path = os.path.join(workdir, "driver.py")
+        with open(spec_path, "w", encoding="utf-8") as handle:
+            json.dump(spec, handle)
+        with open(driver_path, "w", encoding="utf-8") as handle:
+            handle.write(DRIVER)
+        environment = dict(os.environ, PYTHONIOENCODING="utf-8",
+                           PYTHONHASHSEED="0")
+        completed = subprocess.run(
+            [python_executable, driver_path, spec_path],
+            capture_output=True, text=True, encoding="utf-8",
+            timeout=timeout, env=environment,
+        )
+    finally:
+        # A timeout raises through here too, so the driver's scratch directory
+        # is removed on every exit rather than accumulating one per gate run.
+        shutil.rmtree(workdir, ignore_errors=True)
     marker = "\n<<<LAB-RESULTS>>>\n"
     if marker not in completed.stdout:
         raise LabSetError(
@@ -216,6 +340,26 @@ def compare_outputs(blocks, report):
     return failures
 
 
+def check_completed(blocks, report, label):
+    """Return failure lines for blocks that did not run, or raised, in a run.
+
+    Applied to every repeat, not only the first. A block that succeeds once and
+    raises afterwards — the shape of any block that writes a file, or consumes
+    a generator, or mutates state a later run inherits — produces the same
+    stdout both times, so comparing stdout alone certifies it as deterministic.
+    """
+    failures = []
+    for block_id, _, _ in blocks:
+        observed = report["blocks"].get(block_id)
+        if observed is None:
+            failures.append("FAIL %s did not run in %s (an earlier block raised)"
+                            % (block_id, label))
+        elif observed["error"]:
+            failures.append("FAIL %s raised in %s\n%s"
+                            % (block_id, label, observed["error"].rstrip()))
+    return failures
+
+
 def compare_runs(blocks, first, second):
     """Return failure lines for blocks that did not repeat themselves."""
     failures = []
@@ -243,6 +387,11 @@ def main(argv=None):
     parser.add_argument(
         "--allow-unpinned", action="store_true",
         help="accept a set with no env block instead of failing")
+    parser.add_argument(
+        "--parse-only", action="store_true",
+        help="check block structure, pins and env module coverage without "
+             "executing anything; the part of this gate that needs no lab "
+             "interpreter, and so the part CI can run")
     args = parser.parse_args(argv)
 
     if args.repeat < 1:
@@ -267,6 +416,18 @@ def main(argv=None):
               % len(blocks))
         return 1
 
+    structural = check_env_imports(blocks)
+
+    if args.parse_only:
+        if structural:
+            for line in structural:
+                print(line)
+            return 1
+        print("PASS %d blocks paired with recorded output, %d pins declared, "
+              "env imports every module used (not executed: --parse-only)"
+              % (len(blocks), len(pins)))
+        return 0
+
     try:
         reports = [run_blocks(args.python, blocks, pins, args.timeout)
                    for _ in range(args.repeat)]
@@ -277,9 +438,11 @@ def main(argv=None):
         print("FAIL execution exceeded %ds" % args.timeout)
         return 1
 
-    failures = check_versions(pins, reports[0])
+    failures = structural + check_versions(pins, reports[0])
     failures += compare_outputs(blocks, reports[0])
-    for later in reports[1:]:
+    for index, later in enumerate(reports[1:], start=2):
+        label = "run %d" % index
+        failures += check_completed(blocks, later, label)
         failures += compare_runs(blocks, reports[0], later)
 
     if failures:

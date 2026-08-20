@@ -47,14 +47,18 @@ from importlib.metadata import version
 print("%-16s%s" % ("python", ".".join(str(p) for p in sys.version_info[:3])))
 for dist in ("giotto-tda", "kmapper", "igraph", "scikit-learn", "numpy"):
     print("%-16s%s" % (dist, version(dist)))
-# Import what the later blocks actually use, so a package that is installed but
-# broken shows up here as a diff rather than passing as a verified pin.
-for module in ("gtda.mapper", "igraph", "kmapper", "sklearn.cluster"):
+
+# A pin read from metadata does not load anything: importlib.metadata reads a
+# .dist-info directory, so a distribution whose compiled extensions are missing
+# reports its pinned version and fails later, in a block whose diff reads like a
+# content error. Import what the later blocks use, at the submodule they use.
+for module in ("gtda.mapper", "igraph", "kmapper", "numpy", "sklearn.cluster",
+               "sklearn.preprocessing"):
     try:
         __import__(module)
-        print("%-16s%s" % (module, "imports"))
+        print("%-23s%s" % (module, "imports"))
     except Exception as exc:
-        print("%-16s%s: %s" % (module, type(exc).__name__, exc))
+        print("%-23s%s: %s" % (module, type(exc).__name__, exc))
 ```
 
 ```text id=env
@@ -64,10 +68,12 @@ kmapper         2.1.0
 igraph          1.0.0
 scikit-learn    1.3.2
 numpy           1.26.4
-gtda.mapper     imports
-igraph          imports
-kmapper         imports
-sklearn.cluster imports
+gtda.mapper            imports
+igraph                 imports
+kmapper                imports
+numpy                  imports
+sklearn.cluster        imports
+sklearn.preprocessing  imports
 ```
 
 ---

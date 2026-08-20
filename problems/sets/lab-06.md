@@ -38,6 +38,17 @@ from importlib.metadata import version
 print("%-14s%s" % ("python", ".".join(str(p) for p in sys.version_info[:3])))
 for dist in ("persim", "giotto-tda", "numpy"):
     print("%-14s%s" % (dist, version(dist)))
+
+# A pin read from metadata does not load anything: importlib.metadata reads a
+# .dist-info directory, so a distribution whose compiled extensions are missing
+# reports its pinned version and fails later, in a block whose diff reads like a
+# content error. Import what the later blocks use, at the submodule they use.
+for module in ("gtda.diagrams", "numpy", "persim", "persim.landscapes"):
+    try:
+        __import__(module)
+        print("%-19s%s" % (module, "imports"))
+    except Exception as exc:
+        print("%-19s%s: %s" % (module, type(exc).__name__, exc))
 ```
 
 ```text id=env
@@ -45,6 +56,10 @@ python        3.11.11
 persim        0.3.8
 giotto-tda    0.6.2
 numpy         1.26.4
+gtda.diagrams      imports
+numpy              imports
+persim             imports
+persim.landscapes  imports
 ```
 
 ---

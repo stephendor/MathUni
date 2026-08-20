@@ -102,7 +102,20 @@ interpreter a citation. The problem set opens by printing it:</p>
 giotto-tda    0.6.2
 gudhi         3.13.0
 numpy         1.26.4
-scikit-learn  1.3.2</pre>
+scikit-learn  1.3.2
+scipy         1.17.1
+gtda.homology           imports
+numpy                   imports
+scipy.spatial.distance  imports</pre>
+
+<p>The second half of that block is not decoration. A pinned version is read
+from a <code>.dist-info</code> directory by <code>importlib.metadata</code>,
+which loads no code at all — so a package whose compiled extensions are missing
+reports its version cheerfully and fails several blocks later, in a diff that
+reads like a wrong number rather than a broken install. Importing each module
+the set actually uses, at the submodule it uses, moves that failure to the first
+block. <span class="cite">Gate 9 requires it: a set whose <code>env</code> block
+omits a module a later block imports fails before anything is executed.</span></p>
 
 <p>This is not ceremony. The repository's own interpreter is Python 3.13.5 and
 carries gudhi 3.11.0, ripser 0.6.14 and scikit-learn 1.8.0 — different versions
@@ -466,7 +479,8 @@ function check(btn, ok){
 <footer>
 <em>Sources, by execution.</em> Every number in this lesson is output from the
 problem set's code blocks, run in the environment pinned there — Python 3.11.11,
-giotto-tda 0.6.2, gudhi 3.13.0, numpy 1.26.4, scikit-learn 1.3.2 — and re-derived
+giotto-tda 0.6.2, gudhi 3.13.0, numpy 1.26.4, scikit-learn 1.3.2, scipy 1.17.1 —
+and re-derived
 by gate 9, which diffs each recorded output against a fresh run, checks each
 pinned version against the interpreter, and runs the file twice to catch anything
 unseeded. API surfaces used: <code>numpy.random.default_rng</code>,

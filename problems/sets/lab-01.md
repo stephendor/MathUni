@@ -24,14 +24,26 @@ giotto-tda==0.6.2
 gudhi==3.13.0
 numpy==1.26.4
 scikit-learn==1.3.2
+scipy==1.17.1
 ```
 
 ```python id=env
 import sys
 from importlib.metadata import version
 print("%-14s%s" % ("python", ".".join(str(p) for p in sys.version_info[:3])))
-for dist in ("giotto-tda", "gudhi", "numpy", "scikit-learn"):
+for dist in ("giotto-tda", "gudhi", "numpy", "scikit-learn", "scipy"):
     print("%-14s%s" % (dist, version(dist)))
+
+# A pin read from metadata does not load anything: importlib.metadata reads a
+# .dist-info directory, so a distribution whose compiled extensions are missing
+# reports its pinned version and fails later, in a block whose diff reads like a
+# content error. Import what the later blocks use, at the submodule they use.
+for module in ("gtda.homology", "numpy", "scipy.spatial.distance"):
+    try:
+        __import__(module)
+        print("%-24s%s" % (module, "imports"))
+    except Exception as exc:
+        print("%-24s%s: %s" % (module, type(exc).__name__, exc))
 ```
 
 ```text id=env
@@ -40,6 +52,10 @@ giotto-tda    0.6.2
 gudhi         3.13.0
 numpy         1.26.4
 scikit-learn  1.3.2
+scipy         1.17.1
+gtda.homology           imports
+numpy                   imports
+scipy.spatial.distance  imports
 ```
 
 The repo's own interpreter is Python 3.13.5 and carries **different** versions of

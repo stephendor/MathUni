@@ -94,7 +94,7 @@ def test_range_citation_does_not_mask_a_genuinely_untaught_number():
 
 
 def test_citation_wrapped_across_lines_is_canonicalised():
-    """Obs 2026-08-10: `\s+` eats newlines, so a wrapped citation used to
+    r"""Obs 2026-08-10: `\s+` eats newlines, so a wrapped citation used to
     produce an unmatchable ref and a false failure."""
     problem_set = "See Corollary\n3.6 for the bound."
     assert find_refs(problem_set) == ["Corollary 3.6"]

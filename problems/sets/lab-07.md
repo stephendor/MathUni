@@ -64,11 +64,17 @@ from importlib.metadata import version
 print("%-18s%s" % ("python", ".".join(str(p) for p in sys.version_info[:3])))
 for dist in ("giotto-tda", "scikit-learn", "numpy"):
     print("%-18s%s" % (dist, version(dist)))
-try:
-    import sklearn.ensemble
-    print("%-18s%s" % ("sklearn.ensemble", "imports"))
-except Exception as exc:
-    print("%-18s%s: %s" % ("sklearn.ensemble", type(exc).__name__, exc))
+
+# A pin read from metadata does not load anything: importlib.metadata reads a
+# .dist-info directory, so a distribution whose compiled extensions are missing
+# reports its pinned version and fails later, in a block whose diff reads like a
+# content error. Import what the later blocks use, at the submodule they use.
+for module in ("gtda.diagrams", "gtda.homology", "gtda.pipeline", "numpy", "sklearn.feature_selection", "sklearn.linear_model", "sklearn.model_selection", "sklearn.pipeline"):
+    try:
+        __import__(module)
+        print("%-27s%s" % (module, "imports"))
+    except Exception as exc:
+        print("%-27s%s: %s" % (module, type(exc).__name__, exc))
 ```
 
 ```text id=env
@@ -76,7 +82,14 @@ python            3.11.11
 giotto-tda        0.6.2
 scikit-learn      1.3.2
 numpy             1.26.4
-sklearn.ensemble  imports
+gtda.diagrams              imports
+gtda.homology              imports
+gtda.pipeline              imports
+numpy                      imports
+sklearn.feature_selection  imports
+sklearn.linear_model       imports
+sklearn.model_selection    imports
+sklearn.pipeline           imports
 ```
 
 ---

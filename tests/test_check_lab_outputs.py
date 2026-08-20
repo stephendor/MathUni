@@ -13,6 +13,8 @@ from scripts.check_lab_outputs import (
     LabSetError,
     _normalise,
     check_versions,
+    check_completed,
+    check_env_imports,
     compare_outputs,
     compare_runs,
     main,
@@ -214,3 +216,110 @@ def test_cli_reports_the_raising_block_by_id(tmp_path, capsys):
     assert main([write(tmp_path, text), "--python", sys.executable]) == 1
     out = capsys.readouterr().out
     assert "FAIL a raised" in out and "ZeroDivisionError" in out
+
+
+# ------------------------------------------- structure the gate rejects
+
+def test_duplicate_output_id_is_rejected():
+    text = code_block("a", "print(1)") + out_block("a", "1") + out_block("a", "1")
+    with pytest.raises(LabSetError, match="duplicate output block id"):
+        parse_blocks(text)
+
+
+def test_conflicting_duplicate_pin_is_rejected():
+    with pytest.raises(LabSetError, match="pins numpy at both"):
+        parse_env_pins("```env\nnumpy==1.26.4\nnumpy==2.0.0\n```")
+
+
+def test_repeated_identical_pin_is_accepted():
+    assert parse_env_pins("```env\nnumpy==1.26.4\nnumpy==1.26.4\n```") == {
+        "numpy": "1.26.4"}
+
+
+# ------------------------------------------------- env module coverage
+
+def test_env_block_must_import_what_later_blocks_use():
+    blocks = parse_blocks(
+        code_block("env", "import sys\nprint('env')") + out_block("env", "env")
+        + code_block("work", "import json\nimport numpy\nprint(1)")
+        + out_block("work", "1"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert failures[0].startswith("FAIL env does not import numpy")
+
+
+def test_env_block_importing_the_module_satisfies_the_check():
+    blocks = parse_blocks(
+        code_block("env", "import numpy\nprint('env')") + out_block("env", "env")
+        + code_block("work", "import numpy\nprint(1)") + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
+def test_env_probe_by_string_literal_satisfies_the_check():
+    """An env block that probes names through ``__import__`` still declares them."""
+    body = ("for module in ('gtda.mapper',):\n"
+            "    __import__(module)\nprint('env')")
+    blocks = parse_blocks(
+        code_block("env", body) + out_block("env", "env")
+        + code_block("work", "import gtda.mapper\nprint(1)") + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
+def test_importing_the_parent_does_not_declare_the_submodule():
+    """The failure that occurs is a broken subpackage, so granularity matters."""
+    blocks = parse_blocks(
+        code_block("env", "import sklearn\nprint('env')") + out_block("env", "env")
+        + code_block("work", "import sklearn.ensemble\nprint(1)") + out_block("work", "1"))
+    assert check_env_imports(blocks)[0].startswith(
+        "FAIL env does not import sklearn.ensemble")
+
+
+def test_standard_library_imports_need_no_declaration():
+    blocks = parse_blocks(
+        code_block("env", "print('env')") + out_block("env", "env")
+        + code_block("work", "import itertools\nprint(1)") + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
+# ------------------------------------ exceptions on any run, not just the first
+
+def test_block_raising_only_on_a_later_run_is_reported():
+    """Identical stdout is not determinism if the second run raised producing it."""
+    blocks = [("r", "", "")]
+    second = {"blocks": {"r": {"stdout": "", "error": "RuntimeError: second run"}}}
+    failures = check_completed(blocks, second, "run 2")
+    assert failures == ["FAIL r raised in run 2\nRuntimeError: second run"]
+
+
+def test_block_missing_from_a_later_run_is_reported():
+    blocks = [("r", "", "")]
+    assert check_completed(blocks, {"blocks": {}}, "run 2")[0].startswith(
+        "FAIL r did not run in run 2")
+
+
+def test_cli_fails_on_a_block_that_only_raises_the_second_time(tmp_path, capsys):
+    marker = tmp_path / "ran-once"
+    body = ("import os\n"
+            "if os.path.exists(%r):\n"
+            "    raise RuntimeError('second run')\n"
+            "open(%r, 'w').close()" % (str(marker), str(marker)))
+    text = env_block() + code_block("a", body) + out_block("a", "")
+    assert main([write(tmp_path, text), "--python", sys.executable]) == 1
+    assert "FAIL a raised in run 2" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------- --parse-only
+
+def test_parse_only_passes_without_executing_anything(tmp_path, capsys):
+    text = env_block() + code_block("a", "raise SystemExit('never run')") \
+        + out_block("a", "")
+    assert main([write(tmp_path, text), "--parse-only"]) == 0
+    assert "not executed" in capsys.readouterr().out
+
+
+def test_parse_only_still_rejects_undeclared_modules(tmp_path, capsys):
+    text = env_block() + code_block("env", "import sys\nprint('e')") \
+        + out_block("env", "e") + code_block("a", "import numpy\nprint(1)") \
+        + out_block("a", "1")
+    assert main([write(tmp_path, text), "--parse-only"]) == 1
+    assert "FAIL env does not import numpy" in capsys.readouterr().out
