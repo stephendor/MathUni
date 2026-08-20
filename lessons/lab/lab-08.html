@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab-08 — Mapper</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+code{background:#0c1013;border:1px solid #2a333d;border-radius:4px;padding:.05rem .3rem;font-size:.92rem}
+pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.88rem;line-height:1.45}
+</style></head><body>
+<p class="cite">Computational Lab · Nexus College</p>
+<h1>Mapper <span class="cite">(lab-08)</span></h1>
+
+<div class="hook">
+Three hundred points on a circle. One hole. Mapper's answer depends on four
+choices, and two of them appear nowhere in its definition. Across twenty
+reasonable cover settings the graph reports one hole in <strong>eight</strong>.
+Holding the cover fixed and changing only the lens turns one hole into six.
+Holding everything fixed and swapping the library changes the answer from one to
+none. lab-05 gave persistence a stability theorem that converts an error bound on
+the data into an error bound on the summary; Mapper has a theorem too, and every
+hypothesis it needs is one a point cloud does not have. This unit is about
+reporting an object honestly when nothing guarantees it.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Mapper is defined as the nerve of the
+pullback cover of a map f : X → Z. What does a Mapper implementation need that the
+definition does not mention?</p>
+<button onclick="check(this,false)">Nothing — the definition is complete and implementations differ only in speed</button>
+<button onclick="check(this,false)">A metric on X, since the nerve needs distances</button>
+<button onclick="check(this,true)" data-ok>A clustering algorithm, standing in for "path connected components", which a finite point cloud does not have</button>
+<button onclick="check(this,false)">A homology solver, to compute the graph's Betti numbers</button>
+<div class="explain">A clusterer. Definition 9.4 decomposes each f⁻¹(U_α) into
+its <em>path connected components</em>, and a finite point cloud carries the
+discrete topology, in which every component is a single point. So every
+implementation substitutes a clustering algorithm — and its parameters are choices
+with no counterpart in the definition. <code>DBSCAN(eps=0.30, min_samples=3)</code>
+is used throughout this lesson, and <code>min_samples</code> in particular can
+discard points entirely, which nothing in the book does. The second option names a
+real ingredient — the point-cloud construction on printed 270 does use a distance —
+but the metric is data, not a missing piece of the definition.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Mapper's graph is a topological summary; its clustering leans on la-15's spectral machinery.</p>
+
+<div class="warn">
+<strong>The strip's first clause needs bounding and its second clause is wrong on
+both halves. This one needs a syllabus edit.</strong>
+<br><br>
+<em>"A topological summary" — true, and of what?</em> Mapper is the nerve of a
+pullback cover <span class="cite">(Definition 9.4, printed 269)</span>, so it
+summarises the topology of a cover, and the cover is chosen. Remark 9.1 on the
+same page records that one choice makes it a merge tree and another makes it a
+relaxed Reeb graph — different kinds of object, one of which cannot have a loop at
+all. Measured here: 8 of 20 cover settings recover the circle's single hole; the
+radial lens reports six; two libraries disagree about whether there is one or
+none. The clause is right and the article is not: <strong>there is no "the" Mapper
+graph of a dataset.</strong>
+<br><br>
+<em>"Its clustering leans on la-15's spectral machinery" — no.</em> Two separate
+faults. First, <code>la-15</code> is <strong>Spectral theorem (real case)</strong>,
+sourced to Axler 7A–7B, and it is <strong>unwritten</strong> — the <code>la</code>
+module has only <code>la-01</code> and <code>la-02</code> on disk. Second, and
+independently of that: the spectral theorem for real symmetric operators is not
+what a Mapper clusterer uses. Mapper's clusterer is a <em>free choice</em>, the one
+executed throughout this lesson is <strong>DBSCAN</strong>, which is density-based
+and computes no eigenvector of anything, and even spectral <em>clustering</em> —
+a different construction, resting on the graph Laplacian — is only one option among
+many. <strong>For the syllabus pass: the second clause should be struck or
+rewritten to say that the clusterer is a free choice with no counterpart in
+Definition 9.4.</strong> That is the true and load-bearing statement, and it is
+what this unit teaches.
+<br><br>
+<em>Not claimed here.</em> That Mapper is unreliable or should not be used — it is
+a genuinely useful exploratory tool and the module says so. What is claimed is
+that its output is a function of four stated choices, and that a report omitting
+them has not specified its own figure.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>The definition, and the ingredient it does not mention</h2>
+
+<div class="definition">
+<strong>Definition 9.4 (Mapper), printed 269.</strong> Let X and Z be topological
+spaces and let f : X → Z be a well-behaved and continuous map. Let 𝒰 = {U<sub>α</sub>}
+be a finite open cover of Z. The <em>mapper</em> arising from these data is defined
+to be the nerve of the pullback cover f*(𝒰) of X; that is,
+M(𝒰, f) := N(f*(𝒰)).
+<span class="cite"><strong>Defined</strong>, printed 269, after the pullback cover
+is constructed on printed 268 by decomposing each f⁻¹(U<sub>α</sub>) into its path
+connected components. "Well behaved" is defined on 268 to mean that every path
+connected open U has finitely many path components in its preimage.</span>
+</div>
+
+<p>Match that against a call. <code>X</code> is a 300-point cloud; <code>Z</code>
+is ℝ; <code>f</code> is <code>Projection(columns=[0])</code>; <code>𝒰</code> is
+<code>CubicalCover(n_intervals=10, overlap_frac=0.30)</code>. Four ingredients,
+four arguments — except the call takes a fifth.</p>
+
+<div class="worked">
+<strong>Worked — the fifth argument, and what it replaces.</strong>
+<br><br>
+<code>clusterer=DBSCAN(eps=0.30, min_samples=3)</code>. Definition 9.4 asks for
+<em>path connected components</em> of f⁻¹(U<sub>α</sub>). A finite point cloud has
+the discrete topology, in which every path component is a single point, so
+Definition 9.4 applied literally to a point cloud returns a graph with 300 nodes
+and no edges. The clusterer is what stands in.
+<br><br>
+Dey and Wang supply the substitute themselves, on printed 270: build
+G<sup>r</sup>(P) with an edge whenever d(p, p′) ≤ r, and take the components of the
+subgraph spanned by each interval's points. That is single-linkage at threshold r.
+<br><br>
+<span class="cite"><strong>DBSCAN is not that, and the difference matters.</strong>
+With <code>min_samples=1</code> DBSCAN reduces exactly to single-linkage at
+<code>eps</code>. With <code>min_samples=3</code> it separates core points, border
+points and <strong>noise</strong> — and noise points join no cluster, so they
+disappear from the summary. <strong>Nothing in the book discards data.</strong> A
+parameter that can delete points from a topological summary has no counterpart in
+Definition 9.4 or in the point-cloud construction, and it is on by default.</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Dey and Wang write that "in the limit that each
+interval degenerates to a point, the discretized Reeb graph converges to the
+original Reeb graph as shown in [132, 241]". What does that license?</p>
+<button onclick="check(this,false)">That Mapper approximates the Reeb graph for any sufficiently fine cover</button>
+<button onclick="check(this,false)">Nothing, since a limit statement is never useful in practice</button>
+<button onclick="check(this,true)" data-ok>An asymptotic claim, attributed to two papers not on disk, about a limit no computation attains</button>
+<button onclick="check(this,false)">That the Nerve Theorem applies to the pullback cover</button>
+<div class="explain">An asymptotic claim, and one weaker in three ways than
+lab-02's Nerve Theorem: that was a theorem <em>in the source</em>, with hypotheses
+you could check (closed convex sets), and lab-02 could therefore state exactly what
+Čech carried and Rips did not. This is a citation to absent papers about a limit
+that no finite cover reaches. The first option is the overreach the sentence
+invites — "converges in the limit" says nothing about any particular cover, and
+Segment 2's table shows the finest cover in the sweep is the only one that never
+works.</div>
+</div>
+
+<div class="worked fade">
+<strong>Faded — the article in "the Mapper graph".</strong>
+<br><br>
+Remark 9.1 <span class="cite">(printed 269)</span> records that the construction is
+general enough to encompass both merge trees and Reeb graphs, depending only on
+which cover of ℝ you take: sublevel sets U<sub>α</sub> = (−∞, α) give merge trees;
+ε-thick level sets U<sub>α</sub> = (α − ε, α + ε) give a relaxed Reeb graph.
+<br><br>
+A merge tree is a tree. It has no loops, ever. A Reeb graph can have many.
+<br><br>
+⟨your step: state what Remark 9.1 implies about the phrase "the Mapper graph of
+this dataset", holding the data and the lens fixed. Then say what a report has to
+supply before that phrase refers to anything at all — the problem set wants the
+list.⟩
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Then the theorem, and twenty covers.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 30 min</span>
+<h2>A theorem about cycles, and a sweep that is not a test of it</h2>
+
+<div class="theorem">
+<strong>Theorem 9.16(a), printed 274.</strong> Let f : X → Z be a map from a
+<em>path connected</em> space X to a metric space Z equipped with a cover 𝒰, and
+let 𝒰′ be the restriction of 𝒰 to f(X). Let z₁, …, z_g be an optimal cycle basis
+for H₁(X) in the pullback metric. Let ℓ = g + 1 if λ(𝒰′) &gt; s(z_g); otherwise let
+ℓ be the smallest integer with s(z_ℓ) &gt; λ(𝒰′). If ℓ ≠ 1, the class
+φ<sub>𝒰*</sub>[z_j] = 0 for j = 1, …, ℓ − 1. Moreover, if ℓ ≠ g + 1, the classes
+{φ<sub>𝒰*</sub>[z_j]} for j = ℓ, …, g generate H₁(N(f*𝒰)).
+<span class="cite"><strong>Stated and derived</strong> from Theorem 9.10 earlier in
+the chapter, printed 274. It rests on <strong>Definition 9.6</strong> (the pullback
+pseudometric d_f, printed 273) — the metric in which the cycle sizes s(z) are
+measured — and on <strong>Proposition 9.15</strong> (printed 273, proved), which
+says the pullback cover has the same Lebesgue number as 𝒰′.</span>
+</div>
+
+<p>In words: <strong>cycles smaller than the cover's Lebesgue number are killed;
+the survivors generate.</strong> The cover decides which loops you see. So sweep
+the cover.</p>
+
+<canvas id="fig" width="640" height="340" aria-label="A five by four grid showing the first Betti number of the Mapper graph for a point cloud sampled from one circle. Rows are 4, 6, 10, 15 and 25 cover intervals; columns are overlap fractions 0.05, 0.15, 0.30 and 0.45. Eight cells are green, meaning the graph correctly reports one loop; the other twelve are grey, meaning it reports none. The green cells form a band towards the high-overlap side, and the bottom row of 25 intervals is grey throughout."></canvas>
+
+<p class="cite"><strong>Twenty covers, one circle, one right answer.</strong> Green
+is b₁ = 1, which is correct; grey is b₁ = 0. Each cell also carries k, the number
+of connected components of the graph. <strong>Eight of twenty are green</strong>,
+and they form a band that needs more overlap the more intervals you use. Read the
+k column on the left: at 25 intervals and 5% overlap the graph has 46 nodes, 11
+edges and <strong>35 components</strong> — it has not lost a loop, it has fallen
+apart. And note the bottom row: the <em>finest</em> cover in the sweep is the only
+one that never works.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> The whole 5% column reports b₁ = 0, with 3, 5, 7,
+16 and 35 components. Does Theorem 9.16 predict that?</p>
+<button onclick="check(this,false)">Yes — the cycles are smaller than the Lebesgue number and are killed</button>
+<button onclick="check(this,true)" data-ok>No — the theorem is about cycles being killed, and here the graph disconnects instead</button>
+<button onclick="check(this,false)">Yes, by part (b), since the cycles are not linearly independent</button>
+<button onclick="check(this,false)">No, because Theorem 9.16 is only about H₀</button>
+<div class="explain">No. b₁ = e − v + k, and at 25 intervals with 5% overlap that
+is 11 − 46 + 35 = 0 — the loop was never <em>closed</em>, not killed. The nerve has
+an edge only where two cover elements meet, and at 5% overlap they barely do.
+Theorem 9.16 presupposes a genuine cover of a path connected space and describes
+which classes of H₁(X) die under it; a cover of a finite point set whose pieces do
+not meet is not modelling an open cover of the circle at all. This is the
+distinction the problem set presses: <em>losing a feature</em> and <em>never
+building the object</em> look identical in the output and are different
+failures.</div>
+</div>
+
+<div class="guided-proof">
+<strong>Guided — why the finest cover is the one that never works.</strong>
+<br><br>
+Theorem 9.16 reads naturally as "shrink the cover and only small cycles die, so a
+fine cover keeps everything". The bottom row of the grid says the opposite: 25
+intervals gives b₁ = 0 at every overlap tested, including 0.45 where 15 intervals
+succeeds. Before reading on: write down (i) what "shrink the cover" means in the
+theorem, (ii) what it additionally does in the implementation, and (iii) why those
+are not the same quantity.
+<textarea class="proof-input" placeholder="The theorem's parameter, the implementation's parameter, and the gap between them."></textarea>
+<details class="model-answer"><summary>The two parameters that move together</summary>
+(i) In the theorem, shrinking the cover means reducing the <strong>Lebesgue
+number</strong> λ(𝒰′) of an open cover of Z, holding the covering property fixed.
+The consequence is exactly as advertised: the threshold s(z) &gt; λ falls, so fewer
+cycles are killed.
+<br><br>
+(ii) In the implementation, shrinking the intervals also reduces the <strong>number
+of points</strong> in each one. At 25 intervals over the same range there are
+roughly twelve of the 300 points per interval, spread over a thin band, and DBSCAN
+fragments them — 46 nodes in 3 to 35 components depending on overlap.
+<br><br>
+(iii) They are not the same quantity because the theorem's X is a path connected
+space where "smaller cover element" costs nothing, and the implementation's X is a
+<em>sample</em>, where a smaller cover element means fewer points and eventually
+too few to be connected by any clusterer. <strong>The implementation has a failure
+mode — sparsity — with no counterpart in the theorem</strong>, and it runs in the
+opposite direction to the theorem's own parameter. Anyone reasoning from Theorem
+9.16 to "use a fine cover" will walk straight into it.
+</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which of Theorem 9.16's hypotheses does the sweep
+satisfy non-vacuously?</p>
+<button onclick="check(this,false)">All of them — that is why the sweep is a test of the theorem</button>
+<button onclick="check(this,true)" data-ok>One: 𝒰 is an open cover of a metric space. X is not path connected, and continuity and well-behavedness hold vacuously on a discrete space</button>
+<button onclick="check(this,false)">None, since a finite set is not a topological space</button>
+<button onclick="check(this,false)">Two: the cover, and continuity of the projection, which is genuinely continuous</button>
+<div class="explain">One of four. X path connected: no — 300 isolated points.
+f continuous: true on a discrete space for <em>every</em> f, and therefore says
+nothing. f well behaved: also vacuous, and in the worst way — every preimage has
+as many path components as it has points, which is finite, so the condition holds
+while its intent fails completely. 𝒰 an open cover of a metric space: yes, of ℝ.
+So the sweep is evidence about the <em>software's behaviour</em>, and about the
+qualitative claim that Mapper's output is a function of its parameters. It is not
+a test of Theorem 9.16, which says nothing about any object in this lesson. The
+third option overstates: a finite set is a perfectly good topological space, just
+a discrete one, and that is precisely the problem.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 25 min</span>
+<h2>The lens, and two libraries that disagree</h2>
+
+<div class="worked">
+<strong>Worked — one hole becomes six.</strong> Same cloud, same cover, same
+clusterer. Only the lens changes.
+<pre>lens                     nodes    edges    components   b1
+x coordinate             18       18       1            1
+y coordinate             18       18       1            1
+distance from origin     30       34       2            6
+eccentricity             33       32       4            3</pre>
+<span class="cite"><strong>The radial lens has destroyed the structure before any
+topology is computed.</strong> On a unit circle with noise 0.05, the distance from
+the origin ranges over roughly [0.85, 1.15] rather than over [−1, 1] — so the ten
+intervals subdivide <em>the noise</em>. Each interval's preimage is a scattered set
+of points from all round the circle, DBSCAN splits it into several clusters, and
+the nerve wires those together by accidents of which noisy points share an
+interval. Six loops, none of them in the data, all of them dependent on the
+seed.</span>
+</div>
+
+<p><strong>Definition 9.6</strong> <span class="cite">(printed 273)</span> is why
+this is not a cosmetic choice. The pullback pseudometric is
+d_f(x, x′) := inf over paths γ of diam<sub>Z</sub>(f ∘ γ), and Theorem 9.16's cycle
+sizes s(z) are measured <em>in it</em>. Changing f changes the metric in which
+cycles count as small — so the lens is part of the object the theorem is about, not
+a viewing angle on it.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> <strong>Proposition 9.15</strong> says the
+pullback cover f*𝒰 has the same Lebesgue number as 𝒰′. Does that rescue the radial
+lens?</p>
+<button onclick="check(this,false)">Yes — the Lebesgue number is controlled downstairs, so the cover is as good as it looks in ℝ</button>
+<button onclick="check(this,true)" data-ok>No — λ is measured in d_f, and the radial lens makes d_f nearly degenerate, which the proposition makes precise rather than prevents</button>
+<button onclick="check(this,false)">No, because Proposition 9.15 requires f to be injective</button>
+<button onclick="check(this,false)">Yes, provided the cover is uniform, which CubicalCover's default is</button>
+<div class="explain">No, and the proposition is what makes the failure legible. It
+does buy something real: you set λ by choosing intervals in Z and get the same λ on
+X for free, so you can reason downstairs. But λ lives in the pullback pseudometric,
+and under the radial lens two points on opposite sides of the circle have almost
+the same f-value — so a path between them has small diam(f ∘ γ) and d_f collapses.
+The cover is fine in ℝ and useless on X. Proposition 9.15 transmits the number
+faithfully; it does not make the number mean what you wanted.</div>
+</div>
+
+<div class="worked">
+<strong>Worked — two implementations of one definition.</strong>
+<pre>cover            giotto-tda v/e/b1  kepler-mapper v/e/b1 verdict
+n=6 ov=0.15      10/10/1            10/10/1            agree
+n=10 ov=0.30     18/18/1            18/18/1            agree
+n=10 ov=0.10     18/15/0            18/15/0            agree
+n=15 ov=0.45     28/28/1            26/25/0            DIFFER
+n=25 ov=0.30     46/43/0            45/42/0            DIFFER</pre>
+Same cloud, same lens, same clusterer, same nominal cover parameters — and at
+n = 15, overlap 0.45 the two libraries disagree about <strong>b₁ itself</strong>.
+<br><br>
+<span class="cite"><strong>Neither has a bug.</strong> Definition 9.4 leaves genuine
+freedom: where the outer intervals' endpoints sit, whether the overlap fraction is
+measured against the interval width or the gap, which side a boundary point goes,
+whether an empty cluster becomes a node. Kepler-Mapper reports 26 nodes where
+giotto-tda reports 28 — exactly two fewer, consistent with two end clusters not
+being formed. Contrast lab-03, where an independent implementation agreed, and
+where disagreement <em>would</em> have meant a bug, because the barcode is unique
+by a theorem. Here there is no such theorem and nothing for the two to be wrong
+about.</span>
+</div>
+
+<table class="cmp">
+<tr><th>ingredient</th><th>in Definition 9.4?</th><th>measured effect on this data</th></tr>
+<tr><td>the cover</td><td>yes, as 𝒰</td><td>8 of 20 settings give b₁ = 1; the rest give 0</td></tr>
+<tr><td>the lens f</td><td>yes, and it sets the metric (Definition 9.6)</td><td>b₁ of 1, 1, 6 and 3 for four lenses</td></tr>
+<tr><td>the clusterer</td><td><strong>no</strong> — it replaces path-connectedness</td><td>b₁ = 0 at eps 0.10, b₁ = 1 from 0.20 up</td></tr>
+<tr><td><code>min_samples</code></td><td><strong>no</strong> — nothing in the book discards points</td><td>points classed as noise leave the summary silently</td></tr>
+<tr><td>the implementation</td><td><strong>no</strong> — the definition underdetermines it</td><td>two libraries, two answers, at 2 of 5 settings</td></tr>
+</table>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> <code>CubicalCover</code>'s default overlap is
+0.1; <code>kmapper.Cover</code>'s is 0.5. On this data, what do the two defaults
+give?</p>
+<button onclick="check(this,false)">The same answer, since the defaults are calibrated to the same convention</button>
+<button onclick="check(this,true)" data-ok>Opposite answers — 0.1 lands in the region where b₁ = 0 and 0.5 in the region where b₁ = 1, with no warning from either</button>
+<button onclick="check(this,false)">Both wrong, since neither default is tuned to this cloud</button>
+<button onclick="check(this,false)">Both right, since 10 intervals is enough at any overlap</button>
+<div class="explain">Opposite answers. At 10 intervals the grid shows b₁ = 0 at
+overlaps 0.05 and 0.15 and b₁ = 1 at 0.30 and 0.45, so giotto-tda's 0.1 gives the
+wrong answer and Kepler-Mapper's 0.5 gives the right one — out of the box, silently,
+on identical data. This is the discipline lab-01 derived for library defaults and
+lab-02 for filtration conventions, arriving here in its sharpest form:
+<strong>never report a Mapper graph without its cover parameters, because the
+defaults do not agree and one of them is wrong here.</strong></div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close this lesson and reconstruct, with no code and
+no book:
+<br><br>
+1. Definition 9.4, and the two ingredients an implementation needs that it does
+not mention.
+<br>
+2. Theorem 9.16(a) in one sentence, and the four hypotheses it needs — with which
+of them a point cloud actually has.
+<br>
+3. Why the 5% column fails, and why that is a different failure from a cycle being
+killed.
+<br>
+4. Why the finest cover in the sweep is the only one that never works.
+<br>
+5. What the two libraries' disagreement establishes, and what it does not.
+<br><br>
+Then answer without computing: you have a Mapper graph of a real dataset with a
+striking loop in it, produced with the library defaults. List, in order, the four
+things you must vary before showing anyone the figure, and say for each what a
+stable answer and an unstable one would look like.
+</div>
+
+<script>
+function check(btn, ok){
+  var box = btn.closest('.selfcheck');
+  if(box.classList.contains('answered')) return;
+  box.classList.add('answered');
+  var buttons = box.querySelectorAll('button');
+  for(var i = 0; i < buttons.length; i++){
+    if(buttons[i].hasAttribute('data-ok')) buttons[i].classList.add('correct');
+  }
+  if(!ok) btn.classList.add('wrong');
+}
+</script>
+
+<script>
+(function(){
+  var c = document.getElementById('fig');
+  if(!c || !c.getContext) return;
+  var g = c.getContext('2d');
+  g.fillStyle = '#0c1013'; g.fillRect(0, 0, 640, 340);
+
+  var GX = 150, GY = 80, CW = 100, CH = 40;
+  var rows = [4, 6, 10, 15, 25];
+  var cols = [0.05, 0.15, 0.30, 0.45];
+  var b1 = [[0,0,1,1],[0,1,1,1],[0,0,1,1],[0,0,0,1],[0,0,0,0]];
+  var kk = [[3,1,1,1],[5,1,1,1],[7,1,1,1],[16,3,1,1],[35,14,3,1]];
+
+  g.font = '11px sans-serif';
+  g.fillStyle = '#9aa5b1';
+  for(var j = 0; j < cols.length; j++){
+    g.fillText('overlap ' + cols[j].toFixed(2), GX + CW * j + 18, GY - 10);
+  }
+  for(var i = 0; i < rows.length; i++){
+    g.fillText(String(rows[i]) + ' intervals', 48, GY + CH * i + 24);
+  }
+
+  var green = 0;
+  for(var i = 0; i < rows.length; i++){
+    for(var j = 0; j < cols.length; j++){
+      var x = GX + CW * j, y = GY + CH * i;
+      g.fillStyle = b1[i][j] ? '#4caf82' : '#26313c';
+      g.fillRect(x + 1, y + 1, CW - 2, CH - 2);
+      g.strokeStyle = '#0c1013'; g.lineWidth = 1;
+      g.strokeRect(x + 1, y + 1, CW - 2, CH - 2);
+      g.fillStyle = b1[i][j] ? '#08130d' : '#9aa5b1';
+      g.font = 'bold 12px sans-serif';
+      g.fillText('b1 = ' + b1[i][j], x + 16, y + 18);
+      g.font = '10px sans-serif';
+      g.fillText('k = ' + kk[i][j], x + 16, y + 32);
+      if(b1[i][j]) green++;
+    }
+  }
+
+  g.font = '12px sans-serif';
+  g.fillStyle = '#e8e8e8';
+  g.fillText('the circle has one loop.  green = the graph agrees.', GX, GY + CH * 5 + 26);
+  g.fillStyle = '#4caf82';
+  g.fillText(green + ' of 20', GX, GY + CH * 5 + 46);
+  g.fillStyle = '#9aa5b1';
+  g.fillText('cover settings report it', GX + 56, GY + CH * 5 + 46);
+  g.font = '11px sans-serif';
+  g.fillStyle = '#9aa5b1';
+  g.fillText('k = connected components of the graph', GX, 40);
+  g.fillText('lens = x coordinate, DBSCAN eps 0.30', GX, 56);
+})();
+</script>
+
+<footer>
+<em>Sources, page by page.</em> Dey and Wang, <em>Computational Topology for Data
+Analysis</em>, Chapter 9 "Cover, Nerve, and Mapper", §9.3 "Mapper and Multiscale
+Mapper": the pullback cover construction, printed 268; <strong>Definition
+9.4</strong> (Mapper) and Remark 9.1 on the covers giving merge trees and relaxed
+Reeb graphs, printed 269; the "Mapper for PCD" construction with
+G<sup>r</sup>(P), and the sentence that the discretized Reeb graph converges to the
+Reeb graph in the limit, printed 270; <strong>Definition 9.6</strong> (pullback
+pseudometric) and <strong>Proposition 9.15</strong> (Lebesgue number of the
+pullback cover), printed 273; <strong>Theorem 9.16</strong>, printed 274. Folio =
+PDF − 21, the offset verified across five consecutive pages during
+<code>lab-06</code>.
+<br><br>
+<em>Modality.</em> Dey and Wang <strong>define</strong> 9.4 and 9.6;
+<strong>prove</strong> Proposition 9.15 in place; <strong>derive</strong> Theorem
+9.16 from their earlier Theorem 9.10 and do not reprove it here;
+<strong>attribute</strong> the convergence of the discretized Reeb graph to
+references [132] and [241], <strong>neither of which is on disk</strong>. Remark
+9.1 is a <strong>remark</strong>, illustrating the construction's generality, and
+nothing in this lesson rests on it beyond the observation it makes explicitly.
+<br><br>
+<em>Sources, by execution.</em> Every number is output from the problem set's code
+blocks, run in the pinned environment — Python 3.11.11, giotto-tda 0.6.2,
+kmapper 2.1.0, igraph 1.0.0, scikit-learn 1.3.2, numpy 1.26.4 — and re-derived by
+gate 9. API surfaces: <code>gtda.mapper.make_mapper_pipeline</code>,
+<code>gtda.mapper.Projection</code>, <code>gtda.mapper.CubicalCover</code> with
+its <code>n_intervals</code> and <code>overlap_frac</code> parameters,
+<code>gtda.mapper.Eccentricity</code>, <code>kmapper.KeplerMapper.map</code>,
+<code>kmapper.Cover</code> with <code>n_cubes</code> and <code>perc_overlap</code>,
+<code>sklearn.cluster.DBSCAN</code>, and <code>igraph.Graph</code>'s
+<code>vcount</code>, <code>ecount</code> and <code>connected_components</code>.
+This unit's <code>env</code> block imports each of those modules explicitly, so a
+package that is installed but broken appears as a gate-9 diff — the convention
+<code>lab-07</code> arrived at, applied here for the first time.
+<br><br>
+<em>Stated here but not in the source.</em> The whole parameter sweep is this
+lesson's, and Dey and Wang perform no experiments. The identification of b₁ with
+e − v + k for a graph is standard and is used without proof. The reading of the
+5% column as "the graph fell apart rather than losing a cycle" is this lesson's
+diagnosis. The account of why the finest cover fails — that shrinking intervals
+also shrinks the point count per interval, a failure mode with no counterpart in
+Theorem 9.16 — is this lesson's, and is argued from the construction rather than
+proved. The attribution of the two libraries' disagreement to interval placement is
+an inference from the node counts, consistent with the data and not verified
+against either library's source.
+<br><br>
+<em>Not established here.</em> That Mapper is unreliable, or that any of these
+parameter settings is correct in general — the sweep is one cloud, one seed, one
+clusterer. That Theorem 9.16 applies to anything computed in this unit: three of
+its four hypotheses fail or hold vacuously on a finite point cloud, and the lesson
+says so at the point of use. That either library has a bug. That the six loops
+under the radial lens are reproducible across seeds — they are artefacts and are
+expected not to be. <code>la-15</code>, credited by the mission strip, is unwritten
+and is cited nowhere in this lesson; the strip's claim about spectral machinery is
+addressed at the top and flagged for the syllabus pass. Singh, Mémoli and Carlsson
+(2007), named in the syllabus resource line, is not on disk and is cited nowhere.
+</footer>
+</body></html>
