@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab-06 — Vectorising diagrams: persistence images, landscapes, Betti curves</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+code{background:#0c1013;border:1px solid #2a333d;border-radius:4px;padding:.05rem .3rem;font-size:.92rem}
+pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.88rem;line-height:1.45}
+</style></head><body>
+<p class="cite">Computational Lab · Nexus College</p>
+<h1>Vectorising diagrams: persistence images, landscapes, Betti curves <span class="cite">(lab-06)</span></h1>
+
+<div class="hook">
+lab-05 ended with a chain of theorems and exactly one place where an assumption
+entered: δ, the noise level, which no theorem supplies. This unit adds a second
+step to that chain, and the second step is where the guarantee gets dropped. Not
+loudly — every vectoriser in this unit returns a finite array of plausible numbers
+for any input you hand it. One of the three keeps the stability theorem and then
+loses it again at the last line of the implementation; one keeps it only because a
+library default silently supplies a hypothesis the printed theorem omits; and one
+does not have it at all. Telling them apart is the unit.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> You want the average of two
+persistence diagrams. What is the obstruction?</p>
+<button onclick="check(this,false)">Nothing in principle; you match the points and average coordinatewise</button>
+<button onclick="check(this,false)">The diagrams may have different numbers of points, so no matching exists</button>
+<button onclick="check(this,true)" data-ok>Midpoints exist but are not unique — the metric branches, so "the" average is not defined</button>
+<button onclick="check(this,false)">The bottleneck distance is only a pseudometric, so distinct diagrams can be at distance zero</button>
+<div class="explain">Midpoints are plentiful and that is the problem. For
+X = {(0,4)} and Y = {(0,4), (1,3)}, at bottleneck distance 1, three different
+multisets sit at distance exactly 0.5 from both — and a fourth, and more. The
+geodesic branches, which rules out any isometric embedding into a
+<em>strictly convex</em> normed space — every Hilbert space, every L<sup>p</sup>
+for 1 &lt; p &lt; ∞. Those are the spaces a vectorisation is aiming for, because
+they are the ones carrying an inner product. The first option fails because there
+is no canonical matching to average
+along — three of them are optimal. The second is wrong in the other direction: a
+partial matching always exists, since points may be discarded to the diagonal. The
+fourth names a real defect, established in lab-05, but a different one:
+restricting to locally finite diagrams repairs <em>that</em> and does nothing to
+this.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Vectorisation is the bridge that lets a machine-learning model consume a persistence diagram.</p>
+
+<div class="warn">
+<strong>The strip is true, and "the bridge" is one word short of the unit.</strong>
+<br><br>
+<em>The need is exactly as stated.</em> Dey and Wang open §13.1 by saying diagram
+space "lacks (e.g., inner product) structure, which can pose challenges when used
+within a machine learning framework" <span class="cite">(printed 390)</span>, and
+Segment 1 shows the obstruction is not a technicality: the metric branches, so
+there is no average to hand a model.
+<br><br>
+<em>But there is no "the" bridge.</em> There are many, they land in different
+spaces, and <strong>they do not carry the same guarantee across</strong>. That is
+the whole content of Segments 2 and 3: the landscape carries Theorem 13.1 exactly
+and then loses it at the discretisation; the persistence image carries Theorem
+13.3 only under a hypothesis that is missing from the printed statement and
+supplied by a library default; the Betti curve satisfies no sup-norm bound at all,
+and the ratio is unbounded by three lines of argument.
+<br><br>
+<em>And "consume" hides the direction of travel.</em> The model consumes a vector,
+and by Claim 13.1 the map is lossless going out — but the space you arrive in is
+not closed under the operations you went there for. Dey and Wang say so
+immediately: the mean landscape "may not be the image of any persistence diagram"
+<span class="cite">(printed 392)</span>. <strong>No syllabus action on the
+strip</strong>; it is accurate about the need and silent about the cost, and this
+lesson supplies the cost.
+<br><br>
+<em>Not claimed here.</em> That any of these features is the right one for a given
+dataset — that is an empirical question this unit does not touch. That the missing
+hypothesis in Theorem 13.3 is present in the paper Dey and Wang cite it to: that
+paper is not on disk and the lesson says so at the point of use.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>What a metric will not do for you</h2>
+
+<p>lab-05 made diagram space a metric space, and stopped there deliberately. A
+metric supports distances, neighbourhoods, convergence and the 4δ threshold. It
+does not support addition, and almost every machine-learning primitive — a mean, a
+variance, a dot product, a gradient step — is addition wearing a hat.</p>
+
+<div class="worked">
+<strong>Worked — the obstruction, in one table.</strong>
+<br><br>
+Take X = {(0, 4)} and Y = {(0, 4), (1, 3)}. The optimal matching keeps (0,4) fixed
+and discards (1,3) to the diagonal at cost 1, so d<sub>b</sub>(X, Y) = 1. Now ask
+for the midpoints:
+<pre>candidate midpoint M               d_b(X, M)    d_b(Y, M)
+{(0,4), (1.5,2.5)}                 0.5000       0.5000
+{(0.5,3.5), (1.5,2.5)}             0.5000       0.5000
+{(-0.5,4.5), (1.5,2.5)}            0.5000       0.5000</pre>
+Three, and the problem set asks for a fourth because there is one.
+<br><br>
+<span class="cite"><strong>Compare with lab-05's defect and keep them apart.</strong>
+There, two <em>distinct</em> diagrams sat at distance <em>zero</em>, and Oudot's
+compactness argument repaired it by restricting to locally finite multisets. Here
+every distance is positive and every diagram is finite. Restricting the class
+changes nothing, because the branching is a property of the sup-norm
+partial-matching cost itself: the maximum is attained by more than one
+configuration, and a maximum does not care which.</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> What does the existence of three midpoints
+rule out?</p>
+<button onclick="check(this,false)">That the bottleneck distance is a metric</button>
+<button onclick="check(this,false)">Any isometric embedding of diagram space into a normed vector space</button>
+<button onclick="check(this,true)" data-ok>Any isometric embedding into a <em>strictly convex</em> normed space — Hilbert, and L<sup>p</sup> for 1 &lt; p &lt; ∞</button>
+<button onclick="check(this,false)">Nothing — non-unique midpoints are normal in metric spaces</button>
+<div class="explain">The embedding, but only into strictly convex targets, and the
+qualifier carries the whole argument. A map preserving distances would have to
+carry three distinct midpoints to one point, and an isometry is injective — so the
+target must be a space where metric midpoints <em>are</em> unique, and that
+property is precisely strict convexity of the unit ball.
+<br><br>
+The second option is the version this lesson gave in draft, and a reviewer
+supplied the counterexample: in (ℝ², ℓ∞) the points (0, t) for |t| ≤ 1 are all
+midpoints of (−1, 0) and (1, 0), since each is at sup-distance 1 from both. ℓ∞ is
+a perfectly good normed space with branching geodesics. What is unique in
+<em>every</em> normed space is the algebraic midpoint (x + y)/2 — a different
+object, and the one the draft argument quietly substituted.
+<br><br>
+It does <em>not</em> rule out the metric axioms: all three midpoints are at honest
+positive distances and the triangle inequality holds. And it does not say the
+vectorisations lose <em>information</em>. What it says is that they must
+<strong>distort distances</strong>, and those are independent properties: by Claim
+13.1 the exact landscape map is injective — it loses nothing — and by Theorem 13.1
+it is 1-Lipschitz rather than isometric. Injective, lossless, and distorting. The
+information loss in this unit comes from somewhere else entirely, the
+<strong>discretisation</strong> onto a finite grid, which is a resolution you
+choose rather than a theorem you are stuck with.
+<br><br>
+Nor does it cover every norm here. ℓ¹ and ℓ∞ are not strictly convex, so the
+obstruction is silent about them — and Problem 3 measures ‖I<sub>D</sub> −
+I<sub>E</sub>‖<sub>1</sub>, so the exemption is not hypothetical. The restriction
+costs something precise: it bites exactly where the inner product lives, which is
+exactly where you wanted to go.</div>
+</div>
+
+<div class="definition">
+<strong>Definition 13.1 (Persistence landscape), printed 391.</strong> Given a
+finite persistence diagram D = {(b<sub>i</sub>, d<sub>i</sub>)}, the persistence
+landscape with respect to D is a function λ<sub>D</sub> : ℕ × ℝ → ℝ where
+λ<sub>D</sub>(k, t) := the k-th largest value of
+[min{t − b<sub>i</sub>, d<sub>i</sub> − t}]<sub>+</sub> for i ∈ [1, n].
+<span class="cite"><strong>Stated and unpacked</strong>, with the "triangle" reading
+— each point (b, d) traces a tent — given immediately after, at printed 391.
+Attributed to Bubenik, reference [51] in the book's bibliography, and not proved
+there.</span>
+</div>
+
+<p>Every bar becomes a tent of half its own length; the landscape's k-th layer is
+the k-th upper envelope of the arrangement of tents. That is the whole
+construction, and the picture is worth more than the formula.</p>
+
+<canvas id="fig" width="640" height="340" aria-label="A persistence landscape drawn over a horizontal filtration axis. Three nested bars produce three tent functions, coloured blue, green and amber, with peaks at heights 1.5, 0.75 and 0.2. A dashed red horizontal line is drawn at height 0.5, which is twice a noise level of 0.25. The blue and green tents rise above the line; the amber one does not."></canvas>
+
+<p class="cite"><strong>The diagram D = {(0, 3), (0.5, 2), (1, 1.4)}, as a
+landscape.</strong> Each bar (b, d) gives the tent peaking at ((b+d)/2, (d−b)/2),
+so the peak heights are 1.5, 0.75 and 0.2 — half the lifetimes 3, 1.5 and 0.4.
+<strong>These bars are nested</strong>, and only because of that does layer k
+coincide with tent k; the problem set asks for a diagram where the identity fails.
+The dashed line sits at height 2δ for δ = 0.25, which is lab-05's threshold
+redrawn: a bar survives noise δ exactly when its tent clears the line. Two do.
+<code>PersLandscapeExact</code> returns the critical pairs
+<code>[[0,0],[1.5,1.5],[3,0]]</code>, <code>[[0.5,0],[1.25,0.75],[2,0]]</code> and
+<code>[[1,0],[1.2,0.2],[1.4,0]]</code>, which is what is drawn.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> lab-05's threshold was "a bar of lifetime L
+survives noise δ if L &gt; 4δ". In landscape terms?</p>
+<button onclick="check(this,false)">The landscape's integral exceeds 4δ</button>
+<button onclick="check(this,true)" data-ok>The tent's peak height exceeds 2δ — a horizontal line across the picture</button>
+<button onclick="check(this,false)">The layer index k is less than 4δ</button>
+<button onclick="check(this,false)">The landscape's support has width greater than 4δ</button>
+<div class="explain">Peak height above 2δ. A bar of lifetime L peaks at L/2, so
+L &gt; 4δ is exactly peak &gt; 2δ, and the threshold becomes <em>one horizontal
+line</em>. The gain is that the test turns into a statement about a function —
+something is guaranteed exactly when ‖λ<sub>D</sub>‖<sub>∞</sub> &gt; 2δ — which
+is an inequality in the vector space, where the barcode form was a bar-by-bar
+pass. What you must <em>not</em> read off the picture is the count: the number of
+layers crossing the line is the largest number of qualifying tents positive at one
+common parameter, not the number of qualifying bars. For D = {(0,1), (10,11)} both
+bars pass whenever 2δ &lt; 0.5, and only one layer ever crosses. The two counts
+agree under nesting and not otherwise. The fourth option is the near-miss: the
+tent's support does have width L, so "support wider than 4δ" is the same condition
+for a single tent — but layers are envelopes, not tents, and once the bars are not
+nested a layer's support is not any one bar's lifetime, while the peak-height
+reading survives.</div>
+</div>
+
+<div class="worked fade">
+<strong>Faded — what the trade actually is.</strong>
+<br><br>
+<strong>Claim 13.1</strong> <span class="cite">(printed 392)</span>: from
+λ<sub>D</sub> one can uniquely recover D. The map to landscapes is injective and
+lossless.
+<br><br>
+And immediately after it, in the same paragraph: "a function λ : ℕ × ℝ → ℝ may not
+be the image of any valid persistence diagram. For example, the mean landscape
+introduced above may not be the image of any persistence diagram."
+<br><br>
+So: going out, nothing is lost. The landscape space is linear — Dey and Wang note
+it lies in ℒᵖ(ℕ × ℝ), a Hilbert space when p = 2, which is the structure an2-07
+recorded that a kernel needs and diagram space has not got. You may now take
+means.
+<br><br>
+⟨your step: name what the mean you just took <em>is</em>, and what it is not. Then
+say why Segment 1's three midpoints are the reason anyone accepts that trade,
+rather than a reason to distrust it. The problem set wants both halves in one
+sentence.⟩
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Then the theorem, and the vector.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>A guarantee attaches to a function; a pipeline consumes an array</h2>
+
+<div class="theorem">
+<strong>Theorem 13.1, printed 393.</strong> For persistence diagrams D and D′,
+Λ<sub>∞</sub>(D, D′) ≤ d<sub>B</sub>(D, D′).
+<span class="cite"><strong>Stated, not proved</strong>; attributed to reference
+[51]. Dey and Wang add that further stability results for Λ<sub>p</sub>, relating
+it to the p-th Wasserstein distance, are in the same reference. The norm is the one
+defined at printed 391: ‖λ<sub>D</sub>‖<sub>p</sub><sup>p</sup> summed over all
+layers k.</span>
+</div>
+
+<p>This is the theorem the landscape exists for. It says the map from diagram to
+landscape is 1-Lipschitz, so lab-05's whole chain survives the vectorisation
+step — the input error bound becomes a bound on the feature vector, with no new
+constant. Test it.</p>
+
+<div class="worked">
+<strong>Worked — the same bound, twice, on the same pair.</strong>
+<pre>d_b(base, pert)                      0.046800
+sup norm of exact landscapes         0.046800   ratio 1.0000
+sup norm of the sampled vectors      0.050000   ratio 1.0684</pre>
+The first ratio is <strong>1.0000</strong>. Not "below 1" — equal to 1, on the
+nose. The bound is tight on this pair, and hitting a sharp bound exactly is a far
+stronger consistency check than landing somewhere underneath it: a bug lands above
+or below and essentially never on.
+<br><br>
+The second ratio is <strong>1.0684</strong>, which Theorem 13.1 forbids.
+<br><br>
+<span class="cite"><strong>Both numbers are right, and they are about different
+objects.</strong> Theorem 13.1 bounds the sup norm of the difference of two
+<em>functions</em> on ℕ × ℝ. The second number is the largest entry of the
+difference of two <em>arrays</em> that <code>PersistenceLandscaper</code> returned,
+and those entries are not exact evaluations of λ — the library reports 1.4 where λ
+is 1.4097. The excess, 0.0032, is of the order of the grid spacing, 0.05, and not
+of the signal. That is the signature of a discretisation artefact rather than a
+counterexample, and it is checkable: refine the grid and the excess shrinks with
+the spacing.</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A colleague reports "our persistence-landscape
+features are 1-Lipschitz in the data by Theorem 13.1". What is wrong with that
+sentence?</p>
+<button onclick="check(this,false)">Nothing — that is exactly what the theorem says</button>
+<button onclick="check(this,false)">Theorem 13.1 is about the Wasserstein distance, not the bottleneck distance</button>
+<button onclick="check(this,true)" data-ok>The theorem is about the landscape function; their features are a sampled array, which the theorem does not cover</button>
+<button onclick="check(this,false)">The theorem needs the diagrams to be q-tame, which finite ones may fail</button>
+<div class="explain">The object. Theorem 13.1 bounds Λ<sub>∞</sub> between two
+functions; a feature vector is a finite list of grid values, and the map from
+function to list is not covered by the theorem — indeed the measured ratio here
+exceeded 1. The honest version names the grid and claims the bound up to the
+discretisation error. The second option inverts the book: Λ<sub>p</sub> and
+Wasserstein are the <em>further</em> results Dey and Wang point to at [51];
+Theorem 13.1 itself is bottleneck. The fourth borrows lab-05's hypothesis, which
+belongs to Oudot's Theorem 3.1 and is free for finite diagrams anyway.</div>
+</div>
+
+<div class="guided-proof">
+<strong>Guided — is "use a finer grid" a repair or a mitigation?</strong>
+<br><br>
+Before reading on. The sampled ratio was 1.0684 at 71 grid points over [0, 3.5].
+Write down (i) what quantity bounds the excess, (ii) what happens to the ratio as
+the number of points grows, and (iii) whether there is any number of points at
+which the reported vector satisfies Theorem 13.1 as a theorem about that vector.
+Then decide which word applies.
+<textarea class="proof-input" placeholder="The bound on the excess, the limiting behaviour, and the verdict."></textarea>
+<details class="model-answer"><summary>The three answers, and the word</summary>
+(i) The excess is bounded by the <strong>grid spacing</strong> — here 0.05,
+against an observed excess of 0.0032. That is a real, quantifiable and reportable
+guarantee.
+<br><br>
+(ii) As the count grows the excess shrinks with the spacing and the ratio
+approaches 1. It does <strong>not</strong> approach it monotonically: the sampled
+sup norm can land on either side of the exact one depending on where the grid
+points fall relative to the peaks, so a finer grid can report a slightly
+<em>smaller</em> ratio than a coarser one before rising again.
+<br><br>
+(iii) <strong>No.</strong> At every finite resolution the object is an array, and
+Theorem 13.1 is a statement about λ. There is no number of grid points at which an
+array becomes a function.
+<br><br>
+So: <strong>mitigation</strong>. The right report is not "our features satisfy
+Theorem 13.1" but "our features are grid evaluations of a function that satisfies
+Theorem 13.1, on a grid of spacing h, so the bound holds up to h". That sentence
+is longer, and it is the true one. This is the same discipline lab-01 derived for
+library defaults and lab-05 for the vintage of a named theorem's hypotheses,
+arriving here as a distinction between a <em>function</em> and its
+<em>samples</em>.
+</details>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 30 min</span>
+<h2>A missing hypothesis, and a summary with no bound at all</h2>
+
+<div class="definition">
+<strong>Definition 13.4 (Persistence image), printed 395.</strong> Let ω : ℝ² → ℝ
+be a nonnegative weight function. Given a persistence diagram D, its persistence
+surface μ<sub>D</sub> is μ<sub>D</sub>(z) := Σ<sub>u ∈ T(D)</sub> ω(u) φ<sub>u</sub>(z),
+where T(b, d) = (b, d − b) and φ<sub>u</sub> is a probability density centred at u.
+The image is that surface integrated over the pixels of a grid.
+<span class="cite"><strong>Defined</strong>, printed 395, and attributed to
+reference [4] — Adams et al., <em>Persistence images: a stable vector
+representation of persistent homology</em>, JMLR 18 (2017), <strong>which is not
+on disk here</strong>.</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 13.3, printed 395.</strong> Suppose persistence images are
+computed with the normalized Gaussian distribution with variance σ² and weight
+function ω : ℝ² → ℝ. Then the persistence images are stable with respect to the
+1-Wasserstein distance: ‖I<sub>D</sub> − I<sub>E</sub>‖<sub>1</sub> ≤
+(√5 |∇ω| + √(10/π) ‖ω‖<sub>∞</sub> / σ) · d<sub>W,1</sub>(D, E).
+<span class="cite"><strong>Stated as a special case</strong> of a result in [4],
+for finite bounded diagrams; the general case is left to that reference. The same
+bound is asserted for the L² and L<sup>∞</sup> norms.</span>
+</div>
+
+<p>Read the hypotheses on ω and list them: nonnegative, bounded gradient, bounded
+sup norm. That is all. Nothing about the diagonal. So take the theorem at its word
+and use ω ≡ 1, which satisfies every one of them with |∇ω| = 0.</p>
+
+<div class="worked">
+<strong>Worked — one point, shrinking towards the diagonal.</strong>
+<pre>lifetime  d_W1       L1 w=pers   bound       L1 w=1      bound
+0.4000    0.400000   0.164015    2.321726    0.410039    0.713650
+0.1000    0.100000   0.034893    0.580432    0.348930    0.178412
+0.0200    0.020000   0.006610    0.116086    0.330508    0.035682
+0.0040    0.004000   0.001307    0.023217    0.326755    0.007136
+0.0008    0.000800   0.000261    0.004643    0.326002    0.001427</pre>
+With ω = persistence the measured difference falls with d<sub>W,1</sub> and stays
+an order of magnitude inside the bound. With ω ≡ 1 it <strong>plateaus at
+0.326</strong> while the bound falls to 0.001427 — the printed inequality is
+exceeded by a factor of 228, and by more at every smaller lifetime.
+<br><br>
+<span class="cite"><strong>That d<sub>W,1</sub> column is not the library's.</strong>
+<code>persim.wasserstein</code> matches in the <strong>Euclidean</strong> ground
+metric and returns 0.282843 for the first row; <strong>Definition 3.10</strong>
+<span class="cite">(printed 75)</span> defines d<sub>W,q</sub> with the
+<strong>ℓ<sup>q</sup></strong> ground metric, so the d<sub>W,1</sub> of Theorem
+13.3 is an ℓ¹ matching cost and the first row is 0.400000. The two differ by
+exactly √2 at every row. It changes no conclusion here — 228 and 323 are the same
+verdict — and the reason to check it anyway is that the conclusion is
+<em>a printed theorem is false</em>, and that is not a claim to make with an
+unexamined factor of 1.41 on the right-hand side.</span>
+<br><br>
+<span class="cite"><strong>The mechanism is elementary and is not persim's.</strong>
+Under ω ≡ 1 a point of any lifetime whatever contributes a full unit-mass Gaussian
+bump; the empty diagram's image is zero; so the difference is the mass of one bump
+and does not depend on the lifetime, while d<sub>W,1</sub> goes to zero. Any
+implementation of Definition 13.4 has this, because Definition 13.4 places weight
+ω(u) on every point regardless of position.</span>
+</div>
+
+<div class="warn">
+<strong>What this does and does not establish.</strong> It establishes that
+<strong>Theorem 13.3 as printed is false</strong>, and identifies the missing
+hypothesis: ω must be continuous and vanish on the diagonal. It establishes
+<strong>nothing about Adams et al. [4]</strong>, which is not on disk and has not
+been read. Two facts are on the record and no more: Dey and Wang attribute the
+result to [4] and state a special case of it; and their own prose, between the
+definition and the theorem, recommends "the persistence |b − d|" as the natural ω
+— a weight that does vanish on the diagonal. That is consistent with the condition
+living in [4] and being dropped in transit, and that is an inference about a
+document not read. <strong>For the syllabus pass: acquire [4].</strong>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> <code>persim.PersistenceImager</code>'s default
+is <code>weight='persistence'</code>. What is that default doing?</p>
+<button onclick="check(this,false)">Choosing a convenient scaling that any other bounded weight would do as well</button>
+<button onclick="check(this,true)" data-ok>Silently supplying the hypothesis the printed theorem omits, so stability arrives with the default rather than the construction</button>
+<button onclick="check(this,false)">Nothing mathematical; it only affects contrast in the rendered picture</button>
+<button onclick="check(this,false)">Enforcing the bounded-gradient condition, which is the hypothesis that actually matters</button>
+<button onclick="check(this,false)">Normalising the image so its entries sum to one</button>
+<div class="explain">It supplies the missing hypothesis. ω(b, p) = p vanishes
+linearly on the diagonal, so out of the box the image is stable — and the user
+never learns that the stability came from a default rather than from Definition
+13.4. The library's word is "default"; the mathematical word is
+<strong>hypothesis</strong>, and it is load-bearing. The fourth option picks the
+wrong condition: ω ≡ 1 has |∇ω| = 0, the best possible bounded gradient, and fails
+anyway. The first is the belief this experiment was built to destroy — "any other
+bounded weight would do" is precisely what the table refutes.</div>
+</div>
+
+<p>The third summary is the simplest and comes off worst. A <strong>Betti
+curve</strong> counts the bars alive at each t. Dey and Wang's §13.1 does not treat
+it, so there is no theorem to check it against, and none is needed: three lines
+settle it. Let D<sub>ε</sub> = {(t, t+ε)} and E be empty. Then
+d<sub>b</sub>(D<sub>ε</sub>, E) = ε/2, which goes to zero; but the curves differ by
+1 on an interval, so ‖β<sub>D</sub> − β<sub>E</sub>‖<sub>∞</sub> = 1 for every ε.
+The ratio is 2/ε, unbounded. Executed at ε = 0.5, 0.1 and 0.02 the measured sup
+difference is 1.0, 1.0 and 1.0 against bottleneck distances of 0.25, 0.05 and
+0.01.</p>
+
+<table class="cmp">
+<tr><th>summary</th><th>sup-norm bound by d<sub>b</sub>?</th><th>where it goes wrong</th></tr>
+<tr><td>landscape</td><td><strong>yes</strong>, with constant 1 (Theorem 13.1), tight</td><td>the sampled array is not the function; excess of the order of the grid spacing</td></tr>
+<tr><td>persistence image</td><td>via d<sub>W,1</sub> (Theorem 13.3), <em>only if</em> ω vanishes on the diagonal</td><td>the printed hypotheses omit that condition; a library default supplies it</td></tr>
+<tr><td>Betti curve</td><td><strong>no</strong> — no constant exists</td><td>a thin spike has height 1 and negligible area; the bound it does satisfy is an L¹ one</td></tr>
+</table>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> The same H₁ diagram, put through
+<code>BettiCurve(n_bins=10)</code> twice, gives
+<code>[1 1 1 1 1 1 1 1 1 0]</code> when fitted alone and
+<code>[1 1 1 0 0 0 0 0 0 0]</code> when fitted alongside a second diagram. Why?</p>
+<button onclick="check(this,false)">A random seed differs between the two calls</button>
+<button onclick="check(this,false)">The second diagram changed the first one's persistence pairs</button>
+<button onclick="check(this,true)" data-ok><code>fit</code> derives the sampling grid from the whole collection, so the vector is a property of the diagram and the batch</button>
+<button onclick="check(this,false)">The two calls used different homology dimensions</button>
+<div class="explain">The grid. Fitted alone, the filtration values reach 3 and the
+grid spans [0, 3]; fitted in the pair, the other diagram reaches 9 and the grid
+spans [0, 9], so the same curve is now sampled at ten points, nine of them past
+its death. Nothing was random and nothing was wrong — which is why it is
+dangerous. The consequence is a rule: <strong>fit the vectoriser on training data
+only</strong>, and carry the fitted transformer to the test set. Fitting on
+everything first lets the test set's range set the training grid, which is leakage
+of the quiet kind, showing up as an optimistic score and no error at all. That is
+lab-07's subject, and it is why these transformers have a <code>fit</code>.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close this lesson and reconstruct, with no code and
+no book:
+<br><br>
+1. The three-midpoint example, and the precise thing it rules out — plus how it
+differs from lab-05's pseudometric failure.
+<br>
+2. Definition 13.1, the tent picture, and why layer k equals tent k here but not
+in general.
+<br>
+3. Theorem 13.1, the two ratios 1.0000 and 1.0684, and the one-sentence diagnosis.
+<br>
+4. Theorem 13.3's printed hypotheses, the ω ≡ 1 counterexample, and the exact
+boundary of what that counterexample establishes.
+<br>
+5. The three-line argument that the Betti curve has no sup-norm bound.
+<br><br>
+Then answer without computing: lab-05 found lab-01's long bar clears the threshold
+at δ = 0.05 and fails at δ = 0.4. Draw the landscape's first layer for that
+diagram and mark both lines. Which of the three summaries in this unit would let
+you report that conclusion with a guarantee attached, and what exactly would you
+have to state alongside it?
+</div>
+
+<script>
+function check(btn, ok){
+  var box = btn.closest('.selfcheck');
+  if(box.classList.contains('answered')) return;
+  box.classList.add('answered');
+  var buttons = box.querySelectorAll('button');
+  for(var i = 0; i < buttons.length; i++){
+    if(buttons[i].hasAttribute('data-ok')) buttons[i].classList.add('correct');
+  }
+  if(!ok) btn.classList.add('wrong');
+}
+</script>
+
+<script>
+(function(){
+  var c = document.getElementById('fig');
+  if(!c || !c.getContext) return;
+  var g = c.getContext('2d');
+  g.fillStyle = '#0c1013'; g.fillRect(0, 0, 640, 340);
+
+  // t runs 0..3.5 at 150 px per unit; lambda runs 0..1.8 at 130 px per unit
+  var OX = 70, OY = 290, SX = 150, SY = 130;
+  function px(t){ return OX + SX * t; }
+  function py(v){ return OY - SY * v; }
+
+  g.strokeStyle = '#2a333d'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(OX, OY); g.lineTo(px(3.5), OY); g.stroke();
+  g.beginPath(); g.moveTo(OX, OY); g.lineTo(OX, py(1.75)); g.stroke();
+
+  g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+  for(var t = 1; t <= 3; t++){ g.fillText(String(t), px(t) - 3, OY + 14); }
+  var vs = [0.5, 1.0, 1.5];
+  for(var i = 0; i < vs.length; i++){
+    g.fillText(vs[i].toFixed(1), OX - 24, py(vs[i]) + 3);
+  }
+  g.fillText('filtration value t', px(2.6), OY + 28);
+  g.save(); g.translate(OX - 40, py(0.9)); g.rotate(-Math.PI / 2);
+  g.fillText('lambda', 0, 0); g.restore();
+
+  // the three bars, nested, and their tents
+  var bars = [[0.0, 3.0], [0.5, 2.0], [1.0, 1.4]];
+  var cols = ['#8ab4f8', '#4caf82', '#d8a657'];
+  for(var k = 0; k < bars.length; k++){
+    var b = bars[k][0], d = bars[k][1];
+    var mid = (b + d) / 2, peak = (d - b) / 2;
+    g.strokeStyle = cols[k]; g.lineWidth = 2;
+    g.beginPath();
+    g.moveTo(px(b), py(0)); g.lineTo(px(mid), py(peak)); g.lineTo(px(d), py(0));
+    g.stroke();
+    g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+    g.fillText('peak ' + peak.toFixed(2), px(mid) + 6, py(peak) - 6);
+  }
+
+  // the threshold line at 2*delta for delta = 0.25
+  var DELTA = 0.25;
+  g.strokeStyle = '#e06c75'; g.lineWidth = 1; g.setLineDash([5, 4]);
+  g.beginPath(); g.moveTo(OX, py(2 * DELTA)); g.lineTo(px(3.5), py(2 * DELTA)); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle = '#e06c75'; g.font = '11px sans-serif';
+  g.fillText('2 delta = 0.50', px(3.5) - 96, py(2 * DELTA) - 8);
+
+  // legend
+  g.font = '11px sans-serif';
+  var labels = ['layer 0: bar (0, 3)', 'layer 1: bar (0.5, 2)', 'layer 2: bar (1, 1.4)'];
+  for(var k = 0; k < labels.length; k++){
+    g.fillStyle = cols[k];
+    g.fillRect(430, 40 + 20 * k, 12, 3);
+    g.fillText(labels[k], 450, 44 + 20 * k);
+  }
+  g.fillStyle = '#9aa5b1';
+  g.fillText('bars are nested, so layer k = tent k', 430, 112);
+})();
+</script>
+
+<footer>
+<em>Sources, page by page.</em> Dey and Wang, <em>Computational Topology for Data
+Analysis</em>, Chapter 13 "Topological Persistence and Machine Learning", §13.1
+"Feature Vectorization of Persistence Diagrams": the opening remark that diagram
+space lacks inner-product structure, printed 390; <strong>Definition 13.1</strong>
+(persistence landscape) with the tent reading and the p-norm on landscapes,
+printed 391; the mean landscape, <strong>Claim 13.1</strong>, and the observation
+that a mean landscape may be the image of no diagram, printed 392;
+<strong>Theorem 13.1</strong> (Λ<sub>∞</sub> ≤ d<sub>B</sub>) with the pointer to
+further Λ<sub>p</sub> results, printed 393; <strong>Definition 13.4</strong>
+(persistence image) and <strong>Theorem 13.3</strong> (image stability with the
+explicit constant), both printed 395. <strong>Folio = PDF − 21</strong>, verified
+on seven consecutive pages: PDF 411 through 417 carry folios 390 through 396,
+inclusive and without a gap. The folio sits at the outer edge of the running head —
+second element on a recto, first on a verso.
+<br><br>
+<em>Modality.</em> Dey and Wang <strong>define</strong> 13.1 and 13.4;
+<strong>state without proof</strong> Claim 13.1, Theorem 13.1 and Theorem 13.3,
+attributing the first two to reference [51] (Bubenik, JMLR 16, 2015) and the third
+to reference [4] (Adams et al., JMLR 18, 2017). <strong>Neither paper is on disk
+here</strong>, so every attribution above is recorded as an attribution and
+nothing in this lesson depends on their contents. Theorem 13.3 is explicitly a
+<strong>special case</strong>, for the normalised Gaussian; the general result is
+left to [4].
+<br><br>
+<em>Sources, by execution.</em> Every number is output from the problem set's code
+blocks, run in the pinned environment — Python 3.11.11, persim 0.3.8,
+giotto-tda 0.6.2, numpy 1.26.4 — and re-derived by gate 9. API surfaces:
+<code>persim.bottleneck</code>, <code>persim.wasserstein</code>,
+<code>persim.PersistenceImager</code> with its <code>skew</code>,
+<code>weight</code> and <code>kernel</code> parameters,
+<code>persim.landscapes.PersLandscapeExact</code>,
+<code>persim.landscapes.PersistenceLandscaper</code>,
+<code>gtda.diagrams.BettiCurve</code> and its <code>samplings_</code> attribute.
+<br><br>
+<em>Stated here but not in the source.</em> That Theorem 13.3 as printed is false
+for ω ≡ 1: that is this lesson's counterexample, derived from Definition 13.4 and
+confirmed by execution, and it is a statement about the printed text and not about
+[4]. The repaired hypothesis — ω continuous and vanishing on the diagonal — is
+this lesson's, offered as the weakest condition ruling out the counterexample. The
+translation of lab-05's 4δ threshold into "peak height above 2δ" is this lesson's
+arithmetic. The three-line proof that the Betti curve admits no sup-norm bound is
+this lesson's; Dey and Wang's §13.1 does not discuss Betti curves at all, and the
+L¹ statement offered in its place is asserted here, not proved. The identification
+of layer k with tent k holds because these three bars are nested and is false in
+general.
+<br><br>
+<em>Not established here.</em> That any of the three summaries is the right feature
+for a given dataset. That the excess ratio 1.0684 vanishes at some finite
+resolution — it does not; the array never becomes the function. That the missing
+hypothesis in Theorem 13.3 appears in [4]. That the mean landscape is meaningless
+— it is a well-defined element of a Hilbert space, and what it is not is the
+landscape of a diagram. The syllabus resource line for this unit names only
+<code>giotto-tda: diagram vectorisation</code> and <code>scikit-tda persim</code>;
+Dey and Wang ch. 13 is used here as the primary source and the divergence is
+recorded for the syllabus pass.
+</footer>
+</body></html>
