@@ -46,6 +46,20 @@ for module in ("gudhi",):
         print("%-7s%s" % (module, "imports"))
     except Exception as exc:
         print("%-7s%s: %s" % (module, type(exc).__name__, exc))
+
+# A module that imports is not an API that exists. These are the names later
+# blocks reach for; importing them here means a rename or a broken subpackage
+# stops the set at its environment block, not four blocks later in a diff that
+# reads like a content error. This is the list the header calls "API surfaces
+# verified by execution", and it is now verified rather than asserted.
+#
+# Inside a function on purpose: the blocks share one namespace, so binding
+# names like `abs` or `round` at the top level here would shadow the builtins
+# for every block that follows.
+def _api_surface():
+    from gudhi import SimplexTree
+
+_api_surface()
 ```
 
 ```text id=env

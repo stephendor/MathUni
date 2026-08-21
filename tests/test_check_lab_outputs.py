@@ -320,6 +320,55 @@ def test_a_second_name_from_a_declared_module_is_still_required():
     assert "Amplitude from gtda.diagrams" in failures[0]
 
 
+def test_attribute_on_an_imported_module_is_a_declared_name_too():
+    """``persim.bottleneck(...)`` names a surface exactly as an import would."""
+    blocks = parse_blocks(
+        code_block("env", "import persim\nprint('env')") + out_block("env", "env")
+        + code_block("work", "import persim\npersim.bottleneck(1, 2)\nprint(1)")
+        + out_block("work", "1"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert "bottleneck from persim" in failures[0]
+
+
+def test_declaring_the_attribute_satisfies_the_check():
+    blocks = parse_blocks(
+        code_block("env", "import persim\nfrom persim import bottleneck\nprint('env')")
+        + out_block("env", "env")
+        + code_block("work", "import persim\npersim.bottleneck(1, 2)\nprint(1)")
+        + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
+def test_an_aliased_module_is_resolved_to_its_real_name():
+    """``import gtda.mapper as gm`` then ``gm.Projection``."""
+    blocks = parse_blocks(
+        code_block("env", "import gtda.mapper\nprint('env')") + out_block("env", "env")
+        + code_block("work", "import gtda.mapper as gm\ngm.Projection()\nprint(1)")
+        + out_block("work", "1"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert "Projection from gtda.mapper" in failures[0]
+
+
+def test_attribute_chains_stop_at_the_first_name():
+    """``np.linalg.norm`` asks for ``numpy.linalg`` and not for every function."""
+    blocks = parse_blocks(
+        code_block("env", "import numpy\nfrom numpy import linalg\nprint('env')")
+        + out_block("env", "env")
+        + code_block("work", "import numpy as np\nnp.linalg.norm([1])\nprint(1)")
+        + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
+def test_attributes_of_standard_library_modules_need_no_declaration():
+    blocks = parse_blocks(
+        code_block("env", "print('env')") + out_block("env", "env")
+        + code_block("work", "import json\njson.dumps({})\nprint(1)")
+        + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
 def test_names_taken_from_the_standard_library_need_no_declaration():
     blocks = parse_blocks(
         code_block("env", "print('env')") + out_block("env", "env")
@@ -363,6 +412,25 @@ def test_cli_fails_on_a_block_that_only_raises_the_second_time(tmp_path, capsys)
 
 
 # ---------------------------------------------------------- --parse-only
+
+def test_a_block_that_does_not_parse_is_reported():
+    """Skipping it dropped its imports from the analysis, so the set passed."""
+    blocks = parse_blocks(
+        code_block("env", "print('env')") + out_block("env", "env")
+        + code_block("broken", "import numpy\nif True\n    pass\n")
+        + out_block("broken", ""))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert failures[0].startswith("FAIL block 'broken' is not valid Python")
+
+
+def test_parse_only_rejects_a_set_whose_only_module_user_is_malformed(tmp_path, capsys):
+    """The exact hole: --parse-only is what CI runs, and it printed PASS."""
+    text = env_block() + code_block("env", "print('env')") + out_block("env", "env") \
+        + code_block("broken", "import numpy\nfor x in\n") + out_block("broken", "")
+    assert main([write(tmp_path, text), "--parse-only"]) == 1
+    assert "is not valid Python" in capsys.readouterr().out
+
 
 def test_a_failed_env_declaration_stops_the_gate_before_execution(tmp_path, capsys):
     """The premise of the run has already failed, so the blocks are not run.

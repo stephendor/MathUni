@@ -51,13 +51,21 @@ for module in ("gtda.diagrams", "gtda.homology", "numpy"):
     except Exception as exc:
         print("%-15s%s: %s" % (module, type(exc).__name__, exc))
 
-# A module that imports is not an API that exists. These names are the ones
-# later blocks use; importing them here means a rename or a broken subpackage
+# A module that imports is not an API that exists. These are the names later
+# blocks reach for; importing them here means a rename or a broken subpackage
 # stops the set at its environment block, not four blocks later in a diff that
 # reads like a content error. This is the list the header calls "API surfaces
 # verified by execution", and it is now verified rather than asserted.
-from gtda.diagrams import PersistenceLandscape
-from gtda.homology import VietorisRipsPersistence
+#
+# Inside a function on purpose: the blocks share one namespace, so binding
+# names like `abs` or `round` at the top level here would shadow the builtins
+# for every block that follows.
+def _api_surface():
+    from gtda.diagrams import PersistenceLandscape
+    from gtda.homology import VietorisRipsPersistence
+    from numpy import abs, argmax, argsort, array, array_equal, c_, cos, linalg, pi, random, round, sin, sort
+
+_api_surface()
 ```
 
 ```text id=env
@@ -346,11 +354,18 @@ about the torus. That is a different object and it is one we kept, so the claim
 can be checked rather than asserted.
 
 ```python id=soundness
-# Corollary 3.6 bounds the bottleneck distance between the clean and noisy
-# diagrams by delta. A noisy bar longer than 4*delta is further than 2*delta from
-# the diagonal, so no matching of cost <= delta can send it there: it must have a
-# partner in the CLEAN sample's diagram. That is the guarantee, and the object it
-# is about is the clean sample -- which is not the torus.
+# Corollary 3.6 via lab-05's arithmetic: moving every point by at most delta moves
+# each Rips filtration value by at most 2*delta, so d_b <= 2*delta -- NOT delta.
+# A noisy bar longer than 4*delta is further than 2*delta from the diagonal, so no
+# matching of cost 2*delta can send it there: it must have a partner in the CLEAN
+# sample's diagram. That factor of 2 is the whole reason the threshold is 4*delta
+# rather than 2*delta, so dropping it here would contradict the table above.
+#
+# What follows is NOT that matching. It reports, for each of the six longest noisy
+# bars, the nearest point of the clean diagram -- six independent nearest
+# neighbours, not a bijection. It is a consistency check the bound could have
+# failed and did not; how far below 2*delta the distances sit says how loose the
+# bound is on this data.
 def diagram(P, dim):
     D = VR.fit_transform(P[None])[0]
     return D[D[:, 2] == dim][:, :2]
@@ -371,7 +386,9 @@ for rank, k in enumerate(order, 1):
           % (rank, point[1] - point[0],
              "yes" if point[1] - point[0] > 4 * DELTA else "no", sup.min()))
 print()
-print("every bar's nearest clean partner is within delta = %.6f" % DELTA)
+print("Corollary 3.6 allows d_b up to 2 delta:      %.6f" % (2 * DELTA))
+print("largest of the six distances above:          %.6f"
+      % max(float(np.abs(clean1 - noisy1[k]).max(axis=1).min()) for k in order))
 ```
 
 ```text id=soundness
@@ -387,7 +404,8 @@ bar  lifetime   admitted     sup dist to
 5    0.5233     no           0.009466  
 6    0.4950     no           0.019201  
 
-every bar's nearest clean partner is within delta = 0.131206
+Corollary 3.6 allows d_b up to 2 delta:      0.262412
+largest of the six distances above:          0.048810
 ```
 
 (a) The first row is the mistake Problem 1(c) diagnosed, kept in the table so the
@@ -427,18 +445,31 @@ For (b): what does an independent permutation of three coordinates leave behind?
 (a) It is not a defect: the rule is **sound and not complete**, in the standard
 directions. *Sound* means everything it asserts is true — every bar it admits has
 a genuine partner in the clean sample's diagram, because a bar longer than 4δ sits
-further than 2δ from the diagonal and no matching of cost δ can send it there.
-*Complete* would mean everything true is asserted — every feature of the clean
-diagram is admitted — and that fails, because a genuine clean bar shorter than 4δ
-is rejected. Sound and not complete is exactly what a worst-case guarantee is: it
-never lies and it often says nothing.
+further than 2δ from the diagonal and **no matching of cost 2δ** can send it
+there. Mind that factor. lab-05's arithmetic gives d_b ≤ **2δ**, not δ, because
+moving every point by δ moves a Rips filtration value by up to 2δ — and it is
+exactly that 2 which makes the threshold 4δ rather than 2δ. *Complete* would mean
+everything true is asserted — every feature of the clean diagram is admitted —
+and that fails: a genuine clean bar shorter than 4δ is **not guaranteed to be
+admitted**. Not "is rejected": the rule is applied to the *noisy* bar, whose
+lifetime need not equal its clean partner's, so a short clean feature can still
+land above the threshold. The guarantee runs one way only. Sound and not complete
+is exactly what a worst-case guarantee is: it never lies and it often says
+nothing.
 
 **The load-bearing word is "clean sample".** The `soundness` block prints that
 diagram, and it has six long H₁ bars of its own: 1.2963, 1.2843, 0.5425, 0.5175,
-0.5161, 0.5048. Every one of the six noisy bars has a partner there within
-0.0488 — comfortably inside δ = 0.1312 — so the rule admitting three is not
-merely permitted, it is *understating* what the theorem could support. All six
-bars are real in the only sense the theorem knows about.
+0.5161, 0.5048. Each of the six longest noisy bars has a clean point within
+0.0488, against a bound of 2δ = 0.2624 — a factor of five to spare.
+
+Be exact about what that shows. Six independent nearest neighbours are not a
+bijection, so the block does not *verify* the bottleneck bound; it is a
+consistency check that could have refuted it and did not, and the margin says the
+bound is loose here. What it does establish is what the argument needs: these bars
+were not manufactured by the noise, because there is something in the clean
+diagram for each of them to be. All six are real in the only sense the theorem
+knows about, so the rule admitting three is if anything *understating* what the
+theorem would support.
 
 And the torus has b₁ = 2. So the four extra bars are features of the **clean 600-point
 sample**, not of the surface it was drawn from: 600 points do not fill a torus, and
@@ -474,10 +505,14 @@ test statistic. A report that wanted a p-value would need hundreds of draws and
 would have to say so; a report that wants to know whether one draw is enough
 needs about five, and the answer is no.
 
-Permuting each coordinate independently leaves a cloud filling roughly the same
-box, at roughly the same density — and a dense cloud of 600 points in a box has a
-Rips filtration with plenty of medium-lived 1-cycles, because at intermediate
-scales the complex is neither disconnected nor filled in. 0.4 to 0.5 is the length
+Permuting each coordinate independently preserves the sample size, each
+coordinate's marginal distribution and the bounding box, and destroys the joint
+distribution — which is the point. Say it that way rather than "the same density":
+the torus cloud concentrates on a surface while the permuted cloud is spread
+through the whole box, and that difference is exactly what the null is built to
+create. A cloud of 600 points spread through a box has a Rips filtration with
+plenty of medium-lived 1-cycles, because at intermediate scales the complex is
+neither disconnected nor filled in. 0.4 to 0.5 is the length
 of the longest such accident, and *which* value you get is itself a coin flip: the
 five seeds give 0.4192, 0.4584, 0.4442, 0.4006 and 0.5012, a spread of 0.10 on a
 quantity being used as a cutoff. Reporting the number from one draw would be

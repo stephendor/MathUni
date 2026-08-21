@@ -27,9 +27,16 @@ This gate re-derives the three things that claim depends on:
    later. The ``env`` block must therefore import every module the set uses, at
    the submodule it uses, **and every name the set takes out of one** — a class
    that has been renamed is as fatal as a subpackage that will not load, and a
-   set's header claims those names are "verified by execution". This gate checks
-   both statically, and stops before running anything if either fails: once the
+   set's header claims those names are "verified by execution". A name counts
+   however the set reaches it: ``from persim import bottleneck`` and
+   ``persim.bottleneck(...)`` are the same claim about the same surface.
+   Attribute chains stop at the first name, so ``np.linalg.norm`` asks for
+   ``numpy.linalg`` and not for every function in it. This gate checks all of it
+   statically, and stops before running anything if any of it fails: once the
    environment declaration is wrong there is nothing to learn from the outputs.
+   A block that will not parse is a failure and not a block to skip — skipping it
+   dropped its imports from this analysis, so a set whose only user of a module
+   was malformed used to pass.
 
 Only blocks carrying ``id=`` participate, so a set can still show code the
 reader is meant to complete without the gate trying to run it.
@@ -184,6 +191,46 @@ def _from_names(tree):
     return pairs
 
 
+def _module_aliases(trees):
+    """Return the local names bound to modules, across a set's shared namespace.
+
+    ``import gtda.mapper as gm`` binds ``gm`` to ``gtda.mapper``; plain
+    ``import gtda.mapper`` binds ``gtda``, with ``mapper`` reached as an
+    attribute. Blocks run in one interpreter, so a name bound in one block is in
+    scope in the next and the map is built over all of them.
+    """
+    aliases = {}
+    for tree in trees:
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    if alias.asname:
+                        aliases[alias.asname] = alias.name
+                    else:
+                        root = alias.name.split(".")[0]
+                        aliases[root] = root
+    return aliases
+
+
+def _attribute_names(tree, aliases):
+    """Return the ``(module, attribute)`` pairs an AST reaches through a module.
+
+    ``persim.bottleneck(...)`` names an API surface exactly as
+    ``from persim import bottleneck`` does, and it is the form a set reaches for
+    when the module is imported whole. Only the first attribute is taken:
+    ``np.linalg.norm`` yields ``(numpy, linalg)``, because establishing that the
+    submodule loads is the part that can fail as a unit, and walking deeper would
+    demand a declaration for every function in the library.
+    """
+    pairs = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+            module = aliases.get(node.value.id)
+            if module:
+                pairs.add((module, node.attr))
+    return pairs
+
+
 def _module_targets(tree):
     """Return the dotted module paths an AST loads.
 
@@ -225,18 +272,33 @@ def check_env_imports(blocks):
     occurs — turns that into an ``env`` diff on the first block instead.
     """
     env_code = [code for bid, code, _ in blocks if bid == "env"]
+
+    # A block that will not parse is a failure, not a block to skip. Skipping it
+    # dropped its imports from this analysis, so a set whose only user of a
+    # module had a syntax error passed --parse-only -- and --parse-only is the
+    # mode CI runs, so the set would have failed first for a reader.
+    trees = {}
+    failures = []
+    for block_id, code, _ in blocks:
+        try:
+            trees[block_id] = ast.parse(code)
+        except SyntaxError as error:
+            failures.append(
+                "FAIL block '%s' is not valid Python: %s (line %s)"
+                % (block_id, error.msg, error.lineno))
+    if failures:
+        return failures
+
+    aliases = _module_aliases(trees.values())
     used = {}
     used_names = {}
     for block_id, code, _ in blocks:
         if block_id == "env":
             continue
-        try:
-            tree = ast.parse(code)
-        except SyntaxError:
-            continue
+        tree = trees[block_id]
         for module in _module_targets(tree):
             used.setdefault(module, block_id)
-        for pair in _from_names(tree):
+        for pair in _from_names(tree) | _attribute_names(tree, aliases):
             used_names.setdefault(pair, block_id)
 
     external = {module: bid for module, bid in used.items()
@@ -250,13 +312,12 @@ def check_env_imports(blocks):
 
     declared = set()
     declared_names = set()
-    for code in env_code:
-        try:
-            tree = ast.parse(code)
-        except SyntaxError:
+    for block_id, code, _ in blocks:
+        if block_id != "env":
             continue
+        tree = trees[block_id]
         declared |= _module_targets(tree)
-        declared_names |= _from_names(tree)
+        declared_names |= _from_names(tree) | _attribute_names(tree, aliases)
 
     # Loading ``gtda.homology`` loads ``gtda`` on the way, so a declared dotted
     # path declares its ancestors. This is the safe direction: the parent does
@@ -267,7 +328,6 @@ def check_env_imports(blocks):
         for depth in range(1, len(parts)):
             declared.add(".".join(parts[:depth]))
 
-    failures = []
     for module in sorted(external):
         if module not in declared:
             failures.append(

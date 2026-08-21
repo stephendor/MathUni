@@ -244,16 +244,23 @@ theorem?</p>
 <div class="explain">Sound, not complete — in the standard directions, which are
 worth stating exactly. <strong>Sound: everything the rule asserts is true.</strong>
 A bar longer than 4δ lies further than 2δ from the diagonal, so no matching of cost
-δ can send it to the diagonal, so it has a genuine partner in the clean sample's
-diagram. <strong>Not complete: not everything true is asserted</strong> — a real
-feature of the clean diagram shorter than 4δ is rejected.
+<strong>2δ</strong> can send it to the diagonal, so it has a genuine partner in the
+clean sample's diagram. The factor matters: lab-05's arithmetic gives d<sub>b</sub>
+≤ 2δ, because moving every point by δ moves a Rips filtration value by up to 2δ —
+and that 2 is why the threshold is 4δ and not 2δ.
+<strong>Not complete: not everything true is asserted</strong> — a real feature of
+the clean diagram shorter than 4δ is <em>not guaranteed to be admitted</em>, since
+the rule is applied to the noisy bar and its lifetime need not match its clean
+partner's.
 <br><br>
 Everything turns on <em>which</em> diagram soundness is about, and it is the
 <strong>clean sample's</strong>, not the torus's. The problem set computes that
 diagram: it has six long H₁ bars of its own — 1.2963, 1.2843, 0.5425, 0.5175,
-0.5161, 0.5048 — and every one of the six noisy bars has a partner there within
-0.0488, well inside δ = 0.1312. So all six bars are real in the only sense the
-theorem knows about, and the rule admitting three is if anything conservative.
+0.5161, 0.5048 — and each of the six longest noisy bars has a clean point within
+0.0488, against a bound of 2δ = 0.2624. (Six nearest neighbours, not a bijection:
+a consistency check the bound could have failed and did not, with a factor of five
+to spare.) So all six bars are real in the only sense the theorem knows about, and
+the rule admitting three is if anything conservative.
 The torus, meanwhile, has b₁ = 2. The four extra bars belong to the clean
 600-point sample and not to the surface it came from: 600 points do not fill a
 torus, and sampling is not a displacement of the points, so the theorem was never
@@ -271,10 +278,13 @@ getting three by the honest one.</div>
 <div class="worked">
 <strong>Worked — why the null does not supply a threshold either.</strong>
 <br><br>
-Permuting three coordinates independently leaves a cloud filling roughly the same
-box at roughly the same density. Six hundred points scattered in a box have a Rips
-filtration with plenty of medium-lived 1-cycles: at intermediate scales the complex
-is neither disconnected nor filled in, and the gaps make loops.
+Permuting three coordinates independently keeps the sample size, each coordinate's
+marginal and the bounding box, and destroys the joint distribution — which is the
+point, and which is why "the same density" is the wrong way to say it: the torus
+concentrates on a surface, the permuted cloud spreads through the whole box. Six
+hundred points spread through a box have a Rips filtration with plenty of
+medium-lived 1-cycles: at intermediate scales the complex is neither disconnected
+nor filled in, and the gaps make loops.
 <br><br>
 <strong>How long is the longest such accident? It depends which permutation you
 drew.</strong> Five pre-specified seeds give 0.4192, 0.4584, 0.4442, 0.4006 and

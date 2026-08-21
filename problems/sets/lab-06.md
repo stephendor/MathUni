@@ -8,7 +8,7 @@ Persistence Diagrams", printed **390–395** (folio = PDF − 21). Specifically:
 **Claim 13.1**, printed 392; **Theorem 13.1** (Λ∞ ≤ d_B), printed 393;
 **Definition 13.4** (persistence image), printed 395; **Theorem 13.3** (image
 stability), printed 395. Plus executed code, in the environment pinned below. API
-surfaces verified by execution: `persim.PersistenceImager`,
+surfaces verified by execution: `persim.PersistenceImager`, `persim.bottleneck`,
 `persim.landscapes.PersLandscapeExact`, `persim.landscapes.PersistenceLandscaper`,
 `persim.wasserstein`, `gtda.diagrams.BettiCurve`.
 
@@ -50,13 +50,22 @@ for module in ("gtda.diagrams", "numpy", "persim", "persim.landscapes"):
     except Exception as exc:
         print("%-19s%s: %s" % (module, type(exc).__name__, exc))
 
-# A module that imports is not an API that exists. These names are the ones
-# later blocks use; importing them here means a rename or a broken subpackage
+# A module that imports is not an API that exists. These are the names later
+# blocks reach for; importing them here means a rename or a broken subpackage
 # stops the set at its environment block, not four blocks later in a diff that
 # reads like a content error. This is the list the header calls "API surfaces
 # verified by execution", and it is now verified rather than asserted.
-from gtda.diagrams import BettiCurve
-from persim.landscapes import PersLandscapeExact, PersistenceLandscaper
+#
+# Inside a function on purpose: the blocks share one namespace, so binding
+# names like `abs` or `round` at the top level here would shadow the builtins
+# for every block that follows.
+def _api_surface():
+    from gtda.diagrams import BettiCurve
+    from numpy import abs, allclose, array, array_equal, asarray, concatenate, linspace, maximum, minimum, ones_like, pi, round, sort, zeros
+    from persim import PersistenceImager, bottleneck, wasserstein
+    from persim.landscapes import PersLandscapeExact, PersistenceLandscaper
+
+_api_surface()
 ```
 
 ```text id=env
