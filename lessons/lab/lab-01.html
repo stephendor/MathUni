@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab-01 — Setup and point clouds</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+code{background:#0c1013;border:1px solid #2a333d;border-radius:4px;padding:.05rem .3rem;font-size:.92rem}
+pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.88rem;line-height:1.45}
+</style></head><body>
+<p class="cite">Computational Lab · Nexus College</p>
+<h1>Setup and point clouds <span class="cite">(lab-01)</span></h1>
+
+<div class="hook">
+Eighty points, sampled from a circle. You are about to detect the hole, and the
+first honest thing this module can tell you is that the hole is not there. As a
+topological space the data is eighty separate points — no loop, no connectivity,
+nothing. That is not a defect of the sample or of the noise; it is what a finite
+set of points always is. Whatever the pipeline finds, it does not find it in the
+data's topology, because the data has none. This unit installs the toolkit and
+then spends its time on where the topology actually comes from.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Eighty points are sampled with noise
+from a circle. What is H₁ of that set of eighty points, with its usual metric?</p>
+<button onclick="check(this,false)">ℤ — the points inherit the circle's loop</button>
+<button onclick="check(this,false)">ℤ, but only if the noise is small enough</button>
+<button onclick="check(this,true)" data-ok>0 — and so is every Hₙ for n ≥ 1, whatever the noise</button>
+<button onclick="check(this,false)">Undefined; homology needs a triangulation and a point set has none</button>
+<div class="explain">Zero. Take the smallest distance between two of the eighty
+points — for this sample the code returns 0.004290 — and put a ball of half that
+radius around each point. Each ball holds exactly one point, so every singleton
+is open, so every subset is open: the topology is <em>discrete</em>. A discrete
+space on eighty points is eighty contractible pieces, so H₀ = ℤ⁸⁰ and everything
+above vanishes. Noise is irrelevant to this: it is true for any finite set of
+distinct points, at any noise level, including none. The last option is wrong for
+a subtler reason worth keeping — a point set does have a well-defined homology,
+and the answer is simply uninteresting.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A point cloud is a finite metric space; every pipeline in this lab starts exactly here.</p>
+
+<div class="warn">
+<strong>The strip is true, and this unit's job is to say what it is worth.</strong>
+<br><br>
+<em>The first clause is exactly right, and the problem set verifies it by
+running it.</em> A point cloud is a finite metric space: <code>pdist</code> on the eighty
+points returns a matrix satisfying all three clauses of an2-01's
+<strong>Definition 3.1.1</strong>, with zero triangle violations across all
+512 000 triples.
+<br><br>
+<em>But a finite metric space is where metric-space theory goes to die.</em>
+an2-02's completeness holds trivially, because a Cauchy sequence in a discrete
+space is eventually constant. an2-03's compactness holds trivially, because every
+sequence in a finite set has a constant subsequence. Every function out of it is
+continuous. A hypothesis satisfied by everything in sight separates nothing, so
+none of these facts can distinguish this point cloud from any other.
+<br><br>
+<em>What the strip does not say is where the content is.</em> It is in the
+<strong>scale parameter</strong>: not one space but a one-parameter family, and
+the topology belongs to the family. <strong>No syllabus action — the strip is
+accurate and incomplete</strong>, and the incompleteness is the subject of the
+next eight units.
+<br><br>
+<em>Not claimed here.</em> That the long bar this unit produces <em>means</em> the
+circle. That is an inference, it needs a theorem, and the theorem is lab-05's.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 20 min</span>
+<h2>The environment is part of the answer</h2>
+
+<p>Every worked answer in this module is real program output. That makes the
+interpreter a citation. The problem set opens by printing it:</p>
+
+<pre>python        3.11.11
+giotto-tda    0.6.2
+gudhi         3.13.0
+numpy         1.26.4
+scikit-learn  1.3.2
+scipy         1.17.1
+gtda.homology           imports
+numpy                   imports
+scipy.spatial.distance  imports</pre>
+
+<p>The second half of that block is not decoration. A pinned version is read
+from a <code>.dist-info</code> directory by <code>importlib.metadata</code>,
+which loads no code at all — so a package whose compiled extensions are missing
+reports its version cheerfully and fails several blocks later, in a diff that
+reads like a wrong number rather than a broken install. Importing each module
+the set actually uses, at the submodule it uses, moves that failure to the first
+block. <span class="cite">Gate 9 requires it: a set whose <code>env</code> block
+omits a module a later block imports fails before anything is executed.</span></p>
+
+<p>This is not ceremony. The repository's own interpreter is Python 3.13.5 and
+carries gudhi 3.11.0, ripser 0.6.14 and scikit-learn 1.8.0 — different versions
+of three of these packages. Running the same code there reproduces the
+<em>program</em> and not necessarily the <em>numbers</em>, and nothing on the page
+would show that the ground had moved. giotto-tda publishes no wheel for 3.13 at
+all, which is why this module runs on a separate 3.11 interpreter in the first
+place.</p>
+
+<div class="definition">
+<strong>Source discipline for a library.</strong> In an2 a citation carried a page
+and a verb: <em>Lindström proves Proposition 4.3.4, printed 89</em>. Here it
+carries a version and a call: <em>giotto-tda 0.6.2,
+<code>VietorisRipsPersistence(homology_dimensions=[0, 1])</code>, and the
+<code>reduced_homology</code> default</em>. <span class="cite">The parallel is
+exact, and so is the failure mode: a page number omitted, or a version omitted,
+turns a fact into a rumour.</span>
+</div>
+
+<p><strong>Gate 9 makes this checkable rather than promised.</strong> Each lab
+problem set pins its environment in an <code>env</code> block and pairs each code
+block with its recorded output. The gate re-executes the code in the pinned
+interpreter, diffs every output, reads each pinned version out of that
+interpreter, and runs the whole file twice to catch anything unseeded. A recorded
+number that nobody can re-derive is not a worked answer — it is a claim, and this
+module does not ship claims.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A lab problem set records an output produced
+with an unseeded random sample. Every number on the page is genuine. What does
+gate 9 do?</p>
+<button onclick="check(this,false)">Passes — the numbers really were produced by that code</button>
+<button onclick="check(this,true)" data-ok>Fails on determinism: two runs of the same file disagree, before any output is compared</button>
+<button onclick="check(this,false)">Fails on the environment pins, since randomness is a version-dependent behaviour</button>
+<button onclick="check(this,false)">Passes with a warning, since the mathematics is unaffected</button>
+<div class="explain">It fails, and on the right ground. The gate runs the file
+twice by default and requires the runs to agree. The numbers being genuine is not
+in dispute — they were true once. The trouble is that they are not
+<em>re-derivable</em>, and a worked answer that cannot be re-derived puts the
+reader in the position of taking the author's word, which is the whole thing this
+gate removes. The mathematics really is unaffected, which is why the fourth option
+is tempting and why the discipline has to be mechanical rather than a matter of
+judgement.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Then the part where the semester of metric spaces cashes out at zero.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>What the data is, and what it is not</h2>
+
+<div class="worked">
+<strong>Worked — the point cloud is a metric space, checked rather than asserted.</strong>
+<br><br>
+<code>squareform(pdist(X))</code> returns the 80 × 80 matrix D of pairwise
+distances. Against an2-01's Definition 3.1.1:
+<br><br>
+<strong>(i)</strong> the diagonal is exactly zero and every off-diagonal entry is
+strictly positive — so d(x, y) = 0 if and only if x = y, both halves.
+<strong>(ii)</strong> <code>np.array_equal(D, D.T)</code> is True.
+<strong>(iii)</strong> across all 80³ = 512 000 triples, zero violations of
+d(i, j) ≤ d(i, k) + d(k, j).
+<br><br>
+<span class="cite">Two remarks that matter more than the result. First, the
+tolerance: the check compares with a slack of 1e-12, because floating-point
+addition is not associative and an exact comparison would be testing the
+arithmetic rather than the axiom. Second, and this is the point — <strong>the
+check could not have failed</strong>. The distances came from <code>pdist</code>
+on points in ℝ², and a subset of a metric space is a metric space. So the run is
+evidence about <em>the library</em>, not about the mathematics. That is the whole
+of what executing a known theorem can buy, and it is still worth buying.</span>
+</div>
+
+<p>Now the number that changes the subject. The smallest distance between two
+distinct points of this sample is <strong>0.004290</strong>, and the diameter is
+2.233080.</p>
+
+<div class="theorem">
+<strong>Every finite metric space is discrete.</strong> Let r be the smallest
+distance between distinct points. Then B(x; r/2) = {x} for every x, so every
+singleton is open, so every subset is open. <span class="cite">Checked by
+execution on this sample: <code>every B(x, r/2) is a singleton: True</code>.
+Proved in one line, and the one line is the whole of what a point cloud's
+topology has to say.</span>
+</div>
+
+<p>The consequences are worth writing down flatly, because each one is a result
+the reader spent real time on:</p>
+
+<table class="cmp">
+<tr><th>property</th><th>does the point cloud have it?</th><th>what it costs to check</th></tr>
+<tr><td>compact <span class="cite">(an2-03, Definition 3.5.2)</span></td><td>yes</td><td>nothing — every sequence in a finite set has a constant subsequence</td></tr>
+<tr><td>complete <span class="cite">(an2-02, Definition 3.4.3)</span></td><td>yes</td><td>nothing — an2-02's own worked example, Cauchy in a discrete space means eventually constant</td></tr>
+<tr><td>every function out of it continuous</td><td>yes</td><td>nothing — every preimage is open</td></tr>
+<tr><td>H₀</td><td>ℤ⁸⁰</td><td>—</td></tr>
+<tr><td>H₁ and above</td><td>0</td><td>—</td></tr>
+</table>
+
+<p>Three yeses that buy nothing. This is not a complaint about an2; it is the
+reason the module is arranged the way it is. <strong>A hypothesis that every
+object satisfies cannot distinguish any object from any other</strong>, and every
+point cloud satisfies all three. So the theory is not being applied to the data.
+Segment 3 says what it is being applied to.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> The cloud was sampled from a circle. The circle
+has H₁ = ℤ; the cloud has H₁ = 0. Which is the right response?</p>
+<button onclick="check(this,false)">The sample is too small; more points would recover ℤ</button>
+<button onclick="check(this,false)">The noise destroyed the loop; a noiseless sample would have H₁ = ℤ</button>
+<button onclick="check(this,true)" data-ok>Both are true and the question "what is the homology of the data?" is the thing that is wrong</button>
+<button onclick="check(this,false)">Homology is not a topological invariant of finite spaces, so the comparison is meaningless</button>
+<div class="explain">Both statements are correct. A million points sampled from
+the circle still form a discrete space with H₁ = 0, and so do a million points
+sampled with no noise at all — the first two options fail for the same reason,
+and neither noise nor sample size is the variable. What the reader wants is not
+the homology of the points but the homology of the <em>circle the points came
+from</em>, and that is not determined by the points. It is inferred, at a scale,
+with a guarantee. Getting from one to the other is the entire module, and lab-05
+is where the guarantee arrives.</div>
+</div>
+
+<div class="guided-proof">
+<strong>Guided — predict the shape of the answer before you run anything.</strong>
+<br><br>
+You are about to run Vietoris–Rips persistence in degrees 0 and 1 on these eighty
+points. Before reading on, write down three predictions, and commit to numbers
+rather than adjectives.
+<br><br>
+1. How many H₀ intervals will come back? 2. How many H₁ intervals? 3. Of the H₁
+intervals, how will their lifetimes be distributed — and what would you need to
+see to call one of them a hole?
+<textarea class="proof-input" placeholder="Your three predictions, with numbers."></textarea>
+<details class="model-answer"><summary>What the run actually returns</summary>
+<strong>H₀: 79.</strong> Not 80. That is a library convention, not a fact about
+the data, and it is Segment 3's subject.
+<br><br>
+<strong>H₁: 6.</strong> Not 1. All six are genuine 1-cycles in a genuine complex
+— little gaps between neighbouring points that briefly fail to fill in. Nothing
+in the algorithm marks any of them as noise.
+<br><br>
+<strong>The lifetimes split, and only by degree.</strong> The longest is 1.2370,
+from birth 0.3991 to death 1.6361. The runner-up is 0.0126. The ratio is
+<strong>98.1</strong>, and that ratio is the entire evidence that one of the six
+is different in kind from the other five. If you predicted "one long bar and some
+short ones", you were right about the shape; the thing to notice is that you were
+predicting a <em>ranking</em>, not a classification, and that persistence gives
+you nothing else. If the ratio had come back 1.4, the honest conclusion would be
+that <em>the evidence does not support a confident ranking</em> — not that the
+data cannot distinguish them, which is a claim about the features rather than
+about what you know, and not that the long bar is noise, which would need a
+displacement bound nobody has supplied. lab-05 makes the difference precise: a
+separating threshold exists at every ratio above 1, and the ratio measures how
+much error in that threshold the verdict survives.
+</details>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 25 min</span>
+<h2>Where the topology comes from, and one number that is the library's</h2>
+
+<p>The input had no topology. The output has a bar of length 1.2370. The
+parameter that appears nowhere in the coordinates is the <strong>scale</strong>:
+the pipeline does not ask what shape the points form, it builds a complex at
+every radius at once and records the radii between which a 1-cycle exists.
+1.2370 is the width of the band of radii on which the eighty points are connected
+enough to close a loop and not yet connected enough to fill it. It is a fact
+about a <em>family</em> of spaces, and there is no single space it is a fact
+about.</p>
+
+<canvas id="fig" width="640" height="330" aria-label="Left: the eighty sampled points, with one point circled at radius 0.20 where the complex is still disconnected and at radius 0.3991 where the loop has just closed. Right: the six H1 intervals drawn on a common radius axis, one running from 0.3991 to 1.6361 and five too short to read as anything but ticks."></canvas>
+
+<p class="cite"><strong>The data, and its six intervals.</strong> Left: the
+eighty points. The two rings on one point are radius 0.20, where the complex is
+still in pieces, and radius 0.3991, the radius at which the long 1-cycle is born.
+Right: all six H₁ intervals on one radius axis. The long one is 170 px wide; the
+other five are 2, 2, 1, 1 and 1 px, against an axis running to 1.75. That
+disparity is the figure's whole content. <strong>Nothing has been dropped and the
+axis is not rescaled</strong> — but two of the five are drawn <em>wider</em> than
+they are: at this scale their true widths are 0.84 and 0.43 of a pixel, and a
+sub-pixel bar paints as nothing at all, so both are clamped up to one pixel.
+Read the figure as "five intervals too short to see" and the printed lifetimes as
+the record of how short. A picture that tells the truth about the ratio would
+have to omit them, which would tell a worse lie.</p>
+
+<div class="worked fade">
+<strong>Faded — the missing eightieth interval.</strong>
+<span class="cite">giotto-tda 0.6.2, <code>reduced_homology</code>.</span>
+<br><br>
+Eighty points, and the run reports 79 intervals in H₀. Setting
+<code>reduced_homology=False</code> reports 80. The points did not change.
+<br><br>
+The dropped interval is the <strong>essential</strong> class: the one connected
+component that never dies. Under <code>reduced_homology=False</code> it appears
+with death ∞; reduced homology quotients out the extra generator of H̃₀ and it
+vanishes.
+<br><br>
+⟨your step: <code>reduced_homology=True</code> is the <em>default</em>. Write the
+rule this imposes, in the form an2 used for pages — and then decide which of
+these two sentences you are willing to put in a later unit: "the number of H₀
+bars equals the number of connected components", or the same sentence with
+something added.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A later unit reports "the number of H₀ bars
+equals the number of connected components", citing giotto-tda. Is it right?</p>
+<button onclick="check(this,false)">Yes — that is what H₀ means</button>
+<button onclick="check(this,false)">No — it is off by one, always</button>
+<button onclick="check(this,true)" data-ok>It depends on a flag the sentence does not name, and is false under the default</button>
+<button onclick="check(this,false)">It depends on the giotto-tda version, and on nothing else</button>
+<div class="explain">It is true under <code>reduced_homology=False</code> and
+false by exactly one under the default, which is <code>True</code>. So the second
+option is wrong to say "always" — under the other flag the sentence is exactly
+right. The trouble is that a reader of the sentence alone cannot tell which
+world they are in, because the flag is invisible at the call site and the version
+is unstated. This is the lab's version of a citation with no page number, and the
+default is the dangerous half: a non-default argument at least appears in the
+code you can read.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Six H₁ intervals came back and the circle has
+one hole. What is the status of the other five?</p>
+<button onclick="check(this,false)">Numerical error; exact arithmetic would return one interval</button>
+<button onclick="check(this,false)">Artefacts of the noise; a noiseless circular sample would return one</button>
+<button onclick="check(this,true)" data-ok>Genuine 1-cycles of a genuine complex, distinguished from the first only by lifetime</button>
+<button onclick="check(this,false)">A known giotto-tda defect, corrected by post-processing</button>
+<div class="explain">All six are real. Each is an honest 1-cycle that appears at
+one radius and is filled at another — the short ones are gaps between neighbouring
+points that briefly fail to fill in. No arithmetic went wrong, no library
+misbehaved, and a noiseless sample of eighty points spaced around a circle would
+produce short intervals too, since the spacing itself creates them. What separates
+the first from the rest is 1.2370 against 0.0126: a ratio of 98.1, and a ratio is
+a matter of degree. Persistence hands you a <em>ranking</em> and no threshold. The
+threshold is the reader's, until lab-05 supplies a theorem that constrains it.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> If a semester of metric-space theory is
+trivial on every point cloud, what was it for?</p>
+<button onclick="check(this,false)">Later units apply it to the point cloud in a less trivial way</button>
+<button onclick="check(this,true)" data-ok>It is applied to the space of persistence diagrams, not to the data</button>
+<button onclick="check(this,false)">It is applied to the Vietoris–Rips complex, which is infinite</button>
+<button onclick="check(this,false)">It is background culture; nothing in this module uses it directly</button>
+<div class="explain">To the diagrams. The data is a finite metric space and
+everything about it is trivial; the <em>output</em> of the pipeline is a
+persistence diagram, and diagrams live in a space where nothing is trivial —
+an2-01 established that the bottleneck distance on diagrams in general is an
+extended pseudometric, with distinct diagrams at distance zero and values in
+[0, ∞], and an2-02 audited exactly what completeness does and does not mean
+there. lab-05 needs that vocabulary to state stability at all. The inversion is
+worth saying out loud because the syllabus order hides it: the input is the
+trivial metric space and the output is the hard one. The third option is wrong on
+a detail — the Vietoris–Rips complex on a finite set is finite at every radius;
+it is the <em>family</em> that is infinite, and a family is not a metric
+space.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close this lesson and reconstruct, on paper, with no
+code in front of you:
+<br><br>
+1. The one-line proof that every finite metric space is discrete, and the two
+consequences for compactness and completeness.
+<br>
+2. The sentence that replaces "the point cloud has the topology" — naming what
+does carry it.
+<br>
+3. Why 79 and not 80, and the general rule you would write for citing a library
+so that this class of error cannot recur.
+<br>
+4. The number 98.1: what it is a ratio of, and precisely what you are and are not
+entitled to conclude from it.
+<br><br>
+Then, without running anything, predict what happens to all four answers if the
+noise standard deviation is raised from 0.06 to 0.4. Three of them do not move.
+</div>
+
+<canvas id="none" width="10" height="10" style="display:none" aria-hidden="true"></canvas>
+
+<script>
+function check(btn, ok){
+  var box = btn.closest('.selfcheck');
+  if(box.classList.contains('answered')) return;
+  box.classList.add('answered');
+  var buttons = box.querySelectorAll('button');
+  for(var i = 0; i < buttons.length; i++){
+    if(buttons[i].hasAttribute('data-ok')) buttons[i].classList.add('correct');
+  }
+  if(!ok) btn.classList.add('wrong');
+}
+</script>
+
+<script>
+(function(){
+  var PTS=[0.904,-0.259,-0.668,0.828,0.259,0.962,-0.169,-0.971,0.763,-0.687,1.095,0.111,-1.043,-0.242,-0.311,-0.952,-0.944,-0.260,0.947,0.080,-1.052,0.265,0.401,-0.845,-0.933,0.385,0.499,0.818,-0.888,0.417,0.942,0.079,0.662,0.618,0.914,-0.458,-0.744,-0.545,-0.945,-0.243,0.643,-0.790,1.013,0.012,-0.910,-0.619,-0.569,-0.865,0.865,-0.342,0.881,-0.423,0.055,1.089,0.453,-0.769,-0.552,-0.822,-0.843,-0.667,-0.081,-0.975,-0.378,-0.917,0.356,-0.970,0.639,-0.742,0.513,-0.913,-0.042,-0.926,0.662,-0.634,-0.682,-0.585,0.278,-1.015,-0.729,0.731,0.683,-0.734,0.959,-0.332,0.857,0.469,-0.684,-0.670,-1.016,0.135,-0.293,-0.868,1.042,-0.002,-0.633,0.626,0.159,-0.942,-1.047,-0.192,0.591,-0.675,-0.595,0.666,0.720,0.789,0.041,1.024,-0.066,0.965,-0.480,-0.917,0.987,-0.232,-0.808,-0.552,0.900,-0.449,-0.376,0.852,-0.808,-0.612,0.779,-0.557,-0.936,0.488,0.281,-1.023,0.888,-0.774,-0.935,-0.403,-0.899,-0.427,-0.503,-0.830,-0.224,0.943,-1.044,0.137,0.680,-0.739,-0.976,-0.438,0.419,0.824,-0.524,-0.879,0.900,-0.593,0.992,-0.037,-0.994,0.224,-1.014,0.231,0.850,0.597,0.890,-0.021];
+  var H1=[[0.3991,1.6361],[0.1133,0.1259],[0.1796,0.1911],[0.0530,0.0640],[0.1027,0.1088],[0.3293,0.3324]];
+  var c=document.getElementById('fig'); if(!c||!c.getContext) return;
+  var g=c.getContext('2d');
+
+  // Left panel: data in [-1.06, 1.10] both axes, mapped into a square well inside the canvas.
+  // radius 1 maps to LR. LR is 108 and not 118 because the r = 0.3991 ring around
+  // point 0 reaches LCX + LR*(0.904 + 0.3991), which at 118 runs to x = 312 and
+  // collides with the interval labels at x = 308.
+  var LCX=150, LCY=165, LR=108;
+  function px(x){ return LCX + LR*x; }
+  function py(y){ return LCY - LR*y; }
+
+  g.fillStyle='#0c1013'; g.fillRect(0,0,640,330);
+
+  // the two rings, drawn first so the points sit on top
+  var ringPoint=[PTS[0],PTS[1]];
+  var rings=[[0.20,'#e06c75','r = 0.20'],[0.3991,'#8ab4f8','r = 0.3991']];
+  for(var i=0;i<rings.length;i++){
+    g.strokeStyle=rings[i][0]==0.20?'#e06c75':'#8ab4f8';
+    g.lineWidth=1.4; g.setLineDash([4,3]);
+    g.beginPath(); g.arc(px(ringPoint[0]),py(ringPoint[1]),LR*rings[i][0],0,2*Math.PI); g.stroke();
+  }
+  g.setLineDash([]);
+
+  g.fillStyle='#e8e8e8';
+  for(var i=0;i<PTS.length;i+=2){
+    g.beginPath(); g.arc(px(PTS[i]),py(PTS[i+1]),1.9,0,2*Math.PI); g.fill();
+  }
+  g.fillStyle='#8ab4f8';
+  g.beginPath(); g.arc(px(ringPoint[0]),py(ringPoint[1]),3.2,0,2*Math.PI); g.fill();
+
+  g.font='11px sans-serif'; g.fillStyle='#9aa5b1';
+  g.fillText('80 points, discrete: H₁ = 0', 44, 312);
+
+  // Right panel: six intervals on a shared radius axis 0 to 1.75.
+  var RX0=372, RX1=612, RY0=64, RMAX=1.75, ROW=26;
+  function rx(v){ return RX0 + (RX1-RX0)*v/RMAX; }
+  g.strokeStyle='#2a333d'; g.lineWidth=1;
+  g.beginPath(); g.moveTo(RX0,RY0-14); g.lineTo(RX1,RY0-14); g.stroke();
+  g.fillStyle='#9aa5b1'; g.font='10px sans-serif';
+  for(var t=0;t<=1.5;t+=0.5){
+    g.beginPath(); g.moveTo(rx(t),RY0-18); g.lineTo(rx(t),RY0-14); g.stroke();
+    g.fillText(t.toFixed(1), rx(t)-7, RY0-22);
+  }
+  g.fillText('radius', RX1-34, RY0-22);
+
+  for(var i=0;i<H1.length;i++){
+    var y=RY0+i*ROW;
+    var x0=rx(H1[i][0]), x1=rx(H1[i][1]);
+    // a bar narrower than a pixel would vanish entirely; clamp to 1px so five
+    // short intervals read as present-and-tiny rather than as absent
+    if(x1-x0<1) x1=x0+1;
+    g.strokeStyle = i===0 ? '#4caf82' : '#e06c75';
+    g.lineWidth = i===0 ? 5 : 4;
+    g.beginPath(); g.moveTo(x0,y); g.lineTo(x1,y); g.stroke();
+    g.fillStyle='#9aa5b1'; g.font='10px sans-serif';
+    g.fillText('life ' + (H1[i][1]-H1[i][0]).toFixed(4), RX0-64, y+3);
+  }
+  g.fillStyle='#9aa5b1'; g.font='11px sans-serif';
+  g.fillText('six H₁ intervals, true widths', RX0-64, RY0+6*ROW+16);
+  g.fillText('ratio longest : runner-up = 98.1', RX0-64, RY0+6*ROW+32);
+})();
+</script>
+
+<footer>
+<em>Sources, by execution.</em> Every number in this lesson is output from the
+problem set's code blocks, run in the environment pinned there — Python 3.11.11,
+giotto-tda 0.6.2, gudhi 3.13.0, numpy 1.26.4, scikit-learn 1.3.2, scipy 1.17.1 —
+and re-derived
+by gate 9, which diffs each recorded output against a fresh run, checks each
+pinned version against the interpreter, and runs the file twice to catch anything
+unseeded. API surfaces used: <code>numpy.random.default_rng</code>,
+<code>scipy.spatial.distance.pdist</code> and <code>squareform</code>,
+<code>gtda.homology.VietorisRipsPersistence.fit_transform</code> with
+<code>homology_dimensions</code> and <code>reduced_homology</code>.
+<br><br>
+<em>Modality, for a library.</em> The three metric axioms are
+<strong>verified by execution</strong> here and <strong>proved</strong> in
+an2-01; the run is evidence about the library, not about the mathematics, and the
+lesson says so where it does it. That every finite metric space is discrete is
+<strong>proved</strong> here, in one line. That 79 and not 80 intervals come back
+is <strong>a convention of giotto-tda 0.6.2</strong>, established by running both
+settings, and is not a mathematical fact.
+<br><br>
+<em>Carried, and not read here.</em> Definition 3.1.1 is an2-01's;
+Definition 3.4.3 and the discrete-space completeness example are an2-02's;
+Definition 3.5.2 is an2-03's. The claim that the bottleneck distance on general
+diagrams is an extended pseudometric is an2-01's, reported through tda1-06 and
+not verified in this module. <code>an-14</code>, the S1 metric-spaces bridge named
+in this unit's prerequisites, is not yet written; every metric-space fact used
+here is taken from the an2 unit that proves it.
+<br><br>
+<em>Stated here but not in the source.</em> The reading of the ratio 98.1 as the
+whole of the evidence separating signal from noise is this lesson's, and it is
+deliberately unsupported at this stage — no theorem in this unit licenses a
+threshold. The observation that three trivially-satisfied hypotheses buy nothing
+is this lesson's framing of an2's results, not a claim any of those units makes.
+<br><br>
+<em>Not established here.</em> That the long interval corresponds to the circle
+the points were sampled from. That a ratio of 98.1 is large enough to conclude
+anything. Both need lab-05's stability theorem, which needs lab-02's construction
+and lab-04's diagram first. Nothing in this unit builds the Vietoris–Rips complex
+— it is a black box on purpose, opened in lab-02.
+</footer>
+</body></html>

@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab-04 — Persistence diagrams and barcodes</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+code{background:#0c1013;border:1px solid #2a333d;border-radius:4px;padding:.05rem .3rem;font-size:.92rem}
+pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.88rem;line-height:1.45}
+</style></head><body>
+<p class="cite">Computational Lab · Nexus College</p>
+<h1>Persistence diagrams and barcodes <span class="cite">(lab-04)</span></h1>
+
+<div class="hook">
+lab-03 produced bars by pairing lowest ones, and left a question it could not
+answer: why should the output be a list of intervals at all? A persistence module
+is a row of vector spaces with maps between them, and nothing in that description
+says it splits into pieces each of which is "alive from here to there". That it
+does is a <em>theorem</em> — four of them, actually, because the right one depends
+on what you index by, and the one covering the real line was not proved until
+2015. The barcode is not a data structure. It is a decomposition, and this unit
+is about which theorem you are standing on when you draw one.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> A persistence module is a sequence
+of vector spaces V₀ → V₁ → ⋯ → Vₙ. Why is its barcode a list of intervals?</p>
+<button onclick="check(this,false)">By definition — a barcode is what the reduction algorithm outputs</button>
+<button onclick="check(this,false)">Because homology classes are born and die, so intervals are the only possible shape</button>
+<button onclick="check(this,true)" data-ok>Because of a decomposition theorem, whose hypotheses can fail — and then there is no barcode</button>
+<button onclick="check(this,false)">Because the maps are linear, and linear maps always split their domains into invariant lines</button>
+<div class="explain">A theorem, and one with hypotheses. Krull–Remak–Schmidt
+(Oudot's <strong>Theorem 1.1</strong>, printed 16) decomposes a finite-dimensional
+representation into indecomposables; Gabriel's theorem for Aₙ quivers
+(<strong>Theorem 1.2</strong>, printed 17) identifies those indecomposables as
+intervals. Drop finite-dimensionality and the conclusion genuinely fails — Oudot
+gives Webb's Example 1.5 at printed 18 for exactly that purpose. The first option
+inverts the logic: the algorithm outputs pairs because the theorem says pairs are
+a complete description, not the other way round. The second is the comfortable
+story the theorem replaces — "born and die" is a description of the answer, not a
+reason for it.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The barcode is aa-20's decomposition made visible; this is the mission's central object.</p>
+
+<div class="warn">
+<strong>The strip is right and cites a unit that does not exist.</strong>
+<br><br>
+<em><code>aa-20</code> is Semester 3 and unwritten</em>, so nothing about it may be assumed
+here. Every algebraic fact in this lesson comes from Oudot's Chapter 1, cited by
+theorem number and printed page, and the reader is never asked to recall a unit
+they have not read.
+<br><br>
+<em>"Made visible" is the accurate part, and it hides a choice.</em> The barcode
+and the diagram are two pictures of one list of intervals — a bar [b, d) becomes
+a point (b, d) above the diagonal. They are not interchangeable in use: lifetimes
+are lengths in one and vertical distances in the other, and the operation this
+module actually needs, matching one summary against another, only has a natural
+formulation on the diagram. That is lab-05.
+<br><br>
+<em>"The mission's central object" is a claim with a debt.</em> lab-01 showed the
+data has no topology; lab-03 showed the reduction supplies no threshold. What
+makes the diagram central is that everything downstream is a function of it — and
+a function of it is only meaningful if the diagram <strong>moves a little when
+the data moves a little</strong>. Nothing in this unit establishes that.
+<strong>No syllabus action; the strip is accurate and its central claim is
+underwritten by a theorem two units away.</strong>
+<br><br>
+<em>Not claimed here.</em> That any bar is significant, that the diagram is
+stable, or that it says anything about the space the points were sampled from.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>Four theorems, and which one you are standing on</h2>
+
+<p>The classification problem — what are the indecomposable representations? — is
+in Oudot's words "an essentially impossible task" in general, and becomes
+"remarkably simple" under restrictions. The restrictions are what the four
+theorems differ in.</p>
+
+<div class="theorem">
+<strong>Theorem 1.1 (Krull–Remak–Schmidt, printed 16).</strong> Every
+finite-dimensional representation of a finite quiver over a field decomposes as a
+direct sum of indecomposables, uniquely up to isomorphism and permutation.
+<span class="cite">Existence by induction on dimension; uniqueness from Azumaya's
+theorem. This gives a decomposition and does <em>not</em> say what the pieces
+look like.</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 1.2 (Gabriel for Aₙ-type quivers, printed 17).</strong> Every
+indecomposable finite-dimensional representation of an Aₙ-type quiver is an
+interval representation. <span class="cite">Aₙ quivers are Dynkin, so Gabriel's
+theorem applies. <strong>This is the one that makes "birth, death" a complete
+description</strong> — without it you have a list of indecomposables and no reason
+to describe any of them by two numbers.</span>
+</div>
+
+<p>Those two cover everything a computer does, because a finite complex has
+finitely many distinct filtration values. But the theory this module talks about
+is indexed by ℝ, and for that the statements have to be extended:</p>
+
+<div class="theorem">
+<strong>Theorem 1.4 (Webb, printed 18).</strong> Any <em>pointwise
+finite-dimensional</em> representation of ℤ over a field is a direct sum of
+interval representations.
+<br><br>
+<strong>Theorem 1.6 (Crawley-Boevey, printed 19).</strong> The same for any
+subposet T ⊆ ℝ. <span class="cite">Pointwise finite-dimensional means each
+constituent vector space is finite-dimensional. Uniqueness again from Azumaya.
+Oudot notes that for (ℤ, ≤) and (ℝ, ≤) intervals may be left- or right-infinite,
+and that since ℝ has limit points they may be open or half-open — none of which
+happens for Aₙ.</span>
+</div>
+
+<p>The hypothesis is not decoration. Oudot gives <strong>Example 1.5</strong>
+(printed 18, due to Webb) of a representation of ℤ that is not pointwise
+finite-dimensional and does not decompose into intervals — so the theorems are
+sharp in that hypothesis, and it is not an artefact of the proof.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A filtration takes five distinct values. Which
+theorem licenses calling its output a barcode?</p>
+<button onclick="check(this,false)">Theorem 1.6, since filtration values are real numbers</button>
+<button onclick="check(this,true)" data-ok>Theorems 1.1 and 1.2 together — the index poset is A₅, finite and Dynkin</button>
+<button onclick="check(this,false)">Theorem 1.4, since the values are ordered like ℤ</button>
+<button onclick="check(this,false)">None; the barcode is produced by the algorithm and needs no theorem</button>
+<div class="explain">1.1 and 1.2, and it takes both. Five distinct values make
+the index poset A₅ — finite, and Dynkin — so 1.1 decomposes into indecomposables
+and 1.2 identifies them as intervals. Theorem 1.6 <em>would</em> apply, since the
+values do sit inside ℝ, but reaching for it is invoking Crawley-Boevey where
+Krull–Remak–Schmidt and Gabriel suffice, and it obscures which hypothesis is
+actually load-bearing. (Name the theorems, not their dates. This lesson said "a
+2015 theorem where an 1890s one suffices" until a reviewer pointed out that
+neither of the two sufficient results is from the 1890s — Gabriel's is from the
+1970s — and that a date nobody had checked was doing rhetorical work a citation
+should be doing.)
+<strong>The danger is that the printout looks identical either way</strong>: the
+output format records nothing about which theorem produced it, which is why a
+report should name one.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Then the diagram, and a claim about it that can be executed.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 30 min</span>
+<h2>Two pictures, one list of intervals</h2>
+
+<p>The module of the problem set — four points, a square closing at 2.0, a
+diagonal at 3.0, two triangles at 4.0 — has this barcode:</p>
+
+<pre>  H0  [0.0, 1.0)
+  H0  [0.0, 1.0)
+  H0  [0.0, 2.0)
+  H0  [0.0, inf)
+  H1  [2.0, 4.0)
+  H1  [3.0, 4.0)</pre>
+
+<canvas id="fig" width="640" height="330" aria-label="Left, a barcode: six horizontal bars on a common axis from 0 to 5, four in degree zero and two in degree one, with the fourth running off the right edge to mark an infinite bar. Right, the same six intervals as a persistence diagram: points plotted at birth against death above the diagonal, with the infinite one drawn on a dashed line at the top."></canvas>
+
+<p class="cite"><strong>The same six intervals, twice.</strong> Left, the barcode:
+each interval is a segment, and its <em>lifetime is its length</em>. Right, the
+diagram: each interval [b, d) is the point (b, d), and its lifetime is its
+<em>vertical distance above the diagonal</em>. The essential bar runs off the
+right edge on the left and sits on the dashed ∞ line on the right; both are
+conventions for the same fact, that nothing kills it. Note the two H₁ points
+(2, 4) and (3, 4): they share a death and are distinct points, which the barcode
+shows as two bars ending together.
+<br><br>
+<strong>Now count the dots: there are five, and there are six intervals.</strong>
+Two of the H₀ intervals are both [0, 1), so they are the <em>same point</em> of
+the plane and are drawn on top of each other. A diagram is a <em>multiset</em>,
+and the plane cannot show multiplicity — the barcode can, which is one concrete
+reason to keep both pictures. This is not a drawing artefact to be tidied away:
+lab-05's first self-check turns on a diagram point carrying a multiplicity, and
+the bottleneck matching has to pair up each copy separately.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Barcode or diagram — which does the module
+actually need, and for what?</p>
+<button onclick="check(this,false)">The barcode, because lifetimes are what lab-01's ratio compared</button>
+<button onclick="check(this,false)">The diagram, because matching features to the diagonal has no barcode formulation</button>
+<button onclick="check(this,true)" data-ok>Neither is required — the information is identical — but the diagram is where the matching is legible</button>
+<button onclick="check(this,false)">Neither; they carry identical information, so the choice is cosmetic</button>
+<div class="explain">Neither is <em>required</em>. The bar-to-point correspondence
+is a bijection, so anything computable from one is computable from the other, and
+the second option — the tempting one — is false: the bottleneck distance has a
+perfectly good barcode formulation. Match <code>[b, d)</code> to
+<code>[b′, d′)</code> at cost max(|b − b′|, |d − d′|), and let an unmatched bar of
+lifetime L cost L/2, which is precisely what the distance to the diagonal
+computes. What differs is legibility: lifetimes are lengths on a barcode, which is
+how lab-01's ratio of 98.1 was visible at a glance, and a matching is a picture on
+a diagram, where the features are points and the diagonal is a set of points in
+the same plane. The fourth option is right that the information is identical and
+wrong to call the choice cosmetic — which picture you draw decides what a reader
+sees without working for it, and that is what "made visible" in the mission strip
+actually claims. Treating a change of picture as a change of capability is the
+error the phrase invites.</div>
+</div>
+
+<div class="worked">
+<strong>Worked — the diagram is the rank invariant, executed both ways.</strong>
+<br><br>
+lab-03 quoted the Fundamental Lemma: the persistent Betti numbers are determined
+by the diagram. That is one direction. The problem set runs the other, and it is
+the one that matters.
+<br><br>
+Tabulate β<sub>p</sub><sup>k,l</sup> for every pair of filtration values — a
+table of ranks, with no algorithm and no pairing in it:
+<pre>persistent Betti numbers beta_1^{k,l}:
+         0.0   1.0   2.0   3.0   4.0
+  0.0      0     0     0     0     0
+  1.0      .     0     0     0     0
+  2.0      .     .     1     1     0
+  3.0      .     .     .     2     0
+  4.0      .     .     .     .     0</pre>
+Then invert by Edelsbrunner's inclusion–exclusion at printed 181. For the bar
+(2.0, 4.0): the four entries are β(2, 3) = 1, β(2, 4) = 0, β(1, 3) = 0,
+β(1, 4) = 0, giving μ = (1 − 0) − (0 − 0) = <strong>1</strong>. The first
+subtraction keeps classes alive at 2.0 that survive to 3.0 and not to 4.0 — the
+ones that <em>die at 4.0</em>. The second removes those already alive at 1.0,
+leaving the ones <em>born at 2.0</em>.
+<br><br>
+Run over the whole grid it returns every finite bar, and
+<code>agree: True</code>.
+<span class="cite"><strong>The bars were recovered without running the reduction
+at all</strong> — from a table of ranks. So the diagram and the rank invariant
+carry the same information, and lab-01's move, arguing about data from the
+diagram alone, discards nothing.</span>
+</div>
+
+<div class="guided-proof">
+<strong>Guided — what the recovery misses, and whether it matters.</strong>
+<br><br>
+The inclusion–exclusion recovers five finite bars and returns nothing for the
+sixth, <code>H0 [0.0, inf)</code>. Before reading on: say why the formula cannot
+see it, decide whether that breaks the claim that the diagram equals the rank
+invariant, and find the entry of the β₀ table that already tells you how many
+essential classes there are.
+<textarea class="proof-input" placeholder="Why it is missed, whether the claim survives, and where the count is."></textarea>
+<details class="model-answer"><summary>The three answers</summary>
+<strong>Why:</strong> the formula is indexed by a birth i and a death j, and
+evaluates ranks at four grid corners. An essential class has no death index, so
+there is no j to substitute and no grid cell for it to live in.
+<br><br>
+<strong>Does the claim survive:</strong> as stated in the worked block, yes — it
+was a claim about <em>finite</em> bars. But "the rank invariant on the finite grid
+determines the barcode" is <strong>false</strong> as a general statement, and
+needs the column at l = ∞, or equivalently β<sub>p</sub>(k, ∞). This is worth
+being exact about rather than waving through.
+<br><br>
+<strong>Where the count is:</strong> β₀(4.0, 4.0) = 1. At the last filtration
+value one class is alive, and nothing arrives afterwards to kill it, so there is
+exactly one essential class in degree 0 — which matches the one infinite bar.
+Reading it off the diagonal of the table is the general trick: β<sub>p</sub>(t, t)
+for t the final value counts the classes that survive.
+</details>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 20 min</span>
+<h2>A hypothesis that is free, and one that will not be</h2>
+
+<div class="worked fade">
+<strong>Faded — pointwise finite-dimensionality, checked.</strong>
+<br><br>
+<pre>  t=0.0  [4, 0]
+  t=1.0  [2, 0]
+  t=2.0  [1, 1]
+  t=3.0  [1, 2]
+  t=4.0  [1, 0]
+every vector space finite-dimensional: True</pre>
+Four components at t = 0, one loop from t = 2, two loops at t = 3 once the
+diagonal splits the square, and none at t = 4 once both triangles arrive. Every
+dimension finite, so the hypothesis of Theorems 1.4 and 1.6 holds.
+<br><br>
+It could not have failed. A finite simplicial complex has finite chain groups at
+every value, so pointwise finite-dimensionality is a <em>consequence of
+finiteness</em> and no input the software accepts can violate it.
+<br><br>
+⟨your step: lab-01 found compactness and completeness holding trivially on a point
+cloud and concluded they bought nothing. Here a hypothesis holds trivially and the
+conclusion is worth having. Say what distinguishes the two cases — the answer is
+about which end of the implication the free thing sits at — and then write the
+one sentence a report should use to cite the right theorem without overclaiming.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Pointwise finite-dimensionality holds
+automatically for everything this module computes. What follows?</p>
+<button onclick="check(this,false)">The hypothesis is redundant and Oudot could have omitted it</button>
+<button onclick="check(this,false)">The theorems say nothing useful here, as with lab-01's trivial compactness</button>
+<button onclick="check(this,true)" data-ok>Nothing is weakened: a free hypothesis is good news, unlike a free conclusion</button>
+<button onclick="check(this,false)">The barcode is only defined for finite complexes</button>
+<div class="explain">Nothing is weakened, and the contrast with lab-01 is the
+point. There the trivially-satisfied properties were the <em>conclusions</em> of
+theorems the reader wanted to apply, so those theorems distinguished nothing.
+Here the free thing is a <em>hypothesis</em>, and its conclusion — the barcode
+exists and is unique — does real work. A hypothesis you get for nothing is a
+theorem you get for nothing. The first option is wrong because the hypothesis is
+not free in general: Example 1.5 exhibits its failure, which is why Oudot states
+it. The fourth confuses "automatic for finite complexes" with "only defined for
+them" — Theorem 1.6 covers ℝ-indexed modules that no computer will ever
+hold.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Oudot's Chapter 1 never mentions point clouds,
+distances or noise. What does that tell you?</p>
+<button onclick="check(this,false)">That the chapter is incomplete and the applications are elsewhere in the book</button>
+<button onclick="check(this,true)" data-ok>That the barcode's existence is linear algebra over a poset, settled before any modelling assumption is made</button>
+<button onclick="check(this,false)">That the theory does not apply to data, and a separate argument is needed for point clouds</button>
+<button onclick="check(this,false)">That geometry enters only through the choice of field</button>
+<div class="explain">That the object is well defined before any modelling
+assumption. Nothing about sampling, noise or metric spaces enters the
+decomposition theorems — they are statements about representations of a poset.
+That is reassuring rather than a gap: it means the barcode is not contingent on
+believing anything about where the data came from. The modelling assumptions
+arrive later, in what one is entitled to <em>infer</em> from the diagram, which is
+where lab-05's hypotheses live. The third option gets this backwards — generality
+is not inapplicability.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> lab-01 said the data has no topology; lab-03
+said the reduction supplies no threshold. What is the diagram central <em>to</em>,
+and what must be true for it to be?</p>
+<button onclick="check(this,false)">To the homology of the data, which it summarises faithfully</button>
+<button onclick="check(this,true)" data-ok>To everything downstream, which are functions of it — and they need it to move only a little when the data does</button>
+<button onclick="check(this,false)">To nothing yet; it becomes central once vectorisation makes it usable in lab-06</button>
+<button onclick="check(this,false)">To the reduction algorithm, whose correctness it certifies</button>
+<div class="explain">To everything downstream. Vectorisation in lab-06, features
+in lab-07, and any statement comparing two datasets are all functions of the
+diagram, and a function of an object is only meaningful if the object is
+<strong>stable</strong> — a small change in the data producing a small change in
+the diagram. Nothing in this unit establishes that, and lab-05 does. The first
+option repeats the error lab-01 killed: the diagram does not summarise the
+homology of the data, which is trivial; it summarises a family. The third
+inverts the dependency — vectorisation is one of the functions that needs
+stability, not the thing that confers importance.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close this lesson and reconstruct, with no code and
+no book:
+<br><br>
+1. The four theorems by number, with what each adds — and which pair covers
+anything a computer can hold.
+<br>
+2. The hypothesis Theorems 1.4 and 1.6 carry, why Oudot gives Example 1.5, and
+why no computation here can violate it.
+<br>
+3. The translation between the two pictures, and the one operation that needs the
+diagram.
+<br>
+4. The inclusion–exclusion for the bar (2.0, 4.0): the four rank values, the
+arithmetic, and what each subtraction removes.
+<br><br>
+Then answer without computing: if the diagonal edge arrived at 5.0 instead of
+3.0, which bars change and does the number of essential classes?
+</div>
+
+<script>
+function check(btn, ok){
+  var box = btn.closest('.selfcheck');
+  if(box.classList.contains('answered')) return;
+  box.classList.add('answered');
+  var buttons = box.querySelectorAll('button');
+  for(var i = 0; i < buttons.length; i++){
+    if(buttons[i].hasAttribute('data-ok')) buttons[i].classList.add('correct');
+  }
+  if(!ok) btn.classList.add('wrong');
+}
+</script>
+
+<script>
+(function(){
+  var c = document.getElementById('fig');
+  if(!c || !c.getContext) return;
+  var g = c.getContext('2d');
+  g.fillStyle = '#0c1013'; g.fillRect(0, 0, 640, 330);
+
+  var INF = 1e9;
+  // dim, birth, death — exactly the six intervals the problem set prints
+  var BARS = [[0,0,1],[0,0,1],[0,0,2],[0,0,INF],[1,2,4],[1,3,4]];
+
+  // ---- left panel: the barcode, axis 0..5
+  var BX0 = 62, BX1 = 282, BMAX = 5, ROW = 24, BY0 = 62;
+  function bx(v){ return BX0 + (BX1 - BX0) * Math.min(v, BMAX) / BMAX; }
+
+  g.strokeStyle = '#2a333d'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(BX0, BY0 - 14); g.lineTo(BX1, BY0 - 14); g.stroke();
+  g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+  for(var t = 0; t <= 5; t++){
+    g.beginPath(); g.moveTo(bx(t), BY0 - 18); g.lineTo(bx(t), BY0 - 14); g.stroke();
+    g.fillText(String(t), bx(t) - 3, BY0 - 22);
+  }
+  for(var i = 0; i < BARS.length; i++){
+    var y = BY0 + i * ROW;
+    var x0 = bx(BARS[i][1]);
+    var infinite = BARS[i][2] >= INF;
+    var x1 = infinite ? BX1 : bx(BARS[i][2]);
+    g.strokeStyle = BARS[i][0] === 0 ? '#8ab4f8' : '#4caf82';
+    g.lineWidth = 5;
+    g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke();
+    if(infinite){                       // arrowhead: this bar does not end
+      g.beginPath();
+      g.moveTo(BX1, y - 5); g.lineTo(BX1 + 9, y); g.lineTo(BX1, y + 5);
+      g.closePath(); g.fillStyle = '#8ab4f8'; g.fill();
+    }
+    g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+    g.fillText('H' + BARS[i][0], BX0 - 22, y + 3);
+  }
+  g.fillStyle = '#e8e8e8'; g.font = '12px sans-serif';
+  g.fillText('barcode', BX0 - 22, BY0 + 6 * ROW + 18);
+  g.fillStyle = '#9aa5b1'; g.font = '11px sans-serif';
+  g.fillText('lifetime = length', BX0 - 22, BY0 + 6 * ROW + 36);
+
+  // ---- right panel: the diagram, a square with the diagonal
+  var DX = 386, DY = 218, DS = 30, DMAX = 5;   // origin at (DX, DY), DS px per unit
+  function dx(v){ return DX + DS * v; }
+  function dy(v){ return DY - DS * v; }
+
+  g.strokeStyle = '#2a333d'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(DX, DY); g.lineTo(dx(DMAX), DY); g.stroke();      // x axis
+  g.beginPath(); g.moveTo(DX, DY); g.lineTo(DX, dy(DMAX)); g.stroke();      // y axis
+  g.strokeStyle = '#3a444f'; g.setLineDash([4, 3]);
+  g.beginPath(); g.moveTo(DX, DY); g.lineTo(dx(DMAX), dy(DMAX)); g.stroke();  // diagonal
+  g.strokeStyle = '#e06c75';
+  g.beginPath(); g.moveTo(DX, dy(DMAX)); g.lineTo(dx(DMAX), dy(DMAX)); g.stroke();  // the inf line
+  g.setLineDash([]);
+
+  g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+  for(var t = 0; t <= 5; t++){
+    g.fillText(String(t), dx(t) - 3, DY + 14);
+    if(t > 0) g.fillText(String(t), DX - 14, dy(t) + 3);
+  }
+  g.fillStyle = '#e06c75'; g.fillText('inf', DX - 20, dy(DMAX) + 3);
+  g.fillStyle = '#9aa5b1';
+  g.fillText('birth', dx(DMAX) - 26, DY + 28);
+  g.save(); g.translate(DX - 30, dy(3)); g.rotate(-Math.PI / 2);
+  g.fillText('death', 0, 0); g.restore();
+
+  for(var i = 0; i < BARS.length; i++){
+    var b = BARS[i][1];
+    var d = BARS[i][2] >= INF ? DMAX : BARS[i][2];
+    g.fillStyle = BARS[i][0] === 0 ? '#8ab4f8' : '#4caf82';
+    g.beginPath(); g.arc(dx(b), dy(d), 4.5, 0, 2 * Math.PI); g.fill();
+  }
+  g.fillStyle = '#e8e8e8'; g.font = '12px sans-serif';
+  g.fillText('diagram', DX, DY + 46);
+  g.fillStyle = '#9aa5b1'; g.font = '11px sans-serif';
+  g.fillText('lifetime = height above diagonal', DX, DY + 64);
+})();
+</script>
+
+<footer>
+<em>Sources, page by page.</em> Oudot, <em>Persistence Theory: From Quiver
+Representations to Data Analysis</em>, Chapter 1 "Algebraic persistence":
+<strong>Theorem 1.1</strong> (Krull–Remak–Schmidt), printed 16;
+<strong>Theorem 1.2</strong> (Gabriel for Aₙ-type quivers), printed 17;
+<strong>Theorem 1.4</strong> (Webb) and <strong>Example 1.5</strong>, printed 18;
+<strong>Theorem 1.6</strong> (Crawley-Boevey), with the remark that ℝ-indexed
+intervals may be open or half-open, printed 19. Folio = PDF − 9, verified by
+reading the folio off each page cited. The multiplicity formula recovering bars
+from ranks is Edelsbrunner and Harer, printed 181, carried from lab-03.
+<br><br>
+<em>Modality.</em> Oudot <strong>states all four theorems without proving
+them</strong> — Chapter 1 is a survey, attributing existence to induction on
+dimension and every uniqueness claim to Azumaya's theorem, with the primary
+sources cited by number in his bibliography. Example 1.5 is <strong>given in
+full</strong>, because its job is to show a hypothesis cannot be dropped.
+<strong>Unlike Edelsbrunner, Oudot numbers his results</strong>, so gate 1 has a
+real denominator for this unit where it had none for lab-02 and lab-03.
+<br><br>
+<em>Sources, by execution.</em> Every number is output from the problem set's code
+blocks, run in the pinned environment — Python 3.11.11, gudhi 3.13.0,
+giotto-tda 0.6.2, numpy 1.26.4 — and re-derived by gate 9. API surfaces:
+<code>gudhi.SimplexTree.persistence</code>,
+<code>persistent_betti_numbers</code>, <code>num_simplices</code>.
+<br><br>
+<em>Stated here but not in the source.</em> The identification of which theorem
+licenses a given computation, and the warning that the printout looks the same
+whichever it is, are this lesson's; Oudot discusses no software. The contrast
+between a freely-satisfied hypothesis here and lab-01's freely-satisfied
+conclusions is this lesson's framing. The half-open bracket notation <code>[b,
+d)</code> is this problem set's rendering of a pair gudhi returns without
+brackets, and is a convention rather than a claim about the interval's endpoints.
+<br><br>
+<em>Not established here.</em> That the diagram is stable — nothing in this unit
+bears on it, and every downstream use needs it. That the essential classes are
+determined by the finite rank grid: they are not, and the guided derivation says
+so. That any bar is significant. Oudot's Chapter 3, where stability lives, is
+lab-05's source and is not opened here.
+</footer>
+</body></html>

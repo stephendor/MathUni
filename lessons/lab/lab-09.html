@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab-09 — Mini-project: a full TDA analysis</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+code{background:#0c1013;border:1px solid #2a333d;border-radius:4px;padding:.05rem .3rem;font-size:.92rem}
+pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.88rem;line-height:1.45}
+</style></head><body>
+<p class="cite">Computational Lab · Nexus College</p>
+<h1>Mini-project: a full TDA analysis <span class="cite">(lab-09)</span></h1>
+
+<div class="hook">
+Six hundred points on a torus. Two loops and one void, and the answer is known in
+advance, which is the only reason this unit can say what it says. Four thresholds
+get applied to the same barcode. Quoting the noise <em>standard deviation</em> as
+δ gives 0.12 and admits all six leading bars — and is wrong, because a Gaussian is
+unbounded and 488 of the 600 points moved further than that. lab-05's stability
+rule, applied to the <em>measured</em> displacement bound δ = 0.1312, gives 0.5248
+and admits three. The coordinate-permutation null, the strongest control this
+module has built, admits five. The largest-gap heuristic — lab-01's ratio of 98.1,
+which lab-05 examined and declined to license — gives two, and gives two at every
+seed tried. The rule that gets the right answer is the one with no theorem behind
+it, and the deliverable of this unit is not the answer. It is the paragraph that
+says so.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Your data is sampled with Gaussian
+noise of standard deviation 0.03. You apply lab-05's rule that a bar of lifetime
+greater than 4δ cannot be an artefact of that noise. What is δ?</p>
+<button onclick="check(this,false)">0.03 — the noise level is known exactly, so δ is known exactly</button>
+<button onclick="check(this,false)">0.03·√3, since the noise is added independently in three coordinates</button>
+<button onclick="check(this,true)" data-ok>Not determined by 0.03 at all — a Gaussian is unbounded, so its standard deviation bounds nothing; δ has to be measured against the clean sample</button>
+<button onclick="check(this,false)">Undefined, since the rule needs the diagrams of two datasets and there is one</button>
+<div class="explain">Not determined. lab-05's δ must bound <em>every</em> point's
+Euclidean displacement, and a standard deviation is a scale parameter of a
+distribution with no maximum — no multiple of it bounds anything with certainty.
+The size of the gap is worth seeing rather than reasoning about: on this sample
+<strong>488 of the 600 points moved further than 0.03</strong>, and the largest
+moved 0.131206. Quoting σ as δ understates the bound by a factor of 4.4 here, and
+by an unbounded factor in principle.
+<br><br>
+The second option is the sophisticated version of the same error. It corrects for
+dimension — the expected displacement of a 3-D isotropic Gaussian is indeed larger
+than one coordinate's σ — but a corrected <em>typical</em> value is still not a
+<em>bound</em>, and 0.052 would be exceeded by plenty of points too.
+<br><br>
+This unit can measure δ, because the generator is ours and the clean sample can be
+kept: δ = 0.131206, so 4δ = 0.5248, which admits three of the six leading bars
+rather than all six. Note what makes that available — not that the noise level is
+known, but that the <em>realisation</em> is. On real data neither is, which is
+Segment 3's subject. The first option is what this lesson asserted in draft, and
+two reviewers caught it independently.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: A dry run of the capstone — the whole pipeline, on data you choose, defended in writing.</p>
+
+<div class="warn">
+<strong>The strip is accurate, and "data you choose" is doing something this unit
+cannot do for you.</strong>
+<br><br>
+<em>"The whole pipeline" — yes, and it is walked once, end to end.</em> Point
+cloud with no topology (lab-01), Rips with its conventions stated (lab-02), the
+reduction and the barcode (lab-03, lab-04), the threshold (lab-05), the landscape
+(lab-06), the controls (lab-07), the parameter discipline (lab-08).
+<br><br>
+<em>"Data you choose" is where this unit and the capstone part company.</em> The
+data here is a <strong>synthetic torus with a known answer and a δ written into
+the generator</strong>. Both are luxuries. The known answer is what makes Segment 2
+possible at all — it is the only reason anyone can say that the gap heuristic is
+the rule that works here — and the known δ removes lab-05's single modelling
+assumption for free. <strong>Real data supplies neither.</strong> Segment 3 goes
+through the unit's five conclusions and marks each one survives, survives with a
+stated assumption, or does not transfer.
+<br><br>
+<em>"Defended in writing" is the deliverable, and it is the harder half.</em> The
+analysis is twenty lines of code. The defence is a conclusion paragraph and a
+disclosure paragraph, and the disclosure has to be sufficient for a hostile reader
+to see which conclusions rest on a theorem and which on a heuristic.
+<strong>No syllabus action; the strip is right and this lesson is what it asks
+for.</strong>
+<br><br>
+<em>Not claimed here.</em> That the points lie on a torus, or that any bar
+"is" a hole in a surface — every theorem in this module relates a dataset to its
+own diagram, never a dataset to a space it came from, and that restriction is not
+relaxed on the last page.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>The computation, with its conventions, and its null</h2>
+
+<p>Six hundred points on a torus with R = 2, r = 1, Gaussian noise of standard
+deviation 0.03. Alongside it, built before anything is computed, the
+<strong>null</strong>: the same cloud with each coordinate independently permuted.
+Same means, same standard deviations, and the sorted x-coordinates are literally
+the same array. Everything but the joint structure is preserved exactly.</p>
+
+<div class="worked">
+<strong>Worked — one computation, both clouds.</strong>
+<pre>torus H1   [1.2965 1.2373 0.5997 0.5238 0.5233 0.495 ]
+null  H1   [0.4192 0.3798 0.3684 0.3614 0.3442 0.3372]
+torus H2   [0.6845 0.1078 0.1058 0.0943 0.0907 0.0861]
+null  H2   [0.2195 0.1847 0.1693 0.1582 0.1503 0.1498]</pre>
+A torus has b₀ = 1, b₁ = 2, b₂ = 1.
+<br><br>
+<span class="cite"><strong>The H₂ column is the cleanest signal in the module</strong>
+— 0.6845 against a next-longest of 0.1078, a factor of 6.3, with the null topping
+out at 0.2195. The H₁ column is not: 1.2373 against 0.5997 is a factor of 2.06, and
+the null reaches 0.5012 at its worst seed. <strong>The harder question gets the
+cleaner answer</strong>,
+because a torus has one void and <em>two</em> loops, and the two loops have to be
+picked out of a crowd of sampling artefacts that the void has no analogue of.
+Multiplicity, not dimension, is what makes H₁ hard here.</span>
+</div>
+
+<p>The methods sentence has to carry every convention lab-02 established is not
+determined by the words "Vietoris–Rips": <em>Rips persistent homology in dimensions
+0 to 2 over ℤ/2, filtration parameter equal to the simplex <strong>diameter</strong>
+— so a 2-simplex on a unit equilateral triangle enters at 1.0, not at its
+circumradius — computed with <code>gtda.homology.VietorisRipsPersistence</code>
+(giotto-tda 0.6.2), edge collapse enabled, no maximum edge length.</em></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> <code>collapse_edges=True</code> is not a default.
+How should it be reported?</p>
+<button onclick="check(this,false)">It need not be — it only affects speed, so it is an implementation detail</button>
+<button onclick="check(this,true)" data-ok>Reported, and labelled as a performance option rather than a modelling one, because a reader cannot otherwise tell which it is</button>
+<button onclick="check(this,false)">Reported as a modelling choice, since it changes the complex</button>
+<button onclick="check(this,false)">Not reported, but the runtime should be, so a reader can infer it</button>
+<div class="explain">Reported, with its kind named. Edge collapse replaces the
+complex with a smaller one having the <em>same</em> persistent homology, so it
+genuinely cannot change the barcode — the third option is wrong about the
+consequence even though it is right that the complex changes. But a reader
+encountering <code>collapse_edges=True</code> in your methods has no way to know
+that unless you say so, and the alternative — omitting it — leaves them unable to
+reproduce your runtime or to rule out that it mattered. This is lab-01's rule for
+library defaults, extended: report every non-default argument, and say for each
+whether it is performance or modelling.</div>
+</div>
+
+<div class="worked fade">
+<strong>Faded — what the null does and does not rule out.</strong>
+<br><br>
+The null's marginals are not merely similar to the data's; they are
+<strong>identical</strong>, the same multiset of values in each coordinate. So any
+difference between the two diagrams is attributable to the joint structure and to
+nothing else. It is the geometric analogue of lab-07's label permutation: destroy
+exactly the thing under test, preserve exactly everything else.
+<br><br>
+It is not the strongest null available. Something survives independent coordinate
+permutation.
+<br><br>
+⟨your step: name what survives, and describe a null that would destroy that too.
+Then say which class of sceptical objection this null already closes off, in the
+form a sceptic would actually raise it.⟩
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Then four thresholds.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 30 min</span>
+<h2>Four rules, four answers, and the one that works</h2>
+
+<canvas id="fig" width="640" height="340" aria-label="A barcode of the six longest first-homology lifetimes of the torus point cloud. The two longest bars, 1.2965 and 1.2373, are drawn in green; the next four, 0.5997, 0.5238, 0.5233 and 0.4950, are grey. Two dashed vertical lines mark thresholds seven pixels apart: the null-calibrated threshold at 0.5012 and the stability threshold at 0.5248. Three bars extend past the stability line and five extend past the null line, so the two rules cut the barcode in different places — after the third bar and after the fifth. The difference is bars four and five, which end inside the narrow window between the two lines: six pixels past the null line and, as an amber annotation states rather than shows, three tenths of a pixel short of the stability line. The last bar, 0.4950, falls short of both. A double-headed arrow between the second and third bars marks the largest lifetime gap, with ratio 2.06."></canvas>
+
+<p class="cite"><strong>The whole argument in one picture.</strong> Six H₁ bars.
+The dashed line at <strong>0.5248</strong> is lab-05's stability threshold at the
+measured δ = 0.1312; the line at <strong>0.5012</strong> is the longest bar any of
+five null permutations produced. Two arguments with nothing in common — a theorem
+about displacement, and a shuffle of the coordinates — land <strong>seven pixels
+apart</strong>, which is the arresting part of the picture.
+<br><br>
+It is also a trap, and the barcode springs it. <strong>Agreeing to within 5% on
+the threshold, the two rules disagree by two features:</strong> 4δ keeps three
+bars, the null keeps five. The difference is bars 4 and 5, at 0.5238 and 0.5233,
+which fall inside that seven-pixel window — six pixels past the null line and
+<strong>0.3 of a pixel short of the stability line.</strong> Closeness of
+thresholds says nothing about agreement of answers when the barcode is dense
+exactly where the thresholds are.
+<br><br>
+That last margin is worth more than either count. A δ of 0.130950 rather than
+0.131206 — one part in five hundred — moves the proved rule's answer from three
+bars to five. It is sound and correctly applied, and its <em>answer</em> is
+balanced on the fourth significant figure of a quantity real data supplies as an
+estimate. And neither three nor five is the answer, which is two: the only thing
+separating the two green bars from the rest is the gap between them, a factor of
+2.06, and no theorem in this module says anything about it.
+<br><br>
+Had δ been read off the noise standard deviation, the first line would have sat at
+0.12, off the left of every bar, and the picture would have shown a proved rule
+excluding nothing at all. That version of this figure was drawn, and it was
+wrong.</p>
+
+<table class="cmp">
+<tr><th>rule</th><th>threshold</th><th>admits</th><th>status</th></tr>
+<tr><td>lifetime &gt; 4 × noise sd</td><td>0.1200</td><td>6</td><td><strong>not licensed by anything</strong> — a standard deviation is not a displacement bound</td></tr>
+<tr><td>lifetime &gt; 4δ, δ measured</td><td>0.5248</td><td>3</td><td><strong>proved</strong>, from Oudot's Corollary 3.6 (printed 61) by lab-05's arithmetic</td></tr>
+<tr><td>longer than any null bar</td><td>0.5012</td><td>5</td><td>empirical, the strongest control the module has; max over five pre-specified seeds</td></tr>
+<tr><td>largest lifetime gap</td><td>ratio 2.06</td><td><strong>2</strong></td><td>heuristic, no guarantee of any kind</td></tr>
+</table>
+
+<p>The first two rows differ only in what was substituted for δ, and the
+substitution that admits everything is the unlicensed one. That ordering is worth
+sitting with: <strong>the error made the rule weaker and more comfortable at the
+same time</strong> — 0.12 contradicts no hoped-for conclusion, and it still
+carried the word "proved" while doing so.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> The stability rule, correctly applied with
+δ = 0.1312, admits three bars where the answer is two. Is that a defect in the
+theorem?</p>
+<button onclick="check(this,false)">Yes — a rule that gets the count wrong is not a useful rule</button>
+<button onclick="check(this,true)" data-ok>No — the rule is sound and not complete, and 4δ sits below the scale where <em>sampling</em> artefacts live, which is not what δ measures</button>
+<button onclick="check(this,false)">No, because the rule was applied with the wrong δ; the sampling scale is the right one</button>
+<button onclick="check(this,false)">Yes — Corollary 3.6 does not apply to Vietoris–Rips filtrations</button>
+<div class="explain">Sound, not complete — in the standard directions, which are
+worth stating exactly. <strong>Sound: everything the rule asserts is true.</strong>
+A bar longer than 4δ lies further than 2δ from the diagonal, so no matching of cost
+<strong>2δ</strong> can send it to the diagonal, so it has a genuine partner in the
+clean sample's diagram. The factor matters: lab-05's arithmetic gives d<sub>b</sub>
+≤ 2δ, because moving every point by δ moves a Rips filtration value by up to 2δ —
+and that 2 is why the threshold is 4δ and not 2δ.
+<strong>Not complete: not everything true is asserted</strong> — a real feature of
+the clean diagram shorter than 4δ is <em>not guaranteed to be admitted</em>, since
+the rule is applied to the noisy bar and its lifetime need not match its clean
+partner's.
+<br><br>
+Everything turns on <em>which</em> diagram soundness is about, and it is the
+<strong>clean sample's</strong>, not the torus's. The problem set computes that
+diagram: it has six long H₁ bars of its own — 1.2963, 1.2843, 0.5425, 0.5175,
+0.5161, 0.5048 — and each of the six longest noisy bars has a clean point within
+0.0488, against a bound of 2δ = 0.2624. That is a consistency check the bound
+could have failed and did not, with a factor of five to spare, and it is
+<em>not</em> a matching: the six nearest neighbours are not even injective, bars 1
+and 2 both choosing the same clean point and bars 4 and 5 another.
+<br><br>
+So it settles nothing about bars 4 to 6. Discarding a bar costs an optimal matching
+half its lifetime, which for those three is 0.2619, 0.2616 and 0.2475 — all under
+2δ = 0.2624, so a matching of cost 2δ may send every one of them to the diagonal.
+The theorem positively permits them to be noise. The guarantee covers bars 1, 2 and
+3, which is exactly what the 4δ rule admits, and the two readings are one
+condition: <strong>a bar is admitted exactly when discarding it would cost more
+than 2δ</strong>.
+<br><br>
+The torus, meanwhile, has b₁ = 2 and the rule admits three — and one guaranteed
+bar too many is the entire argument. Bar 3 has a partner in the clean diagram by
+the theorem, and the clean sample's own third-longest bar is 0.5425, so the extra
+structure belongs to the clean 600-point sample and not to the surface it came
+from: 600 points do not fill a torus, and sampling is not a displacement of the
+points, so the theorem was never asked about it. The rule is not weak or
+misapplied. It controls a different error.
+<br><br>
+The third option is the interesting trap, and it is more tempting now than it was
+with a threshold of 0.12: substituting a "sampling scale" for δ would make the rule
+bite and give the right answer. It would also no longer be the theorem — δ in
+Corollary 3.6 bounds how far the <em>data</em> moved, not how densely it was
+sampled, and swapping one for the other silently converts a proved statement into a
+heuristic wearing its clothes. Getting the right answer by that route is worse than
+getting three by the honest one.</div>
+</div>
+
+<div class="worked">
+<strong>Worked — why the null does not supply a threshold either.</strong>
+<br><br>
+Permuting three coordinates independently keeps the sample size, each coordinate's
+marginal and the bounding box, and destroys the joint distribution — which is the
+point, and which is why "the same density" is the wrong way to say it: the torus
+concentrates on a surface, the permuted cloud spreads through the whole box. Six
+hundred points spread through a box have a Rips filtration with plenty of
+medium-lived 1-cycles: at intermediate scales the complex is neither disconnected
+nor filled in, and the gaps make loops.
+<br><br>
+<strong>How long is the longest such accident? It depends which permutation you
+drew.</strong> Five pre-specified seeds give 0.4192, 0.4584, 0.4442, 0.4006 and
+0.5012 — a spread of 0.10, or 25% of the value, on a quantity being used as a
+cutoff. A threshold taken from one draw is a threshold calibrated on a single
+sample of a random variable, which is structurally the error lab-07 spent a
+segment on. Take the maximum over the five: 0.5012.
+<br><br>
+<span class="cite"><strong>A null answers a yes/no question much better than it
+supplies a number.</strong> "Are bars 1 and 2 distinguishable from structureless
+data?" — 1.2965 and 1.2373 against a null maximum of at most 0.5012 at any seed,
+decisively yes, and the answer does not depend on which seed. "Where is the cut?" —
+the null cannot say, because it is built by destroying the <em>joint</em> structure
+while this cloud's artefacts come from <em>sparse sampling of a surface</em>. Two
+different mechanisms, so no reason the first one's upper tail marks the second
+one's boundary. Rescaling by the null (2.59, 2.47, 1.20 for the top three)
+reproduces the gap rule's separation rather than supplying independent evidence:
+dividing every number by the same constant does not create information — and the
+constant itself wobbles by 25%.</span>
+</div>
+
+<div class="guided-proof">
+<strong>Guided — the gap rule at four seeds, and what that is evidence for.</strong>
+<br><br>
+At n = 400, four independent samples give leading H₁ lifetimes with gaps at
+position 2 every time, with ratios 1.41, 1.58, 1.89 and 1.58 — against 2.06 at
+n = 600. Before reading on: write down (i) what going from 600 points to 400 did to
+those ratios and why, (ii) what you predict at n = 200 with a reason rather than a
+guess, and (iii) what the four-for-four result is actually evidence about.
+<textarea class="proof-input" placeholder="The effect of n, the prediction, and what the evidence is about."></textarea>
+<details class="model-answer"><summary>The three answers</summary>
+(i) Fewer points means a sparser sample, so the <strong>artefact</strong> loops
+live at larger scales and the third bar rises — 0.5997 at n = 600 becomes 0.6385
+to 0.806 at n = 400 — while the two real bars barely move, because they are fixed
+by R and r rather than by the sampling. The gap therefore shrinks, from 2.06 to
+around 1.5.
+<br><br>
+(ii) At n = 200 the artefact scale grows further, roughly like the typical
+nearest-neighbour distance, so the gap closes towards 1. At some sample size the
+rule picks the wrong k — and <strong>it does so with no signal that it has</strong>,
+which is the property that makes a heuristic dangerous rather than merely
+approximate.
+<br><br>
+(iii) It is evidence about <strong>this generator</strong> far more than about the
+rule. A torus with R = 2 and r = 1 has two loops both large relative to the
+sampling scale; that is what lifts them above the crowd. Nothing here suggests the
+rule works on a shape whose features are closer together — and lab-01's original
+question, "what would you conclude if the ratio were 1.4?", is exactly the case
+these four seeds do not cover. At seed 1 the ratio <em>is</em> 1.41.
+</details>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 25 min</span>
+<h2>The report, and what leaves the laboratory</h2>
+
+<div class="theorem">
+<strong>Theorem 13.1</strong> <span class="cite">(Dey and Wang, printed 393,
+established in lab-06)</span>: for persistence diagrams D and D′,
+Λ<sub>∞</sub>(D, D′) ≤ d<sub>B</sub>(D, D′) — the landscape map is 1-Lipschitz.
+<br><br>
+<strong>Corollary 3.6</strong> <span class="cite">(Oudot, printed 61, established
+in lab-05)</span>: for q-tame f, g on X, d<sub>b</sub>(dgm f, dgm g) ≤ ‖f − g‖<sub>∞</sub>.
+<br><br>
+<span class="cite">Cited to their own books and by their own numbers, because the
+two number differently and this module's rule is never to carry a theorem number
+across books.</span>
+</div>
+
+<p>The features here are persistence landscapes on a 100-point grid. Twice the
+first three H₁ layer peaks are 1.2896, 1.2296 and 0.5975, against lifetimes of
+1.2965, 1.2373 and 0.5997 — agreement to about 0.5%, and <em>not</em> exact, for
+two reasons: the grid samples the landscape between its peaks (lab-06), and layer k
+is the k-th upper envelope rather than the k-th tent, which coincide only for
+nested bars.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> What do these landscape numbers inherit from
+Theorem 13.1?</p>
+<button onclick="check(this,false)">The full 1-Lipschitz guarantee, since each step of the computation is a norm</button>
+<button onclick="check(this,true)" data-ok>Clauses one and three: the map to the landscape function and the max of the array are both safe; the sampling in between is not</button>
+<button onclick="check(this,false)">Nothing, since Theorem 13.1 is about diagrams and these are point clouds</button>
+<button onclick="check(this,false)">The guarantee, but only in the 1-Wasserstein distance</button>
+<div class="explain">Two of three clauses. (i) Diagram to landscape function:
+inherits Theorem 13.1 exactly. (ii) Landscape function to the sampled array:
+<strong>does not</strong> — lab-06 measured a ratio of 1.0684 where the theorem
+permits 1, with an excess of the order of the grid spacing. (iii) Array to peak
+height: a maximum is 1-Lipschitz, so this is safe. The honest claim therefore names
+the grid: <em>stable up to the discretisation error at n_bins = 100</em>. The
+fourth option confuses this with lab-06's Theorem 13.3, which is the persistence
+image's, and is in 1-Wasserstein.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which of this unit's methods transfers unchanged
+to real data, where the answer is unknown and δ is not written into a generator?</p>
+<button onclick="check(this,false)">The seed sweep, which becomes a sweep over data-collection runs</button>
+<button onclick="check(this,true)" data-ok>The coordinate-permutation null — it is built from whatever data you have and requires nothing from outside it</button>
+<button onclick="check(this,false)">The comparison of the four thresholds, since all four are computable from any dataset</button>
+<button onclick="check(this,false)">The stability threshold, since Corollary 3.6 holds regardless</button>
+<div class="explain">The null. It is constructed from the data itself, needs no
+known answer, no noise model and no second sample, and it still rules something
+out. The first option fails because there is one sample — a bootstrap or
+subsampling sweep is its nearest substitute and is a different, weaker thing. The
+third is half-right and the missing half is fatal: all four thresholds are
+computable, but what does not transfer is the <em>knowledge of which one was
+right</em>, and that is the entire content of Segment 2. The fourth is the trap the
+whole module has been circling: Corollary 3.6 does hold regardless, and it is
+useless without a δ, which real data does not supply.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> What must a disclosure paragraph contain that a
+conclusion paragraph must not?</p>
+<button onclick="check(this,false)">The p-values, since conclusions should be qualitative</button>
+<button onclick="check(this,true)" data-ok>Every choice, control and threshold, and for each conclusion whether it rests on a theorem or on a heuristic</button>
+<button onclick="check(this,false)">The code, since only code is fully reproducible</button>
+<button onclick="check(this,false)">The alternative analyses that were tried and discarded, and nothing else</button>
+<div class="explain">The provenance of each conclusion. A conclusion says what was
+found; a disclosure says on what it rests — and the load-bearing sentence in this
+unit's disclosure is that the count of two was determined by a gap heuristic with
+no guarantee, while the two thresholds that <em>do</em> have guarantees both admit
+six. A reader who has that sentence can decide what to believe; a reader who has
+only "we found b₁ = 2, consistent with a torus" cannot. The fourth option names
+something that belongs there — discarded analyses are part of the record — but
+"and nothing else" makes it wrong, and it is the smaller half.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close this lesson and reconstruct, with no code and
+no book:
+<br><br>
+1. The null, why its marginals being <em>identical</em> rather than similar
+matters, and what it fails to destroy.
+<br>
+2. The four thresholds, their values, how many bars each admits, which of the four
+has a theorem, and which one is not licensed by anything at all.
+<br>
+3. Why the stability rule admitting three where the answer is two is not a defect
+in the theorem — using the words sound and complete.
+<br>
+3b. Why a Gaussian standard deviation is not a δ, and what had to be kept in order
+to obtain one.
+<br>
+4. Why H₂ is answered decisively and H₁ is not, on the same cloud.
+<br>
+5. The five conclusions of this unit, each marked survives, survives with a stated
+assumption, or does not transfer.
+<br><br>
+Then write, without looking: the disclosure paragraph for an analysis you have not
+done yet, on data whose answer you do not know. Leave blanks for the numbers. If
+the blanks can be filled in afterwards without changing a single sentence, the
+paragraph is right.
+</div>
+
+<script>
+function check(btn, ok){
+  var box = btn.closest('.selfcheck');
+  if(box.classList.contains('answered')) return;
+  box.classList.add('answered');
+  var buttons = box.querySelectorAll('button');
+  for(var i = 0; i < buttons.length; i++){
+    if(buttons[i].hasAttribute('data-ok')) buttons[i].classList.add('correct');
+  }
+  if(!ok) btn.classList.add('wrong');
+}
+</script>
+
+<script>
+(function(){
+  var c = document.getElementById('fig');
+  if(!c || !c.getContext) return;
+  var g = c.getContext('2d');
+  g.fillStyle = '#0c1013'; g.fillRect(0, 0, 640, 340);
+
+  var OX = 120, S = 285, TOP = 86, PITCH = 28, H = 12, AXIS = 256;
+  function px(v){ return OX + S * v; }
+
+  var bars = [1.2965, 1.2373, 0.5997, 0.5238, 0.5233, 0.4950];
+
+  // axis
+  g.strokeStyle = '#2a333d'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(OX, AXIS); g.lineTo(px(1.4), AXIS); g.stroke();
+  g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+  for(var t = 0; t <= 1.0; t += 0.5){
+    g.beginPath(); g.moveTo(px(t), AXIS); g.lineTo(px(t), AXIS + 4); g.stroke();
+    g.fillText(t.toFixed(1), px(t) - 6, AXIS + 16);
+  }
+  g.fillText('lifetime', px(1.15), AXIS + 16);
+
+  // thresholds, drawn before the bars so the bars sit on top
+  g.strokeStyle = '#e06c75'; g.setLineDash([5, 4]);
+  g.beginPath(); g.moveTo(px(0.5248), 72); g.lineTo(px(0.5248), AXIS); g.stroke();
+  g.beginPath(); g.moveTo(px(0.5012), 72); g.lineTo(px(0.5012), AXIS); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle = '#e06c75'; g.font = '11px sans-serif';
+  g.fillText('4 delta = 0.5248', px(0.5248) + 4, 48);
+  g.fillText('null max = 0.5012', px(0.5012) + 4, 66);
+
+  // Bars 4 and 5 end inside the 6.7 px window between the two lines: 6.4 px past
+  // the null line and 0.3 px short of the 4-delta line. The second of those
+  // cannot be drawn, so it is written.
+  g.fillStyle = '#d8a657'; g.font = '10px sans-serif';
+  g.fillText('bars 4 and 5 land between the two lines:', px(0.62), 176);
+  g.fillText('past the null, 0.2% short of 4 delta', px(0.62), 190);
+  g.strokeStyle = '#d8a657'; g.lineWidth = 1;
+  g.beginPath();
+  g.moveTo(px(0.62) - 4, 180); g.lineTo(px(0.5248) + 2, 180); g.stroke();
+
+  // bars
+  for(var i = 0; i < bars.length; i++){
+    var y = TOP + PITCH * i;
+    g.fillStyle = (i < 2) ? '#4caf82' : '#3a444f';
+    g.fillRect(OX, y, S * bars[i], H);
+    g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+    g.fillText('H1 #' + (i + 1), 62, y + 10);
+    g.fillStyle = (i < 2) ? '#4caf82' : '#9aa5b1';
+    g.font = '11px sans-serif';
+    g.fillText(bars[i].toFixed(4), px(bars[i]) + 6, y + 10);
+  }
+
+  // the gap, between bar 2 and bar 3, drawn in the lane between their rows
+  var gy = TOP + PITCH * 2 - 8;
+  var a = px(bars[2]), b = px(bars[1]);
+  g.strokeStyle = '#d8a657'; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(a, gy); g.lineTo(b, gy); g.stroke();
+  g.beginPath(); g.moveTo(a, gy); g.lineTo(a + 7, gy - 4); g.lineTo(a + 7, gy + 4); g.closePath(); g.fill();
+  g.fillStyle = '#d8a657';
+  g.beginPath(); g.moveTo(b, gy); g.lineTo(b - 7, gy - 4); g.lineTo(b - 7, gy + 4); g.closePath(); g.fill();
+  g.font = '11px sans-serif';
+  g.fillText('gap, ratio 2.06', b + 12, gy + 4);
+
+  g.fillStyle = '#e8e8e8'; g.font = '12px sans-serif';
+  g.fillText('4 delta keeps 3, the null keeps 5, the gap keeps 2.', 62, 300);
+  g.fillStyle = '#4caf82'; g.font = '11px sans-serif';
+  g.fillText('green = the two the gap rule keeps', 62, 320);
+})();
+</script>
+
+<footer>
+<em>Sources.</em> This unit's mathematics is carried from the eight before it and
+nothing new is proved. Two named results are used and are cited to their own books,
+because the two number differently and this module never carries a theorem number
+across books: <strong>Theorem 13.1</strong> (Λ<sub>∞</sub> ≤ d<sub>B</sub>) is Dey
+and Wang, <em>Computational Topology for Data Analysis</em>, printed 393, folio =
+PDF − 21; <strong>Corollary 3.6</strong> (d<sub>b</sub> ≤ ‖f − g‖<sub>∞</sub>) is
+Oudot, <em>Persistence Theory</em>, printed 61, folio = PDF − 9. Both offsets were
+verified per page in the units that introduced them.
+<br><br>
+<em>Modality.</em> Theorem 13.1 is <strong>stated without proof</strong> by Dey and
+Wang and attributed to Bubenik, reference [51], not on disk. Corollary 3.6 is
+<strong>derived</strong> by Oudot from his Isometry Theorem. Neither is reproved
+here, and this lesson uses each only in the form its own unit established.
+<br><br>
+<em>Sources, by execution.</em> Every number is output from the problem set's code
+blocks, run in the pinned environment — Python 3.11.11, giotto-tda 0.6.2,
+persim 0.3.8, numpy 1.26.4 — and re-derived by gate 9, which runs the file twice
+and requires the runs to agree. API surfaces:
+<code>gtda.homology.VietorisRipsPersistence</code> with
+<code>homology_dimensions=[0, 1, 2]</code> and <code>collapse_edges=True</code>,
+and <code>gtda.diagrams.PersistenceLandscape</code> with
+<code>n_layers=3, n_bins=100</code>. The <code>env</code> block imports each module
+the later blocks use, per the convention <code>lab-07</code> arrived at.
+<br><br>
+<em>Stated here but not in the source.</em> The dataset, the null, all three
+threshold rules as applied here, and the seed sweep are this lesson's. The
+largest-gap rule is a heuristic with no source and no guarantee, and the lesson
+says so wherever it is used. The claim that edge collapse cannot change the
+barcode is stated without proof. The prediction that the gap closes towards 1 as n
+falls is an argument from the sampling scale, not a theorem. The identification of
+the two long H₁ bars with a torus's meridian and longitude is an interpretation
+consistent with the numbers and is not established by them.
+<br><br>
+<em>Not established here.</em> That the points lie on a torus, or that any bar
+corresponds to a hole in a surface — every theorem used relates a dataset to its
+own diagram. That the gap rule is correct in general: it is correct on this
+generator at these sample sizes, four seeds out of four, and at seed 1 its margin
+is a ratio of 1.41, which is exactly the case <code>lab-01</code> asked about and
+declined to resolve. That b₁ = 2 is established by either threshold with a
+guarantee: neither is, and that is the finding. That δ is knowable outside a
+synthetic setting — Segment 3 marks it as the conclusion that survives only with a
+stated assumption. The syllabus resource line names a <code>self-directed
+dataset</code>; this unit uses a seeded synthetic one, because the gates forbid
+external requests and gate 9 forbids nondeterminism, and the divergence is recorded
+for the syllabus pass.
+</footer>
+</body></html>

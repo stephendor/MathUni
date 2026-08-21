@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab-07 — TDA in machine-learning pipelines</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+code{background:#0c1013;border:1px solid #2a333d;border-radius:4px;padding:.05rem .3rem;font-size:.92rem}
+pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.88rem;line-height:1.45}
+</style></head><body>
+<p class="cite">Computational Lab · Nexus College</p>
+<h1>TDA in machine-learning pipelines <span class="cite">(lab-07)</span></h1>
+
+<div class="hook">
+The obvious task: one circle against two circles, sixty point clouds, a persistence
+pipeline. It scores 0.9333. Six numbers containing no topology at all score
+1.0000. Nothing in this lesson is about making the pipeline win that race — it is
+about the fact that without running the race you would have reported the 0.9333 as
+evidence for persistent homology, and it is not. Two negative controls do all the
+work here: a baseline, which tests whether topology earned the score, and a label
+permutation, which tests whether the score is real at all. The second one catches a
+protocol that reports 0.7167 accuracy from labels drawn at random.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> You cross-validate a classifier on
+features you chose, before the loop, by picking the 3 of 1000 most correlated with
+the labels. What does the cross-validated score measure?</p>
+<button onclick="check(this,false)">The generalisation accuracy of the classifier, correctly, since the loop held out test folds</button>
+<button onclick="check(this,false)">Nothing at all — the score is meaningless in every case</button>
+<button onclick="check(this,true)" data-ok>The accuracy of the classifier given a feature choice that already saw the test folds' labels, so it is optimistic by an amount the loop cannot detect</button>
+<button onclick="check(this,false)">The same thing as the honest version, since feature selection is unsupervised</button>
+<div class="explain">Optimistic, and invisibly so. Selecting on all the labels
+means the features were chosen partly because they fit the test folds; by the time
+the loop begins there is no data held out with respect to that choice, so
+cross-validation cannot see it. Measured here: on real labels the leaky and honest
+procedures differ by 0.0167, one sample in sixty, indistinguishable from noise. On
+<em>random</em> labels the honest one sits at 0.5108 and the leaky one at 0.6242,
+reaching 0.7167. And the comparison is clean, because the problem set measures a
+third procedure in between — the Betti-curve grid fitted on all sixty diagrams but
+the selection still per-fold — which scores 0.9833 and 0.5117 against the honest
+row's 0.5108. Those two are not equal to three decimals; they are
+<strong>one prediction apart</strong>. A permuted mean here averages twenty runs
+of sixty predictions, so it is a whole number out of 1200, and 0.5108 and 0.5117
+are 613 and 614 — adjacent points on the finest grid this experiment has.
+<strong>Fitting on all the samples is a protocol violation worth one prediction in
+twelve hundred; fitting on all the <em>labels</em> is worth 0.11.</strong> The second option overstates — the score is not meaningless, it
+is a real measurement of the wrong quantity. The fourth is the actual error people
+make: <code>SelectKBest</code> takes <code>y</code>, so it is supervised, and that
+is exactly what makes it dangerous.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: End-to-end pipelines are how TDA earns its keep in an actual data-analysis project.</p>
+
+<div class="warn">
+<strong>The strip is right, and "earns its keep" is a claim that has to be
+tested rather than assumed.</strong>
+<br><br>
+<em>The mechanism is exactly as stated.</em> A pipeline is the object that makes a
+topological feature usable: it lets <code>cross_val_score</code> clone and refit
+the entire procedure per fold, which is the only way a reported number refers to
+what you would actually run on new data.
+<br><br>
+<em>But a pipeline earns nothing by scoring well.</em> On the first dataset in this
+lesson the topological pipeline scores 0.9333 and a six-number moment baseline
+scores 1.0000 — so on that data TDA earned nothing, and the fault was in the
+dataset, which differed in scale as well as in topology. Only after the confound is
+removed, provably (the baseline features have spread <strong>exactly</strong>
+zero), does 0.9500 mean anything — and the repair itself has to be audited, since
+whitening is an anisotropic map and changes the dominant-bar count on four of the
+sixty clouds.
+<br><br>
+<em>And a pipeline can report a number that is not a measurement.</em> Segment 2's
+leaky protocol reports 1.0000 on real labels and 0.6242 on random ones. Its
+real-label score is <em>higher</em> than the honest procedure's. Nothing about the
+number tells you which you are looking at.
+<br><br>
+<strong>No syllabus action; the strip is accurate and states a goal rather than a
+result.</strong> This lesson supplies the two controls that decide whether the
+goal was met on any particular occasion.
+<br><br>
+<em>Not claimed here.</em> That persistent homology is or is not useful in general.
+One constructed dataset settles nothing either way, and the lesson's own numbers
+are the argument for saying so.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>The baseline, and what a score is a claim about</h2>
+
+<p>Sixty point clouds: thirty from one circle of radius 1, thirty from two circles
+of radius 0.5 at centres ±0.55. Class 0 has one loop, class 1 has two. If
+persistence is good for anything it is good for this.</p>
+
+<div class="worked">
+<strong>Worked — the baseline runs first, and wins.</strong>
+<pre>moment features (60, 6)
+their spread across samples: [0.065202 0.069208 0.070125 0.035879 0.035879 0.184615]
+moment baseline, 5-fold CV accuracy: 1.0000</pre>
+Two coordinate means and four covariance entries. No filtration, no complex, no
+homology. Perfect separation.
+<br><br>
+<span class="cite"><strong>The dataset was broken and the pipeline would not have
+told me.</strong> Two circles of radius 0.5 at ±0.55 span ±1.05 horizontally and
+±0.5 vertically; one circle of radius 1 is isotropic. The classes differ in
+<em>shape of spread</em> as much as in topology, and the last entry of the spread
+vector — 0.184615, about <strong>three times</strong> the two mean terms
+(2.83 and 2.67 times) and five times the smallest entry — is the tell. The
+topological pipeline scores 0.9333 on this data. Without the baseline that reads
+as "persistence distinguishes one hole from two"; with it, it reads as "something
+distinguishes these classes and the pipeline extracts it worse than six moments
+do".</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A cross-validated accuracy of 0.9333 from a
+persistence pipeline is a claim about what?</p>
+<button onclick="check(this,false)">The topology of the two classes</button>
+<button onclick="check(this,false)">The quality of the persistent homology implementation</button>
+<button onclick="check(this,true)" data-ok>The procedure — that this sequence of steps, refitted per fold, achieves that accuracy on this data</button>
+<button onclick="check(this,false)">The separation of the classes in the space of persistence diagrams</button>
+<div class="explain">The procedure, and only the procedure. Attributing it to
+topology is an additional claim needing an additional experiment, namely a
+non-topological baseline — which here beats it. The fourth option is the subtle
+one and is still wrong: the pipeline's features are a landscape amplitude and a
+point count, so the score speaks about <em>those two numbers</em>, not about
+diagram space, and a different vectorisation could score differently on identical
+diagrams.</div>
+</div>
+
+<div class="worked fade">
+<strong>Faded — the repair, and why it is provable rather than empirical.</strong>
+<br><br>
+Whiten each cloud: centre it and set its covariance to the identity. The map is
+affine, so one loop stays one loop and two stay two — the number of long H₁ bars
+is untouched, though every birth and death moves.
+<br><br>
+<pre>moment features of the whitened clouds, spread: [0. 0. 0. 0. 0. 0.]
+moment baseline on whitened clouds, 5-fold CV:  0.5000</pre>
+<br>
+Spread <strong>exactly</strong> zero, in every one of the six features. The
+baseline now scores chance, and it could not have scored anything else.
+<br><br>
+⟨your step: say why the top line is a much stronger statement than the bottom one
+— what does each rule out? — and then say what whitening has destroyed along with
+the confound. There is something, and lab-05 cared about it.⟩
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Whitening is computed from each cloud, using
+that cloud's own covariance. Is that leakage?</p>
+<button onclick="check(this,false)">Yes — any transformation fitted to data is leakage</button>
+<button onclick="check(this,true)" data-ok>No — it can be applied to a single test sample in isolation, using no labels and no other sample</button>
+<button onclick="check(this,false)">Yes, unless the covariance is computed on the training set only</button>
+<button onclick="check(this,false)">Only if the classes have different covariances, which here they do</button>
+<div class="explain">No, and the criterion is worth memorising: <strong>a step
+must go inside the cross-validation loop if its output depends on any sample other
+than the one it is applied to, or on any label.</strong> Whitening depends only on
+its own cloud, so a single new sample can be whitened knowing nothing about the
+training set. <code>BettiCurve.fit</code> fails that test — its grid is computed
+from a whole collection — and <code>SelectKBest</code> fails it worse, because it
+depends on the labels. The two failures are not equal, and the problem set
+measures the difference: the grid violation costs 0.001 of permuted mean, the
+label violation 0.11. It is contact with the labels that turns a broken protocol
+into a manufactured number. Follow the rule in both cases anyway — a rule you obey
+only after checking that breaking it mattered is not a rule. The third option confuses this with the standard
+<em>global</em> scaler, which is fitted across samples and does need to be inside
+the loop.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Then the pipeline object itself.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 25 min</span>
+<h2>Why the transformer is a step and not a preprocessing line</h2>
+
+<p>lab-06 found that <code>BettiCurve</code> vectorises the same diagram to two
+different arrays depending on the batch it was fitted in. Put that inside a
+cross-validation loop and it stops being a curiosity.</p>
+
+<div class="worked">
+<strong>Worked — the grid is refitted, and it moves.</strong>
+<pre>topological pipeline on the RAW clouds,      5-fold CV: 0.9333
+topological pipeline on the WHITENED clouds, 5-fold CV: 0.9500
+
+what a transformer inside the pipeline is refitted on, fold by fold:
+  fold   n train   H1 grid upper end
+  0      48        2.334698
+  1      48        2.371028
+  2      48        2.371028
+  3      48        2.371028
+  4      48        2.371028</pre>
+Fold 0's training half happens to exclude whichever diagram carries the largest H₁
+death, so its grid stops short.
+<br><br>
+<span class="cite"><strong>That difference is the point, not a nuisance.</strong>
+In fold 0 the twelve test clouds are vectorised on a grid that knows nothing about
+them. Fix the grid once on all sixty and every training vector in every fold is
+computed on a grid whose upper end was set by a diagram in some test set — a
+quantity the model is not supposed to have seen. The score goes up, no error is
+raised, and the only visible symptom is a number that is slightly too
+good.</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> The pipeline's feature is
+<code>Amplitude(metric='landscape')</code>, and lab-06 established Theorem 13.1:
+the landscape map is 1-Lipschitz in the bottleneck distance. What do the
+pipeline's <em>predictions</em> inherit?</p>
+<button onclick="check(this,false)">The same 1-Lipschitz bound, since composing with a classifier preserves it</button>
+<button onclick="check(this,false)">A Lipschitz bound with a constant given by Theorem 13.1 times the number of features</button>
+<button onclick="check(this,true)" data-ok>Nothing — the features are stable, the fitted classifier has no a-priori bounded constant, and stability of features is not stability of decisions</button>
+<button onclick="check(this,false)">Stability only in the sup norm, and not in the norm Amplitude actually uses</button>
+<div class="explain">Nothing. Three clauses, and only the first two carry the
+theorem: diagram to landscape is 1-Lipschitz (up to lab-06's discretisation
+caveat); landscape to number is a norm, hence 1-Lipschitz for its own metric,
+provided that metric is the one Theorem 13.1 bounds. Then logistic regression:
+Lipschitz with a constant set by the fitted coefficients, which nothing bounds in
+advance, and a decision boundary that turns an arbitrarily small feature change
+into a flipped label. The fourth option raises a real question — <code>Amplitude</code>
+does default to a norm the theorem does not directly bound, which is why the
+problem set asks for the three clauses separately — but it is not the reason the
+predictions inherit nothing.</div>
+</div>
+
+<canvas id="fig" width="640" height="340" aria-label="A bar chart of four cross-validated accuracies. On the left, the honest procedure with feature selection inside the loop scores 0.9833 on real labels in blue and 0.5108 on permuted labels in amber. On the right, the leaky procedure with selection done once on all labels scores 1.0000 on real labels and 0.6242 on permuted labels. A dashed red horizontal line marks chance at 0.5. The honest amber bar sits on that line and the leaky amber bar rises well above it."></canvas>
+
+<p class="cite"><strong>The whole argument in four bars.</strong> Blue is the
+5-fold cross-validated accuracy on the real labels; amber is the mean over 20
+random permutations of those labels, with the open tick showing the largest of the
+20. On <strong>real</strong> labels the two procedures are 0.9833 and 1.0000 —
+indistinguishable, and the leaky one is the higher. On <strong>permuted</strong>
+labels the honest procedure sits on the chance line at 0.5108 and the leaky one
+reaches a mean of 0.6242 and a maximum of 0.7167, from labels containing no
+information at all. <strong>The blue bars cannot tell you which procedure you are
+looking at; the amber ones can.</strong></p>
+
+<div class="guided-proof">
+<strong>Guided — where does the extra 0.12 come from?</strong>
+<br><br>
+Before reading on. There are 1000 Betti-curve features and 60 samples, and the
+leaky procedure picks the best 3 against all 60 labels before the loop starts.
+Write down (i) what those 3 features are, when the labels are random; (ii) why
+5-fold cross-validation afterwards does not detect the problem; and (iii) what
+would have to change about the data for the effect to disappear.
+<textarea class="proof-input" placeholder="What gets selected, why the loop misses it, and what makes the effect vanish."></textarea>
+<details class="model-answer"><summary>The mechanism, in three parts</summary>
+(i) They are the features that happen to correlate with <em>this particular</em>
+random label vector. With 1000 candidates and 60 samples some always will —
+that is what a thousand draws buys. They are not noise features that got lucky in
+some vague sense; they were selected <em>because</em> they fit these labels, test
+folds included.
+<br><br>
+(ii) Because the leak has already happened. Cross-validation protects the steps
+<em>inside</em> it and nothing else. By the time the first fold is cut, the
+feature choice has consumed information from every sample, so there is no data
+held out with respect to that choice. The loop faithfully measures the accuracy of
+a classifier on three features that were tailored to the answer.
+<br><br>
+(iii) More samples relative to features. The effect scales with the number of
+candidate features and inversely with the sample count; at 60 samples and 1000
+features it is worth 0.12 of accuracy on pure noise. Reduce to 10 features and it
+nearly vanishes; increase the samples to 6000 and it vanishes too. <strong>Which
+is why it is most dangerous exactly where TDA lives</strong> — a persistence
+image or a Betti curve is hundreds of features from a study with dozens of
+subjects.
+</details>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 25 min</span>
+<h2>What a mean is, and why the pipeline avoids the question</h2>
+
+<p>lab-06 exhibited two diagrams with three midpoints. Dey and Wang §13.3 gives
+the general theory, and then says what it costs.</p>
+
+<div class="definition">
+<strong>Definition 13.10 (Fréchet function, variance, and expectation), printed
+406.</strong> Given a probability distribution ρ on 𝒟, its Fréchet function is
+ℱ<sub>ρ</sub>(X) := ∫ d²(X, Y) dρ(Y). The Fréchet variance is inf<sub>X</sub>
+ℱ<sub>ρ</sub>(X), and the set at which it is attained is the Fréchet expectation.
+<span class="cite"><strong>Defined</strong>, printed 406, on the space
+𝔻<sup>p</sup><sub>q</sub> of <strong>Definition 13.9</strong>, itself built on the
+refined <strong>Definition 13.8</strong> of (p, q)-Wasserstein distance — the two
+indices matter, and Dey and Wang note the q-Wasserstein distance of their earlier
+Definition 3.10 is the case d<sup>∞</sup><sub>W,q</sub>.</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 13.10, printed 407.</strong> Let ρ be a probability measure on 𝒟
+with a finite second moment. If ρ has compact support, then 𝔼(ρ) ≠ ∅.
+<span class="cite"><strong>Stated, not proved</strong>; attributed to references
+[231] and [291], neither on disk. The same page records two things the theorem
+does not give: "in general, the Fréchet mean is not unique", and "the
+computational question for Fréchet mean … remains open".</span>
+</div>
+
+<p>So: a mean of persistence diagrams exists, is not unique, and cannot be
+computed. Every pipeline in this unit sidesteps all three by averaging in a vector
+space instead — four lines, no hypotheses, one formula.</p>
+
+<div class="worked">
+<strong>Worked — the average that is available.</strong>
+<pre>mean landscape of class 0, H1 layer 0, peak 0.722392
+mean landscape of class 1, H1 layer 0, peak 0.282571
+mean landscape of class 0, H1 layer 1, peak 0.000000
+mean landscape of class 1, H1 layer 1, peak 0.148169</pre>
+Class 0's mean <em>second</em> layer peaks at <strong>exactly zero</strong>.
+<br><br>
+<span class="cite">Layer 1 is the second upper envelope, non-zero only where two
+bars are alive at once. One circle gives one long H₁ bar, so its second layer
+vanishes identically and the average of thirty such is exactly 0. Two circles give
+two overlapping bars, and the average is 0.148169. That single number is the
+cleanest topological reading in the whole module — "there are two loops and they
+coexist" — and it was obtained by averaging, which diagram space does not
+permit.</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Theorem 13.10 needs compact support and a finite
+second moment; the mean landscape needed no hypotheses at all. Why?</p>
+<button onclick="check(this,false)">The landscape average is an approximation to the Fréchet mean, valid under weaker conditions</button>
+<button onclick="check(this,true)" data-ok>They are means in different spaces — one minimises over a non-linear metric space, the other is a formula in a vector space</button>
+<button onclick="check(this,false)">Theorem 13.10's hypotheses are not really needed and are an artefact of the proof</button>
+<button onclick="check(this,false)">The landscape average does have hypotheses; they are hidden in Claim 13.1</button>
+<div class="explain">Different spaces, different objects. The Fréchet mean is an
+element <em>of diagram space</em> minimising a sum of squared diagram distances —
+an optimisation over an infinite-dimensional non-linear metric space whose
+geodesics branch, which is why existence needs a theorem and uniqueness fails
+anyway. The mean landscape is pointwise arithmetic in a vector space: no
+optimisation, no existence question. The first option is the tempting error — the
+landscape average is <em>not</em> an approximation to anything in diagram space,
+because by lab-06 it is generally the landscape of no diagram at all.</div>
+</div>
+
+<table class="cmp">
+<tr><th>step</th><th>inside the loop?</th><th>why</th></tr>
+<tr><td>whitening each cloud</td><td>optional</td><td>depends only on the cloud it is applied to</td></tr>
+<tr><td><code>VietorisRipsPersistence</code></td><td>yes, on principle</td><td>same, but its parameters must be tunable without leaking</td></tr>
+<tr><td><code>BettiCurve.fit</code></td><td><strong>required</strong></td><td>its grid depends on the whole collection</td></tr>
+<tr><td><code>SelectKBest</code></td><td><strong>required</strong></td><td>it depends on the labels — the worse kind</td></tr>
+<tr><td>choosing <code>n_bins</code> by CV score</td><td><strong>required, nested</strong></td><td>otherwise the outer score reports the best of several attempts</td></tr>
+</table>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> The honest procedure's permuted accuracies had
+mean 0.5108 and maximum 0.6333. What should you conclude about a single reported
+accuracy of 0.63 on this dataset?</p>
+<button onclick="check(this,false)">That it is modestly above chance and therefore weak evidence of signal</button>
+<button onclick="check(this,true)" data-ok>That it is attainable from labels carrying no information at all, so it is not evidence of anything here</button>
+<button onclick="check(this,false)">That the classifier is underfitting and a better one would do more</button>
+<button onclick="check(this,false)">That the permutation test is broken, since an honest procedure should never exceed 0.5</button>
+<div class="explain">Not evidence. The permutation distribution is the answer to
+"what does chance look like <em>here</em>", and here its maximum over twenty draws
+is 0.6333. So 0.63 is inside the range that random labels produce, and intuition
+about "above 0.5" is worthless at this sample size — with 60 samples in 5 folds
+each fold is a count out of twelve, so the resolution is 1/12 ≈ 0.083 and a fold
+cannot even land on 0.5. The last option gets the logic backwards: an honest
+procedure's permuted scores <em>scatter</em> around chance, and that scatter is the
+useful output.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close this lesson and reconstruct, with no code and
+no book:
+<br><br>
+1. The two negative controls, what each one tests, and the number that made each
+one necessary.
+<br>
+2. The criterion for "must go inside the cross-validation loop", and the five-step
+classification it produces.
+<br>
+3. Why "spread exactly 0.000000" is a stronger claim than "CV = 0.5000".
+<br>
+4. The three clauses of what a pipeline's predictions inherit from Theorem 13.1,
+and which clause fails.
+<br>
+5. Definition 13.10, Theorem 13.10, and the two sentences on printed 407 that say
+why nobody computes a Fréchet mean.
+<br><br>
+Then answer without computing: you have 40 subjects and a persistence image with
+900 pixels, and your cross-validated accuracy is 0.78. List, in order, the three
+things you must run before writing that number down, and say what each would have
+to show.
+</div>
+
+<script>
+function check(btn, ok){
+  var box = btn.closest('.selfcheck');
+  if(box.classList.contains('answered')) return;
+  box.classList.add('answered');
+  var buttons = box.querySelectorAll('button');
+  for(var i = 0; i < buttons.length; i++){
+    if(buttons[i].hasAttribute('data-ok')) buttons[i].classList.add('correct');
+  }
+  if(!ok) btn.classList.add('wrong');
+}
+</script>
+
+<script>
+(function(){
+  var c = document.getElementById('fig');
+  if(!c || !c.getContext) return;
+  var g = c.getContext('2d');
+  g.fillStyle = '#0c1013'; g.fillRect(0, 0, 640, 340);
+
+  var OX = 70, OY = 280, SY = 220;      // accuracy 0 at y=280, accuracy 1 at y=60
+  function py(v){ return OY - SY * v; }
+
+  g.strokeStyle = '#2a333d'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(OX, OY); g.lineTo(560, OY); g.stroke();
+  g.beginPath(); g.moveTo(OX, OY); g.lineTo(OX, py(1.05)); g.stroke();
+
+  g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+  var ticks = [0.5, 1.0];
+  for(var i = 0; i < ticks.length; i++){
+    g.fillText(ticks[i].toFixed(1), OX - 26, py(ticks[i]) + 3);
+    g.strokeStyle = '#2a333d';
+    g.beginPath(); g.moveTo(OX - 4, py(ticks[i])); g.lineTo(OX, py(ticks[i])); g.stroke();
+  }
+  g.save(); g.translate(OX - 42, py(0.6)); g.rotate(-Math.PI / 2);
+  g.fillText('5-fold CV accuracy', 0, 0); g.restore();
+
+  // chance line
+  g.strokeStyle = '#e06c75'; g.lineWidth = 1; g.setLineDash([5, 4]);
+  g.beginPath(); g.moveTo(OX, py(0.5)); g.lineTo(560, py(0.5)); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle = '#e06c75'; g.font = '11px sans-serif';
+  g.fillText('chance = 0.50', 250, py(0.5) + 18);
+
+  var W = 56;
+  var bars = [
+    {x: 95,  v: 0.9833, col: '#8ab4f8'},
+    {x: 160, v: 0.5108, col: '#d8a657', max: 0.6333},
+    {x: 365, v: 1.0000, col: '#8ab4f8'},
+    {x: 430, v: 0.6242, col: '#d8a657', max: 0.7167}
+  ];
+  for(var k = 0; k < bars.length; k++){
+    var b = bars[k];
+    g.fillStyle = b.col;
+    g.fillRect(b.x, py(b.v), W, OY - py(b.v));
+    g.fillStyle = '#e8e8e8'; g.font = '11px sans-serif';
+    g.fillText(b.v.toFixed(4), b.x + 6, py(b.v) - 20);
+    if(b.max){
+      g.strokeStyle = '#e8e8e8'; g.lineWidth = 2;
+      g.beginPath(); g.moveTo(b.x + 8, py(b.max)); g.lineTo(b.x + W - 8, py(b.max)); g.stroke();
+      g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+      g.fillText('max ' + b.max.toFixed(4), b.x + 2, py(b.max) - 6);
+    }
+  }
+
+  g.fillStyle = '#9aa5b1'; g.font = '11px sans-serif';
+  g.fillText('selection INSIDE the loop', 84, OY + 20);
+  g.fillText('selection once on ALL labels', 348, OY + 20);
+  g.fillText('(honest)', 84, OY + 36);
+  g.fillText('(leaky)', 348, OY + 36);
+
+  // legend
+  g.fillStyle = '#8ab4f8'; g.fillRect(240, 46, 12, 12);
+  g.fillStyle = '#9aa5b1'; g.fillText('real labels', 258, 56);
+  g.fillStyle = '#d8a657'; g.fillRect(240, 66, 12, 12);
+  g.fillStyle = '#9aa5b1'; g.fillText('permuted mean', 258, 76);
+})();
+</script>
+
+<footer>
+<em>Sources, page by page.</em> Dey and Wang, <em>Computational Topology for Data
+Analysis</em>, Chapter 13, §13.3 "Statistical Treatment of Topological Summaries":
+<strong>Definition 13.8</strong> ((p, q)-Wasserstein distance) and
+<strong>Definition 13.9</strong> (the space 𝔻<sup>p</sup><sub>q</sub>, and the
+remark that it is Polish, so probability measures can be defined), printed 406;
+<strong>Definition 13.10</strong> (Fréchet function, variance, expectation),
+printed 406; <strong>Theorem 13.10</strong> (non-emptiness of the Fréchet mean
+set), together with the statements that the mean is in general not unique and that
+its computation remains open, printed 407. Folio = PDF − 21, the offset verified
+across seven consecutive pages, PDF 411–417, during <code>lab-06</code>.
+<br><br>
+<em>Modality.</em> Dey and Wang <strong>define</strong> 13.8, 13.9 and 13.10 and
+<strong>state without proof</strong> Theorem 13.10, attributing it to references
+[231] and [291]; they <strong>report</strong> that Turner et al. give an iterative
+algorithm for a local minimum in 𝔻<sup>2</sup><sub>2</sub>, and
+<strong>state as open</strong> the computational question. None of the cited
+papers is on disk here, so every attribution is recorded as one and nothing in
+this lesson depends on their contents.
+<br><br>
+<em>Sources, by execution.</em> Every number is output from the problem set's code
+blocks, run in the pinned environment — Python 3.11.11, giotto-tda 0.6.2,
+scikit-learn 1.3.2, numpy 1.26.4 — and re-derived by gate 9. API surfaces:
+<code>gtda.pipeline.Pipeline</code>,
+<code>gtda.homology.VietorisRipsPersistence</code>,
+<code>gtda.diagrams.Amplitude</code>, <code>gtda.diagrams.NumberOfPoints</code>,
+<code>gtda.diagrams.BettiCurve</code> and its <code>samplings_</code> attribute,
+<code>gtda.diagrams.PersistenceLandscape</code>,
+<code>sklearn.pipeline.Pipeline</code>, <code>sklearn.pipeline.make_union</code>,
+<code>sklearn.feature_selection.SelectKBest</code>,
+<code>sklearn.model_selection.cross_val_score</code> and
+<code>StratifiedKFold</code>.
+<br><br>
+<em>An environment fact, stated rather than worked around silently.</em>
+This unit was drafted against a <strong>broken environment, while gate 9 reported
+<code>pins verified</code> throughout</strong>. The first draft used
+<code>RandomForestClassifier</code>, and <code>import sklearn.ensemble</code>
+failed: the subpackage held its Python sources and none of its compiled
+extensions, while 55 were present elsewhere in scikit-learn.
+<code>igraph._igraph</code> was missing too, and several
+<code>.dist-info</code> directories had no <code>RECORD</code> file — an
+incomplete install. All the while
+<code>importlib.metadata.version("scikit-learn")</code> returned
+<code>"1.3.2"</code>, which is all gate 9 asks. Re-running the lockfile's own
+documented rebuild repaired every package and changed no version:
+<strong>the lockfile was right and the environment was wrong, and nothing
+distinguished them.</strong> Gate 9 then <em>did</em> fire — on the repair,
+failing this set's <code>env</code> block because the recorded output had
+changed. The convention that follows: <strong>a lab <code>env</code> block should
+import the specific modules its later blocks use</strong>, so a broken subpackage
+appears as a gate-9 diff instead of a green run. This unit's does;
+<code>lab-01</code> to <code>lab-06</code> predate the rule.
+<code>LogisticRegression</code> is kept, on determinism grounds.
+<br><br>
+<em>Stated here but not in the source.</em> The whole experimental design — the two
+classes, the moment baseline, the whitening, the label permutation — is this
+lesson's, and Dey and Wang discuss none of it. The criterion for what must go
+inside a cross-validation loop is this lesson's formulation of standard practice
+and is asserted, not derived. The three-clause account of what a pipeline's
+predictions inherit from Theorem 13.1 is this lesson's; clause (ii) depends on the
+norm <code>Amplitude</code> uses agreeing with the one Theorem 13.1 bounds, which
+is checked for the sup norm and asserted otherwise. The claim that an affine map
+preserves the number of long H₁ bars while moving every birth and death is stated
+here without proof.
+<br><br>
+<em>Not established here.</em> That persistent homology is useful for
+classification in general — one constructed dataset, whose classes were built to
+differ topologically, settles nothing. That 0.9500 on the whitened data means the
+pipeline is reading loops: <code>NumberOfPoints</code> is one of its two features
+and could carry the whole score. That the permutation distribution's mean of
+0.5108 differs meaningfully from 0.5: twenty permutations at this sample size do
+not support that, and the lesson uses the maximum, not the mean, to make its point.
+The syllabus resource line names only <code>giotto-tda: Pipeline API</code> and
+<code>scikit-learn Pipeline docs</code>; Dey and Wang §13.3 is used here as the
+primary source and the divergence is recorded for the syllabus pass.
+</footer>
+</body></html>

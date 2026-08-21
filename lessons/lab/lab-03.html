@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab-03 — Computing persistence; boundary-matrix reduction</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+code{background:#0c1013;border:1px solid #2a333d;border-radius:4px;padding:.05rem .3rem;font-size:.92rem}
+pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.88rem;line-height:1.45}
+</style></head><body>
+<p class="cite">Computational Lab · Nexus College</p>
+<h1>Computing persistence; boundary-matrix reduction <span class="cite">(lab-03)</span></h1>
+
+<div class="hook">
+Six lines of pseudocode stand between a filtration and a barcode, and they are
+Gaussian elimination with one restriction: you may only add a column to a column
+on its right. That restriction is the whole subject. It makes the reduced matrix
+non-unique — two correct implementations genuinely disagree about what they
+compute — while making one thing about it unique, and that one thing is exactly
+the thing the barcode is read from. This unit writes the algorithm out, runs it
+two different ways to watch the matrices differ, and checks the answer against a
+library that shares none of its code.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> Two correct implementations of the
+persistence algorithm are run on the same filtration. What can differ between
+them?</p>
+<button onclick="check(this,false)">Nothing — the algorithm is deterministic, so both produce identical matrices</button>
+<button onclick="check(this,false)">The barcode may differ, since the reduced matrix is not unique</button>
+<button onclick="check(this,true)" data-ok>The reduced matrix may differ, but the lowest ones — and so the barcode — may not</button>
+<button onclick="check(this,false)">Only the running time, since the output of Gaussian elimination is canonical</button>
+<div class="explain">The matrix may differ; the barcode may not. Edelsbrunner is
+explicit at printed 183: R "is not" unique, because "we may or may not continue
+the operations once we reached a reduced matrix". Segment 2 exhibits two
+reductions of the same seven-simplex boundary matrix that disagree in column 4 —
+one has {1, 2} and the other {0, 2}. What is unique is <code>low(j)</code>, the
+row of the lowest 1 in each column, and the barcode is read off the lows alone.
+The fourth option's "canonical" is the error worth naming: ordinary Gaussian
+elimination has a canonical output because it may use any row and column
+operations, and this algorithm may not.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The computational heart: reducing boundary matrices IS computing homology (aa-18 made runnable).</p>
+
+<div class="warn">
+<strong>The strip is true and credits a unit that does not exist yet.</strong>
+<br><br>
+<em>The first clause is right, and Segment 3 demonstrates it.</em> Reading
+β<sub>p</sub> = #Zero<sub>p</sub> − #Low<sub>p</sub> off the reduced matrix
+recovers the Betti numbers, exactly as Edelsbrunner does at printed 182.
+<br><br>
+<em>But Betti numbers are not what this module wants.</em> The reduction gives
+something strictly more: a <strong>pairing</strong> of birth simplices with death
+simplices, and hence a barcode. The Betti count uses only whether a column is
+zero; the barcode uses which <em>row</em> each lowest one sits in.
+<br><br>
+<em>And <code>aa-18</code> is a Semester 3 unit that is not yet written.</em> Nothing about
+it may be assumed here. Every algebraic fact this lesson uses is taken directly
+from Edelsbrunner §VII.1, printed 179–186, and the lesson cites those pages
+rather than a unit the reader has not read. <strong>No syllabus action — the
+strip's forward credit is accurate as a plan and unusable as a citation</strong>,
+and that distinction is worth keeping.
+<br><br>
+<em>Not claimed here.</em> That a long bar means anything. This unit produces
+bars and supplies no threshold whatever; the algorithm is exact linear algebra
+and returns every feature, including lab-01's five short ones.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 20 min</span>
+<h2>Seven simplices, and a matrix that is upper triangular for a reason</h2>
+
+<p>Everything here runs on a triangle whose edges arrive at times 1, 1 and 2 and
+whose face arrives at 3. Seven simplices — small enough to execute by hand, so a
+disagreement between hand and machine is findable.</p>
+
+<div class="definition">
+<strong>Monotonic (printed 181).</strong> Edelsbrunner requires f : K → ℝ to be
+non-decreasing along increasing chains of faces: f(σ) ≤ f(τ) whenever σ is a face
+of τ. <span class="cite">This is what makes every sublevel set
+K(a) = f⁻¹(−∞, a] a <em>subcomplex</em>. Without it the sequence of sublevel sets
+contains sets that are not complexes, and there is nothing to take homology
+of.</span>
+</div>
+
+<p>Two conditions are being checked, and they are not the same one:</p>
+
+<pre>simplices m = 7
+faces precede cofaces: True
+filtration monotonic:  True</pre>
+
+<p>The first is about the <em>list</em> — no simplex appears before one of its
+faces. The second is about <em>f</em>. A filtration listing the edge <code>ab</code>
+before the vertex <code>a</code> at equal values passes the second and fails the
+first. The distinction matters immediately, because the first is exactly what
+makes ∂ upper triangular:</p>
+
+<pre>  col 0  a            f=0.0  -
+  col 1  b            f=0.0  -
+  col 2  c            f=0.0  -
+  col 3  ab           f=1.0  [0, 1]
+  col 4  bc           f=1.0  [1, 2]
+  col 5  ac           f=2.0  [0, 2]
+  col 6  abc          f=3.0  [3, 4, 5]</pre>
+
+<p>Every 1 in column j sits in a row i &lt; j. <span class="cite">Edelsbrunner:
+"since each simplex is preceded by its proper faces, ∂ is upper
+triangular", printed 182.</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Working over ℤ/2 makes a boundary column a
+<em>set</em> and column addition symmetric difference. What is given up?</p>
+<button onclick="check(this,false)">Nothing; ℤ/2 homology and ℤ homology agree for simplicial complexes</button>
+<button onclick="check(this,true)" data-ok>Orientation, and with it torsion — spaces ℤ distinguishes can become indistinguishable</button>
+<button onclick="check(this,false)">The Betti numbers, which are only defined over ℤ</button>
+<button onclick="check(this,false)">Nothing that matters, because the algorithm needs a field and ℤ/2 is the only one available</button>
+<div class="explain">Orientation and torsion. Over ℤ the Klein bottle and the
+torus are told apart by torsion in H₁; over ℤ/2 that distinction is not
+available. Betti numbers are defined over any field — ranks of the homology
+vector spaces — so the third option is simply false. The fourth is wrong twice:
+ℚ and ℤ/p for any prime p are all available and all used in practice, and the
+choice is a real one that a report should state. For this module's point clouds
+it does not bite, and <strong>that is a fact to cite rather than assume</strong>:
+the standard stack computes over ℤ/2 throughout.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Then six lines of pseudocode.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 30 min</span>
+<h2>The algorithm, and the thing about it that is unique</h2>
+
+<div class="theorem">
+<strong>The reduction (printed 182).</strong> Let low(j) be the row index of the
+lowest 1 in column j, undefined if the column is zero. R is <em>reduced</em> when
+no two non-zero columns share a low.
+<pre>R = ∂;
+for j = 1 to m do
+  while there exists j' &lt; j with low(j') = low(j) do
+    add column j' to column j
+  endwhile
+endfor.</pre>
+<span class="cite"><strong>Given as an algorithm</strong>, with the running time
+"at most cubic in the number of simplices" asserted and not derived. In matrix
+form R = ∂·V with V upper triangular.</span>
+</div>
+
+<p>Run on the seven simplices it takes <strong>two</strong> column additions:</p>
+
+<pre>  col 0  -          low=None
+  col 1  -          low=None
+  col 2  -          low=None
+  col 3  [0, 1]     low=1
+  col 4  [1, 2]     low=2
+  col 5  -          low=None
+  col 6  [3, 4, 5]  low=5</pre>
+
+<div class="worked">
+<strong>Worked — column 5 reduced to zero, by hand.</strong>
+<br><br>
+Column 5 is the edge <code>ac</code>, boundary <code>[0, 2]</code>, low 2.
+<br>
+Column 4 also has low 2, so add it: <code>[0,2] ^ [1,2] = [0,1]</code>, low 1.
+<br>
+Column 3 has low 1, so add it: <code>[0,1] ^ [0,1] = {}</code>. Reduced, two
+additions, matching the printed count.
+<br><br>
+<span class="cite">A zero column at j means the boundary of σ<sub>j</sub> was
+already a boundary, so adding σ<sub>j</sub> <em>creates a cycle</em> rather than
+killing one. Column 5 is a <strong>birth</strong>: the edge <code>ac</code> is
+what closes the loop a→b→c→a.</span>
+</div>
+
+<canvas id="fig" width="640" height="330" aria-label="Two seven-by-seven grids side by side. Left, the boundary matrix, with ones in columns 3, 4, 5 and 6. Right, the reduced matrix, in which column 5 has become entirely zero. In each grid the lowest one of each non-zero column is ringed, and the right grid's ringed cells sit in three distinct rows, 1, 2 and 5."></canvas>
+
+<p class="cite"><strong>Before and after, with the lowest ones ringed.</strong>
+Left is ∂, right is R. The only change is column 5, which has emptied — the two
+additions of the worked example. In R no two ringed cells share a row, which is
+the definition of reduced. <strong>The pairing is read off the ringed cells
+alone:</strong> row 1 with column 3, row 2 with column 4, row 5 with column 6.
+Everything else in the matrix is scaffolding.</p>
+
+<div class="theorem">
+<strong>The lowest ones are unique (printed 183).</strong> R is <em>not</em>
+unique — the operations may be continued past the point of reduction — but
+low(j) is the same for every reduced R obtained by left-to-right column
+operations. <span class="cite"><strong>Proved</strong>, by an argument about the
+ranks of the lower-left submatrices R<sup>j</sup><sub>i</sub>, which left-to-right
+column operations leave invariant.</span>
+</div>
+
+<p>Watched failing to matter, on the same input. A variant that keeps performing
+legal additions after the matrix is reduced gives a genuinely different R:</p>
+
+<pre>R1 == R2                : False
+low(j) for R1           : [None, None, None, 1, 2, None, 5]
+low(j) for R2           : [None, None, None, 1, 2, None, 5]
+lowest ones identical   : True
+column 4 differs        : [1, 2] vs [0, 2]</pre>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why is <em>left-to-right</em> essential? What
+breaks if a later column may be added to an earlier one?</p>
+<button onclick="check(this,false)">Nothing breaks; it would only be slower</button>
+<button onclick="check(this,true)" data-ok>V stops being upper triangular, the submatrix ranks stop being invariant, and the lows — hence the pairing — become order-dependent</button>
+<button onclick="check(this,false)">The matrix would stop being upper triangular, so ∂ would no longer represent a boundary map</button>
+<button onclick="check(this,false)">Columns would no longer reduce to zero, so births could not be detected</button>
+<div class="explain">Left-to-right is what keeps V upper triangular, and
+upper-triangularity is what makes the lower-left submatrix ranks invariant —
+which is the entire content of Edelsbrunner's uniqueness proof. Allow a later
+column into an earlier one and the algorithm can change a low that was already
+settled, so the pairing would depend on the order of operations and two correct
+runs could return different barcodes. The third option confuses R with ∂: ∂ is
+built from the filtration and is not altered by how you reduce it.</div>
+</div>
+
+<div class="guided-proof">
+<strong>Guided — what may differ between two implementations, and what may not.</strong>
+<br><br>
+You are asked to test a colleague's persistence code against yours. Before
+reading on, write two lists: everything the two programs may legitimately
+disagree about, and everything they may not. Then say what a test that compares
+their reduced matrices is actually testing.
+<textarea class="proof-input" placeholder="May differ / may not differ, and the verdict on the matrix test."></textarea>
+<details class="model-answer"><summary>The two lists</summary>
+<strong>May differ:</strong> the reduced matrix R, column by column — the run
+above differs in column 4. The number of column additions. The change-of-basis
+matrix V. The representative cycles read out of V. The running time, the memory
+use, and the order in which bars are emitted.
+<br><br>
+<strong>May not differ:</strong> low(j) for every j. Therefore the pairing.
+Therefore the barcode, and therefore the persistence diagram.
+<br><br>
+<strong>A test comparing reduced matrices is testing the wrong object.</strong>
+It will report failures that are not failures — as it would here, on column 4 —
+and it can be made to pass by two implementations that agree on scaffolding and
+differ on the answer. The right comparison is the multiset of bars.
+<br><br>
+This is a general shape worth keeping: when an algorithm's output is not unique
+but a function of it is, the invariant is what you test, and the intermediate is
+what you must not.
+</details>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 25 min</span>
+<h2>From lows to bars, and a check that could have failed</h2>
+
+<p>Betti numbers first, by Edelsbrunner's count at printed 182 —
+β<sub>p</sub> = #Zero<sub>p</sub> − #Low<sub>p</sub>:</p>
+
+<pre>p=0  #Zero_p=3  #Low_p=2  beta_p = 1
+p=1  #Zero_p=1  #Low_p=1  beta_p = 0</pre>
+
+<p>One component, no holes — the Betti numbers of the <strong>final</strong>
+complex, the filled triangle. The count runs over the whole matrix, so it
+describes the last complex in the filtration and says nothing about the
+intermediate ones. The intermediate ones are what the barcode is for, and the
+barcode needs the pairing, which needs the row each low sits in.</p>
+
+<div class="worked fade">
+<strong>Faded — four bars, accounted for.</strong>
+<br><br>
+<code>[(0, 0.0, 1.0), (0, 0.0, 1.0), (0, 0.0, inf), (1, 2.0, 3.0)]</code>
+<br><br>
+Edge <code>ab</code> at 1.0 kills the component born by <code>b</code> at 0.0 —
+first bar. Edge <code>bc</code> at 1.0 kills the component born by <code>c</code>
+— second bar. Vertex <code>a</code> births the component nothing ever kills —
+the infinite bar.
+<br><br>
+⟨your step: account for the fourth bar, (1, 2.0, 3.0) — name the simplex that
+births it and the simplex that kills it, and say what the class is geometrically.
+Then explain why a pair whose birth and death carry the <em>same</em> filtration
+value is dropped rather than emitted, and where such a point would sit on the
+diagram if it were kept.⟩
+</div>
+
+<p>Both reductions — the standard one and the one that kept going — return that
+same list. Then the check that matters:</p>
+
+<pre>gudhi      [(0, 0.0, 1.0), (0, 0.0, 1.0), (0, 0.0, inf), (1, 2.0, 3.0)]
+by hand    [(0, 0.0, 1.0), (0, 0.0, 1.0), (0, 0.0, inf), (1, 2.0, 3.0)]
+agree      True</pre>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> lab-01 and lab-02 also ran checks that came back
+green. How is this one different?</p>
+<button onclick="check(this,false)">It is not; all three confirm theorems that were already proved</button>
+<button onclick="check(this,true)" data-ok>Those checks could not have failed for mathematical reasons; this one could have caught a real bug in either implementation</button>
+<button onclick="check(this,false)">This one verifies gudhi, which the earlier ones did not</button>
+<button onclick="check(this,false)">This one is weaker, since agreeing with a library proves nothing about correctness</button>
+<div class="explain">This one had something at stake. lab-01 verified the metric
+axioms on distances produced by <code>pdist</code>, and lab-02 verified two
+containments that Edelsbrunner proves — neither could have failed except through
+a coding error in the check itself. Here the theorem is proved but <em>this
+implementation of it is not</em>, and gudhi's is an independent code path sharing
+no lines. A disagreement would have been a real defect in one of the two. The
+fourth option overstates: agreement with an independent implementation is not
+proof of correctness, but it is genuine evidence, and it is the strongest kind
+available without a proof assistant.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The <strong>Fundamental Lemma of Persistent
+Homology</strong> (printed 181) says the diagram determines every persistent
+Betti number. What does this module lose if it is false?</p>
+<button onclick="check(this,false)">Nothing computational; it is a statement about presentation, not about the algorithm</button>
+<button onclick="check(this,true)" data-ok>The right to reason about the data from the diagram alone — which is the first move of every unit from lab-01 onward</button>
+<button onclick="check(this,false)">Only the Betti numbers, which would have to be computed separately</button>
+<button onclick="check(this,false)">Only stability, which is lab-05's problem and not this unit's</button>
+<div class="explain">The right to use the diagram as a sufficient summary.
+Edelsbrunner's own comment is that it "says the diagram encodes the entire
+information about persistent homology groups". Without it a diagram could discard
+information the persistent homology groups carry, and lab-01's very first
+move — compute a diagram, then argue about the data from the diagram — would be
+unjustified at step one. Every later unit inherits that dependency, so the fourth
+option is right that stability needs it and wrong that only stability does.
+<strong>Edelsbrunner states it at printed 181 and does not prove it there</strong>,
+which is a modality worth recording rather than glossing.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> lab-01 found six H₁ bars and a ratio of 98.1,
+and left the threshold to the reader. Has this unit supplied one?</p>
+<button onclick="check(this,false)">Yes — bars shorter than the average column-addition scale are noise</button>
+<button onclick="check(this,true)" data-ok>No; the reduction is exact and returns every bar, with no notion of significance anywhere in it</button>
+<button onclick="check(this,false)">Yes — bars with zero-length intervals are dropped, and that is the threshold</button>
+<button onclick="check(this,false)">No, but the Fundamental Lemma supplies one indirectly</button>
+<div class="explain">No, and nothing in the algorithm could. The reduction is
+exact linear algebra over ℤ/2: it returns the complete multiset of bars, and
+lab-01's five short ones are as genuinely computed as the long one. The third
+option points at something real and misreads it — pairs with equal birth and
+death values are dropped because the bar is <em>empty</em>, not because it is
+short, and that is a definitional tidy-up rather than a threshold. A threshold has
+to come from a statement about how far the diagram moves when the data moves,
+which is stability, which is <strong>lab-05</strong>.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close this lesson and reconstruct, with no code and
+no book:
+<br><br>
+1. The six lines of the algorithm, including the restriction on which column may
+be added to which.
+<br>
+2. The definition of low(j), and the one-sentence statement of what is unique and
+what is not.
+<br>
+3. The reduction of column 5 by hand: both additions, and why the result being
+zero makes that edge a birth.
+<br>
+4. The two lists from the guided derivation — what two implementations may and
+may not disagree about.
+<br><br>
+Then answer without computing: if the edge <code>ac</code> arrived at time 0.5
+instead of 2.0, which of the four bars would change, and would the number of
+column additions change?
+</div>
+
+<script>
+function check(btn, ok){
+  var box = btn.closest('.selfcheck');
+  if(box.classList.contains('answered')) return;
+  box.classList.add('answered');
+  var buttons = box.querySelectorAll('button');
+  for(var i = 0; i < buttons.length; i++){
+    if(buttons[i].hasAttribute('data-ok')) buttons[i].classList.add('correct');
+  }
+  if(!ok) btn.classList.add('wrong');
+}
+</script>
+
+<script>
+(function(){
+  var c = document.getElementById('fig');
+  if(!c || !c.getContext) return;
+  var g = c.getContext('2d');
+  g.fillStyle = '#0c1013'; g.fillRect(0, 0, 640, 330);
+
+  var NAMES = ['a', 'b', 'c', 'ab', 'bc', 'ac', 'abc'];
+  var BOUNDARY = [[], [], [], [0, 1], [1, 2], [0, 2], [3, 4, 5]];
+  var REDUCED  = [[], [], [], [0, 1], [1, 2], [],       [3, 4, 5]];
+
+  var CELL = 22, N = 7;
+
+  function grid(ox, oy, cols, title){
+    g.font = '12px sans-serif';
+    g.fillStyle = '#e8e8e8';
+    g.fillText(title, ox, oy - 26);
+
+    // column labels along the top, row labels down the left
+    g.font = '10px sans-serif'; g.fillStyle = '#9aa5b1';
+    for(var k = 0; k < N; k++){
+      g.fillText(NAMES[k], ox + k * CELL + 3, oy - 8);
+      g.fillText(NAMES[k], ox - 22, oy + k * CELL + 15);
+    }
+
+    // cells
+    for(var j = 0; j < N; j++){
+      for(var i = 0; i < N; i++){
+        var on = cols[j].indexOf(i) !== -1;
+        g.fillStyle = on ? '#8ab4f8' : '#161b21';
+        g.fillRect(ox + j * CELL + 1, oy + i * CELL + 1, CELL - 2, CELL - 2);
+        if(on){
+          g.fillStyle = '#0c1013'; g.font = '11px sans-serif';
+          g.fillText('1', ox + j * CELL + 8, oy + i * CELL + 15);
+        }
+      }
+      // ring the lowest one of this column
+      var lowRow = -1;
+      for(var i = 0; i < N; i++) if(cols[j].indexOf(i) !== -1) lowRow = i;
+      if(lowRow >= 0){
+        g.strokeStyle = '#4caf82'; g.lineWidth = 2;
+        g.strokeRect(ox + j * CELL + 1, oy + lowRow * CELL + 1, CELL - 2, CELL - 2);
+      }
+    }
+  }
+
+  grid(52, 60, BOUNDARY, 'boundary matrix  ∂');
+  grid(372, 60, REDUCED, 'reduced  R');
+
+  g.font = '11px sans-serif'; g.fillStyle = '#9aa5b1';
+  g.fillText('column ac still carries [0, 2]', 30, 258);
+  g.fillText('two lows share row 2', 30, 276);
+  g.fillText('column ac has emptied: a birth', 350, 258);
+  g.fillText('lows in rows 1, 2, 5 — all distinct', 350, 276);
+  g.strokeStyle = '#4caf82'; g.lineWidth = 2;
+  g.strokeRect(30, 292, 12, 12);
+  g.fillStyle = '#9aa5b1';
+  g.fillText('ringed = lowest one of its column; the pairing is read off these', 50, 302);
+})();
+</script>
+
+<footer>
+<em>Sources, page by page.</em> Edelsbrunner and Harer, <em>Computational
+Topology: An Introduction</em>, §VII.1 "Persistent Homology": the Elder Rule
+extended to filtrations and the monotonicity requirement, printed 181; the
+<strong>Fundamental Lemma of Persistent Homology</strong> and the diagram's
+diagonal points of infinite multiplicity, printed 181; the reduction algorithm,
+low(j), the upper-triangularity remark, R = ∂·V and
+β<sub>p</sub> = #Zero<sub>p</sub> − #Low<sub>p</sub>, printed 182; the uniqueness
+of the lowest ones with its submatrix-rank proof, printed 183. Read alongside
+§IV.2 "Matrix Reduction", printed 101–106, which introduces matrix reduction for
+ordinary homology and which this unit's resource line does not name. Folio =
+PDF − 12.
+<br><br>
+<em>Modality.</em> Edelsbrunner <strong>gives as an algorithm</strong> the
+reduction at printed 182, asserting the cubic running time without deriving it.
+He <strong>proves</strong> the uniqueness of the lowest ones at printed 183. He
+<strong>states</strong> the Fundamental Lemma of Persistent Homology at
+printed 181 without proving it there. Three different modalities within six
+pages, and this lesson names which is which at each use. As in lab-02, <strong>he
+numbers none of them</strong>, so gate 1 reports zero references for this unit.
+<br><br>
+<em>Sources, by execution.</em> Every number is output from the problem set's
+code blocks, run in the pinned environment — Python 3.11.11, gudhi 3.13.0,
+numpy 1.26.4 — and re-derived by gate 9. API surfaces:
+<code>gudhi.SimplexTree.insert</code> with <code>filtration=</code>,
+<code>compute_persistence</code>, <code>persistence</code>. Cost is reported as
+<em>column additions</em> and never as elapsed time, because gate 9 runs each file
+twice and requires the two runs to agree — a timing would fail that check, which
+is the gate doing its job.
+<br><br>
+<em>Stated here but not in the source.</em> The two-column list of what may and
+may not differ between implementations is this lesson's, drawn from
+Edelsbrunner's uniqueness theorem; he does not discuss testing. The reading of
+the ℤ/2 choice as something to cite rather than assume is this lesson's. The
+observation that this unit's cross-check against gudhi is epistemically unlike
+lab-01's and lab-02's executed checks is this lesson's framing.
+<br><br>
+<em>Not established here.</em> That any bar is significant — the reduction
+supplies no threshold and this lesson claims none. The Fundamental Lemma, which
+is used and not proved. That the cubic bound is tight, or that it is reached on
+the filtrations this module builds. Representative cycles, which need the matrix
+V that this implementation deliberately does not construct. <code>aa-18</code>, credited by
+the mission strip, is unwritten and is cited nowhere in this lesson.
+</footer>
+</body></html>

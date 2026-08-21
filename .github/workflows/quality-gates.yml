@@ -97,4 +97,20 @@ jobs:
             --known-failing curriculum/mission-drift.txt \
             --baseline /tmp/drift-baseline.txt \
             lessons/*/*.html
+      - name: Structure of the lab sets (gate 9, the half CI can run)
+        # The full gate re-executes every block and diffs its stdout, which
+        # needs the pinned 3.11 lab interpreter this runner does not have —
+        # giotto-tda publishes no wheel for 3.13. What does not need it is the
+        # structural half: every code block paired with a recorded output, no
+        # duplicate ids, no contradictory pins, and an env block that imports
+        # every module the set uses. That runs here. Re-execution stays a
+        # local command against the pinned interpreter, and is recorded as
+        # such in the plan rather than described as enforced.
+        run: |
+          status=0
+          for f in problems/sets/lab-*.md; do
+            echo "--- $f ---"
+            python scripts/check_lab_outputs.py "$f" --parse-only || status=1
+          done
+          exit "$status"
       - run: python -m pytest -q

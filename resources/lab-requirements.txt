@@ -1,0 +1,98 @@
+# The `lab` module's Python environment, resolved and frozen 2026-08-13.
+#
+# Why this file is committed rather than documented. `lab` problem sets record
+# real program output as their worked answers, so an output is only meaningful
+# next to the environment that produced it. The repo's own interpreter is
+# Python 3.13.5 and carries gudhi 3.11.0, ripser 0.6.14 and scikit-learn 1.8.0 —
+# different versions from these — so rebuilding from an unpinned install can
+# reproduce the code and not the numbers, with nothing on the page to show that
+# the environment moved. giotto-tda additionally publishes no wheel for 3.13,
+# which is why the module runs on a separate 3.11 interpreter at all.
+#
+# Rebuild. The interpreter `uv venv` creates sits at a different path on each
+# platform — `bin/python` on Linux and macOS, `Scripts/python.exe` on Windows —
+# and this file was written from a Windows machine, so both are given. CI runs on
+# Ubuntu, and anyone reproducing the full gate there needs the first form:
+#
+#   uv venv --python 3.11.11 <somewhere>/labenv
+#
+#   # Linux, macOS
+#   uv pip install --python <somewhere>/labenv/bin/python \
+#       -r resources/lab-requirements.txt
+#
+#   # Windows
+#   uv pip install --python <somewhere>/labenv/Scripts/python.exe \
+#       -r resources/lab-requirements.txt
+#
+# Verify, per problem set — this is gate 9, and it checks the pins in each
+# set's ```env``` block against what the interpreter actually has installed.
+# `$LAB_PYTHON` is the default for `--python`; the inline-assignment form is
+# POSIX shell only, so the Windows line passes the flag instead:
+#
+#   # Linux, macOS
+#   LAB_PYTHON=<somewhere>/labenv/bin/python \
+#       python scripts/check_lab_outputs.py problems/sets/lab-01.md
+#
+#   # Windows
+#   python scripts/check_lab_outputs.py problems/sets/lab-01.md \
+#       --python <somewhere>/labenv/Scripts/python.exe
+#
+# The direct dependencies are the seven below the line; everything else is the
+# transitive closure, pinned because a resolver is free to move it and the
+# recorded outputs are not free to move with it.
+
+# --- direct ---
+giotto-tda==0.6.2
+gudhi==3.13.0
+kmapper==2.1.0
+numpy==1.26.4
+persim==0.3.8
+ripser==0.6.15
+scikit-learn==1.3.2
+
+# --- transitive closure, as resolved on 2026-08-13 ---
+Cython==3.2.9
+Deprecated==1.3.1
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+Pygments==2.20.0
+asttokens==3.0.2
+colorama==0.4.6
+comm==0.2.3
+contourpy==1.3.3
+cycler==0.12.1
+executing==2.2.1
+fonttools==4.63.0
+giotto-ph==0.2.4
+hopcroftkarp==1.2.5
+igraph==1.0.0
+ipython==9.16.1
+ipython_pygments_lexers==1.1.1
+ipywidgets==8.1.8
+jedi==0.20.0
+joblib==1.5.3
+jupyterlab_widgets==3.0.16
+kiwisolver==1.5.0
+matplotlib==3.11.1
+matplotlib-inline==0.2.2
+narwhals==2.24.0
+packaging==26.3
+parso==0.8.7
+pillow==12.3.0
+plotly==6.9.0
+prompt_toolkit==3.0.53
+psutil==7.2.2
+pure_eval==0.2.3
+pyflagser==0.4.7
+pyparsing==3.3.2
+python-dateutil==2.9.0.post0
+scipy==1.17.1
+six==1.17.0
+stack-data==0.6.3
+texttable==1.7.0
+threadpoolctl==3.6.0
+traitlets==5.16.1
+typing_extensions==4.16.0
+wcwidth==0.8.2
+widgetsnbextension==4.0.15
+wrapt==2.3.0
