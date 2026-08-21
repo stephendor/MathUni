@@ -1,0 +1,58 @@
+# Units whose lesson does not yet quote its mission_link verbatim (gate 8).
+#
+# Read scripts/mission.py's docstring first: this is a RATCHET, not a
+# suppression list. A unit listed here is excused from failing; a unit listed
+# here that starts PASSING fails the run until it is struck off. The list can
+# only shrink.
+#
+# Established 2026-08-21, the first time gate 8 was run over the whole
+# committed corpus rather than over the lesson in front of an author. It failed
+# 15 of 81. The S2 plan had recorded three (aa-00, aa-01, pw-03) — that was the
+# sample, and this is the population.
+#
+# The 15 fall into two classes, and the class decides who repairs them.
+#
+# --- Class A: content divergence (4) -------------------------------------
+# The lesson asserts something the syllabus does not. aa-00's syllabus strip
+# calls the unit an optional on-ramp about abstracting structure; its lesson
+# claims groups measure symmetry as homology measures holes. These are two
+# different claims and only the syllabus's is quotable. LESSON-GUIDE's rule
+# applies: quote the strip verbatim and refute it in the body if it is wrong;
+# never soften the quotation to make it true.
+#
+# aa-00, aa-01 and pw-03 are S1 units already slated for re-authoring (they
+# predate every S2 convention); they come off this list as those units are
+# rewritten. tda2-02 is S4 and needs its own pass.
+aa-00
+aa-01
+pw-03
+tda2-02
+#
+# --- Class B: typography reverted while quoting (11) ---------------------
+# The lesson quotes the right sentence but re-renders the syllabus's ASCII
+# maths as Unicode while doing it: H^n -> Hn, H_{n-1} -> Hn−1, Z -> ℤ,
+# F_p -> 𝔽p, S^2 x S^1 -> S2 × S1, A_n -> An, Kunneth -> Künneth, and in
+# tda2-06 straight quotes -> curly ones. It reads as house style — lessons use
+# literal Unicode maths and never LaTeX — but the mission strip is the one
+# paragraph in a lesson that is a quotation rather than prose, and prettifying
+# a quotation is editing it.
+#
+# That this is a defect and not the convention is settled by the corpus, not by
+# argument: at1-03, at1-04, at1-06, at1-09 and tda2-10 all carry ASCII maths in
+# their strips (H_1, pi_1, F_2, H^0), quote it exactly, and pass. The authors
+# who reverted it are the deviation.
+#
+# All 11 are S3/S4 content. The repair is mechanical — replace the strip's text
+# with the syllabus's, character for character — but it is 11 lessons in two
+# semesters this branch is not otherwise touching, so it is its own PR.
+at2-01
+at2-02
+at2-03
+at2-04
+at2-05
+at2-06
+at2-07
+at2-08
+tda2-01
+tda2-03
+tda2-06

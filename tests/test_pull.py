@@ -1,0 +1,111 @@
+"""The folio fitter. Synthetic pages throughout — CI has no access to the
+book drive, and a check that silently does nothing when its input is missing
+is the silent-absence failure mode this project keeps paying for."""
+from scripts.pull import fit_offsets, folio_candidates, folio_of, parse_range
+
+
+def page(head="", tail=""):
+    """A page with a body long enough that its head and tail are distinct."""
+    parts = ([head] if head else []) + ["prose"] * 6 + ([tail] if tail else [])
+    return "\n\n".join(parts)
+
+
+# --- reading a folio off one page ------------------------------------------
+
+def test_a_bare_number_at_either_edge_is_a_candidate():
+    assert folio_candidates(page(head="154")) == [(154, "head")]
+    assert folio_candidates(page(tail="27")) == [(27, "tail")]
+
+
+def test_a_chapter_opener_offers_both_the_chapter_number_and_the_folio():
+    """Axler PDF 44: 'CHAPTER' / '2' at the head, the real folio 27 at the tail.
+    Nine of its twelve chapter openers do this. A head-first reader calls the
+    page 'printed 2' and computes an offset of -42."""
+    text = "CHAPTER\n\n2\n\n## Finite-Dimensional Vector Spaces\n\nbody\n\n27"
+    assert folio_candidates(text) == [(2, "head"), (27, "tail")]
+    assert folio_of(text) == (27, "tail")   # one page in isolation: prefer the tail
+
+
+def test_numbers_in_the_body_are_not_folios():
+    body = "\n\n".join(["Chapter 6. Sequences", "prose", "prose", "42",
+                        "prose", "prose", "prose", "closing line"])
+    assert folio_candidates(body) == []
+
+
+def test_head_and_tail_spans_do_not_overlap_on_a_short_page():
+    """A two-line page would otherwise return its single number as both a head
+    and a tail candidate, and fit_offsets would count that vote twice."""
+    assert folio_candidates("154\n\ntext") == [(154, "head")]
+
+
+def test_a_page_with_no_number_yields_nothing_rather_than_a_guess():
+    assert folio_candidates(page(head="Chapter 6. Sequences", tail="see below")) == []
+    assert folio_of("no numbers here") == (None, None)
+
+
+# --- fitting an offset over a range ----------------------------------------
+
+def _pages(spec):
+    return [(n, cands) for n, cands in spec]
+
+
+def test_a_constant_offset_is_reported_as_one_plateau():
+    pages = _pages([(n, [(n - 12, "head")]) for n in range(164, 171)])
+    rows, plateaus = fit_offsets(pages)
+    assert plateaus == [(-12, 164, 170, 7)]
+    assert all(r[4] == "OK" for r in rows)
+
+
+def test_a_chapter_opener_does_not_break_the_run():
+    """The regression this fitter exists for. PDF 44 offers 2 (head) and 27
+    (tail); the fit must take the candidate that agrees with its neighbours."""
+    pages = _pages(
+        [(n, [(n - 17, "head")]) for n in (42, 43)]
+        + [(44, [(2, "head"), (27, "tail")])]
+        + [(n, [(n - 17, "head")]) for n in (45, 46)]
+    )
+    rows, plateaus = fit_offsets(pages)
+    assert plateaus == [(-17, 42, 46, 5)]
+    assert rows[2] == (44, 27, "tail", -17, "OK")
+
+
+def test_a_genuine_drift_is_reported_as_two_plateaus():
+    """Axler really does move: -17, then -16, then -15. Two substantial
+    plateaus is drift, and must not be smoothed away by the mode."""
+    pages = _pages([(n, [(n - 17, "head")]) for n in range(60, 67)]
+                   + [(n, [(n - 16, "head")]) for n in range(67, 74)])
+    rows, plateaus = fit_offsets(pages)
+    assert [(p[0], p[3]) for p in plateaus] == [(-17, 7), (-16, 7)]
+
+
+def test_a_lone_disagreeing_page_is_SUSPECT_not_a_drift():
+    """An index page-reference or a stray number reads exactly like a one-page
+    plateau. Calling that a pagination change would cry wolf on every book."""
+    pages = _pages([(n, [(n - 15, "head")]) for n in (250, 252, 254)]
+                   + [(256, [(8, "head")])]
+                   + [(n, [(n - 15, "head")]) for n in (258, 260)])
+    rows, plateaus = fit_offsets(pages)
+    assert [r[4] for r in rows if r[0] == 256] == ["SUSPECT"]
+    assert [p for p in plateaus if p[3] > 1] == [(-15, 250, 254, 3),
+                                                 (-15, 258, 260, 2)]
+
+
+def test_pages_with_no_folio_do_not_contribute_to_the_offset():
+    """'A page with no folio proves nothing.' It must not be averaged in, and
+    it must not be reported as a change either."""
+    pages = _pages([(30, [(13, "head")]), (31, []), (32, []),
+                    (33, []), (34, [(17, "head")])])
+    rows, plateaus = fit_offsets(pages)
+    assert [r[4] for r in rows] == ["OK", "NO FOLIO", "NO FOLIO", "NO FOLIO", "OK"]
+    assert plateaus == [(-17, 30, 34, 2)]
+
+
+def test_an_empty_range_does_not_invent_an_offset():
+    rows, plateaus = fit_offsets([(1, []), (2, [])])
+    assert plateaus == []
+    assert all(r[3] is None for r in rows)
+
+
+def test_range_parsing():
+    assert parse_range("166-170") == (166, 170)
+    assert parse_range("166") == (166, 166)

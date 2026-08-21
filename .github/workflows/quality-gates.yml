@@ -53,4 +53,32 @@ jobs:
             python scripts/lesson_lint.py "$f" || status=1
           done
           exit "$status"
+      - run: python scripts/gate.py --selftest
+      - name: Gates 4-6 over the committed lesson corpus
+        # gate.py, mission.py and pull.py lived in a session scratchpad from S3
+        # until 2026-08-21, copied forward by hand; the S2 plan records their
+        # promotion as "deferred three times". Run over all 81 lessons for the
+        # first time, gates 4-6 failed five — three of them a false positive in
+        # the gate itself (an svg xmlns read as an external request) and two a
+        # real stray </p>. Both are repaired here, so this lands as a hard gate
+        # rather than as another non-blocking step waiting on a repair.
+        run: |
+          status=0
+          for f in lessons/*/*.html; do
+            echo "--- $f ---"
+            python scripts/gate.py "$f" || status=1
+          done
+          exit "$status"
+      - run: python scripts/mission.py --selftest
+      - name: Gate 8 — mission strips quoted verbatim, against the drift ratchet
+        # 15 of 81 lessons do not yet quote their mission_link verbatim; the S2
+        # plan had recorded three, which was the sample rather than the
+        # population. curriculum/mission-drift.txt names all 15 and why. They
+        # are excused BY NAME and every other lesson is held, so no new lesson
+        # can drift. The list is a ratchet, not a suppression: a listed unit
+        # that starts passing fails this step until it is struck off — the one
+        # state a plain allowlist is silent about.
+        run: |
+          python scripts/mission.py --known-failing curriculum/mission-drift.txt \
+            lessons/*/*.html
       - run: python -m pytest -q
