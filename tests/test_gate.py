@@ -90,3 +90,67 @@ def test_empty_script_bodies_are_not_counted():
 
 def test_selftest_passes():
     assert selftest() == 0
+
+
+# --- Codex review of PR #20 ------------------------------------------------
+# Four findings against gates 4-6, all four reproduced before being fixed.
+
+def test_crossed_optional_end_elements_are_caught():
+    """Per-tag counters lose the nesting order, so this came back clean —
+    a crossed pair, which is the one thing gate 4 exists for and the one thing
+    lesson_lint.py's counting approach structurally cannot see. `</tr>`
+    implicitly closes the cell; the trailing `</td>` is then surplus."""
+    errs = tag_errors("<table><tr><td>x</tr></td></table>")
+    assert any("</td> with no matching" in e for e in errs)
+
+
+def test_omitted_table_end_tags_are_still_fine():
+    """The fix must not make ordinary spec-legal omission an error."""
+    assert tag_errors("<table><tr><td>a<td>b</tr></table>") == []
+    assert tag_errors("<table><thead><tr><th>h</thead><tbody><tr><td>d</tbody></table>") == []
+
+
+def test_self_closing_non_void_html_is_reported():
+    """Browsers ignore the slash on a non-void HTML element and leave it open,
+    where it can absorb the rest of the document."""
+    assert any("does not self-close" in e for e in tag_errors("<body><div/></body>"))
+    assert any("does not self-close" in e for e in tag_errors("<section/>"))
+
+
+def test_self_closing_inside_svg_is_foreign_content_and_legal():
+    """The corpus really does ship these — an-02, pw-01, tda2-02."""
+    assert tag_errors('<svg><circle cx="1"/><path d="M0 0"/></svg>') == []
+    assert tag_errors("<div><svg><rect/></svg><br/></div>") == []
+
+
+def test_self_closing_after_the_svg_closes_is_caught_again():
+    """The foreign-content exemption must not leak past </svg>."""
+    assert any("does not self-close" in e
+               for e in tag_errors("<svg><circle/></svg><div/>"))
+
+
+def test_protocol_relative_urls_are_external_requests():
+    """`//host/x` is a real fetch that neither `https?://` nor `src=` matches."""
+    assert external_hits("<style>body{background:url(//example.com/a.png)}</style>")
+    assert external_hits('<video poster="//example.com/a.jpg"></video>')
+
+
+def test_a_javascript_comment_is_not_an_external_request():
+    """The obvious false positive the `//` pattern invites."""
+    assert external_hits("<script>// set up the canvas\nvar x=1;</script>") == []
+    assert external_hits("<p>the ratio a//b is not a url</p>") == []
+
+
+def test_non_javascript_script_blocks_are_not_sent_to_node():
+    """`<script type="application/json">{"x": 1}</script>` is data. node --check
+    rejects it as JavaScript, failing a valid offline lesson."""
+    from scripts.gate import script_blocks
+    assert script_bodies('<script type="application/json">{"x": 1}</script>') == []
+    assert len(script_blocks('<script type="application/json">{"x":1}</script>')) == 1
+
+
+def test_javascript_script_blocks_are_still_checked():
+    """The type carve-out must not become a way to skip real scripts."""
+    assert len(script_bodies("<script>var x=1;</script>")) == 1
+    assert len(script_bodies('<script type="module">let x = 1;</script>')) == 1
+    assert len(script_bodies('<script type="text/javascript">var y=2;</script>')) == 1

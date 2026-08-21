@@ -19,6 +19,7 @@ verdict now says so and exits 2; exit 1 means a strip was compared and differed.
 
   python scripts/mission.py <lesson_html_path> [...]
   python scripts/mission.py --known-failing curriculum/mission-drift.txt <path> [...]
+  python scripts/mission.py --known-failing <list> --baseline <base-ref-copy> <path>...
   python scripts/mission.py --selftest
 
 Exit 0 clean, 1 on a real mismatch, 2 when no verdict could be reached.
@@ -26,11 +27,17 @@ Exit 0 clean, 1 on a real mismatch, 2 when no verdict could be reached.
 --known-failing is a RATCHET, not a suppression list. Run over the corpus for
 the first time, this gate failed 15 of 81 lessons; wiring it non-blocking until
 those are repaired is how the promotion of these scripts came to be deferred
-three times already. So the listed units are excused from failing, and a listed
-unit that starts PASSING fails the run until it is struck off. The list can
-only shrink, and it cannot rot quietly: the state "repaired but still listed"
-is the one an ordinary allowlist hides, and it is the state that turns an
-allowlist into permanent silence.
+three times already. So the listed units are excused from failing, and:
+
+  * a listed unit that starts PASSING fails the run until it is struck off —
+    "repaired but still listed" is the state an ordinary allowlist hides, and
+    the one that turns an allowlist into permanent silence;
+  * a listed unit whose lesson no longer exists fails the run;
+  * and, with --baseline, a unit ADDED to the list since the base ref fails the
+    run. Without that third rule the first two only ever let the list shrink
+    while nothing stopped it growing, so "the list can only shrink" was a claim
+    about author discipline rather than a property of the gate. It is now the
+    property it was described as.
 """
 import html as html_mod
 import os
@@ -108,8 +115,18 @@ def check(path, units):
         return 2
 
     want = normalise(units[uid]["mission_link"])
-    with open(path, encoding="utf-8") as f:
-        got = strip_of(f.read())
+    try:
+        with open(path, encoding="utf-8") as f:
+            got = strip_of(f.read())
+    except OSError as e:
+        # A missing or unreadable file is NOT a verdict. Letting OSError escape
+        # gave a traceback and process exit 1 — the code this script reserves
+        # for "a strip was compared and differed" — so an authoring wrapper
+        # could read a filesystem failure as a caught defect. `pw-04` is a real
+        # syllabus unit with no lesson yet, and it exited 1.
+        # (Codex review of PR #20.)
+        print("ERROR %s: cannot read %s: %s" % (uid, path, e))
+        return 2
 
     if got is None:
         print("FAIL %s mission strip verbatim" % uid)
@@ -172,6 +189,27 @@ def selftest():
     check_one("a strip differing by one character is a mismatch",
               strip_of(body % "Persistent homology needs these.") != normalise(want))
 
+    # The ratchet's growth rule. Codex review of PR #20 found that the two
+    # stale checks only ever let the list shrink while nothing stopped it
+    # growing: a lesson broken on purpose and then listed exited 0.
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as d:
+        base = os.path.join(d, "base.txt")
+        with open(base, "w", encoding="utf-8") as f:
+            f.write("# comment\naa-00\npw-03\n")
+        check_one("an unchanged list has no additions",
+                  additions_against(base, {"aa-00", "pw-03"}) == (set(), True))
+        check_one("a SHRUNK list has no additions",
+                  additions_against(base, {"aa-00"}) == (set(), True))
+        check_one("a GROWN list is caught, and names what was added",
+                  additions_against(base, {"aa-00", "pw-03", "an-03"})
+                  == ({"an-03"}, True))
+        check_one("a swap that keeps the count is still caught",
+                  additions_against(base, {"aa-00", "an-03"}) == ({"an-03"}, True))
+    check_one("a missing baseline is reported as missing, not as empty",
+              additions_against(os.path.join(REPO, "no-such-baseline.txt"),
+                                {"aa-00"}) == (set(), False))
+
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0
 
@@ -187,19 +225,61 @@ def load_known_failing(path):
     return ids
 
 
+def additions_against(baseline_path, current):
+    """Ids in the current drift list that the baseline did not have.
+
+    Without this the ratchet was a claim, not a mechanism. The stale checks
+    catch a listed unit that starts passing and one whose lesson is gone — both
+    of which make the list SHRINK — but nothing stopped a branch from adding a
+    freshly-drifted unit to the list and going green. Verified: a lesson broken
+    on purpose, then listed, exited 0. "The list can only shrink" was asserted
+    in the commit message, the plan and the CI comment, and enforced nowhere.
+    (Codex review of PR #20.)
+
+    Returns (additions, baseline_existed). A baseline that does not exist is
+    reported as such rather than silently treated as empty — on the commit that
+    introduces the list there is nothing to compare against, and that must be
+    visible instead of looking like a clean comparison.
+    """
+    if not os.path.exists(baseline_path):
+        return set(), False
+    return current - load_known_failing(baseline_path), True
+
+
 def main(argv):
     if argv and argv[0] == "--selftest":
         return selftest()
 
-    known, listfile = set(), None
-    if len(argv) >= 2 and argv[0] == "--known-failing":
-        listfile = argv[1]
-        known = load_known_failing(listfile)
+    known, listfile, baseline = set(), None, None
+    while len(argv) >= 2 and argv[0] in ("--known-failing", "--baseline"):
+        if argv[0] == "--known-failing":
+            listfile = argv[1]
+            known = load_known_failing(listfile)
+        else:
+            baseline = argv[1]
         argv = argv[2:]
 
+    if baseline is not None:
+        if listfile is None:
+            print("ERROR --baseline needs --known-failing")
+            return 2
+        added, existed = additions_against(baseline, known)
+        if not existed:
+            print("NOTE no baseline at %s — this is the commit that introduces"
+                  " the list, so there is nothing it could have grown from"
+                  % baseline)
+        elif added:
+            for uid in sorted(added):
+                print("GREW %s was added to %s; the drift list is a ratchet and"
+                      " may only shrink. Repair the lesson instead."
+                      % (uid, listfile))
+            return 1
+        else:
+            print("PASS drift list has no additions against %s" % baseline)
+
     if not argv:
-        print("usage: mission.py [--known-failing <file>] <lesson_html_path> [...]"
-              " | --selftest")
+        print("usage: mission.py [--known-failing <file>] [--baseline <file>]"
+              " <lesson_html_path> [...] | --selftest")
         return 2
 
     units = load_units()

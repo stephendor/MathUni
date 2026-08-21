@@ -117,3 +117,61 @@ def test_every_listed_unit_still_exists_and_still_fails():
     for uid in listed:
         path = os.path.join(repo, "lessons", uid.rsplit("-", 1)[0], uid + ".html")
         assert os.path.exists(path), "%s is listed but has no lesson" % uid
+
+
+# --- Codex review of PR #20 ------------------------------------------------
+
+def test_a_valid_unit_with_no_lesson_file_exits_2_not_1(capsys):
+    """pw-04 is a real syllabus unit whose lesson is not written yet. The
+    unguarded open() raised FileNotFoundError, and the traceback exited 1 —
+    the code reserved for "a strip was compared and differed". A filesystem
+    failure must never be readable as a gate verdict."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    assert main([os.path.join(repo, "lessons", "pw", "pw-04.html")]) == 2
+    assert "cannot read" in capsys.readouterr().out
+
+
+def test_an_unchanged_or_shrunk_drift_list_has_no_additions(tmp_path):
+    from scripts.mission import additions_against
+    base = tmp_path / "base.txt"
+    base.write_text("# header\naa-00\npw-03\ntda2-02\n", encoding="utf-8")
+    assert additions_against(str(base), {"aa-00", "pw-03", "tda2-02"}) == (set(), True)
+    assert additions_against(str(base), {"aa-00"}) == (set(), True)
+    assert additions_against(str(base), set()) == (set(), True)
+
+
+def test_a_grown_drift_list_is_caught():
+    """The ratchet's whole claim. The two stale checks only ever let the list
+    SHRINK; nothing stopped a branch adding a freshly-drifted unit and going
+    green. Verified before the fix: a lesson broken on purpose, then listed,
+    exited 0."""
+    from scripts.mission import additions_against
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        base = os.path.join(d, "base.txt")
+        with open(base, "w", encoding="utf-8") as f:
+            f.write("aa-00\npw-03\n")
+        assert additions_against(base, {"aa-00", "pw-03", "an-03"}) == ({"an-03"}, True)
+        # A swap keeps the count identical and must still be caught.
+        assert additions_against(base, {"aa-00", "an-03"}) == ({"an-03"}, True)
+
+
+def test_a_missing_baseline_is_reported_as_missing_not_as_empty(tmp_path):
+    """Treating an absent baseline as the empty set would make every entry an
+    addition on the commit that introduces the list — and, worse, would make a
+    lost baseline look like a clean comparison."""
+    from scripts.mission import additions_against
+    added, existed = additions_against(str(tmp_path / "nope.txt"), {"aa-00"})
+    assert (added, existed) == (set(), False)
+
+
+def test_growth_check_end_to_end_fails_the_run(tmp_path, capsys):
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base = tmp_path / "base.txt"
+    base.write_text("aa-00\n", encoding="utf-8")
+    grown = tmp_path / "grown.txt"
+    grown.write_text("aa-00\npw-03\n", encoding="utf-8")
+    rc = main(["--known-failing", str(grown), "--baseline", str(base),
+               os.path.join(repo, "lessons", "aa", "aa-00.html")])
+    assert rc == 1
+    assert "GREW pw-03" in capsys.readouterr().out

@@ -75,10 +75,26 @@ jobs:
         # plan had recorded three, which was the sample rather than the
         # population. curriculum/mission-drift.txt names all 15 and why. They
         # are excused BY NAME and every other lesson is held, so no new lesson
-        # can drift. The list is a ratchet, not a suppression: a listed unit
-        # that starts passing fails this step until it is struck off — the one
-        # state a plain allowlist is silent about.
+        # can drift. The list is a ratchet, not a suppression:
+        #   * a listed unit that starts passing fails this step until struck off
+        #     — the state a plain allowlist is silent about;
+        #   * a listed unit whose lesson is gone fails it;
+        #   * and --baseline fails it when the list has GROWN since the base
+        #     ref. Without that third rule the first two only ever let the list
+        #     shrink while nothing stopped it growing, so "can only shrink" was
+        #     a claim about author discipline rather than a property of the
+        #     gate. Found by the Codex review of PR #20.
+        # The baseline is fetched from the PR's base branch; on a push to main
+        # HEAD~1 stands in. If the file does not exist there — the commit that
+        # introduces the list — mission.py says so rather than treating the
+        # absent baseline as an empty one.
         run: |
-          python scripts/mission.py --known-failing curriculum/mission-drift.txt \
+          base="${{ github.event.pull_request.base.sha || 'HEAD~1' }}"
+          git fetch --depth=2 origin "$base" 2>/dev/null || true
+          git show "$base:curriculum/mission-drift.txt" > /tmp/drift-baseline.txt \
+            2>/dev/null || rm -f /tmp/drift-baseline.txt
+          python scripts/mission.py \
+            --known-failing curriculum/mission-drift.txt \
+            --baseline /tmp/drift-baseline.txt \
             lessons/*/*.html
       - run: python -m pytest -q

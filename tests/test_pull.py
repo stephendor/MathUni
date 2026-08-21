@@ -109,3 +109,29 @@ def test_an_empty_range_does_not_invent_an_offset():
 def test_range_parsing():
     assert parse_range("166-170") == (166, 170)
     assert parse_range("166") == (166, 166)
+
+
+# --- Codex review of PR #20 ------------------------------------------------
+
+def test_equal_plateaus_split_by_a_suspect_are_one_offset_not_drift():
+    """A single stray folio between two runs of the SAME offset splits them
+    into two plateaus. Deciding the verdict on plateau count then announced
+    "OFFSET IS NOT CONSTANT" over a range with exactly one offset in it —
+    crying drift on precisely the case SUSPECT exists to absorb. The verdict
+    is about DISTINCT offsets."""
+    pages = _pages([(n, [(n - 15, "head")]) for n in (250, 252, 254)]
+                   + [(256, [(8, "head")])]
+                   + [(n, [(n - 15, "head")]) for n in (258, 260)])
+    rows, plateaus = fit_offsets(pages)
+    real = [p for p in plateaus if p[3] > 1]
+    assert len(real) == 2                      # still two plateaus...
+    assert {p[0] for p in real} == {-15}       # ...but one offset, so no drift
+
+
+def test_genuine_drift_still_has_two_distinct_offsets():
+    """The regression guard for the fix above: Axler really does move."""
+    pages = _pages([(n, [(n - 17, "head")]) for n in range(60, 67)]
+                   + [(n, [(n - 16, "head")]) for n in range(67, 74)])
+    rows, plateaus = fit_offsets(pages)
+    real = [p for p in plateaus if p[3] > 1]
+    assert {p[0] for p in real} == {-17, -16}

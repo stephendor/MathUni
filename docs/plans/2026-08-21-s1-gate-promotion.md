@@ -226,6 +226,48 @@ holds them in the meantime.
 Each gets its own plan document and its own branch off `main`, with a per-unit
 tracker updated in the same commit as the unit.
 
+## 7b. Codex review of PR #20 — eight findings, all eight real
+
+An automated review raised two P1 and six P2 findings. Each was reproduced
+against the committed code before anything was changed; all eight held, which
+is worth recording because the previous three rounds of this session went the
+other way (a gate wrong about the corpus rather than the corpus wrong).
+
+| # | Finding | Was |
+|---|---|---|
+| P1 | drift list can GROW | a unit broken on purpose and then listed exited **0** |
+| P1 | missing page file read as `NO FOLIO` | a range with only its endpoints extracted reported a consistent offset and exited 0 |
+| P2 | equal plateaus split by a suspect | `OFFSET IS NOT CONSTANT` over a range with one offset |
+| P2 | crossed optional-end elements | `<table><tr><td>x</tr></td></table>` came back clean |
+| P2 | `<div/>` treated as closed | browsers leave it open; reported balanced |
+| P2 | protocol-relative `//host/x` | not matched by gate 5 |
+| P2 | non-JS `<script>` sent to `node` | a JSON data block fails a valid lesson |
+| P2 | unreadable lesson file | `FileNotFoundError` exited **1** — the code reserved for a real mismatch |
+
+Two of these deserve more than a table row.
+
+**The ratchet was a claim, not a mechanism.** §3 above asserts "the list can
+only shrink", and so did the commit message and the CI comment. The two stale
+checks enforce no such thing: they catch a listed unit that starts passing and
+one whose lesson is gone, and both of those make the list *shrink*. Nothing
+stopped a branch adding a freshly-drifted unit and going green — verified, exit
+0. `--baseline` now compares the list against the base ref and fails on any
+addition, so the property is the one it was described as. A baseline that does
+not exist is reported as missing rather than treated as empty, because an
+absent baseline and a clean comparison must not look alike.
+
+**Optional-end elements needed ordering, not counters.** The side-counter design
+in §2.1 was chosen to stop a stray `</p>` cascading, and it did — but counters
+discard nesting order, so a genuinely crossed pair of optional-end elements came
+back clean. That is the exact failure mode gate 4 exists for and the one
+`lesson_lint.py` structurally cannot see, so the carve-out had quietly given
+away the gate's reason to exist over eleven tags. They are back on the stack
+with HTML's implicit-close rules; omission is still legal, a surplus end tag is
+still caught, and the stray `</p>` still does not cascade.
+
+After the fixes: `gate.py --selftest` 36/36, `mission.py --selftest` 17/17,
+pytest 115, gates 4-6 green on 81/81, gate 8 green under the ratchet.
+
 ## 8. Open decisions
 
 - **D-1.** F-1 above: repair the eleven lessons, or change the syllabus strips?

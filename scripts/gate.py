@@ -13,10 +13,10 @@ predate the S2 conventions, and one of them a defect in the gate itself.
      catches an unmatched tag but NOT a crossed one — <em><strong>x</em></strong>
      has balanced counts. Only a stack sees the ordering, so this is the check
      that earns gate.py its place next to the lint.
-  5. NO EXTERNAL REQUESTS. http(s)://, <link, src=, cdn, @import — the file
-     must render offline (rubric Gate 0.3).
-  6. INLINE SCRIPTS PARSE. node --check each <script> body (rubric Gate 0.4 is
-     "zero console errors"; a syntax error is the loudest of those).
+  5. NO EXTERNAL REQUESTS. http(s)://, protocol-relative //host/…, <link,
+     src=, cdn, @import — the file must render offline (rubric Gate 0.3).
+  6. INLINE SCRIPTS PARSE. node --check each executable <script> body (rubric
+     Gate 0.4 is "zero console errors"; a syntax error is the loudest).
 
   python scripts/gate.py <lesson_html_path> [...]
   python scripts/gate.py --selftest
@@ -42,14 +42,38 @@ for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console (cf. srs/schedul
 VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link",
         "meta", "param", "source", "track", "wbr"}
 
-# HTML permits these end tags to be omitted, and a start tag for a block
-# element implicitly closes an open <p>. A strict stack therefore reports
-# spec-legal markup as an error and — worse — desynchronises on it, so every
-# tag after the first <p> is misattributed. lesson_lint.py made the same
-# carve-out for the same reason ("``p`` is deliberately excluded because HTML
-# permits its end tag to be omitted"); the two gates agree on purpose.
+# Elements whose end tag HTML permits to be OMITTED. They are still tracked on
+# the stack, in order: omission is not the same as being unordered, and a
+# SURPLUS end tag for one of them is still malformed. aa-00 and aa-01 each
+# shipped one of those.
 OPTIONAL_END = {"p", "li", "dt", "dd", "option", "thead", "tbody", "tfoot",
                 "tr", "td", "th"}
+
+# A start tag that implicitly closes an open <p>.
+BLOCK = {"address", "article", "aside", "blockquote", "details", "div", "dl",
+         "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2",
+         "h3", "h4", "h5", "h6", "header", "hr", "main", "nav", "ol", "p",
+         "pre", "section", "table", "ul"}
+
+# Which start tags implicitly close which open optional-end element.
+CLOSED_BY = {
+    "p": BLOCK,
+    "li": {"li"},
+    "dt": {"dt", "dd"},
+    "dd": {"dt", "dd"},
+    "td": {"td", "th", "tr", "thead", "tbody", "tfoot"},
+    "th": {"td", "th", "tr", "thead", "tbody", "tfoot"},
+    "tr": {"tr", "thead", "tbody", "tfoot"},
+    "option": {"option", "optgroup"},
+    "thead": {"tbody", "tfoot"},
+    "tbody": {"tbody", "tfoot"},
+    "tfoot": {"tbody", "thead"},
+}
+
+# Inside <svg> and <math> the content is foreign (XML), where <circle/> really
+# is self-closing. Everywhere else HTML ignores the slash on a non-void element
+# and leaves it OPEN, so <div/> must be treated as an unclosed <div>.
+FOREIGN = {"svg", "math"}
 
 # `xmlns="http://www.w3.org/2000/svg"` is an XML *namespace identifier*, not a
 # URL the browser ever fetches — inline SVG carrying it renders identically
@@ -57,10 +81,23 @@ OPTIONAL_END = {"p", "li", "dt", "dd", "option", "thead", "tbody", "tfoot",
 # an-02, pw-01 and pw-03 while the 76 S2-S4 lessons passed purely because
 # their authors happened to omit the attribute. The population, not the
 # sample, is the thing to fix: strip namespace declarations before scanning.
-# Nothing else is exempted — `src=`, `<link`, `@import` and any other
-# http(s):// all still fire.
 XMLNS_DECL = re.compile(r"""\bxmlns(?::[A-Za-z_][\w.-]*)?\s*=\s*("[^"]*"|'[^']*')""")
-EXTERNAL = re.compile(r"https?://|<link\b|\bsrc\s*=|\bcdn\b|@import", re.I)
+
+# A protocol-relative reference — url(//cdn.example.com/x.png), href="//host/x"
+# — is a real network request that neither `https?://` nor `src=` matches
+# (Codex review of PR #20). The lookbehind stops `https://` double-matching,
+# and the mandatory dot-and-TLD stops `// ordinary comment text` firing.
+EXTERNAL = re.compile(
+    r"https?://"
+    r"|(?<![:/\w])//[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}"
+    r"|<link\b|\bsrc\s*=|\bcdn\b|@import", re.I)
+
+# node --check is for JavaScript. A <script type="application/json"> body is
+# data, and feeding it to a JS parser fails a valid offline lesson.
+JS_TYPES = {"", "module", "text/javascript", "application/javascript",
+            "text/ecmascript", "application/ecmascript", "text/jsx"}
+SCRIPT_TAG = re.compile(r"<script\b([^>]*)>(.*?)</script>", re.I | re.S)
+TYPE_ATTR = re.compile(r"""\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
 
 
 class Balance(HTMLParser):
@@ -70,59 +107,76 @@ class Balance(HTMLParser):
     One stray ``</p>`` in aa-00 therefore consumed the open ``<div>`` and every
     subsequent close was misattributed: four error lines, of which one was
     real and three were wreckage from the first. An error list a reader cannot
-    trust past its first entry is a gate that reports its own confusion. Here
-    an end tag with no matching start is reported and *not* popped, and one
-    that matches deeper in the stack unwinds exactly to it.
+    trust past its first entry is a gate that reports its own confusion.
+
+    Optional-end elements live on the same stack rather than in side counters.
+    Counters lose the nesting order, so ``<table><tr><td>x</tr></td></table>``
+    came back clean — a crossed pair, which is exactly what gate 4 exists to
+    catch and what lesson_lint.py structurally cannot see. Here ``</tr>``
+    implicitly closes the open cell and the trailing ``</td>`` is reported as a
+    surplus close.
     """
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
-        self.stack = []
-        self.open_optional = {}
+        self.stack = []          # [(tag, line)]
         self.errors = []
+        self.foreign = 0         # nesting depth inside <svg>/<math>
 
-    def _governed(self, tag):
-        return tag not in VOID and tag not in OPTIONAL_END
+    def _implicitly_close(self, starting):
+        """Pop open optional-end elements that this start tag terminates."""
+        while self.stack:
+            top = self.stack[-1][0]
+            if top in OPTIONAL_END and starting in CLOSED_BY.get(top, ()):
+                self.stack.pop()
+            else:
+                return
 
     def handle_starttag(self, tag, attrs):
-        if tag in OPTIONAL_END:
-            self.open_optional[tag] = self.open_optional.get(tag, 0) + 1
-        elif self._governed(tag):
-            self.stack.append((tag, self.getpos()[0]))
+        if tag in VOID:
+            return
+        self._implicitly_close(tag)
+        if tag in FOREIGN:
+            self.foreign += 1
+        self.stack.append((tag, self.getpos()[0]))
 
     def handle_startendtag(self, tag, attrs):
-        pass  # <br/>, <svg .../> — self-closing, nothing to balance
+        # <br/> is void; <circle/> inside <svg> is foreign content and really
+        # does self-close; <div/> is neither, and the browser leaves it OPEN
+        # to absorb the rest of the document (Codex review of PR #20).
+        if tag in VOID or self.foreign:
+            return
+        self.errors.append(
+            "line %d: <%s/> does not self-close in HTML — the browser leaves "
+            "<%s> open" % (self.getpos()[0], tag, tag))
 
     def handle_endtag(self, tag):
-        # An optional end tag may be OMITTED; one that is PRESENT with nothing
-        # open is still malformed, and parsers drop it silently. Counting
-        # rather than stacking is what the optionality permits — an implicit
-        # close (<p>a<div>) leaves the count high and raises nothing — while
-        # still catching the surplus. aa-00 and aa-01 each ship one of these.
-        if tag in OPTIONAL_END:
-            if self.open_optional.get(tag, 0) > 0:
-                self.open_optional[tag] -= 1
-            else:
-                self.errors.append("line %d: </%s> with no matching <%s>"
-                                   % (self.getpos()[0], tag, tag))
+        if tag in VOID:
             return
-        if not self._governed(tag):
-            return
+        line = self.getpos()[0]
         depth = next((i for i in range(len(self.stack) - 1, -1, -1)
                       if self.stack[i][0] == tag), None)
         if depth is None:
             self.errors.append("line %d: </%s> with no matching <%s>"
-                               % (self.getpos()[0], tag, tag))
+                               % (line, tag, tag))
             return
-        for orphan, line in reversed(self.stack[depth + 1:]):
-            self.errors.append("line %d: <%s> not closed before </%s> at line %d"
-                               % (line, orphan, tag, self.getpos()[0]))
+        # Everything above the match closes now. An optional-end element up
+        # there was legitimately left open; anything else was not.
+        for orphan, oline in reversed(self.stack[depth + 1:]):
+            if orphan not in OPTIONAL_END:
+                self.errors.append(
+                    "line %d: <%s> not closed before </%s> at line %d"
+                    % (oline, orphan, tag, line))
+        for t, _ in self.stack[depth:]:
+            if t in FOREIGN:
+                self.foreign = max(0, self.foreign - 1)
         del self.stack[depth:]
 
     def close(self):
         super().close()
         for tag, line in reversed(self.stack):
-            self.errors.append("line %d: <%s> never closed" % (line, tag))
+            if tag not in OPTIONAL_END:
+                self.errors.append("line %d: <%s> never closed" % (line, tag))
 
 
 def tag_errors(html):
@@ -141,9 +195,23 @@ def external_hits(html):
     return hits
 
 
+def script_blocks(html):
+    """[(type, body)] for every non-empty <script>, type lowercased."""
+    out = []
+    for m in SCRIPT_TAG.finditer(html):
+        if not m.group(2).strip():
+            continue
+        t = TYPE_ATTR.search(m.group(1))
+        kind = ""
+        if t:
+            kind = (t.group(1) or t.group(2) or t.group(3) or "").strip().lower()
+        out.append((kind, m.group(2)))
+    return out
+
+
 def script_bodies(html):
-    return [s for s in re.findall(r"<script\b[^>]*>(.*?)</script>", html, re.I | re.S)
-            if s.strip()]
+    """Executable JavaScript bodies only — the ones node can meaningfully check."""
+    return [body for kind, body in script_blocks(html) if kind in JS_TYPES]
 
 
 def script_errors(bodies):
@@ -189,9 +257,14 @@ def check(path):
     _row(not hits, "no external requests", hits)
     fails += hits
 
-    bad, checked = script_errors(script_bodies(html))
-    print("%s inline scripts parse (%d checked)%s"
+    blocks = script_blocks(html)
+    bodies = script_bodies(html)
+    skipped = sorted({k or "?" for k, _ in blocks if k not in JS_TYPES})
+    bad, checked = script_errors(bodies)
+    print("%s inline scripts parse (%d checked%s)%s"
           % ("PASS" if not bad else "FAIL", checked,
+             "" if not skipped else ", %d non-JS block(s) skipped: %s"
+             % (len(blocks) - len(bodies), ", ".join(skipped)),
              "" if not bad else ": " + "; ".join(bad[:6])))
     fails += bad
 
@@ -215,18 +288,15 @@ def selftest():
              '<svg viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg"></svg>'
              '</div><script>var x = 1;</script></body></html>')
 
+    # -- gate 4: ordering --------------------------------------------------
     check_one("clean lesson has no tag errors", not tag_errors(clean))
-    check_one("fires on crossed tags",
-              any("</sub>" in e or "not closed" in e
-                  for e in tag_errors("<div><sup>x</sub></div>")))
+    check_one("fires on crossed tags", bool(tag_errors("<div><sup>x</sub></div>")))
     check_one("fires on a genuinely crossed pair with balanced counts",
               bool(tag_errors("<div><em><strong>x</em></strong></div>")))
     check_one("fires on an unclosed div", bool(tag_errors("<div><span>x</span>")))
     check_one("fires on a stray end tag",
               any("no matching" in e for e in tag_errors("<div>x</div></section>")))
 
-    # The cascade control: one stray </p> must produce exactly one error, not
-    # a chain of misattributions through every enclosing element.
     cascade = "<html><body><div class='you-try'><strong>x</strong> y</p></div></body></html>"
     errs = tag_errors(cascade)
     check_one("a stray </p> is caught (aa-00, aa-01 each ship one)",
@@ -237,14 +307,31 @@ def selftest():
               tag_errors("<div><p>one<p>two</p></div>") == [])
     check_one("a <p> implicitly closed by a block start is not an error",
               tag_errors("<div><p>one<div>two</div></div>") == [])
+    check_one("an omitted </li> is not an error",
+              tag_errors("<ul><li>a<li>b</ul>") == [])
     check_one("omitted </td>/</tr> in a table are not errors",
               tag_errors("<table><tr><td>a<td>b</tr></table>") == [])
     check_one("a surplus </td> IS an error",
               any("</td> with no matching" in e
                   for e in tag_errors("<table><tr><td>a</td></td></tr></table>")))
+    # Codex review of PR #20: side counters lose ordering, so this was clean.
+    check_one("CROSSED optional-end elements are caught (</tr> before </td>)",
+              any("</td> with no matching" in e for e in
+                  tag_errors("<table><tr><td>x</tr></td></table>")))
     check_one("an unclosed div inside a list is still caught, one error only",
               len(tag_errors("<ul><li><div>x</li></ul>")) == 1)
+    # Codex review of PR #20: HTML ignores the slash on a non-void element.
+    check_one("<div/> does not self-close in HTML and is reported",
+              any("does not self-close" in e
+                  for e in tag_errors("<body><div/></body>")))
+    check_one("<br/> is void and is fine", tag_errors("<div>a<br/>b</div>") == [])
+    check_one("self-closing children inside <svg> are foreign content, and fine",
+              tag_errors('<svg><circle cx="1"/><path d="M0 0"/></svg>') == [])
+    check_one("...and a <div/> after the svg closes is still caught",
+              any("does not self-close" in e
+                  for e in tag_errors("<svg><circle/></svg><div/>")))
 
+    # -- gate 5: offline ---------------------------------------------------
     check_one("clean lesson requests nothing external", not external_hits(clean))
     check_one("svg xmlns is NOT an external request (no false positive)",
               not external_hits('<svg xmlns="http://www.w3.org/2000/svg"></svg>'))
@@ -256,10 +343,29 @@ def selftest():
     check_one("a line carrying BOTH xmlns and a real url still fires",
               bool(external_hits('<svg xmlns="http://www.w3.org/2000/svg">'
                                  '<image href="http://example.com/a.png"/></svg>')))
+    # Codex review of PR #20: a protocol-relative URL is still a fetch.
+    check_one("fires on a protocol-relative url() in CSS",
+              bool(external_hits("<style>body{background:url(//example.com/a.png)}</style>")))
+    check_one("fires on a protocol-relative attribute",
+              bool(external_hits('<video poster="//example.com/a.jpg"></video>')))
+    check_one("a // JavaScript comment is NOT an external request",
+              not external_hits("<script>// set up the canvas here\nvar x=1;</script>"))
+    check_one("a bare ratio a//b is not mistaken for a host",
+              not external_hits("<p>the ratio a//b is not a url</p>"))
 
+    # -- gate 6: scripts ---------------------------------------------------
     check_one("finds inline script bodies", len(script_bodies(clean)) == 1)
     check_one("empty script bodies are not counted",
               script_bodies("<script></script><script>  </script>") == [])
+    # Codex review of PR #20: JSON data is not JavaScript.
+    check_one("a JSON data block is not sent to node",
+              script_bodies('<script type="application/json">{"x": 1}</script>') == [])
+    check_one("...but it is still counted as a block, so the skip is reported",
+              len(script_blocks('<script type="application/json">{"x":1}</script>')) == 1)
+    check_one("type=module is JavaScript and IS checked",
+              len(script_bodies('<script type="module">let x = 1;</script>')) == 1)
+    check_one("an untyped script is JavaScript and IS checked",
+              len(script_bodies("<script>var x=1;</script>")) == 1)
     if shutil.which("node"):
         good, _ = script_errors(["var x = 1;"])
         bad, n = script_errors(["var x = ;;)"])
@@ -284,6 +390,9 @@ def main(argv):
         try:
             if check(p):
                 rc = 1
+        except OSError as e:
+            print("ERROR cannot read %s: %s" % (p, e))
+            return 2
         except RuntimeError as e:
             print("ERROR %s" % e)
             return 2
