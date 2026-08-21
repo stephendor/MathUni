@@ -74,7 +74,7 @@ def test_a_genuine_drift_is_reported_as_two_plateaus():
     plateaus is drift, and must not be smoothed away by the mode."""
     pages = _pages([(n, [(n - 17, "head")]) for n in range(60, 67)]
                    + [(n, [(n - 16, "head")]) for n in range(67, 74)])
-    rows, plateaus = fit_offsets(pages)
+    _rows, plateaus = fit_offsets(pages)
     assert [(p[0], p[3]) for p in plateaus] == [(-17, 7), (-16, 7)]
 
 
@@ -122,7 +122,7 @@ def test_equal_plateaus_split_by_a_suspect_are_one_offset_not_drift():
     pages = _pages([(n, [(n - 15, "head")]) for n in (250, 252, 254)]
                    + [(256, [(8, "head")])]
                    + [(n, [(n - 15, "head")]) for n in (258, 260)])
-    rows, plateaus = fit_offsets(pages)
+    _rows, plateaus = fit_offsets(pages)
     real = [p for p in plateaus if p[3] > 1]
     assert len(real) == 2                      # still two plateaus...
     assert {p[0] for p in real} == {-15}       # ...but one offset, so no drift
@@ -132,7 +132,7 @@ def test_genuine_drift_still_has_two_distinct_offsets():
     """The regression guard for the fix above: Axler really does move."""
     pages = _pages([(n, [(n - 17, "head")]) for n in range(60, 67)]
                    + [(n, [(n - 16, "head")]) for n in range(67, 74)])
-    rows, plateaus = fit_offsets(pages)
+    _rows, plateaus = fit_offsets(pages)
     real = [p for p in plateaus if p[3] > 1]
     assert {p[0] for p in real} == {-17, -16}
 
@@ -148,7 +148,7 @@ def test_a_singleton_at_the_range_edge_is_not_suspect():
     from scripts.pull import suspect_plateaus
     pages = _pages([(66, [(49, "head")])]
                    + [(n, [(n - 16, "head")]) for n in (67, 68, 69, 70)])
-    rows, plateaus = fit_offsets(pages)
+    _rows, plateaus = fit_offsets(pages)
     assert suspect_plateaus(plateaus) == []
     real = [p for p in plateaus if p not in suspect_plateaus(plateaus)]
     assert {p[0] for p in real} == {-17, -16}
@@ -170,7 +170,7 @@ def test_an_interior_singleton_between_DISAGREEING_sides_is_not_suspect():
     pages = _pages([(n, [(n - 17, "head")]) for n in (60, 61)]
                    + [(62, [(62 - 16, "head")])]
                    + [(n, [(n - 15, "head")]) for n in (63, 64)])
-    rows, plateaus = fit_offsets(pages)
+    _rows, plateaus = fit_offsets(pages)
     assert suspect_plateaus(plateaus) == []
 
 
@@ -180,8 +180,8 @@ def test_two_conflicting_endpoint_singletons_are_both_evidence():
     plateau and produce a false consistent verdict on a range that is nothing
     but a disagreement."""
     from scripts.pull import suspect_plateaus
-    rows, plateaus = fit_offsets(_pages([(100, [(80, "head")]),
-                                         (101, [(82, "head")])]))
+    _rows, plateaus = fit_offsets(_pages([(100, [(80, "head")]),
+                                          (101, [(82, "head")])]))
     assert suspect_plateaus(plateaus) == []
     real = [p for p in plateaus if p not in suspect_plateaus(plateaus)]
     assert sorted({p[0] for p in real}) == [-20, -19]

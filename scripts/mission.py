@@ -61,7 +61,16 @@ SYLLABUS = os.path.join(REPO, "curriculum", "syllabus.yaml")
 # it an orphan — so a stray extra lesson could clear every integrity check the
 # workflow runs. (Codex review of PR #20, second round.)
 UNIT_ID = re.compile(r"^([a-z]+\d*-\d+)\.html$")
-MISSION_P = re.compile(r'<p class="mission">(.*?)</p>', re.S)
+# Matched on the class TOKEN, not on the exact attribute string. Requiring
+# literally `class="mission"` missed `<p class="mission" id="dup">` and
+# `<p class="mission note">`, so a lesson could keep an exact first strip and
+# carry a divergent second claim in one of those — which is the state the
+# duplicate rule exists to reject. lesson_lint.py already counts strips this
+# way; the two now agree on what a mission strip is.
+# (Codex review of PR #20, fifth round.)
+MISSION_P = re.compile(
+    r"""<p\b[^>]*\bclass\s*=\s*["'][^"']*\bmission\b[^"']*["'][^>]*>(.*?)</p>""",
+    re.S | re.I)
 PREFIX = re.compile(r"^Why this matters for the mission:\s*")
 # A commented-out strip renders nothing, but a raw regex still finds it, so
 # gate 8 reported PASS on a lesson displaying no mission paragraph at all.
@@ -234,6 +243,16 @@ def selftest():
     check_one("a real strip beside a commented one is still found",
               strips_of('<p class="mission">real</p>'
                         '<!-- <p class="mission">hidden</p> -->') == ["real"])
+    # Codex round 5: matched on the class TOKEN, so a second strip cannot hide
+    # behind an extra attribute or an extra class.
+    check_one("a strip with another attribute is still a strip",
+              strips_of('<p class="mission" id="dup">x</p>') == ["x"])
+    check_one("a strip with an extra class is still a strip",
+              strips_of('<p class="mission note">y</p>') == ["y"])
+    check_one("single-quoted class attributes are matched",
+              strips_of("<p class='mission'>z</p>") == ["z"])
+    check_one("a class merely CONTAINING the word is not matched",
+              strips_of('<p class="submission">no</p>') == [])
 
     # The watched failure the S2 plan built by hand: a shipped strip with four
     # words appended must be reported as a mismatch, not tolerated.

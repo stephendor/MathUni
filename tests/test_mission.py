@@ -150,11 +150,20 @@ def test_a_deleted_drift_list_is_an_empty_list_not_an_error(tmp_path):
     assert load_known_failing(str(tmp_path / "gone.txt")) == set()
 
 
-def test_with_no_drift_list_every_lesson_is_held(capsys):
-    """The stricter direction, asserted rather than assumed."""
-    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    aa00 = os.path.join(repo, "lessons", "aa", "aa-00.html")
-    assert main(["--known-failing", os.path.join(repo, "no-such-list.txt"), aa00]) == 1
+def test_with_no_drift_list_every_lesson_is_held(tmp_path, capsys):
+    """The stricter direction, asserted rather than assumed.
+
+    Against a SYNTHETIC drifted lesson, not aa-00. Pointing it at a committed
+    lesson that happens to drift today made the test assert the corpus's
+    current state rather than the gate's behaviour — and aa-00 is scheduled for
+    re-authoring in the S1 module branches, so this would have failed at the
+    moment the repair it is waiting for actually landed.
+    """
+    lesson = tmp_path / "an-03.html"
+    lesson.write_text('<p class="mission">not the syllabus text</p>',
+                      encoding="utf-8")
+    assert main(["--known-failing", str(tmp_path / "no-such-list.txt"),
+                 str(lesson)]) == 1
     assert "KNOWN-FAIL" not in capsys.readouterr().out
 
 
@@ -291,3 +300,25 @@ def test_an_emptied_but_present_drift_list_is_the_success_state(tmp_path, capsys
                os.path.join(repo, "lessons", "an", "an-03.html")])
     assert rc == 0
     assert "DELETED" not in capsys.readouterr().out
+
+
+# --- Codex review of PR #20, fifth round ------------------------------------
+
+def test_a_second_strip_cannot_hide_behind_an_extra_attribute_or_class():
+    """`MISSION_P` required literally `class="mission"`, so
+    `<p class="mission" id="dup">` and `<p class="mission note">` were invisible
+    — which is exactly where a divergent second claim would sit if someone were
+    hiding one. Matched on the class token now, as lesson_lint.py already does."""
+    from scripts.mission import strips_of
+    assert strips_of('<p class="mission" id="dup">x</p>') == ["x"]
+    assert strips_of('<p class="mission note">y</p>') == ["y"]
+    assert strips_of("<p class='mission'>z</p>") == ["z"]
+    assert strips_of('<p class="mission">a</p>'
+                     '<p class="mission note">b</p>') == ["a", "b"]
+
+
+def test_a_class_merely_containing_the_word_is_not_a_mission_strip():
+    """The token boundary, so widening the match did not widen it too far."""
+    from scripts.mission import strips_of
+    assert strips_of('<p class="submission">no</p>') == []
+    assert strips_of('<p class="missionary">no</p>') == []
