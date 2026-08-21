@@ -63,6 +63,12 @@ SYLLABUS = os.path.join(REPO, "curriculum", "syllabus.yaml")
 UNIT_ID = re.compile(r"^([a-z]+\d*-\d+)\.html$")
 MISSION_P = re.compile(r'<p class="mission">(.*?)</p>', re.S)
 PREFIX = re.compile(r"^Why this matters for the mission:\s*")
+# A commented-out strip renders nothing, but a raw regex still finds it, so
+# gate 8 reported PASS on a lesson displaying no mission paragraph at all.
+# lesson_lint.py could not close it either — its structure counter scans
+# comments as raw text too, so the lesson cleared both hard checks.
+# (Codex review of PR #20, fourth round.)
+COMMENT = re.compile(r"<!--.*?-->", re.S)
 
 
 def normalise(text):
@@ -95,7 +101,7 @@ def strips_of(doc):
     (Codex review of PR #20, second round.)
     """
     out = []
-    for m in MISSION_P.finditer(doc):
+    for m in MISSION_P.finditer(COMMENT.sub("", doc)):
         text = html_mod.unescape(re.sub(r"<[^>]+>", "", m.group(1)))
         out.append(normalise(PREFIX.sub("", text.strip())))
     return out
@@ -222,6 +228,12 @@ def selftest():
               == ["one", "two"])
     check_one("a single strip still yields exactly one",
               strips_of('<p class="mission">only</p>') == ["only"])
+    # Codex round 4: a commented-out strip renders nothing.
+    check_one("a commented-out strip does not count",
+              strips_of('<!-- <p class="mission">hidden</p> -->') == [])
+    check_one("a real strip beside a commented one is still found",
+              strips_of('<p class="mission">real</p>'
+                        '<!-- <p class="mission">hidden</p> -->') == ["real"])
 
     # The watched failure the S2 plan built by hand: a shipped strip with four
     # words appended must be reported as a mismatch, not tolerated.
@@ -263,12 +275,18 @@ def selftest():
 def load_known_failing(path):
     """Unit ids excused from failing, one per line; '#' starts a comment.
 
-    A missing file is an EMPTY list, not an error. The ratchet's whole purpose
-    is to reach zero, and the intended end state — every drift repaired, the
-    file deleted — used to raise FileNotFoundError before a single lesson was
-    compared, so the finished state could not pass CI. A list that is absent
-    excuses nothing, which makes the gate strictly stricter; there is no way to
-    escape the ratchet by deleting it. (Codex review of PR #20, second round.)
+    A missing file is an EMPTY list, not an error, so the finished state can be
+    reached at all — an earlier version raised FileNotFoundError before a single
+    lesson was compared, which made the ratchet's own success state impossible
+    to pass CI. A list that is absent excuses nothing, so the gate gets strictly
+    stricter, and deleting the file cannot be used to escape it.
+
+    But the file is nonetheless PERMANENT: the zero state is an empty list, not
+    a deleted one. Deleting it would make the base ref lack the path, and
+    "base has no list" is the one condition under which the growth check stands
+    down — so a later branch could reintroduce the file alongside fresh
+    mismatches and have them excused. main() refuses a deletion for exactly
+    that reason. (Codex review of PR #20, rounds two and four.)
     """
     ids = set()
     if not os.path.exists(path):
@@ -320,6 +338,17 @@ def main(argv):
             print("ERROR --baseline needs --known-failing")
             return 2
         added, existed = additions_against(baseline, known)
+        if existed and not os.path.exists(listfile):
+            # The base ref has a list and this ref does not. Deleting it is the
+            # one move that reopens the ratchet: with the path gone, every
+            # later base also lacks it, "base has no list" stops meaning "the
+            # introducing commit", and a branch can reintroduce the file with
+            # fresh mismatches and have them excused.
+            print("DELETED %s existed at the baseline and is gone here. The"
+                  " drift list is permanent — empty it, do not delete it, or"
+                  " the growth check can never distinguish a reintroduction"
+                  " from the original rollout." % listfile)
+            return 1
         if not existed:
             print("NOTE no baseline at %s — this is the commit that introduces"
                   " the list, so there is nothing it could have grown from"

@@ -194,3 +194,60 @@ def test_a_javascript_type_with_parameters_is_still_checked():
 def test_a_non_javascript_type_with_parameters_is_still_skipped():
     assert script_bodies('<script type="application/json; charset=utf-8">'
                          '{"x":1}</script>') == []
+
+
+# --- Codex review of PR #20, fourth round -----------------------------------
+
+def test_a_data_type_attribute_is_not_read_as_the_script_type():
+    """`\btype` also matches inside `data-type`, because `-` is a word
+    boundary. An executable script carrying data-type="application/json" was
+    classified as JSON and skipped — a false PASS for any syntax error in it."""
+    from scripts.gate import script_blocks
+    assert script_blocks('<script data-type="application/json">var x=1;</script>') \
+        == [("", "var x=1;")]
+    assert len(script_bodies('<script data-type="application/json">x</script>')) == 1
+    # the real attribute is still read
+    assert script_blocks('<script type="application/json">{"x":1}</script>') \
+        == [("application/json", '{"x":1}')]
+
+
+def test_a_self_closing_foreign_root_is_legal():
+    """<svg/> reaches handle_startendtag with foreign depth still 0, since
+    nothing has entered foreign content yet — so a legal empty root was being
+    reported as malformed."""
+    assert tag_errors("<div><svg/></div>") == []
+    assert tag_errors("<div><math/></div>") == []
+    assert any("does not self-close" in e for e in tag_errors("<body><div/></body>"))
+
+
+def test_end_tags_for_void_elements_are_rejected():
+    """Browsers do not merely drop `</br>`: the HTML parser treats it as a
+    `<br>` START tag and inserts a line break nobody wrote."""
+    for bad in ("<div>a</br>b</div>", "<div></img></div>", "<div></input></div>"):
+        assert any("is void and cannot have an end tag" in e
+                   for e in tag_errors(bad)), bad
+    assert tag_errors("<div>a<br>b<br/>c<img src=x></div>") == []
+
+
+def test_a_top_level_return_in_a_classic_script_is_rejected():
+    """`node --check` parses under CommonJS, which wraps the body in a
+    function, so a top-level `return` was accepted and gate 6 printed PASS for
+    `<script>return 1;</script>` — which a browser refuses outright. vm.Script
+    compiles under the Script grammar a classic inline <script> actually gets."""
+    from scripts.gate import script_errors
+    bad, n = script_errors(["return 1;"])
+    assert n == 1 and bad and "Illegal return" in bad[0]
+
+
+def test_valid_classic_and_module_scripts_still_pass():
+    from scripts.gate import script_errors
+    assert script_errors(["var x=1; function f(){ return 2; }"])[0] == []
+    assert script_errors(["let x = 1; export {x};"], [True])[0] == []
+
+
+def test_a_module_is_parsed_with_the_module_grammar():
+    """An `export` is a syntax error in a classic script and fine in a module;
+    the two paths must not be swapped."""
+    from scripts.gate import script_errors
+    assert script_errors(["let x = 1; export {x};"], [False])[0] != []
+    assert script_errors(["let x = 1; export {x};"], [True])[0] == []

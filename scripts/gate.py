@@ -129,7 +129,14 @@ JS_TYPES = {"", "module", "text/javascript", "application/javascript",
             "text/ecmascript", "application/ecmascript", "application/x-javascript",
             "text/jsx", "text/babel"}
 SCRIPT_TAG = re.compile(r"<script\b([^>]*)>(.*?)</script>", re.I | re.S)
-TYPE_ATTR = re.compile(r"""\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
+# `\btype` also matches the `type` inside `data-type`, because `-` is a
+# non-word character and therefore a word boundary. An executable script
+# carrying `data-type="application/json"` was classified as JSON and skipped,
+# which is a false PASS for any syntax error in it. The attribute name must not
+# be preceded by a name character or a hyphen.
+# (Codex review of PR #20, fourth round.)
+TYPE_ATTR = re.compile(
+    r"""(?<![\w-])type\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
 
 
 class Balance(HTMLParser):
@@ -181,16 +188,29 @@ class Balance(HTMLParser):
         # <br/> is void; <circle/> inside <svg> is foreign content and really
         # does self-close; <div/> is neither, and the browser leaves it OPEN
         # to absorb the rest of the document (Codex review of PR #20).
-        if tag in VOID or self.foreign:
+        #
+        # `tag in FOREIGN` covers the ROOT: a bare <svg/> or <math/> arrives
+        # here with self.foreign still 0, since nothing has entered foreign
+        # content yet — so the previous version reported a legal empty root as
+        # malformed. (Codex review of PR #20, fourth round.)
+        if tag in VOID or tag in FOREIGN or self.foreign:
             return
         self.errors.append(
             "line %d: <%s/> does not self-close in HTML — the browser leaves "
             "<%s> open" % (self.getpos()[0], tag, tag))
 
     def handle_endtag(self, tag):
-        if tag in VOID:
-            return
         line = self.getpos()[0]
+        if tag in VOID:
+            # A void element cannot have an end tag, and browsers do not merely
+            # drop them: the HTML parser treats `</br>` as a `<br>` START tag
+            # and inserts a line break nobody wrote. Returning silently made
+            # gate 4 call `</br>`, `</img>` and `</input>` balanced markup.
+            # (Codex review of PR #20, fourth round.)
+            self.errors.append(
+                "line %d: </%s> — %s is void and cannot have an end tag"
+                % (line, tag, tag))
+            return
         depth = next((i for i in range(len(self.stack) - 1, -1, -1)
                       if self.stack[i][0] == tag), None)
         if depth is None:
@@ -259,8 +279,40 @@ def script_bodies(html):
     return [body for kind, body in script_blocks(html) if kind in JS_TYPES]
 
 
-def script_errors(bodies):
-    """node --check each body. Returns (errors, checked). Raises if node is absent.
+# `node --check foo.js` parses under CommonJS, where the body is wrapped in a
+# function — so a top-level `return` is accepted and gate 6 printed PASS for
+# `<script>return 1;</script>`, which a browser refuses with "Illegal return
+# statement". `vm.Script` compiles under the *Script* grammar, which is exactly
+# what a classic inline <script> gets. Modules keep `node --check` on a .mjs
+# file, which is the Module grammar and rejects top-level return too.
+# (Codex review of PR #20, fourth round.)
+_VM_SCRIPT_CHECK = (
+    "const vm=require('vm'),fs=require('fs');"
+    "try{new vm.Script(fs.readFileSync(process.argv[1],'utf8'));}"
+    "catch(e){console.error(e.message);process.exit(1);}"
+)
+
+
+def _check_one(body, is_module):
+    """(ok, first_error_line). Parses under the grammar the browser would use."""
+    fd, tmp = tempfile.mkstemp(suffix=".mjs" if is_module else ".js")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(body)
+    try:
+        cmd = (["node", "--check", tmp] if is_module
+               else ["node", "-e", _VM_SCRIPT_CHECK, tmp])
+        r = subprocess.run(cmd, capture_output=True, text=True)
+        if r.returncode:
+            return False, (r.stderr or r.stdout).strip().split("\n")[0]
+        return True, ""
+    finally:
+        os.unlink(tmp)
+
+
+def script_errors(bodies, modules=None):
+    """Parse each body. Returns (errors, checked). Raises if node is absent.
+
+    `modules` is a parallel sequence of booleans; omitted means classic.
 
     Missing node is raised, never swallowed: a checker that reports PASS for a
     check it could not run manufactures a green result (the `except: continue`
@@ -268,18 +320,13 @@ def script_errors(bodies):
     """
     if not shutil.which("node"):
         raise RuntimeError("node not found on PATH — cannot check inline scripts")
+    if modules is None:
+        modules = [False] * len(bodies)
     bad = []
-    for n, body in enumerate(bodies, 1):
-        fd, tmp = tempfile.mkstemp(suffix=".js")
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(body)
-        try:
-            r = subprocess.run(["node", "--check", tmp], capture_output=True, text=True)
-            if r.returncode:
-                first = (r.stderr or r.stdout).strip().split("\n")[0]
-                bad.append("script %d: %s" % (n, first))
-        finally:
-            os.unlink(tmp)
+    for n, (body, is_module) in enumerate(zip(bodies, modules), 1):
+        ok, msg = _check_one(body, is_module)
+        if not ok:
+            bad.append("script %d: %s" % (n, msg))
     return bad, len(bodies)
 
 
@@ -303,9 +350,11 @@ def check(path):
     fails += hits
 
     blocks = script_blocks(html)
-    bodies = script_bodies(html)
+    js = [(k, b) for k, b in blocks if k in JS_TYPES]
+    bodies = [b for _, b in js]
+    modules = [k == "module" for k, _ in js]
     skipped = sorted({k or "?" for k, _ in blocks if k not in JS_TYPES})
-    bad, checked = script_errors(bodies)
+    bad, checked = script_errors(bodies, modules)
     print("%s inline scripts parse (%d checked%s)%s"
           % ("PASS" if not bad else "FAIL", checked,
              "" if not skipped else ", %d non-JS block(s) skipped: %s"
@@ -433,6 +482,23 @@ def selftest():
     check_one("a JSON type with parameters is still skipped",
               script_bodies('<script type="application/json; charset=utf-8">'
                             '{"x":1}</script>') == [])
+    # Codex round 4.
+    check_one("a data-type attribute is not read as the script type",
+              len(script_bodies('<script data-type="application/json">x</script>')) == 1)
+    check_one("a self-closing foreign root <svg/> is legal",
+              tag_errors("<div><svg/></div>") == [])
+    check_one("an end tag for a void element is rejected",
+              any("is void and cannot have an end tag" in e
+                  for e in tag_errors("<div>a</br>b</div>")))
+    check_one("<br> and <br/> are still fine",
+              tag_errors("<div>a<br>b<br/>c</div>") == [])
+    if shutil.which("node"):
+        check_one("a top-level return in a classic script is rejected",
+                  bool(script_errors(["return 1;"])[0]))
+        check_one("a valid module still parses under the module grammar",
+                  script_errors(["let x=1; export {x};"], [True])[0] == [])
+        check_one("...and that same module fails as a classic script",
+                  script_errors(["let x=1; export {x};"], [False])[0] != [])
     if shutil.which("node"):
         good, _ = script_errors(["var x = 1;"])
         bad, n = script_errors(["var x = ;;)"])

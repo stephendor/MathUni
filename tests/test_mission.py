@@ -249,3 +249,45 @@ def test_a_second_mission_strip_fails_the_gate(tmp_path, capsys):
                       encoding="utf-8")
     assert main([str(lesson)]) == 1
     assert "carries 2 mission strips" in capsys.readouterr().out
+
+
+# --- Codex review of PR #20, fourth round -----------------------------------
+
+def test_a_commented_out_mission_strip_does_not_count():
+    """A commented-out strip renders nothing, but the raw regex still found it
+    and gate 8 reported PASS on a lesson displaying no mission paragraph.
+    lesson_lint.py could not close it either — its structure counter scans
+    comments as raw text too, so such a lesson cleared both hard checks."""
+    from scripts.mission import strips_of
+    assert strips_of('<!-- <p class="mission">hidden</p> -->') == []
+    assert strips_of('<p class="mission">real</p>') == ["real"]
+    assert strips_of('<p class="mission">real</p>'
+                     '<!-- <p class="mission">hidden</p> -->') == ["real"]
+
+
+def test_deleting_the_drift_list_is_refused(tmp_path, capsys):
+    """Deletion is the one move that reopens the ratchet: with the path gone,
+    every later base also lacks it, so "base has no list" stops meaning "the
+    introducing commit" and a reintroduction alongside fresh mismatches would
+    be excused."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base = tmp_path / "base.txt"
+    base.write_text("aa-00\n", encoding="utf-8")
+    gone = tmp_path / "not-here.txt"
+    rc = main(["--known-failing", str(gone), "--baseline", str(base),
+               os.path.join(repo, "lessons", "aa", "aa-00.html")])
+    assert rc == 1
+    assert "DELETED" in capsys.readouterr().out
+
+
+def test_an_emptied_but_present_drift_list_is_the_success_state(tmp_path, capsys):
+    """Emptying is allowed; only deleting is not."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base = tmp_path / "base.txt"
+    base.write_text("an-03\n", encoding="utf-8")
+    empty = tmp_path / "drift.txt"
+    empty.write_text("# all repaired\n", encoding="utf-8")
+    rc = main(["--known-failing", str(empty), "--baseline", str(base),
+               os.path.join(repo, "lessons", "an", "an-03.html")])
+    assert rc == 0
+    assert "DELETED" not in capsys.readouterr().out

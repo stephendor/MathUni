@@ -20,8 +20,8 @@ and CI wiring. What that promotion turned up is most of this document.
 
 | Script | Status | Note |
 |---|---|---|
-| `scripts/gate.py` | promoted | gates 4-6; `--selftest`, 43 controls |
-| `scripts/mission.py` | promoted | gate 8; `--selftest`, 22 controls; `--known-failing` ratchet |
+| `scripts/gate.py` | promoted | gates 4-6; `--selftest`, 50 controls |
+| `scripts/mission.py` | promoted | gate 8; `--selftest`, 24 controls; `--known-failing` ratchet |
 | `scripts/pull.py` | promoted | extraction; new `--folio` offset fitter |
 | `build.py` | **not promoted** | see below |
 
@@ -308,6 +308,45 @@ escape the gate.
 
 After this round: `gate.py --selftest` 43/43, `mission.py --selftest` 22/22,
 pytest 200, gates 4-6 green on 90/90, gate 8 75 PASS + 15 KNOWN-FAIL.
+
+## 7d. Codex review, fourth round — six more, all six real
+
+| # | Finding | Was |
+|---|---|---|
+| P2 | `node --check` uses the CommonJS grammar | `<script>return 1;</script>` passed gate 6; a browser refuses it |
+| P2 | `type` matches inside `data-type` | an executable script was classified JSON and skipped |
+| P2 | end tags for void elements ignored | `</br>`, `</img>`, `</input>` reported as balanced |
+| P2 | `<svg/>` root reported malformed | foreign-content exemption only applied *inside* an already-open root |
+| P2 | mission strip inside an HTML comment | gate 8 PASSed a lesson rendering no strip at all |
+| P2 | ratchet reopens if the list is ever deleted | a later branch could reintroduce it with fresh mismatches |
+
+**The script-grammar one is the most interesting.** `node --check foo.js` parses
+under CommonJS, where the body is wrapped in a function, so a top-level
+`return` is legal — and gate 6 printed `PASS inline scripts parse` for a script
+the browser rejects outright with *Illegal return statement*. The gate was
+running the right check under the wrong grammar. Classic bodies now compile
+through `vm.Script`, which is exactly the Script grammar a plain inline
+`<script>` gets; `type="module"` keeps `node --check` on a `.mjs` file, which is
+the Module grammar. A control asserts the two paths are not swapped: an
+`export` must fail as a classic script and pass as a module.
+
+**The zero-state hole closes by making deletion impossible.** §7b's growth check
+stands down when the base ref has no list, because that means the commit that
+introduced it. If the file can ever be *deleted*, that condition stops being
+unique: every later base also lacks the path, and a branch could reintroduce
+the file alongside new mismatches and have them excused. So the list is now
+permanent — the zero state is an empty file, not a deleted one — and mission.py
+refuses a run where the baseline has a list and the working tree does not.
+
+The remaining four are ordinary holes, each with a control: a word-boundary
+that let `data-type` masquerade as `type`; `</br>`, which browsers do not drop
+but re-interpret as a `<br>` start tag; a self-closing foreign root arriving
+before foreign depth is incremented; and a commented-out mission strip, which
+`lesson_lint.py` could not have caught either since its structure counter also
+reads comments as text.
+
+After this round: `gate.py --selftest` 50/50, `mission.py --selftest` 24/24,
+pytest 212, gates 4-6 green on 90/90 with 173 inline scripts actually parsed.
 
 ## 8. Open decisions
 
