@@ -239,6 +239,32 @@ def _scan_names(node, aliases, pairs):
         if module:
             pairs.add((module, node.attr))
         return
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda,
+                         ast.ClassDef)):
+        # Python binds an import inside a function or class body to that body's
+        # namespace, so ``import scipy as np`` in a helper must not change what
+        # ``np`` means at the top level afterwards. The body is scanned with a
+        # copy: uses inside it still resolve against the enclosing bindings, and
+        # bindings made inside it are discarded on the way out. Decorators and
+        # argument defaults are evaluated in the enclosing scope and are scanned
+        # there. The def's own name is a binding in the enclosing scope, and it
+        # is not a module, so it cancels any alias of that name.
+        inner = dict(aliases)
+        for field in ("decorator_list", "bases", "keywords"):
+            for child in getattr(node, field, []) or []:
+                _scan_names(child, aliases, pairs)
+        arguments = getattr(node, "args", None)
+        if isinstance(arguments, ast.arguments):
+            for default in list(arguments.defaults) + [
+                    d for d in arguments.kw_defaults if d is not None]:
+                _scan_names(default, aliases, pairs)
+        body = node.body if isinstance(node.body, list) else [node.body]
+        for child in body:
+            _scan_names(child, inner, pairs)
+        name = getattr(node, "name", None)
+        if name:
+            aliases.pop(name, None)
+        return
     for child in ast.iter_child_nodes(node):
         _scan_names(child, aliases, pairs)
 
@@ -262,6 +288,12 @@ def _attribute_names(tree, aliases):
     recorded as ``b.method`` and the surface actually reached was never demanded;
     and an alias bound only in a *later* block resolved an attribute in an
     earlier one, demanding a declaration for a name that was not a module yet.
+
+    Function and class bodies are scanned with a **copy** of the map, because
+    Python binds an import inside one to that body's namespace: a helper doing
+    ``import scipy as np`` must not change what ``np`` means at the top level
+    afterwards, which would attribute a later ``np.linalg.norm`` to the wrong
+    package in whichever direction the env block happened to declare.
 
     Bodies are read in definition order rather than call order, which is the
     remaining approximation: a function defined before a rebinding and called

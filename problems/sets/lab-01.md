@@ -291,7 +291,8 @@ ratio longest : runner-up   98.1
 say five of them are wrong. Say what all six are, what distinguishes the first
 from the other five, and — the part that matters — whether the distinction is
 categorical or a matter of degree. Support the answer with the ratio 98.1, and
-say what you would be entitled to conclude if that ratio were 1.4 instead.
+say what you would and would **not** be entitled to conclude if that ratio were
+1.4 instead. Both of the obvious answers overreach; say why.
 
 (c) The input to this computation was 80 points with no topology at all, from
 Problem 2. Explain, without using the word "hole", where the number 1.2370 came
@@ -306,10 +307,27 @@ For (c): the answer names a parameter that does not appear anywhere in `X`.
 five short ones are the gaps between neighbouring points that briefly fail to
 fill in. The distinction is **entirely a matter of degree** — nothing in the
 algorithm marks one interval as signal — and the ratio 98.1 is the whole of the
-evidence. At 1.4 you would be entitled to conclude nothing: the longest bar would
-be within the noise band, and a second sample from the same distribution could
-reorder them. Persistence is a *ranking*, and lab-05 is where the ranking
-acquires a theorem.
+evidence.
+
+At 1.4, be exact, because the two obvious answers both claim more than this
+problem contains. You would **not** be entitled to say the longest bar is noise:
+that needs a noise band, a noise band needs a displacement bound δ, and no δ has
+been stated — a bar cannot fall inside an interval nobody has specified. Nor
+could you say a second sample would reorder them: there is no sampling model
+here, and Problem 2's eighty points were not drawn from a shape at all, so there
+is no distribution to resample from.
+
+What a ratio of 1.4 costs is **robustness**. Any ranking of the bars would then
+rest on a separation that a modest error in an unstated δ could erase, so the
+honest report is that *the evidence does not support a confident ranking* — a
+statement about the evidence, not about the bars. Reporting instead that the two
+features are indistinguishable is a claim about the data, and nothing here
+licenses it.
+
+Persistence is a *ranking*, and lab-05 is where the ranking acquires a theorem
+— and where the price of 1.4 is computed exactly: a separating δ still exists at
+every ratio above 1, and what shrinks is the window of δ in which the verdict
+holds.
 
 (c) From the scale parameter. The computation does not ask what shape the points
 form; it builds a complex at every radius $\epsilon$ simultaneously and records

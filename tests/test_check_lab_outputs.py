@@ -583,3 +583,66 @@ def test_the_repeats_run_under_different_hash_seeds(tmp_path, capsys):
     out = capsys.readouterr().out
     assert "is not deterministic" in out
     assert "run 1: '0'" in out and "run 2: '1'" in out
+
+
+def test_an_import_inside_a_helper_does_not_rebind_the_outer_alias():
+    """Python scopes it to the function; the scan used to leak it outward.
+
+    With the leak, ``np.linalg`` after the helper was attributed to ``scipy``,
+    so declaring ``scipy.linalg`` in env passed while ``numpy.linalg`` -- the
+    surface execution reaches -- went unchecked.
+    """
+    blocks = parse_blocks(
+        code_block("env", "import numpy\nimport scipy\nfrom scipy import linalg\n"
+                          "print('env')")
+        + out_block("env", "env")
+        + code_block("work",
+                     "import numpy as np\n"
+                     "def helper():\n"
+                     "    import scipy as np\n"
+                     "    return np\n"
+                     "np.linalg.norm([1])\nprint(1)")
+        + out_block("work", "1"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert "linalg from numpy" in failures[0]
+
+
+def test_a_helper_local_import_is_still_checked_inside_the_helper():
+    """Scoping the binding must not stop the use inside being seen."""
+    blocks = parse_blocks(
+        code_block("env", "import persim\nprint('env')") + out_block("env", "env")
+        + code_block("work",
+                     "def helper():\n"
+                     "    import persim as ps\n"
+                     "    return ps.bottleneck(1, 2)\n"
+                     "print(1)")
+        + out_block("work", "1"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert "bottleneck from persim" in failures[0]
+
+
+def test_a_helper_resolves_aliases_bound_outside_it():
+    blocks = parse_blocks(
+        code_block("env", "import numpy\nfrom numpy import linalg\nprint('env')")
+        + out_block("env", "env")
+        + code_block("work",
+                     "import numpy as np\n"
+                     "def helper():\n"
+                     "    return np.linalg.norm([1])\n"
+                     "print(1)")
+        + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
+def test_a_def_shadowing_a_module_name_cancels_the_alias():
+    blocks = parse_blocks(
+        code_block("env", "import persim\nprint('env')") + out_block("env", "env")
+        + code_block("work",
+                     "import persim\n"
+                     "def persim():\n"
+                     "    return 1\n"
+                     "persim.anything\nprint(1)")
+        + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
