@@ -1,8 +1,6 @@
 """Gate 8, and the ratchet that lets it be a hard gate while 15 units still fail."""
 import os
 
-import pytest
-
 from scripts.mission import (load_known_failing, main, normalise, strip_of,
                              unit_id_for)
 
@@ -123,6 +121,27 @@ def test_every_listed_unit_still_exists():
     for uid in sorted(load_known_failing(drift)):
         path = os.path.join(repo, "lessons", uid.rsplit("-", 1)[0], uid + ".html")
         assert os.path.exists(path), "%s is listed but has no lesson" % uid
+
+
+def test_every_listed_unit_still_actually_fails():
+    """The other half, which the name used to claim and the body did not check.
+    A unit repaired but not struck off is caught at runtime by the STALE rule,
+    but only if someone runs the gate with the list; this binds the checked-in
+    list to reality in the test suite itself."""
+    import yaml
+    from scripts.mission import strips_of, normalise
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    drift = os.path.join(repo, "curriculum", "mission-drift.txt")
+    with open(os.path.join(repo, "curriculum", "syllabus.yaml"), encoding="utf-8") as f:
+        units = {u["id"]: u for u in yaml.safe_load(f)["units"]}
+    for uid in sorted(load_known_failing(drift)):
+        path = os.path.join(repo, "lessons", uid.rsplit("-", 1)[0], uid + ".html")
+        with open(path, encoding="utf-8") as f:
+            strips = strips_of(f.read())
+        want = normalise(units[uid]["mission_link"])
+        got = strips[0] if strips else None
+        assert got != want or len(strips) > 1, (
+            "%s is on the drift list but now passes gate 8 — strike it off" % uid)
 
 
 def test_a_deleted_drift_list_is_an_empty_list_not_an_error(tmp_path):

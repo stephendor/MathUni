@@ -100,9 +100,16 @@ jobs:
         # must not look alike, since mission.py deliberately skips the growth
         # check for the latter. Only "the base commit exists and has no list"
         # is allowed to skip, and that is the commit introducing the file.
+        # The base sha arrives through env rather than being interpolated into
+        # the shell body: `${{ }}` inside `run:` is textual substitution, and
+        # keeping workflow expressions out of executable lines is the standard
+        # hardening even when the value is a sha GitHub controls.
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
         run: |
           set -euo pipefail
-          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          base="${PR_BASE_SHA:-${PUSH_BEFORE_SHA:-}}"
           rm -f /tmp/drift-baseline.txt
           if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
             echo "No base commit for this event (first push or force-push);"

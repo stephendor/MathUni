@@ -20,8 +20,8 @@ and CI wiring. What that promotion turned up is most of this document.
 
 | Script | Status | Note |
 |---|---|---|
-| `scripts/gate.py` | promoted | gates 4-6; `--selftest`, 22 controls |
-| `scripts/mission.py` | promoted | gate 8; `--selftest`, 12 controls; `--known-failing` ratchet |
+| `scripts/gate.py` | promoted | gates 4-6; `--selftest`, 43 controls |
+| `scripts/mission.py` | promoted | gate 8; `--selftest`, 22 controls; `--known-failing` ratchet |
 | `scripts/pull.py` | promoted | extraction; new `--folio` offset fitter |
 | `build.py` | **not promoted** | see below |
 

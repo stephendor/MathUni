@@ -87,7 +87,7 @@ def folio_candidates(text):
     phantom offsets are what a range fit has to see through. Which edge a
     number came from is kept because it is evidence in its own right.
     """
-    lines = [l for l in text.split("\n") if l.strip()]
+    lines = [ln for ln in text.split("\n") if ln.strip()]
     # The two slices must not overlap. On a page short enough that head[:2] and
     # lines[-2:] intersect, the same number is otherwise returned as both a
     # head and a tail candidate, and fit_offsets counts its vote twice.

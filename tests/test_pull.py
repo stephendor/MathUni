@@ -172,3 +172,30 @@ def test_an_interior_singleton_between_DISAGREEING_sides_is_not_suspect():
                    + [(n, [(n - 15, "head")]) for n in (63, 64)])
     rows, plateaus = fit_offsets(pages)
     assert suspect_plateaus(plateaus) == []
+
+
+def test_two_conflicting_endpoint_singletons_are_both_evidence():
+    """A two-page range whose pages disagree has no interior at all, so
+    neither reading can be dismissed. Marking both SUSPECT would leave no real
+    plateau and produce a false consistent verdict on a range that is nothing
+    but a disagreement."""
+    from scripts.pull import suspect_plateaus
+    rows, plateaus = fit_offsets(_pages([(100, [(80, "head")]),
+                                         (101, [(82, "head")])]))
+    assert suspect_plateaus(plateaus) == []
+    real = [p for p in plateaus if p not in suspect_plateaus(plateaus)]
+    assert sorted({p[0] for p in real}) == [-20, -19]
+
+
+def test_a_suspect_singleton_does_not_taint_a_real_run_of_the_same_offset():
+    """SUSPECT is a property of a PLATEAU, not of an offset value. Keying on
+    the offset marked every row carrying that number, including a substantial
+    plateau elsewhere in the same range."""
+    from scripts.pull import suspect_plateaus
+    spec = ([(n, [(n - 16, "head")]) for n in (10, 11)]
+            + [(12, [(12 - 15, "head")])]
+            + [(n, [(n - 16, "head")]) for n in (13, 14)]
+            + [(n, [(n - 15, "head")]) for n in (20, 21, 22)])
+    rows, plateaus = fit_offsets(_pages(spec))
+    assert [p[1] for p in suspect_plateaus(plateaus)] == [12]
+    assert [r[0] for r in rows if r[4] == "SUSPECT"] == [12]
