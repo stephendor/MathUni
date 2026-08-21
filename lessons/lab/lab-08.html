@@ -205,10 +205,13 @@ says the pullback cover has the same Lebesgue number as 𝒰′.</span>
 the survivors generate.</strong> The cover decides which loops you see. So sweep
 the cover.</p>
 
-<canvas id="fig" width="640" height="340" aria-label="A five by four grid showing the first Betti number of the Mapper graph for a point cloud sampled from one circle. Rows are 4, 6, 10, 15 and 25 cover intervals; columns are overlap fractions 0.05, 0.15, 0.30 and 0.45. Eight cells are green, meaning the graph correctly reports one loop; the other twelve are grey, meaning it reports none. The green cells form a band towards the high-overlap side, and the bottom row of 25 intervals is grey throughout."></canvas>
+<canvas id="fig" width="640" height="340" aria-label="A five by four grid showing the first Betti number of the Mapper graph for a point cloud sampled from one circle. Rows are 4, 6, 10, 15 and 25 cover intervals; columns are overlap fractions 0.05, 0.15, 0.30 and 0.45. Eight cells are green, meaning the graph reports the one loop the cloud was built from; the other twelve are grey, meaning it reports none. The green cells form a band towards the high-overlap side, and the bottom row of 25 intervals is grey throughout."></canvas>
 
-<p class="cite"><strong>Twenty covers, one circle, one right answer.</strong> Green
-is b₁ = 1, which is correct; grey is b₁ = 0. Each cell also carries k, the number
+<p class="cite"><strong>Twenty covers, one circle, one benchmark.</strong> Green
+is b₁ = 1, matching the loop the cloud was built from; grey is b₁ = 0. The
+benchmark exists only because the cloud is synthetic: no theorem here obliges a
+Mapper graph to recover it, so a green cell is evidence about those parameters
+and not a certificate. Each cell also carries k, the number
 of connected components of the graph. <strong>Eight of twenty are green</strong>,
 and they form a band that needs more overlap the more intervals you use. Read the
 k column on the left: at 25 intervals and 5% overlap the graph has 46 nodes, 11
@@ -346,8 +349,8 @@ n=10 ov=0.10     18/15/0            18/15/0            agree
 n=15 ov=0.45     28/28/1            26/25/0            DIFFER
 n=25 ov=0.30     46/43/0            45/42/0            DIFFER
 
-giotto-tda default   n=10 overlap_frac=0.10   18/15/0   b1 WRONG
-kepler-mapper default n=10 perc_overlap=0.50  16/16/1   b1 correct</pre>
+giotto-tda default   n=10 overlap_frac=0.10   18/15/0   b1 misses it
+kepler-mapper default n=10 perc_overlap=0.50  16/16/1   b1 matches the one loop</pre>
 Same cloud, same lens, same clusterer, same nominal cover parameters — and at
 n = 15, overlap 0.45 the two libraries disagree about <strong>b₁ itself</strong>.
 <br><br>

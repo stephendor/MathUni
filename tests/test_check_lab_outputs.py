@@ -274,6 +274,60 @@ def test_importing_the_parent_does_not_declare_the_submodule():
         "FAIL env does not import sklearn.ensemble")
 
 
+def test_importing_the_package_does_not_declare_a_name_taken_from_it():
+    """``from sklearn import preprocessing`` may load a submodule; ``import
+    sklearn`` does not establish that it does."""
+    blocks = parse_blocks(
+        code_block("env", "import sklearn\nprint('env')") + out_block("env", "env")
+        + code_block("work", "from sklearn import preprocessing\nprint(1)")
+        + out_block("work", "1"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert failures[0].startswith(
+        "FAIL env does not import preprocessing from sklearn")
+
+
+def test_dotted_import_of_the_submodule_declares_the_name():
+    blocks = parse_blocks(
+        code_block("env", "import sklearn.preprocessing\nprint('env')")
+        + out_block("env", "env")
+        + code_block("work", "from sklearn import preprocessing\nprint(1)")
+        + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
+def test_mirroring_the_statement_declares_the_name():
+    """The way out for a name that may be an attribute rather than a submodule:
+    the env block runs the same statement, which loads whichever it is."""
+    blocks = parse_blocks(
+        code_block("env", "from numpy import array\nprint('env')")
+        + out_block("env", "env")
+        + code_block("work", "from numpy import array\nprint(1)")
+        + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
+def test_a_second_name_from_a_declared_module_is_still_required():
+    """A renamed class is the failure this catches, so one name is not all of them."""
+    blocks = parse_blocks(
+        code_block("env", "from gtda.diagrams import BettiCurve\nprint('env')")
+        + out_block("env", "env")
+        + code_block("work", "from gtda.diagrams import BettiCurve, Amplitude\n"
+                             "print(1)")
+        + out_block("work", "1"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert "Amplitude from gtda.diagrams" in failures[0]
+
+
+def test_names_taken_from_the_standard_library_need_no_declaration():
+    blocks = parse_blocks(
+        code_block("env", "print('env')") + out_block("env", "env")
+        + code_block("work", "from importlib.metadata import version\nprint(1)")
+        + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
 def test_standard_library_imports_need_no_declaration():
     blocks = parse_blocks(
         code_block("env", "print('env')") + out_block("env", "env")
@@ -309,6 +363,22 @@ def test_cli_fails_on_a_block_that_only_raises_the_second_time(tmp_path, capsys)
 
 
 # ---------------------------------------------------------- --parse-only
+
+def test_a_failed_env_declaration_stops_the_gate_before_execution(tmp_path, capsys):
+    """The premise of the run has already failed, so the blocks are not run.
+
+    The negative control is a block that would make its failure unmistakable if
+    it ever executed.
+    """
+    marker = tmp_path / "executed"
+    text = env_block() + code_block("env", "print('env')") + out_block("env", "env") \
+        + code_block("work", "import numpy\nopen(%r, 'w').close()\nprint(1)"
+                     % str(marker)) \
+        + out_block("work", "1")
+    assert main([write(tmp_path, text)]) == 1
+    assert "FAIL env does not import numpy" in capsys.readouterr().out
+    assert not marker.exists()
+
 
 def test_parse_only_passes_without_executing_anything(tmp_path, capsys):
     text = env_block() + code_block("a", "raise SystemExit('never run')") \

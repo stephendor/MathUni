@@ -78,6 +78,20 @@ for module in ("gtda.diagrams", "gtda.homology", "gtda.pipeline", "numpy",
         print("%-27s%s" % (module, "imports"))
     except Exception as exc:
         print("%-27s%s: %s" % (module, type(exc).__name__, exc))
+
+# A module that imports is not an API that exists. These names are the ones
+# later blocks use; importing them here means a rename or a broken subpackage
+# stops the set at its environment block, not four blocks later in a diff that
+# reads like a content error. This is the list the header calls "API surfaces
+# verified by execution", and it is now verified rather than asserted.
+from gtda.diagrams import Amplitude, BettiCurve, NumberOfPoints, PersistenceLandscape
+from gtda.homology import VietorisRipsPersistence
+from gtda.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.pipeline import Pipeline, make_union
+from sklearn.preprocessing import FunctionTransformer
 ```
 
 ```text id=env
@@ -105,11 +119,15 @@ circles. If persistent homology is good for anything it is good for this.
 
 ```python id=data
 import warnings
-# Narrow, not blanket. Three categories are expected here and are noise: scipy's
-# L-BFGS-B deprecation notice (raised once per LogisticRegression fit, ~230
-# times), and the divide warnings f_classif raises on constant columns. Anything
-# else still prints, which is the point of naming them.
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+# Narrow, not blanket -- and "narrow" has to mean the message, not the category.
+# Three warnings are expected here and are noise: scipy's L-BFGS-B deprecation
+# notice (raised once per LogisticRegression fit, ~230 times), and the divide
+# warnings f_classif raises on constant columns. Anything else still prints,
+# which is the point of naming them; silencing DeprecationWarning as a class
+# would also silence the next API removal, in a set whose whole claim is that
+# its recorded output came from the pinned versions.
+warnings.filterwarnings("ignore", category=DeprecationWarning,
+                        message=r"scipy\.optimize: The .disp. and .iprint. options")
 warnings.filterwarnings("ignore", category=RuntimeWarning,
                         message="invalid value encountered")
 warnings.filterwarnings("ignore", category=RuntimeWarning,
@@ -637,9 +655,13 @@ For (a): how many of 1000 pure-noise features will correlate with a random binar
 label by chance?
 </details>
 <details><summary>Partial</summary>
-(a) **Rows 1 and 2 are the same to three decimal places** — 0.9833 on real labels
-in both, and permuted means of 0.5108 and 0.5117 against a permuted max of 0.6333
-in both. Fitting the grid on all sixty samples is a genuine protocol violation and
+(a) **Rows 1 and 2 differ by one prediction.** Identical on real labels (0.9833)
+and on permuted max (0.6333); the permuted means are 0.5108 and 0.5117, which is
+not agreement to three decimal places — they round to 0.511 and 0.512 — but
+something more exact. Each permutation scores 60 predictions and there are 20 of
+them, so a permuted mean is a whole number of correct predictions out of 1200:
+0.5108 is 613/1200 and 0.5117 is 614/1200. **One prediction in twelve hundred is
+the entire measured cost of the protocol violation.** Fitting the grid on all sixty samples is a genuine protocol violation and
 it buys essentially nothing, for a reason worth stating: `BettiCurve.fit` reads
 only the *diagrams*, never the labels, so whatever it learns from the test fold is
 label-free and cannot manufacture label-dependent signal. It is transduction, not
@@ -665,7 +687,7 @@ sample other than the one it is applied to, or on any label.** Whitening —
 outside is fine, depends only on its own cloud. `VietorisRipsPersistence` —
 same, though it belongs inside for the reasons in Problem 3(d). `BettiCurve.fit` —
 **must be inside**: its grid depends on the whole collection. Row 2 of the table
-is that violation measured, and it is worth 0.001; the criterion is not
+is that violation measured, and it is worth one prediction in 1200; the criterion is not
 consequentialist, and a rule you only follow when you have checked that breaking
 it matters is not a rule. `SelectKBest` — **must be inside**: it depends on the
 labels, which is the kind that costs 0.11.
@@ -674,11 +696,16 @@ requires a *nested* loop, because the outer score is otherwise reporting the bes
 of several attempts.
 
 (c) Not a defect — it is the finite-sample variance, and it is the useful part of
-the output. (Rows 1 and 2 differ by 0.0009 in that mean, which is well inside the
-variation twenty permutations can resolve; nothing should be read into which is
-larger.) Sixty samples in five folds means each fold's accuracy is a count out
-of twelve, so the resolution is 1/12 ≈ 0.083 and a single fold cannot land on 0.5
-at all. The permuted max of 0.6333 says plainly: **on this data, an accuracy of
+the output. Count what the numbers can resolve, at each of the three levels this
+table stacks. **A fold** scores twelve test samples, so its accuracy is a multiple
+of 1/12 ≈ 0.083 — and 6/12 = 0.5 exactly *is* attainable, so a fold landing on
+chance is an ordinary event and not an impossible one. **A five-fold mean**
+aggregates all sixty predictions and so moves in steps of 1/60 ≈ 0.017; that is
+the grid the real-label column lives on, which is why 1.0000 against 0.9833 is
+one sample. **A permuted mean** aggregates twenty of those, 1200 predictions, and
+moves in steps of 1/1200 ≈ 0.00083. Rows 1 and 2 sit at 613 and 614 of those 1200:
+adjacent points on the finest grid the experiment has. Nothing should be read into
+which is larger, because there is no smaller difference for them to have had. The permuted max of 0.6333 says plainly: **on this data, an accuracy of
 0.63 is attainable from labels that carry no information whatever.** So a single
 reported 0.63 here is not evidence of anything, and the permutation distribution —
 not intuition about what "above chance" means — is what establishes that.

@@ -50,6 +50,14 @@ for module in ("gtda.diagrams", "gtda.homology", "numpy"):
         print("%-15s%s" % (module, "imports"))
     except Exception as exc:
         print("%-15s%s: %s" % (module, type(exc).__name__, exc))
+
+# A module that imports is not an API that exists. These names are the ones
+# later blocks use; importing them here means a rename or a broken subpackage
+# stops the set at its environment block, not four blocks later in a diff that
+# reads like a content error. This is the list the header calls "API surfaces
+# verified by execution", and it is now verified rather than asserted.
+from gtda.diagrams import PersistenceLandscape
+from gtda.homology import VietorisRipsPersistence
 ```
 
 ```text id=env
@@ -293,7 +301,7 @@ def gap_count(L):
     k = int(np.argmax(ratios)) + 1
     return k, float(ratios[k - 1])
 
-print("three ways to decide how many H1 bars are real. the answer is 2.")
+print("four ways to decide how many H1 bars are real. the answer is 2.")
 print()
 
 # One null draw is one number. Five pre-specified seeds give a range, and the
@@ -321,7 +329,7 @@ print("%-42s %-12s %-8d" % ("largest lifetime gap", "ratio %.2f" % ratio, k_gap)
 ```
 
 ```text id=thresholds
-three ways to decide how many H1 bars are real. the answer is 2.
+four ways to decide how many H1 bars are real. the answer is 2.
 
 null longest-bar over 5 pre-specified seeds: [0.4192 0.4584 0.4442 0.4006 0.5012]
    min 0.4006   mean 0.4447   max 0.5012
@@ -331,6 +339,55 @@ naive: lifetime > 4 * noise sd             0.1200       6
 lab-05 stability: lifetime > 4 delta       0.5248       3
 null-calibrated: longer than any null bar  0.5012       5
 largest lifetime gap                       ratio 2.06   2
+```
+
+The stability rule's guarantee is about the diagram of the *clean* sample, not
+about the torus. That is a different object and it is one we kept, so the claim
+can be checked rather than asserted.
+
+```python id=soundness
+# Corollary 3.6 bounds the bottleneck distance between the clean and noisy
+# diagrams by delta. A noisy bar longer than 4*delta is further than 2*delta from
+# the diagonal, so no matching of cost <= delta can send it there: it must have a
+# partner in the CLEAN sample's diagram. That is the guarantee, and the object it
+# is about is the clean sample -- which is not the torus.
+def diagram(P, dim):
+    D = VR.fit_transform(P[None])[0]
+    return D[D[:, 2] == dim][:, :2]
+
+clean1, noisy1 = diagram(CLEAN, 1), diagram(X, 1)
+print("clean sample H1, six longest: %s"
+      % np.round(np.sort(clean1[:, 1] - clean1[:, 0])[::-1][:6], 4))
+print("noisy sample H1, six longest: %s"
+      % np.round(np.sort(noisy1[:, 1] - noisy1[:, 0])[::-1][:6], 4))
+print()
+print("%-4s %-10s %-12s %-10s" % ("bar", "lifetime", "admitted", "sup dist to"))
+print("%-4s %-10s %-12s %-10s" % ("", "", "by 4 delta", "nearest clean pt"))
+order = np.argsort(noisy1[:, 1] - noisy1[:, 0])[::-1][:6]
+for rank, k in enumerate(order, 1):
+    point = noisy1[k]
+    sup = np.abs(clean1 - point).max(axis=1)
+    print("%-4d %-10.4f %-12s %-10.6f"
+          % (rank, point[1] - point[0],
+             "yes" if point[1] - point[0] > 4 * DELTA else "no", sup.min()))
+print()
+print("every bar's nearest clean partner is within delta = %.6f" % DELTA)
+```
+
+```text id=soundness
+clean sample H1, six longest: [1.2963 1.2843 0.5425 0.5175 0.5161 0.5048]
+noisy sample H1, six longest: [1.2965 1.2373 0.5997 0.5238 0.5233 0.495 ]
+
+bar  lifetime   admitted     sup dist to
+                by 4 delta   nearest clean pt
+1    1.2965     yes          0.022348  
+2    1.2373     yes          0.043158  
+3    0.5997     yes          0.048810  
+4    0.5238     no           0.015115  
+5    0.5233     no           0.009466  
+6    0.4950     no           0.019201  
+
+every bar's nearest clean partner is within delta = 0.131206
 ```
 
 (a) The first row is the mistake Problem 1(c) diagnosed, kept in the table so the
@@ -367,16 +424,29 @@ for the top three bars and say whether it helps. Be honest about the answer.
 For (b): what does an independent permutation of three coordinates leave behind?
 </details>
 <details><summary>Partial</summary>
-(a) It is not a defect: the rule is **sound and not complete**. Soundness means
-every bar it rejects is genuinely rejectable — a bar shorter than 4δ *could* be
-created or destroyed by a displacement of size δ, so rejecting it is safe.
-Completeness would mean every bar it admits is real, and the rule makes no such
-claim: it says nothing whatever about the three bars above 0.5248 except that
-noise of this size cannot have manufactured them. The threshold sits below the
-scale at which *sampling* artefacts live — 600 points do not fill a surface, and
-that has nothing to do with the noise — so the rule is true and only partly
-informative. A sound-but-not-complete rule is exactly what a worst-case guarantee
-is.
+(a) It is not a defect: the rule is **sound and not complete**, in the standard
+directions. *Sound* means everything it asserts is true — every bar it admits has
+a genuine partner in the clean sample's diagram, because a bar longer than 4δ sits
+further than 2δ from the diagonal and no matching of cost δ can send it there.
+*Complete* would mean everything true is asserted — every feature of the clean
+diagram is admitted — and that fails, because a genuine clean bar shorter than 4δ
+is rejected. Sound and not complete is exactly what a worst-case guarantee is: it
+never lies and it often says nothing.
+
+**The load-bearing word is "clean sample".** The `soundness` block prints that
+diagram, and it has six long H₁ bars of its own: 1.2963, 1.2843, 0.5425, 0.5175,
+0.5161, 0.5048. Every one of the six noisy bars has a partner there within
+0.0488 — comfortably inside δ = 0.1312 — so the rule admitting three is not
+merely permitted, it is *understating* what the theorem could support. All six
+bars are real in the only sense the theorem knows about.
+
+And the torus has b₁ = 2. So the four extra bars are features of the **clean 600-point
+sample**, not of the surface it was drawn from: 600 points do not fill a torus, and
+the theorem's guarantee has nothing to say about that, because sampling is not a
+displacement of the points. This is the whole of the answer. The rule is not weak,
+not misapplied and not approximate; it controls the wrong error. Substituting a
+"sampling scale" for δ would make it bite and would silently convert Corollary 3.6
+into a heuristic wearing its clothes.
 
 Notice also how narrowly it gets three. Bars 4 and 5 are 0.5238 and 0.5233 against
 4δ = 0.524824, missing by 0.2% and 0.3%; a δ of 0.130950 instead of 0.131206 would
@@ -393,7 +463,18 @@ merely stays silent about real features, which is a loss of power and not a fals
 claim. Note that the naive error is also the *comfortable* one: 0.1200 admits
 everything and so never contradicts a hoped-for conclusion.
 
-(b) Permuting each coordinate independently leaves a cloud filling roughly the same
+(b) **First, what five draws cannot do.** Treated as a Monte Carlo permutation
+test, five null draws bound the attainable p-value below at (0 + 1)/(5 + 1) =
+0.167: even if every draw fell below the observed statistic, the smallest p-value
+reportable is 0.17, which rejects nothing at any conventional level. Nothing here
+is a test, and no p-value is claimed. The five seeds are a **variance probe** —
+they exist to show that the number one draw hands you is not stable — and using
+their maximum as a threshold is a conservative choice within that role, not a
+test statistic. A report that wanted a p-value would need hundreds of draws and
+would have to say so; a report that wants to know whether one draw is enough
+needs about five, and the answer is no.
+
+Permuting each coordinate independently leaves a cloud filling roughly the same
 box, at roughly the same density — and a dense cloud of 600 points in a box has a
 Rips filtration with plenty of medium-lived 1-cycles, because at intermediate
 scales the complex is neither disconnected nor filled in. 0.4 to 0.5 is the length

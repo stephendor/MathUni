@@ -59,6 +59,14 @@ for module in ("gtda.mapper", "igraph", "kmapper", "numpy", "sklearn.cluster",
         print("%-23s%s" % (module, "imports"))
     except Exception as exc:
         print("%-23s%s: %s" % (module, type(exc).__name__, exc))
+
+# A module that imports is not an API that exists. These names are the ones
+# later blocks use; importing them here means a rename or a broken subpackage
+# stops the set at its environment block, not four blocks later in a diff that
+# reads like a content error. This is the list the header calls "API surfaces
+# verified by execution", and it is now verified rather than asserted.
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import FunctionTransformer
 ```
 
 ```text id=env
@@ -195,25 +203,25 @@ In words: **cycles smaller than the cover's Lebesgue number are killed; the
 survivors generate.** So the cover decides which loops you see. Sweep it.
 
 ```python id=cover
-print("b1 of the Mapper graph, over the cover parameters. The answer is 1.")
+print("b1 of the Mapper graph, over the cover parameters. The cloud has one loop.")
 print()
 overlaps = (0.05, 0.15, 0.30, 0.45)
 print("%-10s%s" % ("intervals", "".join("%-18s" % ("overlap %.2f" % o) for o in overlaps)))
-correct = 0
+matching = 0
 for n in (4, 6, 10, 15, 25):
     row = "%-10d" % n
     for o in overlaps:
         v, e, k, b1 = mapper_graph(gm.Projection(columns=[0]), n_intervals=n,
                                    overlap_frac=o)
-        correct += (b1 == 1)
+        matching += (b1 == 1)
         row += "%-18s" % ("v%d e%d k%d b1=%d" % (v, e, k, b1))
     print(row)
 print()
-print("cells reporting the right answer: %d of 20" % correct)
+print("cells whose b1 matches the one loop: %d of 20" % matching)
 ```
 
 ```text id=cover
-b1 of the Mapper graph, over the cover parameters. The answer is 1.
+b1 of the Mapper graph, over the cover parameters. The cloud has one loop.
 
 intervals overlap 0.05      overlap 0.15      overlap 0.30      overlap 0.45      
 4         v6 e3 k3 b1=0     v6 e5 k1 b1=0     v6 e6 k1 b1=1     v6 e6 k1 b1=1     
@@ -222,7 +230,7 @@ intervals overlap 0.05      overlap 0.15      overlap 0.30      overlap 0.45
 15        v28 e12 k16 b1=0  v28 e25 k3 b1=0   v28 e27 k1 b1=0   v28 e28 k1 b1=1   
 25        v46 e11 k35 b1=0  v45 e31 k14 b1=0  v46 e43 k3 b1=0   v46 e45 k1 b1=0   
 
-cells reporting the right answer: 8 of 20
+cells whose b1 matches the one loop: 8 of 20
 ```
 
 (a) Eight of twenty. Read the table as a whole and describe the region of
@@ -487,10 +495,16 @@ print()
 gv, ge, gk, gb1 = mapper_graph(gm.Projection(columns=[0]),
                                n_intervals=10, overlap_frac=0.1)
 kv, ke, kk, kb1 = kepler_graph(10, 0.5)
+# "matches" and not "correct": the cloud was built from one circle, so b1 = 1 is
+# the benchmark this graph is being read against -- but no theorem in this unit
+# says a Mapper graph is obliged to recover it, and DBSCAN discarding points is
+# a documented way to miss it without anything being wrong. Recovering a known
+# answer is evidence about these parameters on this cloud, not a correctness
+# certificate for either library.
 print("giotto-tda default   n=10 overlap_frac=0.10   %d/%d/%d   b1 %s"
-      % (gv, ge, gb1, "correct" if gb1 == 1 else "WRONG"))
+      % (gv, ge, gb1, "matches the one loop" if gb1 == 1 else "misses it"))
 print("kepler-mapper default n=10 perc_overlap=0.50  %d/%d/%d   b1 %s"
-      % (kv, ke, kb1, "correct" if kb1 == 1 else "WRONG"))
+      % (kv, ke, kb1, "matches the one loop" if kb1 == 1 else "misses it"))
 ```
 
 ```text id=implementations
@@ -504,8 +518,8 @@ n=10 ov=0.10     18/15/0            18/15/0            agree
 n=15 ov=0.45     28/28/1            26/25/0            DIFFER
 n=25 ov=0.30     46/43/0            45/42/0            DIFFER
 
-giotto-tda default   n=10 overlap_frac=0.10   18/15/0   b1 WRONG
-kepler-mapper default n=10 perc_overlap=0.50  16/16/1   b1 correct
+giotto-tda default   n=10 overlap_frac=0.10   18/15/0   b1 misses it
+kepler-mapper default n=10 perc_overlap=0.50  16/16/1   b1 matches the one loop
 ```
 
 (a) At n = 15, overlap 0.45 the two libraries disagree about **b₁ itself** — one
@@ -546,9 +560,16 @@ the measured Kepler-Mapper default gives **16/16/b₁ = 1**, a row that appears
 nowhere in the sweep above.
 
 giotto-tda's default (10 intervals, `overlap_frac=0.1`) gives 18/15 and
-**b₁ = 0 — wrong** on this data. Kepler-Mapper's default (10 cubes,
-`perc_overlap=0.5`) gives 16/16 and **b₁ = 1 — right**. Two libraries, two
-defaults, opposite answers, no warning from either. The discipline
+**b₁ = 0**, missing the loop the cloud was built from. Kepler-Mapper's default
+(10 cubes, `perc_overlap=0.5`) gives 16/16 and **b₁ = 1**, recovering it. Two
+libraries, two defaults, opposite answers, no warning from either.
+
+Say "matches the benchmark", not "correct". The benchmark exists here only
+because the cloud is synthetic and its answer was known before it was built;
+nothing in Definition 9.4 or Theorem 9.16 obliges a Mapper graph to recover it,
+and Problem 2 shows a cover under which missing the loop is the *right* behaviour
+for the graph it defines. What the comparison establishes is about **defaults**,
+which is a fact about the libraries and not a verdict on their outputs. The discipline
 is the one lab-01 derived for library defaults ("a default is part of the
 citation") and lab-02 derived for filtration conventions ("never quote a
 filtration value bare"), arriving here as: **never report a Mapper graph without

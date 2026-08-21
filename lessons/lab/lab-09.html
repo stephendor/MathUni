@@ -187,27 +187,32 @@ form a sceptic would actually raise it.⟩
 
 <div class="segment">
 <span class="timebox">Segment 2 · 30 min</span>
-<h2>Three rules, three answers, and the one that works</h2>
+<h2>Four rules, four answers, and the one that works</h2>
 
-<canvas id="fig" width="640" height="340" aria-label="A barcode of the six longest first-homology lifetimes of the torus point cloud. The two longest bars, 1.2965 and 1.2373, are drawn in green; the next four, 0.5997, 0.5238, 0.5233 and 0.4950, are grey. Two dashed vertical lines mark thresholds that nearly coincide: the stability threshold at 0.5248 and the null-calibrated threshold at 0.5012, about seven pixels apart. Both fall to the right of the last three bars and to the left of the first three, so each cuts the barcode after the third bar rather than after the second. Bars four and five end just 0.001 short of the stability line, which is under half a pixel and is stated in an amber annotation rather than shown. A double-headed arrow between the second and third bars marks the largest lifetime gap, with ratio 2.06."></canvas>
+<canvas id="fig" width="640" height="340" aria-label="A barcode of the six longest first-homology lifetimes of the torus point cloud. The two longest bars, 1.2965 and 1.2373, are drawn in green; the next four, 0.5997, 0.5238, 0.5233 and 0.4950, are grey. Two dashed vertical lines mark thresholds seven pixels apart: the null-calibrated threshold at 0.5012 and the stability threshold at 0.5248. Three bars extend past the stability line and five extend past the null line, so the two rules cut the barcode in different places — after the third bar and after the fifth. The difference is bars four and five, which end inside the narrow window between the two lines: six pixels past the null line and, as an amber annotation states rather than shows, three tenths of a pixel short of the stability line. The last bar, 0.4950, falls short of both. A double-headed arrow between the second and third bars marks the largest lifetime gap, with ratio 2.06."></canvas>
 
 <p class="cite"><strong>The whole argument in one picture.</strong> Six H₁ bars.
 The dashed line at <strong>0.5248</strong> is lab-05's stability threshold at the
 measured δ = 0.1312; the line at <strong>0.5012</strong> is the longest bar any of
-five null permutations produced. They land almost on top of each other — seven
-pixels apart, from completely unrelated arguments — and <strong>both cut the
-barcode after the third bar rather than after the second.</strong> Three bars
-survive the proved rule and five survive the null; the answer is two.
+five null permutations produced. Two arguments with nothing in common — a theorem
+about displacement, and a shuffle of the coordinates — land <strong>seven pixels
+apart</strong>, which is the arresting part of the picture.
 <br><br>
-<strong>And look how narrowly the proved rule gets even three.</strong> Bars 4 and
-5 are 0.5238 and 0.5233 against a threshold of 0.524824: they miss by 0.2% and
-0.3%. A δ of 0.130950 rather than 0.131206 — a change of one part in five hundred
-— turns the verdict from three bars into five. The rule is sound, correctly
-applied, and its <em>answer</em> is balanced on the fourth significant figure of a
-quantity that real data supplies as an estimate. That is worth more than the count
-itself. The only thing that separates the two
-green bars from the four grey ones is the gap between them — a factor of 2.06 —
-and no theorem in this module says anything about it.
+It is also a trap, and the barcode springs it. <strong>Agreeing to within 5% on
+the threshold, the two rules disagree by two features:</strong> 4δ keeps three
+bars, the null keeps five. The difference is bars 4 and 5, at 0.5238 and 0.5233,
+which fall inside that seven-pixel window — six pixels past the null line and
+<strong>0.3 of a pixel short of the stability line.</strong> Closeness of
+thresholds says nothing about agreement of answers when the barcode is dense
+exactly where the thresholds are.
+<br><br>
+That last margin is worth more than either count. A δ of 0.130950 rather than
+0.131206 — one part in five hundred — moves the proved rule's answer from three
+bars to five. It is sound and correctly applied, and its <em>answer</em> is
+balanced on the fourth significant figure of a quantity real data supplies as an
+estimate. And neither three nor five is the answer, which is two: the only thing
+separating the two green bars from the rest is the gap between them, a factor of
+2.06, and no theorem in this module says anything about it.
 <br><br>
 Had δ been read off the noise standard deviation, the first line would have sat at
 0.12, off the left of every bar, and the picture would have shown a proved rule
@@ -236,12 +241,23 @@ theorem?</p>
 <button onclick="check(this,true)" data-ok>No — the rule is sound and not complete, and 4δ sits below the scale where <em>sampling</em> artefacts live, which is not what δ measures</button>
 <button onclick="check(this,false)">No, because the rule was applied with the wrong δ; the sampling scale is the right one</button>
 <button onclick="check(this,false)">Yes — Corollary 3.6 does not apply to Vietoris–Rips filtrations</button>
-<div class="explain">Sound, not complete. Every bar the rule rejects is genuinely
-rejectable — a bar shorter than 4δ <em>could</em> have been created or destroyed by
-a displacement of size δ — and the rule says nothing whatever about what it admits.
-The third bar, at 0.5997, clears 0.5248 and is an artefact anyway, because it is
-produced by <em>sparse sampling</em> and not by the noise: 600 points do not fill a
-surface, and the gaps between them make loops the theorem was never asked about.
+<div class="explain">Sound, not complete — in the standard directions, which are
+worth stating exactly. <strong>Sound: everything the rule asserts is true.</strong>
+A bar longer than 4δ lies further than 2δ from the diagonal, so no matching of cost
+δ can send it to the diagonal, so it has a genuine partner in the clean sample's
+diagram. <strong>Not complete: not everything true is asserted</strong> — a real
+feature of the clean diagram shorter than 4δ is rejected.
+<br><br>
+Everything turns on <em>which</em> diagram soundness is about, and it is the
+<strong>clean sample's</strong>, not the torus's. The problem set computes that
+diagram: it has six long H₁ bars of its own — 1.2963, 1.2843, 0.5425, 0.5175,
+0.5161, 0.5048 — and every one of the six noisy bars has a partner there within
+0.0488, well inside δ = 0.1312. So all six bars are real in the only sense the
+theorem knows about, and the rule admitting three is if anything conservative.
+The torus, meanwhile, has b₁ = 2. The four extra bars belong to the clean
+600-point sample and not to the surface it came from: 600 points do not fill a
+torus, and sampling is not a displacement of the points, so the theorem was never
+asked about it. The rule is not weak or misapplied. It controls a different error.
 <br><br>
 The third option is the interesting trap, and it is more tempting now than it was
 with a threshold of 0.12: substituting a "sampling scale" for δ would make the rule
@@ -462,11 +478,12 @@ function check(btn, ok){
   g.fillText('4 delta = 0.5248', px(0.5248) + 4, 48);
   g.fillText('null max = 0.5012', px(0.5012) + 4, 66);
 
-  // Bars 4 and 5 end 0.001 short of the 4-delta line: 0.3 px at this scale, so
-  // the drawing cannot show the verdict and the verdict is written instead.
+  // Bars 4 and 5 end inside the 6.7 px window between the two lines: 6.4 px past
+  // the null line and 0.3 px short of the 4-delta line. The second of those
+  // cannot be drawn, so it is written.
   g.fillStyle = '#d8a657'; g.font = '10px sans-serif';
-  g.fillText('bars 4 and 5 fall 0.2% short of 4 delta', px(0.62), 176);
-  g.fillText('- too close to draw, and too close to trust', px(0.62), 190);
+  g.fillText('bars 4 and 5 land between the two lines:', px(0.62), 176);
+  g.fillText('past the null, 0.2% short of 4 delta', px(0.62), 190);
   g.strokeStyle = '#d8a657'; g.lineWidth = 1;
   g.beginPath();
   g.moveTo(px(0.62) - 4, 180); g.lineTo(px(0.5248) + 2, 180); g.stroke();
@@ -495,7 +512,7 @@ function check(btn, ok){
   g.fillText('gap, ratio 2.06', b + 12, gy + 4);
 
   g.fillStyle = '#e8e8e8'; g.font = '12px sans-serif';
-  g.fillText('every bar clears both thresholds. only the gap separates them.', 62, 300);
+  g.fillText('4 delta keeps 3, the null keeps 5, the gap keeps 2.', 62, 300);
   g.fillStyle = '#4caf82'; g.font = '11px sans-serif';
   g.fillText('green = the two the gap rule keeps', 62, 320);
 })();

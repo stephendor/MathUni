@@ -342,7 +342,7 @@ world.</div>
 ratio were 1.4 rather than 98.1. Answer it with this unit's machinery.</p>
 <button onclick="check(this,false)">That both bars are noise, since neither dominates</button>
 <button onclick="check(this,false)">That no δ separates them, so the data cannot distinguish them</button>
-<button onclick="check(this,true)" data-ok>That a separating δ exists, but only in a band 1.4 wide — so the verdict turns on a number the analysis never checks</button>
+<button onclick="check(this,true)" data-ok>That a separating δ exists, but only in a band whose ends differ by a factor of 1.4 — so the verdict turns on a number the analysis never checks</button>
 <button onclick="check(this,false)">That a Wasserstein distance would separate them where bottleneck does not</button>
 <div class="explain">A separating δ always exists. The test is a single threshold
 4δ applied to every bar, so the longest survives and the runner-up fails exactly
@@ -350,10 +350,14 @@ when δ ∈ [L₂/4, L₁/4) — a non-empty interval whenever L₁ &gt; L₂. T
 option is the intuitive answer and it is <em>algebraically false</em>; it was the
 answer this unit gave in draft, and a reviewer caught it.
 <br><br>
-What the ratio controls is the interval's <strong>width</strong>, and so how much
-error in δ the verdict tolerates. At 98.1 the window is [0.0032, 0.3093) and δ may
-be wrong by a factor near 98; at 1.4 the window is 1.4 wide and δ must be right to
-within about 40%. Since δ arrives from outside the analysis with no accuracy
+What the ratio controls is <strong>how wide the window is in ratio</strong> — the
+interval is [L₂/4, L₁/4), so its endpoints differ by exactly the factor L₁/L₂ —
+and so how much error in δ the verdict tolerates. At 98.1 the window is
+[0.0032, 0.3093) and δ may be wrong by a factor near 98; at 1.4 the endpoints
+differ by a factor of 1.4 and δ must be right to within about 40%. It is the
+<em>ratio</em> of the endpoints that carries this, not their difference: the
+additive width at 1.4 is 0.1 L₂, which shrinks with the bars and so measures
+nothing about how tolerant the verdict is. Since δ arrives from outside the analysis with no accuracy
 attached, at 1.4 the honest report is that <em>the conclusion is not robust to the
 one number nothing here can check</em> — a statement about the evidence, not about
 the data. The fourth option is a real temptation and wrong: Wasserstein aggregates

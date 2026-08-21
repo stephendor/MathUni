@@ -49,6 +49,14 @@ for module in ("gtda.diagrams", "numpy", "persim", "persim.landscapes"):
         print("%-19s%s" % (module, "imports"))
     except Exception as exc:
         print("%-19s%s: %s" % (module, type(exc).__name__, exc))
+
+# A module that imports is not an API that exists. These names are the ones
+# later blocks use; importing them here means a rename or a broken subpackage
+# stops the set at its environment block, not four blocks later in a diff that
+# reads like a content error. This is the list the header calls "API surfaces
+# verified by execution", and it is now verified rather than asserted.
+from gtda.diagrams import BettiCurve
+from persim.landscapes import PersLandscapeExact, PersistenceLandscaper
 ```
 
 ```text id=env
@@ -135,12 +143,26 @@ So branching geodesics obstruct embedding into strictly convex spaces: every
 Hilbert space, and every L^p for 1 &lt; p &lt; ∞. They obstruct nothing about ℓ∞
 or L¹ — which is unsurprising, since d_b is itself built from a sup norm.
 
-**That is precisely the class that matters here.** Every vectorisation in this
-unit lands in an L^p or a Euclidean space, which is the point of vectorising at
-all: those are the spaces where means, inner products and gradients exist. The
-three midpoints say that no such landing can be *isometric*, so every method in
-this unit is lossy before it is anything else, and the rest of the unit is about
-measuring how lossy.
+**That is the class the useful norms sit in.** Vectorising means arriving in ℝ^N,
+and what makes ℝ^N useful is a norm supporting means, inner products and
+gradients — the ℓ² one, which is strictly convex. The three midpoints say that no
+such landing can be *isometric*: **the distances must be distorted**, and the rest
+of the unit is about measuring how much.
+
+Two things that is **not**. It is not a claim that the vectorisation loses
+*information* — the two are independent, and Problem 2 exhibits the separation:
+by **Claim 13.1** the exact landscape map is injective, so it loses nothing at
+all, and by **Theorem 13.1** it is 1-Lipschitz and not an isometry. Injective,
+lossless, and distorting. Where this unit's methods do lose information is at a
+different step — the **discretisation** onto a finite grid, which Problem 2(d)
+measures — and conflating the two hides the fact that one is a theorem about
+target geometry and the other is a resolution setting you choose.
+
+And it is not a claim about every norm in this unit. ℓ¹ and ℓ∞ are not strictly
+convex and the obstruction says nothing about them — unsurprising, since d_b is
+itself built from a sup norm. Problem 3 measures ‖I_D − I_E‖₁, so the unit uses
+one of the exempt norms in the very next problem. The trade is real and it is
+specific: the obstruction bites exactly where the inner product lives.
 
 This is **not** the pseudometric failure of lab-05: there the defect was two
 distinct diagrams at distance *zero*, and restricting to locally finite multisets
@@ -394,12 +416,39 @@ C_CONST = 5 ** 0.5 * 0.0 + (10 / np.pi) ** 0.5 * 1.0 / 1.0  # w = 1
 print("Theorem 13.3 coefficient, omega = persistence : %.4f" % C_PERS)
 print("Theorem 13.3 coefficient, omega = 1           : %.4f" % C_CONST)
 print()
+
+# Before testing printed constants, check that the distance on the right-hand
+# side is the one the theorem means. Dey and Wang's Definition 3.10, printed 75,
+# defines d_{W,q} with the ELL_q ground metric, so d_{W,1} measures matching cost
+# in ell_1. persim.wasserstein uses the Euclidean ground metric and offers no way
+# to change it. For one point at (b, b+eps) sent to the diagonal these differ by
+# sqrt(2) -- eps against eps/sqrt(2) -- which is small, and is exactly the size of
+# mistake that turns a factor-of-300 discrepancy into an argument nobody trusts.
+def dw1(D):
+    """d_{W,1}(D, empty) under the theorem's ell_1 ground metric.
+
+    Every point must be matched to the diagonal, so the matching is forced and a
+    point (b, d) costs min_t |b - t| + |d - t| = d - b. That is the whole
+    computation for the diagrams below; no general matcher is implemented, and
+    none would be correct to use without stating its ground metric either.
+    """
+    return float((D[:, 1] - D[:, 0]).sum())
+
 empty = np.zeros((0, 2))
+print("ground metric check, one point of lifetime eps against the empty diagram")
+print("%-9s %-14s %-14s %-14s" % ("lifetime", "persim (l2)", "theorem (l1)", "ratio"))
+for eps in (0.4, 0.02, 0.0008):
+    D = np.array([[1.0, 1.0 + eps]])
+    print("%-9.4f %-14.6f %-14.6f %-14.6f"
+          % (eps, float(persim.wasserstein(D, empty)), dw1(D),
+             dw1(D) / float(persim.wasserstein(D, empty))))
+print()
+
 print("%-9s %-10s %-11s %-11s %-11s %-11s" % (
     "lifetime", "d_W1", "L1 w=pers", "bound", "L1 w=1", "bound"))
 for eps in (0.4, 0.1, 0.02, 0.004, 0.0008):
     D = np.array([[1.0, 1.0 + eps]])
-    w1 = float(persim.wasserstein(D, empty))
+    w1 = dw1(D)
     a = float(np.abs(image(D, "persistence", {"n": 1.0})
                      - image(empty, "persistence", {"n": 1.0})).sum())
     b = float(np.abs(image(D, constant_weight, {})
@@ -412,17 +461,32 @@ for eps in (0.4, 0.1, 0.02, 0.004, 0.0008):
 Theorem 13.3 coefficient, omega = persistence : 5.8043
 Theorem 13.3 coefficient, omega = 1           : 1.7841
 
+ground metric check, one point of lifetime eps against the empty diagram
+lifetime  persim (l2)    theorem (l1)   ratio         
+0.4000    0.282843       0.400000       1.414214      
+0.0200    0.014142       0.020000       1.414214      
+0.0008    0.000566       0.000800       1.414214      
+
 lifetime  d_W1       L1 w=pers   bound       L1 w=1      bound      
-0.4000    0.282843   0.164015    1.641709    0.410039    0.504627   
-0.1000    0.070711   0.034893    0.410427    0.348930    0.126157   
-0.0200    0.014142   0.006610    0.082085    0.330508    0.025231   
-0.0040    0.002828   0.001307    0.016417    0.326755    0.005046   
-0.0008    0.000566   0.000261    0.003283    0.326002    0.001009   
+0.4000    0.400000   0.164015    2.321726    0.410039    0.713650   
+0.1000    0.100000   0.034893    0.580432    0.348930    0.178412   
+0.0200    0.020000   0.006610    0.116086    0.330508    0.035682   
+0.0040    0.004000   0.001307    0.023217    0.326755    0.007136   
+0.0008    0.000800   0.000261    0.004643    0.326002    0.001427   
 ```
 
+The first table is a convention check and it is not decoration. `persim.wasserstein`
+computes the matching in the **Euclidean** ground metric; **Definition 3.10, printed
+75**, defines d_{W,q} with the **ℓ_q** one, so the d_{W,1} in Theorem 13.3 is an ℓ¹
+matching cost. For a point sent to the diagonal the two differ by exactly √2. Had
+the library's number been used, every bound column below would have been quoted
+√2 too small against a theorem stated in a different distance — and the argument
+in (b) is that a *printed theorem* is wrong, which is not an argument to make while
+an unchecked factor of 1.41 is sitting in the right-hand side.
+
 With ω = persistence the L1 difference tracks d_{W,1} down and stays a factor of
-ten inside the bound. With ω ≡ 1 it **plateaus at 0.326** while the bound falls to
-0.001009 — an excess factor of 323, growing without limit as the lifetime shrinks.
+ten inside the bound. With ω ≡ 1 it **plateaus at 0.326** while the bound falls
+away — an excess factor growing without limit as the lifetime shrinks.
 
 Explain the mechanism in one paragraph: what is the image of a diagram with one
 point of lifetime 0.0008 under ω ≡ 1, what is the image of the empty diagram, and

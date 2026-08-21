@@ -146,10 +146,19 @@ the *ordering* check, not the value check.
 (c) Lost: orientation, and with it the ability to see torsion — over ℤ/2 the
 Klein bottle and the torus are not distinguished in the way they are over ℤ.
 Gained: a column is a set, addition is symmetric difference, and there is no
-sign bookkeeping, which is why the algorithm below is fifteen lines. For lab-01's
-ranking it does not matter: the point clouds in this module are sampled from
-subsets of ℝⁿ, and the standard software stack computes over ℤ/2 throughout —
-which is itself a fact worth citing rather than assuming.
+sign bookkeeping, which is why the algorithm below is fifteen lines.
+
+What to say about lab-01's ranking is **less** than it is tempting to say. The
+honest statement is that the ranking reported there is a ranking of ℤ/2 Betti
+numbers, because that is what the software computed, and the coefficient field
+belongs in the methods sentence for the same reason the filtration parameter
+does. What does *not* follow is that the ranking would be the same over ℚ or ℤ.
+Being sampled from a subset of ℝⁿ does not supply that: the Rips complex is a
+*clique complex on a distance graph*, and its homotopy type is not constrained
+to be that of the ambient region — this module's own lab-02 makes exactly that
+point about the nerve. Nothing here establishes that these filtrations are
+torsion-free, and nothing here needs it, as long as the claim stays inside the
+field it was computed in.
 </details>
 
 ---

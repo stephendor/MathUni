@@ -25,13 +25,19 @@ This gate re-derives the three things that claim depends on:
    ``.dist-info`` directory and imports nothing, so a distribution missing its
    compiled extensions reports its pinned version and fails several blocks
    later. The ``env`` block must therefore import every module the set uses, at
-   the submodule it uses; this gate checks that statically before running.
+   the submodule it uses, **and every name the set takes out of one** — a class
+   that has been renamed is as fatal as a subpackage that will not load, and a
+   set's header claims those names are "verified by execution". This gate checks
+   both statically, and stops before running anything if either fails: once the
+   environment declaration is wrong there is nothing to learn from the outputs.
 
 Only blocks carrying ``id=`` participate, so a set can still show code the
 reader is meant to complete without the gate trying to run it.
 
 ``--parse-only`` performs 1's structural half and 4 without executing anything,
-which is the part that needs no lab interpreter and so the part CI can run.
+which is the part that needs no lab interpreter and so the part CI can run. It
+does **not** catch a recorded output that has drifted from the code beside it;
+only re-execution does, and that needs the pinned interpreter.
 
 This gate **executes the repository's own content** in the interpreter it is
 pointed at, with the invoking environment inherited. That is the same trust
@@ -154,6 +160,30 @@ def _strings(node):
             if isinstance(child, ast.Constant) and isinstance(child.value, str)}
 
 
+def _from_names(tree):
+    """Return the ``(module, name)`` pairs an AST imports by name.
+
+    ``from sklearn import preprocessing`` and ``from numpy import array`` are
+    the same syntax, and nothing in the source says which name is a submodule
+    and which is an attribute. Only the first requires ``sklearn.preprocessing``
+    to load, so demanding a dotted import for every such name would be wrong,
+    and demanding only the parent package lets ``import sklearn`` certify a set
+    that goes on to load a subpackage that is broken.
+
+    The way out is to stop guessing: a pair is satisfied either by a dotted
+    import of ``module.name`` or by the ``env`` block containing the same
+    ``from module import name``, which loads exactly what the later block
+    loads whichever kind of name it is.
+    """
+    pairs = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            for alias in node.names:
+                if alias.name != "*":
+                    pairs.add((node.module, alias.name))
+    return pairs
+
+
 def _module_targets(tree):
     """Return the dotted module paths an AST loads.
 
@@ -196,6 +226,7 @@ def check_env_imports(blocks):
     """
     env_code = [code for bid, code, _ in blocks if bid == "env"]
     used = {}
+    used_names = {}
     for block_id, code, _ in blocks:
         if block_id == "env":
             continue
@@ -205,6 +236,8 @@ def check_env_imports(blocks):
             continue
         for module in _module_targets(tree):
             used.setdefault(module, block_id)
+        for pair in _from_names(tree):
+            used_names.setdefault(pair, block_id)
 
     external = {module: bid for module, bid in used.items()
                 if module.split(".")[0] not in sys.stdlib_module_names}
@@ -216,12 +249,23 @@ def check_env_imports(blocks):
                 % len(external)]
 
     declared = set()
+    declared_names = set()
     for code in env_code:
         try:
             tree = ast.parse(code)
         except SyntaxError:
             continue
         declared |= _module_targets(tree)
+        declared_names |= _from_names(tree)
+
+    # Loading ``gtda.homology`` loads ``gtda`` on the way, so a declared dotted
+    # path declares its ancestors. This is the safe direction: the parent does
+    # not vouch for the child, which is the broken-subpackage case the check
+    # exists for, but the child does vouch for the parent.
+    for module in list(declared):
+        parts = module.split(".")
+        for depth in range(1, len(parts)):
+            declared.add(".".join(parts[:depth]))
 
     failures = []
     for module in sorted(external):
@@ -230,6 +274,18 @@ def check_env_imports(blocks):
                 "FAIL env does not import %s, which block '%s' uses: a pin "
                 "verified from metadata alone does not establish that the "
                 "module loads" % (module, external[module]))
+
+    for module, name in sorted(used_names):
+        if module.split(".")[0] in sys.stdlib_module_names:
+            continue
+        if "%s.%s" % (module, name) in declared or (module, name) in declared_names:
+            continue
+        failures.append(
+            "FAIL env does not import %s from %s, which block '%s' uses: "
+            "importing %s alone leaves it unknown whether that name is a "
+            "submodule that fails to load or an attribute that has been "
+            "renamed. Add 'from %s import %s' to the env block"
+            % (name, module, used_names[(module, name)], module, module, name))
     return failures
 
 
@@ -417,12 +473,16 @@ def main(argv=None):
         return 1
 
     structural = check_env_imports(blocks)
+    if structural:
+        # The environment declaration is what licenses attributing the recorded
+        # outputs to the recorded pins. If it is wrong there is nothing to learn
+        # from running the blocks, so the gate stops here rather than spending
+        # minutes producing a diff whose premise has already failed.
+        for line in structural:
+            print(line)
+        return 1
 
     if args.parse_only:
-        if structural:
-            for line in structural:
-                print(line)
-            return 1
         print("PASS %d blocks paired with recorded output, %d pins declared, "
               "env imports every module used (not executed: --parse-only)"
               % (len(blocks), len(pins)))
@@ -438,7 +498,7 @@ def main(argv=None):
         print("FAIL execution exceeded %ds" % args.timeout)
         return 1
 
-    failures = structural + check_versions(pins, reports[0])
+    failures = check_versions(pins, reports[0])
     failures += compare_outputs(blocks, reports[0])
     for index, later in enumerate(reports[1:], start=2):
         label = "run %d" % index

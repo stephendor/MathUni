@@ -62,9 +62,13 @@ procedures differ by 0.0167, one sample in sixty, indistinguishable from noise. 
 <em>random</em> labels the honest one sits at 0.5108 and the leaky one at 0.6242,
 reaching 0.7167. And the comparison is clean, because the problem set measures a
 third procedure in between — the Betti-curve grid fitted on all sixty diagrams but
-the selection still per-fold — which scores 0.9833 and 0.5117, matching the honest
-row to a thousandth. <strong>Fitting on all the samples is a protocol violation
-worth 0.001; fitting on all the <em>labels</em> is worth 0.11.</strong> The second option overstates — the score is not meaningless, it
+the selection still per-fold — which scores 0.9833 and 0.5117 against the honest
+row's 0.5108. Those two are not equal to three decimals; they are
+<strong>one prediction apart</strong>. A permuted mean here averages twenty runs
+of sixty predictions, so it is a whole number out of 1200, and 0.5108 and 0.5117
+are 613 and 614 — adjacent points on the finest grid this experiment has.
+<strong>Fitting on all the samples is a protocol violation worth one prediction in
+twelve hundred; fitting on all the <em>labels</em> is worth 0.11.</strong> The second option overstates — the score is not meaningless, it
 is a real measurement of the wrong quantity. The fourth is the actual error people
 make: <code>SelectKBest</code> takes <code>y</code>, so it is supervised, and that
 is exactly what makes it dangerous.</div>
