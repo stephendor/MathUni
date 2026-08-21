@@ -257,14 +257,26 @@ Everything turns on <em>which</em> diagram soundness is about, and it is the
 <strong>clean sample's</strong>, not the torus's. The problem set computes that
 diagram: it has six long H₁ bars of its own — 1.2963, 1.2843, 0.5425, 0.5175,
 0.5161, 0.5048 — and each of the six longest noisy bars has a clean point within
-0.0488, against a bound of 2δ = 0.2624. (Six nearest neighbours, not a bijection:
-a consistency check the bound could have failed and did not, with a factor of five
-to spare.) So all six bars are real in the only sense the theorem knows about, and
-the rule admitting three is if anything conservative.
-The torus, meanwhile, has b₁ = 2. The four extra bars belong to the clean
-600-point sample and not to the surface it came from: 600 points do not fill a
-torus, and sampling is not a displacement of the points, so the theorem was never
-asked about it. The rule is not weak or misapplied. It controls a different error.
+0.0488, against a bound of 2δ = 0.2624. That is a consistency check the bound
+could have failed and did not, with a factor of five to spare, and it is
+<em>not</em> a matching: the six nearest neighbours are not even injective, bars 1
+and 2 both choosing the same clean point and bars 4 and 5 another.
+<br><br>
+So it settles nothing about bars 4 to 6. Discarding a bar costs an optimal matching
+half its lifetime, which for those three is 0.2619, 0.2616 and 0.2475 — all under
+2δ = 0.2624, so a matching of cost 2δ may send every one of them to the diagonal.
+The theorem positively permits them to be noise. The guarantee covers bars 1, 2 and
+3, which is exactly what the 4δ rule admits, and the two readings are one
+condition: <strong>a bar is admitted exactly when discarding it would cost more
+than 2δ</strong>.
+<br><br>
+The torus, meanwhile, has b₁ = 2 and the rule admits three — and one guaranteed
+bar too many is the entire argument. Bar 3 has a partner in the clean diagram by
+the theorem, and the clean sample's own third-longest bar is 0.5425, so the extra
+structure belongs to the clean 600-point sample and not to the surface it came
+from: 600 points do not fill a torus, and sampling is not a displacement of the
+points, so the theorem was never asked about it. The rule is not weak or
+misapplied. It controls a different error.
 <br><br>
 The third option is the interesting trap, and it is more tempting now than it was
 with a threshold of 0.12: substituting a "sampling scale" for δ would make the rule

@@ -16,11 +16,16 @@ This gate re-derives the three things that claim depends on:
    ```text id=<name>``` block. The code blocks run in order in one interpreter,
    sharing state like a notebook; each block's stdout is captured separately and
    compared with its recorded pair.
-3. **Determinism.** The whole file runs twice by default. Unseeded randomness
-   produces a set whose outputs are true once and false thereafter, which is
-   exactly the failure a single run cannot see. ``--repeat 1`` opts out. Every
-   repeat is also checked for blocks that raised or never ran, because a block
-   that succeeds once and fails afterwards produces the same stdout both times.
+3. **Determinism.** The whole file runs twice by default, **each repeat under a
+   different** ``PYTHONHASHSEED``. Unseeded randomness produces a set whose
+   outputs are true once and false thereafter, which is exactly the failure a
+   single run cannot see; holding the hash seed fixed across repeats hid the
+   hash-ordered half of it, since a student's ordinary launch randomises that
+   seed and the recorded output never mentions one. Varying it is a probe rather
+   than a proof — two seeds can order a small collection alike — and
+   ``--repeat`` above 2 widens it. ``--repeat 1`` opts out. Every repeat is also
+   checked for blocks that raised or never ran, because a block that succeeds
+   once and fails afterwards produces the same stdout both times.
 4. **That the pinned packages load.** ``importlib.metadata`` reads a
    ``.dist-info`` directory and imports nothing, so a distribution missing its
    compiled extensions reports its pinned version and fails several blocks
@@ -299,7 +304,37 @@ def _module_targets(tree):
     return modules
 
 
-def check_env_imports(blocks):
+def _feature_version(pins):
+    """Return the ``(major, minor)`` grammar the set's ``python`` pin declares.
+
+    The gate's structural half runs under whatever interpreter CI provides, and
+    CI is not the pinned one: ``--parse-only`` runs on 3.13 while the sets pin
+    3.11.11. Parsing with the runner's grammar accepts syntax the pinned
+    interpreter rejects, so a block using ``type Alias = int`` would clear CI and
+    then raise for the student. ``feature_version`` is best-effort rather than a
+    full 3.11 parser — it rejects the grammar CPython gates on a version check
+    and cannot know about library or runtime changes — but it turns the common
+    case from a silent pass into a reported failure.
+    """
+    pinned = pins.get("python") if pins else None
+    if not pinned:
+        return None
+    parts = pinned.split(".")
+    try:
+        version = (int(parts[0]), int(parts[1]))
+    except (IndexError, ValueError):
+        return None
+    # ``ast.parse`` raises ValueError for a grammar this interpreter cannot
+    # emulate -- anything before 3.4, or newer than itself. A pin the runner
+    # cannot honour is not a reason to hand back a traceback instead of a
+    # verdict, so the range is checked here and main() says out loud that the
+    # check was not applied rather than passing quietly.
+    if version[0] != 3 or not (4 <= version[1] <= sys.version_info.minor):
+        return None
+    return version
+
+
+def check_env_imports(blocks, feature_version=None):
     """Return failure lines for modules the ``env`` block never imports.
 
     The environment pins are metadata: ``importlib.metadata.version`` reads a
@@ -320,7 +355,8 @@ def check_env_imports(blocks):
     failures = []
     for block_id, code, _ in blocks:
         try:
-            trees[block_id] = ast.parse(code)
+            trees[block_id] = (ast.parse(code, feature_version=feature_version)
+                               if feature_version else ast.parse(code))
         except SyntaxError as error:
             failures.append(
                 "FAIL block '%s' is not valid Python: %s (line %s)"
@@ -351,12 +387,20 @@ def check_env_imports(blocks):
 
     external = {module: bid for module, bid in used.items()
                 if module.split(".")[0] not in sys.stdlib_module_names}
-    if not external:
+    external_names = {pair: bid for pair, bid in used_names.items()
+                      if pair[0].split(".")[0] not in sys.stdlib_module_names}
+
+    # Both, not just the first. The blocks share a namespace, so a later block
+    # can reach ``np.definitely_missing()`` on an alias the ``env`` block bound
+    # and never import anything itself -- leaving ``used`` empty while
+    # ``used_names`` holds exactly the renamed-API case this analysis exists to
+    # catch. Returning on ``external`` alone certified it.
+    if not external and not external_names:
         return []
     if not env_code:
-        return ["FAIL no env block, so the %d module(s) the set imports are "
-                "never loaded before the outputs are attributed to them"
-                % len(external)]
+        return ["FAIL no env block, so the %d module(s) and %d name(s) the set "
+                "uses are never loaded before the outputs are attributed to them"
+                % (len(external), len(external_names))]
 
     # Loading ``gtda.homology`` loads ``gtda`` on the way, so a declared dotted
     # path declares its ancestors. This is the safe direction: the parent does
@@ -430,8 +474,22 @@ sys.stdout.write(json.dumps(results))
 '''
 
 
-def run_blocks(python_executable, blocks, pins, timeout=900):
-    """Execute the blocks in one interpreter and return the driver's report."""
+def run_blocks(python_executable, blocks, pins, timeout=900, hash_seed="0"):
+    """Execute the blocks in one interpreter and return the driver's report.
+
+    ``hash_seed`` is deliberately varied between repeats. Pinning every run to
+    ``PYTHONHASHSEED=0`` made the two runs agree about output that depends on
+    iteration over a set or any other hash-ordered structure, so the gate
+    certified as deterministic a recording that an ordinary launch -- which is
+    what a student gets, hash randomisation being on by default -- could contradict.
+    Agreement was being manufactured by an environment setting the recorded
+    output never mentions.
+
+    Two fixed seeds rather than randomisation, so a failure is reproducible from
+    the command line. That is a probe and not a proof: two seeds can happen to
+    order a small collection the same way, and a set can still be hash-order
+    dependent without this catching it. ``--repeat`` above 2 widens the probe.
+    """
     spec = {"blocks": [[bid, code] for bid, code, _ in blocks],
             "pins": sorted(pins)}
     workdir = tempfile.mkdtemp(prefix="labgate-")
@@ -443,7 +501,7 @@ def run_blocks(python_executable, blocks, pins, timeout=900):
         with open(driver_path, "w", encoding="utf-8") as handle:
             handle.write(DRIVER)
         environment = dict(os.environ, PYTHONIOENCODING="utf-8",
-                           PYTHONHASHSEED="0")
+                           PYTHONHASHSEED=str(hash_seed))
         completed = subprocess.run(
             [python_executable, driver_path, spec_path],
             capture_output=True, text=True, encoding="utf-8",
@@ -571,7 +629,15 @@ def main(argv=None):
               % len(blocks))
         return 1
 
-    structural = check_env_imports(blocks)
+    grammar = _feature_version(pins)
+    if pins.get("python") and grammar is None:
+        # Qualified, not silent: the structural half still runs, but it ran
+        # against the runner's grammar and the reader is told so.
+        print("NOTE python is pinned at %s, which this interpreter (%s) cannot "
+              "parse for, so blocks were parsed with the runner's grammar"
+              % (pins["python"], ".".join(str(p) for p in sys.version_info[:3])))
+
+    structural = check_env_imports(blocks, grammar)
     if structural:
         # The environment declaration is what licenses attributing the recorded
         # outputs to the recorded pins. If it is wrong there is nothing to learn
@@ -588,8 +654,9 @@ def main(argv=None):
         return 0
 
     try:
-        reports = [run_blocks(args.python, blocks, pins, args.timeout)
-                   for _ in range(args.repeat)]
+        reports = [run_blocks(args.python, blocks, pins, args.timeout,
+                              hash_seed=run)
+                   for run in range(args.repeat)]
     except LabSetError as error:
         print("FAIL %s" % error)
         return 1

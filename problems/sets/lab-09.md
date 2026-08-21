@@ -366,6 +366,14 @@ can be checked rather than asserted.
 # neighbours, not a bijection. It is a consistency check the bound could have
 # failed and did not; how far below 2*delta the distances sit says how loose the
 # bound is on this data.
+#
+# Two columns are here to stop that consistency check being read as more than it
+# is. "to diagonal" is what an optimal matching would pay to discard the bar
+# instead of pairing it, and a bar is admitted exactly when that price exceeds
+# 2*delta -- so the 4*delta rule IS the diagonal test, and for the bars it
+# rejects the theorem positively permits the diagonal. "nearest" is the index of
+# the clean point chosen, printed so that whether the six choices are distinct is
+# a fact on the page rather than an assumption in the answer.
 def diagram(P, dim):
     D = VR.fit_transform(P[None])[0]
     return D[D[:, 2] == dim][:, :2]
@@ -376,36 +384,48 @@ print("clean sample H1, six longest: %s"
 print("noisy sample H1, six longest: %s"
       % np.round(np.sort(noisy1[:, 1] - noisy1[:, 0])[::-1][:6], 4))
 print()
-print("%-4s %-10s %-12s %-10s" % ("bar", "lifetime", "admitted", "sup dist to"))
-print("%-4s %-10s %-12s %-10s" % ("", "", "by 4 delta", "nearest clean pt"))
+print("%-4s %-10s %-12s %-12s %-12s %s"
+      % ("bar", "lifetime", "admitted", "to diagonal", "sup dist to", "nearest"))
+print("%-4s %-10s %-12s %-12s %-12s %s"
+      % ("", "", "by 4 delta", "(discard it)", "nearest clean", "clean pt"))
 order = np.argsort(noisy1[:, 1] - noisy1[:, 0])[::-1][:6]
+chosen = []
 for rank, k in enumerate(order, 1):
     point = noisy1[k]
     sup = np.abs(clean1 - point).max(axis=1)
-    print("%-4d %-10.4f %-12s %-10.6f"
+    nearest = int(sup.argmin())
+    chosen.append(nearest)
+    print("%-4d %-10.4f %-12s %-12.6f %-12.6f %d"
           % (rank, point[1] - point[0],
-             "yes" if point[1] - point[0] > 4 * DELTA else "no", sup.min()))
+             "yes" if point[1] - point[0] > 4 * DELTA else "no",
+             (point[1] - point[0]) / 2, sup.min(), nearest))
 print()
 print("Corollary 3.6 allows d_b up to 2 delta:      %.6f" % (2 * DELTA))
 print("largest of the six distances above:          %.6f"
       % max(float(np.abs(clean1 - noisy1[k]).max(axis=1).min()) for k in order))
+print("the six nearest clean points are distinct:   %s"
+      % ("yes" if len(set(chosen)) == len(chosen) else "no"))
+print("bars whose diagonal cost is within 2 delta:  %d of 6"
+      % sum(1 for k in order if (noisy1[k, 1] - noisy1[k, 0]) / 2 <= 2 * DELTA))
 ```
 
 ```text id=soundness
 clean sample H1, six longest: [1.2963 1.2843 0.5425 0.5175 0.5161 0.5048]
 noisy sample H1, six longest: [1.2965 1.2373 0.5997 0.5238 0.5233 0.495 ]
 
-bar  lifetime   admitted     sup dist to
-                by 4 delta   nearest clean pt
-1    1.2965     yes          0.022348  
-2    1.2373     yes          0.043158  
-3    0.5997     yes          0.048810  
-4    0.5238     no           0.015115  
-5    0.5233     no           0.009466  
-6    0.4950     no           0.019201  
+bar  lifetime   admitted     to diagonal  sup dist to  nearest
+                by 4 delta   (discard it) nearest clean clean pt
+1    1.2965     yes          0.648255     0.022348     99
+2    1.2373     yes          0.618671     0.043158     99
+3    0.5997     yes          0.299873     0.048810     71
+4    0.5238     no           0.261920     0.015115     62
+5    0.5233     no           0.261635     0.009466     62
+6    0.4950     no           0.247477     0.019201     90
 
 Corollary 3.6 allows d_b up to 2 delta:      0.262412
 largest of the six distances above:          0.048810
+the six nearest clean points are distinct:   no
+bars whose diagonal cost is within 2 delta:  3 of 6
 ```
 
 (a) The first row is the mistake Problem 1(c) diagnosed, kept in the table so the
@@ -462,19 +482,38 @@ diagram, and it has six long H₁ bars of its own: 1.2963, 1.2843, 0.5425, 0.517
 0.5161, 0.5048. Each of the six longest noisy bars has a clean point within
 0.0488, against a bound of 2δ = 0.2624 — a factor of five to spare.
 
-Be exact about what that shows. Six independent nearest neighbours are not a
-bijection, so the block does not *verify* the bottleneck bound; it is a
-consistency check that could have refuted it and did not, and the margin says the
-bound is loose here. What it does establish is what the argument needs: these bars
-were not manufactured by the noise, because there is something in the clean
-diagram for each of them to be. All six are real in the only sense the theorem
-knows about, so the rule admitting three is if anything *understating* what the
-theorem would support.
+Be exact about what that shows, because it is less than it looks. Six independent
+nearest neighbours are not a bijection, and in this data they are not even
+**injective**: bars 1 and 2 both choose clean point 99, and bars 4 and 5 both
+choose point 62. The table cannot be promoted into a matching at all. It does not
+*verify* the bottleneck bound; it is a consistency check the bound could have
+refuted and did not, and the margin says the bound is loose here.
 
-And the torus has b₁ = 2. So the four extra bars are features of the **clean 600-point
-sample**, not of the surface it was drawn from: 600 points do not fill a torus, and
-the theorem's guarantee has nothing to say about that, because sampling is not a
-displacement of the points. This is the whole of the answer. The rule is not weak,
+**And it establishes nothing whatever about bars 4, 5 and 6.** The `to diagonal`
+column is what an optimal matching pays to *discard* a bar rather than pair it —
+half its lifetime — and for those three the price is 0.261920, 0.261635 and
+0.247477, every one of them **under 2δ = 0.262412**. A matching of cost 2δ is
+therefore free to send all three to the diagonal, which is exactly to say the
+theorem permits them to be artefacts of the noise. Finding a clean point nearby
+does not forbid it: the theorem quantifies over *some* matching, and this table
+reports the choices of a different procedure that is not one.
+
+So the guarantee covers **bars 1, 2 and 3 and stops there** — precisely the three
+the 4δ rule admits. The rule is not understating the theorem; it is stating it.
+Read the two columns together and you can see why: a bar is admitted exactly when
+discarding it would cost more than 2δ, so **the 4δ rule *is* the diagonal test**,
+written in lifetimes instead of distances. That bars 4 to 6 have close clean
+neighbours is a true observation about this pair of diagrams and carries no
+guarantee at all.
+
+And the torus has b₁ = 2, while the rule admits **three**. One guaranteed bar too
+many is the whole of the argument, and bar 3 is it: the theorem hands it a partner
+in the clean diagram, and the clean sample's own third-longest bar is 0.5425. So
+the extra structure is a feature of the **clean 600-point sample**, not of the
+surface it was drawn from: 600 points do not fill a torus, and the theorem's
+guarantee has nothing to say about that, because sampling is not a displacement of
+the points. Note that the argument now runs entirely on admitted bars — it never
+needed the four it used to claim. This is the whole of the answer. The rule is not weak,
 not misapplied and not approximate; it controls the wrong error. Substituting a
 "sampling scale" for δ would make it bite and would silently convert Corollary 3.6
 into a heuristic wearing its clothes.

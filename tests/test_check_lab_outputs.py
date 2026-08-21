@@ -15,6 +15,7 @@ from scripts.check_lab_outputs import (
     check_versions,
     check_completed,
     check_env_imports,
+    _feature_version,
     compare_outputs,
     compare_runs,
     main,
@@ -523,3 +524,62 @@ def test_a_module_attribute_read_on_the_way_to_rebinding_still_counts():
     failures = check_env_imports(blocks)
     assert len(failures) == 1
     assert "bottleneck from persim" in failures[0]
+
+
+def test_a_name_inherited_from_the_env_block_is_still_checked():
+    """The blocks share a namespace, so a later block need not import at all.
+
+    ``used`` stays empty because no non-env block imports anything, and returning
+    on that alone certified ``np.definitely_missing()`` -- exactly the renamed-API
+    case the analysis exists for.
+    """
+    blocks = parse_blocks(
+        code_block("env", "import numpy as np\nprint('env')") + out_block("env", "env")
+        + code_block("work", "np.definitely_missing()\nprint(1)")
+        + out_block("work", "1"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert "definitely_missing from numpy" in failures[0]
+
+
+def test_a_block_using_newer_syntax_than_the_pin_is_reported():
+    """``type Alias = int`` is 3.12 grammar and the sets pin 3.11."""
+    blocks = parse_blocks(
+        code_block("env", "print('env')") + out_block("env", "env")
+        + code_block("work", "type Alias = int\nprint(1)") + out_block("work", "1"))
+    failures = check_env_imports(blocks, feature_version=(3, 11))
+    assert len(failures) == 1
+    assert "not valid Python" in failures[0]
+
+
+def test_the_same_block_passes_under_the_grammar_that_allows_it():
+    """The control: without the pin the runner's own grammar accepts it."""
+    blocks = parse_blocks(
+        code_block("env", "print('env')") + out_block("env", "env")
+        + code_block("work", "type Alias = int\nprint(1)") + out_block("work", "1"))
+    if sys.version_info < (3, 12):
+        pytest.skip("runner grammar is older than the syntax under test")
+    assert check_env_imports(blocks) == []
+
+
+def test_a_python_pin_the_runner_cannot_parse_for_is_a_note_not_a_traceback():
+    assert _feature_version({"python": "1.2.3"}) is None
+    assert _feature_version({"python": "9.9.9"}) is None
+    assert _feature_version({"python": "not.a.version"}) is None
+    assert _feature_version({}) is None
+    assert _feature_version({"python": "3.11.11"}) == (3, 11)
+
+
+def test_the_repeats_run_under_different_hash_seeds(tmp_path, capsys):
+    """Forcing one seed on every run made hash-ordered output look deterministic.
+
+    The block prints the seed itself, so the two runs disagree exactly when the
+    seeds do -- a control for the varying, not for any set's hash dependence.
+    """
+    text = (code_block("a", "import os\nprint(os.environ['PYTHONHASHSEED'])")
+            + out_block("a", "0"))
+    assert main([write(tmp_path, text), "--python", sys.executable,
+                 "--allow-unpinned"]) == 1
+    out = capsys.readouterr().out
+    assert "is not deterministic" in out
+    assert "run 1: '0'" in out and "run 2: '1'" in out
