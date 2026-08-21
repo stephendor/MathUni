@@ -108,15 +108,35 @@ def test_checking_one_lesson_does_not_accuse_other_entries_of_being_stale(capsys
     assert "STALE" not in out
 
 
-def test_every_listed_unit_still_exists_and_still_fails():
-    """Binds the checked-in list to reality, so it cannot rot between runs."""
+def test_every_listed_unit_still_exists():
+    """Binds the checked-in list to reality, so it cannot rot between runs.
+
+    An empty or absent list is the ratchet's SUCCESS state, not a failure: it
+    means every mission strip has been repaired. The earlier version of this
+    test asserted the list was non-empty and told authors to delete the file
+    once it was — two instructions that could not both be satisfied, and which
+    together made the finished state unreachable in CI.
+    (Codex review of PR #20, second round.)
+    """
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     drift = os.path.join(repo, "curriculum", "mission-drift.txt")
-    listed = sorted(load_known_failing(drift))
-    assert listed, "the drift list is empty — if gate 8 is clean, delete the file"
-    for uid in listed:
+    for uid in sorted(load_known_failing(drift)):
         path = os.path.join(repo, "lessons", uid.rsplit("-", 1)[0], uid + ".html")
         assert os.path.exists(path), "%s is listed but has no lesson" % uid
+
+
+def test_a_deleted_drift_list_is_an_empty_list_not_an_error(tmp_path):
+    """The end state has to be reachable: list emptied, file deleted, CI green.
+    A missing list excuses nothing, so this cannot be used to escape the gate."""
+    assert load_known_failing(str(tmp_path / "gone.txt")) == set()
+
+
+def test_with_no_drift_list_every_lesson_is_held(capsys):
+    """The stricter direction, asserted rather than assumed."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    aa00 = os.path.join(repo, "lessons", "aa", "aa-00.html")
+    assert main(["--known-failing", os.path.join(repo, "no-such-list.txt"), aa00]) == 1
+    assert "KNOWN-FAIL" not in capsys.readouterr().out
 
 
 # --- Codex review of PR #20 ------------------------------------------------
@@ -175,3 +195,38 @@ def test_growth_check_end_to_end_fails_the_run(tmp_path, capsys):
                os.path.join(repo, "lessons", "aa", "aa-00.html")])
     assert rc == 1
     assert "GREW pw-03" in capsys.readouterr().out
+
+
+# --- Codex review of PR #20, second round ----------------------------------
+
+def test_a_prefixed_filename_does_not_borrow_a_unit_id():
+    """End-anchoring alone let `draft-aa-01.html` be treated as unit aa-01 and
+    pass gate 8, while check_id_consistency.py skips a nonconforming stem
+    rather than calling it an orphan — so a stray lesson could clear every
+    integrity check the workflow runs."""
+    assert unit_id_for("lessons/aa/draft-aa-01.html") is None
+    assert unit_id_for("lessons/pw/copy-of-pw-01.html") is None
+    assert unit_id_for(r"lessons\aa\aa-01.html") == "aa-01"
+
+
+def test_every_mission_strip_is_collected_not_just_the_first():
+    """A lesson could keep an exact strip at the top and carry a second,
+    divergent mission claim further down; lesson_lint.py only requires the
+    count to be at least one, so nothing else closed it."""
+    from scripts.mission import strips_of
+    assert strips_of('<p class="mission">one</p><p class="mission">two</p>') \
+        == ["one", "two"]
+
+
+def test_a_second_mission_strip_fails_the_gate(tmp_path, capsys):
+    import yaml
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    with open(os.path.join(repo, "curriculum", "syllabus.yaml"), encoding="utf-8") as f:
+        units = {u["id"]: u for u in yaml.safe_load(f)["units"]}
+    want = units["an-03"]["mission_link"]
+    lesson = tmp_path / "an-03.html"
+    lesson.write_text('<p class="mission">%s</p>'
+                      '<p class="mission">a divergent second claim</p>' % want,
+                      encoding="utf-8")
+    assert main([str(lesson)]) == 1
+    assert "carries 2 mission strips" in capsys.readouterr().out

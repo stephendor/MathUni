@@ -154,3 +154,43 @@ def test_javascript_script_blocks_are_still_checked():
     assert len(script_bodies("<script>var x=1;</script>")) == 1
     assert len(script_bodies('<script type="module">let x = 1;</script>')) == 1
     assert len(script_bodies('<script type="text/javascript">var y=2;</script>')) == 1
+
+
+# --- Codex review of PR #20, second round ----------------------------------
+
+def test_the_optional_end_list_is_complete_not_just_sufficient():
+    """Gate 4 is a hard corpus gate that promises to accept spec-legal
+    omission. An eleven-element list reported three errors on a document that
+    is entirely valid — html, head, body, colgroup, rt and rp were missing."""
+    assert tag_errors("<!doctype html><html><head><title>x</title>"
+                      "<body><p>ok") == []
+    assert tag_errors("<table><colgroup><col><col><tbody><tr><td>a</table>") == []
+    assert tag_errors("<ruby>x<rt>y<rp>)</ruby>") == []
+
+
+def test_html_and_body_are_not_implicitly_closed_by_a_start_tag():
+    """Their end tags may be omitted at EOF, but nothing closes them early.
+    Giving them a close-on-any-start rule made the first <div> of every lesson
+    close <body>, which then made the document's own </body> a surplus tag."""
+    assert tag_errors("<html><body><div>x</div></body></html>") == []
+    assert any("</body> with no matching" in e
+               for e in tag_errors("<html><body>x</body></body></html>"))
+
+
+def test_col_keeps_colgroup_open_but_anything_else_closes_it():
+    assert tag_errors("<table><colgroup><col><col></colgroup></table>") == []
+    assert tag_errors("<table><colgroup><col><tr><td>a</table>") == []
+
+
+def test_a_javascript_type_with_parameters_is_still_checked():
+    """An exact-string type compare skipped a browser-executable block, which
+    is a false PASS for any syntax error inside it. Skipping is the dangerous
+    direction, so the classifier must be the permissive one."""
+    assert len(script_bodies('<script type="text/javascript; charset=utf-8">'
+                             "var x=1;</script>")) == 1
+    assert len(script_bodies('<script type="  TEXT/JavaScript ">x</script>')) == 1
+
+
+def test_a_non_javascript_type_with_parameters_is_still_skipped():
+    assert script_bodies('<script type="application/json; charset=utf-8">'
+                         '{"x":1}</script>') == []

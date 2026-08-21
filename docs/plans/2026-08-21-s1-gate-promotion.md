@@ -268,6 +268,47 @@ still caught, and the stray `</p>` still does not cascade.
 After the fixes: `gate.py --selftest` 36/36, `mission.py --selftest` 17/17,
 pytest 115, gates 4-6 green on 81/81, gate 8 green under the ratchet.
 
+## 7c. Codex review, second round — seven more, all seven real
+
+| # | Finding | Was |
+|---|---|---|
+| P1 | singleton at a range EDGE excluded as SUSPECT | `--folio 66-70` reported "Consistent offset −16", exit 0, across Axler's real −17/−16 boundary |
+| P2 | `git fetch … HEAD~1` is an invalid refspec | the baseline silently went missing on a push to main, and a missing baseline skips the growth check |
+| P2 | optional-end list incomplete | a valid minimal HTML document reported 3 errors |
+| P2 | MIME type compared as a raw string | `text/javascript; charset=utf-8` skipped — a false PASS on any syntax error inside |
+| P2 | only the FIRST mission strip compared | a lesson could keep an exact strip and add a divergent second claim |
+| P2 | unit id not anchored to the basename | `draft-aa-01.html` passed gate 8 as `aa-01` |
+| P2 | ratchet could not reach zero | deleting the emptied list raised `FileNotFoundError` before any comparison |
+
+**The P1 is the one that matters, and it inverts a claim in §4.1.** That section
+says a lone disagreeing page is reported SUSPECT "rather than as a pagination
+change", and cites the index-reference case. The rule as written was "any
+plateau of one page", which is not the same thing: a singleton at the *first or
+last* row of the range has evidence on one side only, so it cannot be shown to
+disagree with both. Asking `--folio 66-70` — a range chosen to straddle the
+documented 66/67 transition — returned `Consistent offset −16`, exit 0. **A
+false "consistent" across a real boundary is the exact Ghrist failure this
+subcommand was built to prevent**, reintroduced by the noise filter meant to
+make it trustworthy. A singleton is now suspect only when it is interior *and*
+the plateaus either side agree with each other, and the same rule decides both
+the row labels and the verdict — they were two rules, and the verdict's copy
+was the wrong one.
+
+**Two of the others are the ratchet again.** The growth check landed in §7b and
+was then unreachable in CI on a push to main, because `git fetch --depth=2
+origin HEAD~1` treats `HEAD~1` as a refspec and dies; the failure was swallowed,
+and mission.py skips the check when the baseline is absent. Checkout now uses
+`fetch-depth: 0`, the base is `pull_request.base.sha` or `github.event.before`,
+and **failing to resolve it is now a hard failure** — only "the base commit
+exists and has no list" may skip. Separately, the ratchet could not reach its
+own success state: the test told authors to delete the list once empty, and
+`load_known_failing` then raised before comparing a single lesson. A missing
+list is now an empty list, which excuses nothing and so cannot be used to
+escape the gate.
+
+After this round: `gate.py --selftest` 43/43, `mission.py --selftest` 22/22,
+pytest 200, gates 4-6 green on 90/90, gate 8 75 PASS + 15 KNOWN-FAIL.
+
 ## 8. Open decisions
 
 - **D-1.** F-1 above: repair the eleven lessons, or change the syllabus strips?

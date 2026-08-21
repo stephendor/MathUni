@@ -46,8 +46,16 @@ VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link",
 # the stack, in order: omission is not the same as being unordered, and a
 # SURPLUS end tag for one of them is still malformed. aa-00 and aa-01 each
 # shipped one of those.
-OPTIONAL_END = {"p", "li", "dt", "dd", "option", "thead", "tbody", "tfoot",
-                "tr", "td", "th"}
+#
+# The list must be COMPLETE, not merely long enough for this corpus. Gate 4 is
+# a hard gate that promises to accept spec-legal omission, and an earlier
+# eleven-element version reported three errors on
+# `<!doctype html><html><head><title>x</title><body><p>ok` — a document that is
+# entirely valid. html, head, body, colgroup, rt and rp were missing.
+# (Codex review of PR #20, second round.)
+OPTIONAL_END = {"html", "head", "body", "p", "li", "dt", "dd", "option",
+                "optgroup", "colgroup", "caption", "thead", "tbody", "tfoot",
+                "tr", "td", "th", "rt", "rp"}
 
 # A start tag that implicitly closes an open <p>.
 BLOCK = {"address", "article", "aside", "blockquote", "details", "div", "dl",
@@ -56,7 +64,16 @@ BLOCK = {"address", "article", "aside", "blockquote", "details", "div", "dl",
          "pre", "section", "table", "ul"}
 
 # Which start tags implicitly close which open optional-end element.
+# ANY marks an element closed by any following start tag — <colgroup> ends at
+# the first non-<col>, <head> at <body>, and so on.
+#
+# html and body are deliberately ABSENT: their end tags may be omitted at the
+# end of the document, but no start tag implicitly closes them. Giving them ANY
+# made the first <div> of every lesson close <body>, which then made the
+# document's own </body> a surplus end tag — three controls caught it.
+ANY = object()
 CLOSED_BY = {
+    "head": {"body"},
     "p": BLOCK,
     "li": {"li"},
     "dt": {"dt", "dd"},
@@ -64,11 +81,18 @@ CLOSED_BY = {
     "td": {"td", "th", "tr", "thead", "tbody", "tfoot"},
     "th": {"td", "th", "tr", "thead", "tbody", "tfoot"},
     "tr": {"tr", "thead", "tbody", "tfoot"},
+    "caption": {"colgroup", "thead", "tbody", "tfoot", "tr"},
+    "colgroup": ANY,          # ends at the first start tag that is not <col>
     "option": {"option", "optgroup"},
+    "optgroup": {"optgroup"},
     "thead": {"tbody", "tfoot"},
     "tbody": {"tbody", "tfoot"},
     "tfoot": {"tbody", "thead"},
+    "rt": {"rt", "rp"},
+    "rp": {"rt", "rp"},
 }
+# <colgroup> is the one ANY element with an exception: <col> belongs inside it.
+KEEPS_OPEN = {"colgroup": {"col"}}
 
 # Inside <svg> and <math> the content is foreign (XML), where <circle/> really
 # is self-closing. Everywhere else HTML ignores the slash on a non-void element
@@ -94,8 +118,16 @@ EXTERNAL = re.compile(
 
 # node --check is for JavaScript. A <script type="application/json"> body is
 # data, and feeding it to a JS parser fails a valid offline lesson.
+#
+# Compared on the MIME *essence* — lowercased, parameters stripped — not on the
+# raw attribute. `type="text/javascript; charset=utf-8"` is browser-executable
+# and an exact-string compare classified it as non-JavaScript and skipped it,
+# which is a false PASS for any syntax error inside. Skipping is the dangerous
+# direction here, so the classifier has to be the permissive one.
+# (Codex review of PR #20, second round.)
 JS_TYPES = {"", "module", "text/javascript", "application/javascript",
-            "text/ecmascript", "application/ecmascript", "text/jsx"}
+            "text/ecmascript", "application/ecmascript", "application/x-javascript",
+            "text/jsx", "text/babel"}
 SCRIPT_TAG = re.compile(r"<script\b([^>]*)>(.*?)</script>", re.I | re.S)
 TYPE_ATTR = re.compile(r"""\btype\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))""", re.I)
 
@@ -127,10 +159,15 @@ class Balance(HTMLParser):
         """Pop open optional-end elements that this start tag terminates."""
         while self.stack:
             top = self.stack[-1][0]
-            if top in OPTIONAL_END and starting in CLOSED_BY.get(top, ()):
-                self.stack.pop()
-            else:
+            if top not in OPTIONAL_END:
                 return
+            rule = CLOSED_BY.get(top, ())
+            if rule is ANY:
+                if starting in KEEPS_OPEN.get(top, ()):
+                    return
+            elif starting not in rule:
+                return
+            self.stack.pop()
 
     def handle_starttag(self, tag, attrs):
         if tag in VOID:
@@ -195,17 +232,25 @@ def external_hits(html):
     return hits
 
 
+def mime_essence(value):
+    """Lowercased MIME type with parameters and surrounding space removed.
+
+    "text/javascript; charset=utf-8" -> "text/javascript".
+    """
+    return value.split(";", 1)[0].strip().lower()
+
+
 def script_blocks(html):
-    """[(type, body)] for every non-empty <script>, type lowercased."""
+    """[(essence, body)] for every non-empty <script>."""
     out = []
     for m in SCRIPT_TAG.finditer(html):
         if not m.group(2).strip():
             continue
         t = TYPE_ATTR.search(m.group(1))
-        kind = ""
+        raw = ""
         if t:
-            kind = (t.group(1) or t.group(2) or t.group(3) or "").strip().lower()
-        out.append((kind, m.group(2)))
+            raw = t.group(1) or t.group(2) or t.group(3) or ""
+        out.append((mime_essence(raw), m.group(2)))
     return out
 
 
@@ -330,6 +375,18 @@ def selftest():
     check_one("...and a <div/> after the svg closes is still caught",
               any("does not self-close" in e
                   for e in tag_errors("<svg><circle/></svg><div/>")))
+    # Codex round 2: the optional-end list has to be COMPLETE, not just long
+    # enough for this corpus — gate 4 promises to accept spec-legal omission.
+    check_one("a valid minimal document with html/head/body omitted is clean",
+              tag_errors("<!doctype html><html><head><title>x</title>"
+                         "<body><p>ok") == [])
+    check_one("an omitted </colgroup> is clean, and <col> keeps it open",
+              tag_errors("<table><colgroup><col><col><tbody><tr><td>a</table>") == [])
+    check_one("omitted </rt> and </rp> in ruby are clean",
+              tag_errors("<ruby>x<rt>y<rp>)</ruby>") == [])
+    check_one("a surplus </body> is still an error",
+              any("</body> with no matching" in e
+                  for e in tag_errors("<html><body>x</body></body></html>")))
 
     # -- gate 5: offline ---------------------------------------------------
     check_one("clean lesson requests nothing external", not external_hits(clean))
@@ -366,6 +423,16 @@ def selftest():
               len(script_bodies('<script type="module">let x = 1;</script>')) == 1)
     check_one("an untyped script is JavaScript and IS checked",
               len(script_bodies("<script>var x=1;</script>")) == 1)
+    # Codex round 2: an exact-string type compare skipped a browser-executable
+    # block, which is a false PASS for any syntax error inside it.
+    check_one("a JS type carrying parameters is still checked",
+              len(script_bodies('<script type="text/javascript; charset=utf-8">'
+                                "var x=1;</script>")) == 1)
+    check_one("type matching ignores case and surrounding space",
+              len(script_bodies('<script type="  TEXT/JavaScript ">x</script>')) == 1)
+    check_one("a JSON type with parameters is still skipped",
+              script_bodies('<script type="application/json; charset=utf-8">'
+                            '{"x":1}</script>') == [])
     if shutil.which("node"):
         good, _ = script_errors(["var x = 1;"])
         bad, n = script_errors(["var x = ;;)"])

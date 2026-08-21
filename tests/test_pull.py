@@ -135,3 +135,40 @@ def test_genuine_drift_still_has_two_distinct_offsets():
     rows, plateaus = fit_offsets(pages)
     real = [p for p in plateaus if p[3] > 1]
     assert {p[0] for p in real} == {-17, -16}
+
+
+# --- Codex review of PR #20, second round ----------------------------------
+
+def test_a_singleton_at_the_range_edge_is_not_suspect():
+    """A singleton is suspect only when it is INTERIOR and both sides agree —
+    that is what "disagrees with both neighbours" requires. At the first or
+    last row there is evidence on one side only. Excluding it anyway made
+    `--folio 66-70` report "Consistent offset -16", exit 0, straight across
+    Axler's real -17/-16 transition at 66/67."""
+    from scripts.pull import suspect_plateaus
+    pages = _pages([(66, [(49, "head")])]
+                   + [(n, [(n - 16, "head")]) for n in (67, 68, 69, 70)])
+    rows, plateaus = fit_offsets(pages)
+    assert suspect_plateaus(plateaus) == []
+    real = [p for p in plateaus if p not in suspect_plateaus(plateaus)]
+    assert {p[0] for p in real} == {-17, -16}
+
+
+def test_an_interior_singleton_between_agreeing_sides_is_still_suspect():
+    from scripts.pull import suspect_plateaus
+    pages = _pages([(n, [(n - 15, "head")]) for n in (250, 252, 254)]
+                   + [(256, [(8, "head")])]
+                   + [(n, [(n - 15, "head")]) for n in (258, 260)])
+    rows, plateaus = fit_offsets(pages)
+    assert [p[1] for p in suspect_plateaus(plateaus)] == [256]
+    assert [r[4] for r in rows if r[0] == 256] == ["SUSPECT"]
+
+
+def test_an_interior_singleton_between_DISAGREEING_sides_is_not_suspect():
+    """Two real transitions in a row is drift, not a stray reading."""
+    from scripts.pull import suspect_plateaus
+    pages = _pages([(n, [(n - 17, "head")]) for n in (60, 61)]
+                   + [(62, [(62 - 16, "head")])]
+                   + [(n, [(n - 15, "head")]) for n in (63, 64)])
+    rows, plateaus = fit_offsets(pages)
+    assert suspect_plateaus(plateaus) == []

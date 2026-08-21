@@ -55,7 +55,12 @@ for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console (cf. srs/schedul
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SYLLABUS = os.path.join(REPO, "curriculum", "syllabus.yaml")
 
-UNIT_ID = re.compile(r"([a-z]+\d*-\d+)\.html$")
+# Anchored to the WHOLE basename. End-anchoring alone let `draft-aa-01.html`
+# and `copy-of-pw-01.html` be treated as units aa-01 and pw-01 and pass gate 8,
+# while check_id_consistency.py skips a nonconforming stem rather than calling
+# it an orphan — so a stray extra lesson could clear every integrity check the
+# workflow runs. (Codex review of PR #20, second round.)
+UNIT_ID = re.compile(r"^([a-z]+\d*-\d+)\.html$")
 MISSION_P = re.compile(r'<p class="mission">(.*?)</p>', re.S)
 PREFIX = re.compile(r"^Why this matters for the mission:\s*")
 
@@ -75,19 +80,35 @@ def unit_id_for(path):
     """Unit id from the lesson filename, or None. Never raises — a filename
     that does not name a unit is a usage error with a message, not a traceback
     that a caller could mistake for a verdict."""
-    m = UNIT_ID.search(path.replace("\\", "/"))
+    m = UNIT_ID.match(os.path.basename(path.replace("\\", "/")))
     return m.group(1) if m else None
 
 
+def strips_of(doc):
+    """EVERY mission strip in the lesson, cleaned and normalised.
+
+    All of them, not the first. Comparing only the first let a lesson keep an
+    exact strip at the top and carry a second, divergent mission claim further
+    down while gate 8 exited 0 — and lesson_lint.py only requires the count to
+    be at least one, so nothing else closed it. A duplicated section is the
+    obvious way to end up in that state by accident.
+    (Codex review of PR #20, second round.)
+    """
+    out = []
+    for m in MISSION_P.finditer(doc):
+        text = html_mod.unescape(re.sub(r"<[^>]+>", "", m.group(1)))
+        out.append(normalise(PREFIX.sub("", text.strip())))
+    return out
+
+
 def strip_of(doc):
-    """The lesson's mission strip, tags removed, prefix removed, normalised.
-    None means the lesson has no `<p class="mission">` at all — a different
-    finding from a strip that is present and wrong, and reported as such."""
-    m = MISSION_P.search(doc)
-    if not m:
-        return None
-    text = html_mod.unescape(re.sub(r"<[^>]+>", "", m.group(1)))
-    return normalise(PREFIX.sub("", text.strip()))
+    """The lesson's single mission strip, or None if it has none.
+
+    Raises nothing on a duplicate — check() reports that as its own finding,
+    since "two strips" and "one wrong strip" are different defects.
+    """
+    strips = strips_of(doc)
+    return strips[0] if strips else None
 
 
 def lesson_path(uid):
@@ -117,7 +138,8 @@ def check(path, units):
     want = normalise(units[uid]["mission_link"])
     try:
         with open(path, encoding="utf-8") as f:
-            got = strip_of(f.read())
+            strips = strips_of(f.read())
+        got = strips[0] if strips else None
     except OSError as e:
         # A missing or unreadable file is NOT a verdict. Letting OSError escape
         # gave a traceback and process exit 1 — the code this script reserves
@@ -137,6 +159,16 @@ def check(path, units):
         print("FAIL %s mission strip verbatim" % uid)
         print("  want: %r" % want)
         print("  got : %r" % got)
+        return 1
+    if len(strips) > 1:
+        # The first strip is exact, and there is another one. A second strip is
+        # a second claim on behalf of the curriculum, and the gate exists to
+        # stop exactly that being made unchecked.
+        print("FAIL %s mission strip verbatim" % uid)
+        print("  the lesson carries %d mission strips; there must be one."
+              % len(strips))
+        for i, s in enumerate(strips[1:], 2):
+            print("  strip %d: %r" % (i, s))
         return 1
     print("PASS %s mission strip verbatim" % uid)
     return 0
@@ -162,6 +194,13 @@ def selftest():
               unit_id_for(r"lessons\aa\aa-01.html") == "aa-01")
     check_one("a module with digits in its name is parsed (an2, tda1, at2)",
               unit_id_for("lessons/tda1/tda1-09.html") == "tda1-09")
+    # Codex round 2: end-anchoring alone let a stray file borrow a unit id.
+    check_one("a prefixed filename is NOT read as a unit id",
+              unit_id_for("lessons/aa/draft-aa-01.html") is None)
+    check_one("...nor is a copy",
+              unit_id_for("lessons/pw/copy-of-pw-01.html") is None)
+    check_one("a real lesson path still parses after anchoring",
+              unit_id_for("lessons/aa/aa-01.html") == "aa-01")
 
     body = '<p class="mission">Why this matters for the mission: %s</p>'
     check_one("the prefix is stripped",
@@ -176,6 +215,13 @@ def selftest():
               strip_of('<p class="mission">one\n   two</p>') == "one two")
     check_one("a lesson with no mission strip yields None, distinctly from ''",
               strip_of("<p>no strip here</p>") is None)
+    # Codex round 2: comparing only the FIRST strip let a lesson keep an exact
+    # one at the top and a divergent second claim further down.
+    check_one("every mission strip is collected, not just the first",
+              strips_of('<p class="mission">one</p><p class="mission">two</p>')
+              == ["one", "two"])
+    check_one("a single strip still yields exactly one",
+              strips_of('<p class="mission">only</p>') == ["only"])
 
     # The watched failure the S2 plan built by hand: a shipped strip with four
     # words appended must be reported as a mismatch, not tolerated.
@@ -215,8 +261,18 @@ def selftest():
 
 
 def load_known_failing(path):
-    """Unit ids excused from failing, one per line; '#' starts a comment."""
+    """Unit ids excused from failing, one per line; '#' starts a comment.
+
+    A missing file is an EMPTY list, not an error. The ratchet's whole purpose
+    is to reach zero, and the intended end state — every drift repaired, the
+    file deleted — used to raise FileNotFoundError before a single lesson was
+    compared, so the finished state could not pass CI. A list that is absent
+    excuses nothing, which makes the gate strictly stricter; there is no way to
+    escape the ratchet by deleting it. (Codex review of PR #20, second round.)
+    """
     ids = set()
+    if not os.path.exists(path):
+        return ids
     with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.split("#", 1)[0].strip()

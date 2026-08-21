@@ -159,10 +159,44 @@ def fit_offsets(pages):
         else:
             plateaus.append([off, n, n, 1])
 
-    lone = {p[0] for p in plateaus if p[3] == 1}
-    rows = [(n, f, w, o, "SUSPECT" if o in lone and status != "NO FOLIO" else status)
+    # A singleton plateau is SUSPECT only when it is INTERIOR and the plateaus
+    # on either side of it agree with each other — that is what "disagrees with
+    # both neighbours" actually requires, and a chapter number or an index
+    # page-reference is exactly that shape.
+    #
+    # A singleton at the FIRST or LAST position has evidence on one side only,
+    # so it cannot be shown to disagree with both. Excluding it anyway is how
+    # `--folio 66-70` came to report "Consistent offset -16, exit 0" across
+    # Axler's documented -17/-16 transition at 66/67: the last page of the -17
+    # run was the range's first row, got called suspect, and the verdict lost
+    # the boundary it was asked about. A false "consistent" over a real
+    # transition is the Ghrist failure this whole subcommand exists to prevent.
+    # (Codex review of PR #20, second round.)
+    #
+    # Suspects are also identified by POSITION, not by offset value: keying on
+    # the offset marked every row sharing that number, including rows in a
+    # substantial plateau elsewhere in the range.
+    suspect_spans = [(p[1], p[2]) for p in suspect_plateaus(plateaus)]
+    rows = [(n, f, w, o,
+             "SUSPECT" if status != "NO FOLIO"
+             and any(a <= n <= b for a, b in suspect_spans) else status)
             for n, f, w, o, status in rows]
     return rows, [tuple(p) for p in plateaus]
+
+
+def suspect_plateaus(plateaus):
+    """The plateaus that are a stray reading rather than a pagination change.
+
+    One rule, used both to label rows and to decide the verdict — they were
+    two rules once, and the verdict's version ("any plateau of one page")
+    silently discarded a real boundary.
+    """
+    out = []
+    for i, p in enumerate(plateaus):
+        interior = 0 < i < len(plateaus) - 1
+        if p[3] == 1 and interior and plateaus[i - 1][0] == plateaus[i + 1][0]:
+            out.append(p)
+    return out
 
 
 def parse_range(spec):
@@ -233,7 +267,11 @@ def cmd_folio(d, book, spec):
                   % (n, folio, off, where, "  <- offset changes here"
                      if status == "NEW" and n != rows[0][0] else ""))
 
-    real = [p for p in plateaus if p[3] > 1]
+    # A plateau counts toward the verdict unless it is a stray reading.
+    # Counting only plateaus longer than one page discarded a genuine
+    # boundary whenever the range began or ended on one.
+    suspect = suspect_plateaus(plateaus)
+    real = [p for p in plateaus if p not in suspect]
     nofolio = [n for n, f, _, _, _ in rows if f is None and n not in absent]
     if absent:
         print("\n%d of %d page(s) in %d-%d were NOT EXTRACTED: %s"
@@ -252,7 +290,7 @@ def cmd_folio(d, book, spec):
     # CONSTANT" over a range with one offset in it — crying drift on exactly
     # the case SUSPECT exists to absorb. (Codex review of PR #20.)
     distinct = sorted({p[0] for p in real})
-    suspect = [n for n, f, _, _, s in rows if s == "SUSPECT"]
+    suspect_pages = [n for n, f, _, _, s in rows if s == "SUSPECT"]
     if len(distinct) <= 1:
         off = distinct[0] if distinct else plateaus[0][0]
         print("\nConsistent offset %+d across %d page(s) with a folio."
@@ -260,9 +298,9 @@ def cmd_folio(d, book, spec):
         if nofolio:
             print("%d page(s) carried no folio and were excluded: %s"
                   % (len(nofolio), " ".join(str(m) for m in nofolio)))
-        if suspect:
+        if suspect_pages:
             print("%d page(s) SUSPECT and excluded: %s"
-                  % (len(suspect), " ".join(str(m) for m in suspect)))
+                  % (len(suspect_pages), " ".join(str(m) for m in suspect_pages)))
         print("A local run establishes the offset; check a distant chapter "
               "before relying on it.")
         return 0
