@@ -205,13 +205,19 @@ survives noise δ if L &gt; 4δ". In landscape terms?</p>
 <button onclick="check(this,false)">The layer index k is less than 4δ</button>
 <button onclick="check(this,false)">The landscape's support has width greater than 4δ</button>
 <div class="explain">Peak height above 2δ. A bar of lifetime L peaks at L/2, so
-L &gt; 4δ is exactly peak &gt; 2δ. The gain is not arithmetic — it is that the
-threshold becomes <em>one horizontal line</em> and the surviving features are the
-layers that cross it, readable at a glance, where the barcode form required a
-bar-by-bar comparison. The fourth option is the near-miss: the tent's support does
-have width L, so "support wider than 4δ" is the same condition for a single tent —
-but layers are envelopes, not tents, and once the bars are not nested a layer's
-support is not any one bar's lifetime, while the peak-height reading survives.</div>
+L &gt; 4δ is exactly peak &gt; 2δ, and the threshold becomes <em>one horizontal
+line</em>. The gain is that the test turns into a statement about a function —
+something is guaranteed exactly when ‖λ<sub>D</sub>‖<sub>∞</sub> &gt; 2δ — which
+is an inequality in the vector space, where the barcode form was a bar-by-bar
+pass. What you must <em>not</em> read off the picture is the count: the number of
+layers crossing the line is the largest number of qualifying tents positive at one
+common parameter, not the number of qualifying bars. For D = {(0,1), (10,11)} both
+bars pass whenever 2δ &lt; 0.5, and only one layer ever crosses. The two counts
+agree under nesting and not otherwise. The fourth option is the near-miss: the
+tent's support does have width L, so "support wider than 4δ" is the same condition
+for a single tent — but layers are envelopes, not tents, and once the bars are not
+nested a layer's support is not any one bar's lifetime, while the peak-height
+reading survives.</div>
 </div>
 
 <div class="worked fade">

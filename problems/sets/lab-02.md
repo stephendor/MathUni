@@ -324,10 +324,14 @@ rng = np.random.default_rng(7)
 S = rng.uniform(0, 1, (12, 2))
 D = np.linalg.norm(S[:, None, :] - S[None, :, :], axis=2)
 
-print("%-6s %-10s %-10s %-22s %s" % ("r", "|Cech(r)|", "|Rips(r)|", "Cech(r) not in Rips(r)", "Rips(r) not in Cech(sqrt2 r)"))
+# Split by dimension. The totals on their own cannot distinguish "the two
+# definitions agreed" from "the two definitions could not have disagreed", and
+# Problem 2(c) turns on exactly that distinction.
+print("%-6s %-5s %-10s %-10s %-22s %s" % ("r", "dim", "|Cech(r)|", "|Rips(r)|", "Cech(r) not in Rips(r)", "Rips(r) not in Cech(sqrt2 r)"))
 for r in (0.15, 0.25, 0.35):
-    n_cech = n_rips = left = right = 0
+    totals = [0, 0, 0, 0]
     for k in (2, 3):
+        n_cech = n_rips = left = right = 0
         for idx in itertools.combinations(range(12), k):
             P = S[list(idx)]
             diam = max(D[i, j] for i, j in itertools.combinations(idx, 2))
@@ -340,19 +344,28 @@ for r in (0.15, 0.25, 0.35):
                 left += 1
             if in_rips and not radius <= np.sqrt(2) * r:
                 right += 1
-    print("%-6.2f %-10d %-10d %-22d %d" % (r, n_cech, n_rips, left, right))
+        totals = [a + b for a, b in zip(totals, (n_cech, n_rips, left, right))]
+        print("%-6.2f %-5d %-10d %-10d %-22d %d" % (r, k - 1, n_cech, n_rips, left, right))
+    print("%-6.2f %-5s %-10d %-10d %-22d %d" % (r, "all", totals[0], totals[1], totals[2], totals[3]))
 ```
 
 ```text id=sandwich
-r      |Cech(r)|  |Rips(r)|  Cech(r) not in Rips(r) Rips(r) not in Cech(sqrt2 r)
-0.15   9          9          0                      0
-0.25   45         45         0                      0
-0.35   135        139        0                      0
+r      dim   |Cech(r)|  |Rips(r)|  Cech(r) not in Rips(r) Rips(r) not in Cech(sqrt2 r)
+0.15   1     8          8          0                      0
+0.15   2     1          1          0                      0
+0.15   all   9          9          0                      0
+0.25   1     27         27         0                      0
+0.25   2     18         18         0                      0
+0.25   all   45         45         0                      0
+0.35   1     48         48         0                      0
+0.35   2     87         91         0                      0
+0.35   all   135        139        0                      0
 ```
 
-(c) At r = 0.15 and r = 0.25 the two counts are equal; at r = 0.35 they differ by
-four. Say what those four simplices are, and why the counts had to agree at the
-smaller radii — the reason is about dimension, not about luck.
+(c) At r = 0.15 and r = 0.25 the two complexes agree; at r = 0.35 they differ by
+four. Say what those four simplices are. Then account for the agreement at the
+smaller radii — and read the dimension rows before you do, because they rule out
+one of the two explanations you are likely to reach for.
 
 (d) The check reports zero violations in both directions at all three radii. Say
 what that is and is not evidence for. In particular: the right-hand column tests
@@ -366,7 +379,7 @@ why no constant smaller than some threshold can work.
 
 <details><summary>Nudge</summary>
 For (a): an obtuse triangle.
-For (c): at those radii, which dimensions of simplex are present at all?
+For (c): before assuming the smaller radii are edges only, count their triangles.
 </details>
 <details><summary>Partial</summary>
 (a) For an **obtuse** triangle the circumcentre lies outside the triangle and the
@@ -376,11 +389,21 @@ overstate the Čech filtration value and put simplices into Čech(r) later than
 they belong. The order is a correctness requirement.
 
 (c) The four are 2-simplices — triples whose diameter is at most 0.7 but whose
-smallest enclosing ball has radius above 0.35. At r = 0.15 and 0.25 the counts
-agree because on 1-simplices the two definitions **coincide**: the smallest ball
-enclosing two points has radius exactly half their distance, so diam ≤ 2r and
-radius ≤ r are the same condition. The complexes can only differ once
-2-simplices appear, which is Problem 1(b)(ii) again.
+smallest enclosing ball has radius above 0.35.
+
+The agreement at the smaller radii is **not** forced by dimension, and the
+dimension rows are what show it. On 1-simplices the two definitions genuinely do
+**coincide** — the smallest ball enclosing two points has radius exactly half
+their distance, so diam ≤ 2r and radius ≤ r are the same condition, and the edge
+rows are therefore obliged to match at every radius, r = 0.35 included. But
+neither complex is edges only: r = 0.15 already carries 1 triangle and r = 0.25
+carries 18. Both radii were free to disagree and did not. What is true is a fact
+about *this draw of twelve points* — every Rips triangle at those radii also
+passes the Čech test, and at r = 0.35 four of the 91 stop doing so.
+
+Dimension explains the edge rows. Geometry and the sample explain the triangle
+rows, and the totals alone cannot tell the two apart — which is why the table
+needed a dimension column before this question could be answered honestly.
 
 (d) It is evidence about **the code**, not about the mathematics — the same
 answer as lab-01 Problem 1(c), and worth having for the same reason. The

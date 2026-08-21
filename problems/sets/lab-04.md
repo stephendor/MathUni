@@ -422,8 +422,9 @@ its place — naming a theorem and a page.
 (b) "Made visible" is doing more work than it looks. The barcode and the
 persistence diagram are two pictures of the same list of intervals: a bar
 `[b, d)` becomes a point `(b, d)` above the diagonal. Say what each picture makes
-easy to see that the other does not, and name the specific downstream operation —
-it arrives in lab-05 — that requires the diagram rather than the barcode.
+easy to see that the other does not. Then take the operation this points at — it
+arrives in lab-05 — and decide whether it *requires* the diagram or merely reads
+better on it. Write the operation out in barcode terms before you answer.
 
 (c) "The mission's central object." Test the claim. lab-01 established that the
 data has no topology and lab-03 that the reduction supplies no threshold. Say
@@ -443,10 +444,22 @@ existence comes from, and why that is reassuring rather than a gap.
 
 (b) The **barcode** makes lifetimes easy to compare — they are lengths, read off
 against one axis, which is how lab-01's ratio of 98.1 was visible at a glance.
-The **diagram** makes *distance between two summaries* easy to define, because
-points can be matched to points and to the diagonal. The downstream operation is
-the **bottleneck distance**, lab-05, which is a matching problem between two
-diagrams and has no natural formulation on barcodes.
+The **diagram** makes *distance between two summaries* easy to picture, because
+the features are points and the thing an unmatched feature is sent to — the
+diagonal — is a set of points in the same plane.
+
+The operation is the **bottleneck distance** of lab-05, and the honest answer is
+that it does **not** require the diagram. The correspondence between bars and
+points is a bijection, so the definition carries over intact: match bar `[b, d)`
+to bar `[b′, d′)` at cost max(|b − b′|, |d − d′|), and let an unmatched bar of
+lifetime L cost L/2, which is exactly what the distance from `(b, d)` to the
+diagonal computes. Nothing is lost and nothing becomes harder to compute.
+
+That is the point worth taking from the strip. Two pictures of the same list of
+intervals **cannot** differ in what is derivable from them — they can only differ
+in what a reader sees without working for it. "Made visible" is precise language,
+and it is a claim about the reader, not about the mathematics. Treating a change
+of picture as a change of capability is the error the phrase invites.
 
 (c) What is left is being the object that everything downstream is a function of:
 vectorisation in lab-06, features in lab-07, and any statement relating two

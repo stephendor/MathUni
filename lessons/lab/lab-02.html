@@ -243,17 +243,32 @@ side.</span>
 <p>With the immediate containment Čech(r) ⊆ Rips(r), that sandwiches one complex
 between two copies of the other. Checked on twelve random points:</p>
 
-<pre>r      |Cech(r)|  |Rips(r)|  Cech(r) not in Rips(r) Rips(r) not in Cech(sqrt2 r)
-0.15   9          9          0                      0
-0.25   45         45         0                      0
-0.35   135        139        0                      0</pre>
+<pre>r      dim   |Cech(r)|  |Rips(r)|  Cech(r) not in Rips(r) Rips(r) not in Cech(sqrt2 r)
+0.15   1     8          8          0                      0
+0.15   2     1          1          0                      0
+0.15   all   9          9          0                      0
+0.25   1     27         27         0                      0
+0.25   2     18         18         0                      0
+0.25   all   45         45         0                      0
+0.35   1     48         48         0                      0
+0.35   2     87         91         0                      0
+0.35   all   135        139        0                      0</pre>
 
-<p>The counts agree at 0.15 and 0.25 and differ by four at 0.35. That is not
-luck: on <strong>1-simplices the two definitions coincide</strong>, since the
-smallest ball around two points has radius exactly half their distance. The
-complexes can only diverge once 2-simplices appear, and the four extra simplices
-at r = 0.35 are triples of diameter at most 0.7 whose smallest enclosing ball
-exceeds 0.35 — Segment 1's triangle, four times over.</p>
+<p>The totals agree at 0.15 and 0.25 and differ by four at 0.35. Half of that is
+forced and half of it is luck, and the dimension rows are there to keep the two
+apart. Forced: on <strong>1-simplices the two definitions coincide</strong>, since
+the smallest ball around two points has radius exactly half their distance — so
+the edge rows match at <em>every</em> radius, 0.35 included. Not forced: the
+smaller radii are not edges only. There is already 1 triangle at r = 0.15 and
+there are 18 at r = 0.25, every one of which happens to satisfy the Čech test as
+well as the Rips one. The complexes were free to diverge at both radii and did
+not.</p>
+
+<p>At r = 0.35 four of the 91 Rips triangles stop passing it: triples of diameter
+at most 0.7 whose smallest enclosing ball exceeds 0.35 — Segment 1's triangle,
+four times over. Nothing about dimension predicts that it happens between 0.25
+and 0.35 rather than earlier. That is a fact about where these twelve points
+landed.</p>
 
 <div class="worked">
 <strong>Worked — what a green column is worth.</strong>

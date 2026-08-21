@@ -249,7 +249,9 @@ bars here are nested, which is not general.)
 (b) Connect the y-axis to lab-05. lab-05's threshold was: a bar of lifetime L
 survives noise of size δ if L > 4δ. Rewrite that as a statement about the
 landscape's peak heights, and say what the rewritten form makes visible that the
-barcode form did not.
+barcode form did not. Then decide one thing carefully: can the *number* of bars
+passing the test be read off the picture? Check whatever you answer against the
+disjoint diagram from part (a).
 
 (c) **Claim 13.1** (printed 392) says that from λ_D one can uniquely recover D — the
 map is injective and lossless. Immediately afterwards Dey and Wang observe that "a
@@ -269,11 +271,26 @@ D = {(0,1), (10,11)} has two bars, but λ_D(2, ·) ≡ 0 because no t lies insid
 both, so layer 1 has peak 0 while half the second lifetime is 0.5.
 
 (b) A bar of lifetime L contributes a tent of peak L/2, so "L > 4δ" is
-"**peak height > 2δ**". What that makes visible is that the threshold is a
-horizontal line drawn across the landscape: everything above the line at height 2δ
-is guaranteed, everything below it is not, and you can see at a glance how many
-layers cross it. In the barcode the same test is a comparison you must perform bar
-by bar.
+"**peak height > 2δ**" — a single horizontal line drawn across the landscape at
+height 2δ.
+
+What that buys is that the test becomes a statement about a *function* rather than
+a pass over a list. Some bar is guaranteed exactly when ‖λ_D‖_∞ > 2δ, and that is
+an inequality in the vector space Problem 3 works in — available to the arithmetic
+that Problem 1 showed diagram space cannot support.
+
+What it does **not** buy is the **count**, and this is the tempting misreading.
+The number of layers crossing the line is not the number of qualifying bars: it is
+the largest number of qualifying tents that are simultaneously positive at some
+*common* parameter value — an overlap statistic, and only ever a lower bound on
+the count. Part (a)'s diagram is the counterexample already in hand.
+D = {(0,1), (10,11)} has two bars of equal lifetime, so for any 2δ < 0.5 both pass
+the test, while λ_D(2, ·) ≡ 0 and exactly one layer ever crosses the line.
+
+The two numbers agree under **nesting**, which is the same hypothesis (a) needed
+and for the same reason: nesting is what makes layer k the k-th bar's tent. Off
+that hypothesis the landscape answers "is anything guaranteed" and the barcode is
+still where you go to answer "how many".
 
 (c) It buys **arithmetic** — a linear space where means, variances, inner products
 and every machine-learning primitive are defined, which Problem 1 shows diagram

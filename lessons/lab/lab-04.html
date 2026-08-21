@@ -205,18 +205,23 @@ the bottleneck matching has to pair up each copy separately.</p>
 <p><strong>Self-check 2.</strong> Barcode or diagram — which does the module
 actually need, and for what?</p>
 <button onclick="check(this,false)">The barcode, because lifetimes are what lab-01's ratio compared</button>
-<button onclick="check(this,true)" data-ok>The diagram, because comparing two summaries is a matching problem and needs points</button>
+<button onclick="check(this,false)">The diagram, because matching features to the diagonal has no barcode formulation</button>
+<button onclick="check(this,true)" data-ok>Neither is required — the information is identical — but the diagram is where the matching is legible</button>
 <button onclick="check(this,false)">Neither; they carry identical information, so the choice is cosmetic</button>
-<button onclick="check(this,false)">The diagram, because the barcode cannot represent infinite bars</button>
-<div class="explain">The diagram, for matching. They do carry identical
-information — the third option is right about that and wrong to conclude the
-choice is cosmetic, because a representation determines which operations are
-natural. Lifetimes are easy to compare on a barcode, and lab-01's ratio of 98.1
-was visible at a glance there. But the operation this module is heading for is
-<em>distance between two summaries</em>, which means matching features of one to
-features of the other and to the diagonal — and that has no natural formulation
-on a barcode, where there is no diagonal and no notion of a point's position. The
-fourth option is simply false: both handle infinite bars by convention.</div>
+<div class="explain">Neither is <em>required</em>. The bar-to-point correspondence
+is a bijection, so anything computable from one is computable from the other, and
+the second option — the tempting one — is false: the bottleneck distance has a
+perfectly good barcode formulation. Match <code>[b, d)</code> to
+<code>[b′, d′)</code> at cost max(|b − b′|, |d − d′|), and let an unmatched bar of
+lifetime L cost L/2, which is precisely what the distance to the diagonal
+computes. What differs is legibility: lifetimes are lengths on a barcode, which is
+how lab-01's ratio of 98.1 was visible at a glance, and a matching is a picture on
+a diagram, where the features are points and the diagonal is a set of points in
+the same plane. The fourth option is right that the information is identical and
+wrong to call the choice cosmetic — which picture you draw decides what a reader
+sees without working for it, and that is what "made visible" in the mission strip
+actually claims. Treating a change of picture as a change of capability is the
+error the phrase invites.</div>
 </div>
 
 <div class="worked">
