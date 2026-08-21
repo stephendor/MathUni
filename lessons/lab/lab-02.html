@@ -184,8 +184,18 @@ cloud. Its homology is the homology of a geometric object you can point at.
 <p>Now Vietoris–Rips. Edelsbrunner motivates it as a shortcut at printed 74:
 "Instead of checking all subcollections, we may just check pairs and add 2- and
 higher-dimensional simplices whenever we can." That gives
-Rips(r) = {σ ⊆ S : diam σ ≤ 2r}. <strong>It is not the nerve of any collection of
-convex sets, and the Nerve Theorem gives exactly nothing about it.</strong></p>
+Rips(r) = {σ ⊆ S : diam σ ≤ 2r}. <strong>It is not the nerve of the balls about
+the points, and so the Nerve Theorem gives exactly nothing about the
+data.</strong></p>
+
+<p>State that carefully, because the memorable version of it is false. Rips(r) is
+a finite simplicial complex, and every finite simplicial complex <em>is</em> the
+nerve of some collection of convex sets, in a Euclidean space of high enough
+dimension. What no such realisation can do is live where the data lives: its union
+is not the r-thickening of S, or of anything else you measured, so the Nerve
+Theorem applied to it returns the homotopy type of a set nobody asked about.
+<strong>What is missing is not convexity — it is a canonical realisation by the
+input's own balls</strong>, which is exactly what Čech has and Rips has not.</p>
 
 <canvas id="fig" width="640" height="330" aria-label="Two panels, each showing an equilateral triangle of side one with a disc at each corner. Left, radius 0.5: the discs touch in pairs and leave an uncovered curved triangle in the middle, so the union has a hole. Right, radius 0.57735: the discs overlap and all three meet at the circumcentre, so the middle is covered and the union is contractible."></canvas>
 
@@ -323,6 +333,15 @@ it can, what happens to the Nerve Theorem.⟩
 <tr><td>Vietoris–Rips</td><td>pairwise distances, then nothing else</td><td>66</td><td>O(n²), independent of the top dimension</td></tr>
 <tr><td>Čech</td><td>one smallest-enclosing-ball problem per simplex</td><td>220 triples, on top of the 66 pairs</td><td>O(n<sup>k+1</sup>) for top dimension k</td></tr>
 </table>
+
+<p>Read that table as counting <em>geometric predicates</em>, which is what it
+counts. It is not the size of the complex: <code>create_simplex_tree</code> builds
+the Rips complex explicitly, so it enumerates the same
+∑<sub>j ≤ k+1</sub> C(n, j) simplices Čech does, and with no dimension cap
+2<sup>n</sup> − 1 of them. Rips is <strong>determined</strong> by O(n²) data and
+<strong>materialised</strong> at a cost exponential in k, exactly as Čech is. What
+it saves is the enclosing-ball problem per simplex — and saving that is enough to
+explain why every library ships one of these and none ships the other.</p>
 
 <p>That exponent is the whole story. <strong>Čech has the theorem and Rips has
 the algorithm</strong>, and the Vietoris–Rips Lemma is the device for borrowing

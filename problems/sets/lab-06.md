@@ -291,8 +291,8 @@ say what it does **not** converge to.
 
 (b) The exact ratio came out at exactly 1.0000, not merely below 1. Say what that
 means about this particular pair, and whether a ratio of exactly 1 is evidence for
-or against the code being correct. Compare with lab-05's ratios of 0.315, 0.259
-and 0.241, where the slack was the point.
+or against the code being correct. Compare with lab-05's ratios of 0.286, 0.208
+and 0.185, where the slack was the point.
 
 (c) Generalise the defect. Every vectorisation in this unit ends in a finite
 vector obtained by evaluating a function on a grid. Name the property a

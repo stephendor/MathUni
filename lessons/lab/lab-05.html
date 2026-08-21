@@ -75,6 +75,14 @@ is an <em>equality</em>, not merely a bound: the bottleneck distance between two
 diagrams equals the interleaving distance between the modules. He calls it "the
 cornerstone of the theory".
 <br><br>
+<em>Read where the equality lives.</em> It is between a persistence module and its
+diagram. The step from a point cloud to its Rips module is no part of it, and that
+step is not invertible — two very different clouds can carry the same diagram. So
+the chain from data to diagram runs <strong>one way only</strong>, with a factor
+of 2, and no bound on a diagram converts back into a bound on the data. Reading
+the equality as though it applied end to end is the easiest available mistake
+here, because the theorem genuinely is an equality.
+<br><br>
 <em><code>pw-04</code> is an unwritten S1 unit</em> and is cited nowhere in this lesson.
 Every ε-statement here comes from Oudot Chapter 3, by theorem number and printed
 page.
@@ -154,11 +162,18 @@ And the repair: a compactness argument shows the infimum <em>is</em> attained fo
 so d<sub>b</sub> is a true distance there — and by <strong>Theorem 1.13</strong>
 those include every undecorated diagram of a q-tame module.
 <br><br>
-⟨your step: the problem set exhibits the pseudometric failure in software, by
-adding a point that lies exactly <em>on</em> the diagonal. Say what is different
-about that example — the infimum behaves differently — and then write the
-corrected version of an2-02's claim: one sentence naming the class on which
-d<sub>b</sub> is a genuine metric, and what puts a computed diagram in it.⟩
+Notice that the witness has to be <em>off</em> the diagonal, and why. Adjoining a
+point that lies exactly <em>on</em> the diagonal changes a <code>persim</code> array and
+changes no diagram at all, since the diagonal is already there with infinite
+multiplicity — so d<sub>b</sub> = 0 in that case is identity of indiscernibles
+working. The problem set runs that experiment precisely because it is the natural
+first attempt and it fails: what it establishes is that the array is a
+<em>representation</em>, and the map from arrays to diagrams is not injective.
+<br><br>
+⟨your step: say what Oudot's witness has that the diagonal example has not — the
+infimum behaves differently — and then write the corrected version of an2-02's
+claim: one sentence naming the class on which d<sub>b</sub> is a genuine metric,
+and what puts a computed diagram in it.⟩
 </div>
 </div>
 
@@ -199,10 +214,19 @@ Perturbing every point of lab-01's circle by at most δ changes each Vietoris–
 filtration value by at most 2δ, so the guarantee is
 d<sub>b</sub> ≤ 2δ. Measured:
 <pre>delta    max shift      d_b(H1)        d_b / 2*delta
-0.01     0.0100         0.006304       0.315
-0.05     0.0500         0.025915       0.259
-0.20     0.2000         0.096584       0.241</pre>
-Ratios of 0.315, 0.259 and 0.241 against a permitted 1.
+0.01     0.0100         0.005729       0.286
+0.05     0.0500         0.020832       0.208
+0.20     0.2000         0.073852       0.185</pre>
+Ratios of 0.286, 0.208 and 0.185 against a permitted 1.
+<br><br>
+<strong>δ has to bound the Euclidean displacement of each point</strong>, because
+that is the quantity a Rips filtration value is built from. Scaling a random
+direction so its largest <em>coordinate</em> is 1 — the obvious thing to write —
+leaves rows of norm up to √2, and in this sample the largest row had norm
+1.169474. The table would then have been dividing by a δ the perturbation does not
+satisfy, and reporting ratios about 17% too high. Nothing would have looked wrong:
+the numbers stay well under 1 either way. The check that catches it is naming the
+norm the theorem uses before measuring anything in it.
 <br><br>
 <span class="cite"><strong>The slack means the worst case did not occur, and
 nothing else.</strong> The theorem is a guarantee, not a prediction: it forbids a
@@ -317,17 +341,24 @@ world.</div>
 <p><strong>Self-check 5.</strong> lab-01 asked what you could conclude if the
 ratio were 1.4 rather than 98.1. Answer it with this unit's machinery.</p>
 <button onclick="check(this,false)">That both bars are noise, since neither dominates</button>
-<button onclick="check(this,false)">That the longest is still the most likely feature, just with less confidence</button>
-<button onclick="check(this,true)" data-ok>That no δ separates them: any noise level threatening one threatens the other, so the data does not distinguish them</button>
+<button onclick="check(this,false)">That no δ separates them, so the data cannot distinguish them</button>
+<button onclick="check(this,true)" data-ok>That a separating δ exists, but only in a band 1.4 wide — so the verdict turns on a number the analysis never checks</button>
 <button onclick="check(this,false)">That a Wasserstein distance would separate them where bottleneck does not</button>
-<div class="explain">No δ separates them. The test is a single threshold, 4δ,
-applied to every bar: for the longest to survive and the runner-up to fail you
-need 4δ to sit between two lifetimes differing by a factor of 1.4, and while such
-a δ exists arithmetically, it is a band so narrow that any honest uncertainty
-about δ straddles it. The right report is that the data does not distinguish them
-— not that both are noise, which claims more than the argument gives. The fourth
-option is a real temptation and wrong: Wasserstein aggregates differently, it does
-not manufacture a separation the lifetimes do not contain.</div>
+<div class="explain">A separating δ always exists. The test is a single threshold
+4δ applied to every bar, so the longest survives and the runner-up fails exactly
+when δ ∈ [L₂/4, L₁/4) — a non-empty interval whenever L₁ &gt; L₂. The second
+option is the intuitive answer and it is <em>algebraically false</em>; it was the
+answer this unit gave in draft, and a reviewer caught it.
+<br><br>
+What the ratio controls is the interval's <strong>width</strong>, and so how much
+error in δ the verdict tolerates. At 98.1 the window is [0.0032, 0.3093) and δ may
+be wrong by a factor near 98; at 1.4 the window is 1.4 wide and δ must be right to
+within about 40%. Since δ arrives from outside the analysis with no accuracy
+attached, at 1.4 the honest report is that <em>the conclusion is not robust to the
+one number nothing here can check</em> — a statement about the evidence, not about
+the data. The fourth option is a real temptation and wrong: Wasserstein aggregates
+differently, it does not manufacture a separation the lifetimes do not
+contain.</div>
 </div>
 </div>
 

@@ -164,8 +164,10 @@ and say why balls satisfy the hypothesis.
 (b) Now the Vietoris–Rips complex, which Edelsbrunner motivates at printed 74:
 "Instead of checking all subcollections, we may just check pairs and add 2- and
 higher-dimensional simplices whenever we can." Rips(r) = {σ ⊆ S : diam σ ≤ 2r}.
-**Is Rips(r) the nerve of anything?** Answer, and then say what the Nerve Theorem
-gives you about Rips(r). Be exact; the answer is short.
+**Is Rips(r) the nerve of the balls about the points of S?** Answer, and then say
+what the Nerve Theorem gives you about the r-thickening of the data. Be exact,
+and resist the wider claim: the question is about *these* balls, not about whether
+some collection of convex sets somewhere has Rips(r) as its nerve.
 
 (c) Witness the gap on the triangle of Problem 1, at r = 0.5.
 
@@ -209,10 +211,23 @@ about the points of S — that is, to the *r-thickening of the data*. Balls
 qualify because a closed Euclidean ball is closed and convex, which is the
 hypothesis verbatim.
 
-(b) **No, and nothing.** Rips(r) is not in general the nerve of any collection of
-convex sets, and the Nerve Theorem says nothing whatever about it. This is the
-central fact of the unit: the complex everyone computes is not the one the
-theorem is about. What Rips has instead is Problem 3's sandwich.
+(b) **Not of the balls, and so nothing about the data.** Rips(r) is not the nerve
+of the radius-r balls about the points of S — Problem 2 exhibits three points
+where it differs from Čech(r), which *is* that nerve — so the Nerve Theorem
+attaches it to no union of balls and says nothing whatever about the r-thickening
+of the data.
+
+Be careful not to overstate this into the neat-sounding claim that Rips is the
+nerve of *no* collection of convex sets. That is false: every finite simplicial
+complex can be realised as the nerve of a collection of convex sets in a Euclidean
+space of high enough dimension, and Rips(r) is a finite simplicial complex. But
+such a realisation lives in an auxiliary space with no relation to where the data
+sits, so its union is not the data thickened by anything, and the Nerve Theorem
+applied to it computes the homotopy type of a set nobody asked about. **The
+missing object is not convexity; it is a canonical realisation by the input's own
+balls.** That is the central fact of the unit — the complex everyone computes is
+not the one the theorem is about — and what Rips has instead is Problem 3's
+sandwich.
 
 (c) The union of three balls of radius 0.5 is three discs meeting pairwise in
 lens-shaped regions, with a small curved triangular *hole* in the middle —
@@ -424,11 +439,26 @@ set of coordinates: every construction in this module past lab-01 consumes `D`.
 Čech cannot be built from `D` in the same way, because the enclosing-ball radius
 of a triple is a question about the ambient space.
 
-(b) Rips needs $\binom{n}{2}$ distances, which is $O(n^2)$ regardless of the top
-dimension. Čech needs one enclosing-ball problem per simplex it considers,
-$\sum_{j \le k+1}\binom{n}{j}$, which is $O(n^{k+1})$ — and the enclosing-ball
-problem itself grows with the dimension of the ambient space. The exponent in
-$k$ is the reason.
+(b) Separate two things the single phrase "the cost of Rips" runs together.
+
+*What must be computed to determine the complex*: for Rips, $\binom{n}{2}$
+distances, $O(n^2)$, whatever the top dimension — the 1-skeleton settles every
+simplex, so no further geometry is ever consulted. For Čech, one
+smallest-enclosing-ball problem per candidate simplex,
+$\sum_{j \le k+1}\binom{n}{j}$, which is $O(n^{k+1})$; and the enclosing-ball
+problem itself grows with the ambient dimension. **This is the contrast the unit
+is about, and it is a contrast in the number of geometric predicates, not in the
+size of the answer.**
+
+*What must be enumerated and stored*: here the two are alike.
+`create_simplex_tree(max_dimension=k)` builds the Rips complex explicitly, so it
+enumerates up to $\sum_{j \le k+1}\binom{n}{j}$ simplices — the same count —
+and without a dimension cap the complex can have $2^n - 1$ of them. Calling Rips
+"$O(n^2)$" full stop therefore understates what a user of this lab will actually
+wait for and store; the honest form is that Rips is *determined* by $O(n^2)$ data
+and *materialised* at a cost exponential in $k$, exactly as Čech is. What Rips
+saves is the predicate per simplex, and that is enough to explain why one of the
+two is shipped by every library and the other by none.
 
 (c) Something of the form: *we computed Rips(r); by the Vietoris–Rips Lemma it is
 sandwiched, Čech(r) ⊆ Rips(r) ⊆ Čech(√2 r), so any feature persisting across a
@@ -494,7 +524,8 @@ circle. **The strip is accurate and its ordering is misleading**, which is the
 mildest possible form of the finding and still worth recording.
 
 (b) *Cheap to build* is Rips, by Problem 4(a) — the 1-skeleton determines it, so
-the cost is $O(n^2)$ distances. *Provably about the data* is Čech, by the Nerve
+the geometric input is $O(n^2)$ distances and no per-simplex predicate at all
+(the complex itself, once materialised, is as large as Čech's). *Provably about the data* is Čech, by the Nerve
 Theorem — it is homotopy equivalent to the union of balls. **No complex here has
 both**, and that is precisely why the Vietoris–Rips Lemma exists: it is the
 device for borrowing the second property at a cost of √2 in scale.

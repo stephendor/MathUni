@@ -130,8 +130,17 @@ reason — one sentence, about where the metric came from — and say what the c
 is therefore evidence of.
 
 *(The matrix `D` is the real object here. `X` is a set of coordinates in the
-plane; `D` is the metric space. Every later unit in this module consumes `D`, or
-something computed from it, and never the coordinates.)*
+plane; `D` is the metric space. The **Rips** pipeline of this unit consumes `D`
+and nothing else — that is the whole content of `metric_only=True` — and so is
+defined for any finite metric space, with or without an embedding.*
+
+*This is a property of Rips, not of the module. lab-02 hands **coordinates** to
+`gudhi.DelaunayCechComplex(points=…)`, because a Čech-type complex is built from
+balls in an ambient space and a distance matrix does not determine one; lab-05
+perturbs `X` itself, because "move every point by at most δ" is a statement about
+positions. The input contract to carry forward is per-construction: know which of
+the two your complex needs, and do not assume a distance matrix is always
+enough.)*
 
 <details><summary>Nudge</summary>
 For (a): gate 9 runs the file twice and requires the two runs to agree.

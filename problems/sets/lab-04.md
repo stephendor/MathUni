@@ -127,8 +127,9 @@ have a list of?
 left-infinite, or right-infinite, or both", and that since ℝ has limit points
 "some intervals for (ℝ, ≤) may be open or half-open", neither of which happens
 for Aₙ-type quivers. The printout shows one right-infinite bar and writes every
-bar half-open as `[b, d)`. Say which of those two is forced by the mathematics
-and which is a convention of the software, and how you would check.
+bar half-open as `[b, d)`. Say what forces each of those, and how you would check.
+Careful: "the software's convention" is the tempting answer for the second and it
+is only a third of the truth.
 
 <details><summary>Nudge</summary>
 For (b): count the distinct filtration values.
@@ -151,13 +152,27 @@ arbitrarily large dimension, and the classification is, in Oudot's phrase,
 numbers. Gabriel's theorem is what makes "birth, death" a complete description.
 
 (d) The **right-infinite bar is forced**: the component born at 0.0 is never
-killed, and the module genuinely has an interval unbounded on the right. The
-**half-open `[b, d)` notation is the software's convention** — gudhi returns a
-pair and the bracket style is this problem set's rendering of it. To check, look
-for a feature whose birth and death coincide with filtration values and ask
-whether the class is alive *at* the death value; the answer is a convention until
-someone fixes an indexing scheme, and the honest citation names the library and
-version.
+killed, and the module genuinely has an interval unbounded on the right.
+
+The **half-open bracket is also forced — once the indexing scheme is fixed**, and
+it is fixed here. `SimplexTree.insert(..., filtration=f)` defines the complex at
+parameter a as K(a) = {σ : f(σ) ≤ a}: closed sublevel sets, with ≤ and not &lt;.
+Under that scheme a class born at b is present in K(b), so b is included; a class
+killed by a simplex of value d is already dead in K(d), so d is excluded. The
+interval is [b, d) and nothing about it is free.
+
+What *is* a rendering choice is the third thing, and only that: gudhi returns a
+numeric pair, and the brackets in the printout above are this problem set writing
+that pair down. So there are three separate questions — is the bar unbounded (a
+fact about the module), is the interval half-open (a consequence of the indexing
+scheme), and how is it printed (a convention) — and calling all three "the
+software's convention" loses the one that determines whether a class is alive at
+a given filtration value.
+
+To check, use the printout: `H0 [0.0, 1.0)` says the class is dead at 1.0, so the
+edge of filtration value 1.0 is present in K(1.0), which is the ≤ convention
+confirmed by execution. The honest citation still names library and version,
+because the ≤ is gudhi's and a library using &lt; would produce (b, d].
 </details>
 
 ---
@@ -289,13 +304,23 @@ is, that **die at 4.0**. The second removes those that were already alive at 1.0
 leaving only those **born at 2.0**. Born at 2.0 and dead at 4.0 is exactly the
 bar.
 
-(d) The essential classes need the ranks with l unbounded — or equivalently the
-value β_p(k, ∞) — which is the number of classes alive at k that never die. Their
-absence does not weaken (b), which was a claim about *finite* bars, but it does
-mean "the rank invariant on the finite grid determines the barcode" is false as
-stated and needs the infinite column. **β₀(4.0, 4.0) = 1 already gives the
-count**: at the last filtration value one class is alive, and nothing can kill it
-afterwards.
+(d) The essential classes need the number of classes alive at k that never die,
+β_p(k, ∞) — and the tempting conclusion, that the finite grid therefore cannot
+determine the barcode, is **wrong here**, as the next sentence of it concedes.
+
+Every simplex of this filtration has arrived by 4.0, so the module is *constant*
+on [4.0, ∞): β_p(k, l) = β_p(k, 4.0) for every l ≥ 4.0, and in particular
+β_p(k, ∞) = β_p(k, 4.0). The terminal column already holds the infinite column.
+**β₀(4.0, 4.0) = 1 gives the count** directly, and differencing consecutive birth
+ranks in that column gives the multiplicities, so the finite grid determines this
+barcode completely.
+
+State the general caution with its hypothesis attached, which is the version worth
+carrying: a rank invariant tabulated on a finite grid can miss essential classes
+**when the module is not constant beyond the top of the grid** — an ℝ-indexed
+filtration truncated at some value, say. A complete finite filtration is not such
+a case. The failure mode being guarded against is real; asserting it where it
+does not apply teaches a limitation the reader will then look for and not find.
 </details>
 
 ---

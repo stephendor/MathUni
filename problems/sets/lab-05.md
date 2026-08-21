@@ -117,8 +117,12 @@ to the **single worst** discrepancy and blind to how many small ones there are �
 which is exactly why the Wasserstein distances exist as alternatives.
 
 (b) Equivalence of norms means the *topology* and the qualitative statements —
-that d_b is a metric, that convergence means what it means, that stability holds
-with **some** constant — survive any choice. What does not survive is the
+that d_b is an extended pseudometric, that convergence means what it means, that
+stability holds with **some** constant — survive any choice. (An extended
+pseudometric, not a metric: Problem 2 is about exactly that gap, and norm
+equivalence does not close it. It does carry the *repaired* statement equally
+well — d_b is a genuine metric on locally finite multisets whichever norm is
+used.) What does not survive is the
 constant: the Isometry Theorem is an equality only in ℓ∞, and in another norm it
 becomes an inequality with a factor. This is the same phenomenon as lab-02's √2,
 where a containment held with a constant that depended on the geometry rather
@@ -139,28 +143,37 @@ general is an **extended pseudometric**: distinct objects at distance zero, valu
 in [0, ∞]. Oudot says the same at printed 51 and then says exactly when it stops
 being true.
 
-(a) Exhibit the pseudometric failure in the software.
+(a) Try to exhibit the pseudometric failure in the software, and watch the
+attempt fail in an instructive way.
 
 ```python id=pseudometric
 R = np.array([[0.0, 3.0], [1.0, 1.4], [2.0, 2.0]])
-print("R is P with one extra point exactly on the diagonal")
-print("P == R as multisets: %s" % False)
+print("R is P's array with one extra row exactly on the diagonal")
+print("the two arrays differ: %s" % (P.shape != R.shape))
 print("d_b(P, R) = %.6f" % persim.bottleneck(P, R))
-print("so two distinct multisets sit at bottleneck distance zero")
+print("but Problem 1(a): every diagram contains the diagonal with infinite")
+print("multiplicity, so adjoining a diagonal point changes no diagram --")
+print("P and R are two arrays representing the SAME diagram")
 ```
 
 ```text id=pseudometric
-R is P with one extra point exactly on the diagonal
-P == R as multisets: False
+R is P's array with one extra row exactly on the diagonal
+the two arrays differ: True
 d_b(P, R) = 0.000000
-so two distinct multisets sit at bottleneck distance zero
+but Problem 1(a): every diagram contains the diagonal with infinite
+multiplicity, so adjoining a diagonal point changes no diagram --
+P and R are two arrays representing the SAME diagram
 ```
 
-(b) That example is the cheap version — it exploits a point *on* the diagonal.
-Oudot's is sharper: he observes that ℚ² \ Δ and (ℚ + √2)² \ Δ are distinct
+Say why this is **not** a counterexample to identity of indiscernibles, and what
+it does establish about the relationship between a diagram and the array `persim`
+accepts for it.
+
+(b) So the genuine witness has to lie off the diagonal, and it is not computable
+here. Oudot observes that ℚ² \ Δ and (ℚ + √2)² \ Δ are distinct
 multisets at bottleneck distance zero, "the infimum in (3.2) is zero but not
-attained in this case". State what goes wrong there that does not go wrong in
-part (a), and say why no computation in this module can produce Oudot's example.
+attained in this case". State what goes wrong there, why part (a) does not go
+wrong in the same way, and why no computation in this module can produce it.
 
 (c) Now the repair, which is the sentence an2-02 needed and did not have. Oudot
 records that a compactness argument shows the infimum **is** always attained when
@@ -173,12 +186,24 @@ the bottleneck distance is a genuine metric, and naming what guarantees a comput
 diagram is in that class.
 
 <details><summary>Partial</summary>
-(b) In (a) the two multisets differ by a point at zero distance from the diagonal,
-so the matching that discards it costs nothing and the infimum is **attained**.
-In Oudot's example the two multisets are infinite and dense; no single matching
-achieves cost zero, but matchings of cost ε exist for every ε > 0, so the infimum
-is zero and **not attained**. No computation here can produce it because every
-diagram this module builds is finite, and a finite multiset is locally finite.
+(a) Because the two arrays are not two diagrams. Under the convention of Problem
+1(a) the diagonal belongs to every diagram with infinite multiplicity, so
+adjoining one more diagonal point leaves the multiset off the diagonal unchanged
+and hence the diagram unchanged; d_b = 0 between a thing and itself is identity of
+indiscernibles **working**, not failing. What it does establish is that `persim`'s
+input is a *representation*: the map from finite arrays to diagrams is not
+injective, and the library is invariant along its fibres. That is a fact about the
+software, and a useful one — but it says nothing about the metric.
+
+(b) In (a) the infimum is attained by the matching that discards the extra
+diagonal point, and the two diagrams were equal to begin with. In Oudot's example
+the two multisets are genuinely distinct off the diagonal, infinite and dense; no
+single matching achieves cost zero, but matchings of cost ε exist for every
+ε > 0, so the infimum is zero and **not attained**. That is the failure of
+identity of indiscernibles, and it requires a non-locally-finite diagram — which
+is precisely why (a) could not produce it. No computation here can produce it
+either, because every diagram this module builds is finite, and a finite multiset
+is locally finite.
 
 (c) Something of the form: *the bottleneck distance is a genuine metric on locally
 finite multisets in the extended plane off the diagonal — Oudot, printed 51,
@@ -203,6 +228,12 @@ the stability part is given".
 point by at most δ changes each Vietoris–Rips filtration value by at most 2δ, so
 the guarantee is d_b ≤ 2δ.
 
+Read the two normalisation lines carefully before running it. δ has to bound each
+point's **Euclidean** displacement, because that is the quantity a Rips filtration
+value is built from; bounding each *coordinate* by δ permits a displacement of up
+to √2 δ in the plane, and the ratio against the guarantee would then be computed
+against a δ the perturbation does not satisfy.
+
 ```python id=perturb
 from gtda.homology import VietorisRipsPersistence
 
@@ -218,24 +249,27 @@ def h1(points):
 
 base = h1(X)
 direction = rng.normal(0, 1, X.shape)
-direction /= np.abs(direction).max()
+# Scale so the largest *row* has unit Euclidean norm: delta then bounds each
+# point's displacement, which is what the Rips stability bound asks for. Scaling
+# by the largest coordinate instead leaves rows of norm up to sqrt(2).
+direction /= np.linalg.norm(direction, axis=1).max()
 
 print("%-8s %-14s %-14s %-8s" % ("delta", "max shift", "d_b(H1)", "d_b / 2*delta"))
 for delta in (0.01, 0.05, 0.20):
     Y = X + delta * direction
-    shift = float(np.abs(Y - X).max())
+    shift = float(np.linalg.norm(Y - X, axis=1).max())
     db = float(persim.bottleneck(base, h1(Y)))
     print("%-8.2f %-14.4f %-14.6f %-8.3f" % (delta, shift, db, db / (2 * shift)))
 ```
 
 ```text id=perturb
 delta    max shift      d_b(H1)        d_b / 2*delta
-0.01     0.0100         0.006304       0.315   
-0.05     0.0500         0.025915       0.259   
-0.20     0.2000         0.096584       0.241
+0.01     0.0100         0.005729       0.286   
+0.05     0.0500         0.020832       0.208   
+0.20     0.2000         0.073852       0.185
 ```
 
-The observed ratios are 0.315, 0.259 and 0.241 against a guarantee of 1. Say what
+The observed ratios are 0.286, 0.208 and 0.185 against a guarantee of 1. Say what
 that slack means and what it does **not** mean. In particular: is the theorem
 loose, is this perturbation lucky, or is something else going on? Support your
 answer by saying what a ratio above 1 would have implied.
@@ -349,11 +383,21 @@ in the chain. At δ = 0.4 the threshold is 1.6, the longest bar is 1.2370, and
 **the conclusion fails**: at that noise level even the long feature could be an
 artefact.
 
-(c) At a ratio of 1.4 the two longest bars are comparable, so any δ large enough
-to threaten the runner-up also threatens the longest. There would be no δ for
-which one survives the 4δ test and the other does not, so the diagram would supply
-no grounds for treating the longest as different in kind. The correct report is
-that the data does not distinguish them.
+(c) First the algebra, because the tempting answer is wrong. A δ separates the two
+bars exactly when L₂ ≤ 4δ < L₁, that is when δ ∈ [L₂/4, L₁/4) — and whenever
+L₁ > L₂ that window is **non-empty**. So it is false that no separating δ exists:
+one always does, at any ratio above 1.
+
+What the ratio measures is the **width of that window**, and so how much error in
+δ the conclusion tolerates. Here L₁/L₂ = 98.1 and the window is [0.0032, 0.3093):
+δ may be wrong by a factor approaching 98 and the verdict does not move. At a
+ratio of 1.4 the window is [L₂/4, 1.4·L₂/4), a factor of 1.4 wide, so the
+separation stands only if δ is known to within about 40%. Nothing in this module
+supplies δ to any accuracy at all — Problem 4(b): it comes from outside — so at
+1.4 the honest report is that **the conclusion is not robust to the one number
+the analysis cannot check**, not that the two bars are provably indistinguishable.
+The distinction matters: the first is a statement about the evidence, the second
+would be a statement about the data, and only the first is supported.
 
 (d) lab-01: a point cloud is a finite metric space (no hypothesis; and no
 topology). lab-02: Rips or Čech at a scale — Čech carries the Nerve Theorem,
@@ -392,7 +436,15 @@ output error, with the converse direction guaranteeing the summary is not merely
 stable but informative. It does not deliver: any value of ε. **Trust has to be
 placed in the noise model, not in the theorem** — the theorem is unconditional and
 the number it is applied with is not. A corrected strip: *stability converts a
-bound on the data's error into a bound on the diagram's, exactly and in both
-directions; supplying that bound is the user's problem and is where the modelling
-risk lives.*
+bound on the data's error into a bound on the diagram's; supplying that bound is
+the user's problem and is where the modelling risk lives.*
+
+Note what the corrected strip does **not** say. The Isometry Theorem's equality is
+between a persistence module and its diagram — d_b(dgm V, dgm W) = d_i(V, W) — so
+the converse half is a statement about *modules*. The step from a point cloud to
+its Rips module is no part of it, and it is not invertible: two very different
+clouds can carry identical diagrams, which is why Problem 4(a) concludes nothing
+about a generating object. The chain from data to diagram therefore runs in one
+direction only, with a factor of 2, and a small change in a diagram licenses no
+claim at all about a small change in the data.
 </details>
