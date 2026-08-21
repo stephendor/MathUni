@@ -31,7 +31,12 @@ This gate re-derives the three things that claim depends on:
    however the set reaches it: ``from persim import bottleneck`` and
    ``persim.bottleneck(...)`` are the same claim about the same surface.
    Attribute chains stop at the first name, so ``np.linalg.norm`` asks for
-   ``numpy.linalg`` and not for every function in it. This gate checks all of it
+   ``numpy.linalg`` and not for every function in it. Names are resolved **in
+   execution order**, one running map advanced block by block: the blocks share
+   an interpreter, so a name means whatever the most recent binding before that
+   point made it mean, and gathering every binding into one map first let a
+   later ``import b as api`` re-attribute an earlier ``api.method()`` to ``b``,
+   leaving the surface actually reached undemanded. This gate checks all of it
    statically, and stops before running anything if any of it fails: once the
    environment declaration is wrong there is nothing to learn from the outputs.
    A block that will not parse is a failure and not a block to skip — skipping it
@@ -191,25 +196,46 @@ def _from_names(tree):
     return pairs
 
 
-def _module_aliases(trees):
-    """Return the local names bound to modules, across a set's shared namespace.
+def _scan_names(node, aliases, pairs):
+    """Walk one node in source order, advancing ``aliases`` and filling ``pairs``.
 
-    ``import gtda.mapper as gm`` binds ``gm`` to ``gtda.mapper``; plain
-    ``import gtda.mapper`` binds ``gtda``, with ``mapper`` reached as an
-    attribute. Blocks run in one interpreter, so a name bound in one block is in
-    scope in the next and the map is built over all of them.
+    A name means whatever the most recent binding *before this point* made it
+    mean, so bindings and uses have to be visited in order rather than gathered
+    into one map first. ``ast.walk`` is breadth-first and answers a different
+    question; this is depth-first in field order, which is source order for
+    statements, with ``Assign`` taken value-first because that is the order the
+    interpreter evaluates it in.
     """
-    aliases = {}
-    for tree in trees:
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    if alias.asname:
-                        aliases[alias.asname] = alias.name
-                    else:
-                        root = alias.name.split(".")[0]
-                        aliases[root] = root
-    return aliases
+    if isinstance(node, ast.Import):
+        for alias in node.names:
+            if alias.asname:
+                aliases[alias.asname] = alias.name
+            else:
+                root = alias.name.split(".")[0]
+                aliases[root] = root
+        return
+    if isinstance(node, ast.ImportFrom):
+        # ``from numpy import array`` binds a name *from* a module, not the
+        # module, so it cancels any module meaning the name used to carry.
+        for alias in node.names:
+            aliases.pop(alias.asname or alias.name, None)
+        return
+    if isinstance(node, ast.Assign):
+        _scan_names(node.value, aliases, pairs)
+        for target in node.targets:
+            _scan_names(target, aliases, pairs)
+        return
+    if isinstance(node, ast.Name):
+        if isinstance(node.ctx, ast.Store):
+            aliases.pop(node.id, None)
+        return
+    if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+        module = aliases.get(node.value.id)
+        if module:
+            pairs.add((module, node.attr))
+        return
+    for child in ast.iter_child_nodes(node):
+        _scan_names(child, aliases, pairs)
 
 
 def _attribute_names(tree, aliases):
@@ -221,13 +247,26 @@ def _attribute_names(tree, aliases):
     ``np.linalg.norm`` yields ``(numpy, linalg)``, because establishing that the
     submodule loads is the part that can fail as a unit, and walking deeper would
     demand a declaration for every function in the library.
+
+    ``aliases`` is the running map of local names bound to modules and **this
+    function advances it**, so it must be called once per block in the order the
+    blocks execute: they share one interpreter namespace, so a binding carries
+    into the next block. Resolving every use against a single map built from all
+    the blocks first was wrong in both directions. A later ``import b as api``
+    overwrote an earlier ``import a as api``, so an earlier ``api.method()`` was
+    recorded as ``b.method`` and the surface actually reached was never demanded;
+    and an alias bound only in a *later* block resolved an attribute in an
+    earlier one, demanding a declaration for a name that was not a module yet.
+
+    Bodies are read in definition order rather than call order, which is the
+    remaining approximation: a function defined before a rebinding and called
+    after it resolves against the earlier binding. Deciding otherwise needs a
+    call graph, and the conservative reading is the one that reports the surface
+    the source names where it names it.
     """
     pairs = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
-            module = aliases.get(node.value.id)
-            if module:
-                pairs.add((module, node.attr))
+    for child in ast.iter_child_nodes(tree):
+        _scan_names(child, aliases, pairs)
     return pairs
 
 
@@ -289,16 +328,25 @@ def check_env_imports(blocks):
     if failures:
         return failures
 
-    aliases = _module_aliases(trees.values())
+    # One running alias map, advanced block by block in execution order. The
+    # env block is scanned in its turn rather than in a second pass, because
+    # rewinding to it afterwards would resolve its names against bindings made
+    # by blocks that had not run yet.
+    aliases = {}
     used = {}
     used_names = {}
+    declared = set()
+    declared_names = set()
     for block_id, code, _ in blocks:
-        if block_id == "env":
-            continue
         tree = trees[block_id]
+        pairs = _from_names(tree) | _attribute_names(tree, aliases)
+        if block_id == "env":
+            declared |= _module_targets(tree)
+            declared_names |= pairs
+            continue
         for module in _module_targets(tree):
             used.setdefault(module, block_id)
-        for pair in _from_names(tree) | _attribute_names(tree, aliases):
+        for pair in pairs:
             used_names.setdefault(pair, block_id)
 
     external = {module: bid for module, bid in used.items()
@@ -309,15 +357,6 @@ def check_env_imports(blocks):
         return ["FAIL no env block, so the %d module(s) the set imports are "
                 "never loaded before the outputs are attributed to them"
                 % len(external)]
-
-    declared = set()
-    declared_names = set()
-    for block_id, code, _ in blocks:
-        if block_id != "env":
-            continue
-        tree = trees[block_id]
-        declared |= _module_targets(tree)
-        declared_names |= _from_names(tree) | _attribute_names(tree, aliases)
 
     # Loading ``gtda.homology`` loads ``gtda`` on the way, so a declared dotted
     # path declares its ancestors. This is the safe direction: the parent does

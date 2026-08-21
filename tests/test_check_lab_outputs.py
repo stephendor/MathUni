@@ -461,3 +461,65 @@ def test_parse_only_still_rejects_undeclared_modules(tmp_path, capsys):
         + out_block("a", "1")
     assert main([write(tmp_path, text), "--parse-only"]) == 1
     assert "FAIL env does not import numpy" in capsys.readouterr().out
+
+
+def test_an_alias_rebound_later_does_not_reattribute_the_earlier_use():
+    """The bug: one alias map for all blocks, last binding winning everywhere.
+
+    ``api.bottleneck`` runs while ``api`` means ``persim``. A later block rebinds
+    ``api`` to ``gudhi``, and resolving every use against one final map recorded
+    the earlier call as ``gudhi.bottleneck`` -- so ``persim.bottleneck``, the
+    surface actually reached, was never demanded of the env block at all.
+    """
+    blocks = parse_blocks(
+        code_block("env", "import persim\nimport gudhi\nfrom gudhi import simplex\nprint('env')")
+        + out_block("env", "env")
+        + code_block("one", "import persim as api\napi.bottleneck(1, 2)\nprint(1)")
+        + out_block("one", "1")
+        + code_block("two", "import gudhi as api\napi.simplex()\nprint(2)")
+        + out_block("two", "2"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert "bottleneck from persim" in failures[0]
+
+
+def test_declaring_the_earlier_binding_satisfies_the_rebound_alias():
+    blocks = parse_blocks(
+        code_block("env", "import persim\nimport gudhi\nfrom persim import bottleneck\n"
+                          "from gudhi import simplex\nprint('env')")
+        + out_block("env", "env")
+        + code_block("one", "import persim as api\napi.bottleneck(1, 2)\nprint(1)")
+        + out_block("one", "1")
+        + code_block("two", "import gudhi as api\napi.simplex()\nprint(2)")
+        + out_block("two", "2"))
+    assert check_env_imports(blocks) == []
+
+
+def test_an_alias_bound_only_later_does_not_resolve_an_earlier_attribute():
+    """``api`` is an ordinary object in the first block and a module in the second."""
+    blocks = parse_blocks(
+        code_block("env", "import persim\nprint('env')") + out_block("env", "env")
+        + code_block("one", "api = object()\napi.anything\nprint(1)")
+        + out_block("one", "1")
+        + code_block("two", "import persim as api\nprint(2)")
+        + out_block("two", "2"))
+    assert check_env_imports(blocks) == []
+
+
+def test_rebinding_a_module_name_to_a_value_stops_it_naming_a_surface():
+    blocks = parse_blocks(
+        code_block("env", "import persim\nprint('env')") + out_block("env", "env")
+        + code_block("work", "import persim\npersim = object()\npersim.bottleneck\nprint(1)")
+        + out_block("work", "1"))
+    assert check_env_imports(blocks) == []
+
+
+def test_a_module_attribute_read_on_the_way_to_rebinding_still_counts():
+    """``persim = persim.bottleneck`` reads the attribute before it rebinds."""
+    blocks = parse_blocks(
+        code_block("env", "import persim\nprint('env')") + out_block("env", "env")
+        + code_block("work", "import persim\npersim = persim.bottleneck\nprint(1)")
+        + out_block("work", "1"))
+    failures = check_env_imports(blocks)
+    assert len(failures) == 1
+    assert "bottleneck from persim" in failures[0]
