@@ -114,19 +114,39 @@ list is not exhaustive by producing a fourth.
 X and Y themselves.
 
 <details><summary>Nudge</summary>
-For (a): in a normed space, how many midpoints does a pair of points have?
+For (a): in a normed space, how many *metric* midpoints does a pair of points
+have? Careful — the answer depends on the norm, and (ℝ², ℓ∞) is the example to
+try before answering.
 For (c): how many points would the mean have?
 </details>
 <details><summary>Partial</summary>
-(a) It rules out **any isometric embedding of diagram space into a normed vector
-space**, and more basically it rules out defining "the average of two diagrams" by
-any construction that picks out a unique midpoint. In a normed space the midpoint
-of x and y is (x + y)/2 and it is unique. Here the geodesic branches. This is
-**not** the pseudometric failure of lab-05: there the defect was two distinct
-diagrams at distance *zero*, and restricting to locally finite multisets repairs
-it. Here the distances are all genuinely positive and the diagrams genuinely
-distinct; restricting the class does not help, because the branching is a property
-of the sup-norm partial-matching cost itself.
+(a) It rules out **any isometric embedding of diagram space into a strictly convex
+normed space** — and the qualifier is not a technicality, it is the whole content.
+
+The tempting answer is "into any normed space, because the midpoint of x and y is
+(x + y)/2 and that is unique". The *algebraic* midpoint is unique in every normed
+space. The *metric* midpoints — the points m with ‖x − m‖ = ‖y − m‖ = ‖x − y‖/2 —
+need not be. In (ℝ², ℓ∞) take x = (−1, 0) and y = (1, 0), at distance 2: every
+m = (0, t) with |t| ≤ 1 has ‖x − m‖ = ‖y − m‖ = max(1, |t|) = 1, so the whole
+segment consists of midpoints. Uniqueness of metric midpoints is exactly **strict
+convexity** of the unit ball, and ℓ∞ has not got it.
+
+So branching geodesics obstruct embedding into strictly convex spaces: every
+Hilbert space, and every L^p for 1 &lt; p &lt; ∞. They obstruct nothing about ℓ∞
+or L¹ — which is unsurprising, since d_b is itself built from a sup norm.
+
+**That is precisely the class that matters here.** Every vectorisation in this
+unit lands in an L^p or a Euclidean space, which is the point of vectorising at
+all: those are the spaces where means, inner products and gradients exist. The
+three midpoints say that no such landing can be *isometric*, so every method in
+this unit is lossy before it is anything else, and the rest of the unit is about
+measuring how lossy.
+
+This is **not** the pseudometric failure of lab-05: there the defect was two
+distinct diagrams at distance *zero*, and restricting to locally finite multisets
+repairs it. Here the distances are all genuinely positive and the diagrams
+genuinely distinct; restricting the class does not help, because the branching is
+a property of the sup-norm partial-matching cost itself.
 
 (b) Each M matches (0,4) to its first point at sup-norm cost 0.5 or 0, and
 discards or matches (1.5,2.5) at cost 0.5; and (1.5,2.5) is at sup-norm distance
@@ -341,7 +361,7 @@ computed feature vector is claiming something the computation does not establish
 > **Definition 13.4 (Persistence image), printed 395.** Let ω : ℝ² → ℝ be a
 > nonnegative weight function for ℝ². Given a persistence diagram D, its
 > *persistence surface* μ_D (w.r.t. ω) is μ_D(z) := Σ_{u ∈ T(D)} ω(u) φ_u(z).
-
+>
 > **Theorem 13.3, printed 395.** Suppose persistence images are computed with the
 > normalized Gaussian distribution with variance σ² and weight function
 > ω : ℝ² → ℝ. Then the persistence images are stable with respect to the
@@ -527,8 +547,9 @@ birth–persistence coordinates — that is, the image of the diagram with point
 of your array is a death time.**
 
 (c) The image would have been computed on the default window
-[0,1] × [0,1], and the bar of persistence 3.2 would have fallen entirely outside
-it. The implication is that a persistence image is **not comparable across
+[0,1] × [0,1], and the bar of persistence 3.0 would have fallen entirely outside
+it. (3.0 is the bar; 3.2 is the *padded upper end* of `pers_range` after `fit`,
+which is a property of the fitted grid and not of any point of D.) The implication is that a persistence image is **not comparable across
 scripts** unless the grid is stated: two images of the same diagram with different
 `birth_range`, `pers_range` or `pixel_size` are vectors in different spaces, and
 two images fitted on different collections are vectors in different spaces even

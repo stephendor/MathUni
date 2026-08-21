@@ -37,33 +37,46 @@ pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 
 
 <div class="hook">
 Six hundred points on a torus. Two loops and one void, and the answer is known in
-advance, which is the only reason this unit can say what it says. Three
-thresholds get applied to the same barcode. lab-05's stability rule is
-<em>proved</em> and admits all six leading bars. The coordinate-permutation null,
-the strongest control this module has built, admits six. The largest-gap
-heuristic — lab-01's ratio of 98.1, which lab-05 examined and declined to license
-— gives two, and gives two at every seed tried. The rule that gets the right
-answer is the one with no theorem behind it, and the deliverable of this unit is
-not the answer. It is the paragraph that says so.
+advance, which is the only reason this unit can say what it says. Four thresholds
+get applied to the same barcode. Quoting the noise <em>standard deviation</em> as
+δ gives 0.12 and admits all six leading bars — and is wrong, because a Gaussian is
+unbounded and 488 of the 600 points moved further than that. lab-05's stability
+rule, applied to the <em>measured</em> displacement bound δ = 0.1312, gives 0.5248
+and admits three. The coordinate-permutation null, the strongest control this
+module has built, admits five. The largest-gap heuristic — lab-01's ratio of 98.1,
+which lab-05 examined and declined to license — gives two, and gives two at every
+seed tried. The rule that gets the right answer is the one with no theorem behind
+it, and the deliverable of this unit is not the answer. It is the paragraph that
+says so.
 </div>
 
 <div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
-<p><strong>Predict before we start.</strong> Your data is sampled with known noise
-of standard deviation 0.03. You apply lab-05's rule that a bar of lifetime greater
-than 4δ cannot be an artefact of that noise. What do you expect it to tell you?</p>
-<button onclick="check(this,false)">Exactly which bars are real, since the rule is proved</button>
-<button onclick="check(this,false)">Nothing, since the rule needs the diagrams of two datasets and there is one</button>
-<button onclick="check(this,true)" data-ok>Only which bars could have been created by that noise — and at δ = 0.03 the threshold is 0.12, far below where sampling artefacts live</button>
-<button onclick="check(this,false)">That any bar longer than 0.03 is real</button>
-<div class="explain">Very little, and correctly so. The rule is
-<strong>sound and not complete</strong>: everything it rejects is genuinely
-rejectable, and it makes no claim at all about what it admits. Here 4δ = 0.12 and
-the six leading H₁ bars run from 0.4950 to 1.2965, so all six clear it — the rule
-is true and uninformative, because measurement noise of 0.03 is simply not the
-thing producing the medium-length bars. Those come from <em>sampling</em>: 600
-points do not fill a surface, and the gaps between them make loops. The fourth
-option gets the arithmetic wrong (the threshold is 4δ, not δ) and the error
-matters, because it would admit even more.</div>
+<p><strong>Predict before we start.</strong> Your data is sampled with Gaussian
+noise of standard deviation 0.03. You apply lab-05's rule that a bar of lifetime
+greater than 4δ cannot be an artefact of that noise. What is δ?</p>
+<button onclick="check(this,false)">0.03 — the noise level is known exactly, so δ is known exactly</button>
+<button onclick="check(this,false)">0.03·√3, since the noise is added independently in three coordinates</button>
+<button onclick="check(this,true)" data-ok>Not determined by 0.03 at all — a Gaussian is unbounded, so its standard deviation bounds nothing; δ has to be measured against the clean sample</button>
+<button onclick="check(this,false)">Undefined, since the rule needs the diagrams of two datasets and there is one</button>
+<div class="explain">Not determined. lab-05's δ must bound <em>every</em> point's
+Euclidean displacement, and a standard deviation is a scale parameter of a
+distribution with no maximum — no multiple of it bounds anything with certainty.
+The size of the gap is worth seeing rather than reasoning about: on this sample
+<strong>488 of the 600 points moved further than 0.03</strong>, and the largest
+moved 0.131206. Quoting σ as δ understates the bound by a factor of 4.4 here, and
+by an unbounded factor in principle.
+<br><br>
+The second option is the sophisticated version of the same error. It corrects for
+dimension — the expected displacement of a 3-D isotropic Gaussian is indeed larger
+than one coordinate's σ — but a corrected <em>typical</em> value is still not a
+<em>bound</em>, and 0.052 would be exceeded by plenty of points too.
+<br><br>
+This unit can measure δ, because the generator is ours and the clean sample can be
+kept: δ = 0.131206, so 4δ = 0.5248, which admits three of the six leading bars
+rather than all six. Note what makes that available — not that the noise level is
+known, but that the <em>realisation</em> is. On real data neither is, which is
+Segment 3's subject. The first option is what this lesson asserted in draft, and
+two reviewers caught it independently.</div>
 </div>
 
 <p class="mission">Why this matters for the mission: A dry run of the capstone — the whole pipeline, on data you choose, defended in writing.</p>
@@ -120,7 +133,8 @@ A torus has b₀ = 1, b₁ = 2, b₂ = 1.
 <span class="cite"><strong>The H₂ column is the cleanest signal in the module</strong>
 — 0.6845 against a next-longest of 0.1078, a factor of 6.3, with the null topping
 out at 0.2195. The H₁ column is not: 1.2373 against 0.5997 is a factor of 2.06, and
-the null reaches 0.4192. <strong>The harder question gets the cleaner answer</strong>,
+the null reaches 0.5012 at its worst seed. <strong>The harder question gets the
+cleaner answer</strong>,
 because a torus has one void and <em>two</em> loops, and the two loops have to be
 picked out of a crowd of sampling artefacts that the void has no analogue of.
 Multiplicity, not dimension, is what makes H₁ hard here.</span>
@@ -169,45 +183,73 @@ form a sceptic would actually raise it.⟩
 </div>
 </div>
 
-<div class="break">☕ Break — 5 min. Then three thresholds.</div>
+<div class="break">☕ Break — 5 min. Then four thresholds.</div>
 
 <div class="segment">
 <span class="timebox">Segment 2 · 30 min</span>
 <h2>Three rules, three answers, and the one that works</h2>
 
-<canvas id="fig" width="640" height="340" aria-label="A barcode of the six longest first-homology lifetimes of the torus point cloud. The two longest bars, 1.2965 and 1.2373, are drawn in green; the next four, 0.5997, 0.5238, 0.5233 and 0.4950, are grey. Two dashed vertical lines mark thresholds: the stability threshold at 0.12 and the null-calibrated threshold at 0.42, both of which fall to the left of every bar's end. A double-headed arrow between the second and third bars marks the largest lifetime gap, with ratio 2.06."></canvas>
+<canvas id="fig" width="640" height="340" aria-label="A barcode of the six longest first-homology lifetimes of the torus point cloud. The two longest bars, 1.2965 and 1.2373, are drawn in green; the next four, 0.5997, 0.5238, 0.5233 and 0.4950, are grey. Two dashed vertical lines mark thresholds that nearly coincide: the stability threshold at 0.5248 and the null-calibrated threshold at 0.5012, about seven pixels apart. Both fall to the right of the last three bars and to the left of the first three, so each cuts the barcode after the third bar rather than after the second. Bars four and five end just 0.001 short of the stability line, which is under half a pixel and is stated in an amber annotation rather than shown. A double-headed arrow between the second and third bars marks the largest lifetime gap, with ratio 2.06."></canvas>
 
 <p class="cite"><strong>The whole argument in one picture.</strong> Six H₁ bars.
-The dashed line at <strong>0.12</strong> is lab-05's stability threshold at
-δ = 0.03; the dashed line at <strong>0.42</strong> is the longest bar the null
-produced. <strong>Every one of the six bars extends past both.</strong> The only
-thing that separates the two green bars from the four grey ones is the gap between
-them — a factor of 2.06 — and no theorem in this module says anything about it.</p>
+The dashed line at <strong>0.5248</strong> is lab-05's stability threshold at the
+measured δ = 0.1312; the line at <strong>0.5012</strong> is the longest bar any of
+five null permutations produced. They land almost on top of each other — seven
+pixels apart, from completely unrelated arguments — and <strong>both cut the
+barcode after the third bar rather than after the second.</strong> Three bars
+survive the proved rule and five survive the null; the answer is two.
+<br><br>
+<strong>And look how narrowly the proved rule gets even three.</strong> Bars 4 and
+5 are 0.5238 and 0.5233 against a threshold of 0.524824: they miss by 0.2% and
+0.3%. A δ of 0.130950 rather than 0.131206 — a change of one part in five hundred
+— turns the verdict from three bars into five. The rule is sound, correctly
+applied, and its <em>answer</em> is balanced on the fourth significant figure of a
+quantity that real data supplies as an estimate. That is worth more than the count
+itself. The only thing that separates the two
+green bars from the four grey ones is the gap between them — a factor of 2.06 —
+and no theorem in this module says anything about it.
+<br><br>
+Had δ been read off the noise standard deviation, the first line would have sat at
+0.12, off the left of every bar, and the picture would have shown a proved rule
+excluding nothing at all. That version of this figure was drawn, and it was
+wrong.</p>
 
 <table class="cmp">
 <tr><th>rule</th><th>threshold</th><th>admits</th><th>status</th></tr>
-<tr><td>lifetime &gt; 4δ</td><td>0.1200</td><td>6</td><td><strong>proved</strong>, from Oudot's Corollary 3.6 (printed 61) by lab-05's arithmetic</td></tr>
-<tr><td>longer than any null bar</td><td>0.4192</td><td>6</td><td>empirical, and the strongest control the module has</td></tr>
+<tr><td>lifetime &gt; 4 × noise sd</td><td>0.1200</td><td>6</td><td><strong>not licensed by anything</strong> — a standard deviation is not a displacement bound</td></tr>
+<tr><td>lifetime &gt; 4δ, δ measured</td><td>0.5248</td><td>3</td><td><strong>proved</strong>, from Oudot's Corollary 3.6 (printed 61) by lab-05's arithmetic</td></tr>
+<tr><td>longer than any null bar</td><td>0.5012</td><td>5</td><td>empirical, the strongest control the module has; max over five pre-specified seeds</td></tr>
 <tr><td>largest lifetime gap</td><td>ratio 2.06</td><td><strong>2</strong></td><td>heuristic, no guarantee of any kind</td></tr>
 </table>
 
+<p>The first two rows differ only in what was substituted for δ, and the
+substitution that admits everything is the unlicensed one. That ordering is worth
+sitting with: <strong>the error made the rule weaker and more comfortable at the
+same time</strong> — 0.12 contradicts no hoped-for conclusion, and it still
+carried the word "proved" while doing so.</p>
+
 <div class="selfcheck">
-<p><strong>Self-check 2.</strong> The stability rule is proved and admits all six
-bars. Is that a defect in the theorem?</p>
-<button onclick="check(this,false)">Yes — a threshold that admits everything is useless and the theorem is too weak</button>
-<button onclick="check(this,true)" data-ok>No — the rule is sound and not complete, and at δ = 0.03 it is simply far below the scale where sampling artefacts live</button>
+<p><strong>Self-check 2.</strong> The stability rule, correctly applied with
+δ = 0.1312, admits three bars where the answer is two. Is that a defect in the
+theorem?</p>
+<button onclick="check(this,false)">Yes — a rule that gets the count wrong is not a useful rule</button>
+<button onclick="check(this,true)" data-ok>No — the rule is sound and not complete, and 4δ sits below the scale where <em>sampling</em> artefacts live, which is not what δ measures</button>
 <button onclick="check(this,false)">No, because the rule was applied with the wrong δ; the sampling scale is the right one</button>
 <button onclick="check(this,false)">Yes — Corollary 3.6 does not apply to Vietoris–Rips filtrations</button>
 <div class="explain">Sound, not complete. Every bar the rule rejects is genuinely
 rejectable — a bar shorter than 4δ <em>could</em> have been created or destroyed by
-noise of size δ — and the rule says nothing whatever about what it admits. With
-δ = 0.03 the threshold is 0.12, and the six leading bars run from 0.4950 upward, so
-the rule is true and uninformative. The third option is the interesting trap:
-substituting a "sampling scale" for δ would make the rule bite, and it would no
-longer be the theorem — δ in Corollary 3.6 is a bound on how far the
-<em>data</em> moved, not a description of how densely it was sampled, and swapping
-one for the other silently converts a proved statement into a heuristic wearing its
-clothes.</div>
+a displacement of size δ — and the rule says nothing whatever about what it admits.
+The third bar, at 0.5997, clears 0.5248 and is an artefact anyway, because it is
+produced by <em>sparse sampling</em> and not by the noise: 600 points do not fill a
+surface, and the gaps between them make loops the theorem was never asked about.
+<br><br>
+The third option is the interesting trap, and it is more tempting now than it was
+with a threshold of 0.12: substituting a "sampling scale" for δ would make the rule
+bite and give the right answer. It would also no longer be the theorem — δ in
+Corollary 3.6 bounds how far the <em>data</em> moved, not how densely it was
+sampled, and swapping one for the other silently converts a proved statement into a
+heuristic wearing its clothes. Getting the right answer by that route is worse than
+getting three by the honest one.</div>
 </div>
 
 <div class="worked">
@@ -216,16 +258,26 @@ clothes.</div>
 Permuting three coordinates independently leaves a cloud filling roughly the same
 box at roughly the same density. Six hundred points scattered in a box have a Rips
 filtration with plenty of medium-lived 1-cycles: at intermediate scales the complex
-is neither disconnected nor filled in, and the gaps make loops. The longest such
-accident is 0.4192.
+is neither disconnected nor filled in, and the gaps make loops.
+<br><br>
+<strong>How long is the longest such accident? It depends which permutation you
+drew.</strong> Five pre-specified seeds give 0.4192, 0.4584, 0.4442, 0.4006 and
+0.5012 — a spread of 0.10, or 25% of the value, on a quantity being used as a
+cutoff. A threshold taken from one draw is a threshold calibrated on a single
+sample of a random variable, which is structurally the error lab-07 spent a
+segment on. Take the maximum over the five: 0.5012.
 <br><br>
 <span class="cite"><strong>A null answers a yes/no question much better than it
 supplies a number.</strong> "Are bars 1 and 2 distinguishable from structureless
-data?" — 1.2965 and 1.2373 against 0.4192, decisively yes. "Where is the cut?" —
-the null cannot say, because its own artefacts are not a model of <em>this</em>
-cloud's artefacts. Rescaling by the null (3.09, 2.95, 1.43 for the top three)
+data?" — 1.2965 and 1.2373 against a null maximum of at most 0.5012 at any seed,
+decisively yes, and the answer does not depend on which seed. "Where is the cut?" —
+the null cannot say, because it is built by destroying the <em>joint</em> structure
+while this cloud's artefacts come from <em>sparse sampling of a surface</em>. Two
+different mechanisms, so no reason the first one's upper tail marks the second
+one's boundary. Rescaling by the null (2.59, 2.47, 1.20 for the top three)
 reproduces the gap rule's separation rather than supplying independent evidence:
-dividing every number by the same constant does not create information.</span>
+dividing every number by the same constant does not create information — and the
+constant itself wobbles by 25%.</span>
 </div>
 
 <div class="guided-proof">
@@ -308,13 +360,13 @@ image's, and is in 1-Wasserstein.</div>
 to real data, where the answer is unknown and δ is not written into a generator?</p>
 <button onclick="check(this,false)">The seed sweep, which becomes a sweep over data-collection runs</button>
 <button onclick="check(this,true)" data-ok>The coordinate-permutation null — it is built from whatever data you have and requires nothing from outside it</button>
-<button onclick="check(this,false)">The comparison of the three thresholds, since all three are computable from any dataset</button>
+<button onclick="check(this,false)">The comparison of the four thresholds, since all four are computable from any dataset</button>
 <button onclick="check(this,false)">The stability threshold, since Corollary 3.6 holds regardless</button>
 <div class="explain">The null. It is constructed from the data itself, needs no
 known answer, no noise model and no second sample, and it still rules something
 out. The first option fails because there is one sample — a bootstrap or
 subsampling sweep is its nearest substitute and is a different, weaker thing. The
-third is half-right and the missing half is fatal: all three thresholds are
+third is half-right and the missing half is fatal: all four thresholds are
 computable, but what does not transfer is the <em>knowledge of which one was
 right</em>, and that is the entire content of Segment 2. The fourth is the trap the
 whole module has been circling: Corollary 3.6 does hold regardless, and it is
@@ -346,11 +398,14 @@ no book:
 1. The null, why its marginals being <em>identical</em> rather than similar
 matters, and what it fails to destroy.
 <br>
-2. The three thresholds, their values, how many bars each admits, and which of the
-three has a theorem.
+2. The four thresholds, their values, how many bars each admits, which of the four
+has a theorem, and which one is not licensed by anything at all.
 <br>
-3. Why the stability rule being uninformative here is not a defect in the theorem —
-using the words sound and complete.
+3. Why the stability rule admitting three where the answer is two is not a defect
+in the theorem — using the words sound and complete.
+<br>
+3b. Why a Gaussian standard deviation is not a δ, and what had to be kept in order
+to obtain one.
 <br>
 4. Why H₂ is answered decisively and H₁ is not, on the same cloud.
 <br>
@@ -400,12 +455,21 @@ function check(btn, ok){
 
   // thresholds, drawn before the bars so the bars sit on top
   g.strokeStyle = '#e06c75'; g.setLineDash([5, 4]);
-  g.beginPath(); g.moveTo(px(0.12), 72); g.lineTo(px(0.12), AXIS); g.stroke();
-  g.beginPath(); g.moveTo(px(0.4192), 72); g.lineTo(px(0.4192), AXIS); g.stroke();
+  g.beginPath(); g.moveTo(px(0.5248), 72); g.lineTo(px(0.5248), AXIS); g.stroke();
+  g.beginPath(); g.moveTo(px(0.5012), 72); g.lineTo(px(0.5012), AXIS); g.stroke();
   g.setLineDash([]);
   g.fillStyle = '#e06c75'; g.font = '11px sans-serif';
-  g.fillText('4 delta = 0.12', px(0.12) + 4, 48);
-  g.fillText('null max = 0.42', px(0.4192) + 4, 66);
+  g.fillText('4 delta = 0.5248', px(0.5248) + 4, 48);
+  g.fillText('null max = 0.5012', px(0.5012) + 4, 66);
+
+  // Bars 4 and 5 end 0.001 short of the 4-delta line: 0.3 px at this scale, so
+  // the drawing cannot show the verdict and the verdict is written instead.
+  g.fillStyle = '#d8a657'; g.font = '10px sans-serif';
+  g.fillText('bars 4 and 5 fall 0.2% short of 4 delta', px(0.62), 176);
+  g.fillText('- too close to draw, and too close to trust', px(0.62), 190);
+  g.strokeStyle = '#d8a657'; g.lineWidth = 1;
+  g.beginPath();
+  g.moveTo(px(0.62) - 4, 180); g.lineTo(px(0.5248) + 2, 180); g.stroke();
 
   // bars
   for(var i = 0; i < bars.length; i++){

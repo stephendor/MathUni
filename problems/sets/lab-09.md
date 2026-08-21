@@ -75,14 +75,20 @@ import numpy as np
 R, r, NOISE = 2.0, 1.0, 0.03
 
 def torus(n, seed):
-    """n points on a torus of radii R and r, plus isotropic Gaussian noise."""
+    """n points on a torus of radii R and r, plus isotropic Gaussian noise.
+
+    Returns the clean sample as well as the noisy one. NOISE is a standard
+    deviation, and a Gaussian is unbounded: it is not a bound on how far any
+    point moved. The stability theorem needs such a bound, so it has to be
+    measured against the clean points rather than read off the generator.
+    """
     rng = np.random.default_rng(seed)
     u = rng.uniform(0, 2 * np.pi, n)
     v = rng.uniform(0, 2 * np.pi, n)
     P = np.c_[(R + r * np.cos(v)) * np.cos(u),
               (R + r * np.cos(v)) * np.sin(u),
               r * np.sin(v)]
-    return P + rng.normal(0, NOISE, P.shape)
+    return P, P + rng.normal(0, NOISE, P.shape)
 
 def shuffle_coordinates(P, seed):
     """Permute each coordinate independently. Marginals identical, structure gone."""
@@ -91,8 +97,12 @@ def shuffle_coordinates(P, seed):
                  rng.permutation(P[:, 1]),
                  rng.permutation(P[:, 2])]
 
-X = torus(600, 20260820)
-NULL = shuffle_coordinates(X, 7)
+CLEAN, X = torus(600, 20260820)
+DISPLACEMENT = np.linalg.norm(X - CLEAN, axis=1)
+DELTA = float(DISPLACEMENT.max())
+
+NULL_SEEDS = (7, 11, 13, 17, 19)
+NULL = shuffle_coordinates(X, NULL_SEEDS[0])
 print("cloud %s from a torus, R = %.1f, r = %.1f, noise sd = %.2f"
       % (X.shape, R, r, NOISE))
 print("null  %s, each coordinate independently permuted" % (NULL.shape,))
@@ -104,16 +114,27 @@ print("%-22s %-26s %-26s" % ("coordinate sds",
                              np.round(X.std(0), 6), np.round(NULL.std(0), 6)))
 print("%-22s %-26s %-26s" % ("sorted x identical", "", np.array_equal(
     np.sort(X[:, 0]), np.sort(NULL[:, 0]))))
+print()
+print("noise sd, a generator parameter        %.6f" % NOISE)
+print("max Euclidean displacement, measured   %.6f" % DELTA)
+print("mean displacement                      %.6f" % DISPLACEMENT.mean())
+print("points displaced further than the sd   %d of %d"
+      % (int((DISPLACEMENT > NOISE).sum()), len(X)))
 ```
 
 ```text id=data
 cloud (600, 3) from a torus, R = 2.0, r = 1.0, noise sd = 0.03
 null  (600, 3), each coordinate independently permuted
 
-                       torus                      null                      
+                       torus                      null
 coordinate means       [ 0.006128 -0.017759  0.034594] [ 0.006128 -0.017759  0.034594]
 coordinate sds         [1.452814 1.508928 0.69931 ] [1.452814 1.508928 0.69931 ]
-sorted x identical                                True                      
+sorted x identical                                True
+
+noise sd, a generator parameter        0.030000
+max Euclidean displacement, measured   0.131206
+mean displacement                      0.047623
+points displaced further than the sd   488 of 600
 ```
 
 (a) The two clouds have identical coordinate means and identical coordinate
@@ -125,9 +146,10 @@ construction in lab-07 that it is the geometric analogue of.
 independent coordinate permutation, and say what a null that destroyed it too
 would look like.
 
-(c) The noise level is `NOISE = 0.03` and it is written into the generator. Say
-what lab-05's δ is here, why this unit is in an unusual position with respect to
-it, and what changes when the data is not synthetic.
+(c) The noise level is `NOISE = 0.03` and it is written into the generator, so it
+is tempting to say the unit knows lab-05's δ exactly. The last four lines of the
+output say otherwise. Explain the discrepancy, say what δ actually is here, and
+say what changes when the data is not synthetic.
 
 <details><summary>Nudge</summary>
 For (a): what could a sceptic say about a long bar, if there were no null?
@@ -148,13 +170,26 @@ distribution matched on the full radial profile — points at the same distances
 from the centroid but with the angular structure randomised — which would leave
 even less for the diagram to see.
 
-(c) δ is 0.03, the standard deviation written into the generator. **This unit
-knows δ exactly**, which lab-05 spent a whole segment establishing is the one
-quantity no theorem supplies. Here it is supplied by the construction. On real
-data it is not: δ becomes a claim about measurement, defended from instrument
-specifications or a sampling model, and it is the weakest link in the chain
-(lab-05, Problem 4(b)). Everything downstream that uses δ is, on real data,
-conditional on that claim.
+(c) **δ is not 0.03.** lab-05's δ has to bound every point's Euclidean
+displacement, and `NOISE` is the standard deviation of one Gaussian coordinate —
+a scale parameter of an unbounded distribution, not a bound on anything. The
+output makes the size of the confusion concrete: **488 of the 600 points moved
+further than 0.03**, the mean displacement is 0.047623, and the largest is
+0.131206. Reading σ as δ understates the true bound by a factor of 4.4 here, and
+by an unbounded factor in principle, since a Gaussian has no maximum.
+
+What δ *is* here is the measured maximum, **0.131206** — available because the
+generator is ours and the clean sample can be kept. That is a legitimate δ and it
+is exact, but note what makes it exact: not that the noise level is known, but
+that the *realisation* is. Even a known σ would not supply a δ; a bounded noise
+model would, and a Gaussian is not one.
+
+On real data neither is available. δ becomes a claim about measurement, defended
+from instrument specifications or a sampling model, and it is the weakest link in
+the chain (lab-05, Problem 4(b)). Everything downstream that uses δ is, on real
+data, conditional on that claim — and the mistake this problem exhibits, quoting a
+standard deviation where a bound is required, is one the claim can easily
+contain.
 </details>
 
 ---
@@ -237,7 +272,8 @@ establish that b₂ = 1 for the underlying surface: b₂ of the *filtration* at 
 relevant scale is what is measured.
 
 (d) H₂ answers decisively (6.3× separation, null at 0.2195, three times below the
-signal); H₁ does not (1.2373 against 0.5997 is 2.06×, and the null reaches 0.4192).
+signal); H₁ does not (1.2373 against 0.5997 is 2.06×, and the null reaches 0.5012
+at its worst seed).
 The harder question gets the cleaner answer because a torus has **one** void and
 **two** independent loops, and the two loops are of quite different geometric
 size — the meridian at radius r = 1 and the longitude at radius R = 2 — so they sit
@@ -248,7 +284,7 @@ dimension, is what makes H₁ hard here.
 
 ---
 
-## Problem 3 (hard — three thresholds, three answers, and the one that works has no theorem)
+## Problem 3 (hard — four thresholds, four answers, and the one that works has no theorem)
 
 ```python id=thresholds
 def gap_count(L):
@@ -259,41 +295,64 @@ def gap_count(L):
 
 print("three ways to decide how many H1 bars are real. the answer is 2.")
 print()
-stability = 4 * NOISE
-null_max = float(n1[0])
+
+# One null draw is one number. Five pre-specified seeds give a range, and the
+# threshold has to be taken from the top of it, not from whichever draw was run
+# first -- otherwise the rule is calibrated on a coin flip.
+null_maxima = np.array([float(lifetimes(shuffle_coordinates(X, s), 1)[0])
+                        for s in NULL_SEEDS])
+print("null longest-bar over %d pre-specified seeds: %s"
+      % (len(NULL_SEEDS), np.round(null_maxima, 4)))
+print("   min %.4f   mean %.4f   max %.4f"
+      % (null_maxima.min(), null_maxima.mean(), null_maxima.max()))
+print()
+
+stability = 4 * DELTA
+null_max = float(null_maxima.max())
 k_gap, ratio = gap_count(h1)
 print("%-42s %-12s %-8s" % ("rule", "threshold", "admits"))
+print("%-42s %-12.4f %-8d" % ("naive: lifetime > 4 * noise sd",
+                              4 * NOISE, int((h1 > 4 * NOISE).sum())))
 print("%-42s %-12.4f %-8d" % ("lab-05 stability: lifetime > 4 delta",
                               stability, int((h1 > stability).sum())))
 print("%-42s %-12.4f %-8d" % ("null-calibrated: longer than any null bar",
                               null_max, int((h1 > null_max).sum())))
 print("%-42s %-12s %-8d" % ("largest lifetime gap", "ratio %.2f" % ratio, k_gap))
-print()
-print("of the six lifetimes shown, the stability rule admits all six,")
-print("the null rule admits %d, and the gap rule admits %d." % (int((h1 > null_max).sum()), k_gap))
 ```
 
 ```text id=thresholds
 three ways to decide how many H1 bars are real. the answer is 2.
 
-rule                                       threshold    admits  
-lab-05 stability: lifetime > 4 delta       0.1200       6       
-null-calibrated: longer than any null bar  0.4192       6       
-largest lifetime gap                       ratio 2.06   2       
+null longest-bar over 5 pre-specified seeds: [0.4192 0.4584 0.4442 0.4006 0.5012]
+   min 0.4006   mean 0.4447   max 0.5012
 
-of the six lifetimes shown, the stability rule admits all six,
-the null rule admits 6, and the gap rule admits 2.
+rule                                       threshold    admits
+naive: lifetime > 4 * noise sd             0.1200       6
+lab-05 stability: lifetime > 4 delta       0.5248       3
+null-calibrated: longer than any null bar  0.5012       5
+largest lifetime gap                       ratio 2.06   2
 ```
 
-(a) The stability rule is **proved** — it follows from Oudot's **Corollary 3.6**,
-printed 61, by lab-05's arithmetic — and it admits all six bars. Explain why that
-is not a defect in the theorem, and state exactly what the rule guarantees and what
-it does not. Use the words "sound" and "complete" and say which one it has.
+(a) The first row is the mistake Problem 1(c) diagnosed, kept in the table so the
+size of it is visible: quoting 4 × the noise *standard deviation* gives 0.1200 and
+admits all six bars. The second row is the rule actually licensed by Oudot's
+**Corollary 3.6**, printed 61, via lab-05's arithmetic, using the measured
+displacement bound: 4δ = 0.5248, admitting three.
+
+Explain why admitting three — rather than the correct two — is not a defect in the
+theorem, and state exactly what the rule guarantees and what it does not. Use the
+words "sound" and "complete" and say which one it has. Then say which of the two
+errors is more dangerous in a report: a threshold that is too low, or one that is
+too high.
 
 (b) The null-calibrated rule is the strongest empirical control this module has
-built, and it also admits six. Diagnose it: why does coordinate-shuffling a torus
-leave bars of length 0.42, and what does that tell you about using a null to set a
-threshold rather than to answer a yes/no question?
+built, and it admits five. Note first that it is computed from **five**
+pre-specified seeds, not one: the null's longest bar ranges over 0.4006 to 0.5012
+across them, so a single draw would have set the threshold anywhere in a band 25%
+wide, and the first seed run happened to sit near the bottom of it. Diagnose the
+rule: why does coordinate-shuffling a torus leave bars of length 0.4 to 0.5 at
+all, and what does that tell you about using a null to set a threshold rather than
+to answer a yes/no question?
 
 (c) The gap rule gives 2. It is **lab-01's ratio of 98.1**, which lab-05 examined
 and declined to license, and it has no theorem behind it at all. Say what its
@@ -310,39 +369,73 @@ For (b): what does an independent permutation of three coordinates leave behind?
 <details><summary>Partial</summary>
 (a) It is not a defect: the rule is **sound and not complete**. Soundness means
 every bar it rejects is genuinely rejectable — a bar shorter than 4δ *could* be
-created or destroyed by noise of size δ, so rejecting it is safe. Completeness
-would mean every bar it admits is real, and the rule makes no such claim: it says
-nothing whatever about the six bars above 0.12 except that noise of size 0.03
-cannot have manufactured them. With δ = 0.03 the threshold is simply far below the
-scale at which sampling artefacts live, so the rule is true and uninformative. A
-sound-but-not-complete rule is exactly what a worst-case guarantee is.
+created or destroyed by a displacement of size δ, so rejecting it is safe.
+Completeness would mean every bar it admits is real, and the rule makes no such
+claim: it says nothing whatever about the three bars above 0.5248 except that
+noise of this size cannot have manufactured them. The threshold sits below the
+scale at which *sampling* artefacts live — 600 points do not fill a surface, and
+that has nothing to do with the noise — so the rule is true and only partly
+informative. A sound-but-not-complete rule is exactly what a worst-case guarantee
+is.
+
+Notice also how narrowly it gets three. Bars 4 and 5 are 0.5238 and 0.5233 against
+4δ = 0.524824, missing by 0.2% and 0.3%; a δ of 0.130950 instead of 0.131206 would
+return five. **The rule is sound, correctly applied, and its answer is balanced on
+the fourth significant figure of δ** — which here is exact, and on real data is an
+estimate. Any report using this rule should say how much δ would have to move to
+change the count, because on this data the answer is: almost not at all.
+
+On the two errors: **a threshold that is too low is the dangerous one**, and it is
+the one the naive row commits. Too low, and the rule admits artefacts while still
+carrying the word "proved" — it looks like a guarantee and is not one, because the
+guarantee was never established for the δ actually used. Too high, and the rule
+merely stays silent about real features, which is a loss of power and not a false
+claim. Note that the naive error is also the *comfortable* one: 0.1200 admits
+everything and so never contradicts a hoped-for conclusion.
 
 (b) Permuting each coordinate independently leaves a cloud filling roughly the same
 box, at roughly the same density — and a dense cloud of 600 points in a box has a
 Rips filtration with plenty of medium-lived 1-cycles, because at intermediate
-scales the complex is neither disconnected nor filled in. 0.42 is the length of the
-longest such accident. What it tells you: **a null is much better at answering "is
-this bar distinguishable from nothing?" than at supplying a number.** Here the
-answer to the yes/no question is clear for bars 1 and 2 (1.30 and 1.24 against
-0.42) and it is the *threshold* reading — "everything above 0.42" — that fails,
-because the null's own bars are not a model of this cloud's artefacts.
+scales the complex is neither disconnected nor filled in. 0.4 to 0.5 is the length
+of the longest such accident, and *which* value you get is itself a coin flip: the
+five seeds give 0.4192, 0.4584, 0.4442, 0.4006 and 0.5012, a spread of 0.10 on a
+quantity being used as a cutoff. Reporting the number from one draw would be
+calibrating a threshold on a single sample of a random variable — the same error,
+structurally, as reporting one cross-validation split in lab-07.
+
+What it tells you: **a null is much better at answering "is this bar
+distinguishable from nothing?" than at supplying a number.** The yes/no answer is
+clear and stable for bars 1 and 2 (1.2965 and 1.2373 against a null maximum of at
+most 0.5012 across every seed), and it is the *threshold* reading — "everything
+above 0.5012 is real" — that fails, because the null's own bars are not a model of
+this cloud's artefacts. The null is built by destroying the joint structure; the
+artefacts in the real cloud are produced by *sparse sampling of a surface*, which
+is a different mechanism, so there is no reason its upper tail should mark the
+boundary between signal and artefact here.
 
 (c) Its status is a **heuristic with no guarantee**, and the evidence for it here is
 that it gives the right answer on data whose answer is known, at four different
 seeds. That is real evidence and it is evidence about this generator, not about the
 rule. A report should say: *the number of features was determined by the largest
 gap in the lifetime spectrum (ratio 2.06 between the 2nd and 3rd bars). This is a
-heuristic with no stability guarantee; the sound threshold derived from the noise
-level admits all six bars and the null-calibrated threshold admits six, so the
-conclusion rests on the gap and not on either of them.*
+heuristic with no stability guarantee; the sound threshold derived from the
+measured displacement bound (4δ = 0.5248) admits three bars and the
+null-calibrated threshold (0.5012, the maximum over five pre-specified null draws)
+admits five, so the conclusion rests on the gap and not on either of them.*
 
-(d) The ratios are 1.2965/0.4192 = 3.09, 1.2373/0.4192 = 2.95 and
-0.5997/0.4192 = 1.43. It **does** help, and less than one would like: it separates
-bars 1 and 2 from bar 3 by roughly a factor of two in ratio, which is the same
-separation the gap rule found, expressed differently. It has not supplied
-independent evidence — it has rescaled the same numbers by a constant. The honest
-statement is that the null confirms bars 1 and 2 are far outside what structureless
-data produces, and does not by itself decide whether bar 3 is in or out.
+(d) Against the null's largest maximum, 0.5012, the ratios are 1.2965/0.5012 =
+2.59, 1.2373/0.5012 = 2.47 and 0.5997/0.5012 = 1.20. It **does** help, and less
+than one would like: it separates bars 1 and 2 from bar 3 by roughly a factor of
+two in ratio, which is the same separation the gap rule found, expressed
+differently. It has not supplied independent evidence — it has rescaled the same
+numbers by a constant. The honest statement is that the null confirms bars 1 and 2
+are far outside what structureless data produces, and does not by itself decide
+whether bar 3 is in or out.
+
+Note also that the ratio inherits the null's variability: computed against the
+smallest of the five null maxima it reads 3.24, against the largest 2.59. A
+"ratio to null" reported without saying which draw, or how many, is a number with
+a 25% range hidden inside it.
 </details>
 
 ---
@@ -357,7 +450,7 @@ print("does the gap rule give 2 every time? four fresh samples, n = 400.")
 print()
 print("%-8s %-40s %-8s %-8s" % ("seed", "four longest H1 lifetimes", "gap at", "ratio"))
 for seed in (1, 2, 3, 4):
-    P = torus(400, 20260820 + seed)
+    _, P = torus(400, 20260820 + seed)
     L = lifetimes(P, 1, k=4)
     k, ratio = gap_count(L)
     print("%-8d %-40s %-8d %-8.2f" % (seed, np.round(L, 4), k, ratio))
@@ -366,11 +459,11 @@ for seed in (1, 2, 3, 4):
 ```text id=seeds
 does the gap rule give 2 every time? four fresh samples, n = 400.
 
-seed     four longest H1 lifetimes                gap at   ratio   
-1        [1.3421 1.1391 0.806  0.6812]            2        1.41    
-2        [1.2018 1.1507 0.7295 0.6143]            2        1.58    
-3        [1.2425 1.2074 0.6385 0.6341]            2        1.89    
-4        [1.3005 1.1288 0.7141 0.5808]            2        1.58    
+seed     four longest H1 lifetimes                gap at   ratio
+1        [1.3421 1.1391 0.806  0.6812]            2        1.41
+2        [1.2018 1.1507 0.7295 0.6143]            2        1.58
+3        [1.2425 1.2074 0.6385 0.6341]            2        1.89
+4        [1.3005 1.1288 0.7141 0.5808]            2        1.58
 ```
 
 (a) Four for four. Say what this establishes and what it does not — in particular,
@@ -438,19 +531,21 @@ for k in range(3):
     print("%-10d %-16.4f %-16.4f" % (k, peak, 2 * peak))
 print()
 print("lab-06: a bar of lifetime L peaks at L/2, so 'lifetime > 4 delta'")
-print("reads as 'peak > 2 delta' = %.4f" % (2 * NOISE))
+print("reads as 'peak > 2 delta' = %.4f" % (2 * DELTA))
+print("(reading it off the noise sd instead would give %.4f)" % (2 * NOISE))
 ```
 
 ```text id=landscape
 landscape tensor per sample: (9, 100)  (dimension x layer, bins)
 
-H1 layer   peak height      twice the peak  
-0          0.6448           1.2896          
-1          0.6148           1.2296          
-2          0.2988           0.5975          
+H1 layer   peak height      twice the peak
+0          0.6448           1.2896
+1          0.6148           1.2296
+2          0.2988           0.5975
 
 lab-06: a bar of lifetime L peaks at L/2, so 'lifetime > 4 delta'
-reads as 'peak > 2 delta' = 0.0600
+reads as 'peak > 2 delta' = 0.2624
+(reading it off the noise sd instead would give 0.0600)
 ```
 
 (a) Twice the layer peaks are 1.2896, 1.2296 and 0.5975; the three longest H₁
@@ -461,7 +556,10 @@ property of this diagram.
 (b) `PersistenceLandscape` was used because **Theorem 13.1** (Dey and Wang,
 printed 393) makes the landscape 1-Lipschitz in the bottleneck distance. State,
 in three clauses, exactly what this unit's landscape numbers inherit from it — and
-name the clause that fails, from lab-06.
+name the clause that fails, from lab-06. Be careful about a detail lab-06's
+counterexample does not settle: whether *sampling on a grid* is the culprit in
+general, or only sampling as that particular implementation did it. The two calls
+differ in whether one grid or two are involved.
 
 (c) Now write the report. One paragraph of conclusion and one of disclosure. The
 conclusion states what was found; the disclosure states every choice, every
@@ -489,11 +587,30 @@ property of this diagram, not a general fact.
 
 (b) (i) Diagram to landscape function: **inherits Theorem 13.1 exactly** — the map
 is 1-Lipschitz from the bottleneck distance. (ii) Landscape function to the
-sampled array: **does not inherit it** — this is the clause that fails, and lab-06
-measured a ratio of 1.0684 where the theorem permits 1, an excess of the order of
-the grid spacing. (iii) Sampled array to the peak heights above: a maximum is
+sampled array: **it depends on the grid, and this is where the care is needed.**
+
+If two diagrams are evaluated on **one shared grid**, sampling is just coordinate
+projection and taking a maximum is 1-Lipschitz in the sup norm, so both steps are
+non-expansive and the guarantee survives intact. lab-06's measured ratio of 1.0684
+— above the permitted 1 — therefore does *not* show that sampling breaks the
+theorem in general. It shows that one implementation's discretisation did, by
+snapping values to its own grid rather than evaluating the landscape at the grid
+points; the excess was of the order of the spacing, which is the signature of
+snapping and not of projection.
+
+If instead each diagram is passed through `fit_transform` **separately**, `fit`
+derives the grid from whatever collection it saw, so the two arrays are sampled at
+different abscissae. They are then not comparable coordinatewise at all, and the
+question of a Lipschitz constant does not arise — the two vectors are not in the
+same space, which is lab-06's persistence-image finding arriving in a second
+guise. Clauses (i)–(iii) hold **for a fixed shared grid**; separately fitted,
+data-dependent grids are simply outside Theorem 13.1's scope.
+
+The practical rule: fit one transformer, then call `transform` for every diagram
+being compared. (iii) Sampled array to the peak heights above: a maximum is
 1-Lipschitz, so this step is safe. So the numbers are stable up to the
-discretisation error, and the honest claim names the grid.
+discretisation error, and the honest claim names the grid — and says that it is
+one grid.
 
 (c) Conclusion, roughly: *the cloud's Vietoris–Rips filtration carries two
 long-lived 1-cycles (lifetimes 1.2965 and 1.2373) and one long-lived 2-cycle
@@ -501,16 +618,21 @@ long-lived 1-cycles (lifetimes 1.2965 and 1.2373) and one long-lived 2-cycle
 0.2195 respectively. The counts are consistent with b₁ = 2, b₂ = 1.*
 Disclosure, roughly: *Rips over ℤ/2, filtration by simplex diameter, dimensions 0
 to 2, edge collapse on, no maximum edge length, giotto-tda 0.6.2 on Python 3.11.11
-(full pins committed). 600 points, seed 20260820, noise sd 0.03. Null: each
-coordinate independently permuted, seed 7; marginals identical by construction.
+(full pins committed). 600 points, seed 20260820, Gaussian noise of standard
+deviation 0.03; the perturbation bound used for stability is the **measured**
+maximum displacement, δ = 0.131206, since a Gaussian standard deviation is not a
+bound (488 of 600 points moved further than 0.03). Null: each coordinate
+independently permuted, seeds 7, 11, 13, 17, 19; marginals identical by
+construction; longest null bar 0.4006 to 0.5012 across the five.
 The number of H₁ features was determined by the **largest gap in the lifetime
-spectrum**, a heuristic with no stability guarantee. The sound threshold from the
-noise level (4δ = 0.12) admits all six leading bars, and the null-calibrated
-threshold (0.4192) also admits six; neither supports the count of 2. The gap rule
+spectrum**, a heuristic with no stability guarantee. The sound threshold
+(4δ = 0.5248) admits three of the six leading bars, and the null-calibrated
+threshold (0.5012) admits five; neither supports the count of 2. The gap rule
 returned 2 in four of four independent samples at n = 400, with gap ratios 1.41 to
-1.89. Features were vectorised as persistence landscapes on a 100-point grid;
-Theorem 13.1's 1-Lipschitz guarantee applies to the landscape function and not to
-its grid samples.*
+1.89. Features were vectorised as persistence landscapes on a single 100-point grid
+fitted once and applied to every diagram; Theorem 13.1's 1-Lipschitz guarantee
+applies to the landscape function, and transfers to the samples only because the
+grid is shared and fixed.*
 
 (d) **Survives:** the conventions disclosure (a) — it is about the computation, not
 the data. **Survives:** the coordinate-permutation null — it is constructed from

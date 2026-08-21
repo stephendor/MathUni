@@ -59,8 +59,12 @@ means the features were chosen partly because they fit the test folds; by the ti
 the loop begins there is no data held out with respect to that choice, so
 cross-validation cannot see it. Measured here: on real labels the leaky and honest
 procedures differ by 0.0167, one sample in sixty, indistinguishable from noise. On
-<em>random</em> labels the honest one sits at 0.5117 and the leaky one at 0.6242,
-reaching 0.7167. The second option overstates — the score is not meaningless, it
+<em>random</em> labels the honest one sits at 0.5108 and the leaky one at 0.6242,
+reaching 0.7167. And the comparison is clean, because the problem set measures a
+third procedure in between — the Betti-curve grid fitted on all sixty diagrams but
+the selection still per-fold — which scores 0.9833 and 0.5117, matching the honest
+row to a thousandth. <strong>Fitting on all the samples is a protocol violation
+worth 0.001; fitting on all the <em>labels</em> is worth 0.11.</strong> The second option overstates — the score is not meaningless, it
 is a real measurement of the wrong quantity. The fourth is the actual error people
 make: <code>SelectKBest</code> takes <code>y</code>, so it is supervised, and that
 is exactly what makes it dangerous.</div>
@@ -82,7 +86,9 @@ lesson the topological pipeline scores 0.9333 and a six-number moment baseline
 scores 1.0000 — so on that data TDA earned nothing, and the fault was in the
 dataset, which differed in scale as well as in topology. Only after the confound is
 removed, provably (the baseline features have spread <strong>exactly</strong>
-zero), does 0.9500 mean anything.
+zero), does 0.9500 mean anything — and the repair itself has to be audited, since
+whitening is an anisotropic map and changes the dominant-bar count on four of the
+sixty clouds.
 <br><br>
 <em>And a pipeline can report a number that is not a measurement.</em> Segment 2's
 leaky protocol reports 1.0000 on real labels and 0.6242 on random ones. Its
@@ -118,7 +124,8 @@ homology. Perfect separation.
 told me.</strong> Two circles of radius 0.5 at ±0.55 span ±1.05 horizontally and
 ±0.5 vertically; one circle of radius 1 is isotropic. The classes differ in
 <em>shape of spread</em> as much as in topology, and the last entry of the spread
-vector — 0.184615, an order of magnitude above the mean terms — is the tell. The
+vector — 0.184615, about <strong>three times</strong> the two mean terms
+(2.83 and 2.67 times) and five times the smallest entry — is the tell. The
 topological pipeline scores 0.9333 on this data. Without the baseline that reads
 as "persistence distinguishes one hole from two"; with it, it reads as "something
 distinguishes these classes and the pipeline extracts it worse than six moments
@@ -172,7 +179,11 @@ than the one it is applied to, or on any label.</strong> Whitening depends only 
 its own cloud, so a single new sample can be whitened knowing nothing about the
 training set. <code>BettiCurve.fit</code> fails that test — its grid is computed
 from a whole collection — and <code>SelectKBest</code> fails it worse, because it
-depends on the labels. The third option confuses this with the standard
+depends on the labels. The two failures are not equal, and the problem set
+measures the difference: the grid violation costs 0.001 of permuted mean, the
+label violation 0.11. It is contact with the labels that turns a broken protocol
+into a manufactured number. Follow the rule in both cases anyway — a rule you obey
+only after checking that breaking it mattered is not a rule. The third option confuses this with the standard
 <em>global</em> scaler, which is fitted across samples and does need to be inside
 the loop.</div>
 </div>
@@ -233,14 +244,14 @@ problem set asks for the three clauses separately — but it is not the reason t
 predictions inherit nothing.</div>
 </div>
 
-<canvas id="fig" width="640" height="340" aria-label="A bar chart of four cross-validated accuracies. On the left, the honest procedure with feature selection inside the loop scores 0.9833 on real labels in blue and 0.5117 on permuted labels in amber. On the right, the leaky procedure with selection done once on all labels scores 1.0000 on real labels and 0.6242 on permuted labels. A dashed red horizontal line marks chance at 0.5. The honest amber bar sits on that line and the leaky amber bar rises well above it."></canvas>
+<canvas id="fig" width="640" height="340" aria-label="A bar chart of four cross-validated accuracies. On the left, the honest procedure with feature selection inside the loop scores 0.9833 on real labels in blue and 0.5108 on permuted labels in amber. On the right, the leaky procedure with selection done once on all labels scores 1.0000 on real labels and 0.6242 on permuted labels. A dashed red horizontal line marks chance at 0.5. The honest amber bar sits on that line and the leaky amber bar rises well above it."></canvas>
 
 <p class="cite"><strong>The whole argument in four bars.</strong> Blue is the
 5-fold cross-validated accuracy on the real labels; amber is the mean over 20
 random permutations of those labels, with the open tick showing the largest of the
 20. On <strong>real</strong> labels the two procedures are 0.9833 and 1.0000 —
 indistinguishable, and the leaky one is the higher. On <strong>permuted</strong>
-labels the honest procedure sits on the chance line at 0.5117 and the leaky one
+labels the honest procedure sits on the chance line at 0.5108 and the leaky one
 reaches a mean of 0.6242 and a maximum of 0.7167, from labels containing no
 information at all. <strong>The blue bars cannot tell you which procedure you are
 looking at; the amber ones can.</strong></p>
@@ -357,7 +368,7 @@ because by lab-06 it is generally the landscape of no diagram at all.</div>
 
 <div class="selfcheck">
 <p><strong>Self-check 5.</strong> The honest procedure's permuted accuracies had
-mean 0.5117 and maximum 0.6333. What should you conclude about a single reported
+mean 0.5108 and maximum 0.6333. What should you conclude about a single reported
 accuracy of 0.63 on this dataset?</p>
 <button onclick="check(this,false)">That it is modestly above chance and therefore weak evidence of signal</button>
 <button onclick="check(this,true)" data-ok>That it is attainable from labels carrying no information at all, so it is not evidence of anything here</button>
@@ -445,7 +456,7 @@ function check(btn, ok){
   var W = 56;
   var bars = [
     {x: 95,  v: 0.9833, col: '#8ab4f8'},
-    {x: 160, v: 0.5117, col: '#d8a657', max: 0.6333},
+    {x: 160, v: 0.5108, col: '#d8a657', max: 0.6333},
     {x: 365, v: 1.0000, col: '#8ab4f8'},
     {x: 430, v: 0.6242, col: '#d8a657', max: 0.7167}
   ];
@@ -487,7 +498,7 @@ remark that it is Polish, so probability measures can be defined), printed 406;
 printed 406; <strong>Theorem 13.10</strong> (non-emptiness of the Fréchet mean
 set), together with the statements that the mean is in general not unique and that
 its computation remains open, printed 407. Folio = PDF − 21, the offset verified
-across five consecutive pages during <code>lab-06</code>.
+across seven consecutive pages, PDF 411–417, during <code>lab-06</code>.
 <br><br>
 <em>Modality.</em> Dey and Wang <strong>define</strong> 13.8, 13.9 and 13.10 and
 <strong>state without proof</strong> Theorem 13.10, attributing it to references
@@ -547,7 +558,7 @@ classification in general — one constructed dataset, whose classes were built 
 differ topologically, settles nothing. That 0.9500 on the whitened data means the
 pipeline is reading loops: <code>NumberOfPoints</code> is one of its two features
 and could carry the whole score. That the permutation distribution's mean of
-0.5117 differs meaningfully from 0.5: twenty permutations at this sample size do
+0.5108 differs meaningfully from 0.5: twenty permutations at this sample size do
 not support that, and the lesson uses the maximum, not the mean, to make its point.
 The syllabus resource line names only <code>giotto-tda: Pipeline API</code> and
 <code>scikit-learn Pipeline docs</code>; Dey and Wang §13.3 is used here as the

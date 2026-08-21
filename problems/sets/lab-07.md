@@ -69,7 +69,10 @@ for dist in ("giotto-tda", "scikit-learn", "numpy"):
 # .dist-info directory, so a distribution whose compiled extensions are missing
 # reports its pinned version and fails later, in a block whose diff reads like a
 # content error. Import what the later blocks use, at the submodule they use.
-for module in ("gtda.diagrams", "gtda.homology", "gtda.pipeline", "numpy", "sklearn.feature_selection", "sklearn.linear_model", "sklearn.model_selection", "sklearn.pipeline"):
+for module in ("gtda.diagrams", "gtda.homology", "gtda.pipeline", "numpy",
+               "sklearn.feature_selection", "sklearn.linear_model",
+               "sklearn.model_selection", "sklearn.pipeline",
+               "sklearn.preprocessing"):
     try:
         __import__(module)
         print("%-27s%s" % (module, "imports"))
@@ -90,6 +93,7 @@ sklearn.feature_selection  imports
 sklearn.linear_model       imports
 sklearn.model_selection    imports
 sklearn.pipeline           imports
+sklearn.preprocessing      imports
 ```
 
 ---
@@ -101,7 +105,17 @@ circles. If persistent homology is good for anything it is good for this.
 
 ```python id=data
 import warnings
-warnings.filterwarnings("ignore")
+# Narrow, not blanket. Three categories are expected here and are noise: scipy's
+# L-BFGS-B deprecation notice (raised once per LogisticRegression fit, ~230
+# times), and the divide warnings f_classif raises on constant columns. Anything
+# else still prints, which is the point of naming them.
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning,
+                        message="invalid value encountered")
+warnings.filterwarnings("ignore", category=RuntimeWarning,
+                        message="divide by zero encountered")
+warnings.filterwarnings("ignore", category=UserWarning,
+                        message=r"Features \[.*\] are constant")
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, StratifiedKFold
@@ -176,8 +190,9 @@ construction prevented that. A one-circle cloud has radius 1; two circles of
 radius 0.5 with centres at ±0.55 span ±1.05 horizontally and only ±0.5
 vertically, so the covariance is strongly anisotropic where the circle's is
 isotropic. The giveaway is the last entry of the spread vector, 0.184615 — the
-y-variance term — an order of magnitude above the mean terms. The confound is
-geometric, it is enormous, and it was introduced by accident.
+y-variance term — running about **three times** the two mean terms (2.83 and 2.67
+times 0.065202 and 0.069208) and five times the smallest entry. The confound is
+geometric, it is large, and it was introduced by accident.
 
 (b) Without the baseline, 0.9333 would have read as "persistent homology
 distinguishes one hole from two". With the baseline, it reads as "some feature of
@@ -228,14 +243,70 @@ Every moment feature is now **identically constant across all sixty clouds** —
 spread exactly zero, not approximately zero — and the baseline scores exactly
 chance.
 
+That settles the confound. It does not settle whether the repair damaged the thing
+being measured, and the temptation is to argue that it cannot: an affine map is a
+homeomorphism of the plane, homotopy type is a homeomorphism invariant, so one
+loop stays one loop. **That argument is about the underlying space, and a Rips
+filtration of sixty points is not the underlying space** — which is what lab-01
+and lab-02 spent their length establishing. Anisotropic rescaling moves every
+distance by a different factor, so which edges enter at which scale changes, and
+nothing licenses transferring an invariance of the continuum to the sample. So
+measure it:
+
+```python id=whitencheck
+from gtda.homology import VietorisRipsPersistence as VRP
+
+def dominant_counts(clouds):
+    """Bars longer than half the longest. A crude fixed rule, applied identically."""
+    counts = []
+    for d in VRP(homology_dimensions=[0, 1]).fit_transform(clouds):
+        h1 = d[d[:, 2] == 1]
+        life = np.sort(h1[:, 1] - h1[:, 0])[::-1]
+        counts.append(0 if len(life) == 0 or life[0] == 0
+                      else int((life > 0.5 * life[0]).sum()))
+    return np.array(counts)
+
+def longest(clouds):
+    out = []
+    for d in VRP(homology_dimensions=[0, 1]).fit_transform(clouds):
+        h1 = d[d[:, 2] == 1]
+        out.append(float((h1[:, 1] - h1[:, 0]).max()) if len(h1) else 0.0)
+    return np.array(out)
+
+raw_counts, wht_counts = dominant_counts(X), dominant_counts(Xw)
+print("%-10s %-22s %-22s" % ("", "class 0 (one circle)", "class 1 (two circles)"))
+for name, counts in (("raw", raw_counts), ("whitened", wht_counts)):
+    print("%-10s %-22.3f %-22.3f"
+          % (name, counts[y == 0].mean(), counts[y == 1].mean()))
+print("clouds whose dominant-bar count changed: %d of %d"
+      % (int((raw_counts != wht_counts).sum()), len(y)))
+print("longest H1 lifetime, mean: raw %.4f -> whitened %.4f"
+      % (longest(X).mean(), longest(Xw).mean()))
+```
+
+```text id=whitencheck
+           class 0 (one circle)   class 1 (two circles)
+raw        1.000                  1.933
+whitened   1.000                  1.867
+clouds whose dominant-bar count changed: 4 of 60
+longest H1 lifetime, mean: raw 0.7651 -> whitened 1.1289
+```
+
+**The repair is not free.** Four of sixty clouds change their dominant-bar count,
+and the mean longest lifetime moves by nearly 50%. Whitening trades a large
+measured confound for a smaller measured perturbation of the signal — which is a
+good trade, and is a trade, and is not the theorem the homeomorphism argument
+seemed to promise.
+
 (a) Explain why "spread exactly 0.000000" is a much stronger statement than
 "baseline CV = 0.5000", and say which of the two you would put in a report.
 
-(b) Whitening applies a different affine map to every cloud. Justify that this
-cannot change the answer to the topological question, naming the property of
-persistent homology you are relying on and the level at which it holds — the
-space, the complex, or the filtration. Then name what it *does* change, and check
-whether that matters here.
+(b) Whitening applies a different affine map to every cloud. The homeomorphism
+argument above says the topological question is untouched; the table says four
+clouds disagree. Locate the gap precisely: name the level at which the invariance
+genuinely holds — the space, the complex, or the filtration — and say what would
+have to be true of the *sample* for it to transfer, and why nothing in this module
+establishes that.
 
 (c) The whitening is itself computed from each cloud. Say whether that is
 leakage, and give the criterion that decides such questions in general.
@@ -250,15 +321,26 @@ one. Report the first — and note that it also explains the second, since a
 logistic regression on constant inputs predicts the majority class and 5-fold
 stratified CV on balanced classes puts that at 0.5 exactly.
 
-(b) A homeomorphism of the ambient plane carries a point cloud to a point cloud
-with the same combinatorics of "which points are near which", but an affine map
-is not an isometry, so **the filtration values change**: distances are rescaled
-anisotropically, and every birth and death moves. What survives is the
-homotopy type of the underlying arrangement — one loop stays one loop, two stay
-two — so the *number* of long H₁ bars is unchanged while their *lengths* are not.
-That is enough here, because the classes differ in the number of loops. It would
-not be enough for a question about a specific lifetime, and lab-05's 4δ threshold
-is such a question — whitening invalidates any δ measured before it.
+(b) The invariance holds **at the level of the space**, and nowhere lower. A
+homeomorphism of the plane preserves the homotopy type of a union of balls of
+*fixed* radius only if it preserves those balls, and an anisotropic affine map
+does not: it takes balls to ellipses. At the level of the **filtration** the map
+is straightforwardly destructive — every distance is scaled by a factor depending
+on direction, so every birth and death moves, and the mean longest lifetime here
+moves from 0.7651 to 1.1289.
+
+For the invariance to transfer to the sample you would need the Rips complex at
+the relevant scales to be determined by the underlying space rather than by the
+sixty points — some sampling condition guaranteeing the complex recovers the
+space's homotopy type both before and after, stably enough that the anisotropy
+cannot break it. Such conditions exist in the literature and **this module has
+established none of them**; lab-02's Nerve Theorem discussion is precisely the
+record of not having one. So the correct status of the whitening step is
+*empirically checked control*, not *provably topology-preserving transformation*,
+and the four changed clouds are what that distinction costs.
+
+It would be worse for a question about a specific lifetime, and lab-05's 4δ
+threshold is such a question — whitening invalidates any δ measured before it.
 
 (c) It is **not** leakage, because it uses only the cloud it is applied to and no
 label and no other sample. The criterion: a transformation is safe if it can be
@@ -385,7 +467,7 @@ addresses the general question.
 > Given a probability distribution ρ on 𝒟, its Fréchet function is
 > ℱ_ρ(X) := ∫ d²(X, Y) dρ(Y). The Fréchet variance is inf_X ℱ_ρ(X), and the set at
 > which it is attained is the Fréchet expectation, or Fréchet mean set.
-
+>
 > **Theorem 13.10, printed 407.** Let ρ be a probability measure on 𝒟 with a
 > finite second moment. If ρ has compact support, then 𝔼(ρ) ≠ ∅.
 
@@ -469,55 +551,81 @@ device gate 9 uses on itself.
 ```python id=leak
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.pipeline import Pipeline as SklearnPipeline
+from sklearn.preprocessing import FunctionTransformer
 
-curves = BettiCurve(n_bins=500).fit_transform(diagrams).reshape(len(Xw), -1)
-print("Betti-curve feature matrix: %s   (%d samples, %d features)"
-      % (curves.shape, curves.shape[0], curves.shape[1]))
 K = 3
 
-def leaky(features, labels):
-    """Select on every label there is, then cross-validate what is left."""
-    chosen = SelectKBest(f_classif, k=K).fit(features, labels)
-    return cross_val_score(classifier(), chosen.transform(features), labels, cv=CV).mean()
+def curve_steps():
+    """BettiCurve as a pipeline STEP, so its grid is refitted per training fold.
 
-def honest(features, labels):
-    """Selection is a pipeline step, so it is refitted on each fold's training half."""
+    Problem 3's table puts BettiCurve.fit inside the loop, because its sampling
+    grid is derived from the whole collection it sees. Materialising the feature
+    matrix once, outside, would contradict the rule this unit teaches.
+    """
+    return [("betti", BettiCurve(n_bins=500)),
+            ("flat", FunctionTransformer(lambda a: a.reshape(len(a), -1)))]
+
+def fully_honest(labels):
+    """Grid and selection both refitted on each fold's training half."""
+    pipe = SklearnPipeline(curve_steps() + [
+        ("select", SelectKBest(f_classif, k=K)), ("clf", classifier())])
+    return cross_val_score(pipe, diagrams, labels, cv=CV).mean()
+
+# Fitted once on all 60 diagrams -- transductive, but it never sees a label.
+curves = SklearnPipeline(curve_steps()).fit_transform(diagrams)
+
+def grid_outside(labels):
+    """Grid fitted on everything; selection still refitted per fold."""
     pipe = SklearnPipeline([("select", SelectKBest(f_classif, k=K)), ("clf", classifier())])
-    return cross_val_score(pipe, features, labels, cv=CV).mean()
+    return cross_val_score(pipe, curves, labels, cv=CV).mean()
+
+def labels_outside(labels):
+    """Selection fitted on every label there is, then cross-validate the rest."""
+    chosen = SelectKBest(f_classif, k=K).fit(curves, labels)
+    return cross_val_score(classifier(), chosen.transform(curves), labels, cv=CV).mean()
 
 rng = np.random.default_rng(7)
 permutations = [rng.permutation(y) for _ in range(20)]
-h = [honest(curves, p) for p in permutations]
-l = [leaky(curves, p) for p in permutations]
+
+print("Betti-curve feature matrix: %s   (%d samples, %d features)"
+      % (curves.shape, curves.shape[0], curves.shape[1]))
 print()
-print("%-36s %-14s %-10s %-10s" % ("procedure", "real labels", "perm mean", "perm max"))
-print("%-36s %-14.4f %-10.4f %-10.4f"
-      % ("selection inside the CV loop", honest(curves, y), np.mean(h), max(h)))
-print("%-36s %-14.4f %-10.4f %-10.4f"
-      % ("selection once on all labels", leaky(curves, y), np.mean(l), max(l)))
+print("%-42s %-14s %-10s %-10s" % ("procedure", "real labels", "perm mean", "perm max"))
+for name, procedure in (("everything inside the CV loop", fully_honest),
+                        ("grid fitted on all samples, no labels", grid_outside),
+                        ("grid and selection fitted on all labels", labels_outside)):
+    scores = [procedure(p) for p in permutations]
+    print("%-42s %-14.4f %-10.4f %-10.4f"
+          % (name, procedure(y), np.mean(scores), max(scores)))
 ```
 
 ```text id=leak
 Betti-curve feature matrix: (60, 1000)   (60 samples, 1000 features)
 
-procedure                            real labels    perm mean  perm max  
-selection inside the CV loop         0.9833         0.5117     0.6333    
-selection once on all labels         1.0000         0.6242     0.7167    
+procedure                                  real labels    perm mean  perm max
+everything inside the CV loop              0.9833         0.5108     0.6333
+grid fitted on all samples, no labels      0.9833         0.5117     0.6333
+grid and selection fitted on all labels    1.0000         0.6242     0.7167
 ```
 
-(a) On real labels the two procedures differ by 0.0167 — one sample in sixty, well
-inside anything you would call noise. On **random** labels they differ by 0.1125,
-and the leaky one reports 0.7167 at its best. Explain the mechanism: with 1000
-features and 60 samples, what does selecting the best 3 against all the labels
-actually accomplish, and why does cross-validation afterwards fail to catch it.
+Three rows, because there are two different ways to step outside the loop and
+they are not equally bad. Row 1 refits everything per fold. Row 2 fits the
+Betti-curve grid once on all sixty diagrams — transductive, since a test fold
+influences the grid used on its own training fold, but the grid never sees a
+label. Row 3 additionally fits the feature selection on every label there is.
+
+(a) Compare rows 1 and 2 first, then rows 2 and 3. Explain the mechanism in each
+case: with 1000 features and 60 samples, what does selecting the best 3 against
+all the labels accomplish that fitting a *grid* on all the samples does not, and
+why does cross-validation afterwards fail to catch either?
 
 (b) State, as a single criterion, what makes a step "inside the loop" material.
 Then classify each of these: whitening each cloud; `VietorisRipsPersistence`;
 `BettiCurve.fit`; `SelectKBest`; choosing `n_bins` after looking at a
 cross-validated score.
 
-(c) The honest procedure's permuted mean is 0.5117, not 0.5000, and its permuted
-max is 0.6333. Say whether that is a defect, and what it tells you about how to
+(c) The fully honest procedure's permuted mean is 0.5108, not 0.5000, and its
+permuted max is 0.6333. Say whether that is a defect, and what it tells you about how to
 read a *single* reported accuracy of 0.63 on sixty samples.
 
 (d) Write the reporting rule. What must accompany a cross-validated accuracy for a
@@ -529,27 +637,46 @@ For (a): how many of 1000 pure-noise features will correlate with a random binar
 label by chance?
 </details>
 <details><summary>Partial</summary>
-(a) Among 1000 features and a random label, some will correlate with it by
-chance — that is what 1000 draws buys you. Selecting the best 3 **on all sixty
-labels** finds those, and they are chosen precisely because they fit *these*
+(a) **Rows 1 and 2 are the same to three decimal places** — 0.9833 on real labels
+in both, and permuted means of 0.5108 and 0.5117 against a permuted max of 0.6333
+in both. Fitting the grid on all sixty samples is a genuine protocol violation and
+it buys essentially nothing, for a reason worth stating: `BettiCurve.fit` reads
+only the *diagrams*, never the labels, so whatever it learns from the test fold is
+label-free and cannot manufacture label-dependent signal. It is transduction, not
+leakage. It should still be inside the loop — the score is meant to describe a
+procedure runnable on one new sample, and this one is not — but the honest report
+is that the effect here is 0.001, not that it is dangerous.
+
+**Row 3 is different in kind.** Among 1000 features and a random label, some will
+correlate with it by chance — that is what 1000 draws buys you. Selecting the best
+3 **on all sixty labels** finds exactly those, chosen because they fit *these*
 labels, test folds included. Cross-validation afterwards cannot catch it because
 the leak already happened: by the time the loop starts, the features have been
-chosen using information from every fold, so there is no held-out data left with
-respect to that choice. Cross-validation protects the *steps inside it* and
-nothing else.
+chosen using information from every fold, so no held-out data remains with respect
+to that choice. Cross-validation protects the steps inside it and nothing else.
+
+The distinction to carry: **it is contact with the labels that converts a protocol
+violation into a manufactured result.** Both rows 2 and 3 break the rule; only row
+3 produces a number. That is why the rule is stated in terms of dependence on
+other samples *or on any label*, with the second disjunct doing the damage.
 
 (b) The criterion: **a step must be inside the loop if its output depends on any
 sample other than the one it is applied to, or on any label.** Whitening —
 outside is fine, depends only on its own cloud. `VietorisRipsPersistence` —
 same, though it belongs inside for the reasons in Problem 3(d). `BettiCurve.fit` —
-**must be inside**: its grid depends on the whole collection. `SelectKBest` —
-**must be inside**: it depends on the labels, which is the worse kind.
+**must be inside**: its grid depends on the whole collection. Row 2 of the table
+is that violation measured, and it is worth 0.001; the criterion is not
+consequentialist, and a rule you only follow when you have checked that breaking
+it matters is not a rule. `SelectKBest` — **must be inside**: it depends on the
+labels, which is the kind that costs 0.11.
 Choosing `n_bins` by looking at a CV score — **must be inside**, and being inside
 requires a *nested* loop, because the outer score is otherwise reporting the best
 of several attempts.
 
 (c) Not a defect — it is the finite-sample variance, and it is the useful part of
-the output. Sixty samples in five folds means each fold's accuracy is a count out
+the output. (Rows 1 and 2 differ by 0.0009 in that mean, which is well inside the
+variation twenty permutations can resolve; nothing should be read into which is
+larger.) Sixty samples in five folds means each fold's accuracy is a count out
 of twelve, so the resolution is 1/12 ≈ 0.083 and a single fold cannot land on 0.5
 at all. The permuted max of 0.6333 says plainly: **on this data, an accuracy of
 0.63 is attainable from labels that carry no information whatever.** So a single
@@ -558,8 +685,8 @@ not intuition about what "above chance" means — is what establishes that.
 
 (d) At minimum: the number of samples, the CV scheme, **the full list of steps
 that were fitted inside the loop and those that were not**, and the permutation
-distribution's mean and max under the same procedure. The last of these is the one
-that separates the two rows, because the real-label scores do not. A report giving
-only "5-fold CV accuracy 1.00" is compatible with both rows of this table, and one
-of them is worthless.
+distribution's mean and max under the same procedure. The last is what separates
+row 3 from the others, because the real-label scores nearly do not — 1.0000 against
+0.9833 is one sample in sixty. A report giving only "5-fold CV accuracy 1.00" is
+compatible with every row of this table, and one of them is worthless.
 </details>

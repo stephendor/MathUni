@@ -270,13 +270,17 @@ opposite direction to the theorem's own parameter. Anyone reasoning from Theorem
 satisfy non-vacuously?</p>
 <button onclick="check(this,false)">All of them — that is why the sweep is a test of the theorem</button>
 <button onclick="check(this,true)" data-ok>One: 𝒰 is an open cover of a metric space. X is not path connected, and continuity and well-behavedness hold vacuously on a discrete space</button>
-<button onclick="check(this,false)">None, since a finite set is not a topological space</button>
+<button onclick="check(this,false)">None, since a finite set carries no topology to be an open cover of</button>
 <button onclick="check(this,false)">Two: the cover, and continuity of the projection, which is genuinely continuous</button>
 <div class="explain">One of four. X path connected: no — 300 isolated points.
 f continuous: true on a discrete space for <em>every</em> f, and therefore says
 nothing. f well behaved: also vacuous, and in the worst way — every preimage has
 as many path components as it has points, which is finite, so the condition holds
 while its intent fails completely. 𝒰 an open cover of a metric space: yes, of ℝ.
+The third option is wrong twice over: a finite metric space <em>is</em> a
+topological space — it carries the discrete topology — and in any case the cover
+𝒰 lives in ℝ, not in X. Having a topology is not the problem; having
+<em>that</em> topology is, since in it every point is its own path component.
 So the sweep is evidence about the <em>software's behaviour</em>, and about the
 qualitative claim that Mapper's output is a function of its parameters. It is not
 a test of Theorem 9.16, which says nothing about any object in this lesson. The
@@ -340,19 +344,36 @@ n=6 ov=0.15      10/10/1            10/10/1            agree
 n=10 ov=0.30     18/18/1            18/18/1            agree
 n=10 ov=0.10     18/15/0            18/15/0            agree
 n=15 ov=0.45     28/28/1            26/25/0            DIFFER
-n=25 ov=0.30     46/43/0            45/42/0            DIFFER</pre>
+n=25 ov=0.30     46/43/0            45/42/0            DIFFER
+
+giotto-tda default   n=10 overlap_frac=0.10   18/15/0   b1 WRONG
+kepler-mapper default n=10 perc_overlap=0.50  16/16/1   b1 correct</pre>
 Same cloud, same lens, same clusterer, same nominal cover parameters — and at
 n = 15, overlap 0.45 the two libraries disagree about <strong>b₁ itself</strong>.
 <br><br>
-<span class="cite"><strong>Neither has a bug.</strong> Definition 9.4 leaves genuine
+<span class="cite"><strong>Disagreement here is expected, and this experiment does
+not tell you whether either has a bug.</strong> Definition 9.4 leaves genuine
 freedom: where the outer intervals' endpoints sit, whether the overlap fraction is
 measured against the interval width or the gap, which side a boundary point goes,
 whether an empty cluster becomes a node. Kepler-Mapper reports 26 nodes where
 giotto-tda reports 28 — exactly two fewer, consistent with two end clusters not
-being formed. Contrast lab-03, where an independent implementation agreed, and
-where disagreement <em>would</em> have meant a bug, because the barcode is unique
-by a theorem. Here there is no such theorem and nothing for the two to be wrong
-about.</span>
+being formed.
+<br><br>
+Be careful about the step past that. This lesson said "neither has a bug" in
+draft, reasoning that both compute the nerve of a pullback cover. <strong>Neither
+quite does.</strong> Definition 9.4 takes path-connected components of
+f⁻¹(U<sub>α</sub>); both pipelines substitute DBSCAN, which at
+<code>min_samples=3</code> throws points away as noise, so the clusters need not
+cover f<sup>−1</sup>(U<sub>α</sub>) and are not a pullback cover in the
+definition's sense. Two heuristics can differ because the definition
+underdetermines them <em>or</em> because one is defective, and separating those
+would mean comparing interval endpoints, point assignments, noise handling,
+clusters and edges — none of which is done here.
+<br><br>
+Contrast lab-03, where an independent implementation agreed, and where
+disagreement <em>would</em> have meant a bug, because the barcode is unique by a
+theorem. Here there is no such theorem, so the disagreement is uninformative in
+<em>both</em> directions: it convicts nobody and it clears nobody.</span>
 </div>
 
 <table class="cmp">
@@ -369,13 +390,18 @@ about.</span>
 0.1; <code>kmapper.Cover</code>'s is 0.5. On this data, what do the two defaults
 give?</p>
 <button onclick="check(this,false)">The same answer, since the defaults are calibrated to the same convention</button>
-<button onclick="check(this,true)" data-ok>Opposite answers — 0.1 lands in the region where b₁ = 0 and 0.5 in the region where b₁ = 1, with no warning from either</button>
+<button onclick="check(this,true)" data-ok>Opposite answers — the giotto default gives b₁ = 0 and the Kepler-Mapper default b₁ = 1, with no warning from either</button>
 <button onclick="check(this,false)">Both wrong, since neither default is tuned to this cloud</button>
 <button onclick="check(this,false)">Both right, since 10 intervals is enough at any overlap</button>
-<div class="explain">Opposite answers. At 10 intervals the grid shows b₁ = 0 at
-overlaps 0.05 and 0.15 and b₁ = 1 at 0.30 and 0.45, so giotto-tda's 0.1 gives the
-wrong answer and Kepler-Mapper's 0.5 gives the right one — out of the box, silently,
-on identical data. This is the discipline lab-01 derived for library defaults and
+<div class="explain">Opposite answers, and both are <em>run</em> rather than read
+off the grid. giotto-tda's default gives 18 nodes, 15 edges, <strong>b₁ = 0 —
+wrong</strong>. Kepler-Mapper's gives 16 nodes, 16 edges, <strong>b₁ = 1 —
+right</strong> — out of the box, silently, on identical data.
+<br><br>
+Reading them off the grid would have been a mistake worth noticing:
+<code>overlap_frac</code> and <code>perc_overlap</code> are not the same quantity,
+so one library's column is not evidence about the other's default, and
+Kepler-Mapper's 16/16 is a row that appears nowhere in the sweep. This is the discipline lab-01 derived for library defaults and
 lab-02 for filtration conventions, arriving here in its sharpest form:
 <strong>never report a Mapper graph without its cover parameters, because the
 defaults do not agree and one of them is wrong here.</strong></div>

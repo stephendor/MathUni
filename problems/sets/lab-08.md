@@ -144,8 +144,9 @@ For (a): count the arguments to <code>make_mapper_pipeline</code> and subtract t
 ones Definition 9.4 accounts for.
 </details>
 <details><summary>Partial</summary>
-(a) X is the point cloud — a finite metric space, not a topological space with a
-continuous map on it. Z is ℝ. f is the lens, here projection onto the first
+(a) X is the point cloud — a finite metric space, which *is* a topological space,
+carrying the discrete topology, and that is exactly the problem rather than an
+absence of one. Z is ℝ. f is the lens, here projection onto the first
 coordinate. 𝒰 is the ten overlapping intervals of `CubicalCover`. The object with
 no counterpart in Definition 9.4 is the **clusterer**. Definition 9.4 decomposes
 f⁻¹(U_α) into its **path connected components**, which requires a topology on X;
@@ -477,6 +478,19 @@ for n, o in ((6, 0.15), (10, 0.30), (10, 0.10), (15, 0.45), (25, 0.30)):
           % ("n=%d ov=%.2f" % (n, o), "%d/%d/%d" % (v, e, b1),
              "%d/%d/%d" % (kv, ke, kb1),
              "agree" if (v, e, b1) == (kv, ke, kb1) else "DIFFER"))
+
+# Each library at ITS OWN default, run rather than read off the sweep. The two
+# parameters are not the same quantity -- giotto's overlap_frac and kmapper's
+# perc_overlap are differently defined -- so neither default can be inferred
+# from the other library's column.
+print()
+gv, ge, gk, gb1 = mapper_graph(gm.Projection(columns=[0]),
+                               n_intervals=10, overlap_frac=0.1)
+kv, ke, kk, kb1 = kepler_graph(10, 0.5)
+print("giotto-tda default   n=10 overlap_frac=0.10   %d/%d/%d   b1 %s"
+      % (gv, ge, gb1, "correct" if gb1 == 1 else "WRONG"))
+print("kepler-mapper default n=10 perc_overlap=0.50  %d/%d/%d   b1 %s"
+      % (kv, ke, kb1, "correct" if kb1 == 1 else "WRONG"))
 ```
 
 ```text id=implementations
@@ -489,6 +503,9 @@ n=10 ov=0.30     18/18/1            18/18/1            agree
 n=10 ov=0.10     18/15/0            18/15/0            agree
 n=15 ov=0.45     28/28/1            26/25/0            DIFFER
 n=25 ov=0.30     46/43/0            45/42/0            DIFFER
+
+giotto-tda default   n=10 overlap_frac=0.10   18/15/0   b1 WRONG
+kepler-mapper default n=10 perc_overlap=0.50  16/16/1   b1 correct
 ```
 
 (a) At n = 15, overlap 0.45 the two libraries disagree about **b₁ itself** — one
@@ -521,25 +538,46 @@ difference in where the first and last intervals start changes how many points t
 end intervals hold — and Kepler-Mapper reports 26 nodes where giotto-tda reports
 28, which is exactly two fewer, consistent with two end clusters not being formed.
 
-(b) On this data giotto-tda's default (10 intervals, 0.1 overlap) gives the
-`overlap 0.05`-to-`0.15` region — from the table, b₁ = 0 at 10 intervals and 0.15
-overlap, so the default answer is **wrong**. Kepler-Mapper's default of 0.5 sits
-just past the 0.45 column, where 10 intervals gives b₁ = 1 — **right**. Two
-libraries, two defaults, opposite answers, no warning from either. The discipline
+(b) Both defaults are **run**, in the last two lines of the block, rather than read
+off the sweep — and that matters, because the two parameters are not the same
+quantity. giotto's `overlap_frac` and Kepler-Mapper's `perc_overlap` are defined
+differently, so a column of one table is not evidence about the other library, and
+the measured Kepler-Mapper default gives **16/16/b₁ = 1**, a row that appears
+nowhere in the sweep above.
+
+giotto-tda's default (10 intervals, `overlap_frac=0.1`) gives 18/15 and
+**b₁ = 0 — wrong** on this data. Kepler-Mapper's default (10 cubes,
+`perc_overlap=0.5`) gives 16/16 and **b₁ = 1 — right**. Two libraries, two
+defaults, opposite answers, no warning from either. The discipline
 is the one lab-01 derived for library defaults ("a default is part of the
 citation") and lab-02 derived for filtration conventions ("never quote a
 filtration value bare"), arriving here as: **never report a Mapper graph without
 its cover parameters, because the defaults do not agree and one of them is wrong
 on this data.**
 
-(c) It establishes that **the Mapper graph is not determined by Definition 9.4
-plus the stated parameters** — the definition leaves genuine freedom, and two
-careful implementations land in different places. It does **not** establish a bug
-in either: both are computing the nerve of a pullback cover, and their covers
-differ in ways the definition does not adjudicate. That is the difference from
-lab-03, where the underlying object — the barcode — is unique by a theorem, so
-disagreement would have meant one implementation was wrong. Here there is no such
-theorem, and there is nothing for the two to be wrong about.
+(c) It establishes that **the two configured pipelines produce different results**,
+and — given that both are built to Definition 9.4 with the same nominal
+parameters — that the definition plus those parameters does not determine the
+graph. The definition leaves genuine freedom and two careful implementations land
+in different places.
+
+It does **not** establish that neither has a bug, and the earlier draft of this
+answer claimed exactly that, on the grounds that "both are computing the nerve of
+a pullback cover". Neither is, quite. Definition 9.4 takes path-connected
+components of f⁻¹(U_α); both pipelines substitute DBSCAN, and DBSCAN with
+`min_samples=3` **discards points as noise**, so the clusters need not cover
+f⁻¹(U_α) at all and the family is not a pullback cover in the definition's sense.
+Two heuristics that differ may differ because the definition underdetermines them,
+or because one of them has a defect, and this experiment does not separate those.
+Doing so would mean comparing interval endpoints, per-point assignments, noise
+handling, the clusters themselves and the edge rule — none of which is done here.
+
+The honest verdict is therefore: *disagreement is expected and is not evidence of
+a bug, and this comparison also does not exclude one.* That is still the sharp
+contrast with lab-03, where the underlying object — the barcode — is unique by a
+theorem, so disagreement there would have been decisive. Here no theorem makes
+either answer the right one, which is why the disagreement is uninformative in
+both directions.
 
 (d) Something of the form: *state the lens as an explicit function, the cover's
 type and every parameter (number of intervals, overlap fraction, and how the

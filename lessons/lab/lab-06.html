@@ -55,10 +55,10 @@ persistence diagrams. What is the obstruction?</p>
 <button onclick="check(this,false)">The bottleneck distance is only a pseudometric, so distinct diagrams can be at distance zero</button>
 <div class="explain">Midpoints are plentiful and that is the problem. For
 X = {(0,4)} and Y = {(0,4), (1,3)}, at bottleneck distance 1, three different
-multisets sit at distance exactly 0.5 from both — and a fourth, and more. In a
-normed space the midpoint of two points is <em>(x + y)/2</em> and it is unique;
-here the geodesic branches, which rules out any isometric embedding into a normed
-space. The first option fails because there is no canonical matching to average
+multisets sit at distance exactly 0.5 from both — and a fourth, and more. The
+geodesic branches, which rules out any isometric embedding into a
+<em>strictly convex</em> normed space — every Hilbert space, every L<sup>p</sup>
+for 1 &lt; p &lt; ∞, which is exactly where vectorisations land. The first option fails because there is no canonical matching to average
 along — three of them are optimal. The second is wrong in the other direction: a
 partial matching always exists, since points may be discarded to the diagonal. The
 fourth names a real defect, established in lab-05, but a different one:
@@ -133,18 +133,28 @@ configuration, and a maximum does not care which.</span>
 <p><strong>Self-check 1.</strong> What does the existence of three midpoints
 rule out?</p>
 <button onclick="check(this,false)">That the bottleneck distance is a metric</button>
-<button onclick="check(this,true)" data-ok>Any isometric embedding of diagram space into a normed vector space</button>
-<button onclick="check(this,false)">That two diagrams can be compared at all</button>
+<button onclick="check(this,false)">Any isometric embedding of diagram space into a normed vector space</button>
+<button onclick="check(this,true)" data-ok>Any isometric embedding into a <em>strictly convex</em> normed space — Hilbert, and L<sup>p</sup> for 1 &lt; p &lt; ∞</button>
 <button onclick="check(this,false)">Nothing — non-unique midpoints are normal in metric spaces</button>
-<div class="explain">The embedding. In a normed space the midpoint of x and y is
-(x + y)/2, which is unique; a map preserving distances would have to carry three
-distinct midpoints to one point, and an isometry is injective. It does <em>not</em>
-rule out the metric axioms — all three midpoints are at honest positive distances,
-and the triangle inequality holds. The fourth option is a trap worth sitting with:
-non-unique midpoints <em>are</em> perfectly normal in a general metric space (the
-sphere has them, ℝ² with the sup norm has them), and that is the point — normal
-for metric spaces, impossible for normed ones, and it is normed structure that
-machine learning needs.</div>
+<div class="explain">The embedding, but only into strictly convex targets, and the
+qualifier carries the whole argument. A map preserving distances would have to
+carry three distinct midpoints to one point, and an isometry is injective — so the
+target must be a space where metric midpoints <em>are</em> unique, and that
+property is precisely strict convexity of the unit ball.
+<br><br>
+The second option is the version this lesson gave in draft, and a reviewer
+supplied the counterexample: in (ℝ², ℓ∞) the points (0, t) for |t| ≤ 1 are all
+midpoints of (−1, 0) and (1, 0), since each is at sup-distance 1 from both. ℓ∞ is
+a perfectly good normed space with branching geodesics. What is unique in
+<em>every</em> normed space is the algebraic midpoint (x + y)/2 — a different
+object, and the one the draft argument quietly substituted.
+<br><br>
+It does <em>not</em> rule out the metric axioms: all three midpoints are at honest
+positive distances and the triangle inequality holds. And the restriction costs
+nothing here, because strictly convex spaces are exactly the ones vectorisation
+targets — L<sup>p</sup> and Euclidean space, where means, inner products and
+gradients live. Every method in this unit lands there, so every one of them is
+lossy before it is anything else.</div>
 </div>
 
 <div class="definition">
@@ -513,7 +523,7 @@ function check(btn, ok){
     g.fillText('peak ' + peak.toFixed(2), px(mid) + 6, py(peak) - 6);
   }
 
-  // the threshold line at 2*delta for delta = 0.35
+  // the threshold line at 2*delta for delta = 0.25
   var DELTA = 0.25;
   g.strokeStyle = '#e06c75'; g.lineWidth = 1; g.setLineDash([5, 4]);
   g.beginPath(); g.moveTo(OX, py(2 * DELTA)); g.lineTo(px(3.5), py(2 * DELTA)); g.stroke();
@@ -546,8 +556,8 @@ that a mean landscape may be the image of no diagram, printed 392;
 further Λ<sub>p</sub> results, printed 393; <strong>Definition 13.4</strong>
 (persistence image) and <strong>Theorem 13.3</strong> (image stability with the
 explicit constant), both printed 395. <strong>Folio = PDF − 21</strong>, verified
-on five consecutive pages: PDF 412 carries folio 391, and PDF 414, 415, 416, 417
-carry 393, 394, 395, 396. The folio sits at the outer edge of the running head —
+on seven consecutive pages: PDF 411 through 417 carry folios 390 through 396,
+inclusive and without a gap. The folio sits at the outer edge of the running head —
 second element on a recto, first on a verso.
 <br><br>
 <em>Modality.</em> Dey and Wang <strong>define</strong> 13.1 and 13.4;
