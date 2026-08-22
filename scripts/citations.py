@@ -26,13 +26,24 @@ Requires the per-page markdown tree from resources/bookmap.json, so this runs
 locally and NOT in CI, exactly like gate 9's re-execution half. It says so
 loudly rather than passing vacuously when the tree is absent.
 
-KNOWN LIMIT, do not read a corpus-wide failure count as a defect count. The
-folio->PDF map is fitted ONCE per book over all its pages, and a book whose
-offset drifts can have the global fit disagree with the local one: Lindstrom
-fits -12 globally where `pull.py --folio 55-60` measures -13, which fails every
-an2-01 citation while every one of them names the right printed page. Sampling
-before acting is mandatory. Fitting per cited range, or carrying pull.py's
-plateau boundaries through, is the repair and is not attempted here.
+DO NOT read a corpus-wide failure count as a defect count; sample before
+acting on one. The largest contaminant is not in this script at all — it is the
+unit's `resources:` line, which is what picks the book to check against. an2-01
+named Oxford lecture notes and Abbott while its lesson is written from
+Lindström, so this gate resolved it to Abbott and reported 25 of 31 citations
+wrong; pointed at Lindström the same file reports 5. Six other an2 units named
+only a source that resolves to nothing, so `book_for_unit` returned None and
+the gate could not run at all — 156 citations no check in the repository ever
+looked at. `scripts/check_resources.py` is the gate for that, and the syllabus
+is repaired on the `s1-syllabus-audit` branch.
+
+(An earlier version of this paragraph blamed the folio fit — "Lindström fits
+-12 globally where --folio measures -13". That was wrong: Lindström's global
+fit is a single plateau at -13 over PDF 15-382 and agrees with the local
+measurement. The two PDF candidates in the failure line were Abbott's, one for
+the text and one for its bound-in solutions manual, which is what gave the
+wrong book away. Recorded because a plausible diagnosis that survives one
+reading is exactly what this gate exists to make impossible.)
 
 Exit 0 all citations check out, 1 if any fails, 2 if it could not run.
 """

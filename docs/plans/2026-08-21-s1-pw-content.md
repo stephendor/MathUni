@@ -216,8 +216,16 @@ this branch and its diff is now `pw` content plus the citation-gate work in §8.
   than wrong verdicts, and one of them covering 190 citations corpus-wide. See
   the commit `citations: four ways a citation was going unchecked`. The gate
   now sees 2261 citations across the 90 lessons where it previously saw a
-  fraction of that. Its corpus-wide failure count is **not** yet a defect
-  count: the folio→PDF map is fitted once per book, and a book whose offset
-  drifts (Lindström fits −12 globally, −13 locally) fails every citation in a
-  unit while every one names the right page. Fitting per cited range is the
-  repair and is recorded as a known limit in the script's docstring.
+  fraction of that. Its corpus-wide failure count is **not** a defect count,
+  and the largest contaminant is not in the script: it is the unit's
+  `resources:` line, which is what picks the book to check against. an2-01
+  named Oxford notes and Abbott while its lesson is written from Lindström, so
+  the gate resolved it to Abbott and called 25 of 31 citations wrong; pointed
+  at Lindström the same file reports 5. Six other an2 units named only a
+  source that resolves to nothing, so the gate could not run on them at all.
+  Repaired on `s1-syllabus-audit`, with `scripts/check_resources.py` as the
+  gate. **Correction:** this entry previously blamed the folio fit — "Lindström
+  fits −12 globally, −13 locally". That was wrong; the global fit is a single
+  plateau at −13 and agrees with the local measurement. The two PDF candidates
+  in the failure line were Abbott's, one for the text and one for its bound-in
+  solutions manual, which is what gave the wrong book away.
