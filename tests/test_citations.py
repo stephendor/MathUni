@@ -168,7 +168,7 @@ def test_a_plural_citation_is_expanded_not_skipped():
     from scripts.citations import results_in
     assert results_in("Propositions 2.4, 2.6") == ["Proposition 2.4",
                                                    "Proposition 2.6"]
-    assert results_in("Exercises 6.6-6.9") == ["Exercise 6.6", "Exercise 6.9"]
+    assert results_in("Exercises 6.6-6.9") ==         ["Exercise 6.%d" % i for i in range(6, 10)]
     assert results_in("Theorems 1.1 and 1.2") == ["Theorem 1.1", "Theorem 1.2"]
 
 
@@ -322,8 +322,8 @@ def test_to_and_slash_join_a_plural_citation():
     """tda2-04 writes `Definitions 12.1 to 12.5`; the parser accepted only
     dashes, commas and `and`, so those ids left the denominator silently."""
     from scripts.citations import results_in
-    assert results_in("Definitions 12.1 to 12.5") == ["Definition 12.1",
-                                                      "Definition 12.5"]
+    assert results_in("Definitions 12.1 to 12.5") ==         ["Definition 12.%d" % i for i in range(1, 6)]
+    # "/" joins a LIST, not a range, so it does not expand.
     assert results_in("Definitions 12.1/12.5") == ["Definition 12.1",
                                                    "Definition 12.5"]
 
@@ -408,7 +408,7 @@ def test_a_plural_list_survives_a_parenthesised_part():
     from scripts.citations import results_in
     assert results_in("Exercises 8(a) and 8(b), pp. 83-84") == ["Exercise 8"]
     assert results_in("Exercises 8(a) and 9(b)") == ["Exercise 8", "Exercise 9"]
-    assert results_in("Exercises 6.6-6.9") == ["Exercise 6.6", "Exercise 6.9"]
+    assert results_in("Exercises 6.6-6.9") ==         ["Exercise 6.%d" % i for i in range(6, 10)]
 
 
 def test_a_tree_with_no_usable_folio_map_is_unavailable_not_available(tmp_path,
@@ -427,3 +427,79 @@ def test_a_tree_with_no_usable_folio_map_is_unavailable_not_available(tmp_path,
     monkeypatch.setattr(C, "pages_dir", lambda name: str(tmp_path))
     with pytest.raises(RuntimeError, match="no usable folio map"):
         C.Book("Fake")
+
+
+# --- Codex round seven on PR #21 -------------------------------------------
+
+def test_a_leading_digit_is_a_boundary_too():
+    """The trailing guard alone still let a citation match a longer number that
+    ENDS with it: "Definition 1.3" found in "11.3 definition", "Exercise 10" in
+    "110 exercise". The same sibling false PASS from the other end."""
+    from scripts.citations import found_on_page
+    assert found_on_page("Definition 1.3", "11.3 definition unrelated") is None
+    assert found_on_page("Exercise 10", "110 exercise unrelated") is None
+    assert found_on_page("Definition 1.3", "1.3 definition of x") == "exact"
+
+
+def test_a_plain_html_parenthetical_is_a_span():
+    """Lessons write `Definition 6.4.1 (Abbott, printed 167)` inline — 955 of
+    them — and none was a span, so the citation nearest the mathematics was the
+    one nothing checked. The span reaches back over the result id, which sits
+    outside the bracket."""
+    from scripts.citations import printed_pages_in, results_in, spans
+    got = spans("<strong>Definition 6.4.1 (Abbott, printed 167).</strong>")
+    assert [(results_in(b), sorted(printed_pages_in(b))) for b, _l in got] \
+        == [(["Definition 6.4.1"], [167])]
+    # and the markdown form is not counted twice
+    assert len(spans("*(Cummings, Exercise 8.28(d), p. 280)*")) == 1
+
+
+def test_a_sentence_ends_an_assertion_but_an_abbreviation_does_not():
+    """Splitting on ';' alone unioned unrelated page claims wherever a Sources
+    block is written as sentences. A full stop after `p.`, `pp.`, `ed.` or
+    inside a result number ends nothing."""
+    from scripts.citations import clauses
+    assert [sorted(pg) for _c, pg in
+            clauses("Abbott, printed 167-168. Lindstrom, printed 92.")] \
+        == [[167, 168], [92]]
+    assert [sorted(pg) for _c, pg in
+            clauses("Cummings 2nd ed. §4.3, Theorem 4.8, pp. 125-126")] \
+        == [[125, 126]]
+    assert [sorted(pg) for _c, pg in clauses("See p. 46. Also Lemma 1.3.7, p. 18.")] \
+        == [[46], [18]]
+
+
+def test_a_range_expands_but_a_list_does_not():
+    """`Exercises 1.3.1-1.3.9` cites all nine — taking only the ends left seven
+    out of the denominator. `Definitions 8.3, 8.5` cites exactly two, and
+    inventing 8.4 would hold the author to a citation never made."""
+    from scripts.citations import results_in
+    assert results_in("Exercises 1.3.1-1.3.9") == \
+        ["Exercise 1.3.%d" % i for i in range(1, 10)]
+    assert results_in("Definitions 8.3, 8.5") == ["Definition 8.3",
+                                                  "Definition 8.5"]
+    # A range that is absurd or incommensurable degrades to its ends.
+    assert results_in("Theorems 1.1-99.9") == ["Theorem 1.1", "Theorem 99.9"]
+    assert results_in("Lemmas 1.2-3.4.5") == ["Lemma 1.2", "Lemma 3.4.5"]
+
+
+def test_a_match_may_not_be_assembled_across_a_page_boundary(tmp_path,
+                                                             monkeypatch):
+    """Joining candidate pages before normalising let one page ending "Theorem"
+    and the next beginning "7.6" collapse into a result neither page carries."""
+    import scripts.citations as C
+    # The second page must not START a line with the number either, or it
+    # qualifies as a bare numbered item and the verdict is number-only WARN
+    # rather than the failure this test is about.
+    for n, body in ((10, "40\n\nsome prose ending in Theorem"),
+                    (11, "41\n\nand 7.6 continues the sentence")):
+        d = tmp_path / ("page-%d" % n)
+        d.mkdir()
+        (d / "markdown.md").write_text(body, encoding="utf-8")
+    monkeypatch.setattr(C, "pages_dir", lambda name: str(tmp_path))
+    book = C.Book("Fake")
+    src = tmp_path / "unit.md"
+    src.write_text("*(Fake, Theorem 7.6, pp. 40-41)*\n", encoding="utf-8")
+    failures, checked, _unavailable = C.check_file(str(src), book)
+    assert checked == 1
+    assert len(failures) == 1, "the split match was accepted across the boundary"

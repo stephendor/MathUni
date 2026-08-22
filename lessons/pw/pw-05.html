@@ -44,7 +44,7 @@ svg text{font-family:Georgia,serif}
 <button onclick="check(this,false)">The word "Clearly"</button>
 <button onclick="check(this,true)" data-ok>The line 4k² + 4k + 1 = 2(2k² + 2k + 1) + 1 is false</button>
 <button onclick="check(this,false)">Ending with ∎ instead of □</button>
-<div class="explain">Multiply out the right-hand side: 4k² + 4k + 2 + 1 = 4k² + 4k + 3. The two sides differ by 2, and the correct grouping is 2(2k² + 2k) + 1. This is the only planted error that makes a written line <em>false</em> rather than unjustified, unclear, or misattributed — and it is the one most readers skate over, because the line looks like the manipulation they were expecting. Segment 2 grades all five.</div>
+<div class="explain">Multiply out the right-hand side: 4k² + 4k + 2 + 1 = 4k² + 4k + 3. The two sides differ by 2, and the correct grouping is 2(2k² + 2k) + 1. It is the only planted error whose falsity is a <em>computation</em> — the others are things left unnamed, undeclared or overclaimed, and Error 5 is a false claim about method rather than about arithmetic. And it is the one most readers skate over, because the line looks like the manipulation they were expecting. Segment 2 grades all five.</div>
 </div>
 </div>
 
@@ -124,7 +124,7 @@ svg text{font-family:Georgia,serif}
 </div>
 
 <div class="theorem">
-<p><strong>Error 3 — the algebra is false.</strong> 4<var>k</var>² + 4<var>k</var> + 1 = 2(2<var>k</var>² + 2<var>k</var> + 1) + 1 is wrong: the right side is 4<var>k</var>² + 4<var>k</var> + 3. The correct grouping is 2(2<var>k</var>² + 2<var>k</var>) + 1. This is the only line in the proof that is <em>false</em>, and note how little it disturbs the surface — the conclusion drawn from it ("which is odd") is still true, so the error leaves no trace downstream.</p>
+<p><strong>Error 3 — the algebra is false.</strong> 4<var>k</var>² + 4<var>k</var> + 1 = 2(2<var>k</var>² + 2<var>k</var> + 1) + 1 is wrong: the right side is 4<var>k</var>² + 4<var>k</var> + 3. The correct grouping is 2(2<var>k</var>² + 2<var>k</var>) + 1. Note how little it disturbs the surface: the conclusion drawn from it ("which is odd") is still true, so the error leaves no trace downstream. Error 5 also asserts something false, but about method rather than arithmetic; this is the only line whose falsity a reader could settle by multiplying out.</p>
 </div>
 
 <div class="theorem">
@@ -154,7 +154,7 @@ svg text{font-family:Georgia,serif}
 </div>
 
 <div class="selfcheck">
-<p><strong>Self-check 4.</strong> Error 3 makes a written line false, yet the proof's conclusion is still true. What follows?</p>
+<p><strong>Self-check 4.</strong> Error 3 makes a line of algebra false, yet the proof's conclusion is still true. What follows?</p>
 <button onclick="check(this,true)" data-ok>Nothing about the theorem — a broken proof of a true statement is still broken, and the statement is still unproved by it</button>
 <button onclick="check(this,false)">The error is harmless, since the conclusion is right</button>
 <button onclick="check(this,false)">The theorem must be false</button>

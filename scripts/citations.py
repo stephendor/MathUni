@@ -137,6 +137,18 @@ SPAN_PATTERNS = (
     # every form in the corpus.
     re.compile(r"\*\(((?:[^()]|\([^()]*\))*?\bpp?\.\s*\d+(?:[^()]|\([^()]*\))*?)\)\*",
                re.S),
+    # The plain parenthetical, without the markdown emphasis. Lessons write
+    # `Definition 6.4.1 (Abbott, printed 167)` inline — 955 of them across the
+    # corpus — and none was a span. The result was found later in the footer
+    # instead, so changing the LOCAL page to any value at all could not affect
+    # the verdict: the citation nearest the mathematics was the one nothing
+    # checked. (Codex review of PR #21.)
+    # The span reaches BACK over the text just before the bracket, because that
+    # is where the result id sits: `Definition 6.4.1 (Abbott, printed 167)`
+    # puts the number outside the parenthesis and the page inside, and a span
+    # holding only the bracket has a page and nothing to check against it.
+    re.compile(r"([^<>()\n]{0,90}\((?:[^()]|\([^()]*\))*?"
+               r"(?:\bpp?\.|\bprinted)\s*\d+(?:[^()]|\([^()]*\))*?\))", re.S),
 )
 
 
@@ -150,10 +162,20 @@ def strip_tags(text):
 
 def spans(text):
     """Citation spans, as (span_text, line_number)."""
-    out = []
+    out, seen = [], set()
     for pat in SPAN_PATTERNS:
         for m in pat.finditer(text):
-            out.append((strip_tags(m.group(1)), text[:m.start()].count("\n") + 1))
+            body = strip_tags(m.group(1))
+            line = text[:m.start()].count("\n") + 1
+            # The markdown and plain parenthetical patterns overlap on the
+            # `*(...)*` form in the problem sets. The same assertion twice is
+            # harmless to the verdict but doubles the denominator, so dedupe on
+            # what was said and where.
+            key = (line, " ".join(body.split()).strip("*()  ").strip())
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append((body, line))
     return out
 
 
@@ -190,15 +212,66 @@ def results_in(span):
     script, which is the same "fixed the instance, not the class" mistake as
     gate.py's `data-type` and mission.py's `data-class`.
 
-    Only the numbers actually written are expanded — `Exercises 6.6-6.9` gives
-    6.6 and 6.9, never the interior — because inferring 6.7 and 6.8 would
-    invent citations the author did not make and then hold them to a page.
+    A RANGE is expanded; a LIST is not. `Exercises 1.3.1-1.3.9` cites all nine,
+    which is what a range means, and taking only its ends left the seven
+    interior ones out of the denominator so a wrong page for any of them could
+    not affect the verdict — an-01's source block is written that way. But
+    `Definitions 8.3, 8.5` cites exactly two, and inventing 8.4 would hold the
+    author to a citation never made. The separator decides: a dash or "to"
+    expands, a comma or "and" does not.
+
+    An earlier version of this docstring stated the ends-only rule as a
+    principle. It was right about lists and wrong about ranges, and the
+    justification — "inferring the interior invents citations" — is true only
+    when the interior was not cited. (Codex review of PR #21.)
     """
     ids = {"%s %s" % (m.group(1), m.group(2)) for m in RESULT.finditer(span)}
     for kinds, numbers in PLURAL.findall(span):
         kind = SINGULAR[kinds.lower()]
-        ids.update("%s %s" % (kind, n) for n in NUMBER.findall(numbers))
+        ids.update("%s %s" % (kind, n) for n in expand_members(numbers))
     return sorted(ids)
+
+
+_RANGE_SEP = re.compile(r"\s*(?:[-–—]|to)\s*")
+_MEMBER = re.compile(r"(%s)%s" % (NUMBER.pattern, _PART))
+
+
+def expand_members(numbers):
+    """The result numbers a plural list denotes, ranges expanded.
+
+    Only a dash- or `to`-joined pair of COMMENSURABLE numbers expands: same
+    leading components, numeric final component, ascending, and no more than
+    MAX_RANGE members. Anything else contributes its written members only, so
+    a malformed or absurd range degrades to the two numbers actually there
+    rather than to hundreds of invented ones.
+    """
+    MAX_RANGE = 40
+    out, tokens = set(), []
+    pos = 0
+    for m in _MEMBER.finditer(numbers):
+        tokens.append((numbers[pos:m.start()], m.group(1)))
+        pos = m.end()
+    prev = None
+    for joiner, n in tokens:
+        out.add(n)
+        if prev is not None and _RANGE_SEP.fullmatch(joiner or ""):
+            out.update(_between(prev, n, MAX_RANGE))
+        prev = n
+    return sorted(out)
+
+
+def _between(a, b, cap):
+    """The numbers strictly between two commensurable result numbers."""
+    pa, pb = a.split("."), b.split(".")
+    if len(pa) != len(pb) or pa[:-1] != pb[:-1]:
+        return []
+    if not (pa[-1].isdigit() and pb[-1].isdigit()):
+        return []
+    lo, hi = int(pa[-1]), int(pb[-1])
+    if hi <= lo or hi - lo > cap:
+        return []
+    head = pa[:-1]
+    return [".".join(head + [str(i)]) for i in range(lo + 1, hi)]
 
 
 def clauses(span):
@@ -224,10 +297,44 @@ def clauses(span):
     however it is punctuated.
     """
     whole = printed_pages_in(span)
-    parts = [c for c in span.split(";") if c.strip()]
+    parts = [c for c in _split_assertions(span) if c.strip()]
     if len(parts) < 2:
         return [(span, whole)]
     return [(c, printed_pages_in(c) or whole) for c in parts]
+
+
+# Abbreviations whose full stop is not a sentence end. `p.` and `pp.` are the
+# ones that matter — a source block is made of them — and the rest are here so
+# the rule does not have to be rediscovered per book.
+_ABBREV = {"p", "pp", "ch", "chap", "ed", "eds", "vol", "no", "nos", "cf",
+           "eq", "eqn", "fig", "sec", "art", "trans", "repr", "i.e", "e.g"}
+_SENTENCE = re.compile(r"(?<=[a-z0-9)\]’\"])\.\s+(?=[A-Z§])")
+
+
+def _split_assertions(span):
+    """A span's assertions: semicolon-separated, and sentence-separated.
+
+    Splitting on ';' alone still unioned unrelated page claims wherever a
+    Sources block is written as sentences — an2-06's footer cites Theorem 6.5.1
+    on printed 170 in a sentence whose pages then merged with 166-174 and
+    181-182, so a wrong local page could pass because the theorem occurs
+    somewhere in the accumulated set. (Codex review of PR #21.)
+
+    A full stop only ends an assertion when it is not part of an abbreviation
+    or a result number: `p. 46`, `pp. 41-42`, `§2.2` and `Lemma 1.3.7` all
+    contain one and none of them ends anything. The lookbehind requires a
+    letter or a closing bracket, and the word before the stop must not be a
+    known abbreviation.
+    """
+    out, start = [], 0
+    for m in _SENTENCE.finditer(span):
+        word = re.search(r"([A-Za-z.]+)$", span[:m.start()])
+        if word and word.group(1).rstrip(".").lower() in _ABBREV:
+            continue
+        out.append(span[start:m.start()])
+        start = m.end()
+    out.append(span[start:])
+    return [c for part in out for c in part.split(";")]
 
 
 def deaccent(text):
@@ -451,8 +558,13 @@ def found_on_page(result, blob, raw=None):
     # mistyped citation lands on. The number must end where the citation ends,
     # so nothing that continues it as a digit or a further dotted level counts.
     # (Codex review of PR #21.)
+    # Boundaries on BOTH sides. The trailing guard alone still let a citation
+    # match a longer number that ENDS with it: "Definition 1.3" was found in
+    # "11.3 definition", and "Exercise 10" in "110 exercise". That is the same
+    # sibling-result false PASS from the other end, and it bites hardest in
+    # Axler's number-first format. (Codex review of PR #21.)
     for n in {num, stem}:
-        pat = r"(?:%s\s+%s|%s\s+%s)(?!\d)(?!\.\d)" % (
+        pat = r"(?:%s\s+(?<![\d.])%s|(?<![\d.])%s\s+%s)(?!\d)(?!\.\d)" % (
             re.escape(k), re.escape(n), re.escape(n), re.escape(k))
         if re.search(pat, hay):
             return "exact"
@@ -578,12 +690,33 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
             failures.append("line %d: printed page(s) %s are not in %s"
                             % (line, ",".join(str(p) for p in sorted(pages)), book.name))
             continue
-        raw = "\n".join(book.text_of(n) for n in pdf_pages)
-        blob = normalise_for_search(raw)
+        # Each candidate page is searched SEPARATELY. Joining them first let a
+        # match be assembled across a page boundary: one page ending "Theorem"
+        # and the next beginning "7.6" collapsed — the newline becoming a space
+        # under normalisation — into a "Theorem 7.6" that neither page carries.
+        # (Codex review of PR #21.)
+        texts = [(n, book.text_of(n)) for n in pdf_pages]
+        missing = [n for n, t in texts if t is None]
+        present = [(n, t) for n, t in texts if t is not None]
+        if not present:
+            unavailable.add(book.name)
+            continue
         for r in results:
             checked += 1
-            status = found_on_page(r, blob, raw)
-            if status is None:
+            status, hit_raw = None, None
+            for _n, t in present:
+                st = found_on_page(r, normalise_for_search(t), t)
+                if st == "exact":
+                    status, hit_raw = st, t
+                    break
+                if st == "number-only" and status is None:
+                    status, hit_raw = st, t
+            if status is None and missing:
+                # A cited page could not be read, so "not found" is not a
+                # verdict about this citation.
+                checked -= 1
+                unavailable.add(book.name)
+            elif status is None:
                 failures.append(
                     "line %d: %s is not on %s printed p. %s (PDF %s)"
                     % (line, r, book.name, ",".join(str(p) for p in sorted(pages)),
@@ -593,7 +726,7 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
                 warnings.append(
                     "line %d: %s is on printed p. %s, but the book heads it %r"
                     % (line, r, ",".join(str(p) for p in sorted(pages)),
-                       book_label_for(re.sub(r"[a-z]$", "", num), raw)))
+                       book_label_for(re.sub(r"[a-z]$", "", num), hit_raw)))
             elif verbose:
                 print("  ok  %s on %s printed p. %s"
                       % (r, book.name, ",".join(str(p) for p in sorted(pages))))
@@ -622,12 +755,22 @@ def unit_paths(uid):
 
 
 def book_for_unit(uid):
-    """The unit's primary book, from the syllabus resource line."""
+    """The unit's primary book, from the syllabus resource line.
+
+    An unreadable or malformed syllabus is Unreadable, not a traceback: the
+    same exit-code contract as every other input this gate depends on. Found by
+    sweeping for the class after the third instance of it was reported.
+    """
     import yaml
-    with open(os.path.join(REPO, "curriculum", "syllabus.yaml"), encoding="utf-8") as f:
-        syl = yaml.safe_load(f)
+    path = os.path.join(REPO, "curriculum", "syllabus.yaml")
+    try:
+        with open(path, encoding="utf-8") as f:
+            syl = yaml.safe_load(f)
+        units = syl["units"]
+    except (OSError, yaml.YAMLError, KeyError, TypeError) as e:
+        raise Unreadable("%s: %s" % (path, e)) from e
     bm = load_bookmap()
-    unit = next((u for u in syl["units"] if u["id"] == uid), None)
+    unit = next((u for u in units if u["id"] == uid), None)
     if unit is None:
         return None
     for res in unit.get("resources", []):
@@ -670,8 +813,16 @@ def selftest():
     check_one("a plural citation expands to one id per number",
               results_in("Propositions 2.4, 2.6")
               == ["Proposition 2.4", "Proposition 2.6"])
-    check_one("a range expands to its ENDS only, never its interior",
-              results_in("Exercises 6.6-6.9") == ["Exercise 6.6", "Exercise 6.9"])
+    check_one("a RANGE expands to every member it denotes",
+              results_in("Exercises 6.6-6.9")
+              == ["Exercise 6.%d" % i for i in range(6, 10)])
+    check_one("...while a LIST contributes only what is written",
+              results_in("Definitions 8.3, 8.5")
+              == ["Definition 8.3", "Definition 8.5"])
+    check_one("an absurd or incommensurable range degrades to its ends",
+              results_in("Theorems 1.1-99.9") == ["Theorem 1.1", "Theorem 99.9"]
+              and results_in("Lemmas 1.2-3.4.5")
+              == ["Lemma 1.2", "Lemma 3.4.5"])
     check_one("'and' joins a plural citation too",
               results_in("Theorems 1.1 and 1.2") == ["Theorem 1.1", "Theorem 1.2"])
     check_one("a singular keyword is unaffected",
@@ -821,6 +972,23 @@ def selftest():
     check_one("...and a dash inside such a list is still a range",
               printed_pages_in("pp. 41-42") == {41, 42}
               and printed_pages_in("pp. 10-12, 20") == {10, 11, 12, 20})
+    check_one("a leading digit is a boundary too",
+              found_on_page("Definition 1.3", "11.3 definition unrelated") is None
+              and found_on_page("Exercise 10", "110 exercise unrelated") is None
+              and found_on_page("Definition 1.3", "1.3 definition of x") == "exact")
+    check_one("a plain HTML parenthetical is a span, with its result",
+              [(results_in(b), sorted(printed_pages_in(b))) for b, _l in
+               spans("<strong>Definition 6.4.1 (Abbott, printed 167).</strong>")]
+              == [(["Definition 6.4.1"], [167])])
+    check_one("...and the markdown form is not counted twice",
+              len(spans("*(Cummings, Exercise 8.28(d), p. 280)*")) == 1)
+    check_one("a sentence ends an assertion; an abbreviation does not",
+              [sorted(pg) for _c, pg in clauses(
+                  "Abbott, printed 167-168. Lindstrom, printed 92.")]
+              == [[167, 168], [92]]
+              and [sorted(pg) for _c, pg in clauses(
+                  "Cummings 2nd ed. §4.3, Theorem 4.8, pp. 125-126")]
+              == [[125, 126]])
     check_one("a plural list survives a parenthesised part",
               results_in("Exercises 8(a) and 8(b), pp. 83-84") == ["Exercise 8"])
     check_one("...and parts on distinct numbers still give distinct ids",
@@ -843,10 +1011,11 @@ def selftest():
               and [n for _p, n in split_at_books(
                   "Abbott, p. 223; Lindström, p. 44",
                   ["Abbott", "Lindstrom"])] == ["Abbott", "Lindstrom"])
-    check_one("'to' and '/' join a plural citation",
+    check_one("'to' joins a plural citation, and expands it",
               results_in("Definitions 12.1 to 12.5")
-              == ["Definition 12.1", "Definition 12.5"]
-              and results_in("Definitions 12.1/12.5")
+              == ["Definition 12.%d" % i for i in range(1, 6)])
+    check_one("'/' joins a plural citation as a LIST, not a range",
+              results_in("Definitions 12.1/12.5")
               == ["Definition 12.1", "Definition 12.5"])
 
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
@@ -867,14 +1036,18 @@ def main(argv=None):
 
     paths = list(a.paths)
     book_name = a.book
-    if a.unit:
-        paths.extend(unit_paths(a.unit))
-        book_name = book_name or book_for_unit(a.unit)
-    if not paths:
-        ap.error("give paths or --unit")
-    if not book_name:
-        uid = os.path.splitext(os.path.basename(paths[0]))[0]
-        book_name = book_for_unit(uid)
+    try:
+        if a.unit:
+            paths.extend(unit_paths(a.unit))
+            book_name = book_name or book_for_unit(a.unit)
+        if not paths:
+            ap.error("give paths or --unit")
+        if not book_name:
+            uid = os.path.splitext(os.path.basename(paths[0]))[0]
+            book_name = book_for_unit(uid)
+    except Unreadable as e:
+        print("ERROR could not read %s" % e)
+        return 2
     if not book_name:
         print("ERROR could not tell which book to check against; pass --book")
         return 2

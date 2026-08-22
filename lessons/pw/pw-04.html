@@ -207,16 +207,17 @@ svg text{font-family:Georgia,serif}
 </div>
 
 <div class="guided">
-<p><strong>Guided proof.</strong> Prove that <var>f</var>(<var>x</var>) = 1/<var>x</var> is continuous at <var>c</var> = 2, directly from the definition.</p>
+<p><strong>Guided proof.</strong> Let <var>f</var> : ℝ \ {0} → ℝ be given by <var>f</var>(<var>x</var>) = 1/<var>x</var>. Prove that <var>f</var> is continuous at <var>c</var> = 2, directly from the definition.</p>
+<p>The domain is part of the statement, not decoration: Definition 6.16 is about a function <var>f</var> : A → ℝ and a point <var>c</var> ∈ A, so "<var>f</var>(<var>x</var>) = 1/<var>x</var>" alone does not name an object the definition applies to — and read with the usual unstated domain ℝ it names one that is undefined at 0. Any explicit domain containing a neighbourhood of 2 would do; this one is the natural choice.</p>
 <p>(Hint: |1/<var>x</var> − 1/2| = |<var>x</var> − 2| / (2|<var>x</var>|), so you need a <em>lower</em> bound on |<var>x</var>| to get an upper bound on the quotient. Confine <var>x</var> first, exactly as in the worked example — and notice that this time the confinement also keeps you away from the point where <var>f</var> blows up.)</p>
 <textarea placeholder="Write your proof here before revealing the model answer..."></textarea>
 <details>
 <summary>Reveal model answer</summary>
 <p><strong>Scratch Work.</strong> |1/<var>x</var> − 1/2| = |2 − <var>x</var>| / (2|<var>x</var>|) = |<var>x</var> − 2| / (2|<var>x</var>|). Insisting δ ≤ 1 confines <var>x</var> to (1, 3), so |<var>x</var>| &gt; 1 and hence 1/(2|<var>x</var>|) &lt; 1/2. On that region |1/<var>x</var> − 1/2| ≤ |<var>x</var> − 2| / 2, which is below ε once |<var>x</var> − 2| &lt; 2ε. Two constraints, so δ = min(1, 2ε).</p>
-<p><strong>Proof.</strong> Let ε &gt; 0 and put δ = min(1, 2ε) &gt; 0. Suppose |<var>x</var> − 2| &lt; δ. Since δ ≤ 1 we have 1 &lt; <var>x</var> &lt; 3, so <var>x</var> ≠ 0 (the expression is defined) and |<var>x</var>| &gt; 1. Therefore</p>
+<p><strong>Proof.</strong> Let ε &gt; 0 and put δ = min(1, 2ε) &gt; 0. Suppose <var>x</var> ∈ ℝ \ {0} with |<var>x</var> − 2| &lt; δ. Since δ ≤ 1 we have 1 &lt; <var>x</var> &lt; 3, so |<var>x</var>| &gt; 1. Therefore</p>
 <p style="text-align:center">|1/<var>x</var> − 1/2| = |<var>x</var> − 2| / (2|<var>x</var>|) ≤ |<var>x</var> − 2| / 2 &lt; δ/2 ≤ (2ε)/2 = ε. ∎</p>
-<p>Note the ≤ in the first step, where you might have written &lt;. Continuity admits <var>x</var> = <var>c</var> — Definition 6.16 has no 0 &lt; clause — and at <var>x</var> = 2 both sides of that step are 0, so a strict inequality there would assert 0 &lt; 0 and the proof would be false at exactly the point continuity is about. Bound the other factor non-strictly and let the strict step be |<var>x</var> − 2| &lt; δ, which holds at <var>x</var> = 2 because δ &gt; 0. A limit proof does not face this, since 0 &lt; |<var>x</var> − <var>c</var>| excludes the centre.</p>
-<p>Two more things to notice. The confinement δ ≤ 1 did double duty: it bounded the second factor <em>and</em> kept <var>x</var> in the domain, which a proof about 1/<var>x</var> owes the reader. And δ = min(1, 2ε) grows with ε rather than shrinking — nothing requires δ to be small, only to exist.</p>
+<p>The confinement δ ≤ 1 also keeps <var>x</var> away from 0, which is what a proof about 1/<var>x</var> owes the reader even with the domain stated. Note too the ≤ in the first step, where you might have written &lt;. Continuity admits <var>x</var> = <var>c</var> — Definition 6.16 has no 0 &lt; clause — and at <var>x</var> = 2 both sides of that step are 0, so a strict inequality there would assert 0 &lt; 0 and the proof would be false at exactly the point continuity is about. Bound the other factor non-strictly and let the strict step be |<var>x</var> − 2| &lt; δ, which holds at <var>x</var> = 2 because δ &gt; 0. A limit proof does not face this, since 0 &lt; |<var>x</var> − <var>c</var>| excludes the centre.</p>
+<p>Two more things to notice. The confinement δ ≤ 1 did double duty: it bounded the second factor <em>and</em> kept <var>x</var> away from 0. And δ = min(1, 2ε) grows with ε rather than shrinking — nothing requires δ to be small, only to exist.</p>
 </details>
 </div>
 </div>
