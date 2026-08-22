@@ -1,8 +1,6 @@
 """Gate 8, and the ratchet that lets it be a hard gate while 15 units still fail."""
 import os
 
-import pytest
-
 from scripts.mission import (load_known_failing, main, normalise, strip_of,
                              unit_id_for)
 
@@ -108,12 +106,245 @@ def test_checking_one_lesson_does_not_accuse_other_entries_of_being_stale(capsys
     assert "STALE" not in out
 
 
-def test_every_listed_unit_still_exists_and_still_fails():
-    """Binds the checked-in list to reality, so it cannot rot between runs."""
+def test_every_listed_unit_still_exists():
+    """Binds the checked-in list to reality, so it cannot rot between runs.
+
+    An empty or absent list is the ratchet's SUCCESS state, not a failure: it
+    means every mission strip has been repaired. The earlier version of this
+    test asserted the list was non-empty and told authors to delete the file
+    once it was — two instructions that could not both be satisfied, and which
+    together made the finished state unreachable in CI.
+    (Codex review of PR #20, second round.)
+    """
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     drift = os.path.join(repo, "curriculum", "mission-drift.txt")
-    listed = sorted(load_known_failing(drift))
-    assert listed, "the drift list is empty — if gate 8 is clean, delete the file"
-    for uid in listed:
+    for uid in sorted(load_known_failing(drift)):
         path = os.path.join(repo, "lessons", uid.rsplit("-", 1)[0], uid + ".html")
         assert os.path.exists(path), "%s is listed but has no lesson" % uid
+
+
+def test_every_listed_unit_still_actually_fails():
+    """The other half, which the name used to claim and the body did not check.
+    A unit repaired but not struck off is caught at runtime by the STALE rule,
+    but only if someone runs the gate with the list; this binds the checked-in
+    list to reality in the test suite itself."""
+    import yaml
+    from scripts.mission import strips_of, normalise
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    drift = os.path.join(repo, "curriculum", "mission-drift.txt")
+    with open(os.path.join(repo, "curriculum", "syllabus.yaml"), encoding="utf-8") as f:
+        units = {u["id"]: u for u in yaml.safe_load(f)["units"]}
+    for uid in sorted(load_known_failing(drift)):
+        path = os.path.join(repo, "lessons", uid.rsplit("-", 1)[0], uid + ".html")
+        with open(path, encoding="utf-8") as f:
+            strips = strips_of(f.read())
+        want = normalise(units[uid]["mission_link"])
+        got = strips[0] if strips else None
+        assert got != want or len(strips) > 1, (
+            "%s is on the drift list but now passes gate 8 — strike it off" % uid)
+
+
+def test_a_deleted_drift_list_is_an_empty_list_not_an_error(tmp_path):
+    """The end state has to be reachable: list emptied, file deleted, CI green.
+    A missing list excuses nothing, so this cannot be used to escape the gate."""
+    assert load_known_failing(str(tmp_path / "gone.txt")) == set()
+
+
+def test_with_no_drift_list_every_lesson_is_held(tmp_path, capsys):
+    """The stricter direction, asserted rather than assumed.
+
+    Against a SYNTHETIC drifted lesson, not aa-00. Pointing it at a committed
+    lesson that happens to drift today made the test assert the corpus's
+    current state rather than the gate's behaviour — and aa-00 is scheduled for
+    re-authoring in the S1 module branches, so this would have failed at the
+    moment the repair it is waiting for actually landed.
+    """
+    lesson = tmp_path / "an-03.html"
+    lesson.write_text('<p class="mission">not the syllabus text</p>',
+                      encoding="utf-8")
+    assert main(["--known-failing", str(tmp_path / "no-such-list.txt"),
+                 str(lesson)]) == 1
+    assert "KNOWN-FAIL" not in capsys.readouterr().out
+
+
+# --- Codex review of PR #20 ------------------------------------------------
+
+def test_a_valid_unit_with_no_lesson_file_exits_2_not_1(capsys):
+    """pw-04 is a real syllabus unit whose lesson is not written yet. The
+    unguarded open() raised FileNotFoundError, and the traceback exited 1 —
+    the code reserved for "a strip was compared and differed". A filesystem
+    failure must never be readable as a gate verdict."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    assert main([os.path.join(repo, "lessons", "pw", "pw-04.html")]) == 2
+    assert "cannot read" in capsys.readouterr().out
+
+
+def test_an_unchanged_or_shrunk_drift_list_has_no_additions(tmp_path):
+    from scripts.mission import additions_against
+    base = tmp_path / "base.txt"
+    base.write_text("# header\naa-00\npw-03\ntda2-02\n", encoding="utf-8")
+    assert additions_against(str(base), {"aa-00", "pw-03", "tda2-02"}) == (set(), True)
+    assert additions_against(str(base), {"aa-00"}) == (set(), True)
+    assert additions_against(str(base), set()) == (set(), True)
+
+
+def test_a_grown_drift_list_is_caught():
+    """The ratchet's whole claim. The two stale checks only ever let the list
+    SHRINK; nothing stopped a branch adding a freshly-drifted unit and going
+    green. Verified before the fix: a lesson broken on purpose, then listed,
+    exited 0."""
+    from scripts.mission import additions_against
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        base = os.path.join(d, "base.txt")
+        with open(base, "w", encoding="utf-8") as f:
+            f.write("aa-00\npw-03\n")
+        assert additions_against(base, {"aa-00", "pw-03", "an-03"}) == ({"an-03"}, True)
+        # A swap keeps the count identical and must still be caught.
+        assert additions_against(base, {"aa-00", "an-03"}) == ({"an-03"}, True)
+
+
+def test_a_missing_baseline_is_reported_as_missing_not_as_empty(tmp_path):
+    """Treating an absent baseline as the empty set would make every entry an
+    addition on the commit that introduces the list — and, worse, would make a
+    lost baseline look like a clean comparison."""
+    from scripts.mission import additions_against
+    added, existed = additions_against(str(tmp_path / "nope.txt"), {"aa-00"})
+    assert (added, existed) == (set(), False)
+
+
+def test_growth_check_end_to_end_fails_the_run(tmp_path, capsys):
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base = tmp_path / "base.txt"
+    base.write_text("aa-00\n", encoding="utf-8")
+    grown = tmp_path / "grown.txt"
+    grown.write_text("aa-00\npw-03\n", encoding="utf-8")
+    rc = main(["--known-failing", str(grown), "--baseline", str(base),
+               os.path.join(repo, "lessons", "aa", "aa-00.html")])
+    assert rc == 1
+    assert "GREW pw-03" in capsys.readouterr().out
+
+
+# --- Codex review of PR #20, second round ----------------------------------
+
+def test_a_prefixed_filename_does_not_borrow_a_unit_id():
+    """End-anchoring alone let `draft-aa-01.html` be treated as unit aa-01 and
+    pass gate 8, while check_id_consistency.py skips a nonconforming stem
+    rather than calling it an orphan — so a stray lesson could clear every
+    integrity check the workflow runs."""
+    assert unit_id_for("lessons/aa/draft-aa-01.html") is None
+    assert unit_id_for("lessons/pw/copy-of-pw-01.html") is None
+    assert unit_id_for(r"lessons\aa\aa-01.html") == "aa-01"
+
+
+def test_every_mission_strip_is_collected_not_just_the_first():
+    """A lesson could keep an exact strip at the top and carry a second,
+    divergent mission claim further down; lesson_lint.py only requires the
+    count to be at least one, so nothing else closed it."""
+    from scripts.mission import strips_of
+    assert strips_of('<p class="mission">one</p><p class="mission">two</p>') \
+        == ["one", "two"]
+
+
+def test_a_second_mission_strip_fails_the_gate(tmp_path, capsys):
+    import yaml
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    with open(os.path.join(repo, "curriculum", "syllabus.yaml"), encoding="utf-8") as f:
+        units = {u["id"]: u for u in yaml.safe_load(f)["units"]}
+    want = units["an-03"]["mission_link"]
+    lesson = tmp_path / "an-03.html"
+    lesson.write_text('<p class="mission">%s</p>'
+                      '<p class="mission">a divergent second claim</p>' % want,
+                      encoding="utf-8")
+    assert main([str(lesson)]) == 1
+    assert "carries 2 mission strips" in capsys.readouterr().out
+
+
+# --- Codex review of PR #20, fourth round -----------------------------------
+
+def test_a_commented_out_mission_strip_does_not_count():
+    """A commented-out strip renders nothing, but the raw regex still found it
+    and gate 8 reported PASS on a lesson displaying no mission paragraph.
+    lesson_lint.py could not close it either — its structure counter scans
+    comments as raw text too, so such a lesson cleared both hard checks."""
+    from scripts.mission import strips_of
+    assert strips_of('<!-- <p class="mission">hidden</p> -->') == []
+    assert strips_of('<p class="mission">real</p>') == ["real"]
+    assert strips_of('<p class="mission">real</p>'
+                     '<!-- <p class="mission">hidden</p> -->') == ["real"]
+
+
+def test_deleting_the_drift_list_is_refused(tmp_path, capsys):
+    """Deletion is the one move that reopens the ratchet: with the path gone,
+    every later base also lacks it, so "base has no list" stops meaning "the
+    introducing commit" and a reintroduction alongside fresh mismatches would
+    be excused."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base = tmp_path / "base.txt"
+    base.write_text("aa-00\n", encoding="utf-8")
+    gone = tmp_path / "not-here.txt"
+    rc = main(["--known-failing", str(gone), "--baseline", str(base),
+               os.path.join(repo, "lessons", "aa", "aa-00.html")])
+    assert rc == 1
+    assert "DELETED" in capsys.readouterr().out
+
+
+def test_an_emptied_but_present_drift_list_is_the_success_state(tmp_path, capsys):
+    """Emptying is allowed; only deleting is not."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base = tmp_path / "base.txt"
+    base.write_text("an-03\n", encoding="utf-8")
+    empty = tmp_path / "drift.txt"
+    empty.write_text("# all repaired\n", encoding="utf-8")
+    rc = main(["--known-failing", str(empty), "--baseline", str(base),
+               os.path.join(repo, "lessons", "an", "an-03.html")])
+    assert rc == 0
+    assert "DELETED" not in capsys.readouterr().out
+
+
+# --- Codex review of PR #20, fifth round ------------------------------------
+
+def test_a_second_strip_cannot_hide_behind_an_extra_attribute_or_class():
+    """`MISSION_P` required literally `class="mission"`, so
+    `<p class="mission" id="dup">` and `<p class="mission note">` were invisible
+    — which is exactly where a divergent second claim would sit if someone were
+    hiding one. Matched on the class token now, as lesson_lint.py already does."""
+    from scripts.mission import strips_of
+    assert strips_of('<p class="mission" id="dup">x</p>') == ["x"]
+    assert strips_of('<p class="mission note">y</p>') == ["y"]
+    assert strips_of("<p class='mission'>z</p>") == ["z"]
+    assert strips_of('<p class="mission">a</p>'
+                     '<p class="mission note">b</p>') == ["a", "b"]
+
+
+def test_a_class_merely_containing_the_word_is_not_a_mission_strip():
+    """The token boundary, so widening the match did not widen it too far."""
+    from scripts.mission import strips_of
+    assert strips_of('<p class="submission">no</p>') == []
+    assert strips_of('<p class="missionary">no</p>') == []
+
+
+# --- sixth round ----------------------------------------------------------
+
+def test_data_class_is_not_read_as_the_class_attribute():
+    """`\bclass` matched the tail of `data-class`, the same word-boundary
+    defect `\btype` had in gate.py. A lesson whose only candidate paragraph
+    was `<p data-class="mission">` renders no mission strip at all, and gate 8
+    accepted it as the strip and passed the lesson."""
+    from scripts.mission import strips_of
+    assert strips_of('<p data-class="mission">X</p>') == []
+    assert strips_of('<p id="a" class="lede mission">X</p>') == ["X"]
+
+
+def test_an_unreadable_ratchet_input_is_verdict_2_not_1():
+    """Exit 1 is reserved for a compared-and-differed strip. A --known-failing
+    or --baseline path that exists but cannot be read raised OSError out of
+    main() and the process exited 1 on a traceback, so a wrapper could read
+    "the gate could not open its own list" as a mission mismatch."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    lesson = os.path.join(repo, "lessons", "pw", "pw-01.html")
+    a_directory = os.path.join(repo, "scripts")
+    assert main(["--known-failing", a_directory, lesson]) == 2
+    assert main(["--known-failing",
+                 os.path.join(repo, "curriculum", "mission-drift.txt"),
+                 "--baseline", a_directory, lesson]) == 2

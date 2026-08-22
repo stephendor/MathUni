@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>lab-05 — Bottleneck and Wasserstein distance; stability</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.warn{background:#241a1c;border-left:4px solid var(--bad);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+table.cmp{width:100%;border-collapse:collapse;margin:1.2rem 0;font-size:.95rem}
+table.cmp th,table.cmp td{border:1px solid #2a333d;padding:.5rem .6rem;text-align:left;vertical-align:top}
+table.cmp th{background:#26313c;font-family:Segoe UI,system-ui,sans-serif;font-size:.85rem}
+code{background:#0c1013;border:1px solid #2a333d;border-radius:4px;padding:.05rem .3rem;font-size:.92rem}
+pre{background:#0c1013;border:1px solid #2a333d;border-radius:8px;padding:.8rem 1rem;overflow-x:auto;font-size:.88rem;line-height:1.45}
+</style></head><body>
+<p class="cite">Computational Lab · Nexus College</p>
+<h1>Bottleneck and Wasserstein distance; stability <span class="cite">(lab-05)</span></h1>
+
+<div class="hook">
+Four units have deferred the same question. lab-01 found a long bar and a ratio of
+98.1 and could not say whether 98.1 was enough. lab-03 confirmed the reduction
+returns every feature and ranks none of them. lab-04 called the diagram central
+and admitted the claim was underwritten. This is the unit where the threshold
+arrives — and it arrives with a condition attached that is not a theorem, and
+that the theorem cannot supply. Knowing which part is proved and which part you
+are asserting is the whole of using stability honestly.
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Predict before we start.</strong> The stability theorem bounds how far
+a persistence diagram moves when the data moves. What does it let you conclude
+about lab-01's long bar?</p>
+<button onclick="check(this,false)">That it is a real feature of the circle the points were sampled from</button>
+<button onclick="check(this,false)">Nothing, since stability compares two diagrams and lab-01 had only one</button>
+<button onclick="check(this,true)" data-ok>That it survives every perturbation up to a size you must supply from outside the data</button>
+<button onclick="check(this,false)">That features shorter than the noise level are absent from the true diagram</button>
+<div class="explain">It converts a bound on the input error into a bound on the
+output error, and the input bound is yours to supply. Given δ, no dataset within
+δ of this one has a diagram more than 2δ away, so a bar longer than 4δ cannot be
+created or destroyed by noise of that size — and at δ = 0.05 the bar of 1.2370
+clears that comfortably while the runner-up of 0.0126 does not. The first option
+overreaches in the way this module keeps warning about: the theorem compares two
+<em>datasets</em>, never a dataset with a space it was sampled from. The second is
+tempting and wrong — one diagram plus a noise model is exactly two diagrams'
+worth of information. The fourth inverts the logic: short bars <em>might</em> be
+noise, which is not the same as being absent.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The stability theorem (an epsilon statement, cf. pw-04) is why TDA is trustworthy on noisy real data.</p>
+
+<div class="warn">
+<strong>The strip is true, and "trustworthy" is doing something it should not.</strong>
+<br><br>
+<em>The theorem is real and it is strong.</em> Oudot's <strong>Theorem 3.1</strong>
+is an <em>equality</em>, not merely a bound: the bottleneck distance between two
+diagrams equals the interleaving distance between the modules. He calls it "the
+cornerstone of the theory".
+<br><br>
+<em>Read where the equality lives.</em> It is between a persistence module and its
+diagram. The step from a point cloud to its Rips module is no part of it, and that
+step is not invertible — two very different clouds can carry the same diagram. So
+the chain from data to diagram runs <strong>one way only</strong>, with a factor
+of 2, and no bound on a diagram converts back into a bound on the data. Reading
+the equality as though it applied end to end is the easiest available mistake
+here, because the theorem genuinely is an equality.
+<br><br>
+<em><code>pw-04</code> is an unwritten S1 unit</em> and is cited nowhere in this lesson.
+Every ε-statement here comes from Oudot Chapter 3, by theorem number and printed
+page.
+<br><br>
+<em>But the theorem is unconditional and the number you apply it with is not.</em>
+Every conclusion in Segment 3 has the shape "<strong>if</strong> the data is
+accurate to δ, then…". δ is a claim about measurement — instrument precision, a
+sampling model, a corruption bound — and it comes from outside the data. At
+δ = 0.2 lab-01's long bar clears the threshold; at δ = 0.4 it does not.
+<strong>No syllabus action; the strip is accurate and locates the trust in the
+wrong place</strong> — the theorem is where the trust is safe, and δ is where the
+risk lives.
+<br><br>
+<em>Not claimed here.</em> That the points were sampled from a circle, or that the
+long bar is that circle's hole. Every theorem in this unit relates two datasets
+and their diagrams, and none of them mentions a generating space.
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 1 · 25 min</span>
+<h2>A distance that is allowed to delete things</h2>
+
+<p>Two diagrams need not have the same number of points, so a distance between
+them cannot be a bijection cost. The bottleneck distance uses a <strong>partial
+matching</strong>: points may be paired with points, or discarded onto the
+diagonal, and the cost of a matching is the <em>largest</em> cost it incurs.</p>
+
+<div class="definition">
+<strong>Why discarding is legitimate.</strong> The diagram is defined to contain
+the diagonal with <em>infinite multiplicity</em> <span class="cite">(Edelsbrunner
+printed 181, carried from lab-03)</span>, so a point matched to the diagonal is
+matched to a point genuinely there. In the ℓ∞ norm the cost of that match is half
+the lifetime: the nearest diagonal point to (b, d) is the midpoint, at sup-norm
+distance (d − b)/2.
+</div>
+
+<canvas id="fig" width="640" height="330" aria-label="A persistence diagram with the diagonal drawn. Two blue points from the first diagram and one orange point from the second. One blue point is matched to the orange point by a short arrow of cost 0.2; the other blue point is matched to the diagonal by a vertical drop of cost 0.2. The bottleneck cost is the larger of the two, which is 0.2."></canvas>
+
+<p class="cite"><strong>One matching, two kinds of move.</strong> P has the two
+blue points (0, 3) and (1, 1.4); Q has the single orange point (0.2, 3.1). The
+matching pairs (0, 3) with (0.2, 3.1) at sup-norm cost 0.2, and sends (1, 1.4) to
+the diagonal at cost (1.4 − 1)/2 = 0.2. <strong>The bottleneck cost is the
+maximum of the two, not the sum</strong>, so this matching costs 0.2 — and
+<code>persim.bottleneck</code> returns exactly 0.2000. The dashed squares are the
+ℓ∞ balls of radius 0.2: matching is possible precisely because each blue point's
+square reaches its target.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> The cost is a maximum rather than a sum. What
+does that make the distance blind to?</p>
+<button onclick="check(this,false)">Nothing; the maximum and the sum induce the same topology</button>
+<button onclick="check(this,true)" data-ok>How many small discrepancies there are — a hundred short bars cost no more than one</button>
+<button onclick="check(this,false)">The positions of points, since only lifetimes enter</button>
+<button onclick="check(this,false)">Differences near the diagonal, which are always matched at zero cost</button>
+<div class="explain">Multiplicity. A hundred points at lifetime 0.02 are all
+within 0.01 of the diagonal, so discarding all hundred costs 0.01 — exactly what
+discarding one costs. The distance sees the <em>single worst</em> discrepancy and
+nothing about how many there are, which is precisely why the Wasserstein distances
+exist: they sum the costs (to a power) instead. The fourth option overstates a
+true thing — near-diagonal points are cheap, not free, and a point at lifetime
+0.02 costs 0.01 rather than nothing.</div>
+</div>
+
+<div class="worked fade">
+<strong>Faded — the qualification an2-01 recorded, found in the source.</strong>
+<br><br>
+an2-01 established, through tda1-06, that the bottleneck distance on diagrams in
+general is an <strong>extended pseudometric</strong>: distinct objects at distance
+zero, values in [0, ∞]. Oudot says the same at printed 51 and then says when it
+stops being true.
+<br><br>
+His witness is sharp: ℚ² \ Δ and (ℚ + √2)² \ Δ are distinct multisets at
+bottleneck distance zero, because "the infimum in (3.2) is zero but not attained".
+<br><br>
+And the repair: a compactness argument shows the infimum <em>is</em> attained for
+<strong>locally finite</strong> multisets in the extended plane off the diagonal,
+so d<sub>b</sub> is a true distance there — and by <strong>Theorem 1.13</strong>
+those include every undecorated diagram of a q-tame module.
+<br><br>
+Notice that the witness has to be <em>off</em> the diagonal, and why. Adjoining a
+point that lies exactly <em>on</em> the diagonal changes a <code>persim</code> array and
+changes no diagram at all, since the diagonal is already there with infinite
+multiplicity — so d<sub>b</sub> = 0 in that case is identity of indiscernibles
+working. The problem set runs that experiment precisely because it is the natural
+first attempt and it fails: what it establishes is that the array is a
+<em>representation</em>, and the map from arrays to diagrams is not injective.
+<br><br>
+⟨your step: say what Oudot's witness has that the diagonal example has not — the
+infimum behaves differently — and then write the corrected version of an2-02's
+claim: one sentence naming the class on which d<sub>b</sub> is a genuine metric,
+and what puts a computed diagram in it.⟩
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min. Then the cornerstone.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · 30 min</span>
+<h2>The Isometry Theorem, and both of its halves</h2>
+
+<div class="theorem">
+<strong>Theorem 3.1 (Isometry), printed 49.</strong> Let V, W be q-tame
+persistence modules over ℝ. Then
+d<sub>b</sub>(dgm(V), dgm(W)) = d<sub>i</sub>(V, W).
+<span class="cite"><strong>Stated; proved across the chapter</strong>, via the
+ε-interleaving of <strong>Definition 3.3</strong> (printed 52), the Box Lemma and
+an interpolation argument, with <strong>Lemma 3.4</strong> (printed 56) supplying
+the crude 2ε bound that is then sharpened. Oudot: the stability half "is reputed
+to be difficult to prove", the converse half "easy once the stability part is
+given".</span>
+</div>
+
+<p>It is an <strong>equality</strong>, and Oudot splits it deliberately:</p>
+
+<table class="cmp">
+<tr><th>half</th><th>statement</th><th>what it guarantees</th></tr>
+<tr><td>stability</td><td>d<sub>b</sub> ≤ d<sub>i</sub></td><td>diagrams are <em>stable</em> — similar modules have similar diagrams</td></tr>
+<tr><td>converse stability</td><td>d<sub>i</sub> ≤ d<sub>b</sub></td><td>diagrams are <em>informative</em> — dissimilar modules have dissimilar diagrams</td></tr>
+</table>
+
+<p>The second half is the one people forget, and it is what stops the diagram from
+being a summary that throws everything away. A constant map is perfectly stable
+and useless.</p>
+
+<div class="worked">
+<strong>Worked — the bound, tested, and the slack read correctly.</strong>
+<br><br>
+Perturbing every point of lab-01's circle by at most δ changes each Vietoris–Rips
+filtration value by at most 2δ, so the guarantee is
+d<sub>b</sub> ≤ 2δ. Measured:
+<pre>delta    max shift      d_b(H1)        d_b / 2*delta
+0.01     0.0100         0.005729       0.286
+0.05     0.0500         0.020832       0.208
+0.20     0.2000         0.073852       0.185</pre>
+Ratios of 0.286, 0.208 and 0.185 against a permitted 1.
+<br><br>
+<strong>δ has to bound the Euclidean displacement of each point</strong>, because
+that is the quantity a Rips filtration value is built from. Scaling a random
+direction so its largest <em>coordinate</em> is 1 — the obvious thing to write —
+leaves rows of norm up to √2, and in this sample the largest row had norm
+1.169474. The table would then have been dividing by a δ the perturbation does not
+satisfy, and reporting ratios about 17% too high. Nothing would have looked wrong:
+the numbers stay well under 1 either way. The check that catches it is naming the
+norm the theorem uses before measuring anything in it.
+<br><br>
+<span class="cite"><strong>The slack means the worst case did not occur, and
+nothing else.</strong> The theorem is a guarantee, not a prediction: it forbids a
+ratio above 1 and is silent about where below 1 any particular perturbation lands.
+This one is not lucky — a single random direction is typical, and worst cases are
+engineered rather than stumbled into. What a ratio above 1 would have meant is
+that something is <em>wrong</em>: a bug in the perturbation, the diagram, or the
+matching, because the mathematics forbids it.</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Rank these three green results by how much was
+at stake: lab-01's metric-axiom check, lab-03's cross-check against gudhi, and
+this unit's stability table.</p>
+<button onclick="check(this,false)">All three equally — a passing check is a passing check</button>
+<button onclick="check(this,true)" data-ok>lab-03 most, then this unit, then lab-01 least</button>
+<button onclick="check(this,false)">This unit most, since it tests a difficult theorem</button>
+<button onclick="check(this,false)">lab-01 most, since the metric axioms underpin everything else</button>
+<div class="explain">lab-03 had the most at stake: an independent implementation
+of an algorithm this module had written from scratch, where disagreement was a
+live possibility and would have been informative. This unit is next — the bound is
+proved, so a violation would indicate a coding error rather than a mathematical
+surprise, but the <em>ratio</em> is a real number that could have landed anywhere
+in [0, 1], so the experiment says something about tightness. lab-01's check could
+not have failed at all: the Euclidean metric satisfies the axioms and a subset of
+a metric space is a metric space. The third option confuses the difficulty of the
+theorem with the risk in the test — testing a hard theorem you did not prove tests
+your code, not the theorem.</div>
+</div>
+
+<div class="guided-proof">
+<strong>Guided — from a bar length to a claim, and back.</strong>
+<br><br>
+lab-01's H₁ has a longest bar of 1.2370 and a runner-up of 0.0126. Before reading
+on: assuming the data is accurate to δ, derive the shortest lifetime a bar can
+have and still be guaranteed not to be an artefact of that noise. Then evaluate it
+at δ = 0.05 and say what happens to each of the two bars. Finally, state the
+largest δ at which the long bar's survival is still guaranteed.
+<textarea class="proof-input" placeholder="The threshold as a function of delta, the two verdicts at 0.05, and the breaking value."></textarea>
+<details class="model-answer"><summary>The threshold, and where it breaks</summary>
+Two datasets within δ have diagrams within <strong>2δ</strong>. For a feature to
+be destroyed it must be matched to the diagonal, which costs half its lifetime.
+So a bar of lifetime L can be destroyed only if L/2 ≤ 2δ, that is
+<strong>L ≤ 4δ</strong>. A bar longer than 4δ is guaranteed to survive.
+<br><br>
+At δ = 0.05 the threshold is 0.20. The long bar at 1.2370 clears it by a factor of
+six; the runner-up at 0.0126 does not come close. The same verdict holds at
+δ = 0.01 and δ = 0.20, which is what the problem set's table reports.
+<br><br>
+<strong>The long bar's guarantee breaks at δ = 1.2370 / 4 ≈ 0.309.</strong> Above
+that, stability permits a dataset within δ whose diagram lacks the feature
+entirely, and the conclusion fails. Notice what that number is: it is not a
+property of the circle, it is the point at which your <em>claim about
+measurement</em> stops supporting your claim about shape.
+</details>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 min.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · 20 min</span>
+<h2>The one place a modelling assumption enters</h2>
+
+<p>Oudot's <strong>Corollary 3.6</strong> (printed 61) is the version that
+mentions functions rather than modules: for q-tame f, g on X,
+d<sub>b</sub>(dgm f, dgm g) ≤ ‖f − g‖<sub>∞</sub>. He notes it is "a direct
+consequence of the Isometry Theorem", and adds a piece of history worth keeping:
+the original statement by Cohen-Steiner, Edelsbrunner and Harer carried extra
+conditions — X finitely triangulable, f and g continuous, and a stricter notion of
+tameness — "because the authors did not have the concept of interleaving between
+persistence modules" available.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> What does that history imply about citing
+"the stability theorem"?</p>
+<button onclick="check(this,false)">Nothing; the modern and original statements are equivalent</button>
+<button onclick="check(this,true)" data-ok>The hypotheses of a named result move over time, so a citation must name a source and not just a name</button>
+<button onclick="check(this,false)">That the 2007 version is superseded and should not be cited</button>
+<button onclick="check(this,false)">That q-tameness is a weaker hypothesis only in infinite dimensions</button>
+<div class="explain">That a name is not a citation. "Cohen-Steiner–Edelsbrunner–
+Harer stability" can mean the 2007 statement, with X finitely triangulable and f,
+g continuous, or Oudot's Corollary 3.6 under q-tameness — and they are not
+equivalent, since the modern hypotheses are strictly weaker. A report relying on
+the weaker ones must cite the source that proves them. This is the same discipline
+lab-01 derived for library defaults and an2 for page numbers, arriving here as a
+<em>date</em>: the hypotheses attached to a named theorem are a property of the
+statement you read, not of the name.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Where in the chain from point cloud to
+conclusion does a modelling assumption enter?</p>
+<button onclick="check(this,false)">At lab-02, in choosing Vietoris–Rips over Čech</button>
+<button onclick="check(this,false)">At lab-04, in assuming pointwise finite-dimensionality</button>
+<button onclick="check(this,true)" data-ok>Exactly once, at δ — every other step is a theorem whose hypothesis the data satisfies automatically</button>
+<button onclick="check(this,false)">At lab-03, in choosing to compute over ℤ/2</button>
+<button onclick="check(this,false)">Nowhere; the whole chain is theorems</button>
+<div class="explain">Once, at δ. Walk it: a point cloud is a finite metric space
+(no hypothesis); Rips or Čech at a scale, with Čech carrying the Nerve Theorem and
+Rips the √2 sandwich (both proved); the reduction, needing a monotonic filtration
+the construction guarantees; the barcode, needing pointwise finite-dimensionality
+which is free for a finite complex; stability, needing q-tameness which finite
+diagrams satisfy. Every hypothesis is discharged by the construction — except δ,
+which is a claim about <em>measurement</em> and cannot be computed from the data
+it describes. The first and fourth options name real choices that affect what you
+compute, but both are choices between theorems, not assumptions about the
+world.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> lab-01 asked what you could conclude if the
+ratio were 1.4 rather than 98.1. Answer it with this unit's machinery.</p>
+<button onclick="check(this,false)">That both bars are noise, since neither dominates</button>
+<button onclick="check(this,false)">That no δ separates them, so the data cannot distinguish them</button>
+<button onclick="check(this,true)" data-ok>That a separating δ exists, but only in a band whose ends differ by a factor of 1.4 — so the verdict turns on a number the analysis never checks</button>
+<button onclick="check(this,false)">That a Wasserstein distance would separate them where bottleneck does not</button>
+<div class="explain">A separating δ always exists. The test is a single threshold
+4δ applied to every bar, so the longest survives and the runner-up fails exactly
+when δ ∈ [L₂/4, L₁/4) — a non-empty interval whenever L₁ &gt; L₂. The second
+option is the intuitive answer and it is <em>algebraically false</em>; it was the
+answer this unit gave in draft, and a reviewer caught it.
+<br><br>
+What the ratio controls is <strong>how wide the window is in ratio</strong> — the
+interval is [L₂/4, L₁/4), so its endpoints differ by exactly the factor L₁/L₂ —
+and so how much error in δ the verdict tolerates. At 98.1 the window is
+[0.0032, 0.3093) and δ may be wrong by a factor near 98; at 1.4 the endpoints
+differ by a factor of 1.4 and δ must be right to within about 40%. It is the
+<em>ratio</em> of the endpoints that carries this, not their difference: the
+additive width at 1.4 is 0.1 L₂, which shrinks with the bars and so measures
+nothing about how tolerant the verdict is. Since δ arrives from outside the analysis with no accuracy
+attached, at 1.4 the honest report is that <em>the conclusion is not robust to the
+one number nothing here can check</em> — a statement about the evidence, not about
+the data. The fourth option is a real temptation and wrong: Wasserstein aggregates
+differently, it does not manufacture a separation the lifetimes do not
+contain.</div>
+</div>
+</div>
+
+<div class="blank-page">
+<strong>Blank page.</strong> Close this lesson and reconstruct, with no code and
+no book:
+<br><br>
+1. The bottleneck distance: partial matching, the cost of sending a point to the
+diagonal, and why the cost is a maximum.
+<br>
+2. Theorem 3.1, both halves, and what each guarantees — including why the second
+half is the one that stops the diagram being useless.
+<br>
+3. The derivation of the 4δ threshold from the 2δ bound, and the value of δ at
+which lab-01's long bar loses its guarantee.
+<br>
+4. The single step in the whole module where a modelling assumption enters, and
+why every other hypothesis is free.
+<br><br>
+Then answer without computing: if you halved the noise in lab-01's sample from
+0.06 to 0.03, would the ratio 98.1 go up or down, and would the threshold
+argument get stronger or weaker?
+</div>
+
+<script>
+function check(btn, ok){
+  var box = btn.closest('.selfcheck');
+  if(box.classList.contains('answered')) return;
+  box.classList.add('answered');
+  var buttons = box.querySelectorAll('button');
+  for(var i = 0; i < buttons.length; i++){
+    if(buttons[i].hasAttribute('data-ok')) buttons[i].classList.add('correct');
+  }
+  if(!ok) btn.classList.add('wrong');
+}
+</script>
+
+<script>
+(function(){
+  var c = document.getElementById('fig');
+  if(!c || !c.getContext) return;
+  var g = c.getContext('2d');
+  g.fillStyle = '#0c1013'; g.fillRect(0, 0, 640, 330);
+
+  // axes: birth 0..4, death 0..4, at 62 px per unit, origin well inside the frame
+  var OX = 120, OY = 276, S = 62, MAX = 3.6;
+  function px(v){ return OX + S * v; }
+  function py(v){ return OY - S * v; }
+
+  g.strokeStyle = '#2a333d'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(OX, OY); g.lineTo(px(MAX), OY); g.stroke();
+  g.beginPath(); g.moveTo(OX, OY); g.lineTo(OX, py(MAX)); g.stroke();
+  g.strokeStyle = '#3a444f'; g.setLineDash([4, 3]);
+  g.beginPath(); g.moveTo(OX, OY); g.lineTo(px(MAX), py(MAX)); g.stroke();
+  g.setLineDash([]);
+
+  g.fillStyle = '#9aa5b1'; g.font = '10px sans-serif';
+  for(var t = 1; t <= 3; t++){
+    g.fillText(String(t), px(t) - 3, OY + 14);
+    g.fillText(String(t), OX - 14, py(t) + 3);
+  }
+  g.fillText('birth', px(MAX) - 28, OY + 28);
+  g.save(); g.translate(OX - 30, py(2)); g.rotate(-Math.PI / 2);
+  g.fillText('death', 0, 0); g.restore();
+  g.fillStyle = '#3a444f'; g.font = '11px sans-serif';
+  g.fillText('diagonal', px(2.7), py(2.7) - 8);
+
+  var EPS = 0.2;
+
+  // the two P points (blue) and the single Q point (orange)
+  var P = [[0.0, 3.0], [1.0, 1.4]];
+  var Q = [[0.2, 3.1]];
+
+  // sup-norm balls of radius EPS around the P points, dashed
+  g.strokeStyle = '#4b5563'; g.setLineDash([3, 3]); g.lineWidth = 1;
+  for(var i = 0; i < P.length; i++){
+    g.strokeRect(px(P[i][0] - EPS), py(P[i][1] + EPS), 2 * S * EPS, 2 * S * EPS);
+  }
+  g.setLineDash([]);
+
+  // match 1: point to point
+  g.strokeStyle = '#4caf82'; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(px(P[0][0]), py(P[0][1])); g.lineTo(px(Q[0][0]), py(Q[0][1])); g.stroke();
+
+  // match 2: point to its nearest diagonal point, the midpoint of birth and death
+  var mid = (P[1][0] + P[1][1]) / 2;
+  g.strokeStyle = '#e06c75'; g.setLineDash([5, 3]);
+  g.beginPath(); g.moveTo(px(P[1][0]), py(P[1][1])); g.lineTo(px(mid), py(mid)); g.stroke();
+  g.setLineDash([]);
+
+  for(var i = 0; i < P.length; i++){
+    g.fillStyle = '#8ab4f8';
+    g.beginPath(); g.arc(px(P[i][0]), py(P[i][1]), 5, 0, 2 * Math.PI); g.fill();
+  }
+  g.fillStyle = '#d8a657';
+  g.beginPath(); g.arc(px(Q[0][0]), py(Q[0][1]), 5, 0, 2 * Math.PI); g.fill();
+
+  g.font = '11px sans-serif';
+  g.fillStyle = '#8ab4f8'; g.fillText('P: (0, 3)', px(0.0) + 10, py(3.0) - 10);
+  g.fillStyle = '#d8a657'; g.fillText('Q: (0.2, 3.1)', px(0.2) + 10, py(3.1) + 4);
+  g.fillStyle = '#8ab4f8'; g.fillText('P: (1, 1.4)', px(1.0) + 12, py(1.4) - 6);
+
+  g.fillStyle = '#4caf82'; g.fillText('matched, cost 0.2', 372, 96);
+  g.fillStyle = '#e06c75'; g.fillText('discarded to the diagonal, cost 0.2', 372, 116);
+  g.fillStyle = '#e8e8e8'; g.font = '12px sans-serif';
+  g.fillText('bottleneck cost = max = 0.2', 372, 142);
+  g.fillStyle = '#9aa5b1'; g.font = '11px sans-serif';
+  g.fillText('dashed squares are the', 372, 166);
+  g.fillText('sup-norm balls of radius 0.2', 372, 182);
+})();
+</script>
+
+<footer>
+<em>Sources, page by page.</em> Oudot, <em>Persistence Theory: From Quiver
+Representations to Data Analysis</em>, Chapter 3 "Stability":
+<strong>Theorem 3.1</strong> (Isometry), with the split into stability and
+converse stability and the remark on the difficulty of each half, printed 49; the
+bottleneck distance, the ℓ∞ remark, and the observation that it is an extended
+pseudometric — with ℚ² \ Δ against (ℚ + √2)² \ Δ, and the compactness argument
+making it a true distance on locally finite multisets, citing
+<strong>Theorem 1.13</strong> — printed 51; <strong>Definition 3.3</strong>
+(ε-interleaving), printed 52; <strong>Lemma 3.4</strong>, printed 56;
+<strong>Corollary 3.6</strong> with the history of its hypotheses, printed 61.
+Folio = PDF − 9, verified per page.
+<br><br>
+<em>Modality.</em> Oudot <strong>states</strong> Theorem 3.1 at printed 49 and
+<strong>proves</strong> it across the chapter, the stability half being the
+difficult one; he <strong>derives</strong> Corollary 3.6 from it in a footnote,
+and records that its originally published hypotheses were strictly stronger.
+Theorem 1.13 is <strong>cited from his Chapter 1</strong> and not proved at the
+point of use. The claim that the infimum is attained for locally finite multisets
+is <strong>attributed</strong> to another paper's Theorem 4.10, not proved here.
+<br><br>
+<em>Sources, by execution.</em> Every number is output from the problem set's code
+blocks, run in the pinned environment — Python 3.11.11, persim 0.3.8,
+giotto-tda 0.6.2, numpy 1.26.4 — and re-derived by gate 9. API surfaces:
+<code>persim.bottleneck</code>,
+<code>gtda.homology.VietorisRipsPersistence.fit_transform</code>.
+<br><br>
+<em>Stated here but not in the source.</em> The 4δ threshold is this lesson's
+arithmetic from the 2δ bound and the cost of a diagonal match; Oudot derives no
+threshold and discusses no point clouds. The factor 2δ relating a point-cloud
+perturbation to a Vietoris–Rips filtration shift is standard and is asserted here,
+not proved. The ranking of three executed checks by how much was at stake is this
+lesson's framing. The value δ ≈ 0.309 at which lab-01's long bar loses its
+guarantee is this lesson's computation.
+<br><br>
+<em>Not established here.</em> That the points were sampled from a circle, or that
+the long bar corresponds to its hole — every theorem used relates two datasets,
+never a dataset and a generating space. That δ can be estimated from the data: it
+cannot, and Segment 3 says where it must come from instead. The Wasserstein
+distances are named as the alternative that aggregates rather than maximises, and
+are not developed; lab-06 uses them. <code>pw-04</code>, credited by the mission
+strip, is unwritten and cited nowhere.
+</footer>
+</body></html>

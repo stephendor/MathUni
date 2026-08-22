@@ -24,6 +24,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          # Gate 8's ratchet needs the base commit's copy of the drift list.
+          # The default one-commit shallow checkout does not have it, and
+          # `git fetch --depth=2 origin HEAD~1` cannot supply it either —
+          # arguments after the remote are refspecs, so that call dies with
+          # `fatal: invalid refspec 'HEAD~1'`. The failure was swallowed, the
+          # baseline came out missing, and a missing baseline is deliberately
+          # skipped — so a direct push to main could have grown the
+          # shrink-only list and stayed green.
+          # (Codex review of PR #20, second round.)
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: "3.13"
@@ -75,10 +85,64 @@ jobs:
         # plan had recorded three, which was the sample rather than the
         # population. curriculum/mission-drift.txt names all 15 and why. They
         # are excused BY NAME and every other lesson is held, so no new lesson
-        # can drift. The list is a ratchet, not a suppression: a listed unit
-        # that starts passing fails this step until it is struck off — the one
-        # state a plain allowlist is silent about.
+        # can drift. The list is a ratchet, not a suppression:
+        #   * a listed unit that starts passing fails this step until struck off
+        #     — the state a plain allowlist is silent about;
+        #   * a listed unit whose lesson is gone fails it;
+        #   * and --baseline fails it when the list has GROWN since the base
+        #     ref. Without that third rule the first two only ever let the list
+        #     shrink while nothing stopped it growing, so "can only shrink" was
+        #     a claim about author discipline rather than a property of the
+        #     gate. Found by the Codex review of PR #20.
+        # The baseline is the base commit's copy of the list: the PR's base sha,
+        # or on a push the commit pushed over. Resolving it is a HARD failure —
+        # a baseline that could not be read and a baseline that does not exist
+        # must not look alike, since mission.py deliberately skips the growth
+        # check for the latter. Only "the base commit exists and has no list"
+        # is allowed to skip, and that is the commit introducing the file.
+        # The base sha arrives through env rather than being interpolated into
+        # the shell body: `${{ }}` inside `run:` is textual substitution, and
+        # keeping workflow expressions out of executable lines is the standard
+        # hardening even when the value is a sha GitHub controls.
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
         run: |
-          python scripts/mission.py --known-failing curriculum/mission-drift.txt \
+          set -euo pipefail
+          base="${PR_BASE_SHA:-${PUSH_BEFORE_SHA:-}}"
+          rm -f /tmp/drift-baseline.txt
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            echo "No base commit for this event (first push or force-push);"
+            echo "the drift-growth check cannot run and is not being skipped quietly."
+            exit 1
+          fi
+          git cat-file -e "$base^{commit}" || {
+            echo "Base commit $base is not in this checkout — fetch-depth is wrong."
+            exit 1
+          }
+          if git cat-file -e "$base:curriculum/mission-drift.txt" 2>/dev/null; then
+            git show "$base:curriculum/mission-drift.txt" > /tmp/drift-baseline.txt
+          else
+            echo "Base commit $base has no drift list; this is the commit that adds it."
+          fi
+          python scripts/mission.py \
+            --known-failing curriculum/mission-drift.txt \
+            --baseline /tmp/drift-baseline.txt \
             lessons/*/*.html
+      - name: Structure of the lab sets (gate 9, the half CI can run)
+        # The full gate re-executes every block and diffs its stdout, which
+        # needs the pinned 3.11 lab interpreter this runner does not have —
+        # giotto-tda publishes no wheel for 3.13. What does not need it is the
+        # structural half: every code block paired with a recorded output, no
+        # duplicate ids, no contradictory pins, and an env block that imports
+        # every module the set uses. That runs here. Re-execution stays a
+        # local command against the pinned interpreter, and is recorded as
+        # such in the plan rather than described as enforced.
+        run: |
+          status=0
+          for f in problems/sets/lab-*.md; do
+            echo "--- $f ---"
+            python scripts/check_lab_outputs.py "$f" --parse-only || status=1
+          done
+          exit "$status"
       - run: python -m pytest -q

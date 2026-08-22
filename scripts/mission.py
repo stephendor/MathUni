@@ -19,6 +19,7 @@ verdict now says so and exits 2; exit 1 means a strip was compared and differed.
 
   python scripts/mission.py <lesson_html_path> [...]
   python scripts/mission.py --known-failing curriculum/mission-drift.txt <path> [...]
+  python scripts/mission.py --known-failing <list> --baseline <base-ref-copy> <path>...
   python scripts/mission.py --selftest
 
 Exit 0 clean, 1 on a real mismatch, 2 when no verdict could be reached.
@@ -26,11 +27,17 @@ Exit 0 clean, 1 on a real mismatch, 2 when no verdict could be reached.
 --known-failing is a RATCHET, not a suppression list. Run over the corpus for
 the first time, this gate failed 15 of 81 lessons; wiring it non-blocking until
 those are repaired is how the promotion of these scripts came to be deferred
-three times already. So the listed units are excused from failing, and a listed
-unit that starts PASSING fails the run until it is struck off. The list can
-only shrink, and it cannot rot quietly: the state "repaired but still listed"
-is the one an ordinary allowlist hides, and it is the state that turns an
-allowlist into permanent silence.
+three times already. So the listed units are excused from failing, and:
+
+  * a listed unit that starts PASSING fails the run until it is struck off —
+    "repaired but still listed" is the state an ordinary allowlist hides, and
+    the one that turns an allowlist into permanent silence;
+  * a listed unit whose lesson no longer exists fails the run;
+  * and, with --baseline, a unit ADDED to the list since the base ref fails the
+    run. Without that third rule the first two only ever let the list shrink
+    while nothing stopped it growing, so "the list can only shrink" was a claim
+    about author discipline rather than a property of the gate. It is now the
+    property it was described as.
 """
 import html as html_mod
 import os
@@ -48,9 +55,35 @@ for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console (cf. srs/schedul
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SYLLABUS = os.path.join(REPO, "curriculum", "syllabus.yaml")
 
-UNIT_ID = re.compile(r"([a-z]+\d*-\d+)\.html$")
-MISSION_P = re.compile(r'<p class="mission">(.*?)</p>', re.S)
+# Anchored to the WHOLE basename. End-anchoring alone let `draft-aa-01.html`
+# and `copy-of-pw-01.html` be treated as units aa-01 and pw-01 and pass gate 8,
+# while check_id_consistency.py skips a nonconforming stem rather than calling
+# it an orphan — so a stray extra lesson could clear every integrity check the
+# workflow runs. (Codex review of PR #20, second round.)
+UNIT_ID = re.compile(r"^([a-z]+\d*-\d+)\.html$")
+# Matched on the class TOKEN, not on the exact attribute string. Requiring
+# literally `class="mission"` missed `<p class="mission" id="dup">` and
+# `<p class="mission note">`, so a lesson could keep an exact first strip and
+# carry a divergent second claim in one of those — which is the state the
+# duplicate rule exists to reject. lesson_lint.py already counts strips this
+# way; the two now agree on what a mission strip is.
+# (Codex review of PR #20, fifth round.)
+#
+# `\bclass` then matched the tail of `data-class`, exactly as `\btype` had in
+# gate.py: `<p data-class="mission">…</p>` renders with no mission class at all
+# and gate 8 accepted it as the strip, so a lesson with NO real strip passed.
+# The attribute name must not be preceded by a name character or a hyphen.
+# (Codex review of PR #20, sixth round.)
+MISSION_P = re.compile(
+    r"""<p\b[^>]*(?<![\w-])class\s*=\s*["'][^"']*\bmission\b[^"']*["'][^>]*>(.*?)</p>""",
+    re.S | re.I)
 PREFIX = re.compile(r"^Why this matters for the mission:\s*")
+# A commented-out strip renders nothing, but a raw regex still finds it, so
+# gate 8 reported PASS on a lesson displaying no mission paragraph at all.
+# lesson_lint.py could not close it either — its structure counter scans
+# comments as raw text too, so the lesson cleared both hard checks.
+# (Codex review of PR #20, fourth round.)
+COMMENT = re.compile(r"<!--.*?-->", re.S)
 
 
 def normalise(text):
@@ -68,19 +101,35 @@ def unit_id_for(path):
     """Unit id from the lesson filename, or None. Never raises — a filename
     that does not name a unit is a usage error with a message, not a traceback
     that a caller could mistake for a verdict."""
-    m = UNIT_ID.search(path.replace("\\", "/"))
+    m = UNIT_ID.match(os.path.basename(path.replace("\\", "/")))
     return m.group(1) if m else None
 
 
+def strips_of(doc):
+    """EVERY mission strip in the lesson, cleaned and normalised.
+
+    All of them, not the first. Comparing only the first let a lesson keep an
+    exact strip at the top and carry a second, divergent mission claim further
+    down while gate 8 exited 0 — and lesson_lint.py only requires the count to
+    be at least one, so nothing else closed it. A duplicated section is the
+    obvious way to end up in that state by accident.
+    (Codex review of PR #20, second round.)
+    """
+    out = []
+    for m in MISSION_P.finditer(COMMENT.sub("", doc)):
+        text = html_mod.unescape(re.sub(r"<[^>]+>", "", m.group(1)))
+        out.append(normalise(PREFIX.sub("", text.strip())))
+    return out
+
+
 def strip_of(doc):
-    """The lesson's mission strip, tags removed, prefix removed, normalised.
-    None means the lesson has no `<p class="mission">` at all — a different
-    finding from a strip that is present and wrong, and reported as such."""
-    m = MISSION_P.search(doc)
-    if not m:
-        return None
-    text = html_mod.unescape(re.sub(r"<[^>]+>", "", m.group(1)))
-    return normalise(PREFIX.sub("", text.strip()))
+    """The lesson's single mission strip, or None if it has none.
+
+    Raises nothing on a duplicate — check() reports that as its own finding,
+    since "two strips" and "one wrong strip" are different defects.
+    """
+    strips = strips_of(doc)
+    return strips[0] if strips else None
 
 
 def lesson_path(uid):
@@ -108,8 +157,19 @@ def check(path, units):
         return 2
 
     want = normalise(units[uid]["mission_link"])
-    with open(path, encoding="utf-8") as f:
-        got = strip_of(f.read())
+    try:
+        with open(path, encoding="utf-8") as f:
+            strips = strips_of(f.read())
+        got = strips[0] if strips else None
+    except OSError as e:
+        # A missing or unreadable file is NOT a verdict. Letting OSError escape
+        # gave a traceback and process exit 1 — the code this script reserves
+        # for "a strip was compared and differed" — so an authoring wrapper
+        # could read a filesystem failure as a caught defect. `pw-04` is a real
+        # syllabus unit with no lesson yet, and it exited 1.
+        # (Codex review of PR #20.)
+        print("ERROR %s: cannot read %s: %s" % (uid, path, e))
+        return 2
 
     if got is None:
         print("FAIL %s mission strip verbatim" % uid)
@@ -120,6 +180,16 @@ def check(path, units):
         print("FAIL %s mission strip verbatim" % uid)
         print("  want: %r" % want)
         print("  got : %r" % got)
+        return 1
+    if len(strips) > 1:
+        # The first strip is exact, and there is another one. A second strip is
+        # a second claim on behalf of the curriculum, and the gate exists to
+        # stop exactly that being made unchecked.
+        print("FAIL %s mission strip verbatim" % uid)
+        print("  the lesson carries %d mission strips; there must be one."
+              % len(strips))
+        for i, s in enumerate(strips[1:], 2):
+            print("  strip %d: %r" % (i, s))
         return 1
     print("PASS %s mission strip verbatim" % uid)
     return 0
@@ -145,6 +215,13 @@ def selftest():
               unit_id_for(r"lessons\aa\aa-01.html") == "aa-01")
     check_one("a module with digits in its name is parsed (an2, tda1, at2)",
               unit_id_for("lessons/tda1/tda1-09.html") == "tda1-09")
+    # Codex round 2: end-anchoring alone let a stray file borrow a unit id.
+    check_one("a prefixed filename is NOT read as a unit id",
+              unit_id_for("lessons/aa/draft-aa-01.html") is None)
+    check_one("...nor is a copy",
+              unit_id_for("lessons/pw/copy-of-pw-01.html") is None)
+    check_one("a real lesson path still parses after anchoring",
+              unit_id_for("lessons/aa/aa-01.html") == "aa-01")
 
     body = '<p class="mission">Why this matters for the mission: %s</p>'
     check_one("the prefix is stripped",
@@ -159,6 +236,29 @@ def selftest():
               strip_of('<p class="mission">one\n   two</p>') == "one two")
     check_one("a lesson with no mission strip yields None, distinctly from ''",
               strip_of("<p>no strip here</p>") is None)
+    # Codex round 2: comparing only the FIRST strip let a lesson keep an exact
+    # one at the top and a divergent second claim further down.
+    check_one("every mission strip is collected, not just the first",
+              strips_of('<p class="mission">one</p><p class="mission">two</p>')
+              == ["one", "two"])
+    check_one("a single strip still yields exactly one",
+              strips_of('<p class="mission">only</p>') == ["only"])
+    # Codex round 4: a commented-out strip renders nothing.
+    check_one("a commented-out strip does not count",
+              strips_of('<!-- <p class="mission">hidden</p> -->') == [])
+    check_one("a real strip beside a commented one is still found",
+              strips_of('<p class="mission">real</p>'
+                        '<!-- <p class="mission">hidden</p> -->') == ["real"])
+    # Codex round 5: matched on the class TOKEN, so a second strip cannot hide
+    # behind an extra attribute or an extra class.
+    check_one("a strip with another attribute is still a strip",
+              strips_of('<p class="mission" id="dup">x</p>') == ["x"])
+    check_one("a strip with an extra class is still a strip",
+              strips_of('<p class="mission note">y</p>') == ["y"])
+    check_one("single-quoted class attributes are matched",
+              strips_of("<p class='mission'>z</p>") == ["z"])
+    check_one("a class merely CONTAINING the word is not matched",
+              strips_of('<p class="submission">no</p>') == [])
 
     # The watched failure the S2 plan built by hand: a shipped strip with four
     # words appended must be reported as a mismatch, not tolerated.
@@ -172,14 +272,81 @@ def selftest():
     check_one("a strip differing by one character is a mismatch",
               strip_of(body % "Persistent homology needs these.") != normalise(want))
 
+    # The ratchet's growth rule. Codex review of PR #20 found that the two
+    # stale checks only ever let the list shrink while nothing stopped it
+    # growing: a lesson broken on purpose and then listed exited 0.
+    import tempfile as _tf
+    with _tf.TemporaryDirectory() as d:
+        base = os.path.join(d, "base.txt")
+        with open(base, "w", encoding="utf-8") as f:
+            f.write("# comment\naa-00\npw-03\n")
+        check_one("an unchanged list has no additions",
+                  additions_against(base, {"aa-00", "pw-03"}) == (set(), True))
+        check_one("a SHRUNK list has no additions",
+                  additions_against(base, {"aa-00"}) == (set(), True))
+        check_one("a GROWN list is caught, and names what was added",
+                  additions_against(base, {"aa-00", "pw-03", "an-03"})
+                  == ({"an-03"}, True))
+        check_one("a swap that keeps the count is still caught",
+                  additions_against(base, {"aa-00", "an-03"}) == ({"an-03"}, True))
+    check_one("a missing baseline is reported as missing, not as empty",
+              additions_against(os.path.join(REPO, "no-such-baseline.txt"),
+                                {"aa-00"}) == (set(), False))
+
+    # -- sixth round -------------------------------------------------------
+    check_one("data-class is not read as the class attribute",
+              strips_of('<p data-class="mission">Why this matters for the '
+                        'mission: X</p>') == [])
+    check_one("...while a real class token is still found",
+              strips_of('<p id="a" class="lede mission">X</p>') == ["X"])
+    check_one("an unreadable known-failing list is verdict 2, not 1",
+              main(["--known-failing", os.path.join(REPO, "scripts"),
+                    os.path.join(REPO, "lessons", "pw", "pw-01.html")]) == 2)
+    check_one("an unreadable baseline is verdict 2 as well",
+              main(["--known-failing",
+                    os.path.join(REPO, "curriculum", "mission-drift.txt"),
+                    "--baseline", os.path.join(REPO, "scripts"),
+                    os.path.join(REPO, "lessons", "pw", "pw-01.html")]) == 2)
+
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0
 
 
+class Unreadable(Exception):
+    """A ratchet input exists but could not be read. Verdict 2, not 1."""
+
+
 def load_known_failing(path):
-    """Unit ids excused from failing, one per line; '#' starts a comment."""
+    """Unit ids excused from failing, one per line; '#' starts a comment.
+
+    A missing file is an EMPTY list, not an error, so the finished state can be
+    reached at all — an earlier version raised FileNotFoundError before a single
+    lesson was compared, which made the ratchet's own success state impossible
+    to pass CI. A list that is absent excuses nothing, so the gate gets strictly
+    stricter, and deleting the file cannot be used to escape it.
+
+    But the file is nonetheless PERMANENT: the zero state is an empty list, not
+    a deleted one. Deleting it would make the base ref lack the path, and
+    "base has no list" is the one condition under which the growth check stands
+    down — so a later branch could reintroduce the file alongside fresh
+    mismatches and have them excused. main() refuses a deletion for exactly
+    that reason. (Codex review of PR #20, rounds two and four.)
+
+    An ABSENT list is empty; an UNREADABLE one is neither empty nor a verdict.
+    A directory, a permission-denied file, or a file unlinked between the
+    exists() and the open() raised OSError out of main(), and the process died
+    with a traceback and exit 1 — the code this script reserves for a real
+    mission mismatch. Exit 1 must never mean "the gate could not read its own
+    inputs". (Codex review of PR #20, sixth round.)
+    """
     ids = set()
-    with open(path, encoding="utf-8") as f:
+    if not os.path.exists(path):
+        return ids
+    try:
+        f = open(path, encoding="utf-8")
+    except OSError as e:
+        raise Unreadable("%s: %s" % (path, e)) from e
+    with f:
         for line in f:
             line = line.split("#", 1)[0].strip()
             if line:
@@ -187,19 +354,82 @@ def load_known_failing(path):
     return ids
 
 
+def additions_against(baseline_path, current):
+    """Ids in the current drift list that the baseline did not have.
+
+    Without this the ratchet was a claim, not a mechanism. The stale checks
+    catch a listed unit that starts passing and one whose lesson is gone — both
+    of which make the list SHRINK — but nothing stopped a branch from adding a
+    freshly-drifted unit to the list and going green. Verified: a lesson broken
+    on purpose, then listed, exited 0. "The list can only shrink" was asserted
+    in the commit message, the plan and the CI comment, and enforced nowhere.
+    (Codex review of PR #20.)
+
+    Returns (additions, baseline_existed). A baseline that does not exist is
+    reported as such rather than silently treated as empty — on the commit that
+    introduces the list there is nothing to compare against, and that must be
+    visible instead of looking like a clean comparison.
+    """
+    if not os.path.exists(baseline_path):
+        return set(), False
+    return current - load_known_failing(baseline_path), True
+
+
 def main(argv):
+    try:
+        return _main(argv)
+    except Unreadable as e:
+        # Exit 2, never 1: a ratchet input that could not be read is an absence
+        # of analysis, and this script promises those never look alike.
+        print("ERROR could not read %s — no verdict about the drift list" % e)
+        return 2
+
+
+def _main(argv):
     if argv and argv[0] == "--selftest":
         return selftest()
 
-    known, listfile = set(), None
-    if len(argv) >= 2 and argv[0] == "--known-failing":
-        listfile = argv[1]
-        known = load_known_failing(listfile)
+    known, listfile, baseline = set(), None, None
+    while len(argv) >= 2 and argv[0] in ("--known-failing", "--baseline"):
+        if argv[0] == "--known-failing":
+            listfile = argv[1]
+            known = load_known_failing(listfile)
+        else:
+            baseline = argv[1]
         argv = argv[2:]
 
+    if baseline is not None:
+        if listfile is None:
+            print("ERROR --baseline needs --known-failing")
+            return 2
+        added, existed = additions_against(baseline, known)
+        if existed and not os.path.exists(listfile):
+            # The base ref has a list and this ref does not. Deleting it is the
+            # one move that reopens the ratchet: with the path gone, every
+            # later base also lacks it, "base has no list" stops meaning "the
+            # introducing commit", and a branch can reintroduce the file with
+            # fresh mismatches and have them excused.
+            print("DELETED %s existed at the baseline and is gone here. The"
+                  " drift list is permanent — empty it, do not delete it, or"
+                  " the growth check can never distinguish a reintroduction"
+                  " from the original rollout." % listfile)
+            return 1
+        if not existed:
+            print("NOTE no baseline at %s — this is the commit that introduces"
+                  " the list, so there is nothing it could have grown from"
+                  % baseline)
+        elif added:
+            for uid in sorted(added):
+                print("GREW %s was added to %s; the drift list is a ratchet and"
+                      " may only shrink. Repair the lesson instead."
+                      % (uid, listfile))
+            return 1
+        else:
+            print("PASS drift list has no additions against %s" % baseline)
+
     if not argv:
-        print("usage: mission.py [--known-failing <file>] <lesson_html_path> [...]"
-              " | --selftest")
+        print("usage: mission.py [--known-failing <file>] [--baseline <file>]"
+              " <lesson_html_path> [...] | --selftest")
         return 2
 
     units = load_units()

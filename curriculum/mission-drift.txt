@@ -2,8 +2,16 @@
 #
 # Read scripts/mission.py's docstring first: this is a RATCHET, not a
 # suppression list. A unit listed here is excused from failing; a unit listed
-# here that starts PASSING fails the run until it is struck off. The list can
-# only shrink.
+# here that starts PASSING fails the run until it is struck off; and a unit
+# ADDED since the base ref fails the run. The list can only shrink.
+#
+# THIS FILE IS PERMANENT. When the last entry goes, empty it — keep this header
+# and delete the ids. Do NOT delete the file. "The base ref has no list" is the
+# single condition under which the growth check stands down, because it means
+# the commit that introduced the list; if the file can disappear, that
+# condition stops being unique, and a later branch could reintroduce the file
+# alongside fresh mismatches and have them excused. mission.py refuses a
+# deletion for that reason.
 #
 # Established 2026-08-21, the first time gate 8 was run over the whole
 # committed corpus rather than over the lesson in front of an author. It failed
