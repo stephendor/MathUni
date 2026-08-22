@@ -48,6 +48,21 @@ jobs:
       - run: python scripts/validate_syllabus.py
       - run: python scripts/validate_syllabus.py --selftest
       - run: python scripts/check_id_consistency.py
+      - run: python scripts/check_resources.py --selftest
+      - name: Every unit's resources name something that can be read
+        # --shallow because the runner has no page trees. Check 1 (does the
+        # resource resolve to a book in bookmap.json, or to a non-book class
+        # declared for that module?) needs only the syllabus and the bookmap.
+        # Check 2, that the chapters and sections named actually exist, is a
+        # local run; the script prints which books it skipped rather than
+        # passing them silently.
+        #
+        # This gate exists because a resource line is not documentation: it is
+        # what citations.py uses to pick the book a citation is checked
+        # against. Six an2 units named only "Oxford M2 ... notes", which
+        # resolves to nothing, so the citation gate could not run on them at
+        # all and 156 citations were never checked by anything.
+        run: python scripts/check_resources.py --shallow
       - run: python scripts/lesson_lint.py --selftest
       - name: Lint the committed lesson corpus (obs 150)
         # lesson_lint.py was only ever invoked with an explicit path or via
