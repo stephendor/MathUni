@@ -20,7 +20,7 @@
 #
 # The 15 fall into two classes, and the class decides who repairs them.
 #
-# --- Class A: content divergence (4) -------------------------------------
+# --- Class A: content divergence (3 remaining of 4) -------------------------------------
 # The lesson asserts something the syllabus does not. aa-00's syllabus strip
 # calls the unit an optional on-ramp about abstracting structure; its lesson
 # claims groups measure symmetry as homology measures holes. These are two
@@ -28,12 +28,16 @@
 # applies: quote the strip verbatim and refute it in the body if it is wrong;
 # never soften the quotation to make it true.
 #
-# aa-00, aa-01 and pw-03 are S1 units already slated for re-authoring (they
+# aa-00, aa-01 and pw-03 were S1 units already slated for re-authoring (they
 # predate every S2 convention); they come off this list as those units are
-# rewritten. tda2-02 is S4 and needs its own pass.
+# repaired. tda2-02 is S4 and needs its own pass.
+#
+# pw-03 STRUCK 2026-08-22 on the s1-pw branch: its lesson now quotes the
+# syllabus sentence exactly and carries the flourish in the paragraph below.
+# The ratchet reported it as STALE before it was struck, which is the stale
+# rule doing its job on a real repair rather than on a control.
 aa-00
 aa-01
-pw-03
 tda2-02
 #
 # --- Class B: typography reverted while quoting (11) ---------------------

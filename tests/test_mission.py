@@ -169,13 +169,19 @@ def test_with_no_drift_list_every_lesson_is_held(tmp_path, capsys):
 
 # --- Codex review of PR #20 ------------------------------------------------
 
-def test_a_valid_unit_with_no_lesson_file_exits_2_not_1(capsys):
-    """pw-04 is a real syllabus unit whose lesson is not written yet. The
-    unguarded open() raised FileNotFoundError, and the traceback exited 1 —
-    the code reserved for "a strip was compared and differed". A filesystem
-    failure must never be readable as a gate verdict."""
-    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    assert main([os.path.join(repo, "lessons", "pw", "pw-04.html")]) == 2
+def test_a_valid_unit_with_no_lesson_file_exits_2_not_1(capsys, tmp_path):
+    """A real syllabus unit whose lesson file is absent. The unguarded open()
+    raised FileNotFoundError, and the traceback exited 1 — the code reserved
+    for "a strip was compared and differed". A filesystem failure must never
+    be readable as a gate verdict.
+
+    The path is synthetic on purpose. This test named lessons/pw/pw-04.html,
+    a real unit that happened to be unwritten, and it failed the moment pw-04
+    was authored — the same defect the fifth review round removed when a test
+    was pinned to aa-00's unrepaired text. A fixture must not depend on the
+    repository staying incomplete.
+    """
+    assert main([str(tmp_path / "pw-04.html")]) == 2
     assert "cannot read" in capsys.readouterr().out
 
 

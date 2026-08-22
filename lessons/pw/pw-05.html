@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pw-05 — Proof style: writing and critiquing</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.guided{background:#1a2027;border:1px solid #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details summary{cursor:pointer;color:var(--acc)}
+.svgwrap{background:#0c1013;border-radius:10px;padding:.6rem;margin:1rem 0}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+svg text{font-family:Georgia,serif}
+</style></head><body>
+<p class="cite">Proofs &amp; Writing · Nexus College</p>
+<h1>Proof style: writing and critiquing <span class="cite">(pw-05)</span></h1>
+
+<div class="hook">
+<p>Below is a proof of a true theorem. Every line of it is the kind of line you have seen in a textbook, it reaches the right conclusion, and it would be marked correct by a reader who was skimming. It contains <strong>five planted errors</strong>, and by the end of this lesson you will be able to name all five and say what each one costs.</p>
+<div class="worked">
+<p><strong>Theorem.</strong> For every integer <var>n</var>, if <var>n</var>² is even then <var>n</var> is even.</p>
+<p><strong>"Proof."</strong> Assume for contradiction that <var>n</var>² is even and that <var>n</var> is not even. Then <var>n</var> is odd, so <var>n</var> = 2<var>k</var> + 1 for some <var>k</var>. Squaring,</p>
+<p style="text-align:center"><var>n</var>² = 4<var>k</var>² + 4<var>k</var> + 1 = 2(2<var>k</var>² + 2<var>k</var> + 1) + 1,</p>
+<p>which is odd. Clearly this contradicts our assumption that <var>n</var>² is even. Checking <var>n</var> = 3, 5 and 7 confirms that this holds in general. Therefore <var>n</var> is even. ∎</p>
+</div>
+<p>Notice what the exercise is <em>not</em>. You are not being asked whether the theorem is true — it is — nor whether the general idea is right — it is. Critiquing a proof is a different skill from finding one, and it is the skill that gets used every time you referee, mark, review a preprint, or read your own work from last week.</p>
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction Gate:</strong> Commit before reading on. Which of these is the <em>most</em> serious defect in the argument above?</p>
+<button onclick="check(this,false)">The word "Clearly"</button>
+<button onclick="check(this,true)" data-ok>The line 4k² + 4k + 1 = 2(2k² + 2k + 1) + 1 is false</button>
+<button onclick="check(this,false)">Ending with ∎ instead of □</button>
+<div class="explain">Multiply out the right-hand side: 4k² + 4k + 2 + 1 = 4k² + 4k + 3. The two sides differ by 2, and the correct grouping is 2(2k² + 2k) + 1. It is the only planted error whose falsity is a <em>computation</em> — the others are things left unnamed, undeclared or overclaimed, and Error 5 is a false claim about method rather than about arithmetic. And it is the one most readers skate over, because the line looks like the manipulation they were expecting. Segment 2 grades all five.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The capstone is written mathematics; style is substance.</p>
+
+<p>That is not a slogan about neatness. A proof is the only artifact a mathematical claim ever has: there is no separate object the writing describes. When a step is unjustified the reader cannot tell whether the author had a reason and omitted it or never had one — and neither, six months later, can the author.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>What a proof owes its reader</h2>
+
+<p>Four obligations, each one the fix for a class of defect you will meet in Segment 2.</p>
+
+<div class="definition">
+<p><strong>1. Introduce every variable, with its type and its quantifier, at the moment it first appears.</strong> "Let <var>n</var> be an integer" and "for some integer <var>k</var>" are not throat-clearing: they are what makes the following lines mean anything. Cummings's own definition of even and odd carries the type explicitly — "<var>n</var> = 2<var>k</var> <em>for some integer</em> <var>k</var>" — and he spends a paragraph on why dropping it breaks the definition, since <var>n</var> = 2<var>k</var> + 1.001 with <var>k</var> real makes every number odd.</p>
+<p class="cite">Cummings, <em>Proofs</em>, Definition 2.2 and the paragraph following it, p. 36.</p>
+</div>
+
+<div class="definition">
+<p><strong>2. Name the fact behind every step that is not arithmetic.</strong> Not "clearly", not "obviously", not "it follows" — the name of the definition, lemma or theorem being used. The test: could a reader who accepts your named facts and nothing else reconstruct the step?</p>
+</div>
+
+<div class="definition">
+<p><strong>3. Write more than feels necessary.</strong> The empirical claim here is Cummings's, and it runs against most students' instinct: "students are far more likely to write <em>too little</em> than they are to write <em>too much</em>."</p>
+<p class="cite">Cummings, <em>Proofs</em>, Chapter 1 Pro-Tips, p. 27.</p>
+</div>
+
+<div class="definition">
+<p><strong>4. End where you claimed to end.</strong> If the theorem is universal, the proof must discharge the universal — an argument about one fixed object proves a statement about one fixed object. If the proof establishes the contrapositive, say so and say why that suffices.</p>
+</div>
+
+<div class="worked">
+<p><strong>Worked example — the same step, three ways.</strong> Suppose we have <var>n</var> = 2<var>k</var> + 1 and want <var>n</var>² odd.</p>
+<p><em>Too little:</em> "Then <var>n</var>² is clearly odd."</p>
+<p><em>Enough:</em> "Then <var>n</var>² = (2<var>k</var> + 1)² = 4<var>k</var>² + 4<var>k</var> + 1 = 2(2<var>k</var>² + 2<var>k</var>) + 1. Since <var>k</var> is an integer, so is 2<var>k</var>² + 2<var>k</var> (Fact 2.1, p. 36), so <var>n</var>² has the form 2<var>m</var> + 1 with <var>m</var> an integer, and is odd by Definition 2.2."</p>
+<p><em>Too much:</em> the same, plus a recap of what squaring means and a paragraph on why 4 = 2·2. The middle version is the target: every step named once, nothing named twice.</p>
+<p>The middle version is also the one where the hook's arithmetic error could not have hidden, because the grouping is written out and can be checked against the line above it.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Rewrite "Since <var>a</var> divides <var>b</var> and <var>b</var> divides <var>c</var>, obviously <var>a</var> divides <var>c</var>" at the "enough" level. You will need to introduce two variables that the original sentence hides.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> What is wrong with "so <var>n</var> = 2<var>k</var> + 1 for some <var>k</var>"?</p>
+<button onclick="check(this,true)" data-ok><var>k</var>'s type is missing — "for some integer <var>k</var>" is the definition; without it, every real number is odd</button>
+<button onclick="check(this,false)">Nothing — <var>k</var> is obviously an integer from context</button>
+<button onclick="check(this,false)"><var>k</var> should have been called <var>m</var></button>
+<div class="explain">Context is exactly what a proof is not allowed to rely on for its content. With <var>k</var> unrestricted, 4.002 = 2(1.501) + 1 makes 4.002 odd — which is why Cummings makes the point in the paragraph immediately after Definition 2.2 rather than leaving it to the reader.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A proof of a universal statement ends "Therefore <var>n</var> is even." Is that a defect?</p>
+<button onclick="check(this,false)">Always — universals may never be proved about a fixed object</button>
+<button onclick="check(this,true)" data-ok>Only if <var>n</var> was never introduced as arbitrary; if it was, the universal is discharged and the ending is fine</button>
+<button onclick="check(this,false)">Never — the reader can tell what was meant</button>
+<div class="explain">This is the standard and correct move: fix an arbitrary <var>n</var>, argue about it using nothing specific to it, conclude for all <var>n</var>. The binding need not be in the proof's own first line — a theorem that opens "For every integer <var>n</var>" has already done it, and the hook's proof inherits that. What would be a defect is a proof that checks <em>specific</em> values — "n = 3, 5 and 7" — and calls that the general case, which is the hook's Error 5.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Grading the flawed proof</h2>
+
+<p>Go back to the hook and mark it yourself before reading on. Then compare. The five are listed in the order they appear, not in order of severity.</p>
+
+<div class="theorem">
+<p><strong>Error 1 — "Then <var>n</var> is odd" names no fact.</strong> The proof assumes <var>n</var> is <em>not even</em> and immediately writes "Then <var>n</var> is odd". That step is true, and it is not free: it needs "every integer has at least one parity", which is the second half of Cummings's Fact 2.1. Obligation 2. Notice that this is the <em>existence</em> half of parity, and that Error 4 below turns on the <em>exclusivity</em> half — two different facts, needed at the two ends of the same proof, and the flawed version names neither.</p>
+<p class="cite">Cummings, <em>Proofs</em>, Fact 2.1, p. 36: "The sum of integers is an integer, the difference of integers is an integer, and the product of integers is an integer. Also, every integer is either even or odd." Three closure claims and one parity claim, in one numbered fact — so a citation of "Fact 2.1" is precise only when you say which part you are using.</p>
+<p><em>What is <strong>not</strong> an error here:</em> the proof's use of <var>n</var> without a "let <var>n</var> be arbitrary" line. The theorem statement opens "For every integer <var>n</var>", which binds <var>n</var> already, and beginning an implication proof by assuming its antecedent for that bound arbitrary variable is standard. Obligation 4 is discharged by the theorem's own quantifier. A first draft of this lesson counted that as the first planted error; it was wrong, and it is worth leaving the correction visible, because "the variable is undeclared" is a critique that sounds right whenever the declaration is somewhere other than where you looked.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Error 2 — <var>k</var> is not declared an integer.</strong> "<var>n</var> = 2<var>k</var> + 1 for some <var>k</var>" is not Definition 2.2; it is a weaker statement satisfied by every real number. Obligation 1 again, one level down, and the reason self-check 1 exists.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Error 3 — the algebra is false.</strong> 4<var>k</var>² + 4<var>k</var> + 1 = 2(2<var>k</var>² + 2<var>k</var> + 1) + 1 is wrong: the right side is 4<var>k</var>² + 4<var>k</var> + 3. The correct grouping is 2(2<var>k</var>² + 2<var>k</var>) + 1. Note how little it disturbs the surface: the conclusion drawn from it ("which is odd") is still true, so the error leaves no trace downstream. Error 5 also asserts something false, but about method rather than arithmetic; this is the only line whose falsity a reader could settle by multiplying out.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Error 4 — "Clearly this contradicts" names no fact.</strong> The step needs "no integer is both even and odd". Fact 2.1 does not say that: its parity clause reads "every integer is either even or odd", which asserts at least one parity, not at most one. Error 1 used that clause legitimately; this step needs the other direction, and Fact 2.1 has no other direction to give. The exclusivity comes from the <em>uniqueness</em> clause of the division algorithm: for <var>m</var> = 2 the remainder <var>r</var> with 0 ≤ <var>r</var> &lt; 2 is unique, so no integer admits both forms.</p>
+<p class="cite">Cummings, <em>Proofs</em>, Fact 2.1 p. 36 (existence of a parity — and, separately, closure of the integers under +, − and ×); Theorem 2.11, the division algorithm with its uniqueness clause, p. 46 (exclusivity).</p>
+</div>
+
+<div class="theorem">
+<p><strong>Error 5 — three instances are offered as a general argument.</strong> "Checking <var>n</var> = 3, 5 and 7 confirms that this holds in general." No number of instances confirms a universal statement, and the sentence claims that they do. Note the difference from a harmless illustration: an example clearly marked as one, standing outside the argument, costs nothing — this sentence is inside the proof and asserts that the checking is what establishes the general case. Delete it, or label it as an illustration and leave the general argument to carry the claim on its own.</p>
+</div>
+
+<p>There is a sixth thing to say about that proof, and it is deliberately <em>not</em> on the list, because it is a style fault rather than an error: the argument is not really a proof by contradiction. Segment 3 is about why that distinction is worth caring about.</p>
+
+<div class="worked fade">
+<p><strong>Faded example — grade this one.</strong> "<strong>Claim.</strong> The sum of two odd integers is even. <strong>Proof.</strong> Let <var>a</var> and <var>b</var> be odd. Then <var>a</var> = 2<var>k</var> + 1 and <var>b</var> = 2<var>k</var> + 1 for integers <var>k</var>. So <var>a</var> + <var>b</var> = 4<var>k</var> + 2 = 2(2<var>k</var> + 1), which is even. ∎"</p>
+<p>Defect one: ⟨your step — look hard at the two uses of <var>k</var>⟩.</p>
+<p>Defect two: ⟨your step — what has the proof actually established, and about which pairs (<var>a</var>, <var>b</var>)?⟩.</p>
+<p>Repair: ⟨your step — write the corrected proof; you will need a second letter⟩.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which of the five planted errors would a reader who checks only the <em>logic</em>, and not the arithmetic, still catch?</p>
+<button onclick="check(this,true)" data-ok>Errors 1, 2, 4 and 5 — only Error 3 is arithmetic</button>
+<button onclick="check(this,false)">All five</button>
+<button onclick="check(this,false)">None — all five are computational</button>
+<div class="explain">Four of the five are failures to declare, name, or discharge something, and are visible without doing any sums. That ratio is typical, and it is why "read the proof for its obligations first, then check its computations" is a better order than the reverse.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Error 3 makes a line of algebra false, yet the proof's conclusion is still true. What follows?</p>
+<button onclick="check(this,true)" data-ok>Nothing about the theorem — a broken proof of a true statement is still broken, and the statement is still unproved by it</button>
+<button onclick="check(this,false)">The error is harmless, since the conclusion is right</button>
+<button onclick="check(this,false)">The theorem must be false</button>
+<div class="explain">The two questions "is this claim true?" and "does this argument establish it?" are independent, and critiquing is entirely the second. Marking the hook's proof correct because you know the theorem is a real error — it is the marker's version of assuming the conclusion.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> The faded example writes <var>a</var> = 2<var>k</var> + 1 and <var>b</var> = 2<var>k</var> + 1. What has it proved?</p>
+<button onclick="check(this,true)" data-ok>That <var>a</var> + <var>a</var> is even, for odd <var>a</var> — the reused letter silently forced <var>a</var> = <var>b</var></button>
+<button onclick="check(this,false)">The claim, correctly</button>
+<button onclick="check(this,false)">Nothing, because 4<var>k</var> + 2 is not even</button>
+<div class="explain">A reused bound variable is a hypothesis nobody wrote down — and the step is <em>unjustified</em> before it is incomplete. Definition 2.2 applied to <var>a</var> and to <var>b</var> yields <em>some</em> integer for each; nothing licenses taking the same one, and as a claim about arbitrary odd <var>a</var>, <var>b</var> it is false (<var>a</var> = 1, <var>b</var> = 3). Only once that step is granted does the proof become one about the pairs with <var>a</var> = <var>b</var>, which is the incompleteness. The repair is <var>b</var> = 2<var>m</var> + 1 for an integer <var>m</var>, giving <var>a</var> + <var>b</var> = 2(<var>k</var> + <var>m</var> + 1). The most common defect in a first course, and invisible unless you read variables as bound rather than as names.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Why contradiction hides your errors</h2>
+
+<p>The hook's proof announces "assume for contradiction", assumes <var>n</var>² even and <var>n</var> odd, derives that <var>n</var>² is odd, and stops. But deriving "<var>n</var> odd ⟹ <var>n</var>² odd" is a self-contained contrapositive proof; the assumption "<var>n</var>² is even" was never used to get there. Cummings states the diagnostic directly: if you assume P and ¬Q and your argument proves Q outright, you were writing a direct proof and dressing it as a contradiction.</p>
+
+<div class="theorem">
+<p><strong>The asymmetry that makes this matter.</strong> In a direct proof of P ⟹ Q there is exactly one target. Make a mistake on the way and you will usually fail to arrive at Q, and the failure is visible: "it would take a second equal-but-opposite mistake to arrive at Q." The same holds for a contrapositive proof, which is a direct proof from ¬Q to ¬P, and for the induction step of an induction.</p>
+<p>In a proof by contradiction the target is <em>anything false at all</em>. There is no single thing to hit or miss, so an error along the way can manufacture a contradiction of its own — and the proof then ends in exactly the way a correct one would. Cummings offers no fix for this and says so: proof by contradiction "requires more care than other proofs" because "it is easier to deceive yourself into accepting a flawed proof."</p>
+<p class="cite">Cummings, <em>Proofs</em>, Chapter 7 Pro-Tips, pp. 237–238.</p>
+</div>
+
+<p>So the style rule has a real justification behind it, rather than being a matter of taste: <strong>use contradiction when you need it, and not when a direct or contrapositive proof is what you actually have</strong>, because the technique you choose determines whether your own errors are self-announcing or self-concealing. That is also why a critique should always ask "which technique is this, really?" before checking any step — the answer changes how hard you have to look.</p>
+
+<p>Cummings does name the case where contradiction earns its risk: a "for all" theorem. Assuming it false hands you a <em>particular</em> counterexample to work with, and if counterexamples exist you may take a smallest one and use its minimality. That is the well-ordering move from <strong>pw-02</strong>, and it is unavailable to a direct proof.</p>
+
+<div class="worked">
+<p><strong>Worked example — the same theorem, honestly labelled.</strong></p>
+<p><strong>Theorem.</strong> For every integer <var>n</var>, if <var>n</var>² is even then <var>n</var> is even.</p>
+<p><strong>Proof.</strong> Let <var>n</var> be an arbitrary integer. We prove the contrapositive: if <var>n</var> is odd then <var>n</var>² is odd.</p>
+<p>Suppose <var>n</var> is odd. By Definition 2.2 (p. 36) there is an integer <var>k</var> with <var>n</var> = 2<var>k</var> + 1. Then</p>
+<p style="text-align:center"><var>n</var>² = (2<var>k</var> + 1)² = 4<var>k</var>² + 4<var>k</var> + 1 = 2(2<var>k</var>² + 2<var>k</var>) + 1.</p>
+<p>By Fact 2.1 (p. 36) the quantity 2<var>k</var>² + 2<var>k</var> is an integer, so <var>n</var>² has the form 2<var>m</var> + 1 with <var>m</var> an integer, and is therefore odd by Definition 2.2.</p>
+<p>This proves the contrapositive. Since a conditional and its contrapositive are equivalent, the theorem follows; and as <var>n</var> was arbitrary, it holds for every integer <var>n</var>. ∎</p>
+<p>Same mathematics, five defects gone, and one line longer than the flawed version. The cost of the four obligations is almost always this small.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Why is "assume P and ¬Q, derive Q, contradiction" a style fault rather than a logical error?</p>
+<button onclick="check(this,true)" data-ok>The argument is valid — but it proves Q directly, so the contradiction wrapper adds an unused assumption and hides which technique is doing the work</button>
+<button onclick="check(this,false)">It is a logical error: you may not assume ¬Q</button>
+<button onclick="check(this,false)">It is neither; the two forms are interchangeable in every respect</button>
+<div class="explain">Nothing invalid happens. What is lost is information: the reader can no longer see that the proof has a single target, and neither can the author, which is precisely the property that makes errors visible. Interchangeable in truth-value, not in what they reveal.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 7.</strong> When does proof by contradiction earn its extra risk?</p>
+<button onclick="check(this,true)" data-ok>On a "for all" theorem, where negating it hands you a particular counterexample — possibly a smallest one</button>
+<button onclick="check(this,false)">Whenever the direct proof is longer</button>
+<button onclick="check(this,false)">Never; it should be avoided entirely</button>
+<div class="explain">The negation of "every X has property P" is "some X lacks P", which converts a statement about everything into an object you can hold. Adding minimality on top of that is the well-ordering / minimal-counterexample technique from pw-02. "Longer" is not a reason for anything.</div>
+</div>
+
+<div class="guided">
+<p><strong>Guided proof.</strong> Take the faded example's claim — the sum of two odd integers is even — and write a proof that satisfies all four obligations. Then write a one-paragraph critique of your own proof as if you were marking a stranger's: name any step where you asked the reader to supply a fact.</p>
+<textarea placeholder="Write your proof and your critique here before revealing the model answer..."></textarea>
+<details>
+<summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> Let <var>a</var> and <var>b</var> be arbitrary odd integers. By Definition 2.2 (p. 36) there are integers <var>k</var> and <var>m</var> with <var>a</var> = 2<var>k</var> + 1 and <var>b</var> = 2<var>m</var> + 1 — two letters, because <var>a</var> and <var>b</var> need not be equal. Then</p>
+<p style="text-align:center"><var>a</var> + <var>b</var> = (2<var>k</var> + 1) + (2<var>m</var> + 1) = 2<var>k</var> + 2<var>m</var> + 2 = 2(<var>k</var> + <var>m</var> + 1).</p>
+<p>By Fact 2.1 (p. 36), <var>k</var> + <var>m</var> + 1 is an integer, so <var>a</var> + <var>b</var> = 2<var>j</var> for an integer <var>j</var> and is even by Definition 2.2. As <var>a</var> and <var>b</var> were arbitrary, the claim holds for every pair of odd integers. ∎</p>
+<p><strong>Critique of the above.</strong> The step from 2<var>k</var> + 2<var>m</var> + 2 to 2(<var>k</var> + <var>m</var> + 1) is arithmetic and needs no name. The claim that <var>k</var> + <var>m</var> + 1 is an integer does need one and gets it. The one place a reader is asked to supply something is the phrase "two letters, because <var>a</var> and <var>b</var> need not be equal" — that is a remark about the proof rather than a step in it, and a stricter style would move it to a footnote. Note that this is a direct proof, with one target, so an arithmetic slip would have left me unable to reach the form 2<var>j</var>.</p>
+</details>
+</div>
+</div>
+
+<h2>One target or many</h2>
+<p>The picture below is the whole of Segment 3. A direct proof walks from P to a single named destination; if it strays, it lands somewhere that is visibly not Q. A proof by contradiction walks from P ∧ ¬Q towards <em>any</em> falsehood at all, and the whole outer region counts as arrival — which is why a wrong turn can still look like success.</p>
+<div class="svgwrap">
+<svg viewBox="0 0 620 280" xmlns="http://www.w3.org/2000/svg">
+<style>
+.node{fill:#1a2027;stroke:#8ab4f8;stroke-width:2}.goal{fill:#14231b;stroke:#4caf82;stroke-width:2}
+.bad{fill:#2a1a1e;stroke:#e06c75;stroke-width:2;stroke-dasharray:5 4}
+.t{fill:#e8e8e8;font-size:13px}.d{fill:#9aa5b1;font-size:11px}
+.path{fill:none;stroke:#8ab4f8;stroke-width:2}.stray{fill:none;stroke:#e06c75;stroke-width:2;stroke-dasharray:4 4}
+</style>
+<text x="20" y="20" class="t">Direct proof — one target</text>
+<ellipse class="node" cx="70" cy="70" rx="42" ry="26"/><text x="58" y="75" class="t">P</text>
+<ellipse class="goal" cx="250" cy="70" rx="42" ry="26"/><text x="240" y="75" class="t">Q</text>
+<path class="path" d="M114,70 L204,70"/>
+<path class="stray" d="M108,84 C150,120 180,124 215,118"/>
+<text x="120" y="140" class="d">a slip lands here — visibly not Q</text>
+<text x="340" y="20" class="t">Contradiction — any falsehood counts</text>
+<ellipse class="bad" cx="480" cy="140" rx="125" ry="110"/>
+<text x="404" y="252" class="d">every false statement</text>
+<ellipse class="node" cx="400" cy="70" rx="52" ry="24"/><text x="374" y="75" class="t">P ∧ ¬Q</text>
+<circle cx="470" cy="150" r="5" fill="#e06c75"/><circle cx="520" cy="120" r="5" fill="#e06c75"/>
+<circle cx="500" cy="190" r="5" fill="#e06c75"/><circle cx="440" cy="185" r="5" fill="#e06c75"/>
+<path class="path" d="M420,94 C440,120 455,135 466,146"/>
+<path class="stray" d="M424,92 C470,110 500,110 516,117"/>
+<text x="352" y="222" class="d">a slip lands here too — and still reads as success</text>
+</svg>
+</div>
+
+<div class="blank-page">
+<h3>Exit Ritual: Blank-Page Reconstruction</h3>
+<p>Close your eyes, or look at the ceiling, and reconstruct this lesson from nothing:</p>
+<ol>
+<li>State the four obligations a proof owes its reader, in one line each.</li>
+<li>Name the five planted errors in the hook's proof, and say which single one made a written line <em>false</em>.</li>
+<li>Fact 2.1 has four clauses. Which one licenses Error 1’s step, and which one does the flawed proof’s "clearly this contradicts" need but not get?</li>
+<li>Why does an error in a proof by contradiction not announce itself the way an error in a direct proof does?</li>
+<li>What is the one situation in which contradiction earns that extra risk?</li>
+</ol>
+<details>
+<summary>Reveal the skeleton to check against</summary>
+<p>(1) Declare every variable with type and quantifier; name the fact behind every non-arithmetic step; write more than feels necessary; end where you claimed, discharging the quantifier. (2) "then <var>n</var> is odd" unnamed; <var>k</var> not an integer; 4<var>k</var>²+4<var>k</var>+1 ≠ 2(2<var>k</var>²+2<var>k</var>+1)+1; "clearly" hiding the exclusivity of parity; three checked instances passed off as the general argument — only the third makes a line false. (3) Fact 2.1 gives closure under +, − and × and the existence of a parity; Error 1 uses the existence clause. The contradiction step needs exclusivity — "no integer is both" — which is the uniqueness clause of the division algorithm (Theorem 2.11, p. 46) and is nowhere in Fact 2.1. (4) Because the target is any falsehood at all, so a mistake can manufacture its own contradiction and the proof ends looking normal. (5) On a "for all" theorem, where the negation hands you a particular — possibly minimal — counterexample.</p>
+</details>
+</div>
+<footer>Sources: Cummings, <em>Proofs: A Long-Form Mathematics Textbook</em> — §2.1, Fact 2.1 (closure of the integers under sum, difference and product, and the existence of a parity) and Definition 2.2 (even, odd) with the paragraph on why <var>k</var>'s type cannot be dropped, p. 36; §2.4, Theorem 2.11, the division algorithm with its uniqueness clause, p. 46; Chapter 1 Pro-Tips on writing too little rather than too much, p. 27; Chapter 2 Pro-Tips on symmetric cases and on notation being context-dependent, pp. 65–66; Chapter 7 Pro-Tips on contradiction proofs that are really direct proofs, and on why a contradiction proof has no single target, pp. 237–238. The unit brief names a "Cummings appendix" and an "Expository Writing folder"; this edition of Cummings has no writing appendix — its proof-writing advice is distributed across the nine per-chapter Pro-Tips sections (pp. 27, 65, 98, 145, 186, 208, 237, 275, 309), which are the pages read here — and no Expository Writing resource existed in resources/bookmap.json. Both resource lines were corrected in PR #22. The flawed proof and its five errors are composed for this lesson.</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
