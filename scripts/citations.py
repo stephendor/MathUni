@@ -80,7 +80,14 @@ KINDS = ("Theorem", "Lemma", "Proposition", "Definition", "Corollary",
 # denominator silently — including every Axler exercise in the `la` sets. The
 # dotted alternative is written first so that alternation prefers it: "6.11"
 # must be captured whole and never as "6".
-NUM = r"\d+(?:\.\d+)+[a-z]?|\d+[a-z]?"
+#
+# The first component may be an APPENDIX LETTER. Hatcher numbers its appendix
+# results A.1, A.17, and requiring a leading digit meant those citations
+# produced no id at all, so a wrong page for one could not affect the verdict.
+# The letter form must be dotted — a bare "A" is not a result number, it is a
+# word — and it is upper case, which keeps it clear of the trailing item letter
+# in "2.5a". (Codex review of PR #21.)
+NUM = r"\d+(?:\.\d+)+[a-z]?|[A-Z](?:\.\d+)+[a-z]?|\d+[a-z]?"
 RESULT = re.compile(r"\b(%s)\s+(%s)(?!\d)(?!\.\d)" % ("|".join(KINDS), NUM))
 # The plural/range form: "Exercises 6.6-6.9", "Theorems 1.1 and 1.2",
 # "Definitions 8.3, 8.5". See results_in().
@@ -563,7 +570,9 @@ def found_on_page(result, blob, raw=None):
     # "11.3 definition", and "Exercise 10" in "110 exercise". That is the same
     # sibling-result false PASS from the other end, and it bites hardest in
     # Axler's number-first format. (Codex review of PR #21.)
-    for n in {num, stem}:
+    for n in {num.lower(), stem.lower()}:
+        # `hay` is lower-cased, so the number must be too — Hatcher's appendix
+        # numbers carry a capital ("A.17") and matching them raw found nothing.
         pat = r"(?:%s\s+(?<![\d.])%s|(?<![\d.])%s\s+%s)(?!\d)(?!\.\d)" % (
             re.escape(k), re.escape(n), re.escape(n), re.escape(k))
         if re.search(pat, hay):
@@ -687,8 +696,18 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
         book = books[name]
         pdf_pages = sorted({n for p in pages for n in book.pdf_pages_for(p)})
         if not pdf_pages:
-            failures.append("line %d: printed page(s) %s are not in %s"
-                            % (line, ",".join(str(p) for p in sorted(pages)), book.name))
+            # One failure PER RESULT, and each one counted. Recording a single
+            # failure and skipping the increment produced output that
+            # contradicted itself — "0 citation(s) checked, 1 wrong" — and
+            # understated how many citations the bad folio affected. This is a
+            # real wrong-page verdict, so it belongs in both numbers.
+            # (Codex review of PR #21.)
+            for r in results:
+                checked += 1
+                failures.append(
+                    "line %d: %s cites printed p. %s, which is not in %s"
+                    % (line, r, ",".join(str(p) for p in sorted(pages)),
+                       book.name))
             continue
         # Each candidate page is searched SEPARATELY. Joining them first let a
         # match be assembled across a page boundary: one page ending "Theorem"
@@ -766,14 +785,19 @@ def book_for_unit(uid):
     try:
         with open(path, encoding="utf-8") as f:
             syl = yaml.safe_load(f)
-        units = syl["units"]
-    except (OSError, yaml.YAMLError, KeyError, TypeError) as e:
+        # The lookup and the resource walk are INSIDE the guard. A previous
+        # version guarded only the read, so a unit record that is not a mapping,
+        # or one without an id, raised out of the function and exited 1 — the
+        # status reserved for a checked, wrong citation. Guarding the open() and
+        # not the parse is guarding the easy half. (Codex review of PR #21.)
+        unit = next((u for u in syl["units"] if u["id"] == uid), None)
+        if unit is None:
+            return None
+        resources = unit.get("resources", [])
+    except (OSError, yaml.YAMLError, KeyError, TypeError, AttributeError) as e:
         raise Unreadable("%s: %s" % (path, e)) from e
     bm = load_bookmap()
-    unit = next((u for u in units if u["id"] == uid), None)
-    if unit is None:
-        return None
-    for res in unit.get("resources", []):
+    for res in resources:
         for name in sorted(bm, key=len, reverse=True):
             if res.lower().startswith(name.lower()):
                 return name
@@ -972,6 +996,13 @@ def selftest():
     check_one("...and a dash inside such a list is still a range",
               printed_pages_in("pp. 41-42") == {41, 42}
               and printed_pages_in("pp. 10-12, 20") == {10, 11, 12, 20})
+    check_one("an appendix-lettered result number is parsed and matched",
+              results_in("Hatcher, Proposition A.17, p. 520") == ["Proposition A.17"]
+              and found_on_page("Proposition A.17", "proposition a.17 states")
+              == "exact")
+    check_one("...and its siblings are still rejected, and a bare letter is not a number",
+              found_on_page("Proposition A.1", "proposition a.17 states") is None
+              and results_in("Theorem A states that") == [])
     check_one("a leading digit is a boundary too",
               found_on_page("Definition 1.3", "11.3 definition unrelated") is None
               and found_on_page("Exercise 10", "110 exercise unrelated") is None

@@ -163,8 +163,9 @@ def test_a_parenthesised_exercise_part_does_not_end_the_span():
 
 def test_a_plural_citation_is_expanded_not_skipped():
     """190 citations in the corpus are written in the plural or as a range and
-    matched nothing at all. Only the numbers written are expanded — never the
-    interior of a range, which would invent citations the author never made."""
+    matched nothing at all. A RANGE expands to every member it denotes; a LIST
+    contributes only what is written — see test_a_range_expands_but_a_list_does_not
+    for why those are different questions."""
     from scripts.citations import results_in
     assert results_in("Propositions 2.4, 2.6") == ["Proposition 2.4",
                                                    "Proposition 2.6"]
@@ -503,3 +504,50 @@ def test_a_match_may_not_be_assembled_across_a_page_boundary(tmp_path,
     failures, checked, _unavailable = C.check_file(str(src), book)
     assert checked == 1
     assert len(failures) == 1, "the split match was accepted across the boundary"
+
+
+# --- Codex round eight on PR #21 -------------------------------------------
+
+def test_an_appendix_lettered_result_number_is_parsed():
+    """Hatcher numbers its appendix results A.1, A.17. Requiring a leading
+    digit meant those citations produced no id at all, so a wrong page for one
+    could not affect the verdict."""
+    from scripts.citations import found_on_page, results_in
+    assert results_in("Hatcher, Proposition A.17, p. 520") == ["Proposition A.17"]
+    assert found_on_page("Proposition A.17", "proposition a.17 states") == "exact"
+    assert found_on_page("Proposition A.1", "proposition a.17 states") is None
+    # A bare letter is a word, not a result number.
+    assert results_in("Theorem A states that") == []
+
+
+def test_a_malformed_unit_record_is_no_verdict_not_a_traceback(monkeypatch):
+    """The previous fix guarded the syllabus READ and left the parse outside
+    the try, so a unit record that is not a mapping, or one without an id,
+    still exited 1 — the status reserved for a checked, wrong citation."""
+    import pytest
+    import yaml
+
+    import scripts.citations as C
+    for bad in ({"units": [{"no_id": 1}]}, {"units": ["not a mapping"]},
+                {"no_units": []}):
+        monkeypatch.setattr(yaml, "safe_load", lambda _f, _b=bad: _b)
+        with pytest.raises(C.Unreadable):
+            C.book_for_unit("pw-01")
+
+
+def test_every_citation_on_an_invalid_folio_is_counted(tmp_path, monkeypatch):
+    """Recording one failure for the whole clause and skipping the increment
+    produced output that contradicted itself — "0 citation(s) checked, 1
+    wrong" — and understated how many citations the bad folio affected."""
+    import scripts.citations as C
+    for n, body in ((10, "40\n\nprose here"), (11, "41\n\nmore prose")):
+        d = tmp_path / ("page-%d" % n)
+        d.mkdir()
+        (d / "markdown.md").write_text(body, encoding="utf-8")
+    monkeypatch.setattr(C, "pages_dir", lambda name: str(tmp_path))
+    src = tmp_path / "u.md"
+    src.write_text("*(Fake, Theorem 7.6 and Lemma 8.1, p. 9000)*\n",
+                   encoding="utf-8")
+    failures, checked, _unavailable = C.check_file(str(src), C.Book("Fake"))
+    assert checked == 2
+    assert len(failures) == 2
