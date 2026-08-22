@@ -13,6 +13,8 @@ The first three produced false FAILs — 21 of 21 on la-01 at one point. The
 fourth produced false PASSes, which is worse, and closing it immediately
 surfaced three more real defects in an-01 that truncation had been hiding.
 """
+import os
+
 from scripts.citations import (book_label_for, found_on_page, normalise_for_search,
                                printed_pages_in, results_in, selftest, spans)
 
@@ -340,9 +342,19 @@ def test_an_accented_display_name_matches_its_ascii_bookmap_key():
         "Abbott, p. 223; Lindström, p. 44", names)] == ["Abbott", "Lindstrom"]
 
 
-def test_unit_requires_both_halves(tmp_path, capsys):
+def test_unit_requires_both_halves():
     """Filtering the two paths on exists() meant a unit whose lesson was never
-    written reported its problem set's verdict alone and looked checked."""
-    from scripts.citations import main
-    assert main(["--unit", "aa-05"]) == 2
-    assert "could not read" in capsys.readouterr().out
+    written reported its problem set's verdict alone and looked checked.
+
+    Asserted on the path list, not by running the gate: the first version of
+    this test called main() and matched its stdout, which passed locally and
+    failed in CI, where the page trees are absent and the run exits 2 with a
+    different message. A control whose verdict depends on the environment is
+    testing the environment.
+    """
+    from scripts.citations import unit_paths
+    got = unit_paths("aa-05")
+    assert len(got) == 2
+    assert got[0].endswith(os.path.join("problems", "sets", "aa-05.md"))
+    assert got[1].endswith(os.path.join("lessons", "aa", "aa-05.html"))
+    assert not any(os.path.exists(p) for p in got), "fixture must name a unit that does not exist"

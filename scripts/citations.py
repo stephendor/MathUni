@@ -541,6 +541,20 @@ def check_file(path, book, verbose=False, books=None, all_names=None):
     return failures, checked, unavailable
 
 
+def unit_paths(uid):
+    """Both halves of a unit, present or not.
+
+    Filtering these through exists() meant a unit whose lesson had never been
+    written reported the verdict of its problem set alone and looked fully
+    checked — exactly the state --unit is supposed to expose. A missing half
+    now reaches the unreadable-input path and returns 2.
+    (Codex review of PR #21.)
+    """
+    mod = uid.rsplit("-", 1)[0]
+    return [os.path.join(REPO, "problems", "sets", uid + ".md"),
+            os.path.join(REPO, "lessons", mod, uid + ".html")]
+
+
 def book_for_unit(uid):
     """The unit's primary book, from the syllabus resource line."""
     import yaml
@@ -768,14 +782,7 @@ def main(argv=None):
     paths = list(a.paths)
     book_name = a.book
     if a.unit:
-        # BOTH halves, present or not. Filtering on exists() meant a unit whose
-        # lesson had never been written reported the verdict of its problem set
-        # alone and looked fully checked, which is exactly the state --unit is
-        # supposed to expose. A missing half now reaches the unreadable-input
-        # path and returns 2. (Codex review of PR #21.)
-        mod = a.unit.rsplit("-", 1)[0]
-        paths.extend([os.path.join(REPO, "problems", "sets", a.unit + ".md"),
-                      os.path.join(REPO, "lessons", mod, a.unit + ".html")])
+        paths.extend(unit_paths(a.unit))
         book_name = book_name or book_for_unit(a.unit)
     if not paths:
         ap.error("give paths or --unit")
