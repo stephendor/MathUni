@@ -193,7 +193,7 @@ draw();
 <p><strong>Inductive Hypothesis.</strong> Let <var>k</var> ≥ 2, and assume every integer 2, 3, …, <var>k</var> is prime or a product of primes.</p>
 <p><strong>Induction Step.</strong> Consider <var>k</var>+1. Being an integer larger than 1, it is prime or composite. If prime, we are done immediately. If composite, write <var>k</var>+1 = <var>st</var> with 1 &lt; <var>s</var>, <var>t</var> &lt; <var>k</var>+1 — so both <var>s</var> and <var>t</var> lie in the range 2, …, <var>k</var> covered by the inductive hypothesis. Hence each of <var>s</var> and <var>t</var> is prime or a product of primes; concatenating their factorisations gives a prime factorisation of <var>k</var>+1 = <var>st</var>.</p>
 <p><strong>Conclusion.</strong> Therefore, by strong induction, every integer <var>n</var> ≥ 2 is prime or a product of primes. ∎</p>
-<p class="cite">— Cummings §4.3, Theorem 4.8, pp. 126–127</p>
+<p class="cite">— Cummings §4.3, Theorem 4.8, pp. 125–127</p>
 </div>
 
 <p>Cummings is explicit about <em>why</em> regular induction stalls here: knowing that <var>k</var> is prime or a product of primes tells you almost nothing useful about <var>k</var>+1 — the two numbers share no obvious factorisation link. <span class="cite">— Cummings §4.3, p. 126</span> But <var>s</var> and <var>t</var>, the two pieces <var>k</var>+1 splits into, are both smaller than <var>k</var>+1 — so strong induction's "reach back to any earlier case" is exactly what's needed, precisely because you don't know in advance <em>which</em> earlier case will turn out to matter.</p>
