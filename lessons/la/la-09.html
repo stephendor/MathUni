@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-09 — Products and quotient spaces</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Products and quotient spaces <span class="cite">(la-09)</span></h1>
+
+<div class="hook">
+Collapse a subspace to zero and see what survives.
+<p>Two constructions in this unit build new vector spaces from old, and they pull in opposite directions. The <strong>product</strong> stacks spaces side by side and adds their dimensions. The <strong>quotient</strong> takes a subspace and declares it to be zero — every vector in it becomes indistinguishable from the origin — and subtracts its dimension.</p>
+<p>The quotient is the one that matters. Declaring a subspace to be zero sounds like vandalism, and the surprise is that the result is a perfectly good vector space whose dimension is exactly dim <var>V</var> − dim <var>U</var>, with a canonical map onto it. It is also, without qualification, the construction the whole mission runs on: a homology group is <var>Z</var>/<var>B</var>, the cycles modulo the boundaries, and every sentence of this unit applies to it verbatim. The last theorem here — that <var>V</var>/(null <var>T</var>) is isomorphic to range <var>T</var> — is the statement that the quotient loses exactly the information the map was going to destroy anyway, and nothing else.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Fix a subspace <var>U</var> of <var>V</var>. For each <var>v</var> ∈ <var>V</var> write <var>v</var> + <var>U</var> for the set {<var>v</var> + <var>u</var> : <var>u</var> ∈ <var>U</var>} — a translate of <var>U</var>. Now take two of these translates, <var>v</var> + <var>U</var> and <var>w</var> + <var>U</var>. Do you predict they can <strong>partially overlap</strong> — share at least one point but not all of them? Or do you predict they are always either identical or completely disjoint? Commit before Segment 2 ends.
+</div>
+
+<p class="mission">Why this matters for the mission: H = Z/B is a quotient. This unit is homology in miniature.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>Products: stacking spaces side by side</h2>
+
+<div class="definition">
+<strong>Definition 3.71 (product).</strong> For vector spaces <var>V</var>₁, …, <var>V</var><sub><var>m</var></sub> over <strong>F</strong>, the <em>product</em> is <var>V</var>₁ × ⋯ × <var>V</var><sub><var>m</var></sub> = {(<var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>) : <var>v</var><sub><var>j</var></sub> ∈ <var>V</var><sub><var>j</var></sub>}, with addition and scalar multiplication performed slot by slot. <span class="cite">— Axler §3.E, Definition 3.71, p. 91</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.73 and Theorem 3.76.</strong> A product of vector spaces is a vector space, with additive identity (0, …, 0). If each factor is finite-dimensional then so is the product, and dim(<var>V</var>₁ × ⋯ × <var>V</var><sub><var>m</var></sub>) = dim <var>V</var>₁ + ⋯ + dim <var>V</var><sub><var>m</var></sub>. <span class="cite">— Axler §3.E, Theorem 3.73, p. 91, and Theorem 3.76, p. 92</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — a basis of a product, and why the dimensions add (fully worked).</strong> Find a basis of 𝒫₂(<strong>R</strong>) × <strong>R</strong>².
+<p>Take a basis of each factor and pad with zeros in the other slot: (1, (0, 0)), (<var>x</var>, (0, 0)), (<var>x</var>², (0, 0)), (0, (1, 0)), (0, (0, 1)). That list spans, because any (<var>p</var>, <var>y</var>) splits as (<var>p</var>, 0) + (0, <var>y</var>) and each half is a combination of the vectors from its own slot; and it is independent, because a vanishing combination vanishes in each slot separately, where the original bases take over. Length 3 + 2 = 5. <span class="cite">— Axler §3.E, Example 3.75, p. 92</span></p>
+<p>That is the whole proof of Theorem 3.76, seen once. <span class="cite">— Axler §3.E, p. 92</span></p>
+</div>
+
+<div class="heuristic">
+<strong>Equal versus isomorphic — a distinction worth being pedantic about once.</strong> Is <strong>R</strong>² × <strong>R</strong>³ equal to <strong>R</strong>⁵? No. Its elements are lists of length 2 whose entries are themselves lists; elements of <strong>R</strong>⁵ are lists of length 5. Is it isomorphic to <strong>R</strong>⁵? Yes, by the obvious flattening map. The two spaces are interchangeable for every purpose linear algebra can express, and are still different objects. <span class="cite">— Axler §3.E, Example 3.74, p. 92</span>
+</div>
+
+<div class="theorem">
+<strong>Theorems 3.77 and 3.78 (products detect directness).</strong> For subspaces <var>U</var>₁, …, <var>U</var><sub><var>m</var></sub> of <var>V</var>, define Γ : <var>U</var>₁ × ⋯ × <var>U</var><sub><var>m</var></sub> → <var>U</var>₁ + ⋯ + <var>U</var><sub><var>m</var></sub> by Γ(<var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>) = <var>u</var>₁ + ⋯ + <var>u</var><sub><var>m</var></sub>. The sum is direct if and only if Γ is injective. And if <var>V</var> is finite-dimensional, the sum is direct if and only if dim(<var>U</var>₁ + ⋯ + <var>U</var><sub><var>m</var></sub>) = dim <var>U</var>₁ + ⋯ + dim <var>U</var><sub><var>m</var></sub>. <span class="cite">— Axler §3.E, Theorem 3.77 and Theorem 3.78, p. 93</span>
+</div>
+
+<div class="worked fade">
+<strong>Why they are true, and what has just been unified.</strong> Γ is surjective by the definition of a sum of subspaces, so the only question is injectivity. By la-06's Theorem 3.16 that means null Γ = {0} — that is, the only way to write 0 as <var>u</var>₁ + ⋯ + <var>u</var><sub><var>m</var></sub> with <var>u</var><sub><var>j</var></sub> ∈ <var>U</var><sub><var>j</var></sub> is with every <var>u</var><sub><var>j</var></sub> = 0, which is exactly la-02's Theorem 1.44. So Theorem 3.77 is a translation, not a new fact.
+<p>Theorem 3.78 then follows by counting. Γ is surjective, so la-06's Fundamental Theorem makes injectivity equivalent to dim of the sum equalling dim of the product, and Theorem 3.76 evaluates the latter as dim <var>U</var>₁ + ⋯ + dim <var>U</var><sub><var>m</var></sub>. <span class="cite">— Axler §3.E, p. 93</span></p>
+<p>What this buys is a check for directness that needs no vectors at all: <em>add the dimensions and compare</em>. la-02 could only test directness by examining decompositions of 0, and for three or more subspaces its pairwise shortcut was unavailable. This works for any number of summands. <span class="cite">— Axler §3.E, p. 93</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> <var>U</var>₁, <var>U</var>₂, <var>U</var>₃ are subspaces of <strong>R</strong>⁷ with dimensions 2, 2, 3, and dim(<var>U</var>₁ + <var>U</var>₂ + <var>U</var>₃) = 6. Is the sum direct?</p>
+<button onclick="check(this,false)">Yes — 6 &lt; 7, so the subspaces fit inside <strong>R</strong>⁷</button>
+<button onclick="check(this,true)" data-ok>No — 2 + 2 + 3 = 7 ≠ 6</button>
+<button onclick="check(this,false)">Cannot be decided without knowing the pairwise intersections</button>
+<div class="explain">Theorem 3.78 is an exact criterion: direct exactly when the dimensions add to the dimension of the sum. Here they do not, so the sum is not direct. The third option is the la-02 habit the theorem replaces — pairwise intersections are neither necessary nor sufficient for three or more subspaces, as la-02's Example 1.43 showed, and the dimension count sidesteps them entirely.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Affine subsets, and the quotient space</h2>
+
+<div class="definition">
+<strong>Definitions 3.79 and 3.81 (translate, affine subset, parallel).</strong> For <var>v</var> ∈ <var>V</var> and <var>U</var> a subspace, <var>v</var> + <var>U</var> = {<var>v</var> + <var>u</var> : <var>u</var> ∈ <var>U</var>}. A subset of <var>V</var> of this form is an <em>affine subset</em>, and it is said to be <em>parallel</em> to <var>U</var>. <span class="cite">— Axler §3.E, Definition 3.79 and Definition 3.81, p. 94</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — what affine subsets look like (fully worked).</strong> Let <var>U</var> = {(<var>x</var>, 2<var>x</var>) ∈ <strong>R</strong>² : <var>x</var> ∈ <strong>R</strong>}, the line through the origin of slope 2. Then (17, 20) + <var>U</var> is the line of slope 2 through the point (17, 20), and as <var>v</var> ranges over <strong>R</strong>², the sets <var>v</var> + <var>U</var> are precisely the lines of slope 2 — all of them, each obtained many times over. <span class="cite">— Axler §3.E, Example 3.80, p. 94</span>
+<p>In <strong>R</strong>³ with <var>U</var> the <var>xy</var>-plane, the affine subsets parallel to <var>U</var> are the planes parallel to it in the ordinary sense. Note the deliberate strictness of Definition 3.81: <em>no line in <strong>R</strong>³ is parallel to a plane</em> under this definition, however geometric intuition may protest, because parallel means "a translate of <em>that</em> subspace" and a line is not a translate of a plane. <span class="cite">— Axler §3.E, Example 3.82, p. 94</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 3.83 (quotient space).</strong> For <var>U</var> a subspace of <var>V</var>, the <em>quotient space</em> <var>V</var>/<var>U</var> is the set of all affine subsets of <var>V</var> parallel to <var>U</var>: <var>V</var>/<var>U</var> = {<var>v</var> + <var>U</var> : <var>v</var> ∈ <var>V</var>}. <span class="cite">— Axler §3.E, Definition 3.83, p. 95</span>
+</div>
+
+<p>The elements of <var>V</var>/<var>U</var> are <em>sets</em>, not vectors of <var>V</var>. For <var>U</var> the slope-2 line, <strong>R</strong>²/<var>U</var> is the set of all lines of slope 2 — a space whose points are lines. That is the mental adjustment the whole construction demands, and everything else is bookkeeping. <span class="cite">— Axler §3.E, Example 3.84, p. 95</span></p>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="theorem">
+<strong>Theorem 3.85 (equal or disjoint, never partly).</strong> For <var>U</var> a subspace of <var>V</var> and <var>v</var>, <var>w</var> ∈ <var>V</var>, the following are equivalent: (a) <var>v</var> − <var>w</var> ∈ <var>U</var>; (b) <var>v</var> + <var>U</var> = <var>w</var> + <var>U</var>; (c) (<var>v</var> + <var>U</var>) ∩ (<var>w</var> + <var>U</var>) ≠ ∅. <span class="cite">— Axler §3.E, Theorem 3.85, p. 95</span>
+</div>
+
+<div class="worked">
+<strong>Verdict: they cannot partially overlap.</strong> The equivalence of (b) and (c) says exactly that: sharing one point forces sharing all of them. Two lines of slope 2 that meet anywhere are the same line, which is geometrically obvious and is being asserted here for every subspace of every vector space.
+<p><em>Why it is true.</em> (a) ⇒ (b): if <var>v</var> − <var>w</var> ∈ <var>U</var> then for any <var>u</var> ∈ <var>U</var>, <var>v</var> + <var>u</var> = <var>w</var> + ((<var>v</var> − <var>w</var>) + <var>u</var>) ∈ <var>w</var> + <var>U</var>, giving <var>v</var> + <var>U</var> ⊆ <var>w</var> + <var>U</var>, and symmetrically the reverse. (b) ⇒ (c) is immediate, since an affine subset is nonempty. (c) ⇒ (a): a shared point gives <var>v</var> + <var>u</var>₁ = <var>w</var> + <var>u</var>₂, so <var>v</var> − <var>w</var> = <var>u</var>₂ − <var>u</var>₁ ∈ <var>U</var>. <span class="cite">— Axler §3.E, p. 95</span></p>
+<p>Condition (a) is the useful one in practice — it converts a question about two <em>sets</em> into a membership test on a single vector — and every later proof in this unit reaches for it.</p>
+</div>
+
+<h3>Canvas: the points of a quotient space are lines</h3>
+<p><var>U</var> is the amber line of slope 2 through the origin. The grey lines are the other elements of <strong>R</strong>²/<var>U</var>. A point moves through the plane; the line it currently lies on is highlighted, and that line — not the point — is the single element of <strong>R</strong>²/<var>U</var> the point represents. Every point of the highlighted line represents the same element.</p>
+<canvas id="q" width="440" height="300"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('q'),ctx=cv.getContext('2d'),cx=220,cy=150,s=26;
+let t=0;
+function scr(p){return [cx+p[0]*s, cy-p[1]*s];}
+function line(c,col,w){   // y = 2x + c
+  const a=scr([-8,-16+c]),b=scr([8,16+c]);
+  ctx.strokeStyle=col;ctx.lineWidth=w;
+  ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const px=3.4*Math.sin(t), py=2.2*Math.cos(t*0.7);
+  const c=py-2*px;                       // which coset the point sits on
+  for(let k=-14;k<=14;k+=2){ if(k!==0) line(k,'#243244',1); }
+  line(0,'#d8a657',2.5);
+  line(c,'#4caf82',2.5);
+  const p=scr([px,py]);
+  ctx.fillStyle='#e8e8e8';ctx.beginPath();ctx.arc(p[0],p[1],5,0,7);ctx.fill();
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('amber: U itself (c = 0)    green: the coset v + U containing the point',220,278);
+  ctx.fillText('c = '+c.toFixed(2)+' — one number names the element of R²/U',220,294);
+  ctx.textAlign='left';
+  t+=0.011;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="definition">
+<strong>Definition 3.86 and Theorem 3.87 (<var>V</var>/<var>U</var> is a vector space).</strong> Define (<var>v</var> + <var>U</var>) + (<var>w</var> + <var>U</var>) = (<var>v</var> + <var>w</var>) + <var>U</var> and λ(<var>v</var> + <var>U</var>) = (λ<var>v</var>) + <var>U</var>. With these operations <var>V</var>/<var>U</var> is a vector space, whose additive identity is 0 + <var>U</var> = <var>U</var>. <span class="cite">— Axler §3.E, Definition 3.86 and Theorem 3.87, p. 96</span>
+</div>
+
+<div class="worked fade">
+<strong>The one thing that genuinely needs proving.</strong> Not the axioms — those are inherited. The problem is that the recipe defines an operation on <em>sets</em> by naming a representative, and an affine subset has many representatives: <var>v</var> + <var>U</var> = <var>v̂</var> + <var>U</var> for every <var>v̂</var> with <var>v</var> − <var>v̂</var> ∈ <var>U</var>. If different representatives gave different answers, the definition would define nothing.
+<p>Suppose <var>v</var> + <var>U</var> = <var>v̂</var> + <var>U</var> and <var>w</var> + <var>U</var> = <var>ŵ</var> + <var>U</var>. By Theorem 3.85(a), <var>v</var> − <var>v̂</var> ∈ <var>U</var> and <var>w</var> − <var>ŵ</var> ∈ <var>U</var>. Since <var>U</var> is closed under addition, their sum (<var>v</var> + <var>w</var>) − (<var>v̂</var> + <var>ŵ</var>) is in <var>U</var>, and Theorem 3.85 read the other way gives (<var>v</var> + <var>w</var>) + <var>U</var> = (<var>v̂</var> + <var>ŵ</var>) + <var>U</var>. Scalar multiplication is the same argument with closure under scaling. <span class="cite">— Axler §3.E, p. 96</span></p>
+<p>Notice which subspace properties were spent: closure under addition and under scaling, exactly the two conditions of la-02's subspace test beyond containing 0. The quotient construction works for subspaces and for nothing weaker, and this proof is where that shows.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In <var>V</var>/<var>U</var>, which element is the additive identity?</p>
+<button onclick="check(this,false)">The empty set</button>
+<button onclick="check(this,true)" data-ok><var>U</var> itself, written 0 + <var>U</var></button>
+<button onclick="check(this,false)">The zero vector of <var>V</var></button>
+<div class="explain">0 + <var>U</var> = <var>U</var>, and (<var>v</var> + <var>U</var>) + (0 + <var>U</var>) = <var>v</var> + <var>U</var>. This is the sense in which the quotient "sets <var>U</var> to zero": the whole subspace becomes one element, and that element is the origin of the new space. The third option is a type error — elements of <var>V</var>/<var>U</var> are subsets of <var>V</var>, not vectors of <var>V</var>.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Theorem 3.87 need a proof that addition is well defined?</p>
+<button onclick="check(this,false)">It does not — the formula is the only sensible one</button>
+<button onclick="check(this,true)" data-ok>Because an affine subset has many representatives, and the formula names one</button>
+<button onclick="check(this,false)">Because <var>V</var>/<var>U</var> might be empty if <var>U</var> = <var>V</var></button>
+<div class="explain">The formula computes the answer from a chosen <var>v</var>, but <var>v</var> + <var>U</var> does not determine <var>v</var>. Showing that any other choice gives the same answer is the whole content of the theorem, and it is where closure of <var>U</var> is used. The third option is false: if <var>U</var> = <var>V</var> then <var>V</var>/<var>U</var> has exactly one element, namely <var>V</var> itself, and is the zero vector space — small, not empty.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>The quotient map, and homology in miniature</h2>
+
+<div class="definition">
+<strong>Definition 3.88 (quotient map).</strong> For <var>U</var> a subspace of <var>V</var>, the <em>quotient map</em> π : <var>V</var> → <var>V</var>/<var>U</var> is defined by π(<var>v</var>) = <var>v</var> + <var>U</var>. <span class="cite">— Axler §3.E, Definition 3.88, p. 97</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.89 (dimension of a quotient).</strong> If <var>V</var> is finite-dimensional and <var>U</var> is a subspace of <var>V</var>, then dim <var>V</var>/<var>U</var> = dim <var>V</var> − dim <var>U</var>. <span class="cite">— Axler §3.E, Theorem 3.89, p. 97</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — three lines, and the Fundamental Theorem does all of it.</strong> π is linear (check the two clauses against Definition 3.86; they hold by construction). Its range is all of <var>V</var>/<var>U</var>, since every element of the quotient is <var>v</var> + <var>U</var> = π(<var>v</var>) for some <var>v</var>. It sends 0 to 0, as every linear map must. <span class="cite">— Axler §3.A, Theorem 3.11, p. 57</span> Its null space is <var>U</var>: π(<var>v</var>) = 0 + <var>U</var> means <var>v</var> + <var>U</var> = 0 + <var>U</var>, which by Theorem 3.85(a) means <var>v</var> − 0 ∈ <var>U</var>, i.e. <var>v</var> ∈ <var>U</var>.
+<p>la-06's Fundamental Theorem then reads dim <var>V</var> = dim <var>U</var> + dim <var>V</var>/<var>U</var>. The subtraction in the statement is that equation rearranged. <span class="cite">— Axler §3.E, p. 97</span></p>
+<p>Worth pausing on the shape of what just happened: la-06 said every dimension of the domain is either destroyed or transmitted, and the quotient is the construction that makes the destroyed part into an object in its own right, with π the map that does the destroying on purpose.</p>
+</div>
+
+<div class="definition">
+<strong>Definition 3.90 and Theorem 3.91 (the map induced on the quotient).</strong> For <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>), define <var>T̃</var> : <var>V</var>/(null <var>T</var>) → <var>W</var> by <var>T̃</var>(<var>v</var> + null <var>T</var>) = <var>Tv</var>. Then <var>T̃</var> is linear, <var>T̃</var> is <strong>injective</strong>, range <var>T̃</var> = range <var>T</var>, and consequently <var>V</var>/(null <var>T</var>) is isomorphic to range <var>T</var>. <span class="cite">— Axler §3.E, Definition 3.90, p. 97, and Theorem 3.91, p. 98</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — reading the theorem slowly (fully worked).</strong> Each clause is short and each is doing work.
+<p><em>Well defined.</em> If <var>u</var> + null <var>T</var> = <var>v</var> + null <var>T</var> then <var>u</var> − <var>v</var> ∈ null <var>T</var> by Theorem 3.85, so <var>T</var>(<var>u</var> − <var>v</var>) = 0 and <var>Tu</var> = <var>Tv</var>. The recipe therefore does not depend on the representative — and note that this works <em>because</em> the subspace being quotiented by is null <var>T</var> and not some other subspace.</p>
+<p><em>Injective.</em> If <var>T̃</var>(<var>v</var> + null <var>T</var>) = 0 then <var>Tv</var> = 0, so <var>v</var> ∈ null <var>T</var>, so <var>v</var> + null <var>T</var> = 0 + null <var>T</var> — the zero element of the quotient. Hence null <var>T̃</var> = {0} and la-06's Theorem 3.16 applies.</p>
+<p><em>Same range.</em> Immediate from the formula: the outputs of <var>T̃</var> are the outputs of <var>T</var>. Combining, <var>T̃</var> regarded as a map onto range <var>T</var> is injective and surjective, hence an isomorphism by la-08's Theorem 3.56. <span class="cite">— Axler §3.E, p. 98</span></p>
+</div>
+
+<div class="heuristic">
+<strong>Why this is the mission's construction, exactly.</strong> A chain complex gives you two subspaces of the same space of chains: the <em>cycles</em> <var>Z</var> = null ∂, and the <em>boundaries</em> <var>B</var> = range ∂′ for the next boundary map, with <var>B</var> ⊆ <var>Z</var> because ∂∂ = 0 — the configuration la-06's problem set proved. The homology group is <var>H</var> = <var>Z</var>/<var>B</var>, and it is a quotient in precisely the sense of Definition 3.83: two cycles represent the same element of <var>H</var> exactly when their difference is a boundary, which is Theorem 3.85(a) with <var>U</var> = <var>B</var>. The Betti number is dim <var>H</var> = dim <var>Z</var> − dim <var>B</var>, which is Theorem 3.89. Nothing further is needed to define homology over a field; what remains is the topology that produces the chain complex.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> <var>V</var> is 9-dimensional and <var>U</var> is a 4-dimensional subspace. What is dim <var>V</var>/<var>U</var>?</p>
+<button onclick="check(this,true)" data-ok>5</button>
+<button onclick="check(this,false)">36</button>
+<button onclick="check(this,false)">4, since <var>U</var> is what is being collapsed</button>
+<div class="explain">Theorem 3.89: 9 − 4 = 5. The quotient records what is left <em>after</em> <var>U</var> is set to zero, so it is the complement's worth of dimensions, not <var>U</var>'s. 36 would be the product's answer if this were a different construction — dim(<var>V</var> × <var>U</var>) is 13, and 36 is not a dimension of anything here.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) with <var>V</var> 6-dimensional and dim range <var>T</var> = 4. What is dim <var>V</var>/(null <var>T</var>)?</p>
+<button onclick="check(this,true)" data-ok>4, because <var>V</var>/(null <var>T</var>) is isomorphic to range <var>T</var></button>
+<button onclick="check(this,false)">2, because dim null <var>T</var> = 2</button>
+<button onclick="check(this,false)">6, because quotienting does not change the dimension of <var>V</var></button>
+<div class="explain">Theorem 3.91(d) gives the isomorphism, and isomorphic spaces have equal dimension by la-08's Theorem 3.59 — so the answer is 4. Theorem 3.89 agrees: 6 − 2 = 4. The second option computes dim null <var>T</var> correctly and then reports the wrong quantity, which is the standard slip here.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose φ ∈ ℒ(<var>V</var>, <strong>F</strong>) and φ ≠ 0. Prove that dim <var>V</var>/(null φ) = 1. (Do not assume <var>V</var> is finite-dimensional — the statement is true without that, and one of this unit's results gives it to you directly. Think about what range φ can possibly be, given that it is a subspace of <strong>F</strong>.) <span class="cite">— cf. Axler §3.E, Exercise 15, p. 100</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> range φ is a subspace of <strong>F</strong> (la-06, Theorem 3.19), and <strong>F</strong> regarded as a vector space over itself has dimension 1. A subspace of a 1-dimensional space has dimension 0 or 1 (la-04, Theorem 2.38), and dimension 0 would make range φ = {0}, i.e. φ = 0, which is excluded. So range φ = <strong>F</strong> and dim range φ = 1.</p>
+<p>By Theorem 3.91(d), <var>V</var>/(null φ) is isomorphic to range φ. Isomorphic spaces have the same dimension (la-08, Theorem 3.59), so dim <var>V</var>/(null φ) = dim range φ = 1. ∎</p>
+<p class="cite">Theorem 3.89 would give the same answer when <var>V</var> is finite-dimensional — dim <var>V</var> − dim null φ = 1 by the Fundamental Theorem — but it carries a finite-dimensionality hypothesis that the statement does not need. Theorem 3.91 carries none, which is why it is the right tool. Choosing the result with the weaker hypothesis is worth a habit: it is how you find out that a theorem is true more generally than the section it appears in suggests.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>The <strong>product</strong> stacks spaces and adds dimensions (Theorem 3.76). Mapping the product of subspaces onto their sum turns directness into injectivity (Theorem 3.77) and hence, by the Fundamental Theorem, into the arithmetic test <strong>dim of the sum equals the sum of the dims</strong> (Theorem 3.78) — a directness check for any number of summands, which la-02 could not supply.</li>
+<li>Translates <var>v</var> + <var>U</var> of a subspace are <strong>equal or disjoint, never partly overlapping</strong> (Theorem 3.85), and the usable form of that is <var>v</var> + <var>U</var> = <var>w</var> + <var>U</var> ⟺ <var>v</var> − <var>w</var> ∈ <var>U</var>. Collecting them gives the <strong>quotient space</strong> <var>V</var>/<var>U</var> (Definition 3.83), whose operations are well defined precisely because <var>U</var> is closed under addition and scaling (Theorem 3.87).</li>
+<li>The <strong>quotient map</strong> π has null π = <var>U</var> and range <var>V</var>/<var>U</var>, so the Fundamental Theorem gives <strong>dim <var>V</var>/<var>U</var> = dim <var>V</var> − dim <var>U</var></strong> (Theorem 3.89). Quotienting by null <var>T</var> instead makes the induced map injective, so <strong><var>V</var>/(null <var>T</var>) ≅ range <var>T</var></strong> (Theorem 3.91): the quotient discards exactly what the map was going to destroy. That is <var>H</var> = <var>Z</var>/<var>B</var>.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §3.E "Products and Quotients of Vector Spaces": "Products of Vector Spaces" (Definition 3.71, Examples 3.72 and 3.74, Theorem 3.73, Example 3.75, Theorem 3.76 dimension of a product), pp. 91–92; "Products and Direct Sums" (Theorem 3.77, Theorem 3.78), p. 93; "Quotients of Vector Spaces" (Definition 3.79, Example 3.80, Definition 3.81 affine subset, Example 3.82, Definition 3.83 quotient space, Example 3.84, Theorem 3.85 equal or disjoint, Definition 3.86, Theorem 3.87), pp. 94–96; the quotient map and induced maps (Definition 3.88, Theorem 3.89, Definition 3.90, Theorem 3.91), pp. 97–98; §3.E, Exercise 15, p. 100.
+<br>Builds on la-06, whose Theorem 3.22 supplies every dimension count above and whose Theorem 3.16 turns injectivity into a null-space statement; both are Axler §3.B, pp. 61 and 63.
+<br>Builds also on la-02: the zero-decomposition test for a direct sum is Axler §1.C, Theorem 1.44, pp. 21–23.
+<br>Deferred to la-10: duality, where the maps into <strong>F</strong> become the objects of study (Axler §3.F).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
