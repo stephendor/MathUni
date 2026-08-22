@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-04 — Bases and dimension</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Bases and dimension <span class="cite">(la-04)</span></h1>
+
+<div class="hook">
+Why every basis of the same space has the same size — a genuinely deep fact.
+<p><strong>R</strong>² has infinitely many bases. (1, 0), (0, 1) is one; (7, 5), (−4, 9) is another; (1, 2), (3, 5) is a third. They look nothing alike, they were chosen for different reasons, and no two of them share a vector. Every single one has length 2.</p>
+<p>Why should that be? Nothing in the definition of a basis mentions a number. A basis is a list that is independent and spans — two conditions, both about behaviour, neither about counting. And yet the counts agree, always, in every vector space, and they agree so reliably that we are entitled to give the common value a name and call it the <em>dimension</em>. That entitlement is not obvious and it is not free: it is a theorem, and la-03's squeeze is the whole of its proof. Once it is in hand, the rest of this lesson is a sequence of results that convert counting back into structure.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Inside <strong>R</strong>⁹, take two subspaces <var>U</var> and <var>W</var>, each of dimension 5. Do you predict that <var>U</var> and <var>W</var> must share a nonzero vector — that is, must <var>U</var> ∩ <var>W</var> ≠ {0} — or could two such subspaces meet only at the origin? Commit to yes or no, and if you say yes, try to say what would go wrong if they met only at 0. The verdict arrives in Segment 3.
+</div>
+
+<p class="mission">Why this matters for the mission: dim(ker ∂)/im ∂ computations are how Betti numbers are actually found.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>Bases: independent and spanning at once</h2>
+
+<div class="definition">
+<strong>Definition 2.27 (basis).</strong> A <em>basis</em> of <var>V</var> is a list of vectors in <var>V</var> that is linearly independent and spans <var>V</var>. <span class="cite">— Axler §2.B, Definition 2.27, p. 39</span>
+</div>
+
+<p>Both halves are needed, and dropping either gives something recognisable but different. (1, 2, −4), (7, −5, 6) is independent in <strong>F</strong>³ but does not span it. (1, 2), (3, 5), (4, 13) spans <strong>F</strong>² but is not independent. Neither is a basis. <span class="cite">— Axler §2.B, Example 2.28, p. 39</span></p>
+
+<div class="theorem">
+<strong>Theorem 2.29 (criterion for basis).</strong> A list <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> of vectors in <var>V</var> is a basis of <var>V</var> if and only if every <var>v</var> ∈ <var>V</var> can be written <em>uniquely</em> in the form <var>v</var> = <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>n</var></sub><var>v</var><sub><var>n</var></sub> with <var>a</var>₁, …, <var>a</var><sub><var>n</var></sub> ∈ <strong>F</strong>. <span class="cite">— Axler §2.B, Theorem 2.29, p. 39</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> The two halves of "basis" map exactly onto the two halves of "uniquely written": spanning gives <em>at least one</em> representation, independence gives <em>at most one</em>.
+<p>(⇒) Spanning supplies scalars <var>a</var><sub><var>j</var></sub> with <var>v</var> = Σ<var>a</var><sub><var>j</var></sub><var>v</var><sub><var>j</var></sub>. If also <var>v</var> = Σ<var>c</var><sub><var>j</var></sub><var>v</var><sub><var>j</var></sub>, subtract: 0 = Σ(<var>a</var><sub><var>j</var></sub> − <var>c</var><sub><var>j</var></sub>)<var>v</var><sub><var>j</var></sub>. Independence forces every <var>a</var><sub><var>j</var></sub> − <var>c</var><sub><var>j</var></sub> = 0.</p>
+<p>(⇐) Existence of a representation for every <var>v</var> is spanning, immediately. For independence, apply uniqueness at the single point <var>v</var> = 0: the trivial representation is one of them, so by uniqueness it is the only one. That last move — <em>test the general hypothesis at 0</em> — is the whole of the converse, and it is the same instinct la-03 used when it stated independence as a condition on 0 rather than on a general vector. <span class="cite">— Axler §2.B, p. 40</span></p>
+</div>
+
+<p>Two construction results follow, and they are exact mirrors of each other. One shrinks a spanning list until it becomes a basis; the other grows an independent list until it becomes one.</p>
+
+<div class="theorem">
+<strong>Theorem 2.31 (spanning list contains a basis).</strong> Every spanning list in a vector space can be reduced to a basis of the vector space. <span class="cite">— Axler §2.B, Theorem 2.31, p. 40</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 2.33 (independent list extends to a basis).</strong> Every linearly independent list of vectors in a finite-dimensional vector space can be extended to a basis of the vector space. <span class="cite">— Axler §2.B, Theorem 2.33, p. 41</span>
+</div>
+
+<div class="worked fade">
+<strong>Why they are true, and why one proof does both.</strong> For Theorem 2.31, walk the list left to right and delete <var>v</var><sub><var>j</var></sub> whenever <var>v</var><sub><var>j</var></sub> ∈ span(<var>v</var>₁, …, <var>v</var><sub><var>j</var>−1</sub>). Deleting such a vector cannot shrink the span, so what survives still spans; and no survivor lies in the span of its predecessors, which by the Linear Dependence Lemma (la-03, Lemma 2.21) is exactly independence. Note the direction the lemma is being used in — la-03 read it as "dependence lets you delete", and here it is read contrapositively, as "nothing deletable left means independent".
+<p>Theorem 2.33 is then a corollary rather than a fresh argument. Given an independent <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>, pick any basis <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub> and run the reduction on the concatenated list <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>, <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub>, which certainly spans. No <var>u</var> is ever deleted, because independence of the <var>u</var>'s means no <var>u</var> lies in the span of its predecessors. So the result is a basis containing all the <var>u</var>'s and some of the <var>w</var>'s. Putting the new vectors <em>first</em> is what protects them — with the order reversed, the argument does not run. <span class="cite">— Axler §2.B, pp. 40–41</span></p>
+</div>
+
+<div class="heuristic">
+<strong>The pattern to keep.</strong> "Reduce a spanning list" and "extend an independent list" are the two moves available whenever you need a basis with a prescribed feature. Want a basis of <var>V</var> whose first few vectors lie in a chosen subspace? Take a basis of the subspace and extend. Want a basis drawn from a given generating set? Reduce. Almost every basis-construction argument in the rest of the semester is one of these two, and Theorem 2.34 below is the first of them.
+</div>
+
+<div class="theorem">
+<strong>Theorem 2.32 (existence) and Theorem 2.34 (complements).</strong> Every finite-dimensional vector space has a basis. And if <var>V</var> is finite-dimensional and <var>U</var> is a subspace of <var>V</var>, then there is a subspace <var>W</var> of <var>V</var> with <var>V</var> = <var>U</var> ⊕ <var>W</var>. <span class="cite">— Axler §2.B, Theorem 2.32, p. 41, and Theorem 2.34, p. 42</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — how a complement gets built (fully worked).</strong> Theorem 2.34 is la-02's direct sums and this lesson's bases meeting for the first time, so it is worth watching the machine run.
+<p><var>U</var> is a subspace of the finite-dimensional <var>V</var>, hence finite-dimensional itself (la-03, Theorem 2.26), hence has a basis <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub> (Theorem 2.32). That list is independent <em>in <var>V</var></em>, so extend it to a basis <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>, <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub> of <var>V</var> (Theorem 2.33). Now set <var>W</var> = span(<var>w</var>₁, …, <var>w</var><sub><var>n</var></sub>).</p>
+<p>By la-02's Theorem 1.45 it suffices to check <var>V</var> = <var>U</var> + <var>W</var> and <var>U</var> ∩ <var>W</var> = {0}. For the first: any <var>v</var> ∈ <var>V</var> expands along the full basis as (<var>a</var>₁<var>u</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>u</var><sub><var>m</var></sub>) + (<var>b</var>₁<var>w</var>₁ + ⋯ + <var>b</var><sub><var>n</var></sub><var>w</var><sub><var>n</var></sub>), and the two bracketed pieces lie in <var>U</var> and <var>W</var> respectively. For the second: a vector in <var>U</var> ∩ <var>W</var> has an expression in the <var>u</var>'s and another in the <var>w</var>'s; equating them and moving everything to one side gives a dependence relation among <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>, <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub>, whose coefficients must therefore all vanish — so the vector is 0. <span class="cite">— Axler §2.B, p. 42</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> (1, 2), (3, 5), (4, 13) spans <strong>F</strong>². Which statement is correct?</p>
+<button onclick="check(this,false)">It is a basis, since spanning is the essential property</button>
+<button onclick="check(this,true)" data-ok>It is not a basis, but some sublist of it is</button>
+<button onclick="check(this,false)">It is not a basis, and no sublist of it is either</button>
+<div class="explain">A basis must also be independent, and this list is not (Example 2.28(d)). But Theorem 2.31 guarantees that any spanning list <em>reduces</em> to a basis by deleting vectors — so a sublist is a basis. That is the general point: spanning lists are never too small, only possibly too big.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In the proof of Theorem 2.33, the independent list <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub> is placed <em>before</em> the basis <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub> in the concatenated list. Why does the order matter?</p>
+<button onclick="check(this,false)">It does not — the reduction deletes the same vectors either way</button>
+<button onclick="check(this,true)" data-ok>The reduction deletes a vector only if it lies in the span of its <em>predecessors</em>, so putting the <var>u</var>'s first is what makes them undeletable</button>
+<button onclick="check(this,false)">Because the <var>w</var>'s are a basis and bases must come last</button>
+<div class="explain">Theorem 2.31's procedure is directional: it scans left to right and deletes anything already reachable from what came before. With the <var>u</var>'s first, a deleted <var>u</var> would lie in the span of earlier <var>u</var>'s, contradicting independence — so none can go. With the <var>w</var>'s first, the <var>w</var>'s would already span <var>V</var> by the time the <var>u</var>'s were reached, and every <var>u</var> would be deleted, producing a basis containing none of them.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Dimension: the number that is allowed to exist</h2>
+
+<div class="theorem">
+<strong>Theorem 2.35 (basis length does not depend on basis).</strong> Any two bases of a finite-dimensional vector space have the same length. <span class="cite">— Axler §2.C, Theorem 2.35, p. 44</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — three lines, and la-03 does all the work.</strong> Let <var>B</var>₁ and <var>B</var>₂ be bases of <var>V</var>. Then <var>B</var>₁ is independent and <var>B</var>₂ spans, so by la-03's Theorem 2.23, length(<var>B</var>₁) ≤ length(<var>B</var>₂). Now swap the roles: <var>B</var>₂ is independent and <var>B</var>₁ spans, so length(<var>B</var>₂) ≤ length(<var>B</var>₁). Two inequalities, opposite directions, therefore equality.
+<p>It is worth pausing on how little is happening and how much it buys. The proof has no construction in it at all; the entire content sits in la-03's squeeze, and the only new idea is that a basis is <em>both</em> things at once, so it can be fed into the squeeze from either side. This is the payoff for having proved Theorem 2.23 in the general form "every independent list ≤ every spanning list" rather than for some particular pair. <span class="cite">— Axler §2.C, p. 44</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 2.36 (dimension).</strong> The <em>dimension</em> of a finite-dimensional vector space is the length of any basis of the space, written dim <var>V</var>. <span class="cite">— Axler §2.C, Definition 2.36, p. 44</span>
+</div>
+
+<p>"Any basis" is doing real work in that sentence, and it is licensed by Theorem 2.35 and by nothing else. Definitions of this shape — pick a representative, take a number off it, declare the number to be a property of the object — are only legitimate once the choice has been proved not to matter. You will meet the same obligation again in la-07 (the matrix of a linear map depends on the basis; its rank does not) and in la-09.</p>
+
+<div class="worked">
+<strong>Worked example — two dimensions read off directly (fully worked).</strong> dim <strong>F</strong><var>ⁿ</var> = <var>n</var>, because the standard basis has length <var>n</var>. And dim 𝒫<sub><var>m</var></sub>(<strong>F</strong>) = <var>m</var> + 1, because 1, <var>z</var>, …, <var>z</var><sup><var>m</var></sup> is a basis and that list has length <var>m</var> + 1 — the off-by-one comes from the constant polynomial, which is easy to forget to count. <span class="cite">— Axler §2.C, Example 2.37, p. 44, with Example 2.28(g), p. 39</span>
+<p>A warning that costs marks if ignored: the field is part of the question. <strong>C</strong> as a vector space over <strong>C</strong> has dimension 1, with basis the single vector 1. The <em>same set</em> <strong>C</strong>, regarded as a vector space over <strong>R</strong>, has dimension 2, with basis 1, <var>i</var>. Nothing about the vectors changed; only the scalars you are permitted to use did. <span class="cite">— Axler §2.C, p. 45</span></p>
+</div>
+
+<h3>Canvas: many bases, one length</h3>
+<p>Three different bases of <strong>R</strong>², cycling. The grey grid is the coordinate system each basis induces; the two coloured arrows are the basis vectors. The vectors change, the grid tilts, the count does not.</p>
+<canvas id="bc" width="440" height="320"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('bc'),ctx=cv.getContext('2d'),cx=220,cy=145,s=42;
+const bases=[[[1,0],[0,1],'(1, 0), (0, 1)'],
+             [[1.4,0.5],[-0.6,1.2],'(7, 5), (−4, 9) — rescaled to fit'],
+             [[1,0.9],[1.3,-0.4],'(1, 2), (3, 5) — rescaled to fit']];
+let k=0,t=0;
+function pt(a,b,B){return [cx+(a*B[0][0]+b*B[1][0])*s, cy-(a*B[0][1]+b*B[1][1])*s];}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const B=bases[k];
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  for(let i=-4;i<=4;i++){
+    let p0=pt(i,-4,B),p1=pt(i,4,B);
+    ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+    p0=pt(-4,i,B);p1=pt(4,i,B);
+    ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+  }
+  const cols=['#8ab4f8','#4caf82'];
+  for(let j=0;j<2;j++){
+    const o=[cx,cy],q=pt(j===0?1:0,j===0?0:1,B);
+    ctx.strokeStyle=cols[j];ctx.fillStyle=cols[j];ctx.lineWidth=2.6;
+    ctx.beginPath();ctx.moveTo(o[0],o[1]);ctx.lineTo(q[0],q[1]);ctx.stroke();
+    ctx.beginPath();ctx.arc(q[0],q[1],4,0,7);ctx.fill();
+  }
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText(B[2],cx,292);
+  ctx.fillText('length 2, every time — that is dim R²',cx,310);
+  ctx.textAlign='left';
+  t++; if(t%150===0){k=(k+1)%bases.length;}
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="theorem">
+<strong>Theorem 2.38 (dimension of a subspace).</strong> If <var>V</var> is finite-dimensional and <var>U</var> is a subspace of <var>V</var>, then dim <var>U</var> ≤ dim <var>V</var>. <span class="cite">— Axler §2.C, Theorem 2.38, p. 45</span>
+</div>
+
+<p>Again three lines: a basis of <var>U</var> is an independent list in <var>V</var>, a basis of <var>V</var> is a spanning list in <var>V</var>, and la-03's Theorem 2.23 compares them. Nearly everything in this segment is that theorem wearing a different hat. <span class="cite">— Axler §2.C, p. 45</span></p>
+
+<div class="theorem">
+<strong>Theorems 2.39 and 2.42 (the right length is enough).</strong> Suppose <var>V</var> is finite-dimensional. Every linearly independent list in <var>V</var> of length dim <var>V</var> is a basis of <var>V</var>; and every spanning list in <var>V</var> of length dim <var>V</var> is a basis of <var>V</var>. <span class="cite">— Axler §2.C, Theorem 2.39, p. 45, and Theorem 2.42, p. 46</span>
+</div>
+
+<div class="worked fade">
+<strong>Why they are true — and why they are the same proof twice.</strong> For 2.39: an independent list extends to a basis (Theorem 2.33), every basis has length dim <var>V</var> (Theorem 2.35), and the list already has that length — so the extension adjoined nothing, and the list was already a basis. For 2.42: a spanning list reduces to a basis (Theorem 2.31), every basis has length dim <var>V</var>, and the list already has it — so the reduction deleted nothing.
+<p>Each argument runs a construction that is <em>known in advance to have no room to move</em>, and reads off the conclusion from the fact that it did nothing. That is a proof technique in its own right and it recurs; la-08 will use it to show that in finite dimensions injectivity and surjectivity are the same condition. <span class="cite">— Axler §2.C, pp. 45–46</span></p>
+</div>
+
+<div class="worked">
+<strong>Worked example — a basis certified by counting (fully worked).</strong> Is (5, 7), (4, 3) a basis of <strong>F</strong>²?
+<p>Independence is quick: neither vector is a scalar multiple of the other (la-03, Example 2.18(b)), since (5, 7) = λ(4, 3) would need λ = 5/4 from the first slot and λ = 7/3 from the second. The list therefore has length 2 = dim <strong>F</strong>², so Theorem 2.39 declares it a basis — and we never checked spanning at all. Halving the work is the point of the theorem. <span class="cite">— Axler §2.C, Example 2.40, p. 45</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why is Definition 2.36 (dimension) not circular or ill-posed?</p>
+<button onclick="check(this,false)">Because every vector space has a standard basis to measure against</button>
+<button onclick="check(this,true)" data-ok>Because Theorem 2.35 proves all bases of a given space have equal length, so "the length of any basis" names one number</button>
+<button onclick="check(this,false)">Because dimension is defined only for <strong>F</strong><var>ⁿ</var>, where the answer is visible</button>
+<div class="explain">A definition that reads a number off an arbitrarily chosen representative is only well posed once the choice is proved irrelevant — that is exactly Theorem 2.35's content, and exactly why it comes first. Most spaces have no "standard" basis at all (what is the standard basis of {(<var>x</var>, <var>y</var>, <var>z</var>) : <var>x</var> + <var>y</var> + <var>z</var> = 0}?), and dimension is defined far beyond <strong>F</strong><var>ⁿ</var>.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> A list of 4 vectors in a 4-dimensional space <var>V</var> is known to span <var>V</var>. What else can you conclude?</p>
+<button onclick="check(this,true)" data-ok>It is linearly independent, and hence a basis</button>
+<button onclick="check(this,false)">Nothing further — spanning and independence are logically unrelated</button>
+<button onclick="check(this,false)">It is linearly dependent, since 4 vectors in a 4-dimensional space always are</button>
+<div class="explain">Theorem 2.42: a spanning list of length dim <var>V</var> is a basis, so it is independent too. The third option inverts the truth — 4 independent vectors is exactly what a 4-dimensional space accommodates; it is 5 that would be too many.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Dimension of a sum, and the answer to the gate</h2>
+
+<div class="theorem">
+<strong>Theorem 2.43 (dimension of a sum).</strong> If <var>U</var>₁ and <var>U</var>₂ are subspaces of a finite-dimensional vector space, then dim(<var>U</var>₁ + <var>U</var>₂) = dim <var>U</var>₁ + dim <var>U</var>₂ − dim(<var>U</var>₁ ∩ <var>U</var>₂). <span class="cite">— Axler §2.C, Theorem 2.43, p. 47</span>
+</div>
+
+<p>The shape is familiar from counting finite sets: |<var>A</var> ∪ <var>B</var>| = |<var>A</var>| + |<var>B</var>| − |<var>A</var> ∩ <var>B</var>|, with sum standing in for union. The analogy is a good mnemonic and a bad guide — Segment 3's problem set asks what happens with three subspaces, where the set-counting formula has an obvious extension and the subspace version does not survive it. <span class="cite">— Axler §2.C, p. 46</span></p>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> The construction is the one this lesson has been rehearsing: start at the intersection and extend outwards, twice. Take a basis <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub> of <var>U</var>₁ ∩ <var>U</var>₂. Extend it inside <var>U</var>₁ to <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>, <var>v</var>₁, …, <var>v</var><sub><var>j</var></sub>, and separately inside <var>U</var>₂ to <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>, <var>w</var>₁, …, <var>w</var><sub><var>k</var></sub>. So dim <var>U</var>₁ = <var>m</var> + <var>j</var> and dim <var>U</var>₂ = <var>m</var> + <var>k</var>. Claim: the pooled list <var>u</var>'s, <var>v</var>'s, <var>w</var>'s is a basis of <var>U</var>₁ + <var>U</var>₂, giving dim(<var>U</var>₁ + <var>U</var>₂) = <var>m</var> + <var>j</var> + <var>k</var> = (<var>m</var> + <var>j</var>) + (<var>m</var> + <var>k</var>) − <var>m</var>, which is the formula.
+<p>Spanning is immediate. Independence is where the argument earns its keep. Given a vanishing combination, move the <var>w</var>-part to one side: <var>c</var>₁<var>w</var>₁ + ⋯ + <var>c</var><sub><var>k</var></sub><var>w</var><sub><var>k</var></sub> is then visibly a combination of <var>u</var>'s and <var>v</var>'s, hence lies in <var>U</var>₁ — and it lies in <var>U</var>₂ too, since the <var>w</var>'s do. So it lies in <var>U</var>₁ ∩ <var>U</var>₂, and is therefore expressible in the <var>u</var>'s alone. Comparing that with the <var>w</var>-expression uses independence of <var>u</var>'s-with-<var>w</var>'s to kill all the <var>c</var>'s. What remains is a relation among <var>u</var>'s and <var>v</var>'s only, and independence inside <var>U</var>₁ kills the rest. <span class="cite">— Axler §2.C, p. 47</span></p>
+<p>The single idea to extract: a vector that can be written two ways, once inside each subspace, is a vector in the intersection — and the intersection is exactly the part whose basis you started from.</p>
+</div>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="worked">
+<strong>Verdict: yes, they must meet in more than 0 — and the count proves it.</strong> Let <var>U</var>, <var>W</var> ⊆ <strong>R</strong>⁹ with dim <var>U</var> = dim <var>W</var> = 5. Then <var>U</var> + <var>W</var> is a subspace of <strong>R</strong>⁹, so dim(<var>U</var> + <var>W</var>) ≤ 9 by Theorem 2.38. But Theorem 2.43 says dim(<var>U</var> + <var>W</var>) = 5 + 5 − dim(<var>U</var> ∩ <var>W</var>). Combining, 10 − dim(<var>U</var> ∩ <var>W</var>) ≤ 9, so dim(<var>U</var> ∩ <var>W</var>) ≥ 1, and a subspace of dimension at least 1 contains a nonzero vector. Hence <var>U</var> ∩ <var>W</var> ≠ {0}.
+<p>If you predicted "no", the intuition to correct is probably a picture of two planes in three dimensions meeting in a line and imagining that more room always lets things separate. It does not: the ambient dimension is a hard budget, and two subspaces whose dimensions overspend it are forced to overlap by exactly the amount of the overspend. <span class="cite">— cf. Axler §2.C, Exercise 12, p. 49</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> <var>U</var> and <var>W</var> are subspaces of <strong>R</strong>⁸ with dim <var>U</var> = 3, dim <var>W</var> = 5, and <var>U</var> + <var>W</var> = <strong>R</strong>⁸. What follows?</p>
+<button onclick="check(this,true)" data-ok>The sum is direct: <strong>R</strong>⁸ = <var>U</var> ⊕ <var>W</var></button>
+<button onclick="check(this,false)">Nothing about directness — the dimensions merely happen to add to 8</button>
+<button onclick="check(this,false)">dim(<var>U</var> ∩ <var>W</var>) = 1, since 3 + 5 exceeds 8 by 1</button>
+<div class="explain">Theorem 2.43 gives 8 = 3 + 5 − dim(<var>U</var> ∩ <var>W</var>), so dim(<var>U</var> ∩ <var>W</var>) = 0 and <var>U</var> ∩ <var>W</var> = {0}; la-02's Theorem 1.45 then makes the sum direct. The third option miscounts: 3 + 5 = 8 exactly, with no excess, which is precisely why the intersection is trivial rather than one-dimensional.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>V</var> is finite-dimensional and <var>U</var> is a subspace of <var>V</var> with dim <var>U</var> = dim <var>V</var>. Prove that <var>U</var> = <var>V</var>. (One containment is free. For the other, take a basis of <var>U</var> and ask what its length entitles you to say about it <em>as a list in <var>V</var></em>.) <span class="cite">— cf. Axler §2.C, Exercise 1, p. 48</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> <var>U</var> ⊆ <var>V</var> holds because <var>U</var> is a subspace of <var>V</var>; only <var>V</var> ⊆ <var>U</var> needs work.</p>
+<p>Since <var>U</var> is a subspace of a finite-dimensional space it is finite-dimensional (la-03, Theorem 2.26), so it has a basis <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub> (Theorem 2.32), and <var>m</var> = dim <var>U</var> = dim <var>V</var>. Regard that list as a list in <var>V</var>. It is linearly independent there — independence is a statement about scalars and the vectors themselves, and does not change when the ambient space is enlarged — and its length is dim <var>V</var>. By Theorem 2.39 it is therefore a basis of <var>V</var>, and in particular spans <var>V</var>. Hence <var>V</var> = span(<var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>) ⊆ <var>U</var>, the last inclusion because <var>U</var> is a subspace containing each <var>u</var><sub><var>j</var></sub> (la-03, Theorem 2.7). Combining, <var>U</var> = <var>V</var>. ∎</p>
+<p class="cite">The load-bearing step is the one that sounds like nothing: a list independent in <var>U</var> is still independent in <var>V</var>. Spanning does <em>not</em> transfer that way — <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub> spans <var>U</var>, and whether it spans <var>V</var> is the whole question. Theorem 2.39 is what converts the half that does transfer into the half that does not, and it can only do so because the lengths match.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>A <strong>basis</strong> (Definition 2.27) is independent and spanning at once, which is equivalent to every vector having exactly one representation (Theorem 2.29). Bases are never scarce: every spanning list reduces to one (Theorem 2.31) and every independent list extends to one (Theorem 2.33), so every finite-dimensional space has one (Theorem 2.32) and every subspace has a complement (Theorem 2.34).</li>
+<li>Because a basis is both things at once, la-03's squeeze can be applied to a pair of bases from both sides, forcing <strong>all bases of a space to have equal length</strong> (Theorem 2.35). Only then is <strong>dimension</strong> (Definition 2.36) a legitimate definition. Its immediate consequences — dim <var>U</var> ≤ dim <var>V</var> (2.38), and "right length plus either property is enough" (2.39, 2.42) — are all the squeeze again.</li>
+<li>Counting extends to pairs of subspaces: dim(<var>U</var>₁ + <var>U</var>₂) = dim <var>U</var>₁ + dim <var>U</var>₂ − dim(<var>U</var>₁ ∩ <var>U</var>₂) (Theorem 2.43), proved by starting from a basis of the intersection and extending outwards into each. This turns dimension into a tool for proving that subspaces must intersect, and — with la-02's Theorem 1.45 — for certifying direct sums by arithmetic alone.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §2.B "Bases" (Definition 2.27 basis, Example 2.28, Theorem 2.29 criterion for basis, Theorem 2.31 spanning list contains a basis, Theorem 2.32 existence, Theorem 2.33 independent list extends, Theorem 2.34 complements), pp. 39–42, with Exercises 2.B, p. 43; §2.C "Dimension" (Theorem 2.35 basis length is basis-independent, Definition 2.36 dimension, Example 2.37, Theorem 2.38 dimension of a subspace, Theorem 2.39 and Theorem 2.42 the right length is enough, Examples 2.40–2.41, Theorem 2.43 dimension of a sum), pp. 44–47, with Exercises 2.C, pp. 48–49.
+<br>Builds on la-03, whose Theorem 2.23 — every independent list is at most as long as every spanning list — is Axler §2.A, p. 35. That single result is the sole engine behind Theorems 2.35, 2.38, 2.39 and 2.42 above, pp. 44–46.
+<br>Builds also on la-02: the two-subspace directness test is Axler §1.C, Theorem 1.45, p. 23.
+<br>Deferred to la-05: linear maps between vector spaces (Axler §3.A).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
