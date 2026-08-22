@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-07 — Matrices as linear maps</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Matrices as linear maps <span class="cite">(la-07)</span></h1>
+
+<div class="hook">
+Matrices are the shadows linear maps cast once you pick a basis.
+<p>la-05 established that a linear map is nothing more than its values on a basis. la-04 established that a vector is nothing more than its coefficients in a basis. Put the two together and a linear map between finite-dimensional spaces becomes a finite table of scalars — an <var>m</var>-by-<var>n</var> array, one column per basis vector of the domain. That table is the matrix, and every rule you were ever taught about matrices is a consequence of the map it encodes rather than a convention.</p>
+<p>Matrix multiplication is the case worth watching. The rule is famously peculiar — go along a row, down a column, multiply, sum — and nobody meeting it first as an algorithm has any reason to expect it. It is not a choice. Composition of linear maps was defined in la-05, matrices were defined here, and there is exactly one product on matrices that makes the two agree. The strange rule is what falls out.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> The matrix of a linear map depends on <var>T</var> and on <em>two chosen bases</em>, one for the domain and one for the codomain — and you may choose both freely. Ask how far that freedom goes. Do you predict that for every linear map <var>T</var> between finite-dimensional spaces there exist bases making <var>ℳ</var>(<var>T</var>) as simple as it could possibly be: entries equal to 1 in the first few diagonal slots and 0 everywhere else? Or do you predict some maps resist? Commit before Segment 3.
+</div>
+
+<p class="mission">Why this matters for the mission: Persistence software reduces boundary matrices — this is that bridge.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>The matrix of a linear map</h2>
+
+<div class="definition">
+<strong>Definition 3.30 (matrix).</strong> For positive integers <var>m</var>, <var>n</var>, an <var>m</var>-by-<var>n</var> <em>matrix</em> <var>A</var> is a rectangular array of elements of <strong>F</strong> with <var>m</var> rows and <var>n</var> columns. <var>A</var><sub><var>j</var>,<var>k</var></sub> is the entry in row <var>j</var>, column <var>k</var> — first index the row, second the column. <span class="cite">— Axler §3.C, Definition 3.30, p. 70</span>
+</div>
+
+<div class="definition">
+<strong>Definition 3.32 (matrix of a linear map).</strong> Suppose <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>), that <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> is a basis of <var>V</var>, and that <var>w</var>₁, …, <var>w</var><sub><var>m</var></sub> is a basis of <var>W</var>. The <em>matrix of <var>T</var> with respect to these bases</em> is the <var>m</var>-by-<var>n</var> matrix <var>ℳ</var>(<var>T</var>) whose entries <var>A</var><sub><var>j</var>,<var>k</var></sub> are defined by
+<br><var>Tv</var><sub><var>k</var></sub> = <var>A</var><sub>1,<var>k</var></sub><var>w</var>₁ + ⋯ + <var>A</var><sub><var>m</var>,<var>k</var></sub><var>w</var><sub><var>m</var></sub>. <span class="cite">— Axler §3.C, Definition 3.32, p. 70</span>
+</div>
+
+<div class="heuristic">
+<strong>The one sentence that makes matrices make sense.</strong> <em>Column <var>k</var> of <var>ℳ</var>(<var>T</var>) is <var>Tv</var><sub><var>k</var></sub>, written in the codomain's basis.</em> Everything else follows from that. The domain's basis indexes the columns, so there are <var>n</var> of them; the codomain's basis indexes the rows, so there are <var>m</var>. A map from an <var>n</var>-dimensional space to an <var>m</var>-dimensional space has an <var>m</var>-by-<var>n</var> matrix, which is the opposite order to the one most people guess. <span class="cite">— Axler §3.C, p. 71</span>
+</div>
+
+<p>Because <var>ℳ</var>(<var>T</var>) depends on two bases as well as on <var>T</var>, the honest notation is <var>ℳ</var>(<var>T</var>, (<var>v</var>₁, …, <var>v</var><sub><var>n</var></sub>), (<var>w</var>₁, …, <var>w</var><sub><var>m</var></sub>)). It is almost always abbreviated, on the understanding that the bases are fixed and known. For a map <strong>F</strong><var>ⁿ</var> → <strong>F</strong><var>ᵐ</var> the standard bases are assumed unless stated, and for 𝒫<sub><var>m</var></sub>(<strong>F</strong>) the basis 1, <var>x</var>, …, <var>x</var><sup><var>m</var></sup>. <span class="cite">— Axler §3.C, pp. 70–72</span></p>
+
+<div class="worked">
+<strong>Worked example — a matrix computed from the definition (fully worked).</strong> Let <var>T</var> ∈ ℒ(<strong>F</strong>², <strong>F</strong>³) be <var>T</var>(<var>x</var>, <var>y</var>) = (<var>x</var> + 3<var>y</var>, 2<var>x</var> + 5<var>y</var>, 7<var>x</var> + 9<var>y</var>). Find <var>ℳ</var>(<var>T</var>) with respect to the standard bases.
+<p>Apply the heuristic: hit each domain basis vector and record the result as a column. <var>T</var>(1, 0) = (1, 2, 7), so column 1 is (1, 2, 7). <var>T</var>(0, 1) = (3, 5, 9), so column 2 is (3, 5, 9). Hence <var>ℳ</var>(<var>T</var>) is the 3-by-2 matrix with rows (1, 3), (2, 5), (7, 9).</p>
+<p>Sanity check the shape before anything else: the domain is 2-dimensional and the codomain 3-dimensional, so the matrix must be 3-by-2, not 2-by-3. Getting this backwards is the single most common error in the topic and it is detectable in one glance. <span class="cite">— Axler §3.C, Example 3.33, p. 71</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Contrast — differentiation as a matrix (fully worked).</strong> Let <var>D</var> ∈ ℒ(𝒫₃(<strong>R</strong>), 𝒫₂(<strong>R</strong>)) be <var>Dp</var> = <var>p</var>′, with standard bases 1, <var>x</var>, <var>x</var>², <var>x</var>³ and 1, <var>x</var>, <var>x</var>².
+<p><var>D</var>(1) = 0 → column 1 is (0, 0, 0). <var>D</var>(<var>x</var>) = 1 → column 2 is (1, 0, 0). <var>D</var>(<var>x</var>²) = 2<var>x</var> → column 3 is (0, 2, 0). <var>D</var>(<var>x</var>³) = 3<var>x</var>² → column 4 is (0, 0, 3). So <var>ℳ</var>(<var>D</var>) is the 3-by-4 matrix with rows (0, 1, 0, 0), (0, 0, 2, 0), (0, 0, 0, 3).</p>
+<p>Two things to read off it. The first column is zero, which says <var>D</var>(1) = 0 — the constants are in the null space, exactly as la-06 computed. And the three nonzero columns are visibly independent, so the range is 3-dimensional and <var>D</var> is surjective onto 𝒫₂(<strong>R</strong>). The matrix has made both facts visible without any further argument. <span class="cite">— Axler §3.C, Example 3.34, p. 72</span></p>
+</div>
+
+<h3>Canvas: the columns are the images of the basis vectors</h3>
+<p>The blue and green arrows are the standard basis <var>e</var>₁, <var>e</var>₂ of <strong>R</strong>²; the amber arrows are <var>Te</var>₁ and <var>Te</var>₂ under a varying map <var>T</var>. The two amber arrows, read as coordinate pairs, are exactly the two columns of <var>ℳ</var>(<var>T</var>) — printed live beneath.</p>
+<canvas id="mx" width="440" height="330"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('mx'),ctx=cv.getContext('2d'),cx=200,cy=140,s=44;
+let t=0;
+function scr(p){return [cx+p[0]*s, cy-p[1]*s];}
+function arrow(p,col,w){
+  const o=scr([0,0]),q=scr(p);
+  ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=w;
+  ctx.beginPath();ctx.moveTo(o[0],o[1]);ctx.lineTo(q[0],q[1]);ctx.stroke();
+  ctx.beginPath();ctx.arc(q[0],q[1],4,0,7);ctx.fill();
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const a=Math.round((1.6+1.2*Math.sin(t))*10)/10,
+        b=Math.round((0.9*Math.sin(t*0.8))*10)/10,
+        c=Math.round((0.7*Math.sin(t*1.3))*10)/10,
+        d=Math.round((1.4+0.8*Math.cos(t*0.6))*10)/10;
+  ctx.strokeStyle='#243244';ctx.lineWidth=1;
+  for(let i=-3;i<=3;i++){
+    let p0=scr([i,-3]),p1=scr([i,3]);
+    ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+    p0=scr([-3,i]);p1=scr([3,i]);
+    ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+  }
+  arrow([1,0],'#8ab4f8',2);
+  arrow([0,1],'#4caf82',2);
+  arrow([a,c],'#d8a657',3);
+  arrow([b,d],'#d8a657',3);
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('Te₁ = ('+a.toFixed(1)+', '+c.toFixed(1)+')     Te₂ = ('+b.toFixed(1)+', '+d.toFixed(1)+')',220,288);
+  ctx.fillStyle='#e8e8e8';ctx.font='13px monospace';
+  ctx.fillText('M(T) = [ '+a.toFixed(1)+'  '+b.toFixed(1)+' ]',220,308);
+  ctx.fillText('       [ '+c.toFixed(1)+'  '+d.toFixed(1)+' ]',220,324);
+  ctx.textAlign='left';
+  t+=0.009;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> <var>T</var> maps a 4-dimensional space to a 7-dimensional space. What size is <var>ℳ</var>(<var>T</var>)?</p>
+<button onclick="check(this,false)">4-by-7</button>
+<button onclick="check(this,true)" data-ok>7-by-4</button>
+<button onclick="check(this,false)">It depends on the bases chosen</button>
+<div class="explain">Columns are indexed by the domain's basis, so there are 4 of them; rows by the codomain's basis, so there are 7. That is 7-by-4. The size does <em>not</em> depend on the bases — only the entries do, since every basis of a given space has the same length (la-04, Theorem 2.35).</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Column 3 of <var>ℳ</var>(<var>T</var>) is entirely zero. What does that say?</p>
+<button onclick="check(this,true)" data-ok><var>Tv</var>₃ = 0, so the third domain basis vector is in null <var>T</var></button>
+<button onclick="check(this,false)"><var>T</var> ignores the third coordinate of the codomain</button>
+<button onclick="check(this,false)">Nothing — a zero column is an artefact of the basis choice</button>
+<div class="explain">Column 3 records <var>Tv</var>₃ in the codomain basis, so an all-zero column says <var>Tv</var>₃ = 0. This is exactly how the zero first column of <var>ℳ</var>(<var>D</var>) above encoded "constants differentiate to zero". A zero <em>row</em> would be the statement about the codomain, and it says the corresponding <var>w</var><sub><var>j</var></sub> never appears in any image.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Matrix algebra is map algebra, transported</h2>
+
+<p>The pattern in this segment repeats three times, and it is the point of the segment. An operation is already defined on <em>maps</em>. We then define the corresponding operation on <em>matrices</em> — and each time the definition is chosen so that <var>ℳ</var> turns one into the other. The matrix operations are not primitive; they are whatever they have to be.</p>
+
+<div class="definition">
+<strong>Definitions 3.35 and 3.37, and Theorems 3.36 and 3.38 (addition and scaling).</strong> Matrices of the same size add entrywise, (<var>A</var> + <var>C</var>)<sub><var>j</var>,<var>k</var></sub> = <var>A</var><sub><var>j</var>,<var>k</var></sub> + <var>C</var><sub><var>j</var>,<var>k</var></sub>, and scale entrywise, (λ<var>A</var>)<sub><var>j</var>,<var>k</var></sub> = λ<var>A</var><sub><var>j</var>,<var>k</var></sub>. With one fixed pair of bases throughout, <var>ℳ</var>(<var>S</var> + <var>T</var>) = <var>ℳ</var>(<var>S</var>) + <var>ℳ</var>(<var>T</var>) and <var>ℳ</var>(λ<var>T</var>) = λ<var>ℳ</var>(<var>T</var>). <span class="cite">— Axler §3.C, Definition 3.35, p. 72, Theorem 3.36, Definition 3.37 and Theorem 3.38, p. 73</span>
+</div>
+
+<div class="theorem">
+<strong>Notation 3.39 and Theorem 3.40 (the space of matrices).</strong> <strong>F</strong><sup><var>m</var>,<var>n</var></sup> denotes the set of all <var>m</var>-by-<var>n</var> matrices over <strong>F</strong>. With those operations it is a vector space, and dim <strong>F</strong><sup><var>m</var>,<var>n</var></sup> = <var>mn</var>. <span class="cite">— Axler §3.C, Notation 3.39, p. 73, and Theorem 3.40, p. 74</span>
+</div>
+
+<p>The basis witnessing the dimension is the obvious one: the <var>mn</var> matrices with a single 1 and zeros elsewhere. Note that this makes <var>ℳ</var> a map between two vector spaces — from ℒ(<var>V</var>, <var>W</var>), which la-05 showed is a vector space, to <strong>F</strong><sup><var>m</var>,<var>n</var></sup> — and Theorems 3.36 and 3.38 say precisely that <var>ℳ</var> is <em>linear</em>. la-08 shows it is in addition invertible, which is what licenses treating maps and matrices as the same thing. <span class="cite">— Axler §3.C, p. 74</span></p>
+
+<h3>Where matrix multiplication comes from</h3>
+
+<p>Now take <var>T</var> ∈ ℒ(<var>U</var>, <var>V</var>) and <var>S</var> ∈ ℒ(<var>V</var>, <var>W</var>) with bases <var>u</var>₁, …, <var>u</var><sub><var>p</var></sub>, <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub>, <var>w</var>₁, …, <var>w</var><sub><var>m</var></sub>. We want <var>ℳ</var>(<var>ST</var>) = <var>ℳ</var>(<var>S</var>)<var>ℳ</var>(<var>T</var>). Nothing forces a definition of the right-hand side yet, so compute the left-hand side and read the answer off.</p>
+
+<div class="worked fade">
+<strong>The computation that defines the product.</strong> Write <var>A</var> = <var>ℳ</var>(<var>S</var>) and <var>C</var> = <var>ℳ</var>(<var>T</var>). Column <var>k</var> of <var>ℳ</var>(<var>ST</var>) records (<var>ST</var>)<var>u</var><sub><var>k</var></sub>, so expand it one map at a time.
+<p>(<var>ST</var>)<var>u</var><sub><var>k</var></sub> = <var>S</var>(<var>Tu</var><sub><var>k</var></sub>) = <var>S</var>(Σ<sub><var>r</var></sub> <var>C</var><sub><var>r</var>,<var>k</var></sub><var>v</var><sub><var>r</var></sub>) = Σ<sub><var>r</var></sub> <var>C</var><sub><var>r</var>,<var>k</var></sub> <var>Sv</var><sub><var>r</var></sub> = Σ<sub><var>r</var></sub> <var>C</var><sub><var>r</var>,<var>k</var></sub> Σ<sub><var>j</var></sub> <var>A</var><sub><var>j</var>,<var>r</var></sub><var>w</var><sub><var>j</var></sub> = Σ<sub><var>j</var></sub> (Σ<sub><var>r</var></sub> <var>A</var><sub><var>j</var>,<var>r</var></sub><var>C</var><sub><var>r</var>,<var>k</var></sub>) <var>w</var><sub><var>j</var></sub>.</p>
+<p>The step that does the work is the third: <var>S</var> is linear, so it passes through the sum and past the scalars. Everything after that is exchanging the order of two finite sums. Reading off the coefficient of <var>w</var><sub><var>j</var></sub>, the entry in row <var>j</var>, column <var>k</var> of <var>ℳ</var>(<var>ST</var>) must be Σ<sub><var>r</var></sub> <var>A</var><sub><var>j</var>,<var>r</var></sub><var>C</var><sub><var>r</var>,<var>k</var></sub>. <span class="cite">— Axler §3.C, p. 74</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 3.41 (matrix multiplication).</strong> If <var>A</var> is <var>m</var>-by-<var>n</var> and <var>C</var> is <var>n</var>-by-<var>p</var>, then <var>AC</var> is the <var>m</var>-by-<var>p</var> matrix with (<var>AC</var>)<sub><var>j</var>,<var>k</var></sub> = Σ<sub><var>r</var>=1</sub><sup><var>n</var></sup> <var>A</var><sub><var>j</var>,<var>r</var></sub><var>C</var><sub><var>r</var>,<var>k</var></sub>. The product is defined only when the number of columns of <var>A</var> equals the number of rows of <var>C</var>. <span class="cite">— Axler §3.C, Definition 3.41, p. 75</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.43 (the matrix of a product).</strong> If <var>T</var> ∈ ℒ(<var>U</var>, <var>V</var>) and <var>S</var> ∈ ℒ(<var>V</var>, <var>W</var>), then <var>ℳ</var>(<var>ST</var>) = <var>ℳ</var>(<var>S</var>)<var>ℳ</var>(<var>T</var>). <span class="cite">— Axler §3.C, Theorem 3.43, p. 75</span>
+</div>
+
+<p>Theorem 3.43 needs no proof: the computation above <em>is</em> its proof, run before the definition rather than after. And the shape condition in Definition 3.41 is not a technicality either — it is the shadow of la-05's rule that <var>ST</var> is defined only when <var>T</var> maps into the domain of <var>S</var>. Matrix multiplication is non-commutative for the same reason composition is. <span class="cite">— Axler §3.C, p. 75</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why is matrix multiplication defined by that particular sum, rather than entrywise like addition?</p>
+<button onclick="check(this,false)">Historical convention, retained for compatibility</button>
+<button onclick="check(this,true)" data-ok>It is the unique rule making <var>ℳ</var>(<var>ST</var>) = <var>ℳ</var>(<var>S</var>)<var>ℳ</var>(<var>T</var>) hold</button>
+<button onclick="check(this,false)">Because entrywise multiplication is not associative</button>
+<div class="explain">The definition was read off the computation of <var>ℳ</var>(<var>ST</var>), not chosen and then justified — Axler does the calculation first and defines the product to match. Entrywise multiplication is perfectly associative; it simply does not correspond to composing the maps, which makes it useless for the purpose at hand.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Three readings of a product, and the simplest possible matrix</h2>
+
+<p>The same product can be read at three grains, and fluency means switching between them without thinking. Write <var>A</var><sub><var>j</var>,·</sub> for row <var>j</var> of <var>A</var> and <var>A</var><sub>·,<var>k</var></sub> for column <var>k</var>. <span class="cite">— Axler §3.C, Notation 3.44, p. 76</span></p>
+
+<div class="theorem">
+<strong>Theorems 3.47, 3.49 and 3.52 (entry, column, combination).</strong> For <var>A</var> an <var>m</var>-by-<var>n</var> matrix and <var>C</var> an <var>n</var>-by-<var>p</var> matrix:
+<br><em>entry:</em> (<var>AC</var>)<sub><var>j</var>,<var>k</var></sub> = <var>A</var><sub><var>j</var>,·</sub><var>C</var><sub>·,<var>k</var></sub> — row times column;
+<br><em>column:</em> (<var>AC</var>)<sub>·,<var>k</var></sub> = <var>A</var><var>C</var><sub>·,<var>k</var></sub> — column <var>k</var> of the product is <var>A</var> applied to column <var>k</var>;
+<br><em>combination:</em> for a single column <var>c</var> with entries <var>c</var>₁, …, <var>c</var><sub><var>n</var></sub>, the product <var>Ac</var> is <var>c</var>₁<var>A</var><sub>·,1</sub> + ⋯ + <var>c</var><sub><var>n</var></sub><var>A</var><sub>·,<var>n</var></sub>. <span class="cite">— Axler §3.C, Theorem 3.47, p. 76, Theorem 3.49 and Theorem 3.52, p. 77</span>
+</div>
+
+<div class="heuristic">
+<strong>Which reading to reach for.</strong> The <em>entry</em> reading is for computing one number by hand. The <em>column</em> reading is for seeing that multiplication acts on columns independently, which is why an algorithm can process them one at a time. The <em>combination</em> reading is the conceptual one: <var>Ac</var> is a linear combination of the columns of <var>A</var>, so the set of all products <var>Ac</var> is exactly the span of <var>A</var>'s columns — which la-06 called the range. That last identification is what makes column operations a legitimate way to compute a range, and it is the foundation of the reduction algorithms in the mission strip. <span class="cite">— Axler §3.C, Example 3.51, p. 77</span>
+</div>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="worked">
+<strong>Verdict: yes — and the construction is la-06's proof, reordered.</strong> Let <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) with <var>V</var>, <var>W</var> finite-dimensional and write <var>r</var> = dim range <var>T</var>. There are bases of <var>V</var> and <var>W</var> making every entry of <var>ℳ</var>(<var>T</var>) zero except for a 1 in row <var>j</var>, column <var>j</var> for <var>j</var> = 1, …, <var>r</var>.
+<p><em>Building the domain basis.</em> By the Fundamental Theorem's proof, take a basis <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub> of null <var>T</var>, extend to a basis of <var>V</var>, and call the added vectors <var>v</var>₁, …, <var>v</var><sub><var>r</var></sub> — that proof showed <var>Tv</var>₁, …, <var>Tv</var><sub><var>r</var></sub> is a basis of range <var>T</var>, so there are exactly <var>r</var> of them. Now list the domain basis in the order <var>v</var>₁, …, <var>v</var><sub><var>r</var></sub>, <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>, images first.</p>
+<p><em>Building the codomain basis.</em> <var>Tv</var>₁, …, <var>Tv</var><sub><var>r</var></sub> is independent in <var>W</var>, so extend it to a basis <var>w</var>₁, …, <var>w</var><sub><var>q</var></sub> of <var>W</var> with <var>w</var><sub><var>j</var></sub> = <var>Tv</var><sub><var>j</var></sub> for <var>j</var> ≤ <var>r</var>. Extending an independent list to a basis is la-04's. <span class="cite">— Axler §2.B, Theorem 2.33, p. 41</span> Reordering the domain list changes nothing, since neither independence nor spanning depends on the order, and where a reordering is replaced by a genuinely different list the quickest check is the length one. <span class="cite">— Axler §2.C, Theorem 2.39, p. 45</span></p>
+<p><em>Reading the matrix.</em> For <var>k</var> ≤ <var>r</var>, <var>Tv</var><sub><var>k</var></sub> = <var>w</var><sub><var>k</var></sub>, so column <var>k</var> is a 1 in row <var>k</var> and zeros elsewhere. For the remaining columns, <var>Tu</var><sub><var>j</var></sub> = 0, so they are entirely zero. That is exactly the claimed form. <span class="cite">— cf. Axler §3.C, Exercise 3, p. 78</span></p>
+<p>What this says is worth stating baldly: <strong>up to a change of basis at each end, a linear map is determined by one number, its rank.</strong> Everything else in a matrix is an artefact of the coordinates you happened to choose. It also explains why "reduce the matrix" is a sensible instruction in the first place — reduction is the search for coordinates in which the map is transparent, and in persistent homology it is exactly what turns a boundary matrix into a barcode.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Two matrices <var>A</var> and <var>C</var> are both 3-by-3, and <var>AC</var> is the zero matrix. Must <var>CA</var> be the zero matrix?</p>
+<button onclick="check(this,false)">Yes — the product of the same two matrices cannot depend on the order</button>
+<button onclick="check(this,true)" data-ok>No — matrix multiplication is not commutative, and this is one way that shows</button>
+<button onclick="check(this,false)">Yes, provided neither matrix is zero</button>
+<div class="explain">Both products are defined here, and they still need not agree: <var>AC</var> and <var>CA</var> correspond to <var>ST</var> and <var>TS</var>, which la-05 showed can differ even when both make sense. A concrete pair is the subject of a problem in this unit's set. The third option gets it backwards — non-commutativity is easiest to exhibit with <em>nonzero</em> matrices.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> The columns of a 5-by-3 matrix <var>A</var> span a 2-dimensional subspace of <strong>F</strong>⁵. What is dim range <var>T</var> for the map <var>T</var> : <strong>F</strong>³ → <strong>F</strong>⁵ with <var>ℳ</var>(<var>T</var>) = <var>A</var> in the standard bases?</p>
+<button onclick="check(this,true)" data-ok>2</button>
+<button onclick="check(this,false)">3, since the domain is 3-dimensional</button>
+<button onclick="check(this,false)">5, since the columns live in <strong>F</strong>⁵</button>
+<div class="explain">By the combination reading, every <var>Ac</var> is a linear combination of <var>A</var>'s columns and every such combination is some <var>Ac</var>, so range <var>T</var> is precisely the span of the columns — dimension 2. The second option would need <var>T</var> injective, which Theorem 3.22 rules out here since dim null <var>T</var> = 3 − 2 = 1. The third confuses the codomain with the range.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>V</var> and <var>W</var> are finite-dimensional and <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>). Show that with respect to <em>every</em> choice of bases of <var>V</var> and <var>W</var>, the matrix of <var>T</var> has at least dim range <var>T</var> nonzero entries. (Argue by contradiction, and count <em>columns</em> rather than entries — the bridge between the two counts is that a column with no nonzero entry is a zero column.) <span class="cite">— cf. Axler §3.C, Exercise 1, p. 78</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> Fix bases <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> of <var>V</var> and <var>w</var>₁, …, <var>w</var><sub><var>m</var></sub> of <var>W</var>, write <var>r</var> = dim range <var>T</var>, and suppose for contradiction that <var>ℳ</var>(<var>T</var>) has fewer than <var>r</var> nonzero entries.</p>
+<p>Every nonzero column contains at least one nonzero entry, and distinct columns share no entry, so the number of nonzero columns is at most the number of nonzero entries, hence fewer than <var>r</var>. If column <var>k</var> is zero then <var>Tv</var><sub><var>k</var></sub> = 0, because column <var>k</var> lists the coefficients of <var>Tv</var><sub><var>k</var></sub> in the basis <var>w</var>₁, …, <var>w</var><sub><var>m</var></sub> and a vector all of whose coefficients vanish is 0.</p>
+<p>By la-06, range <var>T</var> = span(<var>Tv</var>₁, …, <var>Tv</var><sub><var>n</var></sub>). Dropping the zero vectors from a list does not change its span, so range <var>T</var> is spanned by the <var>Tv</var><sub><var>k</var></sub> whose columns are nonzero — fewer than <var>r</var> vectors. But a space spanned by fewer than <var>r</var> vectors has dimension less than <var>r</var> (la-03, Theorem 2.23, applied to a basis of range <var>T</var> as an independent list against that spanning list), contradicting dim range <var>T</var> = <var>r</var>. ∎</p>
+<p class="cite">The bound is sharp, and the prediction gate's construction is why: the canonical form has exactly <var>r</var> nonzero entries, all of them 1. So "at least dim range <var>T</var>" cannot be improved, and the bases achieving equality are precisely the ones that make the map transparent.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>Once bases are chosen at both ends, a linear map becomes an array: <strong>column <var>k</var> of <var>ℳ</var>(<var>T</var>) is <var>Tv</var><sub><var>k</var></sub> written in the codomain's basis</strong> (Definition 3.32). A map from an <var>n</var>-dimensional to an <var>m</var>-dimensional space therefore has an <var>m</var>-by-<var>n</var> matrix.</li>
+<li>Every matrix operation is defined so that <var>ℳ</var> converts the corresponding operation on maps. Addition and scaling are entrywise, making <var>ℳ</var> linear (Theorems 3.36, 3.38) and <strong>F</strong><sup><var>m</var>,<var>n</var></sup> a vector space of dimension <var>mn</var> (Theorem 3.40). Multiplication is <em>read off</em> the expansion of <var>ℳ</var>(<var>ST</var>) rather than chosen — which is why the rule looks strange and why Theorem 3.43 needs no separate proof.</li>
+<li>A product can be read entry-wise, column-wise, or as a <strong>linear combination of the columns</strong> (Theorems 3.47, 3.49, 3.52) — the last identifying the range with the column span. Because both bases are free, every map can be put in the canonical form with 1s in the first dim range <var>T</var> diagonal slots and 0 elsewhere: a linear map is, up to change of basis, its rank and nothing more.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §3.C "Matrices": "Representing a Linear Map by a Matrix" (Definition 3.30 matrix, Example 3.31, Definition 3.32 matrix of a linear map, Examples 3.33 and 3.34), pp. 70–72; "Addition and Scalar Multiplication of Matrices" (Definition 3.35, Theorem 3.36, Definition 3.37, Theorem 3.38, Notation 3.39, Theorem 3.40 dimension mn), pp. 72–74; "Matrix Multiplication" (Definition 3.41, Example 3.42, Theorem 3.43, Notation 3.44, Example 3.45, Theorem 3.47, Theorem 3.49, Examples 3.50 and 3.51, Theorem 3.52), pp. 75–77; Exercises 3.C 1 and 3, p. 78.
+<br>Builds on la-05, whose Theorem 3.5 — a linear map is its values on a basis — is Axler §3.A, p. 54, and is what makes an array able to record a map at all.
+<br>Builds also on la-06: the Fundamental Theorem is Axler §3.B, Theorem 3.22, p. 63, and its proof supplies the bases used above.
+<br>Deferred to la-08: invertibility, isomorphism, and the sense in which maps and matrices are interchangeable (Axler §3.D).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

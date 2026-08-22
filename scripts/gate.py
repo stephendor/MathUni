@@ -25,6 +25,7 @@ Exit 0 if clean, 1 if any check fails, 2 on usage error or when a check could
 not be performed. Never exit 0 for a check that did not run: absence of
 analysis and absence of defects must not look alike in the output.
 """
+import json
 import os
 import re
 import shutil
@@ -373,6 +374,74 @@ def script_errors(bodies, modules=None):
     return bad, len(bodies)
 
 
+# Inline script also lives in event-handler ATTRIBUTES, and nothing was
+# parsing those. `onclick="check(this,false"` — one missing bracket — is
+# well-formed HTML: the attribute value ends at the second quote and the tag
+# closes normally, so the tag checker sees nothing wrong and the <script>
+# checker never looks at attributes. The handler then throws at click time,
+# in a self-check button, where the failure is invisible to everything except
+# a student who clicks it. One shipped in la-07 before this row existed.
+HANDLER = re.compile(r"\son(?:click|change|input|submit|load|mouse\w+|key\w+)"
+                     r"\s*=\s*\"([^\"]*)\"", re.I)
+
+
+def handler_bodies(html):
+    """Every event-handler attribute value, in document order."""
+    return [m.group(1) for m in HANDLER.finditer(html)]
+
+
+# One node process per FILE, not per handler. A lesson carries fifteen or so
+# handlers and the corpus carries a hundred and forty-five lessons, so a
+# process each turns a two-second gate into a several-minute one and the check
+# stops being run. The bodies go over as JSON and each is compiled separately
+# inside the one process, so a syntax error in one handler still reports its
+# own index and message rather than masking its neighbours.
+_VM_EACH_CHECK = (
+    "const vm=require('vm'),fs=require('fs');"
+    "const bodies=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));"
+    "const out=[];"
+    "bodies.forEach(function(b,i){"
+    "  try{new vm.Script(b);}catch(e){out.push([i,e.message]);}"
+    "});"
+    "process.stdout.write(JSON.stringify(out));"
+)
+
+
+def handler_errors(bodies):
+    """Parse each handler. Returns (errors, checked). Raises if node is absent.
+
+    A handler body is Script grammar, like a classic inline <script>, so the
+    same vm.Script compile applies. Missing node is raised rather than
+    swallowed, for the same reason as script_errors: a checker that reports
+    PASS for a check it could not run manufactures a green result.
+    """
+    if not shutil.which("node"):
+        raise RuntimeError(
+            "node not found on PATH — cannot check event handlers")
+    live = [(n, b) for n, b in enumerate(bodies, 1) if b.strip()]
+    if not live:
+        return [], len(bodies)
+
+    fd, tmp = tempfile.mkstemp(suffix=".json")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump([b for _n, b in live], f)
+    try:
+        proc = subprocess.run(["node", "-e", _VM_EACH_CHECK, tmp],
+                              capture_output=True, text=True)
+        if proc.returncode != 0:
+            raise RuntimeError("node failed while checking handlers: %s"
+                               % (proc.stderr.strip() or proc.returncode))
+        found = json.loads(proc.stdout or "[]")
+    finally:
+        os.unlink(tmp)
+
+    bad = []
+    for i, msg in found:
+        n, body = live[i]
+        bad.append("handler %d (%s): %s" % (n, body[:40], msg))
+    return bad, len(bodies)
+
+
 def _row(ok, name, detail_items):
     detail = "" if ok else ": " + "; ".join(detail_items[:6])
     print("%s %s%s" % ("PASS" if ok else "FAIL", name, detail))
@@ -404,6 +473,11 @@ def check(path):
              % (len(blocks) - len(bodies), ", ".join(skipped)),
              "" if not bad else ": " + "; ".join(bad[:6])))
     fails += bad
+
+    hbodies = handler_bodies(html)
+    hbad, hchecked = handler_errors(hbodies)
+    _row(not hbad, "event handlers parse (%d checked)" % hchecked, hbad)
+    fails += hbad
 
     return fails
 
@@ -582,6 +656,30 @@ def selftest():
         check_one("fires on a syntax error in an inline script", bool(bad) and n == 1)
     else:
         check_one("node is on PATH so gate 6 can run at all", False)
+
+    # -- event-handler attributes -----------------------------------------
+    # The defect: `onclick="check(this,false"` is well-formed HTML. The
+    # attribute value ends at the second quote, the tag closes, tag_errors
+    # sees nothing, and the <script> checker never reads attributes. The
+    # handler throws only when a student clicks the button.
+    shipped = '<button onclick="check(this,false">no</button>'
+    check_one("a truncated handler is extracted, not skipped",
+              handler_bodies(shipped) == ["check(this,false"])
+    check_one("both quoted handlers on one button are found",
+              handler_bodies('<button onclick="f()" onmouseover="g()">x</button>')
+              == ["f()", "g()"])
+    check_one("a handler-looking word that is not an attribute is not matched",
+              handler_bodies("<p>the onclick=\"x\" idea</p>") == ["x"]
+              and handler_bodies("<p>onclickish stuff</p>") == [])
+    check_one("a non-handler attribute is left alone",
+              handler_bodies('<a href="index.html">x</a>') == [])
+    if shutil.which("node"):
+        check_one("the shipped truncated handler FAILS",
+                  bool(handler_errors(handler_bodies(shipped))[0]))
+        check_one("...and the repaired one passes",
+                  handler_errors(["check(this,false)"])[0] == [])
+        check_one("an empty handler is not sent to node",
+                  handler_errors(["", "  "]) == ([], 2))
 
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0

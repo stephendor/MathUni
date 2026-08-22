@@ -297,3 +297,43 @@ def test_a_script_inside_a_comment_is_not_executed_and_not_checked():
     assert len(script_blocks("<script><!-- var x=1; //--></script>")) == 1
     assert len(script_blocks("<!-- <script>a=;</script> -->"
                              "<script>var b=1;</script>")) == 1
+
+
+def test_a_truncated_event_handler_is_caught():
+    """`onclick="check(this,false"` is well-formed HTML — the attribute value
+    ends at the second quote and the tag closes normally — so tag_errors is
+    silent and the <script> checker never reads attributes. The handler throws
+    only when a student clicks the button. One shipped in la-07."""
+    from scripts.gate import handler_bodies, handler_errors, tag_errors
+    shipped = '<button onclick="check(this,false">no</button>'
+    assert tag_errors(shipped) == []
+    assert handler_bodies(shipped) == ["check(this,false"]
+    bad, checked = handler_errors(handler_bodies(shipped))
+    assert checked == 1 and bad
+
+
+def test_the_repaired_handler_passes():
+    from scripts.gate import handler_errors
+    assert handler_errors(["check(this,false)"])[0] == []
+
+
+def test_every_handler_is_reported_separately_not_only_the_first():
+    """Batching all of a file's handlers into one node process must not let an
+    early syntax error mask a later one, or hide which handler failed."""
+    from scripts.gate import handler_errors
+    bad, checked = handler_errors(["f(", "g()", "h(]"])
+    assert checked == 3
+    assert len(bad) == 2
+    assert bad[0].startswith("handler 1 ") and bad[1].startswith("handler 3 ")
+
+
+def test_an_empty_handler_is_not_sent_to_node():
+    from scripts.gate import handler_errors
+    assert handler_errors(["", "   "]) == ([], 2)
+
+
+def test_only_event_handler_attributes_are_treated_as_script():
+    from scripts.gate import handler_bodies
+    assert handler_bodies('<a href="i.html" title="onclick">x</a>') == []
+    assert handler_bodies('<b onclick="f()" onmouseover="g()">x</b>') == [
+        "f()", "g()"]

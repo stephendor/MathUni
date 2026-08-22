@@ -67,7 +67,15 @@ for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 KINDS = ("Theorem", "Lemma", "Proposition", "Definition", "Corollary",
-         "Example", "Exercise", "Fact", "Axiom", "Remark", "Principle")
+         "Example", "Exercise", "Fact", "Axiom", "Remark", "Principle",
+         # Axler heads several numbered items "Notation": Notation 3.3 names
+         # L(V, W), Notation 3.39 names F^{m,n}, Notation 3.44 names the rows
+         # and columns of a matrix. Each is a numbered result on a specific
+         # page and the la lessons cite them as such. Without the kind word
+         # here the citation produced no id at all, so the folio was never
+         # checked and the denominator never moved -- the absence looked
+         # exactly like a file with nothing to check.
+         "Notation")
 # Multi-level numbers must be captured WHOLE. Abbott numbers three deep —
 # "Lemma 1.3.7", "Theorem 2.4.2" — and a pattern stopping at two components
 # truncates that to "Lemma 1.3", which then matches a page carrying Lemma 1.3.9
@@ -100,7 +108,7 @@ PLURALS = {"Theorem": "Theorems", "Lemma": "Lemmas", "Proposition": "Proposition
            # pw-02 cites Principle 4.1 and Principle 4.7. Omitting the kind
            # meant both citations were skipped without touching the
            # denominator. (CodeRabbit review of PR #21.)
-           "Principle": "Principles"}
+           "Principle": "Principles", "Notation": "Notations"}
 SINGULAR = {p.lower(): s for s, p in PLURALS.items()}
 # A member of a plural list may carry a PART: `Exercises 8(a) and 8(b)`. The
 # part interrupted the separator pattern, so the whole list matched nothing and
@@ -1040,6 +1048,19 @@ def selftest():
               and [sorted(pg) for _c, pg in clauses(
                   "Cummings 2nd ed. §4.3, Theorem 4.8, pp. 125-126")]
               == [[125, 126]])
+    # Axler heads L(V, W), F^{m,n} and the row/column notation as numbered
+    # "Notation" items. Without the kind word the citation made no id, so the
+    # page went unchecked and the denominator never moved.
+    check_one("a Notation citation produces an id like any other result",
+              results_in("Axler 3.C, Notation 3.39, p. 73") == ["Notation 3.39"])
+    check_one("...and it is located on the page the book prints it on",
+              found_on_page("Notation 3.39",
+                            normalise_for_search("### 3.39 Notation F^{m,n}"),
+                            "### 3.39 Notation F^{m,n}") == "exact")
+    check_one("...and the plural form expands too",
+              results_in("Notations 3.39 and 3.44, p. 76")
+              == ["Notation 3.39", "Notation 3.44"])
+
     check_one("a plural list survives a parenthesised part",
               results_in("Exercises 8(a) and 8(b), pp. 83-84") == ["Exercise 8"])
     check_one("...and parts on distinct numbers still give distinct ids",
