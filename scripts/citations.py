@@ -545,9 +545,19 @@ def book_label_for(num, raw):
     # the right one. The marker is admitted, but only in bracketed item form
     # and still followed by prose, so a displayed formula opening "5 (x + y)"
     # is not promoted to a header.
+    #
+    # The converter sometimes reads an exercise block as a markdown ordered
+    # list and emits its own marker in front of the book's number, so Axler's
+    # exercise 1 on printed 88 arrives as "1. 1 Suppose T in L(U, V)". The
+    # number then sits where the guard demanded a word, the exercise had no
+    # label, and a citation naming its correct page was reported wrong. A
+    # leading marker is admitted only when it REPEATS the number being looked
+    # for: accepting any marker would let "3. 1 Suppose ..." answer to a
+    # citation of exercise 3, which is a different exercise on the same page.
     m = re.search(
-        r"^\s*%s[.)]?\s+(?:\((?:[a-z]|[ivx]{1,4}|\d{1,2})\)\s*)?"
-        r"([A-Za-z$\\][^\n]*)$" % re.escape(num), raw, re.M)
+        r"^\s*(?:%s[.)]\s+)?%s[.)]?\s+"
+        r"(?:\((?:[a-z]|[ivx]{1,4}|\d{1,2})\)\s*)?"
+        r"([A-Za-z$\\][^\n]*)$" % (re.escape(num), re.escape(num)), raw, re.M)
     return re.sub(r"[*#$]", "", m.group(1)).strip()[:60] if m else None
 
 
@@ -926,6 +936,15 @@ def selftest():
     # Axler prints a lettered exercise as "5 (a) Show that ...". The item
     # marker sits where the guard demanded a word, so the exercise had no
     # label and a correct citation to it was reported as a wrong page.
+    # A markdown ordered-list marker duplicating the book's own number.
+    check_one("a doubled list marker does not hide the exercise",
+              book_label_for("1", "1. 1 Suppose T in L(U, V) and S in L(V, W)")
+              == "Suppose T in L(U, V) and S in L(V, W)")
+    check_one("...and a marker that does NOT repeat the number is refused",
+              book_label_for("1", "3. 1 Suppose T in L(U, V)") is None)
+    check_one("...and the doubled marker is still required to precede prose",
+              book_label_for("1", "1. 1 2 3 4") is None)
+
     check_one("a lettered exercise item is a header despite the (a) marker",
               book_label_for("5", "5 (a) Show that if we think of C as a vector")
               == "Show that if we think of C as a vector")

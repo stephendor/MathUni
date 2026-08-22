@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-08 — Invertibility and isomorphism</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Invertibility and isomorphism <span class="cite">(la-08)</span></h1>
+
+<div class="hook">
+When are two vector spaces 'the same'? The first taste of isomorphism.
+<p>𝒫₃(<strong>R</strong>) is a space of polynomials. <strong>R</strong>⁴ is a space of quadruples of numbers. <strong>R</strong><sup>2,2</sup> is a space of 2-by-2 matrices. Nothing about their elements resembles anything about the others' — and every theorem true of one is true of all three, because there is a dictionary between them that respects addition and scaling in both directions.</p>
+<p>That dictionary is an <strong>isomorphism</strong>, and this unit shows that for finite-dimensional spaces one number decides whether one exists: the dimension. Two spaces over the same field are interchangeable exactly when they have the same dimension, full stop. The unit ends with something stranger. For an operator on a finite-dimensional space, injectivity alone implies surjectivity and surjectivity alone implies injectivity — so half the usual work of checking invertibility simply vanishes. On infinite-dimensional spaces it does not, and the two operators that fail are ones you already know.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Let <var>T</var> be a linear map from a vector space <var>V</var> to <em>itself</em>, and suppose <var>T</var> is injective but <strong>not</strong> surjective. Do you predict such a <var>T</var> exists? Give a separate answer for two cases: <var>V</var> finite-dimensional, and <var>V</var> infinite-dimensional. If your two answers differ, say what breaks. Commit before Segment 3.
+</div>
+
+<p class="mission">Why this matters for the mission: Functoriality sends isomorphisms to isomorphisms — the habit starts here.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>Invertible maps</h2>
+
+<div class="definition">
+<strong>Definition 3.53 (invertible, inverse).</strong> A linear map <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) is <em>invertible</em> if there is a linear map <var>S</var> ∈ ℒ(<var>W</var>, <var>V</var>) with <var>ST</var> = <var>I</var> on <var>V</var> and <var>TS</var> = <var>I</var> on <var>W</var>. Such an <var>S</var> is an <em>inverse</em> of <var>T</var>. <span class="cite">— Axler §3.D, Definition 3.53, p. 80</span>
+</div>
+
+<p>Read the two equations carefully: the two <var>I</var>'s are different maps, one the identity on <var>V</var> and one the identity on <var>W</var>. Both are required. An <var>S</var> satisfying only <var>ST</var> = <var>I</var> is a <em>left</em> inverse and need not be an inverse at all — Segment 3 shows when the distinction collapses and when it does not.</p>
+
+<div class="theorem">
+<strong>Theorem 3.54 and Notation 3.55 (the inverse is unique).</strong> An invertible linear map has exactly one inverse, written <var>T</var><sup>−1</sup>. <span class="cite">— Axler §3.D, Theorem 3.54 and Notation 3.55, p. 80</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — one line, and worth memorising as a pattern.</strong> If <var>S</var>₁ and <var>S</var>₂ are both inverses of <var>T</var>, then
+<br><var>S</var>₁ = <var>S</var>₁<var>I</var> = <var>S</var>₁(<var>TS</var>₂) = (<var>S</var>₁<var>T</var>)<var>S</var>₂ = <var>IS</var>₂ = <var>S</var>₂.
+<p>The move is to insert the identity in the form of the <em>other</em> inverse's equation, then reassociate. Associativity of composition — la-05's Theorem 3.9 — is what licenses the middle step, and each of the two inverses is used exactly once: <var>S</var>₂ from the right, <var>S</var>₁ from the left. This argument is not about linear maps at all; it works in any setting where composition is associative and has an identity. <span class="cite">— Axler §3.D, p. 80</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.56 (invertible = injective and surjective).</strong> A linear map is invertible if and only if it is injective and surjective. <span class="cite">— Axler §3.D, Theorem 3.56, p. 80</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> (⇒) If <var>Tu</var> = <var>Tv</var> then applying <var>T</var><sup>−1</sup> gives <var>u</var> = <var>v</var>, so <var>T</var> is injective; and any <var>w</var> ∈ <var>W</var> equals <var>T</var>(<var>T</var><sup>−1</sup><var>w</var>), so <var>T</var> is surjective.
+<p>(⇐) Given injectivity and surjectivity, define <var>Sw</var> to be <em>the</em> vector with <var>T</var>(<var>Sw</var>) = <var>w</var> — surjectivity says one exists, injectivity says only one does, and it takes both to make <var>S</var> a function. Then <var>TS</var> = <var>I</var> immediately, and <var>ST</var> = <var>I</var> because <var>T</var>((<var>ST</var>)<var>v</var>) = <var>Tv</var> and <var>T</var> is injective.</p>
+<p>There is a third obligation that is easy to overlook and is a third of the proof: <var>S</var> must be shown <em>linear</em>, because Definition 3.53 demands an inverse in ℒ(<var>W</var>, <var>V</var>), not merely a function. Axler gets it from <var>T</var>(<var>Sw</var>₁ + <var>Sw</var>₂) = <var>w</var>₁ + <var>w</var>₂ together with uniqueness: <var>Sw</var>₁ + <var>Sw</var>₂ is <em>the</em> preimage of <var>w</var>₁ + <var>w</var>₂, which is what <var>S</var>(<var>w</var>₁ + <var>w</var>₂) is defined to be. <span class="cite">— Axler §3.D, p. 81</span></p>
+</div>
+
+<div class="worked">
+<strong>Worked example — two maps that fail, in different ways (fully worked).</strong>
+<p><em>Multiplication by <var>x</var>²</em> on 𝒫(<strong>R</strong>), (<var>Tp</var>)(<var>x</var>) = <var>x</var>²<var>p</var>(<var>x</var>), is not invertible because it is not surjective: the constant polynomial 1 is not <var>x</var>² times anything, since <var>x</var>²<var>p</var> has degree at least 2 whenever <var>p</var> ≠ 0. It <em>is</em> injective — <var>x</var>²<var>p</var>(<var>x</var>) is identically zero only when <var>p</var> is.</p>
+<p><em>The backward shift</em> on <strong>F</strong><sup>∞</sup>, <var>T</var>(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃, …) = (<var>x</var>₂, <var>x</var>₃, …), is not invertible because it is not injective: (1, 0, 0, …) is in its null space, as la-06 computed. It <em>is</em> surjective — any sequence is the shift of the sequence with a 0 prepended.</p>
+<p>Between them the two examples show that the conditions in Theorem 3.56 are independent: each fails one and satisfies the other. Keep both in mind; they are the counterexamples that make Segment 3's theorem surprising. <span class="cite">— Axler §3.D, Example 3.57, p. 81</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) and <var>S</var> ∈ ℒ(<var>W</var>, <var>V</var>) satisfy <var>ST</var> = <var>I</var> on <var>V</var>. Does that make <var>T</var> invertible?</p>
+<button onclick="check(this,false)">Yes — that is what Definition 3.53 asks for</button>
+<button onclick="check(this,true)" data-ok>Not on its own; <var>TS</var> = <var>I</var> on <var>W</var> is a separate requirement</button>
+<button onclick="check(this,false)">Yes, because inverses are unique by Theorem 3.54</button>
+<div class="explain">Definition 3.53 requires both equations, on two different spaces. <var>ST</var> = <var>I</var> alone does force <var>T</var> injective — if <var>Tv</var> = 0 then <var>v</var> = <var>S</var>(<var>Tv</var>) = 0 — but injectivity alone is not invertibility, as multiplication by <var>x</var>² shows. Theorem 3.54 says nothing here: uniqueness presupposes that an inverse exists.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Isomorphism: sameness up to relabelling</h2>
+
+<div class="definition">
+<strong>Definition 3.58 (isomorphism).</strong> An <em>isomorphism</em> is an invertible linear map. Two vector spaces are <em>isomorphic</em> if there is an isomorphism from one onto the other. <span class="cite">— Axler §3.D, Definition 3.58, p. 82</span>
+</div>
+
+<p>"Isomorphism" and "invertible linear map" name the same objects; the two words carry different emphasis. Think of an isomorphism <var>T</var> : <var>V</var> → <var>W</var> as <em>relabelling</em> each <var>v</var> as <var>Tv</var>. Because the relabelling respects addition and scaling in both directions, no statement expressible in the language of vector spaces can tell <var>V</var> and <var>W</var> apart. <span class="cite">— Axler §3.D, p. 82</span></p>
+
+<div class="theorem">
+<strong>Theorem 3.59 (dimension decides).</strong> Two finite-dimensional vector spaces over <strong>F</strong> are isomorphic if and only if they have the same dimension. <span class="cite">— Axler §3.D, Theorem 3.59, p. 82</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> (⇒) An isomorphism <var>T</var> has null <var>T</var> = {0} and range <var>T</var> = <var>W</var>, so la-06's Fundamental Theorem reads dim <var>V</var> = 0 + dim <var>W</var>.
+<p>(⇐) Given dim <var>V</var> = dim <var>W</var> = <var>n</var>, take bases <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> and <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub> and let <var>T</var> send <var>c</var>₁<var>v</var>₁ + ⋯ + <var>c</var><sub><var>n</var></sub><var>v</var><sub><var>n</var></sub> to <var>c</var>₁<var>w</var>₁ + ⋯ + <var>c</var><sub><var>n</var></sub><var>w</var><sub><var>n</var></sub>. This is a well-defined linear map by la-05's Theorem 3.5; it is surjective because the <var>w</var>'s span, and injective because the <var>w</var>'s are independent. Theorem 3.56 makes it an isomorphism.</p>
+<p>Notice how cleanly the two halves of "basis" divide the labour here, one giving surjectivity and the other injectivity — the same split as in Theorem 3.5 itself. <span class="cite">— Axler §3.D, p. 82</span></p>
+</div>
+
+<div class="heuristic">
+<strong>The consequence to internalise.</strong> Every finite-dimensional space <var>V</var> over <strong>F</strong> is isomorphic to <strong>F</strong><var>ⁿ</var> with <var>n</var> = dim <var>V</var>. That does <em>not</em> make general vector spaces pointless. Study <strong>F</strong><var>ⁿ</var> alone and you immediately meet null spaces and ranges of maps on it, and although each of those is isomorphic to some <strong>F</strong><var>ᵏ</var>, insisting on that description adds bookkeeping and no insight. The right lesson is that dimension is a <em>complete</em> invariant here, which is rare and will not survive into later structures. <span class="cite">— Axler §3.D, p. 83</span>
+</div>
+
+<h3>Canvas: same dimension, therefore interchangeable</h3>
+<p>Two spaces drawn as columns of basis vectors. When the counts agree, a pairing exists and every dot is matched — that pairing extends to an isomorphism by Theorem 3.5. When they differ, some dot is always left over, and Theorem 3.59 says no relabelling can fix it.</p>
+<canvas id="iso" width="440" height="290"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('iso'),ctx=cv.getContext('2d');
+let t=0;
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const n=3+Math.floor((Math.sin(t)+1)*1.6), m=4;
+  const y0=48, gap=42, xl=130, xr=310;
+  ctx.font='13px sans-serif';ctx.textAlign='center';
+  ctx.fillStyle='#9aa5b1';
+  ctx.fillText('V, dim '+n, xl, 28);
+  ctx.fillText('W, dim '+m, xr, 28);
+  for(let i=0;i<Math.max(n,m);i++){
+    if(i<n){ctx.fillStyle='#8ab4f8';ctx.beginPath();ctx.arc(xl,y0+i*gap,7,0,7);ctx.fill();}
+    if(i<m){ctx.fillStyle='#4caf82';ctx.beginPath();ctx.arc(xr,y0+i*gap,7,0,7);ctx.fill();}
+    if(i<n&&i<m){
+      ctx.strokeStyle='#d8a657';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(xl+10,y0+i*gap);ctx.lineTo(xr-10,y0+i*gap);ctx.stroke();
+    }else{
+      const x=(i<n)?xl:xr;
+      ctx.strokeStyle='#e06c75';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(x-13,y0+i*gap-13);ctx.lineTo(x+13,y0+i*gap+13);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x+13,y0+i*gap-13);ctx.lineTo(x-13,y0+i*gap+13);ctx.stroke();
+    }
+  }
+  ctx.fillStyle=(n===m)?'#4caf82':'#e06c75';
+  ctx.fillText(n===m?'isomorphic':'not isomorphic — one basis vector unmatched',220,272);
+  ctx.textAlign='left';
+  t+=0.011;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="theorem">
+<strong>Theorems 3.60 and 3.61 (maps are matrices, and how many there are).</strong> With bases fixed, <var>ℳ</var> is an isomorphism from ℒ(<var>V</var>, <var>W</var>) onto <strong>F</strong><sup><var>m</var>,<var>n</var></sup>. Consequently ℒ(<var>V</var>, <var>W</var>) is finite-dimensional with dim ℒ(<var>V</var>, <var>W</var>) = (dim <var>V</var>)(dim <var>W</var>). <span class="cite">— Axler §3.D, Theorem 3.60 and Theorem 3.61, p. 83</span>
+</div>
+
+<p>The <var>ℳ</var> in question is la-07's matrix of a linear map. <span class="cite">— Axler §3.C, Definition 3.32, p. 70</span> la-07 showed it is linear; Theorem 3.60 adds that it is bijective, and the two together are what licence the habit of saying "the matrix" as though a map and its matrix were the same object. They are the same only relative to a fixed pair of bases, which is precisely what the isomorphism depends on. The dimension count then follows from Theorem 3.59 and la-07's dim <strong>F</strong><sup><var>m</var>,<var>n</var></sup> = <var>mn</var>. <span class="cite">— Axler §3.D, p. 83</span></p>
+
+<div class="definition">
+<strong>Definition 3.62 (matrix of a vector) and Theorem 3.65.</strong> For <var>v</var> ∈ <var>V</var> with basis <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub>, the matrix <var>ℳ</var>(<var>v</var>) is the <var>n</var>-by-1 column of coefficients in <var>v</var> = <var>c</var>₁<var>v</var>₁ + ⋯ + <var>c</var><sub><var>n</var></sub><var>v</var><sub><var>n</var></sub>. Then for every <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) and every <var>v</var> ∈ <var>V</var>, <var>ℳ</var>(<var>Tv</var>) = <var>ℳ</var>(<var>T</var>)<var>ℳ</var>(<var>v</var>). <span class="cite">— Axler §3.D, Definition 3.62, p. 84, and Theorem 3.65, p. 85</span>
+<br>The column is well defined only because a vector has exactly one list of coefficients in a given basis, which is la-04's criterion. <span class="cite">— Axler §2.B, Theorem 2.29, p. 39</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — a vector as a column, and the identity that ties everything together (fully worked).</strong> With the standard basis of 𝒫₃(<strong>R</strong>), the polynomial 2 − 7<var>x</var> + 5<var>x</var>³ has <var>ℳ</var>(2 − 7<var>x</var> + 5<var>x</var>³) = the column (2, −7, 0, 5) — and the 0 in the third slot must be written, since the basis has four entries and <var>x</var>² is one of them. <span class="cite">— Axler §3.D, Example 3.63, p. 84</span>
+<p>Theorem 3.65 then says that applying <var>T</var> to a vector and multiplying columns by matrices are the same operation, read through <var>ℳ</var>. Its proof is a three-line chain: expand <var>Tv</var> along the basis, use linearity of <var>ℳ</var>, then recognise the result via la-07's column readings — column <var>k</var> of <var>ℳ</var>(<var>T</var>) is <var>ℳ</var>(<var>Tv</var><sub><var>k</var></sub>), and a combination of columns is a matrix times a column. <span class="cite">— Axler §3.D, Theorem 3.64, p. 85</span></p>
+<p>That is the precise sense in which "every linear map is a matrix multiplication": relabel <var>V</var> as <strong>F</strong><sup><var>n</var>,1</sup> and <var>W</var> as <strong>F</strong><sup><var>m</var>,1</sup> via <var>ℳ</var>, and <var>T</var> becomes multiplication by <var>ℳ</var>(<var>T</var>). The relabelling is basis-dependent, and choosing a basis that makes the matrix simple is the recurring project of the rest of the subject. <span class="cite">— Axler §3.D, p. 86</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> dim <var>V</var> = 3 and dim <var>W</var> = 5. What is dim ℒ(<var>V</var>, <var>W</var>)?</p>
+<button onclick="check(this,true)" data-ok>15</button>
+<button onclick="check(this,false)">8</button>
+<button onclick="check(this,false)">Infinite, since there are infinitely many linear maps</button>
+<div class="explain">Theorem 3.61 gives (dim <var>V</var>)(dim <var>W</var>) = 15, matching the 5-by-3 matrices, which number <var>mn</var> = 15 basis elements. The third option confuses "infinitely many elements" with "infinite-dimensional" — <strong>R</strong>¹ has infinitely many elements and dimension 1.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Are 𝒫₃(<strong>R</strong>) and <strong>R</strong><sup>2,2</sup> isomorphic?</p>
+<button onclick="check(this,true)" data-ok>Yes — both have dimension 4 over <strong>R</strong></button>
+<button onclick="check(this,false)">No — one is polynomials and the other matrices</button>
+<button onclick="check(this,false)">Only if a specific isomorphism is exhibited</button>
+<div class="explain">dim 𝒫₃(<strong>R</strong>) = 4 (basis 1, <var>x</var>, <var>x</var>², <var>x</var>³) and dim <strong>R</strong><sup>2,2</sup> = 2·2 = 4 (la-07, Theorem 3.40), so Theorem 3.59 settles it. The second option is exactly the intuition the theorem overturns: what the elements <em>are</em> is irrelevant. The third mistakes an existence theorem for a construction — Theorem 3.59 proves an isomorphism exists without your having to name one, though of course you can.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Operators, and where half the work disappears</h2>
+
+<div class="definition">
+<strong>Definition 3.67 (operator).</strong> A linear map from a vector space to itself is an <em>operator</em>, and ℒ(<var>V</var>) = ℒ(<var>V</var>, <var>V</var>) denotes the set of operators on <var>V</var>. <span class="cite">— Axler §3.D, Definition 3.67, p. 86</span>
+</div>
+
+<p>ℒ(<var>V</var>) is a vector space, but many natural subsets of it are not subspaces. The non-invertible operators are one: as soon as dim <var>V</var> &gt; 1, two of them can sum to the identity, so the set fails closure under addition. Settling such a question means running la-02's three-condition test. <span class="cite">— Axler §1.C, Theorem 1.34, pp. 18–19</span> It is a problem in this unit's set, and the interest is in which of the three conditions fails — not the one most people check first.</p>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="worked">
+<strong>Verdict: yes if <var>V</var> is infinite-dimensional, no if it is finite-dimensional.</strong> Both cases are already in front of us.
+<p><em>Infinite-dimensional.</em> Multiplication by <var>x</var>² is an operator on 𝒫(<strong>R</strong>) that is injective and not surjective. The backward shift is an operator on <strong>F</strong><sup>∞</sup> that is surjective and not injective. So on infinite-dimensional spaces neither condition implies the other, and neither alone implies invertibility. <span class="cite">— Axler §3.D, Example 3.68, p. 86</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.69 (injective = surjective = invertible, in finite dimensions).</strong> Suppose <var>V</var> is finite-dimensional and <var>T</var> ∈ ℒ(<var>V</var>). Then (a) <var>T</var> is invertible, (b) <var>T</var> is injective, and (c) <var>T</var> is surjective are equivalent. <span class="cite">— Axler §3.D, Theorem 3.69, p. 87</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — and why it needs domain and codomain to coincide.</strong> (a) ⇒ (b) is Theorem 3.56. For (b) ⇒ (c): injectivity gives dim null <var>T</var> = 0, so la-06's Fundamental Theorem gives dim range <var>T</var> = dim <var>V</var>; range <var>T</var> is a subspace of <var>V</var> of full dimension, hence equals <var>V</var>. For (c) ⇒ (a): surjectivity gives dim range <var>T</var> = dim <var>V</var>, so dim null <var>T</var> = 0 and <var>T</var> is injective, and with surjectivity already in hand Theorem 3.56 gives invertibility.
+<p>Every step is the Fundamental Theorem plus the observation that range <var>T</var> ⊆ <var>V</var>. That containment is the hypothesis doing the hidden work: for a map between <em>different</em> spaces of the same dimension the equivalence still holds, but for a map <var>V</var> → <var>W</var> with dim <var>W</var> ≠ dim <var>V</var> it fails at once — la-06's Theorems 3.23 and 3.24 say so. <span class="cite">— Axler §3.D, p. 87</span></p>
+</div>
+
+<div class="worked">
+<strong>Worked example — a hard-looking claim, made easy (fully worked).</strong> Show that for every polynomial <var>q</var> ∈ 𝒫(<strong>R</strong>) there is a polynomial <var>p</var> with ((<var>x</var>² + 5<var>x</var> + 7)<var>p</var>)″ = <var>q</var>.
+<p>𝒫(<strong>R</strong>) is infinite-dimensional, so Theorem 3.69 does not apply to it — but any particular nonzero <var>q</var> has some degree <var>m</var>, and we may work inside 𝒫<sub><var>m</var></sub>(<strong>R</strong>), which is finite-dimensional. Define <var>T</var> on 𝒫<sub><var>m</var></sub>(<strong>R</strong>) by <var>Tp</var> = ((<var>x</var>² + 5<var>x</var> + 7)<var>p</var>)″. Multiplying by a quadratic raises degree by 2 and differentiating twice lowers it by 2, so <var>T</var> really does map 𝒫<sub><var>m</var></sub>(<strong>R</strong>) into itself and is an operator.</p>
+<p>It is injective: if ((<var>x</var>² + 5<var>x</var> + 7)<var>p</var>)″ = 0 then (<var>x</var>² + 5<var>x</var> + 7)<var>p</var> has the form <var>ax</var> + <var>b</var>, degree at most 1; but if <var>p</var> ≠ 0 that product has degree at least 2. So <var>p</var> = 0 and null <var>T</var> = {0}. Theorem 3.69 now hands over surjectivity with no further work, so some <var>p</var> ∈ 𝒫<sub><var>m</var></sub>(<strong>R</strong>) has <var>Tp</var> = <var>q</var>.</p>
+<p>The technique is worth naming: <em>restrict an infinite-dimensional problem to a finite-dimensional subspace large enough to hold the answer</em>, and the free half of Theorem 3.69 does the rest. Checking surjectivity directly here would mean solving a differential equation. <span class="cite">— Axler §3.D, Example 3.70, p. 87</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> <var>T</var> is an operator on a 6-dimensional space and dim range <var>T</var> = 6. Is <var>T</var> invertible?</p>
+<button onclick="check(this,true)" data-ok>Yes — surjectivity alone suffices here</button>
+<button onclick="check(this,false)">Only if it is also shown injective</button>
+<button onclick="check(this,false)">No — the range must be checked to equal <var>V</var>, not merely to have dimension 6</button>
+<div class="explain">range <var>T</var> is a subspace of <var>V</var> with dim range <var>T</var> = dim <var>V</var>, hence equals <var>V</var> (la-04's guided-proof result), so <var>T</var> is surjective, and Theorem 3.69 supplies the rest. The second option is the habit the theorem exists to break. The third raises a fair point — dimension does need converting into set equality — but that conversion is a one-line argument, not an obstruction.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why does Theorem 3.69 fail on 𝒫(<strong>R</strong>)?</p>
+<button onclick="check(this,false)">Because 𝒫(<strong>R</strong>) has no basis</button>
+<button onclick="check(this,true)" data-ok>Because the Fundamental Theorem's dimension count is unavailable when dim <var>V</var> is not a number</button>
+<button onclick="check(this,false)">Because operators on 𝒫(<strong>R</strong>) are never injective</button>
+<div class="explain">Every step of the proof runs through dim <var>V</var> = dim null <var>T</var> + dim range <var>T</var>, which presupposes a finite dimension — la-06's Theorem 3.22 states that hypothesis explicitly. The third option is false and multiplication by <var>x</var>² is the counterexample: it is injective on 𝒫(<strong>R</strong>) and still not invertible.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>T</var> ∈ ℒ(<var>U</var>, <var>V</var>) and <var>S</var> ∈ ℒ(<var>V</var>, <var>W</var>) are both invertible. Prove that <var>ST</var> ∈ ℒ(<var>U</var>, <var>W</var>) is invertible and that (<var>ST</var>)<sup>−1</sup> = <var>T</var><sup>−1</sup><var>S</var><sup>−1</sup>. (Do not argue via injectivity and surjectivity — exhibit the inverse and verify Definition 3.53 directly. Note that the claimed inverse reverses the order, and be able to say why.) <span class="cite">— cf. Axler §3.D, Exercise 1, p. 88</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> First check the composite makes sense: <var>T</var><sup>−1</sup> ∈ ℒ(<var>V</var>, <var>U</var>) and <var>S</var><sup>−1</sup> ∈ ℒ(<var>W</var>, <var>V</var>), so <var>T</var><sup>−1</sup><var>S</var><sup>−1</sup> ∈ ℒ(<var>W</var>, <var>U</var>) — which is the right home for an inverse of <var>ST</var> ∈ ℒ(<var>U</var>, <var>W</var>). Written in the other order, <var>S</var><sup>−1</sup><var>T</var><sup>−1</sup> is not even defined.</p>
+<p>Now verify both equations, using associativity (la-05, Theorem 3.9) throughout:
+<br>(<var>T</var><sup>−1</sup><var>S</var><sup>−1</sup>)(<var>ST</var>) = <var>T</var><sup>−1</sup>(<var>S</var><sup>−1</sup><var>S</var>)<var>T</var> = <var>T</var><sup>−1</sup><var>IT</var> = <var>T</var><sup>−1</sup><var>T</var> = <var>I</var> on <var>U</var>;
+<br>(<var>ST</var>)(<var>T</var><sup>−1</sup><var>S</var><sup>−1</sup>) = <var>S</var>(<var>TT</var><sup>−1</sup>)<var>S</var><sup>−1</sup> = <var>SIS</var><sup>−1</sup> = <var>SS</var><sup>−1</sup> = <var>I</var> on <var>W</var>.
+<br>So <var>ST</var> is invertible with inverse <var>T</var><sup>−1</sup><var>S</var><sup>−1</sup>, and Theorem 3.54 makes that inverse the only one, justifying the notation (<var>ST</var>)<sup>−1</sup>. ∎</p>
+<p class="cite">The reversal is not a quirk of notation. <var>ST</var> does <var>T</var> then <var>S</var>; undoing it means undoing the last thing done first. The type check at the top is the mechanical version of that observation, and it is the fastest way to remember which order is correct.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li><strong>Invertible</strong> means a two-sided linear inverse exists (Definition 3.53); it is unique (Theorem 3.54), and it exists exactly when the map is injective and surjective (Theorem 3.56). Both conditions are needed and are independent: multiplication by <var>x</var>² has one, the backward shift the other.</li>
+<li>An <strong>isomorphism</strong> is an invertible linear map, and for finite-dimensional spaces over one field <strong>dimension is a complete invariant</strong>: isomorphic exactly when the dimensions agree (Theorem 3.59). Applying this to <var>ℳ</var> shows maps and matrices are the same thing relative to fixed bases (Theorem 3.60), giving dim ℒ(<var>V</var>, <var>W</var>) = (dim <var>V</var>)(dim <var>W</var>) (Theorem 3.61) and, with the matrix of a vector, <var>ℳ</var>(<var>Tv</var>) = <var>ℳ</var>(<var>T</var>)<var>ℳ</var>(<var>v</var>) (Theorem 3.65).</li>
+<li>For an <strong>operator</strong> on a <em>finite-dimensional</em> space, injective, surjective and invertible are the same condition (Theorem 3.69) — because the Fundamental Theorem's count applies and the range sits inside the domain. On infinite-dimensional spaces the equivalence fails, and the standard technique is to restrict to a finite-dimensional subspace big enough to contain the answer.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §3.D "Invertibility and Isomorphic Vector Spaces": "Invertible Linear Maps" (Definition 3.53, Theorem 3.54 inverse is unique, Notation 3.55, Theorem 3.56 invertible equals injective and surjective, Example 3.57), pp. 80–81; "Isomorphic Vector Spaces" (Definition 3.58, Theorem 3.59 dimension decides, Theorem 3.60, Theorem 3.61), pp. 82–83; "Linear Maps Thought of as Matrix Multiplication" (Definition 3.62 matrix of a vector, Example 3.63, Theorem 3.64, Theorem 3.65), pp. 84–85; "Operators" (Definition 3.67, Example 3.68, Theorem 3.69, Example 3.70), pp. 86–87; Exercises 3.D 1, pp. 88–89.
+<br>Builds on la-06, whose Theorem 3.22 supplies every dimension count above and whose Theorem 3.16 turns injectivity into a statement about the null space; both are Axler §3.B, pp. 61 and 63.
+<br>Builds also on la-04: extending an independent list to a basis is Axler §2.B, Theorem 2.33, p. 41.
+<br>Deferred to la-09: products and quotient spaces, where a subspace is collapsed to zero (Axler §3.E).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
