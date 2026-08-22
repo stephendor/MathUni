@@ -26,6 +26,14 @@ Requires the per-page markdown tree from resources/bookmap.json, so this runs
 locally and NOT in CI, exactly like gate 9's re-execution half. It says so
 loudly rather than passing vacuously when the tree is absent.
 
+KNOWN LIMIT, do not read a corpus-wide failure count as a defect count. The
+folio->PDF map is fitted ONCE per book over all its pages, and a book whose
+offset drifts can have the global fit disagree with the local one: Lindstrom
+fits -12 globally where `pull.py --folio 55-60` measures -13, which fails every
+an2-01 citation while every one of them names the right printed page. Sampling
+before acting is mandatory. Fitting per cited range, or carrying pull.py's
+plateau boundaries through, is the repair and is not attempted here.
+
 Exit 0 all citations check out, 1 if any fails, 2 if it could not run.
 """
 import argparse
@@ -54,6 +62,17 @@ KINDS = ("Theorem", "Lemma", "Proposition", "Definition", "Corollary",
 # just as happily. That is a false PASS, and it would have applied to all 14
 # `an` units. `+` not `?` on the repeated group.
 RESULT = re.compile(r"\b(%s)\s+(\d+(?:\.\d+)+[a-z]?)" % "|".join(KINDS))
+# The plural/range form: "Exercises 6.6-6.9", "Theorems 1.1 and 1.2",
+# "Definitions 8.3, 8.5". See results_in().
+NUMBER = re.compile(r"\d+(?:\.\d+)+[a-z]?")
+PLURALS = {"Theorem": "Theorems", "Lemma": "Lemmas", "Proposition": "Propositions",
+           "Definition": "Definitions", "Corollary": "Corollaries",
+           "Example": "Examples", "Exercise": "Exercises", "Fact": "Facts",
+           "Axiom": "Axioms", "Remark": "Remarks"}
+SINGULAR = {p.lower(): s for s, p in PLURALS.items()}
+PLURAL = re.compile(
+    r"\b(%s)\s+(%s(?:\s*(?:[-–—,]|and)\s*%s)+)"
+    % ("|".join(PLURALS.values()), NUMBER.pattern, NUMBER.pattern))
 # "p. 225", "pp. 41-42", "pp. 220–221" (hyphen or en dash)
 PAGES = re.compile(r"\bpp?\.\s*(\d+)(?:\s*[-–—]\s*(\d+))?")
 
@@ -62,7 +81,15 @@ SPAN_PATTERNS = (
     re.compile(r'<p class="cite">(.*?)</p>', re.S),
     re.compile(r"^\*\*Sources:\*\*(.*?)(?=\n\n)", re.S | re.M),
     re.compile(r"^<footer>(.*?)</footer>", re.S | re.M),
-    re.compile(r"\*\(([^)]*?\bpp?\.\s*\d+[^)]*?)\)\*", re.S),
+    # `[^)]` stopped the parenthetical span at the FIRST close paren, so a
+    # citation naming an exercise part — "Exercise 8.28(d), p. 280" — was cut
+    # off before its page reference and the whole span went unrecognised. Not
+    # a wrong verdict: no verdict, silently, and the citation simply dropped
+    # out of the denominator. Cummings letters its exercise parts, so pw-03's
+    # set lost four citations that way. One level of nesting is enough for
+    # every form in the corpus.
+    re.compile(r"\*\(((?:[^()]|\([^()]*\))*?\bpp?\.\s*\d+(?:[^()]|\([^()]*\))*?)\)\*",
+               re.S),
 )
 
 
@@ -92,7 +119,72 @@ def printed_pages_in(span):
 
 
 def results_in(span):
-    return sorted({"%s %s" % (m.group(1), m.group(2)) for m in RESULT.finditer(span)})
+    """Every result id a span cites, plural and range forms included.
+
+    RESULT only matches the singular-and-separate form, so `Exercises 6.6-6.9`
+    and `Theorems 1.1 and 1.2` matched NOTHING: not a wrong verdict, no verdict,
+    with the citations dropping silently out of the denominator. There are 190
+    such citations in the corpus — more than every defect this gate has found
+    put together. check_lesson_coverage.py solved exactly this in its own
+    REF_PATTERN (its Obs 153); the fix was never carried across to the sibling
+    script, which is the same "fixed the instance, not the class" mistake as
+    gate.py's `data-type` and mission.py's `data-class`.
+
+    Only the numbers actually written are expanded — `Exercises 6.6-6.9` gives
+    6.6 and 6.9, never the interior — because inferring 6.7 and 6.8 would
+    invent citations the author did not make and then hold them to a page.
+    """
+    ids = {"%s %s" % (m.group(1), m.group(2)) for m in RESULT.finditer(span)}
+    for kinds, numbers in PLURAL.findall(span):
+        kind = SINGULAR[kinds.lower()]
+        ids.update("%s %s" % (kind, n) for n in NUMBER.findall(numbers))
+    return sorted(ids)
+
+
+def clauses(span):
+    """A span's semicolon-separated assertions, as [(text, pages)].
+
+    Leniency WITHIN one assertion is deliberate (see the module docstring): a
+    parenthetical naming four results and a page range asserts only that they
+    live in there. Leniency ACROSS assertions is not, and a Sources line is
+    several assertions sharing a line:
+
+        §4.1-4.2 (Principle 4.1, Propositions 4.2-4.3), pp. 107-115;
+        §4.3 (Theorem 4.8, Proposition 4.10), pp. 124-133;
+        §4 Exercises (4.1, 4.7, 4.12), pp. 143-145
+
+    Taking the union gave every result in that line a 22-page target, so
+    `Theorem 4.8 on printed p. 107,…,145` passed. pw-02's header did pass,
+    with its exercise pages wrong by five, while the gate built to catch
+    exactly that said ok. A check whose target grows with the number of things
+    being checked is nearly unfalsifiable where citations are densest.
+
+    A clause carrying no page reference of its own falls back to the span's
+    pages, so `(Cummings §4.3, Theorem 4.8, pp. 125-127)` stays one assertion
+    however it is punctuated.
+    """
+    whole = printed_pages_in(span)
+    parts = [c for c in span.split(";") if c.strip()]
+    if len(parts) < 2:
+        return [(span, whole)]
+    return [(c, printed_pages_in(c) or whole) for c in parts]
+
+
+def book_named_in(text, names):
+    """The bookmap key this text names, or None.
+
+    A key matches when every word of it appears in the text, so "Cummings"
+    matches `Cummings, *Proofs*` while "Cummings Real Analysis" matches only
+    the clause that also says Real Analysis. The most specific match wins,
+    which is what separates the two Cummings volumes and the two Aluffis.
+    """
+    best = None
+    for name in names:
+        words = name.split()
+        if all(re.search(r"\b%s\b" % re.escape(w), text, re.I) for w in words):
+            if best is None or len(words) > len(best.split()):
+                best = name
+    return best
 
 
 class Book:
@@ -189,16 +281,43 @@ def found_on_page(result, blob, raw=None):
     return None
 
 
-def check_file(path, book, verbose=False):
+def attribute(text, primary, names):
+    """Assertions with the book each one is actually about.
+
+    A Sources line that names two books had EVERY citation in it checked
+    against the unit's primary book. tda1-01 cites six Oudot results and was
+    told all six were missing from Edelsbrunner — six loud failures, none of
+    them about the citation. Across the corpus that mechanism produced most of
+    the failing rows, so the gate's own verdict could not be read.
+
+    Attribution is sticky and left-to-right: a clause naming a book is about
+    that book, and a clause naming none continues the last one named, which is
+    how these Sources blocks are actually written (`Oudot, ... — Chapter 2 ...
+    (p. 29); Definition 2.1 of a filtration ...`). Nothing named yet means the
+    unit's primary book.
+    """
+    out = []
+    for whole_span, line in spans(text):
+        current = primary
+        for span, pages in clauses(whole_span):
+            named = book_named_in(span, names)
+            if named is not None:
+                current = named
+            out.append((span, pages, line, current))
+    return out
+
+
+def check_file(path, book, verbose=False, books=None):
     """Returns (failures, checked). Prints a row per failing citation."""
     with open(path, encoding="utf-8") as f:
         text = f.read()
     failures, warnings, checked = [], [], 0
-    for span, line in spans(text):
-        pages = printed_pages_in(span)
+    books = books if books is not None else {book.name: book}
+    for span, pages, line, name in attribute(text, book.name, sorted(books)):
         results = results_in(span)
         if not pages or not results:
             continue
+        book = books[name]
         pdf_pages = sorted({n for p in pages for n in book.pdf_pages_for(p)})
         if not pdf_pages:
             failures.append("line %d: printed page(s) %s are not in %s"
@@ -211,8 +330,8 @@ def check_file(path, book, verbose=False):
             status = found_on_page(r, blob, raw)
             if status is None:
                 failures.append(
-                    "line %d: %s is not on printed p. %s (PDF %s)"
-                    % (line, r, ",".join(str(p) for p in sorted(pages)),
+                    "line %d: %s is not on %s printed p. %s (PDF %s)"
+                    % (line, r, book.name, ",".join(str(p) for p in sorted(pages)),
                        ",".join(str(n) for n in pdf_pages)))
             elif status == "number-only":
                 num = r.partition(" ")[2]
@@ -221,8 +340,8 @@ def check_file(path, book, verbose=False):
                     % (line, r, ",".join(str(p) for p in sorted(pages)),
                        book_label_for(re.sub(r"[a-z]$", "", num), raw)))
             elif verbose:
-                print("  ok  %s on printed p. %s"
-                      % (r, ",".join(str(p) for p in sorted(pages))))
+                print("  ok  %s on %s printed p. %s"
+                      % (r, book.name, ",".join(str(p) for p in sorted(pages))))
     for w in warnings:
         print("WARN %s" % w)
     for f_ in failures:
@@ -264,11 +383,22 @@ def selftest():
               printed_pages_in("pp. 41-42") == {41, 42})
     check_one("collects several results from one span",
               results_in("Definition 2.2, p. 36; Propositions 2.4, 2.6, pp. 37-38")
-              == ["Definition 2.2"])
-    check_one("plural 'Propositions 2.4, 2.6' is NOT silently read as two ids",
-              # A known limit, asserted so it cannot regress into a false PASS:
-              # only the first is matched, because "2.6" carries no keyword.
-              results_in("Propositions 2.4, 2.6") == [])
+              == ["Definition 2.2", "Proposition 2.4", "Proposition 2.6"])
+    # These two controls used to assert the OPPOSITE — that a plural citation
+    # yields nothing — on the reasoning that a known limit pinned by a control
+    # cannot regress into a false PASS. It cannot; but pinning it also made it
+    # permanent, and the limit was quietly excusing 190 citations across the
+    # corpus. A control over a gap keeps the gap honest, not acceptable.
+    check_one("a plural citation expands to one id per number",
+              results_in("Propositions 2.4, 2.6")
+              == ["Proposition 2.4", "Proposition 2.6"])
+    check_one("a range expands to its ENDS only, never its interior",
+              results_in("Exercises 6.6-6.9") == ["Exercise 6.6", "Exercise 6.9"])
+    check_one("'and' joins a plural citation too",
+              results_in("Theorems 1.1 and 1.2") == ["Theorem 1.1", "Theorem 1.2"])
+    check_one("a singular keyword is unaffected",
+              results_in("Theorem 1.1 and Theorem 1.2")
+              == ["Theorem 1.1", "Theorem 1.2"])
     check_one("an absurd range does not expand to thousands of pages",
               printed_pages_in("pp. 12-9000") == {12})
     check_one("a span with no page reference yields nothing to check",
@@ -336,6 +466,30 @@ def selftest():
     check_one("two-level numbering still works (Cummings, Axler, Aluffi)",
               results_in("Theorem 7.6, p. 225") == ["Theorem 7.6"])
 
+    # -- one assertion per verdict, and spans that contain parentheses -------
+    sources = ("§4.1-4.2 (Proposition 4.2), pp. 107-115; "
+               "§4.3 (Theorem 4.8), pp. 124-133; "
+               "§4 Exercises (Exercise 4.1), pp. 148-149")
+    by_clause = {r: pages for text, pages in clauses(sources)
+                 for r in results_in(text)}
+    check_one("a Sources line is split into one assertion per clause",
+              by_clause["Theorem 4.8"] == set(range(124, 134))
+              and by_clause["Exercise 4.1"] == {148, 149})
+    check_one("...so no result inherits the whole line's pages",
+              by_clause["Proposition 4.2"] == set(range(107, 116)))
+    check_one("a clause with no page of its own falls back to the span",
+              clauses("Theorem 7.6; proved there, pp. 225-226")[0][1] == {225, 226})
+    check_one("an unpunctuated span is still one assertion, as before",
+              [p for _, p in clauses("Cummings §4.3, Theorem 4.8, pp. 125-127")]
+              == [{125, 126, 127}])
+    check_one("a parenthetical span survives a parenthesised exercise part",
+              spans("*(Cummings, Exercise 8.28(d), p. 280)*")
+              and results_in(spans("*(Cummings, Exercise 8.28(d), p. 280)*")[0][0])
+              == ["Exercise 8.28"])
+    check_one("...and its page reference is still read",
+              printed_pages_in(spans("*(Cummings, Exercise 8.28(d), p. 280)*")[0][0])
+              == {280})
+
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0
 
@@ -370,17 +524,29 @@ def main(argv=None):
         print("ERROR could not tell which book to check against; pass --book")
         return 2
 
-    try:
-        book = Book(book_name)
-    except RuntimeError as e:
-        print("ERROR %s" % e)
+    # Every book on this machine is available for attribution, not only the
+    # unit's primary one: a Sources block that switches books mid-line is the
+    # normal case, not the exception. A book whose page tree is absent is
+    # skipped here and reported by name when a clause actually needs it.
+    books, absent = {}, []
+    for name in sorted(load_bookmap()):
+        try:
+            books[name] = Book(name)
+        except RuntimeError:
+            absent.append(name)
+    if book_name not in books:
+        print("ERROR pages tree for %r is not on this machine" % book_name)
         print("This gate needs the per-page markdown tree and cannot run here.")
         return 2
+    book = books[book_name]
+    if absent:
+        print("NOTE %d book(s) have no page tree here and cannot be checked "
+              "against: %s" % (len(absent), ", ".join(absent)))
 
     rc, total = 0, 0
     for p in paths:
-        print("=== %s  (against %s)" % (p, book.name))
-        failures, checked = check_file(p, book, a.verbose)
+        print("=== %s  (primary %s)" % (p, book.name))
+        failures, checked = check_file(p, book, a.verbose, books)
         total += checked
         if failures:
             rc = 1

@@ -126,3 +126,69 @@ def test_markdown_emphasis_and_line_breaks_do_not_hide_a_result():
 
 def test_selftest_passes():
     assert selftest() == 0
+
+
+# --- the s1-pw round: four ways a citation went unchecked -------------------
+
+def test_a_sources_line_is_one_assertion_per_clause():
+    """Taking the union of every page in a multi-clause Sources line gave each
+    result a 20-page target. pw-02's header passed with its exercise pages
+    wrong by five."""
+    from scripts.citations import clauses, results_in
+    line = ("§4.3 (Theorem 4.8), pp. 124-133; "
+            "§4 chapter exercises (Exercise 4.1), pp. 148-149")
+    by_clause = {r: pages for text, pages in clauses(line)
+                 for r in results_in(text)}
+    assert by_clause["Theorem 4.8"] == set(range(124, 134))
+    assert by_clause["Exercise 4.1"] == {148, 149}
+
+
+def test_an_unpunctuated_span_stays_one_assertion():
+    from scripts.citations import clauses
+    assert [p for _, p in clauses("Cummings §4.3, Theorem 4.8, pp. 125-127")] \
+        == [{125, 126, 127}]
+
+
+def test_a_parenthesised_exercise_part_does_not_end_the_span():
+    """`[^)]` cut the span at the first ')', so `Exercise 8.28(d), p. 280` lost
+    its page reference and the citation left the denominator silently."""
+    from scripts.citations import printed_pages_in, results_in, spans
+    got = spans("*(Cummings, Exercise 8.28(d), p. 280)*")
+    assert got, "the span was not recognised at all"
+    assert results_in(got[0][0]) == ["Exercise 8.28"]
+    assert printed_pages_in(got[0][0]) == {280}
+
+
+def test_a_plural_citation_is_expanded_not_skipped():
+    """190 citations in the corpus are written in the plural or as a range and
+    matched nothing at all. Only the numbers written are expanded — never the
+    interior of a range, which would invent citations the author never made."""
+    from scripts.citations import results_in
+    assert results_in("Propositions 2.4, 2.6") == ["Proposition 2.4",
+                                                   "Proposition 2.6"]
+    assert results_in("Exercises 6.6-6.9") == ["Exercise 6.6", "Exercise 6.9"]
+    assert results_in("Theorems 1.1 and 1.2") == ["Theorem 1.1", "Theorem 1.2"]
+
+
+def test_a_clause_is_checked_against_the_book_it_names():
+    """A Sources line naming two books had every citation checked against the
+    unit's primary one; tda1-01's six Oudot results were reported missing from
+    Edelsbrunner. Attribution is sticky, so a clause that names no book
+    continues the last one named."""
+    from scripts.citations import attribute
+    names = ["Edelsbrunner", "Oudot", "Cummings", "Cummings Real Analysis"]
+    text = ("**Sources:** Edelsbrunner and Harer — §III.1, pp. 62-68;\n"
+            "Oudot, *Persistence Theory* — Chapter 2, pp. 29-34;\n"
+            "Definition 2.1 of a filtration, p. 29\n\n")
+    got = {r: name for span, _pages, _line, name in attribute(text, "Edelsbrunner", names)
+           for r in [span]}
+    assert any("Definition 2.1" in span and name == "Oudot"
+               for span, name in got.items())
+
+
+def test_the_two_cummings_volumes_are_told_apart():
+    from scripts.citations import book_named_in
+    names = ["Cummings", "Cummings Real Analysis", "Abbott"]
+    assert book_named_in("Cummings, *Proofs*, Ch. 8", names) == "Cummings"
+    assert book_named_in("Cummings, *Real Analysis*, Ch. 2", names) \
+        == "Cummings Real Analysis"
