@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>pw-04 — Epsilon-delta craft</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.guided{background:#1a2027;border:1px solid #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details summary{cursor:pointer;color:var(--acc)}
+.svgwrap{background:#0c1013;border-radius:10px;padding:.6rem;margin:1rem 0}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+svg text{font-family:Georgia,serif}
+</style></head><body>
+<p class="cite">Proofs &amp; Writing · Nexus College</p>
+<h1>Epsilon-delta craft <span class="cite">(pw-04)</span></h1>
+
+<div class="hook">
+<p>Every epsilon proof is the same two-player game, and once you see it as a game the notation stops being decoration. <strong>Your opponent moves first.</strong> They name a tolerance ε &gt; 0 — as small and as spiteful as they like — and they are allowed to see the claim you are defending but not your reply in advance. <strong>You move second.</strong> You must produce a threshold: an <var>N</var> beyond which the sequence stays inside the tolerance, or a δ-window around the input inside which the function stays inside it. You win if you have a reply for <em>every</em> opening move. You lose if there is even one ε for which you have nothing.</p>
+<p>That is the whole content of "∀ε &gt; 0 ∃N" — and it explains the thing that makes these proofs feel backwards when you first write one. The order the quantifiers are written in is the order of play, so your δ is <em>allowed</em> to depend on ε (you moved second, you saw their move) but their ε may never depend on your δ. Every classic epsilon-proof error is the same error: playing out of turn.</p>
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction Gate:</strong> Before you read on, commit. Someone reverses the quantifiers and defines: "(xₙ) <em>verconges</em> to <var>x</var> if <em>there exists</em> ε &gt; 0 such that <em>for all</em> N ∈ ℕ, n ≥ N implies |xₙ − x| &lt; ε." Which sequences verconge to 0?</p>
+<button onclick="check(this,false)">The same ones that converge to 0 — reversing quantifiers changes nothing</button>
+<button onclick="check(this,true)" data-ok>Every bounded sequence verconges to 0, convergent or not</button>
+<button onclick="check(this,false)">None — the definition is contradictory</button>
+<div class="explain">Every bounded sequence. The opponent no longer chooses; <em>you</em> choose one ε and it must work for all N — so pick ε larger than the bound and take N = 1. The sequence 1, 0, 1, 0, … verconges to 0 and diverges. Segment 1 works this through; it is Abbott's Exercise 2.2.2, and it is the sharpest single test of whether you have read a quantifier or just recognised its shape.</div>
+</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Stability of persistence diagrams is an epsilon statement.</p>
+
+<p>Read that mission line again once you have finished Segment 1. The stability theorem says the bottleneck distance between two diagrams is at most the sup-distance between the functions that produced them — which is a promise of the form "name a tolerance on the input and I will name one on the output". It is this game, played once, at the level of an entire pipeline.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The order of play</h2>
+
+<p>Here is the definition you met in <strong>an-03</strong>, written the way Abbott writes it.</p>
+
+<div class="definition">
+<p><strong>Definition (Convergence of a sequence).</strong> A sequence (aₙ) <em>converges</em> to a real number <var>a</var> if, for every positive number ε, there exists an <var>N</var> ∈ ℕ such that whenever <var>n</var> ≥ <var>N</var> it follows that |aₙ − <var>a</var>| &lt; ε.</p>
+<p class="cite">Abbott, <em>Understanding Analysis</em>, Definition 2.2.3, p. 39.</p>
+</div>
+
+<p>Cummings states the same definition with "<var>n</var> &gt; <var>N</var>" where Abbott writes "<var>n</var> ≥ <var>N</var>". Nothing depends on this: a threshold that works from <var>N</var> onwards works from <var>N</var>+1 onwards, and conversely. It is worth noticing anyway, because it is the kind of difference that makes two textbooks look like they disagree when they do not — and because in a written proof you must be consistent with whichever one you have stated.</p>
+
+<p>Now the reversal. Abbott sets it as an exercise and gives the fake notion a fake name, which is a good habit: an object with a name is easier to reason about than "the wrong definition".</p>
+
+<div class="theorem">
+<p><strong>The vercongence test.</strong> Say (xₙ) <em>verconges</em> to <var>x</var> if <em>there exists</em> ε &gt; 0 such that <em>for all</em> N ∈ ℕ, <var>n</var> ≥ <var>N</var> implies |xₙ − <var>x</var>| &lt; ε.</p>
+<p><strong>Claim.</strong> (xₙ) verconges to <var>x</var> if and only if (xₙ) is bounded.</p>
+<p><strong>Proof.</strong> (⇒) Suppose ε works. Taking N = 1, every term satisfies |xₙ − <var>x</var>| &lt; ε, so every xₙ lies in (<var>x</var> − ε, <var>x</var> + ε) and the sequence is bounded.</p>
+<p>(⇐) Suppose |xₙ| ≤ M for all <var>n</var>. Take ε = M + |<var>x</var>| + 1. Then |xₙ − <var>x</var>| ≤ |xₙ| + |<var>x</var>| ≤ M + |<var>x</var>| &lt; ε for every <var>n</var>, so this single ε works for every N. ∎</p>
+<p class="cite">Cf. Abbott, <em>Understanding Analysis</em>, Exercise 2.2.2, p. 43.</p>
+</div>
+
+<p>So vercongence is not a weaker form of convergence, or a stronger one — it is <em>boundedness</em>, wearing convergence's clothes. The sequence 1, 0, 1, 0, 1, 0, … verconges to 0, to 1, and to 1000, and converges to nothing. Swapping two quantifiers did not blur the definition; it replaced it with a different one entirely.</p>
+
+<div class="worked">
+<p><strong>Worked example — reading the game off the symbols.</strong> Prove that (1/<var>n</var>) converges to 0.</p>
+<p><em>Their move.</em> Let ε &gt; 0 be arbitrary. We know nothing about it except that it is positive; in particular we may not assume it is small.</p>
+<p><em>Our move.</em> Choose <var>N</var> to be any natural number with <var>N</var> &gt; 1/ε. (Such an <var>N</var> exists by the Archimedean property, which is an-01's result — say so in a written proof rather than assuming it.)</p>
+<p><em>The verification.</em> For any <var>n</var> ≥ <var>N</var> we have <var>n</var> &gt; 1/ε, hence 1/<var>n</var> &lt; ε, hence |1/<var>n</var> − 0| = 1/<var>n</var> &lt; ε. ∎</p>
+<p>Notice that <var>N</var> was written down <em>after</em> ε and mentions it. That is not a stylistic accident — it is the proof recording who moved when.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try.</strong> Write out, in the same three beats, a proof that the constant sequence aₙ = 7 converges to 7. Where does your <var>N</var> mention ε? What does it mean that it does not have to?</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In "for every ε &gt; 0 there exists <var>N</var>", which quantity is allowed to depend on which?</p>
+<button onclick="check(this,true)" data-ok><var>N</var> may depend on ε</button>
+<button onclick="check(this,false)">ε may depend on <var>N</var></button>
+<button onclick="check(this,false)">Neither may depend on the other</button>
+<div class="explain">Reading order is dependency order: ε is fixed before <var>N</var> is chosen, so <var>N</var> may be built out of ε — and almost always is. A proof whose <var>N</var> does <em>not</em> mention ε is not automatically wrong (the constant sequence is the standard case), but it is worth a second look.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A student writes: "Let <var>N</var> = 100. Then for all ε &gt; 0 and all <var>n</var> ≥ <var>N</var>, |1/<var>n</var>| &lt; ε." What has gone wrong?</p>
+<button onclick="check(this,false)">Nothing — 100 is a perfectly good threshold</button>
+<button onclick="check(this,true)" data-ok>The quantifiers have been reversed: one fixed <var>N</var> cannot serve every ε</button>
+<button onclick="check(this,false)">The absolute value is unnecessary</button>
+<div class="explain">This is vercongence again, in disguise. Take ε = 1/1000: the claim asserts 1/<var>n</var> &lt; 1/1000 for all <var>n</var> ≥ 100, and <var>n</var> = 100 already breaks it. The fix is not a bigger constant — no constant works — but making <var>N</var> a function of ε.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> To prove a sequence does <em>not</em> converge to <var>a</var>, what must you exhibit?</p>
+<button onclick="check(this,true)" data-ok>One particular ε for which no <var>N</var> works</button>
+<button onclick="check(this,false)">Every ε for which no <var>N</var> works</button>
+<button onclick="check(this,false)">An <var>N</var> that fails for some ε</button>
+<div class="explain">Negating ∀ε ∃N P gives ∃ε ∀N ¬P: the roles swap and you become the first player. You name the ε — one is enough — and must then defeat every <var>N</var> your opponent offers. For 1, 0, 1, 0, … against the target 0, ε = 1/2 does it: whatever <var>N</var> is given, some later term equals 1.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Scratch work is not the proof</h2>
+
+<p>Move from sequences to functions. The game is identical; only the shape of your reply changes, from a threshold <var>N</var> to a window δ.</p>
+
+<div class="definition">
+<p><strong>Definition (Functional limit).</strong> Let <var>f</var> : A → ℝ and let <var>c</var> be a limit point of A. Then lim<sub>x→c</sub> <var>f</var>(<var>x</var>) = L if for all ε &gt; 0 there exists some δ &gt; 0 such that for every <var>x</var> ∈ A with 0 &lt; |<var>x</var> − <var>c</var>| &lt; δ, we have |<var>f</var>(<var>x</var>) − L| &lt; ε.</p>
+<p class="cite">Cummings, <em>Real Analysis</em>, Definition 6.8, p. 226.</p>
+</div>
+
+<p>The "0 &lt; " on the left is doing real work: it excludes <var>x</var> = <var>c</var> itself, which is why a limit can exist at a point where the function is undefined, and why <var>c</var> is required to be a limit point of A rather than merely a member of it.</p>
+
+<p>Now the craft. An ε–δ proof is written in the opposite order from the order in which it is discovered, and the discipline of keeping those two orders separate is most of what this lesson is teaching. Cummings marks the two phases explicitly, and we adopt his labels.</p>
+
+<div class="worked">
+<p><strong>Worked example.</strong> Let <var>f</var>(<var>x</var>) = 5<var>x</var> + 2. Prove lim<sub>x→3</sub> <var>f</var>(<var>x</var>) = 17.</p>
+<p><strong>Scratch Work</strong> (discovered backwards, and <em>not</em> part of the proof). Assume the conclusion and unwind it until only |<var>x</var> − 3| is left on one side:</p>
+<p style="text-align:center">|5<var>x</var> + 2 − 17| &lt; ε &nbsp;⟺&nbsp; |5<var>x</var> − 15| &lt; ε &nbsp;⟺&nbsp; 5|<var>x</var> − 3| &lt; ε &nbsp;⟺&nbsp; |<var>x</var> − 3| &lt; ε/5.</p>
+<p>The last line is a constraint on the one quantity we control, so it tells us what to choose: δ = ε/5.</p>
+<p><strong>Proof</strong> (written forwards). Let ε &gt; 0. Let δ = ε/5 &gt; 0. Then for any <var>x</var> with 0 &lt; |<var>x</var> − 3| &lt; δ,</p>
+<p style="text-align:center">|<var>f</var>(<var>x</var>) − 17| = |5<var>x</var> − 15| = 5|<var>x</var> − 3| &lt; 5δ = 5 · ε/5 = ε. ∎</p>
+<p class="cite">Cummings, <em>Real Analysis</em>, Example 6.9, p. 231.</p>
+</div>
+
+<p>Compare the two halves. The scratch work runs from the goal to the choice and is full of "⟺"; the proof runs from the choice to the goal and is a chain of "=" and one "&lt;". If you hand in the scratch work you have written something true and it is still not a proof, because it assumes what was to be shown. If you hand in only the proof, δ = ε/5 appears out of nowhere and the reader cannot tell whether you found it or guessed it. Working mathematicians do the first in private and publish the second — and the reason the choice looks unmotivated in every textbook is that the motivation was deliberately deleted.</p>
+
+<div class="worked fade">
+<p><strong>Faded example.</strong> Let <var>f</var> : ℝ \ {2} → ℝ with <var>f</var>(<var>x</var>) = (3<var>x</var>² − 12)/(<var>x</var> − 2). Prove lim<sub>x→2</sub> <var>f</var>(<var>x</var>) = 12.</p>
+<p><em>Scratch Work.</em> For <var>x</var> ≠ 2, factor the numerator: 3<var>x</var>² − 12 = 3(<var>x</var> − 2)(<var>x</var> + 2), so <var>f</var>(<var>x</var>) = ⟨your step — simplify⟩.</p>
+<p>Then |<var>f</var>(<var>x</var>) − 12| = ⟨your step — write it in terms of |<var>x</var> − 2|⟩ &lt; ε forces |<var>x</var> − 2| &lt; ⟨your step⟩, so take δ = ⟨your step⟩.</p>
+<p><em>Proof.</em> Let ε &gt; 0 and let δ be your choice. For any <var>x</var> with 0 &lt; |<var>x</var> − 2| &lt; δ, run the computation forwards and finish at ε. Note where the hypothesis <var>x</var> ≠ 2 was used — and that it is available precisely because of the 0 &lt; in the definition.</p>
+<p class="cite">Cummings, <em>Real Analysis</em>, Example 6.10, p. 232.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why is scratch work not a proof, even when every line of it is true?</p>
+<button onclick="check(this,true)" data-ok>It assumes the conclusion and derives the choice; a proof must assume the choice and derive the conclusion</button>
+<button onclick="check(this,false)">Because it uses ⟺ instead of ⟹</button>
+<button onclick="check(this,false)">It is a proof — the two are the same argument written twice</button>
+<div class="explain">Direction is the whole issue. Scratch work starts from |f(x) − L| &lt; ε, which is what you are trying to establish. When every step happens to be a biconditional you <em>could</em> reverse it and get a proof — but that is a fact you must check and state, not assume, and the moment one step is a one-way inequality (Segment 3) the reversal fails outright.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In Definition 6.8, what does the condition 0 &lt; |<var>x</var> − <var>c</var>| exclude, and why?</p>
+<button onclick="check(this,true)" data-ok>x = c, so the limit does not depend on the value of f at c — or on f being defined there at all</button>
+<button onclick="check(this,false)">Negative values of x</button>
+<button onclick="check(this,false)">Nothing; it is notation</button>
+<div class="explain">The faded example is exactly this: f is undefined at 2, and the limit at 2 is nevertheless 12. A limit is a statement about the punctured neighbourhood of c, never about c itself. This is the one clause that separates Definition 6.8 from the definition of continuity in Segment 3.</div>
+</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>When one δ is not enough: bounding the other factor</h2>
+
+<p>Every example so far was linear after simplification, so |<var>f</var>(<var>x</var>) − L| came out as a constant times |<var>x</var> − <var>c</var>| and δ was that constant divided into ε. Non-linear functions do not cooperate, and the standard repair is the one move in this lesson worth memorising.</p>
+
+<div class="worked">
+<p><strong>Worked example.</strong> Prove lim<sub>x→3</sub> <var>x</var>² = 9.</p>
+<p><strong>Scratch Work.</strong> |<var>x</var>² − 9| = |<var>x</var> − 3| · |<var>x</var> + 3|. The first factor is ours to shrink; the second is not, and it is not bounded by any constant over all of ℝ. But we do not need it to be: δ is ours, so we may <em>first</em> insist δ ≤ 1, which confines <var>x</var> to (2, 4) and hence |<var>x</var> + 3| &lt; 7. On that confined region |<var>x</var>² − 9| &lt; 7|<var>x</var> − 3|, and 7|<var>x</var> − 3| &lt; ε as soon as |<var>x</var> − 3| &lt; ε/7.</p>
+<p>Two constraints on δ, so take the smaller: δ = min(1, ε/7).</p>
+<p><strong>Proof.</strong> Let ε &gt; 0 and put δ = min(1, ε/7) &gt; 0. Suppose 0 &lt; |<var>x</var> − 3| &lt; δ. Since δ ≤ 1 we have 2 &lt; <var>x</var> &lt; 4, so |<var>x</var> + 3| &lt; 7. Since δ ≤ ε/7,</p>
+<p style="text-align:center">|<var>x</var>² − 9| = |<var>x</var> − 3| · |<var>x</var> + 3| &lt; δ · 7 ≤ (ε/7) · 7 = ε. ∎</p>
+<p>Note what changed: the scratch work now contains a one-way "&lt;", not a chain of "⟺", so it could not have been reversed into a proof by itself. The bound |<var>x</var> + 3| &lt; 7 had to be <em>established</em> in the proof, from δ ≤ 1, before it could be used.</p>
+</div>
+
+<p>The pattern generalises. When |<var>f</var>(<var>x</var>) − L| factors as |<var>x</var> − <var>c</var>| · (something), bound the something on a fixed small window around <var>c</var>, then take δ to be the minimum of that window's radius and ε divided by the bound. The min is not a trick; it is what "both constraints must hold" looks like when written as a single number.</p>
+
+<div class="definition">
+<p><strong>Definition (Continuity at a point).</strong> A function <var>f</var> : A → ℝ is <em>continuous at</em> <var>c</var> ∈ A if for all ε &gt; 0 there exists some δ &gt; 0 such that for all <var>x</var> ∈ A with |<var>x</var> − <var>c</var>| &lt; δ we have |<var>f</var>(<var>x</var>) − <var>f</var>(<var>c</var>)| &lt; ε.</p>
+<p class="cite">Cummings, <em>Real Analysis</em>, Definition 6.16, p. 238.</p>
+</div>
+
+<p>Set L = <var>f</var>(<var>c</var>) in Definition 6.8 and the two are the same sentence but for the missing 0 &lt; , which is dropped here because <var>x</var> = <var>c</var> gives |<var>f</var>(<var>c</var>) − <var>f</var>(<var>c</var>)| = 0 &lt; ε and so costs nothing. Cummings makes exactly this comparison on p. 238. So continuity is not a new game: it is the limit game with the answer pinned in advance to the value the function actually takes.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 6.</strong> Why is δ = min(1, ε/7) used rather than δ = ε/7 alone?</p>
+<button onclick="check(this,true)" data-ok>The bound |x + 3| &lt; 7 is only valid once x is confined near 3, and δ ≤ 1 is what confines it</button>
+<button onclick="check(this,false)">Because δ must always be less than 1</button>
+<button onclick="check(this,false)">To make δ smaller, which is always safer</button>
+<div class="explain">The two constraints are independent: δ ≤ 1 buys the bound on the second factor, δ ≤ ε/7 buys the ε. Dropping the first leaves |x + 3| unbounded, and for large ε the choice δ = ε/7 would admit x far from 3, where 7 is no longer a bound. "Smaller is safer" is the right instinct but the wrong reason — δ ≤ 1 has to be there for the inequality to be true, not for comfort.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 7.</strong> A proof of lim<sub>x→c</sub> <var>f</var>(<var>x</var>) = L opens "Let δ = 0.01. Given any ε &gt; 0 …". What is wrong before any computation happens?</p>
+<button onclick="check(this,true)" data-ok>δ was chosen before ε, so it cannot depend on ε — the players have swapped turns</button>
+<button onclick="check(this,false)">0.01 is too large</button>
+<button onclick="check(this,false)">δ must be irrational</button>
+<div class="explain">Same error as self-check 2, one level along. Order of introduction is order of dependency: writing δ first claims a single window that works for every tolerance, which is a far stronger — and usually false — statement. You can diagnose it without reading another line.</div>
+</div>
+
+<div class="guided">
+<p><strong>Guided proof.</strong> Prove that <var>f</var>(<var>x</var>) = 1/<var>x</var> is continuous at <var>c</var> = 2, directly from the definition.</p>
+<p>(Hint: |1/<var>x</var> − 1/2| = |<var>x</var> − 2| / (2|<var>x</var>|), so you need a <em>lower</em> bound on |<var>x</var>| to get an upper bound on the quotient. Confine <var>x</var> first, exactly as in the worked example — and notice that this time the confinement also keeps you away from the point where <var>f</var> blows up.)</p>
+<textarea placeholder="Write your proof here before revealing the model answer..."></textarea>
+<details>
+<summary>Reveal model answer</summary>
+<p><strong>Scratch Work.</strong> |1/<var>x</var> − 1/2| = |2 − <var>x</var>| / (2|<var>x</var>|) = |<var>x</var> − 2| / (2|<var>x</var>|). Insisting δ ≤ 1 confines <var>x</var> to (1, 3), so |<var>x</var>| &gt; 1 and hence 1/(2|<var>x</var>|) &lt; 1/2. On that region |1/<var>x</var> − 1/2| &lt; |<var>x</var> − 2| / 2, which is below ε once |<var>x</var> − 2| &lt; 2ε. Two constraints, so δ = min(1, 2ε).</p>
+<p><strong>Proof.</strong> Let ε &gt; 0 and put δ = min(1, 2ε) &gt; 0. Suppose |<var>x</var> − 2| &lt; δ. Since δ ≤ 1 we have 1 &lt; <var>x</var> &lt; 3, so <var>x</var> ≠ 0 (the expression is defined) and |<var>x</var>| &gt; 1. Therefore</p>
+<p style="text-align:center">|1/<var>x</var> − 1/2| = |<var>x</var> − 2| / (2|<var>x</var>|) &lt; |<var>x</var> − 2| / 2 &lt; δ/2 ≤ (2ε)/2 = ε. ∎</p>
+<p>Two things to notice. The confinement δ ≤ 1 did double duty: it bounded the second factor <em>and</em> kept <var>x</var> in the domain, which a proof about 1/<var>x</var> owes the reader. And δ = min(1, 2ε) grows with ε rather than shrinking — nothing requires δ to be small, only to exist.</p>
+</details>
+</div>
+</div>
+
+<h2>The picture the notation is describing</h2>
+<p>The ε–δ condition is a statement about two boxes. The opponent draws a horizontal band of half-height ε around L. You must draw a vertical strip of half-width δ around <var>c</var> such that the graph, inside your strip, never leaves their band. A narrower band forces a narrower strip; the claim is that you can always answer.</p>
+<div class="svgwrap">
+<svg viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg">
+<style>
+.ax{stroke:#9aa5b1;stroke-width:1.5}.lbl{fill:#e8e8e8;font-size:14px}.dm{fill:#9aa5b1;font-size:12px}
+.band{fill:#4caf8233;stroke:#4caf82;stroke-width:1;stroke-dasharray:4 3}
+.strip{fill:#8ab4f833;stroke:#8ab4f8;stroke-width:1;stroke-dasharray:4 3}
+.curve{fill:none;stroke:#d8a657;stroke-width:2.5}
+</style>
+<line class="ax" x1="60" y1="260" x2="580" y2="260"/>
+<line class="ax" x1="60" y1="260" x2="60" y2="30"/>
+<text x="565" y="282" class="dm">x</text>
+<text x="34" y="40" class="dm">y</text>
+<rect class="band" x="60" y="110" width="520" height="70"/>
+<text x="470" y="104" class="dm">band: L ± ε</text>
+<rect class="strip" x="250" y="30" width="110" height="230"/>
+<text x="243" y="24" class="dm">strip: c ± δ</text>
+<path class="curve" d="M70,250 C180,235 235,190 305,145 C375,100 470,70 570,52"/>
+<line x1="60" y1="145" x2="580" y2="145" stroke="#4caf82" stroke-width="1"/>
+<text x="24" y="150" class="dm">L</text>
+<line x1="305" y1="260" x2="305" y2="30" stroke="#8ab4f8" stroke-width="1"/>
+<text x="299" y="278" class="dm">c</text>
+<text x="368" y="205" class="dm">inside the strip the curve stays inside the band —</text>
+<text x="368" y="222" class="dm">that is what your δ has to buy</text>
+</svg>
+</div>
+<p>Shrink the band and the same strip will generally no longer do: the curve leaves through the top or bottom before it leaves through the side. Answering <em>every</em> band is the content of the definition, and it is why δ has to be written as a formula in ε rather than as a number.</p>
+
+<div class="blank-page">
+<h3>Exit Ritual: Blank-Page Reconstruction</h3>
+<p>Close your eyes, or look at the ceiling, and reconstruct the shape of this lesson from nothing:</p>
+<ol>
+<li>State the ε–N definition of convergence and the ε–δ definition of a functional limit, and say which quantity may depend on which in each.</li>
+<li>What does reversing the two quantifiers in the ε–N definition turn convergence into? Give a sequence that satisfies the reversed version and not the real one.</li>
+<li>Why is scratch work not a proof, and what has to be true of the scratch work before it can be reversed into one?</li>
+<li>State the min-trick in one sentence, and say what each of the two constraints on δ is buying.</li>
+<li>What is the one clause of difference between the definition of a functional limit and the definition of continuity at a point, and why does dropping it cost nothing?</li>
+</ol>
+<details>
+<summary>Reveal the skeleton to check against</summary>
+<p>(1) ∀ε &gt; 0 ∃N with n ≥ N ⟹ |aₙ − a| &lt; ε; ∀ε &gt; 0 ∃δ &gt; 0 with 0 &lt; |x − c| &lt; δ ⟹ |f(x) − L| &lt; ε. In both, the second-named quantity may depend on the first-named one and never the reverse. (2) Into boundedness — 1, 0, 1, 0, … verconges to 0 and diverges. (3) Because it assumes the conclusion; it reverses only if every step is a biconditional, which fails as soon as a one-way bound like |x + 3| &lt; 7 is used. (4) δ = min(window, ε/bound): the window confines x so the other factor is bounded at all, the second constraint converts that bound into ε. (5) The 0 &lt; , dropped because x = c gives |f(c) − f(c)| = 0 &lt; ε.</p>
+</details>
+</div>
+<footer>Sources: Abbott, <em>Understanding Analysis</em> — §2.2, Definition 2.2.3 (convergence of a sequence) p. 39, Exercise 2.2.2 (the reversed quantifiers) p. 43. Cummings, <em>Real Analysis: A Long-Form Mathematics Textbook</em> — Ch. 6 "Continuity", §6.3, Definition 6.8 (functional limit) p. 226, Example 6.9 p. 231 and Example 6.10 p. 232 (both with their Scratch Work / Solution split, which this lesson's two-phase discipline is taken from); §6.5, Definition 6.16 (continuity at a point) p. 238 with its comparison to Definition 6.8 on the same page. The unit brief names "Cummings Real Analysis ch. 1-2"; sequences are Ch. 3 and functional limits and continuity are Ch. 6 in that book, and the pages above are the ones actually read. The x² and 1/x examples are composed; Cummings's own worked examples are linear after simplification and do not exercise the min-trick.</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

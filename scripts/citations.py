@@ -281,6 +281,40 @@ def found_on_page(result, blob, raw=None):
     return None
 
 
+def split_at_books(text, names):
+    """[(part, book_or_None)] — text cut at every point a book is named.
+
+    The first part carries None (it belongs to whatever was current), and each
+    later part carries the book whose name begins it. A name is only a cut
+    point if it starts a part: `see also Abbott` mid-sentence cuts there too,
+    which is the conservative reading — a citation after a book's name is
+    about that book.
+    """
+    hits = []
+    for name in names:
+        words = name.split()
+        for m in re.finditer(r"\b%s\b" % re.escape(words[0]), text, re.I):
+            if all(re.search(r"\b%s\b" % re.escape(w), text[m.start():], re.I)
+                   for w in words[1:]):
+                hits.append((m.start(), len(words), name))
+    if not hits:
+        return [(text, None)]
+    # At one position, the most specific name wins ("Cummings Real Analysis"
+    # over "Cummings"); positions are then taken in order.
+    best = {}
+    for pos, spec, name in hits:
+        if pos not in best or spec > best[pos][0]:
+            best[pos] = (spec, name)
+    cuts = sorted(best)
+    out = []
+    if cuts[0] > 0:
+        out.append((text[:cuts[0]], None))
+    for i, pos in enumerate(cuts):
+        end = cuts[i + 1] if i + 1 < len(cuts) else len(text)
+        out.append((text[pos:end], best[pos][1]))
+    return out
+
+
 def attribute(text, primary, names):
     """Assertions with the book each one is actually about.
 
@@ -290,20 +324,28 @@ def attribute(text, primary, names):
     them about the citation. Across the corpus that mechanism produced most of
     the failing rows, so the gate's own verdict could not be read.
 
-    Attribution is sticky and left-to-right: a clause naming a book is about
-    that book, and a clause naming none continues the last one named, which is
-    how these Sources blocks are actually written (`Oudot, ... — Chapter 2 ...
-    (p. 29); Definition 2.1 of a filtration ...`). Nothing named yet means the
-    unit's primary book.
+    Attribution is sticky and left-to-right, and it splits at each book NAME
+    rather than only at clause boundaries: everything from one book's name up
+    to the next book's name is about that book, and text before any name
+    continues the last one named — which is how these Sources blocks are
+    actually written (`Oudot, ... — Chapter 2 ... (p. 29); Definition 2.1 of a
+    filtration ...`). Nothing named yet means the unit's primary book.
+
+    Splitting on the name and not on the clause matters because authors
+    separate two books with a full stop, not a semicolon, and a full stop
+    cannot be used as a separator here — `p. 39` and `§2.2` both contain one.
+    pw-04's own footer named Abbott first and Cummings Real Analysis second in
+    one clause; the most-specific-match rule then attributed Abbott's two
+    citations to Cummings and failed both.
     """
     out = []
     for whole_span, line in spans(text):
         current = primary
         for span, pages in clauses(whole_span):
-            named = book_named_in(span, names)
-            if named is not None:
-                current = named
-            out.append((span, pages, line, current))
+            for part, named in split_at_books(span, names):
+                if named is not None:
+                    current = named
+                out.append((part, printed_pages_in(part) or pages, line, current))
     return out
 
 

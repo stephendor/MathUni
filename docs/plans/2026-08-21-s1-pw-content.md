@@ -1,6 +1,7 @@
 # S1 · Proof Workshop (`pw`) — content plan
 
-**Date:** 2026-08-21 · **Branch:** `s1-pw` (off `s1-gate-promotion`, see §6)
+**Date:** 2026-08-21, completed 2026-08-22 · **Branch:** `s1-pw` (cut off
+`s1-gate-promotion`; merged onto `main` after PR #20 landed, see §6)
 **Module:** 5 units · **Primary text:** Cummings, *Proofs: A Long-Form
 Mathematics Textbook*
 **Preceded by:** `docs/plans/2026-08-21-s1-gate-promotion.md`
@@ -19,14 +20,10 @@ five units are unblocked in DAG order.
 | Unit | Title | State | Note |
 |---|---|---|---|
 | pw-01 | Direct proof, contrapositive, contradiction | **✓** | pre-existing; 7 citations repaired (§3) |
-| pw-02 | Induction, strong induction, well-ordering | **L P** | pre-existing; **5 wrong citations open** (§3) |
-| pw-03 | Sets, functions, images and preimages | **L** | **no problem set**; fails gate 8; to re-author |
-| pw-04 | Epsilon-delta craft | **—** | unwritten |
-| pw-05 | Proof style: writing and critiquing | **—** | unwritten |
-
-Two of five are effectively done, one is half-built and needs re-authoring, and
-two are unwritten. `pw-03` is the only unit in the whole repository with a
-lesson and no problem set.
+| pw-02 | Induction, strong induction, well-ordering | **✓** | pre-existing; 5 wrong citations repaired, header rewritten (§3) |
+| pw-03 | Sets, functions, images and preimages | **✓** | mission strip repaired and struck from the drift list; 3 citations fixed; **problem set written** (§4) |
+| pw-04 | Epsilon-delta craft | **✓** | written this branch, lesson and set |
+| pw-05 | Proof style: writing and critiquing | **✓** | written this branch, lesson and set |
 
 ## 2. Verified source data
 
@@ -70,41 +67,87 @@ now closed) checks that a cited printed page carries the result it names.
 Printed p. 43 is Definition 2.8, divisibility. It appears three times in a unit
 that never cites divisibility.
 
-### Open — pw-02, five citations
+### Repaired — pw-02, five citations plus its header
 
-Not repaired here: `pw-02` is a unit of this module and gets a full read-back
-when its turn comes, not a sed pass.
+Repaired 2026-08-22 with a full read-back, not a sed pass. Every page below was
+read in the extract before the edit.
 
 | Where | Cited | Status |
 |---|---|---|
-| set, l. 14 | Exercise 4.1, p. 143 | not on p. 143 |
-| set, l. 35 | Exercise 4.7, p. 144 | not on p. 144 |
-| set, l. 56 | Exercise 4.12, pp. 131–133, 144 | not in that range |
-| set, l. 77 | Theorem 4.8, pp. 126–127 | not on those pages |
-| lesson, l. 196 | Theorem 4.8, pp. 126–127 | same, in the lesson |
+| set, l. 14 | Exercise 4.1, p. 143 | Exercise 4.1 is on p. **148** |
+| set, l. 35 | Exercise 4.7, p. 144 | p. **149** |
+| set, l. 56 | Exercise 4.12, pp. 131–133, 144 | Exercise 4.12 p. **149**; Proposition 4.10 runs **131–132**, §4.4 starts at 133 |
+| set, l. 77 | Theorem 4.8, pp. 126–127 | statement on **125**, proof 126–127, so **125–127** |
+| lesson, l. 196 | Theorem 4.8, pp. 126–127 | same repair |
+| set, header | "§4 Exercises (4.1, 4.7, 4.12), pp. 143–145" | **pp. 148–149**, and written with kind words so the gate can see it at all |
 
 Theorem 4.8 is the fundamental theorem of arithmetic, cited from `pw-01`'s
 chapter-7 footnote as proved by strong induction — so it is genuinely a `pw-02`
 result and only the page is wrong.
 
-### Open — pw-03, one citation
+### Repaired — pw-03, three citations
 
-`Definition 3.9` cited across pp. 82, 84, 252–253, 280–281 and not found. To be
-resolved when `pw-03` is re-authored; §3.4 "Set Operations" begins at p. 82, so
-the definition is nearby and the page is probably off by a small amount.
+| Where | Cited | Actually |
+|---|---|---|
+| footer | Definition 3.9 (complement) p. 84 | p. **83**, and it defines subtraction *and* complement |
+| footer + body | Definition 8.3 (injective) inside pp. 252–253 | p. **251**; the equivalent form is on 252 |
+| footer | Definition 8.5 / 8.7 both at p. 253 | 8.5 on **252**, 8.7 on 253 |
 
-## 4. Gate 8
+`pw-03` did **not** need re-authoring. The drift file records it as predating
+every S2 convention; that is true of its mission strip and false of its body,
+which already carries segments with timeboxes, a prediction gate, faded
+examples, a you-try, a guided proof, seven self-checks, an SVG and a
+blank-page ritual. Replacing a working artifact was not the assigned work
+(the same judgement as pw-01's parked draft, §7 D-3), so the repairs above are
+targeted and the lesson is otherwise untouched.
 
-`pw-03` is on `curriculum/mission-drift.txt` (Class A, content divergence): its
-lesson opens "continuity in topology is defined entirely via preimages — not
-images. By the end of today you'll see in your bones why that's the only sane
-choice", where the syllabus strip is "Continuity in topology is defined
-entirely via preimages." The syllabus sentence is a prefix of the lesson's, so
-the repair is to quote it and let the rest of the paragraph carry the flourish.
-`pw-03` comes off the drift list when it is re-authored. `pw-01` and `pw-02`
-pass gate 8 already.
+## 4. Gate 8 — pw-03 is off the drift list
 
-## 5. Per-unit procedure
+`pw-03`'s lesson opened "continuity in topology is defined entirely via
+preimages — not images. By the end of today you'll see in your bones why
+that's the only sane choice", where the syllabus strip is "Continuity in
+topology is defined entirely via preimages." The syllabus sentence was a
+prefix of the lesson's, so the repair was to quote it exactly and move the
+flourish to the paragraph below — the strip is a quotation, and prettifying or
+extending a quotation is editing it.
+
+`pw-03` is struck from `curriculum/mission-drift.txt`, which goes from 15
+entries to 14. Worth recording: the ratchet's **stale** rule fired on the
+repair before the strike, printing `STALE pw-03 passes now — strike it from
+curriculum/mission-drift.txt` and exiting 1. That is the first time that rule
+has run against a real repair rather than a synthetic control.
+
+All five `pw` units now pass gate 8 on their own.
+
+## 5. Written this branch — pw-04 and pw-05
+
+Both units were unwritten; both now have a lesson and a five-problem set, and
+both are green on gates 4-6, `lesson_lint` 15/15, gate 8, coverage and
+citations.
+
+**pw-04, Epsilon-delta craft.** Positioned against `an-03`, which already
+covers the ε–N definition, the Algebraic Limit Theorem and the Order Limit
+Theorem — so pw-04 is the *craft* and the ε–δ half that an-03 does not reach:
+quantifier order as order of play, the reversed-quantifier diagnostic
+(Abbott's "vercongence", which is boundedness wearing convergence's syntax),
+the Scratch Work / Proof discipline taken from Cummings's own two-phase
+examples, the min-trick for non-linear f, and continuity as the same game with
+L pinned to f(c). Sources read: Abbott Definition 2.2.3 p. 39 and Exercises
+2.2.2 p. 43, 2.2.7 p. 44; Cummings *Real Analysis* Definition 6.8 p. 226,
+Examples 6.9 p. 231 and 6.10 p. 232, Definition 6.16 p. 238, chapter exercises
+6.1, 6.2, 6.3, 6.5 p. 270.
+
+**pw-05, Proof style: writing and critiquing.** Built around the syllabus
+hook: a flawed proof of a true theorem carrying exactly five planted errors,
+graded in Segment 2. Four of the five are failures to declare, name or
+discharge something and are visible without arithmetic; one makes a written
+line false while leaving the conclusion true, so it has no downstream trace.
+Segment 3 is Cummings's asymmetry — a direct proof has one target and a slip
+leaves you visibly short of it, a contradiction proof accepts any falsehood at
+all, so a slip can manufacture its own contradiction and end looking like a
+success.
+
+## 6. Per-unit procedure
 
 As `docs/plans/2026-08-11-s2-content.md §Per-unit procedure`, with one change:
 step 5's source read-back keeps modality (`proves` / `states` /
@@ -118,15 +161,15 @@ python scripts/citations.py --unit <u>
 That split is deliberate. The manual read-back on `pw-01` found six defects and
 missed a seventh that the gate found on a file already read twice.
 
-## 6. Branch base — needs sequencing
+## 7. Branch base — resolved
 
-This branch is cut from `s1-gate-promotion`, not from `main`, because the gates
-these units are held to live there and PR #20 has not merged. CI's
-`pr-base-policy` requires every PR to target `main`, so a stacked PR is not
-possible: **PR #20 must merge before `pw` can open a PR.** Once it does, this
-branch rebases onto `main` and its diff is `pw` content alone.
+This branch was cut from `s1-gate-promotion` because the gates these units are
+held to lived there and PR #20 was open. CI's `pr-base-policy` requires every
+PR to target `main`, so a stacked PR was impossible and `pw` could not open one
+until #20 merged. #20 merged on 2026-08-22 as `de09ec2`; `main` is merged into
+this branch and its diff is now `pw` content plus the citation-gate work in §8.
 
-## 7. Open decisions
+## 8. Open decisions and new findings
 
 - **D-3.** `pw-01`'s pre-existing problem set has **six** problems where the
   house convention is five. A rewritten five-problem draft built from a fresh
@@ -142,3 +185,39 @@ branch rebases onto `main` and its diff is `pw` content alone.
   practice, but it means a reader cannot search the book for the string we
   printed. `citations.py` reports these as WARN. **Recommend:** leave them, and
   keep the warning, rather than inventing a convention mid-semester.
+
+- **D-5 (new).** Two syllabus resource lines point at material that does not
+  exist as described, and both are recorded in the relevant lesson footer
+  rather than silently worked around:
+  - `pw-04` lists "Cummings Real Analysis ch. 1-2". Sequences are Ch. 3 in that
+    book and functional limits and continuity are Ch. 6; the pages cited are
+    the ones actually read.
+  - `pw-05` lists "Cummings appendix" and an "Expository Writing folder". This
+    edition of Cummings has no writing appendix — its proof-writing advice is
+    distributed across nine per-chapter Pro-Tips sections (pp. 27, 65, 98, 145,
+    186, 208, 237, 275, 309) — and no Expository Writing resource exists in
+    `resources/bookmap.json`. **Recommend:** correct the two resource lines in
+    `syllabus.yaml` on a separate branch; content branches do not edit it.
+
+- **F-2 (new, source).** Cummings's own back-reference on printed p. 130 calls
+  the chocolate-bar result "Proposition 4.10". It is Proposition 4.9; 4.10 is
+  the 2a+5b proposition on p. 131. A book's cross-reference is not evidence
+  about a number — read the number off the page where the result is stated.
+
+- **F-3 (new, source).** Cummings's Fact 2.1 (p. 36) asserts that every integer
+  is even *or* odd — at least one parity, not at most one. Proofs that end "so
+  n² is both even and odd, contradiction" need the exclusivity, which comes
+  from the uniqueness clause of Theorem 2.11, the division algorithm (p. 46).
+  This is now the subject of pw-05's Error 4 and Problem 2 rather than a
+  footnote, because the gap is exactly the kind that "clearly" hides.
+
+- **F-4 (new, gate).** Using the citation gate on this module found four ways
+  a citation was going unchecked entirely, all of them silent-absence rather
+  than wrong verdicts, and one of them covering 190 citations corpus-wide. See
+  the commit `citations: four ways a citation was going unchecked`. The gate
+  now sees 2261 citations across the 90 lessons where it previously saw a
+  fraction of that. Its corpus-wide failure count is **not** yet a defect
+  count: the folio→PDF map is fitted once per book, and a book whose offset
+  drifts (Lindström fits −12 globally, −13 locally) fails every citation in a
+  unit while every one names the right page. Fitting per cited range is the
+  repair and is recorded as a known limit in the script's docstring.
