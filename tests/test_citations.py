@@ -399,3 +399,31 @@ def test_a_genuine_singleton_plateau_is_not_discarded():
     assert suspect_plateaus([(-3, 15, 15, 1), (-4, 16, 20, 5)]) == []
     assert suspect_plateaus([(-4, 10, 14, 5), (-3, 15, 15, 1),
                              (-5, 16, 20, 5)]) == []
+
+
+def test_a_plural_list_survives_a_parenthesised_part():
+    """`Exercises 8(a) and 8(b)` — the part interrupted the separator pattern,
+    so the whole list matched nothing and both exercises left the denominator.
+    top-02 cites exactly that."""
+    from scripts.citations import results_in
+    assert results_in("Exercises 8(a) and 8(b), pp. 83-84") == ["Exercise 8"]
+    assert results_in("Exercises 8(a) and 9(b)") == ["Exercise 8", "Exercise 9"]
+    assert results_in("Exercises 6.6-6.9") == ["Exercise 6.6", "Exercise 6.9"]
+
+
+def test_a_tree_with_no_usable_folio_map_is_unavailable_not_available(tmp_path,
+                                                                      monkeypatch):
+    """A tree that exists but yields no plateau cannot map any printed page.
+    Constructing a Book from it made the book look available and every citation
+    attributed to it came back "printed page(s) are not in <book>" with exit 1
+    — a wrong-citation verdict for a comparison that never ran."""
+    import pytest
+
+    import scripts.citations as C
+    page = tmp_path / "page-1"
+    page.mkdir()
+    (page / "markdown.md").write_text("prose with no folio at all\n",
+                                      encoding="utf-8")
+    monkeypatch.setattr(C, "pages_dir", lambda name: str(tmp_path))
+    with pytest.raises(RuntimeError, match="no usable folio map"):
+        C.Book("Fake")

@@ -95,9 +95,16 @@ PLURALS = {"Theorem": "Theorems", "Lemma": "Lemmas", "Proposition": "Proposition
            # denominator. (CodeRabbit review of PR #21.)
            "Principle": "Principles"}
 SINGULAR = {p.lower(): s for s, p in PLURALS.items()}
+# A member of a plural list may carry a PART: `Exercises 8(a) and 8(b)`. The
+# part interrupted the separator pattern, so the whole list matched nothing and
+# both exercises left the denominator — top-02 cites exactly that. The part is
+# matched here and dropped when the ids are built, since found_on_page already
+# strips a trailing item marker. (Codex review of PR #21.)
+_PART = r"(?:\s*\([a-z]\))?"
+_PNUM = NUMBER.pattern + _PART
 PLURAL = re.compile(
     r"\b(%s)\s+(%s(?:\s*(?:[-–—,/]|and|to)\s*%s)+)"
-    % ("|".join(PLURALS.values()), NUMBER.pattern, NUMBER.pattern))
+    % ("|".join(PLURALS.values()), _PNUM, _PNUM))
 # "p. 225", "pp. 41-42", "pp. 220–221" (hyphen or en dash) — and this repo's own
 # "printed 394" / "printed **268–274**" form, which is what the lab and an2
 # source blocks use. Accepting only `p.` left 1084 occurrences of `printed NNN`
@@ -338,6 +345,18 @@ class Book:
         # same offset on both sides are strays. (Codex review of PR #21.)
         suspect = suspect_plateaus(plateaus)
         self.plateaus = [p for p in plateaus if p not in suspect]
+        # A tree that exists but yields no usable plateau — empty directory, or
+        # no page in it carrying a detectable folio — cannot map any printed
+        # page. Constructing a Book from it made the book look AVAILABLE, and
+        # every citation attributed to it then came back "printed page(s) are
+        # not in <book>" with exit 1: a wrong-citation verdict for a comparison
+        # that never ran. An unusable tree is an absent tree.
+        # (Codex review of PR #21.)
+        if not self.plateaus:
+            raise RuntimeError(
+                "pages tree for %r has no usable folio map (%d page(s) read, "
+                "no pagination plateau): %s"
+                % (name, len(pages), self.dir))
 
     def pdf_pages_for(self, printed):
         """Every PDF page that could carry this printed folio.
@@ -802,6 +821,11 @@ def selftest():
     check_one("...and a dash inside such a list is still a range",
               printed_pages_in("pp. 41-42") == {41, 42}
               and printed_pages_in("pp. 10-12, 20") == {10, 11, 12, 20})
+    check_one("a plural list survives a parenthesised part",
+              results_in("Exercises 8(a) and 8(b), pp. 83-84") == ["Exercise 8"])
+    check_one("...and parts on distinct numbers still give distinct ids",
+              results_in("Exercises 8(a) and 9(b)")
+              == ["Exercise 8", "Exercise 9"])
     check_one("a displayed title names the book too",
               book_named_in("Aluffi, *Algebra: Chapter 0* — §I.5", ALUFFI,
                             ALUFFI_TITLES) == "Aluffi Chapter 0")
