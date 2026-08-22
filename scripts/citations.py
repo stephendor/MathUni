@@ -529,8 +529,17 @@ def book_label_for(num, raw):
     # "1 Prove that ..." and Lindström writes "1. Let f, g ..." — one
     # punctuation mark apart, and omitting it turned every Lindström exercise
     # citation in the an2 sets into a hard FAIL.
-    m = re.search(r"^\s*%s[.)]?\s+([A-Za-z$\\][^\n]*)$" % re.escape(num),
-                  raw, re.M)
+    #
+    # An exercise whose first part is lettered opens with the item marker
+    # rather than a word — Axler's 2.A.5 is printed "5 (a) Show that if we
+    # think of C as a vector space over R ...". Demanding a letter immediately
+    # after the number reported that citation as a wrong page while it named
+    # the right one. The marker is admitted, but only in bracketed item form
+    # and still followed by prose, so a displayed formula opening "5 (x + y)"
+    # is not promoted to a header.
+    m = re.search(
+        r"^\s*%s[.)]?\s+(?:\((?:[a-z]|[ivx]{1,4}|\d{1,2})\)\s*)?"
+        r"([A-Za-z$\\][^\n]*)$" % re.escape(num), raw, re.M)
     return re.sub(r"[*#$]", "", m.group(1)).strip()[:60] if m else None
 
 
@@ -905,6 +914,17 @@ def selftest():
                             "we mention 9.9 in passing here") is None)
     check_one("a bare number in prose does not count as a header",
               book_label_for("9.9", "as shown in 9.9 above, the result") is None)
+
+    # Axler prints a lettered exercise as "5 (a) Show that ...". The item
+    # marker sits where the guard demanded a word, so the exercise had no
+    # label and a correct citation to it was reported as a wrong page.
+    check_one("a lettered exercise item is a header despite the (a) marker",
+              book_label_for("5", "5 (a) Show that if we think of C as a vector")
+              == "Show that if we think of C as a vector")
+    check_one("...and the marker does not admit a displayed formula",
+              book_label_for("5", "5 (x + y) = 5x + 5y for all x, y") is None)
+    check_one("...nor a bare marker with no prose after it",
+              book_label_for("5", "5 (a)") is None)
 
     # Abbott numbers three deep. Truncating to two components turns a wrong
     # citation into a passing one.
