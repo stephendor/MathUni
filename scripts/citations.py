@@ -51,6 +51,7 @@ import argparse
 import os
 import re
 import sys
+import unicodedata
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -222,6 +223,27 @@ def clauses(span):
     return [(c, printed_pages_in(c) or whole) for c in parts]
 
 
+def deaccent(text):
+    """Strip combining marks so a displayed name matches its bookmap key.
+
+    The corpus writes Lindström with the umlaut — 275 times across the nine
+    an2 files — while the bookmap key is ASCII "Lindstrom". A literal match saw
+    none of them, so every an2 clause that DID name its book was attributed to
+    the unit's other source and its citations were reported wrong. I had put
+    those failures down to spans that omit the book name; the spans name it,
+    and the matcher could not read it. (Codex review of PR #21.)
+
+    Length-preserving, one character in for one character out, because
+    split_at_books slices the ORIGINAL text at the match offsets: dropping a
+    combining mark outright would shift every position after it.
+    """
+    out = []
+    for c in text:
+        d = unicodedata.normalize("NFKD", c)
+        out.append(d[0] if d and not unicodedata.combining(d[0]) else c)
+    return "".join(out)
+
+
 def name_pattern(name):
     """A regex matching a bookmap key as a CONSECUTIVE phrase.
 
@@ -238,7 +260,8 @@ def name_pattern(name):
     """
     gap = r"[\s,:;*_\-–—'\"()]*"
     return re.compile(
-        r"\b" + gap.join(re.escape(w) for w in name.split()) + r"\b", re.I)
+        r"\b" + gap.join(re.escape(w) for w in deaccent(name).split()) + r"\b",
+        re.I)
 
 
 def book_named_in(text, names):
@@ -249,8 +272,9 @@ def book_named_in(text, names):
     is what separates the two Cummings volumes and the two Aluffis.
     """
     best = None
+    flat = deaccent(text)
     for name in names:
-        if name_pattern(name).search(text):
+        if name_pattern(name).search(flat):
             if best is None or len(name.split()) > len(best.split()):
                 best = name
     return best
@@ -323,10 +347,14 @@ def book_label_for(num, raw):
     m = re.search(r"^\*\*%s\**\s+(.+)$" % re.escape(num), raw, re.M)
     if m:
         return re.sub(r"[*#$]", "", m.group(1)).strip()[:60]
-    # A bare numbered item: the number at the start of a line, then a space,
-    # then prose. Anchored and requiring a following word so that a page
-    # number or a stray figure caption does not qualify.
-    m = re.search(r"^\s*%s\s+([A-Za-z$\\][^\n]*)$" % re.escape(num), raw, re.M)
+    # A bare numbered item: the number at the start of a line, an optional
+    # "." or ")", then prose. Anchored and requiring a following word so that a
+    # page number or a stray figure caption does not qualify. Axler writes
+    # "1 Prove that ..." and Lindström writes "1. Let f, g ..." — one
+    # punctuation mark apart, and omitting it turned every Lindström exercise
+    # citation in the an2 sets into a hard FAIL.
+    m = re.search(r"^\s*%s[.)]?\s+([A-Za-z$\\][^\n]*)$" % re.escape(num),
+                  raw, re.M)
     return re.sub(r"[*#$]", "", m.group(1)).strip()[:60] if m else None
 
 
@@ -388,8 +416,9 @@ def split_at_books(text, names):
     # "Cummings" as though it were the three-word key, sending the Proofs
     # citations to the wrong volume. (CodeRabbit review of PR #21.)
     hits = []
+    flat = deaccent(text)          # same length as text, so offsets carry over
     for name in names:
-        for m in name_pattern(name).finditer(text):
+        for m in name_pattern(name).finditer(flat):
             hits.append((m.start(), len(name.split()), name))
     if not hits:
         return [(text, None)]
@@ -706,6 +735,14 @@ def selftest():
     check_one("...and a dash inside such a list is still a range",
               printed_pages_in("pp. 41-42") == {41, 42}
               and printed_pages_in("pp. 10-12, 20") == {10, 11, 12, 20})
+    check_one("an accented display name matches its ASCII bookmap key",
+              book_named_in("Lindström, Definition 3.1.1, p. 44",
+                            ["Abbott", "Lindstrom"]) == "Lindstrom")
+    check_one("...and de-accenting preserves offsets, so slicing still works",
+              len(deaccent("Lindström")) == len("Lindström")
+              and [n for _p, n in split_at_books(
+                  "Abbott, p. 223; Lindström, p. 44",
+                  ["Abbott", "Lindstrom"])] == ["Abbott", "Lindstrom"])
     check_one("'to' and '/' join a plural citation",
               results_in("Definitions 12.1 to 12.5")
               == ["Definition 12.1", "Definition 12.5"]
@@ -731,11 +768,14 @@ def main(argv=None):
     paths = list(a.paths)
     book_name = a.book
     if a.unit:
+        # BOTH halves, present or not. Filtering on exists() meant a unit whose
+        # lesson had never been written reported the verdict of its problem set
+        # alone and looked fully checked, which is exactly the state --unit is
+        # supposed to expose. A missing half now reaches the unreadable-input
+        # path and returns 2. (Codex review of PR #21.)
         mod = a.unit.rsplit("-", 1)[0]
-        for p in (os.path.join(REPO, "problems", "sets", a.unit + ".md"),
-                  os.path.join(REPO, "lessons", mod, a.unit + ".html")):
-            if os.path.exists(p):
-                paths.append(p)
+        paths.extend([os.path.join(REPO, "problems", "sets", a.unit + ".md"),
+                      os.path.join(REPO, "lessons", mod, a.unit + ".html")])
         book_name = book_name or book_for_unit(a.unit)
     if not paths:
         ap.error("give paths or --unit")

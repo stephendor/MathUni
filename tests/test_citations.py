@@ -324,3 +324,25 @@ def test_to_and_slash_join_a_plural_citation():
                                                       "Definition 12.5"]
     assert results_in("Definitions 12.1/12.5") == ["Definition 12.1",
                                                    "Definition 12.5"]
+
+
+def test_an_accented_display_name_matches_its_ascii_bookmap_key():
+    """The corpus writes Lindström with the umlaut 275 times; the bookmap key
+    is ASCII. A literal match saw none of them, so every an2 clause that DID
+    name its book was attributed to the unit's other source."""
+    from scripts.citations import book_named_in, deaccent, split_at_books
+    names = ["Abbott", "Lindstrom"]
+    assert book_named_in("Lindström, Definition 3.1.1, p. 44", names) \
+        == "Lindstrom"
+    # Length-preserving, because split_at_books slices the original text.
+    assert len(deaccent("Lindström")) == len("Lindström")
+    assert [n for _p, n in split_at_books(
+        "Abbott, p. 223; Lindström, p. 44", names)] == ["Abbott", "Lindstrom"]
+
+
+def test_unit_requires_both_halves(tmp_path, capsys):
+    """Filtering the two paths on exists() meant a unit whose lesson was never
+    written reported its problem set's verdict alone and looked checked."""
+    from scripts.citations import main
+    assert main(["--unit", "aa-05"]) == 2
+    assert "could not read" in capsys.readouterr().out
