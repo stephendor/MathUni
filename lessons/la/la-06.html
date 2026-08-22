@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-06 — Null space, range, fundamental theorem</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Null space, range, fundamental theorem <span class="cite">(la-06)</span></h1>
+
+<div class="hook">
+Conservation law for dimensions: nothing is created or destroyed.
+<p>Every linear map <var>T</var> : <var>V</var> → <var>W</var> carries two subspaces around with it. One sits in the domain — the vectors <var>T</var> crushes to zero — and one sits in the codomain — the vectors <var>T</var> actually reaches. They live in different spaces, they measure opposite things, and there is no reason on the face of it for their sizes to be related.</p>
+<p>They are related, exactly, and by an equation with no error term: dim <var>V</var> = dim null <var>T</var> + dim range <var>T</var>. Every dimension of the domain is either destroyed or transmitted, never both and never neither. Axler calls this the Fundamental Theorem of Linear Maps, and it earns the name: almost everything in the rest of the module is a rearrangement of it. It is also, quite literally, the arithmetic behind Betti numbers — a homology group is a null space modulo a range, and its dimension is what this equation lets you compute.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Ask whether a linear map can send exactly what it kills. That is, is there a linear map <var>T</var> : <strong>R</strong>⁴ → <strong>R</strong>⁴ with range <var>T</var> = null <var>T</var>? And is there one <var>T</var> : <strong>R</strong>⁵ → <strong>R</strong>⁵ with range <var>T</var> = null <var>T</var>? Commit to yes or no for <em>each</em> of the two, before Segment 3 — and if your two answers differ, say what distinguishes 4 from 5.
+</div>
+
+<p class="mission">Why this matters for the mission: Homology literally = null space of one map modulo range of another.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>The null space, and what it detects</h2>
+
+<div class="definition">
+<strong>Definition 3.12 (null space).</strong> For <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>), the <em>null space</em> of <var>T</var> is null <var>T</var> = {<var>v</var> ∈ <var>V</var> : <var>Tv</var> = 0}. <span class="cite">— Axler §3.B, Definition 3.12, p. 59</span>
+</div>
+
+<p>Many authors, and essentially all of topology, write <strong>kernel</strong> and ker <var>T</var> for the same set. The two names are interchangeable, and this unit's mission strip uses the topologists' one — when you meet ker ∂ in a chain complex, it is Definition 3.12 and nothing more. <span class="cite">— Axler §3.B, p. 59</span></p>
+
+<div class="worked">
+<strong>Worked example — five null spaces (fully worked).</strong> Computing a null space means solving <var>Tv</var> = 0, and the answers are more varied than the definition suggests.
+<p><em>Zero map</em> <var>V</var> → <var>W</var>: everything is killed, so null <var>T</var> = <var>V</var>. <em>φ</em>(<var>z</var>₁, <var>z</var>₂, <var>z</var>₃) = <var>z</var>₁ + 2<var>z</var>₂ + 3<var>z</var>₃ on <strong>C</strong>³: null φ is the plane <var>z</var>₁ + 2<var>z</var>₂ + 3<var>z</var>₃ = 0, with basis (−2, 1, 0), (−3, 0, 1).</p>
+<p><em>Differentiation</em> <var>D</var> on 𝒫(<strong>R</strong>): the polynomials with zero derivative are exactly the constants, so null <var>D</var> is the constant polynomials. <em>Multiplication by <var>x</var>²</em>: <var>x</var>²<var>p</var>(<var>x</var>) is the zero polynomial only when <var>p</var> is, so null <var>T</var> = {0}. <em>Backward shift</em> on <strong>F</strong><sup>∞</sup>: <var>T</var>(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃, …) = (<var>x</var>₂, <var>x</var>₃, …) vanishes exactly when every entry after the first does, so null <var>T</var> = {(<var>a</var>, 0, 0, …) : <var>a</var> ∈ <strong>F</strong>}. <span class="cite">— Axler §3.B, Example 3.13, p. 59</span></p>
+<p>Look back over the five: each is a subspace of the domain. That is not a coincidence about these examples.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.14 (the null space is a subspace).</strong> If <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>), then null <var>T</var> is a subspace of <var>V</var>. <span class="cite">— Axler §3.B, Theorem 3.14, p. 60</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> Run la-02's three-condition test. <em>Contains 0:</em> <var>T</var>(0) = 0 by la-05's Theorem 3.11, so 0 ∈ null <var>T</var>. <em>Closed under addition:</em> if <var>Tu</var> = <var>Tv</var> = 0 then <var>T</var>(<var>u</var> + <var>v</var>) = <var>Tu</var> + <var>Tv</var> = 0 + 0 = 0. <em>Closed under scalar multiplication:</em> if <var>Tu</var> = 0 then <var>T</var>(λ<var>u</var>) = λ<var>Tu</var> = λ0 = 0.
+<p>Each of the three checks is one clause of Definition 3.2 used once, in the same order. That is the pattern for every "this set is a subspace" proof in this unit, and the interest lies not in the verification but in which clause supplies which condition. <span class="cite">— Axler §3.B, p. 60</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 3.15 (injective).</strong> A function <var>T</var> : <var>V</var> → <var>W</var> is <em>injective</em> if <var>Tu</var> = <var>Tv</var> implies <var>u</var> = <var>v</var> — equivalently, if distinct inputs always have distinct outputs. Many authors say <em>one-to-one</em>. <span class="cite">— Axler §3.B, Definition 3.15, p. 60</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.16 (injectivity is a condition at 0).</strong> Let <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>). Then <var>T</var> is injective if and only if null <var>T</var> = {0}. <span class="cite">— Axler §3.B, Theorem 3.16, p. 61</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> (⇒) {0} ⊆ null <var>T</var> always. For the reverse, take <var>v</var> ∈ null <var>T</var>; then <var>Tv</var> = 0 = <var>T</var>(0), and injectivity forces <var>v</var> = 0.
+<p>(⇐) Suppose null <var>T</var> = {0} and <var>Tu</var> = <var>Tv</var>. Then <var>T</var>(<var>u</var> − <var>v</var>) = <var>Tu</var> − <var>Tv</var> = 0, so <var>u</var> − <var>v</var> ∈ null <var>T</var> = {0}, giving <var>u</var> = <var>v</var>. <span class="cite">— Axler §3.B, p. 61</span></p>
+</div>
+
+<div class="heuristic">
+<strong>Why this theorem is a gift.</strong> Injectivity as defined quantifies over <em>every pair</em> of vectors in <var>V</var>. Theorem 3.16 replaces that with a condition at the single point 0. The reason it can is linearity: the difference <var>u</var> − <var>v</var> converts any statement about a pair into a statement about one vector, and there is nothing special about the pair beyond their difference. Expect this reduction wherever linearity is available — the definition of linear independence in la-03 is the same trick applied to representations.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> The backward shift <var>T</var> on <strong>F</strong><sup>∞</sup> has null <var>T</var> = {(<var>a</var>, 0, 0, …) : <var>a</var> ∈ <strong>F</strong>}. Is <var>T</var> injective?</p>
+<button onclick="check(this,false)">Yes — it forgets only one entry</button>
+<button onclick="check(this,true)" data-ok>No — its null space contains nonzero vectors</button>
+<button onclick="check(this,false)">Cannot be decided without knowing whether <var>T</var> is surjective</button>
+<div class="explain">null <var>T</var> is one-dimensional, not {0}, so Theorem 3.16 says <var>T</var> is not injective — for instance (1, 0, 0, …) and (0, 0, 0, …) have the same image. "Forgets only one entry" is exactly the failure: distinct first entries produce identical outputs. Injectivity and surjectivity are logically independent for maps on infinite-dimensional spaces, and the backward shift is in fact surjective while not being injective.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~20 min</span>
+<h2>The range, and what it depends on</h2>
+
+<div class="definition">
+<strong>Definition 3.17 (range) and Definition 3.20 (surjective).</strong> For <var>T</var> a function from <var>V</var> to <var>W</var>, range <var>T</var> = {<var>Tv</var> : <var>v</var> ∈ <var>V</var>}. The function <var>T</var> is <em>surjective</em> if range <var>T</var> equals <var>W</var>. Many authors write <em>image</em> for the range and <em>onto</em> for surjective. <span class="cite">— Axler §3.B, Definition 3.17, p. 61, and Definition 3.20, p. 62</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.19 (the range is a subspace).</strong> If <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>), then range <var>T</var> is a subspace of <var>W</var>. <span class="cite">— Axler §3.B, Theorem 3.19, p. 62</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true, and how the proof differs from Theorem 3.14's.</strong> Again three checks, but each now begins by <em>naming a preimage</em>. 0 = <var>T</var>(0) is in the range. If <var>w</var>₁, <var>w</var>₂ ∈ range <var>T</var>, choose <var>v</var>₁, <var>v</var>₂ with <var>Tv</var><sub>1</sub> = <var>w</var>₁ and <var>Tv</var><sub>2</sub> = <var>w</var>₂; then <var>T</var>(<var>v</var>₁ + <var>v</var>₂) = <var>w</var>₁ + <var>w</var>₂, so the sum is in the range. Similarly <var>T</var>(λ<var>v</var>) = λ<var>w</var>.
+<p>The difference is worth noticing because it recurs. A null-space proof <em>assumes</em> an equation about the vector in hand; a range proof <em>produces</em> a witness and then computes with it. Membership of a null space is a property you can check; membership of a range is an existence claim. <span class="cite">— Axler §3.B, p. 62</span></p>
+</div>
+
+<p>In practice a range is computed, not guessed at. If <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> spans <var>V</var>, then range <var>T</var> = span(<var>Tv</var>₁, …, <var>Tv</var><sub><var>n</var></sub>): every output is a combination of those images, and conversely each image is an output, so the smallest-subspace characterisation of span applies, which is la-03's. <span class="cite">— Axler §2.A, Theorem 2.7, p. 29</span> Proving this identity is one of the problems in this unit's set, and it is the tool that turns "find the range" into "find a basis of a span".</p>
+
+<div class="worked">
+<strong>Worked example — surjectivity is not a property of the map alone (fully worked).</strong> Let <var>D</var> ∈ ℒ(𝒫₅(<strong>R</strong>), 𝒫₅(<strong>R</strong>)) be differentiation. It is <em>not</em> surjective: <var>x</var>⁵ has no preimage, since a polynomial of degree at most 5 differentiates to one of degree at most 4.
+<p>Now let <var>S</var> ∈ ℒ(𝒫₅(<strong>R</strong>), 𝒫₄(<strong>R</strong>)) be given by the very same formula <var>Sp</var> = <var>p</var>′. This map <em>is</em> surjective, since every polynomial of degree at most 4 is the derivative of one of degree at most 5. Nothing about the rule changed; only the declared codomain did. Surjectivity is a statement about the pair (map, codomain), and range <var>T</var> — which is intrinsic — is the thing that does not move. <span class="cite">— Axler §3.B, Example 3.21, p. 62</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Contrast — a range computed by hand.</strong> Let <var>T</var> ∈ ℒ(<strong>R</strong>², <strong>R</strong>³) be <var>T</var>(<var>x</var>, <var>y</var>) = (2<var>x</var>, 5<var>y</var>, <var>x</var> + <var>y</var>). Then range <var>T</var> = {(2<var>x</var>, 5<var>y</var>, <var>x</var> + <var>y</var>) : <var>x</var>, <var>y</var> ∈ <strong>R</strong>}, which splitting by parameter is span((2, 0, 1), (0, 5, 1)); those two are independent, so they form a basis and dim range <var>T</var> = 2. Since dim <strong>R</strong>³ = 3, the range is a proper subspace and <var>T</var> is not surjective. <span class="cite">— Axler §3.B, Example 3.18, p. 61</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which is the correct reading of "range <var>T</var> is a subspace of <var>W</var>"?</p>
+<button onclick="check(this,false)">range <var>T</var> is a subspace of <var>V</var>, since its elements come from <var>V</var></button>
+<button onclick="check(this,true)" data-ok>range <var>T</var> ⊆ <var>W</var> and satisfies the three subspace conditions there</button>
+<button onclick="check(this,false)">range <var>T</var> equals <var>W</var> whenever <var>T</var> is linear</button>
+<div class="explain">The range consists of <em>outputs</em>, which are vectors of <var>W</var>. Keeping the two straight matters throughout: null <var>T</var> lives in the domain, range <var>T</var> in the codomain, and the Fundamental Theorem in Segment 3 relates their dimensions across that divide. The third option would make every linear map surjective, which Example 3.21 disproves.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The Fundamental Theorem, and what it forbids</h2>
+
+<div class="theorem">
+<strong>Theorem 3.22 (Fundamental Theorem of Linear Maps).</strong> Suppose <var>V</var> is finite-dimensional and <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>). Then range <var>T</var> is finite-dimensional and
+<br>dim <var>V</var> = dim null <var>T</var> + dim range <var>T</var>. <span class="cite">— Axler §3.B, Theorem 3.22, p. 63</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> The construction is la-04's "extend a basis" move, aimed at the null space. Take a basis <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub> of null <var>T</var>, so dim null <var>T</var> = <var>m</var>, and extend it to a basis <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>, <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> of <var>V</var>, so dim <var>V</var> = <var>m</var> + <var>n</var>. The claim is that <var>Tv</var>₁, …, <var>Tv</var><sub><var>n</var></sub> is a basis of range <var>T</var>, which gives dim range <var>T</var> = <var>n</var> and finishes the arithmetic.
+<p><em>It spans.</em> Any <var>v</var> ∈ <var>V</var> expands along the full basis; applying <var>T</var>, every <var>Tu</var><sub><var>j</var></sub> term vanishes — that is what it means for the <var>u</var>'s to be in the null space — leaving <var>Tv</var> = <var>b</var>₁<var>Tv</var>₁ + ⋯ + <var>b</var><sub><var>n</var></sub><var>Tv</var><sub><var>n</var></sub>. So every element of the range is reached.</p>
+<p><em>It is independent.</em> If <var>c</var>₁<var>Tv</var>₁ + ⋯ + <var>c</var><sub><var>n</var></sub><var>Tv</var><sub><var>n</var></sub> = 0, then <var>T</var>(<var>c</var>₁<var>v</var>₁ + ⋯ + <var>c</var><sub><var>n</var></sub><var>v</var><sub><var>n</var></sub>) = 0, so that combination lies in null <var>T</var> and is therefore expressible in the <var>u</var>'s alone. Comparing the two expressions gives a dependence relation among <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub>, <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> — a basis of <var>V</var> — so every coefficient vanishes, the <var>c</var>'s included. <span class="cite">— Axler §3.B, pp. 63–64</span></p>
+<p>The single sentence to carry away: <em>the range is a faithful copy of any complement of the null space</em>. The <var>v</var>'s span such a complement, and <var>T</var> transports them to a basis of the range without collapsing anything, because everything collapsible was put into the <var>u</var>'s first.</p>
+</div>
+
+<h3>Canvas: the conservation law</h3>
+<p>A bar of fixed length dim <var>V</var>, splitting into the part destroyed (null space, red) and the part transmitted (range, green) as the map varies. The two pieces trade against each other; their total never changes.</p>
+<canvas id="ft" width="440" height="240"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('ft'),ctx=cv.getContext('2d');
+const N=8,x0=50,x1=390,y=100,h=34;
+let t=0;
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const k=Math.round((N/2)*(1+Math.sin(t)));   // dim null T, 0..N
+  const cut=x0+(x1-x0)*k/N;
+  ctx.fillStyle='#e06c75';ctx.fillRect(x0,y,cut-x0,h);
+  ctx.fillStyle='#4caf82';ctx.fillRect(cut,y,x1-cut,h);
+  ctx.strokeStyle='#2a333d';ctx.lineWidth=1;
+  for(let i=0;i<=N;i++){
+    const x=x0+(x1-x0)*i/N;
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+h);ctx.stroke();
+  }
+  ctx.fillStyle='#e8e8e8';ctx.font='13px sans-serif';ctx.textAlign='center';
+  ctx.fillText('dim V = '+N,(x0+x1)/2,y-18);
+  ctx.fillStyle='#e06c75';
+  ctx.fillText('dim null T = '+k,x0+70,y+h+24);
+  ctx.fillStyle='#4caf82';
+  ctx.fillText('dim range T = '+(N-k),x1-75,y+h+24);
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';
+  ctx.fillText(k+' + '+(N-k)+' = '+N+', always',(x0+x1)/2,y+h+56);
+  ctx.textAlign='left';
+  t+=0.008;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="theorem">
+<strong>Theorems 3.23 and 3.24 (what dimension forbids).</strong> If <var>V</var> and <var>W</var> are finite-dimensional and dim <var>V</var> &gt; dim <var>W</var>, no linear map from <var>V</var> to <var>W</var> is injective. If dim <var>V</var> &lt; dim <var>W</var>, no linear map from <var>V</var> to <var>W</var> is surjective. <span class="cite">— Axler §3.B, Theorem 3.23 and Theorem 3.24, p. 64</span>
+</div>
+
+<div class="worked fade">
+<strong>Why they are true — the Fundamental Theorem rearranged twice.</strong> For 3.23: dim null <var>T</var> = dim <var>V</var> − dim range <var>T</var> ≥ dim <var>V</var> − dim <var>W</var> &gt; 0, the middle step because range <var>T</var> is a subspace of <var>W</var> and so has dimension at most dim <var>W</var> (la-04, Theorem 2.38). A positive-dimensional null space contains a nonzero vector, so Theorem 3.16 denies injectivity.
+<p>For 3.24: dim range <var>T</var> = dim <var>V</var> − dim null <var>T</var> ≤ dim <var>V</var> &lt; dim <var>W</var>, so range <var>T</var> cannot be all of <var>W</var>. Each proof is one line of arithmetic plus one inequality; the theorem doing the work is 3.22 in both cases. <span class="cite">— Axler §3.B, p. 64</span></p>
+</div>
+
+<div class="worked">
+<strong>Worked example — two facts about linear systems, for free (fully worked).</strong> Fix scalars <var>A</var><sub><var>j</var>,<var>k</var></sub> and define <var>T</var> : <strong>F</strong><var>ⁿ</var> → <strong>F</strong><var>ᵐ</var> by sending (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) to the list whose <var>j</var>-th slot is <var>A</var><sub><var>j</var>,1</sub><var>x</var>₁ + ⋯ + <var>A</var><sub><var>j</var>,<var>n</var></sub><var>x</var><sub><var>n</var></sub>, as in la-05.
+<p><em>Homogeneous systems.</em> Solving <var>A</var><var>x</var> = 0 is asking for null <var>T</var>, and asking for a nonzero solution is asking whether null <var>T</var> ≠ {0}, i.e. whether <var>T</var> fails to be injective (Theorem 3.16). If there are more variables than equations, <var>n</var> &gt; <var>m</var>, so dim <strong>F</strong><var>ⁿ</var> &gt; dim <strong>F</strong><var>ᵐ</var> and Theorem 3.23 applies: <strong>a homogeneous system with more variables than equations has nonzero solutions.</strong> <span class="cite">— Axler §3.B, Example 3.25, p. 65, and Theorem 3.26, p. 65</span></p>
+<p><em>Inhomogeneous systems.</em> Solving <var>A</var><var>x</var> = <var>c</var> for every right-hand side <var>c</var> is asking whether range <var>T</var> = <strong>F</strong><var>ᵐ</var>. If there are more equations than variables, <var>n</var> &lt; <var>m</var>, and Theorem 3.24 applies: <strong>an inhomogeneous system with more equations than variables has no solution for some choice of constant terms.</strong> <span class="cite">— Axler §3.B, Example 3.27, p. 66, and Theorem 3.29, p. 66</span></p>
+<p>Both are usually proved by Gaussian elimination. Neither proof here computes anything at all — the entire content is a dimension count, and the elimination algorithm is nowhere in sight. <span class="cite">— Axler §3.B, p. 66</span></p>
+</div>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="worked">
+<strong>Verdict: yes for <strong>R</strong>⁴, no for <strong>R</strong>⁵ — and the reason is parity.</strong> Suppose <var>T</var> ∈ ℒ(<var>V</var>, <var>V</var>) with range <var>T</var> = null <var>T</var>. Then the two have the same dimension, call it <var>k</var>, and Theorem 3.22 gives dim <var>V</var> = <var>k</var> + <var>k</var> = 2<var>k</var>. So dim <var>V</var> must be <strong>even</strong>. That instantly rules out <strong>R</strong>⁵ — 5 is not twice an integer — with no need to inspect any particular map.
+<p>For <strong>R</strong>⁴, the count permits <var>k</var> = 2, and a map achieving it exists: define <var>T</var>(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃, <var>x</var>₄) = (0, 0, <var>x</var>₁, <var>x</var>₂). Its range is {(0, 0, <var>a</var>, <var>b</var>)}, and its null space is the set where <var>x</var>₁ = <var>x</var>₂ = 0, which is the same subspace {(0, 0, <var>a</var>, <var>b</var>)}. Both have dimension 2, and 2 + 2 = 4 as the theorem requires. <span class="cite">— cf. Axler §3.B, Exercises 5 and 6, p. 67</span></p>
+<p>That map was given by a formula, but it could equally have been specified by its values on the standard basis — sending <var>e</var>₁ and <var>e</var>₂ to <var>e</var>₃ and <var>e</var>₄, and <var>e</var>₃ and <var>e</var>₄ to 0, which is la-05's route. <span class="cite">— Axler §3.A, Theorem 3.5, p. 54</span> Prescribing values on a basis is usually the quicker route when a map has to be built to a specification rather than analysed.</p>
+<p>Hold onto the configuration range <var>T</var> ⊆ null <var>T</var>, because it is the defining condition of a <em>chain complex</em>: applying the map twice gives zero. The mission strip's ∂ satisfies exactly this, homology measures the gap null ∂ / range ∂, and the case above — where the two coincide — is the case where that gap is trivial and the Betti number is 0.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> <var>T</var> ∈ ℒ(<strong>R</strong>⁷, <strong>R</strong>⁴) and dim null <var>T</var> = 3. Is <var>T</var> surjective?</p>
+<button onclick="check(this,true)" data-ok>Yes — dim range <var>T</var> = 7 − 3 = 4 = dim <strong>R</strong>⁴</button>
+<button onclick="check(this,false)">No — Theorem 3.24 forbids it</button>
+<button onclick="check(this,false)">Cannot say without knowing the map</button>
+<div class="explain">Theorem 3.22 gives dim range <var>T</var> = 4, and range <var>T</var> is a subspace of <strong>R</strong>⁴ of the same dimension as <strong>R</strong>⁴, so it equals <strong>R</strong>⁴ by la-04's guided-proof result. Theorem 3.24 does not apply: it forbids surjectivity only when dim <var>V</var> &lt; dim <var>W</var>, and here 7 &gt; 4. Note the two-step shape — the theorem yields a <em>number</em>, and a further argument is needed to turn that number into a statement about a set.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> A homogeneous system of 4 linear equations in 5 unknowns is given. What can be said?</p>
+<button onclick="check(this,true)" data-ok>It has a nonzero solution</button>
+<button onclick="check(this,false)">It has only the zero solution</button>
+<button onclick="check(this,false)">It has a nonzero solution provided no equation is a multiple of another</button>
+<div class="explain">Theorem 3.26: more variables (5) than equations (4) forces a nonzero solution. The third option adds a hypothesis that is not needed — repeated or redundant equations only make the null space bigger, never smaller, so the conclusion survives them. Note also what is <em>not</em> claimed: nothing is said about how many solutions, only that the zero one is not alone.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where in the proof of Theorem 3.22 is it used that the <var>u</var>'s lie in the null space?</p>
+<button onclick="check(this,false)">Nowhere — the proof only needs them to be part of a basis</button>
+<button onclick="check(this,true)" data-ok>In the spanning half, where applying <var>T</var> to the expansion makes every <var>Tu</var><sub><var>j</var></sub> term vanish</button>
+<button onclick="check(this,false)">In the independence half, to conclude that the <var>c</var>'s are zero</button>
+<div class="explain">Applying <var>T</var> to <var>v</var> = Σ<var>a</var><sub><var>j</var></sub><var>u</var><sub><var>j</var></sub> + Σ<var>b</var><sub><var>j</var></sub><var>v</var><sub><var>j</var></sub> leaves only the <var>v</var>-terms precisely because <var>Tu</var><sub><var>j</var></sub> = 0 — that is what makes <var>Tv</var>₁, …, <var>Tv</var><sub><var>n</var></sub> span the range rather than merely sit inside it. The independence half uses instead that the <var>u</var>'s <em>span</em> the null space, a different property of the same list, which is why the proof needs a basis of null <var>T</var> and not just any independent list inside it.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) is injective and <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> is linearly independent in <var>V</var>. Prove that <var>Tv</var>₁, …, <var>Tv</var><sub><var>n</var></sub> is linearly independent in <var>W</var>. (This is the converse of la-05's guided proof, which needed no hypothesis on <var>T</var> at all. Notice where injectivity enters — there is exactly one step that cannot be taken without it.) <span class="cite">— cf. Axler §3.B, Exercise 9, p. 67</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> Suppose <var>a</var>₁, …, <var>a</var><sub><var>n</var></sub> ∈ <strong>F</strong> satisfy <var>a</var>₁<var>Tv</var>₁ + ⋯ + <var>a</var><sub><var>n</var></sub><var>Tv</var><sub><var>n</var></sub> = 0. By linearity of <var>T</var> the left-hand side equals <var>T</var>(<var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>n</var></sub><var>v</var><sub><var>n</var></sub>), so <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>n</var></sub><var>v</var><sub><var>n</var></sub> ∈ null <var>T</var>.</p>
+<p>Because <var>T</var> is injective, null <var>T</var> = {0} by Theorem 3.16 — this is the step, and the only one, at which injectivity is used. Hence <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>n</var></sub><var>v</var><sub><var>n</var></sub> = 0, and independence of <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> forces every <var>a</var><sub><var>j</var></sub> = 0. So the only relation among <var>Tv</var>₁, …, <var>Tv</var><sub><var>n</var></sub> is the trivial one. ∎</p>
+<p class="cite">Put beside la-05's result — independence of the images forces independence of the originals, for <em>any</em> linear map — this completes a small dictionary. Independence travels backwards along every linear map, and forwards along the injective ones. The zero map on a space of dimension at least 1 shows the hypothesis cannot simply be dropped: it sends an independent list to a list of zeros.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>Every linear map carries a <strong>null space</strong> in its domain (Definition 3.12, a subspace by Theorem 3.14) and a <strong>range</strong> in its codomain (Definition 3.17, a subspace by Theorem 3.19). Injectivity — a condition on all pairs — collapses to the single condition null <var>T</var> = {0} (Theorem 3.16), because linearity turns a pair into its difference.</li>
+<li>The <strong>Fundamental Theorem</strong> (3.22) says dim <var>V</var> = dim null <var>T</var> + dim range <var>T</var>. Its proof takes a basis of the null space, extends it to a basis of <var>V</var>, and shows <var>T</var> carries the new vectors to a basis of the range: the range is a faithful copy of any complement of the null space.</li>
+<li>Rearranging it forbids things. A map to a smaller-dimensional space cannot be injective, one to a larger cannot be surjective (Theorems 3.23, 3.24) — and those two facts <em>are</em> the standard theorems on homogeneous and inhomogeneous linear systems (3.26, 3.29), proved with no elimination. The same count shows range <var>T</var> = null <var>T</var> forces dim <var>V</var> even, which is the arithmetic homology runs on.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §3.B "Null Spaces and Ranges": "Null Space and Injectivity" (Definition 3.12 null space, Example 3.13, Theorem 3.14 the null space is a subspace, Definition 3.15 injective, Theorem 3.16 injectivity is equivalent to null space equals zero), pp. 59–61; "Range and Surjectivity" (Definition 3.17 range, Example 3.18, Theorem 3.19 the range is a subspace, Definition 3.20 surjective, Example 3.21), pp. 61–62; "Fundamental Theorem of Linear Maps" (Theorem 3.22, Theorem 3.23, Theorem 3.24, Example 3.25, Theorem 3.26, Example 3.27, Theorem 3.29), pp. 63–66; Exercises 3.B 5, 6 and 9, p. 67.
+<br>Builds on la-05, whose Theorem 3.11 — linear maps take 0 to 0 — is Axler §3.A, p. 57, and is the first line of both subspace proofs above.
+<br>Builds also on la-04: extending a basis is Axler §2.B, Theorem 2.33, p. 41, and the dimension of a subspace is §2.C, Theorem 2.38, p. 45.
+<br>Deferred to la-07: the matrix of a linear map with respect to chosen bases (Axler §3.C).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

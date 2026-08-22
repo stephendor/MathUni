@@ -48,7 +48,7 @@ The only functions algebra truly loves — and why derivatives qualify.
 <span class="timebox">Segment 1 · ~20 min</span>
 <h2>The definition, and the company it keeps</h2>
 
-<p>Throughout, <strong>F</strong> is <strong>R</strong> or <strong>C</strong>, and <var>V</var> and <var>W</var> are vector spaces over <strong>F</strong>. <span class="cite">— Axler §3.A, Notation 3.1, p. 51</span></p>
+<p>Throughout, <strong>F</strong> is <strong>R</strong> or <strong>C</strong>, and <var>V</var> and <var>W</var> are vector spaces over <strong>F</strong>. <span class="cite">— Axler, Chapter 3 opening, Notation 3.1, p. 51</span></p>
 
 <div class="definition">
 <strong>Definition 3.2 (linear map).</strong> A <em>linear map</em> from <var>V</var> to <var>W</var> is a function <var>T</var> : <var>V</var> → <var>W</var> such that
@@ -128,7 +128,7 @@ The only functions algebra truly loves — and why derivatives qualify.
 <strong>Both halves of "basis" are used, and used for different things.</strong> Uniqueness of the coefficient list — the <em>independence</em> half — is what makes the formula define a function. Spanning is what makes the formula define a function <em>on all of <var>V</var></em>. Drop independence and the recipe would assign two different outputs to one input; drop spanning and it would assign none to some inputs. A list that is merely independent, or merely spanning, gives you exactly one of the two conclusions of Theorem 3.5, and the problem set explores what goes wrong for a dependent list.
 </div>
 
-<p>Theorem 3.5 is also the machine that extends a linear map from a <em>subspace</em> to the whole space, and every ingredient is already in hand. A subspace of a finite-dimensional space is itself finite-dimensional and therefore has a basis, and any basis of it extends to a basis of the whole space — that is la-03's Theorem 2.26, p. 36, together with la-04's Theorem 2.32 and Theorem 2.33, p. 41. Prescribe the old values on the old basis vectors and anything you please on the new ones, and the theorem above hands back a linear map agreeing with the original throughout the subspace. The problem set asks you to run that construction, and to compare it with a simpler-looking extension that turns out not to be linear at all.</p>
+<p>Theorem 3.5 is also the machine that extends a linear map from a <em>subspace</em> to the whole space, and every ingredient is already in hand. A subspace of a finite-dimensional space is itself finite-dimensional and therefore has a basis, and any basis of it extends to a basis of the whole space. <span class="cite">— Axler §2.A, Theorem 2.26, p. 36</span> <span class="cite">— Axler §2.B, Theorem 2.32 and Theorem 2.33, p. 41</span> Prescribe the old values on the old basis vectors and anything you please on the new ones, and the theorem above hands back a linear map agreeing with the original throughout the subspace. The problem set asks you to run that construction, and to compare it with a simpler-looking extension that turns out not to be linear at all.</p>
 
 <h3>Canvas: a linear map does not bend the grid</h3>
 <p>The blue grid is the standard one on <strong>R</strong>²; the amber grid is its image under a linear map <var>T</var>. The map shears and stretches, but straight lines stay straight, evenly spaced lines stay evenly spaced, and the origin does not move. That rigidity <em>is</em> Definition 3.2, drawn.</p>
@@ -242,7 +242,7 @@ draw();
 </details>
 </div>
 
-<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §3.A "The Vector Space of Linear Maps": "Definition and Examples of Linear Maps" (Notation 3.1, Definition 3.2 linear map, Notation 3.3, Example 3.4 the catalogue, Theorem 3.5 linear maps and basis of domain), pp. 51–54; "Algebraic Operations on L(V, W)" (Definition 3.6, Theorem 3.7 L(V, W) is a vector space, Definition 3.8 product, Theorem 3.9 algebraic properties, Example 3.10 non-commutativity, Theorem 3.11 linear maps take 0 to 0), pp. 55–57; Exercises 3.A 4 and 8, pp. 57–58.
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — the Chapter 3 opening (Notation 3.1), p. 51; §3.A "The Vector Space of Linear Maps": "Definition and Examples of Linear Maps" (Definition 3.2 linear map, Notation 3.3, Example 3.4 the catalogue, Theorem 3.5 linear maps and basis of domain), pp. 52–54; "Algebraic Operations on L(V, W)" (Definition 3.6, Theorem 3.7 L(V, W) is a vector space, Definition 3.8 product, Theorem 3.9 algebraic properties, Example 3.10 non-commutativity, Theorem 3.11 linear maps take 0 to 0), pp. 55–57; Exercises 3.A 4 and 8, pp. 57–58.
 <br>Builds on la-04, whose Theorem 2.29 — every vector has exactly one representation in a basis — is Axler §2.B, p. 39; it is what makes the formula in Theorem 3.5 define a function at all.
 <br>Deferred to la-06: the null space and range of a linear map, and the Fundamental Theorem of Linear Maps (Axler §3.B).
 </footer>
