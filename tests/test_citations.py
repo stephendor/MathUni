@@ -358,3 +358,44 @@ def test_unit_requires_both_halves():
     assert got[0].endswith(os.path.join("problems", "sets", "aa-05.md"))
     assert got[1].endswith(os.path.join("lessons", "aa", "aa-05.html"))
     assert not any(os.path.exists(p) for p in got), "fixture must name a unit that does not exist"
+
+
+def test_a_displayed_title_names_the_book():
+    """Authors write the displayed title, not the bookmap key: cat-05 says
+    `Aluffi, *Algebra: Chapter 0*`, and "Algebra" sitting between the key's two
+    words meant the clause stayed attributed to Spivak, the unit's primary
+    book, and its citations were reported wrong."""
+    from scripts.citations import book_named_in, display_forms
+    names = ["Aluffi Chapter 0", "Aluffi Underground", "Spivak"]
+    titles = {"Aluffi Chapter 0": "Algebra: Chapter 0 (Aluffi)",
+              "Aluffi Underground": "Algebra: Notes from the Underground (Aluffi)",
+              "Spivak": "Seven Sketches in Compositionality (Fong, Spivak)"}
+    assert book_named_in("Aluffi, *Algebra: Chapter 0* — §I.5", names, titles) \
+        == "Aluffi Chapter 0"
+    assert book_named_in("Aluffi, *Algebra: Notes from the Underground*",
+                         names, titles) == "Aluffi Underground"
+    assert display_forms("Aluffi Chapter 0", titles["Aluffi Chapter 0"]) \
+        == ["Aluffi Chapter 0", "Aluffi Algebra: Chapter 0"]
+
+
+def test_the_alias_does_not_reopen_scattered_word_matching():
+    from scripts.citations import book_named_in
+    assert book_named_in("Cummings, *Proofs*, Ch. 8 — cf. Real Analysis",
+                         ["Cummings", "Cummings Real Analysis"]) == "Cummings"
+
+
+def test_a_genuine_singleton_plateau_is_not_discarded():
+    """Dropping every one-page plateau also drops a real one-page pagination
+    run, so a citation to a folio inside it cannot be mapped and is reported as
+    a page the book does not have. pull.suspect_plateaus is the rule that tells
+    the two apart, and its docstring already records that the blanket version
+    discarded a real boundary."""
+    from scripts.pull import suspect_plateaus
+    # An interior singleton bracketed by the same offset either side is a stray.
+    stray = [(-4, 10, 14, 5), (-3, 15, 15, 1), (-4, 16, 20, 5)]
+    assert suspect_plateaus(stray) == [(-3, 15, 15, 1)]
+    # A boundary singleton, and an interior one between DIFFERENT offsets, are
+    # both genuine and must survive.
+    assert suspect_plateaus([(-3, 15, 15, 1), (-4, 16, 20, 5)]) == []
+    assert suspect_plateaus([(-4, 10, 14, 5), (-3, 15, 15, 1),
+                             (-5, 16, 20, 5)]) == []

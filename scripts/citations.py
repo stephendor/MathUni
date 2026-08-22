@@ -56,7 +56,7 @@ import unicodedata
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from scripts.pull import (all_pages, fit_offsets, folio_candidates,  # noqa: E402
-                          load_bookmap, page_text, pages_dir)
+                          load_bookmap, page_text, pages_dir, suspect_plateaus)
 
 for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console
     try:
@@ -264,7 +264,39 @@ def name_pattern(name):
         re.I)
 
 
-def book_named_in(text, names):
+def display_forms(name, title):
+    """The phrases that name this book: its key, and its author-plus-title.
+
+    Authors write the displayed title, not the bookmap key: cat-05's block says
+    `Aluffi, *Algebra: Chapter 0*`, and the key "Aluffi Chapter 0" does not
+    match it because "Algebra" sits between the two words. The Aluffi
+    citations there were therefore left attributed to Spivak, the unit's
+    primary book, and reported wrong. (Codex review of PR #21.)
+
+    The alias is the author's surname followed by the title as printed, up to
+    the first comma — enough to keep `Algebra: Chapter 0` apart from `Algebra:
+    Notes from the Underground`, and short enough not to depend on edition
+    text. Both forms still have to appear as consecutive phrases, so this does
+    not reopen the scattered-words defect: only the vocabulary widens.
+    """
+    forms = [name]
+    m = re.match(r"^(.*?)\s*\(([^)]*)\)", title or "")
+    if m:
+        lead = re.split(r",", m.group(1))[0].strip()
+        surname = re.split(r"[,&]| and ", m.group(2))[0].strip().split()
+        if lead and surname:
+            alias = "%s %s" % (surname[-1], lead)
+            if alias.lower() != name.lower():
+                forms.append(alias)
+    return forms
+
+
+def name_patterns(name, title=None):
+    """Every pattern that names this book. See display_forms()."""
+    return [name_pattern(f) for f in display_forms(name, title)]
+
+
+def book_named_in(text, names, titles=None):
     """The bookmap key this text names, or None.
 
     "Cummings" matches `Cummings, *Proofs*`; "Cummings Real Analysis" matches
@@ -273,8 +305,9 @@ def book_named_in(text, names):
     """
     best = None
     flat = deaccent(text)
+    titles = titles or {}
     for name in names:
-        if name_pattern(name).search(flat):
+        if any(p.search(flat) for p in name_patterns(name, titles.get(name))):
             if best is None or len(name.split()) > len(best.split()):
                 best = name
     return best
@@ -292,9 +325,19 @@ class Book:
         pages = [(n, folio_candidates(page_text(self.dir, n) or ""))
                  for n in all_pages(self.dir)]
         rows, plateaus = fit_offsets(pages)
-        # Only substantial plateaus define pagination; a lone disagreeing page
-        # is a chapter number or an index reference (see pull.fit_offsets).
-        self.plateaus = [p for p in plateaus if p[3] > 1]
+        # A lone disagreeing page is usually a chapter number or an index
+        # reference — but "usually" is the whole difficulty, and dropping EVERY
+        # single-page plateau also drops a genuine one-page pagination run, so
+        # a citation to a folio inside it cannot be mapped and is reported as
+        # a page that is not in the book.
+        #
+        # pull.suspect_plateaus is the rule that distinguishes them, and its
+        # own docstring records that the blanket version "silently discarded a
+        # real boundary". This reimplemented the discarded rule rather than
+        # calling the one next door. Only INTERIOR singletons bracketed by the
+        # same offset on both sides are strays. (Codex review of PR #21.)
+        suspect = suspect_plateaus(plateaus)
+        self.plateaus = [p for p in plateaus if p not in suspect]
 
     def pdf_pages_for(self, printed):
         """Every PDF page that could carry this printed folio.
@@ -401,7 +444,7 @@ def found_on_page(result, blob, raw=None):
     return None
 
 
-def split_at_books(text, names):
+def split_at_books(text, names, titles=None):
     """[(part, book_or_None)] — text cut at every point a book is named.
 
     The first part carries None (it belongs to whatever was current), and each
@@ -417,9 +460,11 @@ def split_at_books(text, names):
     # citations to the wrong volume. (CodeRabbit review of PR #21.)
     hits = []
     flat = deaccent(text)          # same length as text, so offsets carry over
+    titles = titles or {}
     for name in names:
-        for m in name_pattern(name).finditer(flat):
-            hits.append((m.start(), len(name.split()), name))
+        for pat in name_patterns(name, titles.get(name)):
+            for m in pat.finditer(flat):
+                hits.append((m.start(), len(name.split()), name))
     if not hits:
         return [(text, None)]
     # At one position, the most specific name wins ("Cummings Real Analysis"
@@ -438,7 +483,7 @@ def split_at_books(text, names):
     return out
 
 
-def attribute(text, primary, names):
+def attribute(text, primary, names, titles=None):
     """Assertions with the book each one is actually about.
 
     A Sources line that names two books had EVERY citation in it checked
@@ -465,14 +510,15 @@ def attribute(text, primary, names):
     for whole_span, line in spans(text):
         current = primary
         for span, pages in clauses(whole_span):
-            for part, named in split_at_books(span, names):
+            for part, named in split_at_books(span, names, titles):
                 if named is not None:
                     current = named
                 out.append((part, printed_pages_in(part) or pages, line, current))
     return out
 
 
-def check_file(path, book, verbose=False, books=None, all_names=None):
+def check_file(path, book, verbose=False, books=None, all_names=None,
+               titles=None):
     """Returns (failures, checked, unavailable). Prints a row per failure.
 
     `unavailable` is the set of books a clause was actually about and that are
@@ -499,7 +545,8 @@ def check_file(path, book, verbose=False, books=None, all_names=None):
     # which is the one verdict the docstring promises never to give for a check
     # that could not run. (Codex review of PR #21.)
     for span, pages, line, name in attribute(text, book.name,
-                                             all_names or sorted(books)):
+                                             all_names or sorted(books),
+                                             titles):
         results = results_in(span)
         if not pages or not results:
             continue
@@ -569,6 +616,12 @@ def book_for_unit(uid):
             if res.lower().startswith(name.lower()):
                 return name
     return None
+
+
+ALUFFI = ["Aluffi Chapter 0", "Aluffi Underground", "Spivak"]
+ALUFFI_TITLES = {"Aluffi Chapter 0": "Algebra: Chapter 0 (Aluffi)",
+                 "Aluffi Underground": "Algebra: Notes from the Underground (Aluffi)",
+                 "Spivak": "Seven Sketches in Compositionality (Fong, Spivak)"}
 
 
 def selftest():
@@ -749,6 +802,15 @@ def selftest():
     check_one("...and a dash inside such a list is still a range",
               printed_pages_in("pp. 41-42") == {41, 42}
               and printed_pages_in("pp. 10-12, 20") == {10, 11, 12, 20})
+    check_one("a displayed title names the book too",
+              book_named_in("Aluffi, *Algebra: Chapter 0* — §I.5", ALUFFI,
+                            ALUFFI_TITLES) == "Aluffi Chapter 0")
+    check_one("...and the two Aluffi volumes stay apart under it",
+              book_named_in("Aluffi, *Algebra: Notes from the Underground*",
+                            ALUFFI, ALUFFI_TITLES) == "Aluffi Underground")
+    check_one("...while the alias does not reopen scattered-word matching",
+              book_named_in("Cummings, *Proofs*, Ch. 8 — cf. Real Analysis",
+                            ["Cummings", "Cummings Real Analysis"]) == "Cummings")
     check_one("an accented display name matches its ASCII bookmap key",
               book_named_in("Lindström, Definition 3.1.1, p. 44",
                             ["Abbott", "Lindstrom"]) == "Lindstrom")
@@ -812,13 +874,15 @@ def main(argv=None):
         print("NOTE %d book(s) have no page tree here and cannot be checked "
               "against: %s" % (len(absent), ", ".join(absent)))
 
-    all_names = sorted(load_bookmap())
+    bm = load_bookmap()
+    all_names = sorted(bm)
+    titles = {k: v.get("title") for k, v in bm.items()}
     rc, total, blocked = 0, 0, False
     for p in paths:
         print("=== %s  (primary %s)" % (p, book.name))
         try:
             failures, checked, unavailable = check_file(
-                p, book, a.verbose, books, all_names)
+                p, book, a.verbose, books, all_names, titles)
         except Unreadable as e:
             # Exit 2, never 1: an input that could not be read is an absence of
             # analysis, and this script promises those never look alike.
