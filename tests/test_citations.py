@@ -305,3 +305,22 @@ def test_the_number_first_word_order_rejects_a_longer_sibling():
     from scripts.citations import found_on_page
     assert found_on_page("Definition 1.3", "1.3.7 definition of x") is None
     assert found_on_page("Definition 1.8", "1.8 definition subspace") == "exact"
+
+
+def test_a_non_contiguous_page_list_names_every_page():
+    """`pp. 326 and 328` captured only 326, so a result printed on the second
+    page was reported wrong."""
+    from scripts.citations import printed_pages_in
+    assert printed_pages_in("pp. 326 and 328") == {326, 328}
+    assert printed_pages_in("pp. 262, 265") == {262, 265}
+    assert printed_pages_in("pp. 10-12, 20") == {10, 11, 12, 20}
+
+
+def test_to_and_slash_join_a_plural_citation():
+    """tda2-04 writes `Definitions 12.1 to 12.5`; the parser accepted only
+    dashes, commas and `and`, so those ids left the denominator silently."""
+    from scripts.citations import results_in
+    assert results_in("Definitions 12.1 to 12.5") == ["Definition 12.1",
+                                                      "Definition 12.5"]
+    assert results_in("Definitions 12.1/12.5") == ["Definition 12.1",
+                                                   "Definition 12.5"]

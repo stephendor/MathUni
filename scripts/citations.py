@@ -95,7 +95,7 @@ PLURALS = {"Theorem": "Theorems", "Lemma": "Lemmas", "Proposition": "Proposition
            "Principle": "Principles"}
 SINGULAR = {p.lower(): s for s, p in PLURALS.items()}
 PLURAL = re.compile(
-    r"\b(%s)\s+(%s(?:\s*(?:[-–—,]|and)\s*%s)+)"
+    r"\b(%s)\s+(%s(?:\s*(?:[-–—,/]|and|to)\s*%s)+)"
     % ("|".join(PLURALS.values()), NUMBER.pattern, NUMBER.pattern))
 # "p. 225", "pp. 41-42", "pp. 220–221" (hyphen or en dash) — and this repo's own
 # "printed 394" / "printed **268–274**" form, which is what the lab and an2
@@ -104,9 +104,16 @@ PLURAL = re.compile(
 # them entirely: the largest silent-absence hole this gate has had. The
 # emphasis markers are stripped from spans before matching, so the `**` form
 # arrives here bare.
+#
+# One keyword can also head a LIST: `pp. 326 and 328`, `pp. 262, 265`. Reading
+# only the first meant the other pages were never searched, so a result printed
+# on the second was reported wrong. The list is matched whole and then split;
+# a dash between two of its members is still a range.
+_PGNUM = r"[*_]*\s*\d+\s*[*_]*"
 PAGES = re.compile(
-    r"(?:\bpp?\.|\bprinted)\s*[*_]*\s*(\d+)[*_]*"
-    r"(?:\s*[-–—]\s*[*_]*(\d+))?", re.I)
+    r"(?:\bpp?\.|\bprinted)\s*(%s(?:\s*(?:[-–—,]|and)\s*%s)*)" % (_PGNUM, _PGNUM),
+    re.I)
+_PGRANGE = re.compile(r"(\d+)\s*[-–—]\s*(\d+)")
 
 SPAN_PATTERNS = (
     re.compile(r'<span class="cite">(.*?)</span>', re.S),
@@ -145,12 +152,21 @@ def spans(text):
 def printed_pages_in(span):
     pages = set()
     for m in PAGES.finditer(span):
-        lo = int(m.group(1))
-        hi = int(m.group(2)) if m.group(2) else lo
-        if hi < lo or hi - lo > 60:      # a malformed or absurd range
-            pages.add(lo)
-            continue
-        pages.update(range(lo, hi + 1))
+        rest = re.sub(r"[*_]", "", m.group(1))
+        # Walk the list left to right so a dashed pair is consumed as a RANGE
+        # and every other number counts on its own. Adding all the numbers
+        # unconditionally would resurrect the absurd-range case: `pp. 12-9000`
+        # must yield {12}, not {12, 9000}.
+        prev, pos = None, 0
+        for tok in re.finditer(r"\d+", rest):
+            n = int(tok.group(0))
+            joiner = rest[pos:tok.start()]
+            if prev is not None and re.fullmatch(r"\s*[-–—]\s*", joiner):
+                if n >= prev and n - prev <= 60:   # else malformed or absurd
+                    pages.update(range(prev, n + 1))
+            else:
+                pages.add(n)
+            prev, pos = n, tok.end()
     return pages
 
 
@@ -684,6 +700,17 @@ def selftest():
               found_on_page("Definition 1.3", "1.3.7 definition of x") is None
               and found_on_page("Definition 1.8", "1.8 definition subspace")
               == "exact")
+    check_one("a non-contiguous page list names every page in it",
+              printed_pages_in("pp. 326 and 328") == {326, 328}
+              and printed_pages_in("pp. 262, 265") == {262, 265})
+    check_one("...and a dash inside such a list is still a range",
+              printed_pages_in("pp. 41-42") == {41, 42}
+              and printed_pages_in("pp. 10-12, 20") == {10, 11, 12, 20})
+    check_one("'to' and '/' join a plural citation",
+              results_in("Definitions 12.1 to 12.5")
+              == ["Definition 12.1", "Definition 12.5"]
+              and results_in("Definitions 12.1/12.5")
+              == ["Definition 12.1", "Definition 12.5"])
 
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0
