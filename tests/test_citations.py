@@ -192,3 +192,82 @@ def test_the_two_cummings_volumes_are_told_apart():
     assert book_named_in("Cummings, *Proofs*, Ch. 8", names) == "Cummings"
     assert book_named_in("Cummings, *Real Analysis*, Ch. 2", names) \
         == "Cummings Real Analysis"
+
+
+# --- Codex review of PR #21 ------------------------------------------------
+
+def test_a_cited_number_does_not_match_a_longer_sibling():
+    """A substring test approved a citation to any result extending the cited
+    number — Theorem 1.13 against a page printing only Theorem 1.130. A false
+    PASS in the worst place: the sibling result is what a mistyped citation
+    lands on."""
+    from scripts.citations import found_on_page
+    assert found_on_page("Theorem 1.13", "theorem 1.130 statement") is None
+    assert found_on_page("Exercise 2.5", "exercise 2.50 do this") is None
+    assert found_on_page("Lemma 1.3.7", "lemma 1.3.70 x") is None
+    assert found_on_page("Theorem 1.13", "theorem 1.13 statement") == "exact"
+
+
+def test_a_trailing_period_is_not_a_further_level():
+    """The boundary guard must exclude a further dotted level, not a sentence
+    period: Cummings prints "Exercise 2.5." for the exercise cited as 2.5(a)."""
+    from scripts.citations import found_on_page, results_in
+    assert found_on_page("Exercise 2.5a", "exercise 2.5. with parts") == "exact"
+    assert results_in("Theorem 6.11.") == ["Theorem 6.11"]
+
+
+def test_integer_only_result_numbers_are_parsed():
+    """Axler and Lindström number exercises without a dot. Requiring one left
+    237 such citations inside citation spans matching nothing at all."""
+    from scripts.citations import found_on_page, results_in
+    assert results_in("Axler Exercise 10, p. 24") == ["Exercise 10"]
+    assert results_in("Exercises 1, 2") == ["Exercise 1", "Exercise 2"]
+    assert found_on_page("Exercise 10", "exercise 100 blah") is None
+    assert found_on_page("Exercise 10", "exercise 10. blah") == "exact"
+
+
+def test_a_dotted_number_is_never_captured_as_its_first_part():
+    """Allowing bare integers must not let "Theorem 6.11" be read as
+    "Theorem 6" — the dotted alternative is tried first."""
+    from scripts.citations import results_in
+    assert results_in("Theorem 6.11") == ["Theorem 6.11"]
+    assert results_in("Lemma 1.3.7") == ["Lemma 1.3.7"]
+
+
+def test_the_repos_own_printed_page_notation_is_read():
+    """1084 occurrences of `printed NNN` were unparsed, so those spans produced
+    results and no pages and were skipped entirely."""
+    from scripts.citations import printed_pages_in
+    assert printed_pages_in("Theorem 13.1, printed 394") == {394}
+    assert printed_pages_in("printed **268-274**") == set(range(268, 275))
+    assert printed_pages_in("pp. 41-42") == {41, 42}
+
+
+def test_a_bare_numbered_item_counts_as_a_label():
+    """Axler prints exercises as `1 Prove that ...` — no kind word, no heading
+    markup. Without this they became hard FAILs while naming the right page;
+    they belong in the number-only WARN class."""
+    from scripts.citations import book_label_for
+    assert book_label_for("1", "17\n\n1 Prove that $-(-v) = v$ for every v.\n")
+    assert book_label_for("1", "page 1\n\n1\n") is None
+
+
+def test_an_unreadable_input_file_is_verdict_2_not_1(tmp_path):
+    """Exit 1 is reserved for a citation that was compared and was wrong."""
+    import pytest
+    from scripts.citations import Unreadable, check_file
+    with pytest.raises(Unreadable):
+        check_file(str(tmp_path / "no-such-file.md"), object())
+
+
+def test_a_clause_naming_an_absent_book_is_no_verdict_not_a_failure():
+    """Attribution is offered every bookmap name, not only the books whose page
+    trees are present. Passing only the present ones left such a clause
+    attributed to the primary and reported wrong — the one verdict this script
+    promises never to give for a check that could not run."""
+    from scripts.citations import attribute
+    names = ["Cummings", "Hatcher"]
+    text = ("**Sources:** Cummings, Theorem 2.11, p. 46; "
+            "Hatcher, Theorem 1.1, p. 30\n\n")
+    got = {name for _span, _pages, _line, name in attribute(text, "Cummings", names)}
+    assert "Hatcher" in got

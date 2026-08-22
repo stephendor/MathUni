@@ -72,10 +72,18 @@ KINDS = ("Theorem", "Lemma", "Proposition", "Definition", "Corollary",
 # truncates that to "Lemma 1.3", which then matches a page carrying Lemma 1.3.9
 # just as happily. That is a false PASS, and it would have applied to all 14
 # `an` units. `+` not `?` on the repeated group.
-RESULT = re.compile(r"\b(%s)\s+(\d+(?:\.\d+)+[a-z]?)" % "|".join(KINDS))
+#
+# The number may also be a bare INTEGER. Axler and Lindström number exercises
+# that way ("Exercise 10", "Exercise 3" of a section), and requiring a dot meant
+# 237 such citations inside citation spans matched nothing at all and left the
+# denominator silently — including every Axler exercise in the `la` sets. The
+# dotted alternative is written first so that alternation prefers it: "6.11"
+# must be captured whole and never as "6".
+NUM = r"\d+(?:\.\d+)+[a-z]?|\d+[a-z]?"
+RESULT = re.compile(r"\b(%s)\s+(%s)(?!\d)(?!\.\d)" % ("|".join(KINDS), NUM))
 # The plural/range form: "Exercises 6.6-6.9", "Theorems 1.1 and 1.2",
 # "Definitions 8.3, 8.5". See results_in().
-NUMBER = re.compile(r"\d+(?:\.\d+)+[a-z]?")
+NUMBER = re.compile(r"(?:%s)(?!\d)(?!\.\d)" % NUM)
 PLURALS = {"Theorem": "Theorems", "Lemma": "Lemmas", "Proposition": "Propositions",
            "Definition": "Definitions", "Corollary": "Corollaries",
            "Example": "Examples", "Exercise": "Exercises", "Fact": "Facts",
@@ -84,8 +92,16 @@ SINGULAR = {p.lower(): s for s, p in PLURALS.items()}
 PLURAL = re.compile(
     r"\b(%s)\s+(%s(?:\s*(?:[-–—,]|and)\s*%s)+)"
     % ("|".join(PLURALS.values()), NUMBER.pattern, NUMBER.pattern))
-# "p. 225", "pp. 41-42", "pp. 220–221" (hyphen or en dash)
-PAGES = re.compile(r"\bpp?\.\s*(\d+)(?:\s*[-–—]\s*(\d+))?")
+# "p. 225", "pp. 41-42", "pp. 220–221" (hyphen or en dash) — and this repo's own
+# "printed 394" / "printed **268–274**" form, which is what the lab and an2
+# source blocks use. Accepting only `p.` left 1084 occurrences of `printed NNN`
+# unparsed, so those spans produced results and no pages and check_file skipped
+# them entirely: the largest silent-absence hole this gate has had. The
+# emphasis markers are stripped from spans before matching, so the `**` form
+# arrives here bare.
+PAGES = re.compile(
+    r"(?:\bpp?\.|\bprinted)\s*[*_]*\s*(\d+)[*_]*"
+    r"(?:\s*[-–—]\s*[*_]*(\d+))?", re.I)
 
 SPAN_PATTERNS = (
     re.compile(r'<span class="cite">(.*?)</span>', re.S),
@@ -102,6 +118,10 @@ SPAN_PATTERNS = (
     re.compile(r"\*\(((?:[^()]|\([^()]*\))*?\bpp?\.\s*\d+(?:[^()]|\([^()]*\))*?)\)\*",
                re.S),
 )
+
+
+class Unreadable(Exception):
+    """An input this gate was asked to read could not be read. Verdict 2."""
 
 
 def strip_tags(text):
@@ -250,11 +270,25 @@ def book_label_for(num, raw):
     "Theorem 1.34" anywhere in the book. Requiring the kind word marked all 19
     of la-01's and la-02's theorem citations wrong while every one of them
     pointed at the right page.
+
+    Its EXERCISES are barer still: printed as `1 Prove that -(-v) = v ...`,
+    with no kind word and no heading markup at all. Once integer-only result
+    numbers were parsed, every `Axler §1.B, Exercise 1, p. 17` in the `la` sets
+    turned into a hard FAIL — each of them correct about the page. A plain
+    numbered item at the start of a line is therefore a label too, which puts
+    these back where they belong: WARN, "right about where, loose about what it
+    is called", never a wrong page. (Codex review of PR #21.)
     """
     m = re.search(r"^#{1,6}\s*\**\s*%s\**\s+(.+)$" % re.escape(num), raw, re.M)
     if m:
         return re.sub(r"[*#$]", "", m.group(1)).strip()[:60]
     m = re.search(r"^\*\*%s\**\s+(.+)$" % re.escape(num), raw, re.M)
+    if m:
+        return re.sub(r"[*#$]", "", m.group(1)).strip()[:60]
+    # A bare numbered item: the number at the start of a line, then a space,
+    # then prose. Anchored and requiring a following word so that a page
+    # number or a stray figure caption does not qualify.
+    m = re.search(r"^\s*%s\s+([A-Za-z$\\][^\n]*)$" % re.escape(num), raw, re.M)
     return re.sub(r"[*#$]", "", m.group(1)).strip()[:60] if m else None
 
 
@@ -282,8 +316,17 @@ def found_on_page(result, blob, raw=None):
     stem = re.sub(r"[a-z]$", "", num)
     hay = blob.lower()
     k = kind.lower()
+    # A SUBSTRING test approved a citation to any result whose number extends
+    # the cited one: "Theorem 1.13" matched a page printing only Theorem 1.130,
+    # "Exercise 2.5" matched Exercise 2.50, "Lemma 1.3.7" matched Lemma 1.3.70.
+    # A false PASS in the worst place — the sibling result is exactly what a
+    # mistyped citation lands on. The number must end where the citation ends,
+    # so nothing that continues it as a digit or a further dotted level counts.
+    # (Codex review of PR #21.)
     for n in {num, stem}:
-        if "%s %s" % (k, n) in hay or "%s %s" % (n, k) in hay:
+        pat = r"(?:%s\s+%s|%s\s+%s)(?!\d)(?!\.\d)" % (
+            re.escape(k), re.escape(n), re.escape(n), re.escape(k))
+        if re.search(pat, hay):
             return "exact"
     if raw is not None:
         for n in {num, stem}:
@@ -360,15 +403,39 @@ def attribute(text, primary, names):
     return out
 
 
-def check_file(path, book, verbose=False, books=None):
-    """Returns (failures, checked). Prints a row per failing citation."""
-    with open(path, encoding="utf-8") as f:
-        text = f.read()
+def check_file(path, book, verbose=False, books=None, all_names=None):
+    """Returns (failures, checked, unavailable). Prints a row per failure.
+
+    `unavailable` is the set of books a clause was actually about and that are
+    not on this machine. Those citations are NOT counted wrong: the gate could
+    not look, and this script's whole exit-code contract is that a check which
+    did not run must not look like a check that failed.
+    """
+    try:
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+    except OSError as e:
+        # Exit 2, not 1. An unreadable input is an absence of analysis, and
+        # letting OSError escape gave a traceback and process exit 1 — the code
+        # reserved for "a citation was compared and was wrong".
+        # (Codex review of PR #21.)
+        raise Unreadable("%s: %s" % (path, e)) from e
     failures, warnings, checked = [], [], 0
     books = books if books is not None else {book.name: book}
-    for span, pages, line, name in attribute(text, book.name, sorted(books)):
+    unavailable = set()
+    # Attribution is offered EVERY bookmap name, not only the ones whose page
+    # trees are here. Passing `sorted(books)` meant a clause naming a book we
+    # do not hold could not be recognised as being about that book at all: it
+    # stayed attributed to the primary and its citations were reported wrong,
+    # which is the one verdict the docstring promises never to give for a check
+    # that could not run. (Codex review of PR #21.)
+    for span, pages, line, name in attribute(text, book.name,
+                                             all_names or sorted(books)):
         results = results_in(span)
         if not pages or not results:
+            continue
+        if name not in books:
+            unavailable.add(name)
             continue
         book = books[name]
         pdf_pages = sorted({n for p in pages for n in book.pdf_pages_for(p)})
@@ -399,7 +466,10 @@ def check_file(path, book, verbose=False, books=None):
         print("WARN %s" % w)
     for f_ in failures:
         print("FAIL %s" % f_)
-    return failures, checked
+    for name in sorted(unavailable):
+        print("NOVERDICT citations attributed to %s were not checked: its page"
+              " tree is not on this machine" % name)
+    return failures, checked, unavailable
 
 
 def book_for_unit(uid):
@@ -543,6 +613,31 @@ def selftest():
               printed_pages_in(spans("*(Cummings, Exercise 8.28(d), p. 280)*")[0][0])
               == {280})
 
+    # -- Codex review of PR #21 --------------------------------------------
+    check_one("a cited number does not match a longer sibling",
+              found_on_page("Theorem 1.13", "theorem 1.130 statement") is None
+              and found_on_page("Exercise 2.5", "exercise 2.50 do this") is None
+              and found_on_page("Lemma 1.3.7", "lemma 1.3.70 x") is None)
+    check_one("...while the number itself still matches",
+              found_on_page("Theorem 1.13", "theorem 1.13 statement") == "exact")
+    check_one("a trailing sentence period is not a further level",
+              found_on_page("Exercise 2.5a", "exercise 2.5. with parts") == "exact")
+    check_one("an integer-only result number is parsed",
+              results_in("Axler Exercise 10, p. 24") == ["Exercise 10"])
+    check_one("...and does not match a longer integer",
+              found_on_page("Exercise 10", "exercise 100 blah") is None
+              and found_on_page("Exercise 10", "exercise 10. blah") == "exact")
+    check_one("a dotted number is still captured whole, never as its first part",
+              results_in("Theorem 6.11.") == ["Theorem 6.11"])
+    check_one("an integer-only plural expands too",
+              results_in("Exercises 1, 2") == ["Exercise 1", "Exercise 2"])
+    check_one("the repo's own 'printed NNN' page form is read",
+              printed_pages_in("Theorem 13.1, printed 394") == {394})
+    check_one("...including its emphasised range form",
+              printed_pages_in("printed **268-274**") == set(range(268, 275)))
+    check_one("...and 'p.' still works",
+              printed_pages_in("pp. 41-42") == {41, 42})
+
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0
 
@@ -596,16 +691,33 @@ def main(argv=None):
         print("NOTE %d book(s) have no page tree here and cannot be checked "
               "against: %s" % (len(absent), ", ".join(absent)))
 
-    rc, total = 0, 0
+    all_names = sorted(load_bookmap())
+    rc, total, blocked = 0, 0, False
     for p in paths:
         print("=== %s  (primary %s)" % (p, book.name))
-        failures, checked = check_file(p, book, a.verbose, books)
+        try:
+            failures, checked, unavailable = check_file(
+                p, book, a.verbose, books, all_names)
+        except Unreadable as e:
+            # Exit 2, never 1: an input that could not be read is an absence of
+            # analysis, and this script promises those never look alike.
+            print("ERROR could not read %s" % e)
+            blocked = True
+            continue
         total += checked
         if failures:
             rc = 1
-        print("%s %d citation(s) checked, %d wrong"
-              % ("FAIL" if failures else "PASS", checked, len(failures)))
-    return rc
+        if unavailable:
+            blocked = True
+        print("%s %d citation(s) checked, %d wrong%s"
+              % ("FAIL" if failures else "PASS", checked, len(failures),
+                 "" if not unavailable else
+                 "; %d book(s) unavailable, so some citations got no verdict"
+                 % len(unavailable)))
+    # A real wrong citation outranks a check that could not run: exit 1 says
+    # "something is wrong", exit 2 says "I could not tell", and 1 is the more
+    # actionable of the two when both are true.
+    return rc or (2 if blocked else 0)
 
 
 if __name__ == "__main__":
