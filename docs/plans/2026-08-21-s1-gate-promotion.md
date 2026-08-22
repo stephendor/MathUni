@@ -314,7 +314,7 @@ pytest 200, gates 4-6 green on 90/90, gate 8 75 PASS + 15 KNOWN-FAIL.
 | # | Finding | Was |
 |---|---|---|
 | P2 | `node --check` uses the CommonJS grammar | `<script>return 1;</script>` passed gate 6; a browser refuses it |
-| P2 | `type` matches inside `data-type` | an executable script was classified JSON and skipped |
+| P2 | `\btype` matches inside `data-type` | an executable script was classified JSON and skipped |
 | P2 | end tags for void elements ignored | `</br>`, `</img>`, `</input>` reported as balanced |
 | P2 | `<svg/>` root reported malformed | foreign-content exemption only applied *inside* an already-open root |
 | P2 | mission strip inside an HTML comment | gate 8 PASSed a lesson rendering no strip at all |
@@ -347,6 +347,58 @@ reads comments as text.
 
 After this round: `gate.py --selftest` 50/50, `mission.py --selftest` 24/24,
 pytest 212, gates 4-6 green on 90/90 with 173 inline scripts actually parsed.
+
+## 7e. Codex review, fifth and sixth rounds — eleven more, all eleven real
+
+Fifth round (3): `MISSION_P` required literally `class="mission"`, so
+`<p class="mission" id="dup">` was invisible to the duplicate rule added in
+§7c — a hole exactly where a hidden second claim would sit; a test asserted
+against `aa-00`'s current text, so it would have broken at the moment the
+repair it is waiting for landed; and six ruff RUF059 warnings.
+
+Sixth round (8):
+
+| # | Finding | Was |
+|---|---|---|
+| P2 | `class` matches inside `data-class` | `<p data-class="mission">` accepted as the strip; a lesson with **no** strip passed gate 8 |
+| P2 | foreign content treated as a depth counter | `<svg><foreignObject><div/></foreignObject></svg>` reported balanced |
+| P2 | `menu`, `hgroup`, `search` missing from the p-closing set | a surplus `</p>` after one of them read as clean markup |
+| P2 | protocol-relative hosts required an alphabetic TLD | `url(//203.0.113.10/a.png)` passed gate 5; the lesson cannot render offline |
+| P2 | legacy JavaScript MIME essences omitted | `<script type="text/x-javascript">` filed as data and never parsed |
+| P2 | `<script>` matched inside HTML comments | gate 6 **hard-failed valid lessons** carrying a commented-out example |
+| P2 | one folio in a range reported a consistent offset | `--folio` exited 0 saying "Consistent offset across 1 page" |
+| P2 | unreadable `--known-failing` / `--baseline` | OSError escaped `main()`; exit 1, the code reserved for a real mismatch |
+
+Two of these are the same defect wearing different clothes. `\bclass` matching
+the tail of `data-class` is character-for-character the `\btype`/`data-type`
+finding from §7d — the fix there was applied to the one regex that had been
+named, not to the class of regexes it belonged to. Grepping gate.py and
+mission.py for `\b<attr>\s*=` after the fourth round would have found it; the
+lesson is that a fix to an instance is not a fix to the pattern.
+
+The comment-and-script one is the only finding across six rounds that fails in
+the *rejecting* direction, and it is the one a corpus run could never have
+surfaced: no committed lesson happens to carry a commented-out script. It is
+now handled by matching comments in the same alternation as script elements
+and letting the leftmost match win — which also keeps the legacy
+`<script><!-- … //--></script>` idiom parseable, since there the script starts
+first.
+
+The foreign-content one retires the depth counter entirely. Whether the
+insertion point is foreign is not a count, it is a question about the nearest
+enclosing element, so `Balance` now reads it off the stack: the first ancestor
+in `{svg, math}` means foreign, the first in `{foreignObject, desc, title,
+annotation-xml}` means HTML again.
+
+And `--folio` on a single observation now returns 2 rather than 0. One folio
+cannot agree with anything, so it cannot be distinguished from a chapter number
+or an index reference — the two readings the SUSPECT rule exists to reject —
+and the guide's requirement was agreement across consecutive pages all along.
+
+After this round: `gate.py --selftest` **62/62**, `mission.py --selftest`
+**32/32**, pytest **223**, gates 4-6 green on 90/90, gate 8 exit 0
+(75 PASS + 15 KNOWN-FAIL), ruff clean under `--preview` on every file the
+branch touches.
 
 ## 8. Open decisions
 

@@ -58,10 +58,15 @@ OPTIONAL_END = {"html", "head", "body", "p", "li", "dt", "dd", "option",
                 "tr", "td", "th", "rt", "rp"}
 
 # A start tag that implicitly closes an open <p>.
-BLOCK = {"address", "article", "aside", "blockquote", "details", "div", "dl",
-         "fieldset", "figcaption", "figure", "footer", "form", "h1", "h2",
-         "h3", "h4", "h5", "h6", "header", "hr", "main", "nav", "ol", "p",
-         "pre", "section", "table", "ul"}
+# The list is the spec's own, obsolete members included: `menu`, `hgroup` and
+# `search` were missing, so `<div><p>x<menu><li>y</li></menu></p></div>` came
+# back clean even though the browser closed the paragraph at <menu> and the
+# later </p> is surplus. (Codex review of PR #20, sixth round.)
+BLOCK = {"address", "article", "aside", "blockquote", "center", "details",
+         "dir", "div", "dl", "fieldset", "figcaption", "figure", "footer",
+         "form", "h1", "h2", "h3", "h4", "h5", "h6", "header", "hgroup", "hr",
+         "listing", "main", "menu", "nav", "ol", "p", "plaintext", "pre",
+         "search", "section", "table", "ul", "xmp"}
 
 # Which start tags implicitly close which open optional-end element.
 # ANY marks an element closed by any following start tag — <colgroup> ends at
@@ -99,6 +104,15 @@ KEEPS_OPEN = {"colgroup": {"col"}}
 # and leaves it OPEN, so <div/> must be treated as an unclosed <div>.
 FOREIGN = {"svg", "math"}
 
+# ...but foreign content STOPS at an HTML integration point. Inside
+# <svg><foreignObject>, children are HTML again, so the slash on <div/> is
+# ignored and the div stays open. A depth COUNTER cannot see that: it exempted
+# every descendant of an <svg> root and reported
+# `<svg><foreignObject><div/></foreignObject></svg>` as balanced. The nearest
+# enclosing one of these two sets is what decides, so the stack decides.
+# (Codex review of PR #20, sixth round.)
+INTEGRATION = {"foreignobject", "desc", "title", "annotation-xml"}
+
 # `xmlns="http://www.w3.org/2000/svg"` is an XML *namespace identifier*, not a
 # URL the browser ever fetches — inline SVG carrying it renders identically
 # with the network unplugged. Scanning raw lines flagged it anyway, failing
@@ -111,8 +125,16 @@ XMLNS_DECL = re.compile(r"""\bxmlns(?::[A-Za-z_][\w.-]*)?\s*=\s*("[^"]*"|'[^']*'
 # — is a real network request that neither `https?://` nor `src=` matches
 # (Codex review of PR #20). The lookbehind stops `https://` double-matching,
 # and the mandatory dot-and-TLD stops `// ordinary comment text` firing.
+#
+# That same alphabetic-TLD requirement excluded IP-literal hosts, so
+# `url(//203.0.113.10/a.png)` — a real request that cannot resolve offline —
+# matched nothing and gate 5 passed. IPv4 and bracketed IPv6 hosts get their
+# own alternatives; both are specific enough not to fire on prose.
+# (Codex review of PR #20, sixth round.)
 EXTERNAL = re.compile(
     r"https?://"
+    r"|(?<![:/\w])//\d{1,3}(?:\.\d{1,3}){3}"
+    r"|(?<![:/\w])//\[[0-9A-Fa-f:.]+\]"
     r"|(?<![:/\w])//[\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,}"
     r"|<link\b|\bsrc\s*=|\bcdn\b|@import", re.I)
 
@@ -125,10 +147,27 @@ EXTERNAL = re.compile(
 # which is a false PASS for any syntax error inside. Skipping is the dangerous
 # direction here, so the classifier has to be the permissive one.
 # (Codex review of PR #20, second round.)
-JS_TYPES = {"", "module", "text/javascript", "application/javascript",
-            "text/ecmascript", "application/ecmascript", "application/x-javascript",
+# The set is HTML's own JavaScript-MIME-type list, legacy essences included.
+# Omitting them was a false PASS in the skipping direction again: browsers
+# execute `<script type="text/x-javascript">`, and gate 6 filed it as data and
+# never parsed it. (Codex review of PR #20, sixth round.)
+JS_TYPES = {"", "module",
+            "application/ecmascript", "application/javascript",
+            "application/x-ecmascript", "application/x-javascript",
+            "text/ecmascript", "text/javascript", "text/javascript1.0",
+            "text/javascript1.1", "text/javascript1.2", "text/javascript1.3",
+            "text/javascript1.4", "text/javascript1.5", "text/jscript",
+            "text/livescript", "text/x-ecmascript", "text/x-javascript",
             "text/jsx", "text/babel"}
-SCRIPT_TAG = re.compile(r"<script\b([^>]*)>(.*?)</script>", re.I | re.S)
+# Comments are matched in the SAME alternation as script elements rather than
+# stripped beforehand, and the leftmost match wins. A script inside a comment is
+# therefore swallowed by the comment — the browser executes nothing there, and
+# gate 6 was hard-failing valid lessons that carried a commented-out example —
+# while a comment inside a script body is swallowed by the script, which starts
+# earlier, so the legacy `<script><!-- … //--></script>` idiom is still parsed.
+# (Codex review of PR #20, sixth round.)
+SCRIPT_TAG = re.compile(
+    r"<!--.*?-->|<script\b([^>]*)>(.*?)</script>", re.I | re.S)
 # `\btype` also matches the `type` inside `data-type`, because `-` is a
 # non-word character and therefore a word boundary. An executable script
 # carrying `data-type="application/json"` was classified as JSON and skipped,
@@ -160,7 +199,15 @@ class Balance(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.stack = []          # [(tag, line)]
         self.errors = []
-        self.foreign = 0         # nesting depth inside <svg>/<math>
+
+    def _in_foreign(self):
+        """True iff the insertion point is foreign content, not HTML."""
+        for tag, _ in reversed(self.stack):
+            if tag in INTEGRATION:
+                return False
+            if tag in FOREIGN:
+                return True
+        return False
 
     def _implicitly_close(self, starting):
         """Pop open optional-end elements that this start tag terminates."""
@@ -180,8 +227,6 @@ class Balance(HTMLParser):
         if tag in VOID:
             return
         self._implicitly_close(tag)
-        if tag in FOREIGN:
-            self.foreign += 1
         self.stack.append((tag, self.getpos()[0]))
 
     def handle_startendtag(self, tag, attrs):
@@ -189,11 +234,10 @@ class Balance(HTMLParser):
         # does self-close; <div/> is neither, and the browser leaves it OPEN
         # to absorb the rest of the document (Codex review of PR #20).
         #
-        # `tag in FOREIGN` covers the ROOT: a bare <svg/> or <math/> arrives
-        # here with self.foreign still 0, since nothing has entered foreign
-        # content yet — so the previous version reported a legal empty root as
+        # `tag in FOREIGN` covers the ROOT: a bare <svg/> or <math/> is not yet
+        # inside foreign content when it arrives here — so the previous version reported a legal empty root as
         # malformed. (Codex review of PR #20, fourth round.)
-        if tag in VOID or tag in FOREIGN or self.foreign:
+        if tag in VOID or tag in FOREIGN or self._in_foreign():
             return
         self.errors.append(
             "line %d: <%s/> does not self-close in HTML — the browser leaves "
@@ -224,9 +268,6 @@ class Balance(HTMLParser):
                 self.errors.append(
                     "line %d: <%s> not closed before </%s> at line %d"
                     % (oline, orphan, tag, line))
-        for t, _ in self.stack[depth:]:
-            if t in FOREIGN:
-                self.foreign = max(0, self.foreign - 1)
         del self.stack[depth:]
 
     def close(self):
@@ -264,6 +305,8 @@ def script_blocks(html):
     """[(essence, body)] for every non-empty <script>."""
     out = []
     for m in SCRIPT_TAG.finditer(html):
+        if m.group(2) is None:      # a comment; the browser runs nothing in it
+            continue
         if not m.group(2).strip():
             continue
         t = TYPE_ATTR.search(m.group(1))
@@ -492,6 +535,39 @@ def selftest():
                   for e in tag_errors("<div>a</br>b</div>")))
     check_one("<br> and <br/> are still fine",
               tag_errors("<div>a<br>b<br/>c</div>") == [])
+
+    # -- sixth round -------------------------------------------------------
+    check_one("<menu> closes an open paragraph",
+              bool(tag_errors("<div><p>x<menu><li>y</li></menu></p></div>")))
+    check_one("<hgroup> and <search> close one too",
+              bool(tag_errors("<div><p>x<search>y</search></p></div>"))
+              and bool(tag_errors("<div><p>x<hgroup>y</hgroup></p></div>")))
+    check_one("HTML resumes inside <foreignObject>, so <div/> stays open",
+              any("does not self-close" in e for e in
+                  tag_errors("<svg><foreignObject><div/></foreignObject></svg>")))
+    check_one("...but <circle/> in plain SVG is still foreign and legal",
+              tag_errors("<svg><g><circle/></g></svg>") == [])
+    check_one("well-formed HTML inside <foreignObject> is accepted",
+              tag_errors("<svg><foreignObject><div>x</div>"
+                         "</foreignObject></svg>") == [])
+    check_one("an IPv4-literal protocol-relative host is external",
+              bool(external_hits("url(//203.0.113.10/a.png)")))
+    check_one("a bracketed IPv6-literal host is external",
+              bool(external_hits("url(//[2001:db8::1]/a.png)")))
+    check_one("prose containing '// 1. step' is still not external",
+              external_hits("// 1. step, then 2. step") == [])
+    check_one("a legacy JavaScript MIME type is checked, not skipped",
+              len(script_bodies(
+                  '<script type="text/x-javascript">var x=;;</script>')) == 1
+              and len(script_bodies(
+                  '<script type="text/jscript">var x=;;</script>')) == 1)
+    check_one("a script inside an HTML comment is not sent to node",
+              script_blocks("<!-- <script>var x=;;</script> -->") == [])
+    check_one("...but a comment inside a script body still is",
+              len(script_blocks("<script><!-- var x=1; //--></script>")) == 1)
+    check_one("a real script after a commented one is still found",
+              len(script_blocks("<!-- <script>a=;</script> -->"
+                                "<script>var b=1;</script>")) == 1)
     if shutil.which("node"):
         check_one("a top-level return in a classic script is rejected",
                   bool(script_errors(["return 1;"])[0]))

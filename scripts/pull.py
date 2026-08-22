@@ -291,6 +291,23 @@ def cmd_folio(d, book, spec):
     # the case SUSPECT exists to absorb. (Codex review of PR #20.)
     distinct = sorted({p[0] for p in real})
     suspect_pages = [n for n, f, _, _, s in rows if s == "SUSPECT"]
+
+    # One folio in the whole range is not a fit. With every neighbour reading
+    # NO FOLIO there is nothing for SUSPECT to disagree with, so a chapter
+    # number or an index reference — the two things that read exactly like a
+    # folio and that the suspect rule exists to reject — sails through as the
+    # offset, and the range exits 0 announcing "Consistent offset across 1
+    # page". The guide's requirement is agreement over consecutive pages, and
+    # a single observation cannot express agreement with anything.
+    # (Codex review of PR #20, sixth round.)
+    supporting = sum(p[3] for p in real)
+    if supporting < 2:
+        print("\nOnly %d page(s) in %d-%d carried a usable folio. No verdict:"
+              " an offset needs agreement across pages, and one reading cannot"
+              " be told apart from a chapter number or an index reference."
+              % (supporting, lo, hi))
+        return 2
+
     if len(distinct) <= 1:
         off = distinct[0] if distinct else plateaus[0][0]
         print("\nConsistent offset %+d across %d page(s) with a folio."

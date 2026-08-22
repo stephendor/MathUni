@@ -199,3 +199,32 @@ def test_a_suspect_singleton_does_not_taint_a_real_run_of_the_same_offset():
     rows, plateaus = fit_offsets(_pages(spec))
     assert [p[1] for p in suspect_plateaus(plateaus)] == [12]
     assert [r[0] for r in rows if r[4] == "SUSPECT"] == [12]
+
+
+def _corpus(tmp_path, pages):
+    """pages: {pdf_page: text or None}. None means the page was never extracted."""
+    for n, text in pages.items():
+        if text is None:
+            continue
+        d = tmp_path / ("page-%d" % n)
+        d.mkdir()
+        (d / "markdown.md").write_text(text, encoding="utf-8")
+    return str(tmp_path)
+
+
+def test_one_lone_folio_in_a_range_is_no_verdict_not_a_consistent_offset(tmp_path):
+    """One observation cannot agree with anything, so it cannot be told apart
+    from a chapter number or an index reference — the two readings SUSPECT
+    exists to reject. It used to exit 0 with 'Consistent offset across 1 page'.
+    (Codex review of PR #20, sixth round.)"""
+    from scripts.pull import cmd_folio
+    d = _corpus(tmp_path, {10: "no number here\nplain prose\n",
+                           11: "84\nsome prose on the page\n",
+                           12: "still nothing numeric to read\n"})
+    assert cmd_folio(d, "book", "10-12") == 2
+
+
+def test_two_agreeing_folios_do_reach_a_verdict(tmp_path):
+    from scripts.pull import cmd_folio
+    d = _corpus(tmp_path, {10: "84\nprose\n", 11: "85\nprose\n"})
+    assert cmd_folio(d, "book", "10-11") == 0

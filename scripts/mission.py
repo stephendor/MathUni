@@ -68,8 +68,14 @@ UNIT_ID = re.compile(r"^([a-z]+\d*-\d+)\.html$")
 # duplicate rule exists to reject. lesson_lint.py already counts strips this
 # way; the two now agree on what a mission strip is.
 # (Codex review of PR #20, fifth round.)
+#
+# `\bclass` then matched the tail of `data-class`, exactly as `\btype` had in
+# gate.py: `<p data-class="mission">…</p>` renders with no mission class at all
+# and gate 8 accepted it as the strip, so a lesson with NO real strip passed.
+# The attribute name must not be preceded by a name character or a hyphen.
+# (Codex review of PR #20, sixth round.)
 MISSION_P = re.compile(
-    r"""<p\b[^>]*\bclass\s*=\s*["'][^"']*\bmission\b[^"']*["'][^>]*>(.*?)</p>""",
+    r"""<p\b[^>]*(?<![\w-])class\s*=\s*["'][^"']*\bmission\b[^"']*["'][^>]*>(.*?)</p>""",
     re.S | re.I)
 PREFIX = re.compile(r"^Why this matters for the mission:\s*")
 # A commented-out strip renders nothing, but a raw regex still finds it, so
@@ -287,8 +293,27 @@ def selftest():
               additions_against(os.path.join(REPO, "no-such-baseline.txt"),
                                 {"aa-00"}) == (set(), False))
 
+    # -- sixth round -------------------------------------------------------
+    check_one("data-class is not read as the class attribute",
+              strips_of('<p data-class="mission">Why this matters for the '
+                        'mission: X</p>') == [])
+    check_one("...while a real class token is still found",
+              strips_of('<p id="a" class="lede mission">X</p>') == ["X"])
+    check_one("an unreadable known-failing list is verdict 2, not 1",
+              main(["--known-failing", os.path.join(REPO, "scripts"),
+                    os.path.join(REPO, "lessons", "pw", "pw-01.html")]) == 2)
+    check_one("an unreadable baseline is verdict 2 as well",
+              main(["--known-failing",
+                    os.path.join(REPO, "curriculum", "mission-drift.txt"),
+                    "--baseline", os.path.join(REPO, "scripts"),
+                    os.path.join(REPO, "lessons", "pw", "pw-01.html")]) == 2)
+
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0
+
+
+class Unreadable(Exception):
+    """A ratchet input exists but could not be read. Verdict 2, not 1."""
 
 
 def load_known_failing(path):
@@ -306,11 +331,22 @@ def load_known_failing(path):
     down — so a later branch could reintroduce the file alongside fresh
     mismatches and have them excused. main() refuses a deletion for exactly
     that reason. (Codex review of PR #20, rounds two and four.)
+
+    An ABSENT list is empty; an UNREADABLE one is neither empty nor a verdict.
+    A directory, a permission-denied file, or a file unlinked between the
+    exists() and the open() raised OSError out of main(), and the process died
+    with a traceback and exit 1 — the code this script reserves for a real
+    mission mismatch. Exit 1 must never mean "the gate could not read its own
+    inputs". (Codex review of PR #20, sixth round.)
     """
     ids = set()
     if not os.path.exists(path):
         return ids
-    with open(path, encoding="utf-8") as f:
+    try:
+        f = open(path, encoding="utf-8")
+    except OSError as e:
+        raise Unreadable("%s: %s" % (path, e)) from e
+    with f:
         for line in f:
             line = line.split("#", 1)[0].strip()
             if line:
@@ -340,6 +376,16 @@ def additions_against(baseline_path, current):
 
 
 def main(argv):
+    try:
+        return _main(argv)
+    except Unreadable as e:
+        # Exit 2, never 1: a ratchet input that could not be read is an absence
+        # of analysis, and this script promises those never look alike.
+        print("ERROR could not read %s — no verdict about the drift list" % e)
+        return 2
+
+
+def _main(argv):
     if argv and argv[0] == "--selftest":
         return selftest()
 

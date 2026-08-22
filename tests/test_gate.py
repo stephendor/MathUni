@@ -251,3 +251,49 @@ def test_a_module_is_parsed_with_the_module_grammar():
     from scripts.gate import script_errors
     assert script_errors(["let x = 1; export {x};"], [False])[0] != []
     assert script_errors(["let x = 1; export {x};"], [True])[0] == []
+
+
+# --- sixth round: four false verdicts in the three checks ------------------
+
+def test_html_resumes_at_a_foreign_content_integration_point():
+    """A foreign-content DEPTH counter exempted every descendant of an <svg>
+    root, but children of <foreignObject> are HTML again, so the slash on
+    <div/> is ignored and the div stays open. Reported as balanced."""
+    assert tag_errors("<svg><foreignObject><div/></foreignObject></svg>")
+    assert tag_errors("<svg><g><circle/></g></svg>") == []
+    assert tag_errors("<svg><foreignObject><p>x</p></foreignObject></svg>") == []
+
+
+def test_every_paragraph_closing_start_tag_is_listed():
+    """menu, hgroup and search close an open <p> and were missing, so the
+    surplus </p> after one of them read as balanced markup."""
+    for tag in ("menu", "hgroup", "search", "dir", "center"):
+        assert tag_errors("<div><p>x<%s>y</%s></p></div>" % (tag, tag)), tag
+
+
+def test_an_ip_literal_protocol_relative_host_is_an_external_request():
+    """The alphabetic-TLD requirement that keeps prose quiet also excluded
+    IP hosts, so a lesson that cannot render offline passed gate 5."""
+    assert external_hits("url(//203.0.113.10/a.png)")
+    assert external_hits('href="//[2001:db8::1]/x"')
+    assert external_hits("// 1. first step, then 2. second step") == []
+
+
+def test_legacy_javascript_mime_types_are_checked_not_skipped():
+    """Browsers execute these; classifying them as data is a false PASS for
+    any syntax error inside."""
+    for t in ("text/x-javascript", "text/jscript", "text/javascript1.5",
+              "application/x-ecmascript", "text/livescript"):
+        assert script_bodies('<script type="%s">var x=;;</script>' % t), t
+    assert script_bodies('<script type="application/json">{"a":1}</script>') == []
+
+
+def test_a_script_inside_a_comment_is_not_executed_and_not_checked():
+    """The browser runs nothing in a comment, so gate 6 was hard-failing valid
+    lessons over a commented-out example. The reverse nesting must survive:
+    the legacy `<script><!-- ... //--></script>` idiom is still real code."""
+    from scripts.gate import script_blocks
+    assert script_blocks("<!-- <script>var x=;;</script> -->") == []
+    assert len(script_blocks("<script><!-- var x=1; //--></script>")) == 1
+    assert len(script_blocks("<!-- <script>a=;</script> -->"
+                             "<script>var b=1;</script>")) == 1

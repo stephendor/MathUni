@@ -322,3 +322,29 @@ def test_a_class_merely_containing_the_word_is_not_a_mission_strip():
     from scripts.mission import strips_of
     assert strips_of('<p class="submission">no</p>') == []
     assert strips_of('<p class="missionary">no</p>') == []
+
+
+# --- sixth round ----------------------------------------------------------
+
+def test_data_class_is_not_read_as_the_class_attribute():
+    """`\bclass` matched the tail of `data-class`, the same word-boundary
+    defect `\btype` had in gate.py. A lesson whose only candidate paragraph
+    was `<p data-class="mission">` renders no mission strip at all, and gate 8
+    accepted it as the strip and passed the lesson."""
+    from scripts.mission import strips_of
+    assert strips_of('<p data-class="mission">X</p>') == []
+    assert strips_of('<p id="a" class="lede mission">X</p>') == ["X"]
+
+
+def test_an_unreadable_ratchet_input_is_verdict_2_not_1():
+    """Exit 1 is reserved for a compared-and-differed strip. A --known-failing
+    or --baseline path that exists but cannot be read raised OSError out of
+    main() and the process exited 1 on a traceback, so a wrapper could read
+    "the gate could not open its own list" as a mission mismatch."""
+    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    lesson = os.path.join(repo, "lessons", "pw", "pw-01.html")
+    a_directory = os.path.join(repo, "scripts")
+    assert main(["--known-failing", a_directory, lesson]) == 2
+    assert main(["--known-failing",
+                 os.path.join(repo, "curriculum", "mission-drift.txt"),
+                 "--baseline", a_directory, lesson]) == 2
