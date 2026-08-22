@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-05 — Linear maps</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Linear maps <span class="cite">(la-05)</span></h1>
+
+<div class="hook">
+The only functions algebra truly loves — and why derivatives qualify.
+<p>Up to now every object in this module has been a <em>place</em>: a vector space, a subspace, a basis sitting inside one. Nothing has moved. Linear algebra only becomes interesting when you start sending one space to another, and it becomes tractable because only a very restricted class of functions is allowed to do the sending — the ones that respect addition and scaling, and nothing else.</p>
+<p>The restriction sounds severe until you notice what it admits. Differentiation is a linear map. So is definite integration. So is multiplication by <var>x</var>², so is shifting a sequence, so is every system of simultaneous linear equations you have ever solved. Half of analysis and all of matrix theory turn out to be about maps that satisfy two lines of definition — and the reason a two-line definition can carry that much is Theorem 3.5, which says a linear map is completely determined by what it does to a basis. Fix finitely many values and the whole function is forced.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> The definition of a linear map has two clauses: <em>additivity</em> and <em>homogeneity</em>. Suppose a function φ : <strong>R</strong>² → <strong>R</strong> satisfies homogeneity on its own — φ(<var>a</var><var>v</var>) = <var>a</var>φ(<var>v</var>) for every scalar <var>a</var> ∈ <strong>R</strong> and every <var>v</var> ∈ <strong>R</strong>². Do you predict that φ must then be linear — that is, must additivity come free? Commit to yes or no before Segment 1 ends.
+</div>
+
+<p class="mission">Why this matters for the mission: Boundary operators ∂ are linear maps; homology is their study.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>The definition, and the company it keeps</h2>
+
+<p>Throughout, <strong>F</strong> is <strong>R</strong> or <strong>C</strong>, and <var>V</var> and <var>W</var> are vector spaces over <strong>F</strong>. <span class="cite">— Axler §3.A, Notation 3.1, p. 51</span></p>
+
+<div class="definition">
+<strong>Definition 3.2 (linear map).</strong> A <em>linear map</em> from <var>V</var> to <var>W</var> is a function <var>T</var> : <var>V</var> → <var>W</var> such that
+<br><em>additivity:</em> <var>T</var>(<var>u</var> + <var>v</var>) = <var>Tu</var> + <var>Tv</var> for all <var>u</var>, <var>v</var> ∈ <var>V</var>;
+<br><em>homogeneity:</em> <var>T</var>(λ<var>v</var>) = λ(<var>Tv</var>) for all λ ∈ <strong>F</strong> and all <var>v</var> ∈ <var>V</var>.
+<br>The set of all linear maps from <var>V</var> to <var>W</var> is written ℒ(<var>V</var>, <var>W</var>). <span class="cite">— Axler §3.A, Definition 3.2 and Notation 3.3, p. 52</span>
+</div>
+
+<p>Read each equation carefully: on the left the operation happens in <var>V</var>, on the right it happens in <var>W</var>. The two spaces have different additions and different scalar multiplications, and the definition asserts that <var>T</var> converts one into the other. That is the whole content — "structure-preserving", made precise.</p>
+
+<div class="worked">
+<strong>Worked example — the standard catalogue (fully worked).</strong> Each of these is in ℒ(<var>V</var>, <var>W</var>) for the spaces named, and it is worth checking two or three of them yourself against Definition 3.2 rather than taking the list on trust.
+<p><em>Zero.</em> 0 ∈ ℒ(<var>V</var>, <var>W</var>) sends every <var>v</var> to the additive identity of <var>W</var>. <em>Identity.</em> <var>I</var> ∈ ℒ(<var>V</var>, <var>V</var>) sends every <var>v</var> to itself.</p>
+<p><em>Differentiation.</em> <var>D</var> ∈ ℒ(𝒫(<strong>R</strong>), 𝒫(<strong>R</strong>)) defined by <var>Dp</var> = <var>p</var>′. Saying this is linear is precisely restating (<var>f</var> + <var>g</var>)′ = <var>f</var>′ + <var>g</var>′ and (λ<var>f</var>)′ = λ<var>f</var>′ — two rules from calculus, recognised as one algebraic fact.</p>
+<p><em>Integration.</em> <var>T</var> ∈ ℒ(𝒫(<strong>R</strong>), <strong>R</strong>) defined by <var>Tp</var> = ∫₀¹ <var>p</var>(<var>x</var>) d<var>x</var>. <em>Multiplication by <var>x</var>².</em> (<var>Tp</var>)(<var>x</var>) = <var>x</var>²<var>p</var>(<var>x</var>). <em>Backward shift.</em> <var>T</var> ∈ ℒ(<strong>F</strong><sup>∞</sup>, <strong>F</strong><sup>∞</sup>) with <var>T</var>(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃, …) = (<var>x</var>₂, <var>x</var>₃, …).</p>
+<p><em>From <strong>R</strong>³ to <strong>R</strong>².</em> <var>T</var>(<var>x</var>, <var>y</var>, <var>z</var>) = (2<var>x</var> − <var>y</var> + 3<var>z</var>, 7<var>x</var> + 5<var>y</var> − 6<var>z</var>). Generalising, any array of scalars <var>A</var><sub><var>j</var>,<var>k</var></sub> defines a linear map <strong>F</strong><var>ⁿ</var> → <strong>F</strong><var>ᵐ</var> by taking the <var>j</var>-th output slot to be <var>A</var><sub><var>j</var>,1</sub><var>x</var>₁ + ⋯ + <var>A</var><sub><var>j</var>,<var>n</var></sub><var>x</var><sub><var>n</var></sub> — and every linear map <strong>F</strong><var>ⁿ</var> → <strong>F</strong><var>ᵐ</var> has this form. That last sentence is the seed of la-07. <span class="cite">— Axler §3.A, Example 3.4, pp. 52–53</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.11 (linear maps take 0 to 0).</strong> If <var>T</var> is a linear map from <var>V</var> to <var>W</var>, then <var>T</var>(0) = 0. <span class="cite">— Axler §3.A, Theorem 3.11, p. 57</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — two lines, and note which clause is used.</strong> By additivity alone, <var>T</var>(0) = <var>T</var>(0 + 0) = <var>T</var>(0) + <var>T</var>(0). Adding the additive inverse of <var>T</var>(0) to both sides gives 0 = <var>T</var>(0).
+<p>Homogeneity is never invoked. You could also argue <var>T</var>(0) = <var>T</var>(0·0) = 0·<var>T</var>(0) = 0 using homogeneity and la-01's rule that 0 times a vector is 0 — either route works, but knowing that additivity alone suffices is what makes Theorem 3.11 usable in the situations of the prediction gate. <span class="cite">— Axler §3.A, p. 57</span></p>
+</div>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="worked">
+<strong>Verdict: no — homogeneity alone does not give linearity.</strong> Define φ : <strong>R</strong>² → <strong>R</strong> by φ(<var>x</var>, <var>y</var>) = (<var>x</var>³ + <var>y</var>³)<sup>1/3</sup>, using the real cube root, which is defined for every real number.
+<p><em>It is homogeneous.</em> φ(<var>a</var>(<var>x</var>, <var>y</var>)) = ((<var>ax</var>)³ + (<var>ay</var>)³)<sup>1/3</sup> = (<var>a</var>³(<var>x</var>³ + <var>y</var>³))<sup>1/3</sup> = <var>a</var>(<var>x</var>³ + <var>y</var>³)<sup>1/3</sup> = <var>a</var>φ(<var>x</var>, <var>y</var>), where pulling <var>a</var> out of the cube root is legitimate for <em>every</em> real <var>a</var>, negative ones included, because the real cube root is an odd function.</p>
+<p><em>It is not additive.</em> φ(1, 0) + φ(0, 1) = 1 + 1 = 2, while φ((1, 0) + (0, 1)) = φ(1, 1) = 2<sup>1/3</sup>, and 2<sup>1/3</sup> ≠ 2 since 2 ≠ 8. So φ satisfies one clause of Definition 3.2 and fails the other, and is not linear. <span class="cite">— cf. Axler §3.A, Exercise 8, p. 58</span></p>
+<p>The mirror-image question — is <em>additivity</em> alone enough? — has the same answer, and its counterexample is a problem in this unit's set.</p>
+</div>
+
+<div class="heuristic">
+<strong>Where the intuition goes wrong.</strong> Homogeneity is a statement about each line through the origin separately: it says φ is linear along that one line. Additivity is what ties different lines to each other. A function can behave impeccably on every line through the origin and still be wild in between, which is exactly what the cube-root example does. Axler's own version of this warning is aimed at students who write cos 2<var>x</var> = 2 cos <var>x</var> — a claim about one clause — and cos(<var>x</var> + <var>y</var>) = cos <var>x</var> + cos <var>y</var> — a claim about the other. <span class="cite">— Axler §3.A, p. 55</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A function <var>T</var> : <var>V</var> → <var>W</var> satisfies <var>T</var>(0) ≠ 0. What can you conclude?</p>
+<button onclick="check(this,true)" data-ok><var>T</var> is not linear</button>
+<button onclick="check(this,false)"><var>T</var> is not additive, but might still be homogeneous</button>
+<button onclick="check(this,false)">Nothing — Theorem 3.11 is a one-way implication</button>
+<div class="explain">Theorem 3.11 says linear ⟹ <var>T</var>(0) = 0, so contrapositively <var>T</var>(0) ≠ 0 ⟹ not linear. This is the cheapest linearity test there is and should be your first move. The second option overstates: <var>T</var>(0) ≠ 0 rules out additivity <em>and</em> homogeneity separately, since either clause alone forces <var>T</var>(0) = 0. The third confuses the direction of a contrapositive with a converse.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Is <var>T</var> : <strong>R</strong>³ → <strong>R</strong>², <var>T</var>(<var>x</var>, <var>y</var>, <var>z</var>) = (2<var>x</var> − 4<var>y</var> + 3<var>z</var> + 1, 6<var>x</var>) linear?</p>
+<button onclick="check(this,false)">Yes — every coordinate is a polynomial of degree 1</button>
+<button onclick="check(this,true)" data-ok>No — <var>T</var>(0, 0, 0) = (1, 0) ≠ (0, 0)</button>
+<button onclick="check(this,false)">No — the second slot ignores <var>y</var> and <var>z</var></button>
+<div class="explain">The constant +1 breaks Theorem 3.11 immediately, so no further checking is needed. "Degree 1" is the trap: a linear <em>map</em> permits no constant term, whereas the "linear functions" of school algebra, <var>y</var> = <var>mx</var> + <var>c</var>, do. The third option is a red herring — a linear map may certainly ignore some inputs; the zero map ignores all of them.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>A linear map is its values on a basis</h2>
+
+<div class="theorem">
+<strong>Theorem 3.5 (linear maps and a basis of the domain).</strong> Suppose <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> is a basis of <var>V</var> and <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub> ∈ <var>W</var>. Then there exists a <em>unique</em> linear map <var>T</var> : <var>V</var> → <var>W</var> with <var>Tv</var><sub><var>j</var></sub> = <var>w</var><sub><var>j</var></sub> for each <var>j</var>. <span class="cite">— Axler §3.A, Theorem 3.5, p. 54</span>
+</div>
+
+<p>Two separate assertions live in that sentence, and each is worth stating in words. <em>Existence:</em> you may prescribe the values on a basis completely arbitrarily — any <var>n</var> vectors of <var>W</var>, in any order, with repeats allowed — and a linear map realising them exists. <em>Uniqueness:</em> having done so, there is nothing left to choose. A linear map is exactly as much data as its values on one basis, no more and no less.</p>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> <em>Existence.</em> Define <var>T</var>(<var>c</var>₁<var>v</var>₁ + ⋯ + <var>c</var><sub><var>n</var></sub><var>v</var><sub><var>n</var></sub>) = <var>c</var>₁<var>w</var>₁ + ⋯ + <var>c</var><sub><var>n</var></sub><var>w</var><sub><var>n</var></sub>. The first thing to check is not that <var>T</var> is linear but that <var>T</var> is a <em>function</em> at all: the recipe assigns an output to an input by way of the input's coefficients, so it is well defined only because la-04's Theorem 2.29 says each <var>v</var> ∈ <var>V</var> has exactly one such list of coefficients. Take <var>c</var><sub><var>j</var></sub> = 1 and the rest 0 to get <var>Tv</var><sub><var>j</var></sub> = <var>w</var><sub><var>j</var></sub>. Additivity and homogeneity then reduce to collecting coefficients, since adding two vectors adds their coefficient lists and scaling a vector scales its list.
+<p><em>Uniqueness.</em> Suppose <var>S</var> is any linear map with <var>Sv</var><sub><var>j</var></sub> = <var>w</var><sub><var>j</var></sub>. Homogeneity gives <var>S</var>(<var>c</var><sub><var>j</var></sub><var>v</var><sub><var>j</var></sub>) = <var>c</var><sub><var>j</var></sub><var>w</var><sub><var>j</var></sub>, and additivity assembles these into <var>S</var>(<var>c</var>₁<var>v</var>₁ + ⋯ + <var>c</var><sub><var>n</var></sub><var>v</var><sub><var>n</var></sub>) = <var>c</var>₁<var>w</var>₁ + ⋯ + <var>c</var><sub><var>n</var></sub><var>w</var><sub><var>n</var></sub>. So <var>S</var> is pinned on span(<var>v</var>₁, …, <var>v</var><sub><var>n</var></sub>), which is <var>V</var> because the list is a basis, and <var>S</var> = <var>T</var>. <span class="cite">— Axler §3.A, p. 54</span></p>
+</div>
+
+<div class="heuristic">
+<strong>Both halves of "basis" are used, and used for different things.</strong> Uniqueness of the coefficient list — the <em>independence</em> half — is what makes the formula define a function. Spanning is what makes the formula define a function <em>on all of <var>V</var></em>. Drop independence and the recipe would assign two different outputs to one input; drop spanning and it would assign none to some inputs. A list that is merely independent, or merely spanning, gives you exactly one of the two conclusions of Theorem 3.5, and the problem set explores what goes wrong for a dependent list.
+</div>
+
+<p>Theorem 3.5 is also the machine that extends a linear map from a <em>subspace</em> to the whole space, and every ingredient is already in hand. A subspace of a finite-dimensional space is itself finite-dimensional and therefore has a basis, and any basis of it extends to a basis of the whole space — that is la-03's Theorem 2.26, p. 36, together with la-04's Theorem 2.32 and Theorem 2.33, p. 41. Prescribe the old values on the old basis vectors and anything you please on the new ones, and the theorem above hands back a linear map agreeing with the original throughout the subspace. The problem set asks you to run that construction, and to compare it with a simpler-looking extension that turns out not to be linear at all.</p>
+
+<h3>Canvas: a linear map does not bend the grid</h3>
+<p>The blue grid is the standard one on <strong>R</strong>²; the amber grid is its image under a linear map <var>T</var>. The map shears and stretches, but straight lines stay straight, evenly spaced lines stay evenly spaced, and the origin does not move. That rigidity <em>is</em> Definition 3.2, drawn.</p>
+<canvas id="lm" width="440" height="320"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('lm'),ctx=cv.getContext('2d'),cx=220,cy=150,s=30;
+let t=0;
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const th=0.55*Math.sin(t), a=1+0.35*Math.sin(t*0.7), b=1.1*Math.sin(t*0.5);
+  // T = [[a, b],[sin th, 1]]
+  function map(x,y){return [a*x+b*y, Math.sin(th)*x+y];}
+  function scr(p){return [cx+p[0]*s, cy-p[1]*s];}
+  function grid(f,col,w){
+    ctx.strokeStyle=col;ctx.lineWidth=w;
+    for(let i=-4;i<=4;i++){
+      let p0=scr(f(i,-4)),p1=scr(f(i,4));
+      ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+      p0=scr(f(-4,i));p1=scr(f(4,i));
+      ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+    }
+  }
+  grid(function(x,y){return [x,y];},'#243244',1);
+  grid(map,'#d8a657',1.4);
+  ctx.fillStyle='#4caf82';
+  const o=scr(map(0,0));
+  ctx.beginPath();ctx.arc(o[0],o[1],4.5,0,7);ctx.fill();
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('grey: R²   amber: its image under T   green: T(0) = 0, always',cx,300);
+  ctx.textAlign='left';
+  t+=0.01;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> <var>V</var> has basis <var>v</var>₁, <var>v</var>₂ and <var>W</var> = <strong>R</strong>³. How many linear maps <var>T</var> : <var>V</var> → <var>W</var> satisfy <var>Tv</var>₁ = (1, 0, 0) and <var>Tv</var>₂ = (1, 0, 0)?</p>
+<button onclick="check(this,false)">None — a linear map cannot send two different basis vectors to the same place</button>
+<button onclick="check(this,true)" data-ok>Exactly one</button>
+<button onclick="check(this,false)">Infinitely many, since the values on the rest of <var>V</var> are unconstrained</button>
+<div class="explain">Theorem 3.5 allows <em>any</em> choice of <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub> in <var>W</var>, including repeats, and yields exactly one map for each choice. The first option imports an injectivity requirement that is nowhere in the definition — this map sends <var>v</var>₁ − <var>v</var>₂ to 0, which is permitted and is la-06's subject. The third forgets uniqueness: values elsewhere are not free, they are forced by the values on the basis.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Linear maps as a space, and as a multiplication</h2>
+
+<div class="definition">
+<strong>Definition 3.6 and Theorem 3.7 (ℒ(<var>V</var>, <var>W</var>) is itself a vector space).</strong> For <var>S</var>, <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) and λ ∈ <strong>F</strong>, define (<var>S</var> + <var>T</var>)(<var>v</var>) = <var>Sv</var> + <var>Tv</var> and (λ<var>T</var>)(<var>v</var>) = λ(<var>Tv</var>). With these operations ℒ(<var>V</var>, <var>W</var>) is a vector space, whose additive identity is the zero map. <span class="cite">— Axler §3.A, Definition 3.6 and Theorem 3.7, p. 55</span>
+</div>
+
+<p>This is the first time the <em>maps</em> have become the vectors, and it is the move that makes the rest of the subject possible: la-10 studies ℒ(<var>V</var>, <strong>F</strong>) as a space in its own right, and la-08 computes its dimension. Notice that the definitions are the only ones available — a sum of functions must be computed pointwise — so the content is not the recipe but the claim that the results are still <em>linear</em>, which is what makes ℒ(<var>V</var>, <var>W</var>) closed under the operations.</p>
+
+<div class="definition">
+<strong>Definition 3.8 (product of linear maps).</strong> If <var>T</var> ∈ ℒ(<var>U</var>, <var>V</var>) and <var>S</var> ∈ ℒ(<var>V</var>, <var>W</var>), the <em>product</em> <var>ST</var> ∈ ℒ(<var>U</var>, <var>W</var>) is defined by (<var>ST</var>)(<var>u</var>) = <var>S</var>(<var>Tu</var>). <span class="cite">— Axler §3.A, Definition 3.8, p. 55</span>
+</div>
+
+<p><var>ST</var> is ordinary composition <var>S</var> ∘ <var>T</var>, written multiplicatively because that is the convention once both functions are linear. Two consequences of writing it as a product should be resisted, and one should be embraced. It is <em>defined only when <var>T</var> maps into the domain of <var>S</var></em>, so the notation hides a compatibility condition. It is <em>not commutative</em>. But it is associative, has the identity map as a unit, and distributes over addition on both sides. <span class="cite">— Axler §3.A, Theorem 3.9, p. 56</span></p>
+
+<div class="worked">
+<strong>Worked example — the product is genuinely not commutative (fully worked).</strong> Let <var>D</var> be differentiation on 𝒫(<strong>R</strong>) and let <var>T</var> be multiplication by <var>x</var>², both linear maps from 𝒫(<strong>R</strong>) to itself, so that <var>TD</var> and <var>DT</var> both make sense and both live in ℒ(𝒫(<strong>R</strong>), 𝒫(<strong>R</strong>)).
+<p>((<var>TD</var>)<var>p</var>)(<var>x</var>) means: differentiate first, then multiply by <var>x</var>². That gives <var>x</var>²<var>p</var>′(<var>x</var>).</p>
+<p>((<var>DT</var>)<var>p</var>)(<var>x</var>) means: multiply by <var>x</var>² first, then differentiate. By the product rule, that gives <var>x</var>²<var>p</var>′(<var>x</var>) + 2<var>xp</var>(<var>x</var>).</p>
+<p>These differ — take <var>p</var>(<var>x</var>) = 1, where <var>TD</var> gives 0 and <var>DT</var> gives 2<var>x</var> — so <var>TD</var> ≠ <var>DT</var>. The discrepancy 2<var>xp</var>(<var>x</var>) is exactly the product rule's extra term, which is a good way to remember that non-commutativity here is not an exotic pathology but something you have been computing since first-year calculus. <span class="cite">— Axler §3.A, Example 3.10, p. 56</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> <var>S</var> ∈ ℒ(<strong>R</strong>³, <strong>R</strong>²) and <var>T</var> ∈ ℒ(<strong>R</strong>², <strong>R</strong>³). Which products are defined?</p>
+<button onclick="check(this,false)">Neither, since the spaces have different dimensions</button>
+<button onclick="check(this,true)" data-ok>Both — <var>ST</var> ∈ ℒ(<strong>R</strong>², <strong>R</strong>²) and <var>TS</var> ∈ ℒ(<strong>R</strong>³, <strong>R</strong>³)</button>
+<button onclick="check(this,false)">Only <var>ST</var>, since products are read right to left</button>
+<div class="explain"><var>ST</var> needs <var>T</var> to map into <var>S</var>'s domain: <var>T</var> lands in <strong>R</strong>³, which is <var>S</var>'s domain, so <var>ST</var> is defined and maps <strong>R</strong>² → <strong>R</strong>². Symmetrically <var>TS</var> maps <strong>R</strong>³ → <strong>R</strong>³. Both exist, and they are not even maps between the same pair of spaces — a vivid reason why <var>ST</var> = <var>TS</var> is not something to expect.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why does Theorem 3.7 need proving at all, given that the definitions of <var>S</var> + <var>T</var> and λ<var>T</var> are the only sensible ones?</p>
+<button onclick="check(this,false)">It does not — the vector space axioms are inherited from <var>W</var> automatically</button>
+<button onclick="check(this,true)" data-ok>Because the axioms must be checked <em>and</em> the operations must be shown to produce linear maps, so that ℒ(<var>V</var>, <var>W</var>) is closed under them</button>
+<button onclick="check(this,false)">Because ℒ(<var>V</var>, <var>W</var>) has no additive identity until one is constructed</button>
+<div class="explain">Closure is the part that is not free: <var>S</var> + <var>T</var> is obviously a function, and the axioms do follow pointwise from those in <var>W</var>, but that <var>S</var> + <var>T</var> is again <em>linear</em> is a claim about Definition 3.2 and must be verified. It is the same structure as la-02's subspace test, where the axioms are inherited and only closure and the identity need checking. The third option is wrong: the zero map is already available, and is the identity.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) and <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> is a list of vectors in <var>V</var> such that <var>Tv</var>₁, …, <var>Tv</var><sub><var>m</var></sub> is linearly independent in <var>W</var>. Prove that <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> is linearly independent. (Start from a dependence relation among the <var>v</var>'s and apply <var>T</var> to it. You will need Theorem 3.11 at one specific step — notice where.) <span class="cite">— cf. Axler §3.A, Exercise 4, p. 57</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> Suppose <var>a</var>₁, …, <var>a</var><sub><var>m</var></sub> ∈ <strong>F</strong> satisfy <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> = 0. Apply <var>T</var> to both sides. On the left, additivity (used <var>m</var> − 1 times) and homogeneity (used <var>m</var> times) give <var>T</var>(<var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub>) = <var>a</var>₁<var>Tv</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>Tv</var><sub><var>m</var></sub>. On the right, <var>T</var>(0) = 0 by Theorem 3.11 — this is the step that needs it, and without it the right-hand side would be an unknown vector rather than 0.</p>
+<p>So <var>a</var>₁<var>Tv</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>Tv</var><sub><var>m</var></sub> = 0. Since <var>Tv</var>₁, …, <var>Tv</var><sub><var>m</var></sub> is linearly independent, every <var>a</var><sub><var>j</var></sub> = 0. Hence the only dependence relation among <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> is the trivial one, and the list is linearly independent by la-03's Definition 2.17. ∎</p>
+<p class="cite">The converse is false, and knowing why is worth as much as the proof. Take <var>T</var> = 0, the zero map: <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> may be as independent as you like, and <var>Tv</var>₁, …, <var>Tv</var><sub><var>m</var></sub> is a list of zeros, which is dependent. Independence transfers <em>backwards</em> along a linear map for free, and forwards only under a condition — injectivity — that la-06 identifies.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>A <strong>linear map</strong> (Definition 3.2) is a function satisfying additivity and homogeneity — the operations on the left happening in <var>V</var> and on the right in <var>W</var>. The two clauses are genuinely independent: either can hold without the other, so neither may be dropped. An immediate consequence, and the cheapest test available, is <var>T</var>(0) = 0 (Theorem 3.11).</li>
+<li>On a finite-dimensional domain, a linear map <em>is</em> its values on a basis: those values may be prescribed arbitrarily, and once prescribed the map is unique (Theorem 3.5). Independence of the basis is what makes the defining formula single-valued; spanning is what makes it defined everywhere.</li>
+<li>The maps themselves form a vector space ℒ(<var>V</var>, <var>W</var>) under pointwise operations (Theorem 3.7), and composable maps multiply (Definition 3.8). That multiplication is associative, unital and distributive (Theorem 3.9) but <strong>not commutative</strong> — differentiation and multiplication by <var>x</var>² differ by exactly the product rule's extra term (Example 3.10).</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §3.A "The Vector Space of Linear Maps": "Definition and Examples of Linear Maps" (Notation 3.1, Definition 3.2 linear map, Notation 3.3, Example 3.4 the catalogue, Theorem 3.5 linear maps and basis of domain), pp. 51–54; "Algebraic Operations on L(V, W)" (Definition 3.6, Theorem 3.7 L(V, W) is a vector space, Definition 3.8 product, Theorem 3.9 algebraic properties, Example 3.10 non-commutativity, Theorem 3.11 linear maps take 0 to 0), pp. 55–57; Exercises 3.A 4 and 8, pp. 57–58.
+<br>Builds on la-04, whose Theorem 2.29 — every vector has exactly one representation in a basis — is Axler §2.B, p. 39; it is what makes the formula in Theorem 3.5 define a function at all.
+<br>Deferred to la-06: the null space and range of a linear map, and the Fundamental Theorem of Linear Maps (Axler §3.B).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
