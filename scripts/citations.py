@@ -66,7 +66,7 @@ for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 KINDS = ("Theorem", "Lemma", "Proposition", "Definition", "Corollary",
-         "Example", "Exercise", "Fact", "Axiom", "Remark")
+         "Example", "Exercise", "Fact", "Axiom", "Remark", "Principle")
 # Multi-level numbers must be captured WHOLE. Abbott numbers three deep —
 # "Lemma 1.3.7", "Theorem 2.4.2" — and a pattern stopping at two components
 # truncates that to "Lemma 1.3", which then matches a page carrying Lemma 1.3.9
@@ -87,7 +87,12 @@ NUMBER = re.compile(r"(?:%s)(?!\d)(?!\.\d)" % NUM)
 PLURALS = {"Theorem": "Theorems", "Lemma": "Lemmas", "Proposition": "Propositions",
            "Definition": "Definitions", "Corollary": "Corollaries",
            "Example": "Examples", "Exercise": "Exercises", "Fact": "Facts",
-           "Axiom": "Axioms", "Remark": "Remarks"}
+           "Axiom": "Axioms", "Remark": "Remarks",
+           # Cummings states induction and strong induction as PRINCIPLES, and
+           # pw-02 cites Principle 4.1 and Principle 4.7. Omitting the kind
+           # meant both citations were skipped without touching the
+           # denominator. (CodeRabbit review of PR #21.)
+           "Principle": "Principles"}
 SINGULAR = {p.lower(): s for s, p in PLURALS.items()}
 PLURAL = re.compile(
     r"\b(%s)\s+(%s(?:\s*(?:[-–—,]|and)\s*%s)+)"
@@ -201,19 +206,36 @@ def clauses(span):
     return [(c, printed_pages_in(c) or whole) for c in parts]
 
 
+def name_pattern(name):
+    """A regex matching a bookmap key as a CONSECUTIVE phrase.
+
+    The words must appear in order and adjacent, with only punctuation,
+    whitespace or markdown emphasis allowed between them — so `Cummings, *Real
+    Analysis*` matches "Cummings Real Analysis" and `Cummings, *Proofs* … later
+    … Real Analysis` does not.
+
+    Testing the words INDEPENDENTLY was the defect: a Sources block naming
+    Cummings's Proofs first and his Real Analysis later made the first
+    "Cummings" satisfy the three-word key, because "Real" and "Analysis"
+    appeared somewhere after it. The most-specific-match rule then attributed
+    the Proofs citations to Real Analysis. (CodeRabbit review of PR #21.)
+    """
+    gap = r"[\s,:;*_\-–—'\"()]*"
+    return re.compile(
+        r"\b" + gap.join(re.escape(w) for w in name.split()) + r"\b", re.I)
+
+
 def book_named_in(text, names):
     """The bookmap key this text names, or None.
 
-    A key matches when every word of it appears in the text, so "Cummings"
-    matches `Cummings, *Proofs*` while "Cummings Real Analysis" matches only
-    the clause that also says Real Analysis. The most specific match wins,
-    which is what separates the two Cummings volumes and the two Aluffis.
+    "Cummings" matches `Cummings, *Proofs*`; "Cummings Real Analysis" matches
+    only text that says both, adjacently. The most specific match wins, which
+    is what separates the two Cummings volumes and the two Aluffis.
     """
     best = None
     for name in names:
-        words = name.split()
-        if all(re.search(r"\b%s\b" % re.escape(w), text, re.I) for w in words):
-            if best is None or len(words) > len(best.split()):
+        if name_pattern(name).search(text):
+            if best is None or len(name.split()) > len(best.split()):
                 best = name
     return best
 
@@ -344,13 +366,15 @@ def split_at_books(text, names):
     which is the conservative reading — a citation after a book's name is
     about that book.
     """
+    # The name must appear as a CONSECUTIVE phrase, not as its words scattered
+    # anywhere after the first: matching them independently let a span that
+    # names Cummings's Proofs and later his Real Analysis cut at the FIRST
+    # "Cummings" as though it were the three-word key, sending the Proofs
+    # citations to the wrong volume. (CodeRabbit review of PR #21.)
     hits = []
     for name in names:
-        words = name.split()
-        for m in re.finditer(r"\b%s\b" % re.escape(words[0]), text, re.I):
-            if all(re.search(r"\b%s\b" % re.escape(w), text[m.start():], re.I)
-                   for w in words[1:]):
-                hits.append((m.start(), len(words), name))
+        for m in name_pattern(name).finditer(text):
+            hits.append((m.start(), len(name.split()), name))
     if not hits:
         return [(text, None)]
     # At one position, the most specific name wins ("Cummings Real Analysis"
@@ -637,6 +661,29 @@ def selftest():
               printed_pages_in("printed **268-274**") == set(range(268, 275)))
     check_one("...and 'p.' still works",
               printed_pages_in("pp. 41-42") == {41, 42})
+
+    # -- CodeRabbit review of PR #21 ---------------------------------------
+    check_one("Principle is a result kind",
+              results_in("Cummings §4.1, Principle 4.1, p. 108")
+              == ["Principle 4.1"]
+              and results_in("Principles 4.1, 4.7")
+              == ["Principle 4.1", "Principle 4.7"])
+    check_one("a book name matches only as a consecutive phrase",
+              book_named_in("Cummings, *Proofs*, Ch. 8 — cf. Real Analysis",
+                            ["Cummings", "Cummings Real Analysis"]) == "Cummings")
+    check_one("...while the real phrase still matches through punctuation",
+              book_named_in("Cummings, *Real Analysis*, Ch. 6",
+                            ["Cummings", "Cummings Real Analysis"])
+              == "Cummings Real Analysis")
+    check_one("a mixed-volume span is cut at each volume, in order",
+              [n for _p, n in split_at_books(
+                  "Cummings, *Proofs*, p. 46. Cummings, *Real Analysis*, p. 226.",
+                  ["Cummings", "Cummings Real Analysis"])]
+              == ["Cummings", "Cummings Real Analysis"])
+    check_one("the number-first word order rejects a longer sibling too",
+              found_on_page("Definition 1.3", "1.3.7 definition of x") is None
+              and found_on_page("Definition 1.8", "1.8 definition subspace")
+              == "exact")
 
     print("\n%d/%d checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0

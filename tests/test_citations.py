@@ -271,3 +271,37 @@ def test_a_clause_naming_an_absent_book_is_no_verdict_not_a_failure():
             "Hatcher, Theorem 1.1, p. 30\n\n")
     got = {name for _span, _pages, _line, name in attribute(text, "Cummings", names)}
     assert "Hatcher" in got
+
+
+# --- CodeRabbit review of PR #21 -------------------------------------------
+
+def test_principle_is_a_result_kind():
+    """Cummings states induction and strong induction as Principles, and pw-02
+    cites Principle 4.1 and 4.7. Both were skipped without touching the
+    denominator — and once counted, one of them was on the wrong page."""
+    from scripts.citations import results_in
+    assert results_in("Cummings §4.1, Principle 4.1, p. 108") == ["Principle 4.1"]
+    assert results_in("Principles 4.1, 4.7") == ["Principle 4.1", "Principle 4.7"]
+
+
+def test_a_book_name_matches_only_as_a_consecutive_phrase():
+    """Testing a key's words independently let a Sources block that names
+    Cummings's Proofs first and his Real Analysis later make the FIRST
+    "Cummings" satisfy the three-word key, sending the Proofs citations to the
+    wrong volume."""
+    from scripts.citations import book_named_in, split_at_books
+    names = ["Cummings", "Cummings Real Analysis"]
+    assert book_named_in("Cummings, *Proofs*, Ch. 8 — cf. Real Analysis",
+                         names) == "Cummings"
+    assert book_named_in("Cummings, *Real Analysis*, Ch. 6",
+                         names) == "Cummings Real Analysis"
+    assert [n for _p, n in split_at_books(
+        "Cummings, *Proofs*, p. 46. Cummings, *Real Analysis*, p. 226.", names)] \
+        == ["Cummings", "Cummings Real Analysis"]
+
+
+def test_the_number_first_word_order_rejects_a_longer_sibling():
+    """Axler prints "1.8 Definition"; that order needs the same boundary."""
+    from scripts.citations import found_on_page
+    assert found_on_page("Definition 1.3", "1.3.7 definition of x") is None
+    assert found_on_page("Definition 1.8", "1.8 definition subspace") == "exact"
