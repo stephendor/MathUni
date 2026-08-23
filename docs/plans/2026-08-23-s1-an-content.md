@@ -344,6 +344,27 @@ Each was learned by shipping the mistake and having a gate or a reader catch it.
    fixed by extending a "Builds on" line, which is where the cross-unit
    dependency belonged anyway.
 5. **Name the book as the book map spells it.** F-3.
+6. **A worked solution must carry out its own decisive step.** Added after the
+   review, because four of the nine mathematical findings on PR #25 were the
+   same defect and none of them is catchable by any gate here:
+
+   - an-04 derived a numerator whose sign needs `x_n ≥ 2 − √3`, proved
+     `x_n > 1/4`, and moved on.
+   - an-07(f) built a union, said its "total length" is at most `2ε`, and
+     deferred the only step that shows anything is omitted — to measure theory
+     the course has not built.
+   - an-13(b) reached a construction that gives the zero function, wrote
+     "so amend the construction", and offered two sketches without carrying
+     either out.
+   - an-14(b) inferred pointwise agreement from `∫|f_n − f| → 0`, which is
+     false in general and was the step the argument turned on.
+
+   The shape is constant: the writing stays fluent exactly where the argument
+   stops, so the prose reads as finished. Every one was found by a reader.
+   The check is to name, for each worked solution, the single step that does the
+   real work, and confirm that step is *performed* rather than announced,
+   deferred, or asserted. Where the gap is instructive — an-04's and an-13's
+   were — keep the failed attempt and label it, rather than deleting it.
 
 ---
 
