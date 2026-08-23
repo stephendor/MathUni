@@ -203,9 +203,22 @@ def admissible(page, rows, shared=()):
     printed 59 opens §3.B at the top with nothing above it but the running
     head, so 59 admits §3.B alone — which is what makes the defect this gate
     was built for still fire.
+
+    A page carrying a GAP row never admits the earlier label, whatever the
+    index says about sharing. A gap is the statement that nothing from before
+    is in force here, so the two claims contradict each other and the gap
+    wins. Abbott's printed 213 is exactly this case: the chapter-8 opening
+    page, carrying the chapter title and epigraph above the §8.1 heading.
+    That text is long enough to read as a previous section running on, so
+    --refresh marked 213 shared and `§7.7, p. 213` passed — though §7.7 ended
+    before the chapter break, which is the one thing gap rows exist to say.
+    (Codex review of PR #25.) The guard is here as well as at refresh time
+    because the index is a committed artifact and can be stale.
     """
     here = section_of(page, rows)
     if page not in shared:
+        return [here]
+    if any(start == page and label is None for start, label in rows):
         return [here]
     before = None
     for start, label in rows:
@@ -322,6 +335,14 @@ def refresh(book, out=INDEX):
         first = next((ln.strip() for ln in text.splitlines() if ln.strip()), "")
         if CHAPTER_OPEN.match(first):
             gaps.append(p)
+    # A gap page is never a shared page. The two rows say opposite things —
+    # "nothing from before is in force here" against "the previous section
+    # runs on into this page" — and the gap is the one read off the book's
+    # structure rather than off a character count. The count is what misfires:
+    # on a chapter-opening page the text above the first section heading is
+    # the chapter title and epigraph, which is new matter, not the tail of the
+    # previous section. Abbott's printed 213 was recorded as both.
+    shared -= set(gaps)
     if not found:
         raise NoVerdict("no section headings found for %r — neither the "
                         "lettered nor the numbered shape matched anything, so "
@@ -473,6 +494,24 @@ def selftest():
         check_text("Axler §3.A, Definition 3.12, p. 59", rows) == [("3.A", 59, "3.B")])
     one("admissible names the page's own section first",
         admissible(29, share_rows, {29}) == ["1.5", "1.4"])
+
+    # A gap page is never shared, even if the index says it is. Abbott's
+    # printed 213 opens chapter 8: the chapter title and epigraph above the
+    # §8.1 heading read as a previous section running on, so refresh marked
+    # it shared, and §7.7 -- which ended before the chapter break -- was
+    # admitted there. The gap row is the book's own statement that nothing
+    # from before is in force, and it wins. (Codex review of PR #25.)
+    gap_share = [(210, "7.7"), (213, None), (213, "8.1")]
+    one("a gap page does not admit the label from before the gap",
+        admissible(213, gap_share, {213}) == ["8.1"])
+    one("...so a label that ran on through the gap is still caught",
+        check_text("Abbott §7.7, p. 213", gap_share, {213})
+        == [("7.7", 213, "8.1")])
+    one("...while the section starting on that page is fine",
+        check_text("Abbott §8.1, p. 213", gap_share, {213}) == [])
+    one("the committed index records no page as both a gap and shared",
+        all(not (set(v["shared"]) & set(v["gaps"]))
+            for v in json.load(io.open(INDEX, encoding="utf-8")).values()))
 
     # The pre-gap index format cannot express a gap, so it is refused.
     import tempfile

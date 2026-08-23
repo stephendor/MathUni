@@ -291,6 +291,37 @@ the rule stated beside it, which is that the lettered pattern wins outright if
 it finds *anything*. A book with a single lettered section fell through to
 NUMBERED, matched nothing, and raised NoVerdict. (CodeRabbit, PR #25.)
 
+### 5.2 The relaxation reached one page it should not have
+
+Found in the second review round, and it is the shared-page change eating one
+of the gate's own guarantees. Printed 213 is Abbott's chapter-8 opening page:
+the index records it as a gap — `(213, None)` — and as the start of §8.1, and
+`--refresh` *also* marked it shared, because the chapter title and epigraph
+above the §8.1 heading are long enough to read as a previous section running
+on. `admissible(213)` therefore returned `['8.1', '7.7']`, and `§7.7, p. 213`
+passed — though §7.7 ended before the chapter break, which is the single thing
+gap rows exist to say. (Codex, PR #25.)
+
+The two rows make contradictory claims about one page. The gap is read off the
+book's structure; the sharing is read off a character count; the character
+count is the one that misfires, because on a chapter opening the text above the
+first heading is new matter rather than the tail of anything. So the gap wins,
+in both places it can be enforced:
+
+- `refresh` ends with `shared -= set(gaps)`, so the committed index no longer
+  contains the contradiction. Abbott drops from 38 shared starts to 37; the
+  section and gap counts are unchanged, and Axler is unaffected.
+- `admissible` refuses the earlier label on any page carrying a gap row,
+  whatever the index says. The index is a committed artifact and can be stale,
+  and a stale index must not be able to buy back a silent pass.
+
+  Negative controls: `§7.7, p. 213` fails against §8.1; `§8.1, p. 213` still
+  passes, so the guard does not cost the page its own label; `§1.4, Exercise
+  1.4.13, p. 29` still passes, so the genuine sharing case is untouched; and a
+  test asserts the committed index marks no page as both a gap and shared.
+
+  `check_sections` selftest 38 → 42, tests 39 → 44.
+
 ---
 
 ## 6. Authoring rules this module cost
@@ -331,9 +362,9 @@ Run on the completed branch with the book drive present.
 | `mission` (gate 8) | verbatim, exit 0 |
 | `check_id_consistency`, `validate_syllabus` | clean |
 | `check_resources --shallow` | 145 units, 217 references, 0 wrong |
-| `check_sections --selftest` | 38/38 |
+| `check_sections --selftest` | 42/42 |
 | `gate --selftest` | 73/73 |
-| `pytest` | **336 passed** |
+| `pytest` | **341 passed** |
 
 `ruff` reports one pre-existing E702 in `tests/test_scheduler.py`, untouched by
 this branch.
@@ -412,6 +443,18 @@ per-file book attribution it exposed, and the `lettered >= 2` heading selection.
   attributed to Theorem 6.2.5 alone. 6.2.5 produces a uniform limit; it says
   nothing about continuity, and completeness needs the limit back inside the
   space. Theorem 6.2.6 is the missing step — both verified on printed 160.
+
+**Second round.** Two further findings, both Codex, both real:
+
+- The gap/shared conflict on Abbott's printed 213 — §5.2 above.
+- **an-09 Problem 5(a).** The Partial offered `A = [0,1] ∪ [2,3]` as an example
+  of a disconnected set with connected closure. It is closed, so its closure is
+  itself and is just as disconnected; a student taking the first of the two
+  offered sets is led to a non-answer. Only `(0,1) ∪ (1,2)` survives. The bad
+  set is kept as the labelled near-miss, because it is what most people reach
+  for first and the reason it fails *is* the content of the problem: closure
+  adds limit points and nothing else, so it can repair a single removed point
+  but not a removed interval.
 
 **Did not reproduce:** CodeRabbit's outside-diff comment on `an-05.md` lines
 194–196 describes a four-part construction problem with a miscounted number of
