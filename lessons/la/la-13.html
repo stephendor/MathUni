@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-13 — Inner product spaces</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Inner product spaces <span class="cite">(la-13)</span></h1>
+
+<div class="hook">
+Geometry enters: length and angle from pure algebra.
+<p>Twelve units of linear algebra have said nothing about how long a vector is or what angle two vectors make. Nothing could: the axioms of a vector space mention addition and scaling and no measurement whatever. Length and angle have to be <em>added</em>, and the thing that adds them is an <strong>inner product</strong> — one extra operation, taking two vectors to a scalar, subject to five conditions.</p>
+<p>From that single addition everything geometric follows. The norm is √⟨<var>v</var>, <var>v</var>⟩. Orthogonality is ⟨<var>u</var>, <var>v</var>⟩ = 0. Pythagoras becomes a two-line computation, and so do the Cauchy–Schwarz and triangle inequalities. This is also the point at which the module reaches the mission's data: a point cloud is a finite set of vectors in an inner product space, and every distance in a filtration is a norm computed exactly as below.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Every inner product produces a norm, ‖<var>v</var>‖ = √⟨<var>v</var>, <var>v</var>⟩. Ask the converse. A <em>norm</em> is any function ‖·‖ that vanishes only at 0, satisfies ‖λ<var>u</var>‖ = |λ|‖<var>u</var>‖, and obeys the triangle inequality. Do you predict that <strong>every</strong> norm arises from some inner product in this way? Commit to yes or no — and if you say no, try to name a norm on <strong>R</strong>² that could not. The verdict arrives in Segment 3.
+</div>
+
+<p class="mission">Why this matters for the mission: Point clouds live in inner product spaces; distances build filtrations.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>The inner product</h2>
+
+<div class="definition">
+<strong>Definition 6.3 (inner product).</strong> An <em>inner product</em> on <var>V</var> takes each ordered pair (<var>u</var>, <var>v</var>) to a scalar ⟨<var>u</var>, <var>v</var>⟩ ∈ <strong>F</strong> and satisfies:
+<br><em>positivity:</em> ⟨<var>v</var>, <var>v</var>⟩ ≥ 0 for all <var>v</var>;
+<br><em>definiteness:</em> ⟨<var>v</var>, <var>v</var>⟩ = 0 if and only if <var>v</var> = 0;
+<br><em>additivity in the first slot:</em> ⟨<var>u</var> + <var>v</var>, <var>w</var>⟩ = ⟨<var>u</var>, <var>w</var>⟩ + ⟨<var>v</var>, <var>w</var>⟩;
+<br><em>homogeneity in the first slot:</em> ⟨λ<var>u</var>, <var>v</var>⟩ = λ⟨<var>u</var>, <var>v</var>⟩;
+<br><em>conjugate symmetry:</em> ⟨<var>u</var>, <var>v</var>⟩ = conj⟨<var>v</var>, <var>u</var>⟩. <span class="cite">— Axler §6.A, Definition 6.3, p. 166</span>
+</div>
+
+<p>Positivity is a claim that needs conjugate symmetry to make sense at all: ⟨<var>v</var>, <var>v</var>⟩ = conj⟨<var>v</var>, <var>v</var>⟩ forces it to be real, and only then can "≥ 0" be asserted. Over <strong>R</strong> the conjugation is invisible and conjugate symmetry is plain symmetry. Note also that the asymmetry between the slots is a <em>convention</em> — many physicists put the homogeneity in the second slot instead — and that consistency, not the choice, is what matters. <span class="cite">— Axler §6.A, p. 166</span></p>
+
+<div class="worked">
+<strong>Worked example — the standard inner products (fully worked).</strong>
+<p><em>Euclidean.</em> On <strong>F</strong><var>ⁿ</var>, ⟨(<var>w</var>₁, …, <var>w</var><sub><var>n</var></sub>), (<var>z</var>₁, …, <var>z</var><sub><var>n</var></sub>)⟩ = <var>w</var>₁conj(<var>z</var>₁) + ⋯ + <var>w</var><sub><var>n</var></sub>conj(<var>z</var><sub><var>n</var></sub>). The conjugates are what make ⟨<var>v</var>, <var>v</var>⟩ = |<var>z</var>₁|² + ⋯ + |<var>z</var><sub><var>n</var></sub>|² a nonnegative real; without them positivity fails over <strong>C</strong> at once.</p>
+<p><em>Weighted.</em> For positive <var>c</var>₁, …, <var>c</var><sub><var>n</var></sub>, the same formula with each term multiplied by <var>c</var><sub><var>j</var></sub> is again an inner product — so a space carries many inner products, and "the" geometry of <strong>F</strong><var>ⁿ</var> is a choice.</p>
+<p><em>Integral.</em> On the continuous real-valued functions on [−1, 1], ⟨<var>f</var>, <var>g</var>⟩ = ∫<sub>−1</sub><sup>1</sup> <var>f</var>(<var>x</var>)<var>g</var>(<var>x</var>) d<var>x</var>. Definiteness here is the genuinely analytic condition: a continuous function whose square integrates to zero must be identically zero. <span class="cite">— Axler §6.A, Example 6.4, p. 166</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 6.5 and Notation 6.6.</strong> An <em>inner product space</em> is a vector space together with an inner product on it. From here on <var>V</var> denotes an inner product space over <strong>F</strong>, with <strong>F</strong><var>ⁿ</var> carrying the Euclidean inner product unless said otherwise. <span class="cite">— Axler §6.A, Definition 6.5 and Notation 6.6, p. 167</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 6.7 (basic properties).</strong> For fixed <var>u</var>, the map <var>v</var> ↦ ⟨<var>v</var>, <var>u</var>⟩ is a linear functional on <var>V</var>; ⟨0, <var>u</var>⟩ = ⟨<var>u</var>, 0⟩ = 0; ⟨<var>u</var>, <var>v</var> + <var>w</var>⟩ = ⟨<var>u</var>, <var>v</var>⟩ + ⟨<var>u</var>, <var>w</var>⟩; and ⟨<var>u</var>, λ<var>v</var>⟩ = conj(λ)⟨<var>u</var>, <var>v</var>⟩. <span class="cite">— Axler §6.A, Theorem 6.7, p. 167</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true, and the one asymmetry to remember.</strong> The first slot is linear by two of the axioms outright, which is why <var>v</var> ↦ ⟨<var>v</var>, <var>u</var>⟩ is a linear functional in la-10's sense; ⟨0, <var>u</var>⟩ = 0 then follows from la-05's Theorem 3.11 rather than needing its own argument.
+<p>The second slot is <em>not</em> linear. Additivity survives — take conjugates of the first-slot statement — but homogeneity picks up a conjugate: ⟨<var>u</var>, λ<var>v</var>⟩ = conj⟨λ<var>v</var>, <var>u</var>⟩ = conj(λ⟨<var>v</var>, <var>u</var>⟩) = conj(λ)⟨<var>u</var>, <var>v</var>⟩. Over <strong>R</strong> nothing is lost, but over <strong>C</strong> forgetting the conjugate is the single most common error in the chapter. <span class="cite">— Axler §6.A, pp. 167–168</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Over <strong>C</strong>, what is ⟨<var>u</var>, 3<var>i</var><var>v</var>⟩ in terms of ⟨<var>u</var>, <var>v</var>⟩?</p>
+<button onclick="check(this,false)">3<var>i</var>⟨<var>u</var>, <var>v</var>⟩</button>
+<button onclick="check(this,true)" data-ok>−3<var>i</var>⟨<var>u</var>, <var>v</var>⟩</button>
+<button onclick="check(this,false)">3⟨<var>u</var>, <var>v</var>⟩</button>
+<div class="explain">Theorem 6.7(e) pulls a scalar out of the <em>second</em> slot conjugated: conj(3<var>i</var>) = −3<var>i</var>. Out of the first slot it would come unchanged, which is the asymmetry the definition builds in deliberately. The third option conjugates the wrong thing — the modulus, not the scalar.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Norms, orthogonality, and Pythagoras</h2>
+
+<div class="definition">
+<strong>Definition 6.8 and Theorem 6.10 (norm).</strong> For <var>v</var> ∈ <var>V</var>, ‖<var>v</var>‖ = √⟨<var>v</var>, <var>v</var>⟩. Then ‖<var>v</var>‖ = 0 if and only if <var>v</var> = 0, and ‖λ<var>v</var>‖ = |λ|‖<var>v</var>‖. <span class="cite">— Axler §6.A, Definition 6.8, p. 168, and Theorem 6.10, p. 169</span>
+</div>
+
+<p>On <strong>F</strong><var>ⁿ</var> this gives ‖(<var>z</var>₁, …, <var>z</var><sub><var>n</var></sub>)‖ = √(|<var>z</var>₁|² + ⋯ + |<var>z</var><sub><var>n</var></sub>|²), the familiar Euclidean length; on the continuous functions it gives √∫<sub>−1</sub><sup>1</sup> <var>f</var>². The second is worth staring at — it is a notion of "how big a function is" produced by exactly the same definition. <span class="cite">— Axler §6.A, Example 6.9, p. 168</span></p>
+
+<p>A norm also bounds what an operator can do, and that turns into information about eigenvalues almost for free. If ‖<var>Tv</var>‖ ≤ ‖<var>v</var>‖ for every <var>v</var>, then no scalar of modulus greater than 1 can be an eigenvalue: <var>Tv</var> = λ<var>v</var> would give |λ|‖<var>v</var>‖ ≤ ‖<var>v</var>‖, forcing ‖<var>v</var>‖ = 0. So <var>T</var> − λ<var>I</var> has trivial null space and is injective. <span class="cite">— Axler §3.B, Theorem 3.16, p. 61</span> On a finite-dimensional space that is already invertibility. <span class="cite">— Axler §3.D, Theorem 3.69, p. 87</span> The argument is a problem in this unit's set, and it is the first sign that norms and spectra constrain each other — the thread Axler's Chapter 7 picks up and the reason spectral methods behave well on the symmetric operators la-15 studies.</p>
+
+<div class="heuristic">
+<strong>Square first.</strong> Almost every proof about norms in this unit begins by squaring, because ‖<var>v</var>‖² = ⟨<var>v</var>, <var>v</var>⟩ turns a square root into an inner product that the axioms can be applied to. Axler's proof of ‖λ<var>v</var>‖ = |λ|‖<var>v</var>‖ is the model: compute ‖λ<var>v</var>‖² = λ conj(λ)⟨<var>v</var>, <var>v</var>⟩ = |λ|²‖<var>v</var>‖², then take square roots at the very end. Reaching for the square root first is the reliable way to get stuck. <span class="cite">— Axler §6.A, p. 169</span>
+</div>
+
+<div class="definition">
+<strong>Definition 6.11 and Theorem 6.12 (orthogonal).</strong> Vectors <var>u</var>, <var>v</var> are <em>orthogonal</em> if ⟨<var>u</var>, <var>v</var>⟩ = 0. The vector 0 is orthogonal to every vector, and is the only vector orthogonal to itself. <span class="cite">— Axler §6.A, Definition 6.11, p. 169, and Theorem 6.12, p. 170</span>
+</div>
+
+<p>The order does not matter, since ⟨<var>u</var>, <var>v</var>⟩ = 0 exactly when ⟨<var>v</var>, <var>u</var>⟩ = 0 by conjugate symmetry. In <strong>R</strong>² this coincides with perpendicularity in the sense of plane geometry, because ⟨<var>u</var>, <var>v</var>⟩ = ‖<var>u</var>‖‖<var>v</var>‖cos θ for the angle θ between the arrows — a fact the problem sets treat as an exercise rather than a definition, since the whole point is that orthogonality is defined algebraically and then <em>turns out</em> to be perpendicularity. <span class="cite">— Axler §6.A, p. 169</span></p>
+
+<div class="theorem">
+<strong>Theorem 6.13 (Pythagorean Theorem).</strong> If <var>u</var> and <var>v</var> are orthogonal, then ‖<var>u</var> + <var>v</var>‖² = ‖<var>u</var>‖² + ‖<var>v</var>‖². <span class="cite">— Axler §6.A, Theorem 6.13, p. 170</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — three lines, 2,500 years later.</strong> ‖<var>u</var> + <var>v</var>‖² = ⟨<var>u</var> + <var>v</var>, <var>u</var> + <var>v</var>⟩ = ⟨<var>u</var>, <var>u</var>⟩ + ⟨<var>u</var>, <var>v</var>⟩ + ⟨<var>v</var>, <var>u</var>⟩ + ⟨<var>v</var>, <var>v</var>⟩, and the two middle terms vanish by orthogonality, leaving ‖<var>u</var>‖² + ‖<var>v</var>‖².
+<p>The proof also shows exactly what the conclusion is equivalent to: ⟨<var>u</var>, <var>v</var>⟩ + ⟨<var>v</var>, <var>u</var>⟩ = 2Re⟨<var>u</var>, <var>v</var>⟩ must be 0. Over <strong>R</strong> that <em>is</em> orthogonality, so the converse holds; over <strong>C</strong> it does not, since a purely imaginary ⟨<var>u</var>, <var>v</var>⟩ has zero real part without being zero. Noticing which half of a proof is reversible costs nothing and is where the converse comes from. <span class="cite">— Axler §6.A, p. 170</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 6.14 (orthogonal decomposition).</strong> Suppose <var>u</var>, <var>v</var> ∈ <var>V</var> with <var>v</var> ≠ 0. Put <var>c</var> = ⟨<var>u</var>, <var>v</var>⟩/‖<var>v</var>‖² and <var>w</var> = <var>u</var> − <var>cv</var>. Then ⟨<var>w</var>, <var>v</var>⟩ = 0 and <var>u</var> = <var>cv</var> + <var>w</var>. <span class="cite">— Axler §6.A, Theorem 6.14, p. 171</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — where the formula comes from (fully worked).</strong> The scalar <var>c</var> is not guessed; it is solved for.
+<p>Write <var>u</var> = <var>cv</var> + (<var>u</var> − <var>cv</var>) for an unknown <var>c</var>. We want the second piece orthogonal to <var>v</var>, that is 0 = ⟨<var>u</var> − <var>cv</var>, <var>v</var>⟩ = ⟨<var>u</var>, <var>v</var>⟩ − <var>c</var>‖<var>v</var>‖², using additivity and homogeneity in the first slot. Rearranging, <var>c</var> = ⟨<var>u</var>, <var>v</var>⟩/‖<var>v</var>‖² — and the division is legal precisely because <var>v</var> ≠ 0 makes ‖<var>v</var>‖ ≠ 0, by definiteness. <span class="cite">— Axler §6.A, p. 171</span></p>
+<p>Geometrically <var>cv</var> is the shadow of <var>u</var> along <var>v</var> and <var>w</var> is what is left over. This is the whole of orthogonal projection in one line, and la-14 will run it repeatedly to build orthonormal bases.</p>
+</div>
+
+<h3>Canvas: the orthogonal decomposition</h3>
+<p><var>v</var> is fixed (amber); <var>u</var> (blue) sweeps around. The green vector is <var>cv</var>, the shadow of <var>u</var> along <var>v</var>, and the dashed vector from its tip to <var>u</var> is <var>w</var> — always at a right angle to <var>v</var>, whatever <var>u</var> does.</p>
+<canvas id="proj" width="440" height="300"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('proj'),ctx=cv.getContext('2d'),cx=150,cy=170,s=48;
+let t=0;
+function scr(p){return [cx+p[0]*s, cy-p[1]*s];}
+function seg(p,q,col,w,dash){
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w;
+  if(dash)ctx.setLineDash([5,4]);
+  const a=scr(p),b=scr(q);
+  ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  ctx.restore();
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const v=[2.2,0.9];
+  const th=t, u=[1.9*Math.cos(th), 1.9*Math.sin(th)];
+  const c=(u[0]*v[0]+u[1]*v[1])/(v[0]*v[0]+v[1]*v[1]);
+  const cvv=[c*v[0], c*v[1]];
+  seg([0,0],[v[0]*1.6,v[1]*1.6],'#2a3a52',1);
+  seg([0,0],v,'#d8a657',2.6);
+  seg([0,0],u,'#8ab4f8',2.6);
+  seg([0,0],cvv,'#4caf82',3);
+  seg(cvv,u,'#9aa5b1',1.8,true);
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('amber: v    blue: u    green: cv    dashed: w = u − cv',220,266);
+  ctx.fillText('c = ⟨u, v⟩ / ‖v‖² = '+c.toFixed(2)+'   —   w stays orthogonal to v',220,284);
+  ctx.textAlign='left';
+  t+=0.011;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Over <strong>C</strong>, does ‖<var>u</var> + <var>v</var>‖² = ‖<var>u</var>‖² + ‖<var>v</var>‖² imply that <var>u</var> and <var>v</var> are orthogonal?</p>
+<button onclick="check(this,false)">Yes — that is the Pythagorean Theorem</button>
+<button onclick="check(this,true)" data-ok>No — it gives only Re⟨<var>u</var>, <var>v</var>⟩ = 0</button>
+<button onclick="check(this,false)">Yes, provided both vectors are nonzero</button>
+<div class="explain">The computation shows the identity holds exactly when ⟨<var>u</var>, <var>v</var>⟩ + ⟨<var>v</var>, <var>u</var>⟩ = 2Re⟨<var>u</var>, <var>v</var>⟩ vanishes. Over <strong>R</strong> that is orthogonality; over <strong>C</strong> an inner product like <var>i</var> has zero real part and is not zero. Theorem 6.13 is stated as an implication, not an equivalence, for exactly this reason.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Cauchy–Schwarz, and which norms are geometric</h2>
+
+<div class="theorem">
+<strong>Theorem 6.15 (Cauchy–Schwarz Inequality).</strong> For <var>u</var>, <var>v</var> ∈ <var>V</var>, |⟨<var>u</var>, <var>v</var>⟩| ≤ ‖<var>u</var>‖‖<var>v</var>‖, with equality if and only if one of <var>u</var>, <var>v</var> is a scalar multiple of the other. <span class="cite">— Axler §6.A, Theorem 6.15, p. 172</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — Pythagoras applied to the orthogonal decomposition.</strong> If <var>v</var> = 0 both sides are 0. Otherwise decompose <var>u</var> = <var>cv</var> + <var>w</var> as in Theorem 6.14, with <var>c</var> = ⟨<var>u</var>, <var>v</var>⟩/‖<var>v</var>‖² and <var>w</var> orthogonal to <var>v</var>. Pythagoras gives
+<p style="text-align:center">‖<var>u</var>‖² = |<var>c</var>|²‖<var>v</var>‖² + ‖<var>w</var>‖² = |⟨<var>u</var>, <var>v</var>⟩|²/‖<var>v</var>‖² + ‖<var>w</var>‖² ≥ |⟨<var>u</var>, <var>v</var>⟩|²/‖<var>v</var>‖².</p>
+<p>Multiply by ‖<var>v</var>‖² and take square roots. The only inequality used is ‖<var>w</var>‖² ≥ 0, so equality holds exactly when <var>w</var> = 0 — which by Theorem 6.14 says <var>u</var> = <var>cv</var>, a scalar multiple. The phrasing "one of <var>u</var>, <var>v</var> is a multiple of the other" rather than "<var>u</var> is a multiple of <var>v</var>" is what covers <var>v</var> = 0. <span class="cite">— Axler §6.A, p. 172</span></p>
+<p>Two familiar inequalities are instances. On <strong>R</strong><var>ⁿ</var>: |<var>x</var>₁<var>y</var>₁ + ⋯ + <var>x</var><sub><var>n</var></sub><var>y</var><sub><var>n</var></sub>|² ≤ (<var>x</var>₁² + ⋯ + <var>x</var><sub><var>n</var></sub>²)(<var>y</var>₁² + ⋯ + <var>y</var><sub><var>n</var></sub>²). On continuous functions: |∫<sub>−1</sub><sup>1</sup> <var>fg</var>|² ≤ (∫<sub>−1</sub><sup>1</sup> <var>f</var>²)(∫<sub>−1</sub><sup>1</sup> <var>g</var>²). One theorem, proved once, in both settings. <span class="cite">— Axler §6.A, Example 6.17, p. 172</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 6.18 and Theorem 6.22 (triangle and parallelogram).</strong> ‖<var>u</var> + <var>v</var>‖ ≤ ‖<var>u</var>‖ + ‖<var>v</var>‖, with equality if and only if one of <var>u</var>, <var>v</var> is a nonnegative multiple of the other. And ‖<var>u</var> + <var>v</var>‖² + ‖<var>u</var> − <var>v</var>‖² = 2(‖<var>u</var>‖² + ‖<var>v</var>‖²). <span class="cite">— Axler §6.A, Theorem 6.18, p. 173, and Theorem 6.22, p. 174</span>
+</div>
+
+<p>The triangle inequality's proof squares, expands, replaces 2Re⟨<var>u</var>, <var>v</var>⟩ by 2|⟨<var>u</var>, <var>v</var>⟩| and then by 2‖<var>u</var>‖‖<var>v</var>‖ using Cauchy–Schwarz, and recognises the result as (‖<var>u</var>‖ + ‖<var>v</var>‖)². Two inequalities are used, so equality requires both to be equalities, which is where the <em>nonnegative</em> in the equality condition comes from. The parallelogram equality needs no inequality at all: expand both squares and the cross terms cancel. <span class="cite">— Axler §6.A, p. 173</span></p>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="worked">
+<strong>Verdict: no — and the parallelogram equality is exactly the test.</strong> Define ‖(<var>x</var>, <var>y</var>)‖ = |<var>x</var>| + |<var>y</var>| on <strong>R</strong>². This is a norm: it vanishes only at the origin, scales correctly, and satisfies the triangle inequality one coordinate at a time.
+<p>Take <var>u</var> = (1, 0) and <var>v</var> = (0, 1). Then <var>u</var> + <var>v</var> = (1, 1) and <var>u</var> − <var>v</var> = (1, −1), so ‖<var>u</var> + <var>v</var>‖² + ‖<var>u</var> − <var>v</var>‖² = 2² + 2² = 8, while 2(‖<var>u</var>‖² + ‖<var>v</var>‖²) = 2(1 + 1) = 4. The parallelogram equality fails, so by Theorem 6.22 this norm cannot come from any inner product.</p>
+<p>The converse is also true — a norm satisfying the parallelogram equality does come from an inner product, which Axler sets as an exercise — so Theorem 6.22 is not merely a consequence of having an inner product but a complete characterisation of which norms are geometric in the sense of this unit. <span class="cite">— cf. Axler §6.A, Exercise 21, p. 177</span></p>
+<p>What is being ruled out is worth naming. Under ‖(<var>x</var>, <var>y</var>)‖ = |<var>x</var>| + |<var>y</var>| there is a perfectly good notion of distance — it is the one a taxi driving on a grid experiences — and no notion of angle at all, because there is no inner product to take. Distance alone is weaker than geometry.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> ‖<var>u</var>‖ = 3, ‖<var>v</var>‖ = 4 and ⟨<var>u</var>, <var>v</var>⟩ = 12. What follows?</p>
+<button onclick="check(this,true)" data-ok>One of <var>u</var>, <var>v</var> is a nonnegative multiple of the other — here <var>v</var> = (4/3)<var>u</var></button>
+<button onclick="check(this,false)"><var>u</var> and <var>v</var> are orthogonal</button>
+<button onclick="check(this,false)">Nothing — the numbers are consistent with any configuration</button>
+<div class="explain">|⟨<var>u</var>, <var>v</var>⟩| = 12 = 3 · 4 = ‖<var>u</var>‖‖<var>v</var>‖, so Cauchy–Schwarz holds with equality and one vector is a scalar multiple of the other. The inner product being <em>positive</em> and equal to ‖<var>u</var>‖‖<var>v</var>‖ makes the multiple nonnegative, by the equality condition in Theorem 6.18. Far from consistent with anything, these numbers pin the configuration down completely.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why does the equality case in Cauchy–Schwarz say "one of <var>u</var>, <var>v</var> is a scalar multiple of the other" rather than "<var>u</var> is a scalar multiple of <var>v</var>"?</p>
+<button onclick="check(this,false)">Stylistic symmetry; the two say the same thing</button>
+<button onclick="check(this,true)" data-ok>To cover the case <var>v</var> = 0, where <var>v</var> is a multiple of <var>u</var> but <var>u</var> need not be a multiple of <var>v</var></button>
+<button onclick="check(this,false)">Because the inequality is symmetric in <var>u</var> and <var>v</var></button>
+<div class="explain">If <var>v</var> = 0 then equality holds trivially, and <var>v</var> = 0·<var>u</var> is a multiple of <var>u</var> — but a nonzero <var>u</var> is not any multiple of 0. The disjunctive phrasing is doing real work at that one degenerate point. The inequality's symmetry is true and is not the reason.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> A proof begins "‖<var>u</var> + <var>v</var>‖ = √⟨<var>u</var> + <var>v</var>, <var>u</var> + <var>v</var>⟩ = √(…)" and expands under the square root. What is the better opening move?</p>
+<button onclick="check(this,true)" data-ok>Work with ‖<var>u</var> + <var>v</var>‖² throughout and take square roots only at the end</button>
+<button onclick="check(this,false)">Use the triangle inequality first to remove the sum</button>
+<button onclick="check(this,false)">Assume <var>u</var> and <var>v</var> are orthogonal</button>
+<div class="explain">Squaring converts a norm into an inner product, which the axioms can act on directly; square roots obstruct every algebraic step until they are removed. Axler's proofs of Theorem 6.10(b), Theorem 6.13, Theorem 6.15 and Theorem 6.18 all follow this shape. The third option assumes what is not given, and the second discards information before the computation has begun.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>V</var> is a <em>real</em> inner product space. (a) Show that ⟨<var>u</var> + <var>v</var>, <var>u</var> − <var>v</var>⟩ = ‖<var>u</var>‖² − ‖<var>v</var>‖² for all <var>u</var>, <var>v</var> ∈ <var>V</var>. (b) Deduce that if ‖<var>u</var>‖ = ‖<var>v</var>‖ then <var>u</var> + <var>v</var> is orthogonal to <var>u</var> − <var>v</var>. (c) Use (b) to show that the diagonals of a rhombus are perpendicular. (Say where realness is used — the computation in (a) is not valid over <strong>C</strong>.) <span class="cite">— cf. Axler §6.A, Exercise 4, p. 175</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>(a)</strong> Expanding with additivity in both slots,
+<br>⟨<var>u</var> + <var>v</var>, <var>u</var> − <var>v</var>⟩ = ⟨<var>u</var>, <var>u</var>⟩ − ⟨<var>u</var>, <var>v</var>⟩ + ⟨<var>v</var>, <var>u</var>⟩ − ⟨<var>v</var>, <var>v</var>⟩ = ‖<var>u</var>‖² − ‖<var>v</var>‖² + (⟨<var>v</var>, <var>u</var>⟩ − ⟨<var>u</var>, <var>v</var>⟩).
+<br>In a real inner product space ⟨<var>u</var>, <var>v</var>⟩ = ⟨<var>v</var>, <var>u</var>⟩, so the bracket vanishes. That is the one and only place realness is used, and over <strong>C</strong> the bracket is ⟨<var>v</var>, <var>u</var>⟩ − conj⟨<var>v</var>, <var>u</var>⟩ = 2<var>i</var> Im⟨<var>v</var>, <var>u</var>⟩, which need not be 0.</p>
+<p><strong>(b)</strong> If ‖<var>u</var>‖ = ‖<var>v</var>‖ then the right-hand side of (a) is 0, so ⟨<var>u</var> + <var>v</var>, <var>u</var> − <var>v</var>⟩ = 0, which is orthogonality by Definition 6.11.</p>
+<p><strong>(c)</strong> Place a rhombus with one corner at the origin and let <var>u</var>, <var>v</var> be the two edge vectors from that corner. A rhombus is exactly a parallelogram with ‖<var>u</var>‖ = ‖<var>v</var>‖. Its diagonals are <var>u</var> + <var>v</var> (corner to opposite corner) and <var>u</var> − <var>v</var> (between the other two corners), so by (b) they are orthogonal — and in <strong>R</strong>² orthogonal means perpendicular. ∎</p>
+<p class="cite">Part (c) is the whole method of this chapter in miniature: a statement of plane geometry is restated in vectors, becomes a one-line inner-product identity, and the geometry is recovered at the end. Note that the argument never uses that the rhombus is planar — the same proof shows the diagonals of a rhombus in <strong>R</strong><var>ⁿ</var> are perpendicular, which is not something the classical proof gives for free.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>An <strong>inner product</strong> (Definition 6.3) is one extra operation subject to five conditions, linear in the first slot and <em>conjugate</em>-linear in the second (Theorem 6.7). Vector spaces have no geometry until one is chosen, and a space admits many.</li>
+<li>It generates everything geometric. The <strong>norm</strong> ‖<var>v</var>‖ = √⟨<var>v</var>, <var>v</var>⟩ (Definition 6.8), <strong>orthogonality</strong> ⟨<var>u</var>, <var>v</var>⟩ = 0 (Definition 6.11), <strong>Pythagoras</strong> in three lines (Theorem 6.13), and the <strong>orthogonal decomposition</strong> <var>u</var> = <var>cv</var> + <var>w</var> with <var>c</var> solved for rather than guessed (Theorem 6.14).</li>
+<li>Pythagoras applied to that decomposition proves <strong>Cauchy–Schwarz</strong> (Theorem 6.15), which proves the <strong>triangle inequality</strong> (Theorem 6.18). The <strong>parallelogram equality</strong> (Theorem 6.22) needs no inequality and is more than a consequence: it characterises exactly which norms come from an inner product, and the taxicab norm on <strong>R</strong>² fails it.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §6.A "Inner Products and Norms": "Inner Products" (Definition 6.3, Example 6.4, Definition 6.5, Notation 6.6, Theorem 6.7), pp. 166–167; "Norms" (Definition 6.8, Example 6.9, Theorem 6.10, Definition 6.11 orthogonal, Theorem 6.12, Theorem 6.13 Pythagorean Theorem, Theorem 6.14 orthogonal decomposition, Theorem 6.15 Cauchy–Schwarz, Example 6.17, Theorem 6.18 Triangle Inequality, Theorem 6.22 Parallelogram Equality), pp. 168–174; §6.A, Exercises 4 and 21, pp. 175–177.
+<br>Builds on la-10: a linear functional is Axler §3.F, Definition 3.92, p. 101. That is exactly what the map sending a vector to its inner product with a fixed vector turns out to be.
+<br>Builds also on la-05: that every linear map sends 0 to 0 is Axler §3.A, Theorem 3.11, p. 57, and it is what gives ⟨0, <var>u</var>⟩ = 0 without a separate argument.
+<br>Deferred to la-14: orthonormal bases and the Gram–Schmidt procedure, which run the orthogonal decomposition repeatedly (Axler §6.B).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
