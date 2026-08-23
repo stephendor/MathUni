@@ -31,7 +31,7 @@ all fifteen units cite Axler and nothing else.
 | la-09 | Products and quotient spaces | 3E | **✓** | written this branch |
 | la-10 | Duality | 3F | **✓** | written this branch |
 | la-11 | Eigenvalues, eigenvectors, invariant subspaces | 5A | **✓** | written this branch |
-| la-12 | Minimal polynomial and diagonalisability | 5B–5C | **✓** | written this branch; **title/source mismatch, D-1 open** |
+| la-12 | Upper-triangular matrices and diagonalisability | 5B–5C | **✓** | written this branch; retitled, D-1 decided |
 | la-13 | Inner product spaces | 6A | **✓** | written this branch |
 | la-14 | Orthonormal bases and Gram-Schmidt | 6B | **✓** | written this branch |
 | la-15 | Spectral theorem (real case) | 7A–7B | **✓** | written this branch; needs one §6.C definition, F-1 (closed) |
@@ -163,6 +163,14 @@ title-versus-heading check, not a substitute for it.
 ## 4. Open decisions
 
 ### D-1 — la-12's title names a result no section of this book delivers
+
+**Decided, 2026-08-23: (b), amend the title.** The lesson and problem set are
+retitled on this branch; `curriculum/syllabus.yaml` is not, since content
+branches do not edit it. The syllabus `title` and `hook` follow on their own
+branch off `main`, and nothing binds the two files mechanically — `mission.py`
+checks the mission strip and `check_id_consistency.py` checks ids, so neither
+branch is red while the other is unmerged. The reasoning is kept below because
+it is the evidence for the edit, not a record of an open question.
 
 `la-12` is titled **"Minimal polynomial and diagonalisability"** with resource
 `Axler 5B-5C`. In the copy on disk the minimal polynomial is **§8.C

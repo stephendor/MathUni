@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>la-12 — Minimal polynomial and diagonalisability</title>
+<title>la-12 — Upper-triangular matrices and diagonalisability</title>
 <style>
 :root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
 body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
@@ -30,10 +30,10 @@ details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
 .blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
 </style></head><body>
 <p class="cite">Linear Algebra · Nexus College</p>
-<h1>Minimal polynomial and diagonalisability <span class="cite">(la-12)</span></h1>
+<h1>Upper-triangular matrices and diagonalisability <span class="cite">(la-12)</span></h1>
 
 <div class="hook">
-One polynomial that knows everything about your operator.
+Every complex operator can be put in triangular form. Which ones go further, to diagonal?
 <p>Operators can be raised to powers, and general linear maps cannot — that single asymmetry is why operators have a theory. Once <var>T</var>², <var>T</var>³ and so on exist, any polynomial <var>p</var> can be evaluated <em>at <var>T</var></em>, producing another operator <var>p</var>(<var>T</var>). Polynomials in one operator commute with each other, so a whole commutative algebra sits inside ℒ(<var>V</var>), and factorising a polynomial factorises the operator built from it.</p>
 <p>That is the engine behind the two results this unit is aimed at. Over <strong>C</strong> every operator on a nonzero finite-dimensional space has an eigenvalue — the proof simply builds a polynomial that kills some vector and factors it. And an operator is <strong>diagonalisable</strong> exactly when its eigenspaces fill the whole space, which is the cleanest possible structure an operator can have: the space breaks into pieces on which <var>T</var> is nothing but multiplication by a number.</p>
 </div>
@@ -67,7 +67,7 @@ One polynomial that knows everything about your operator.
 <p>The proof of the first part is a double sum rearranged, and the point is that expanding a product of polynomials never needs the symbol to be a number — the distributive law is all it uses, and operators have that. The second part then follows because <var>pq</var> = <var>qp</var> for polynomials. This is worth pausing on: la-05 made a great deal of the fact that operators do <em>not</em> commute in general, and here is a large family that does. <span class="cite">— Axler §5.B, p. 144</span></p>
 
 <div class="heuristic">
-<strong>A note on this unit's title, and what is out of scope.</strong> The <em>minimal polynomial</em> of an operator — the monic polynomial of least degree with <var>p</var>(<var>T</var>) = 0 — is Axler §8.C, and Semester 1 does not reach it. What §5.B supplies is the germ it grows from, and Theorem 5.21's proof below is where you will see it: for <var>v</var> ≠ 0 in an <var>n</var>-dimensional space, the list <var>v</var>, <var>Tv</var>, …, <var>T</var><sup><var>n</var></sup><var>v</var> has <var>n</var> + 1 members and so must be dependent, which hands you a nonzero polynomial <var>p</var> with <var>p</var>(<var>T</var>)<var>v</var> = 0. Every polynomial annihilating <var>T</var> is a multiple of the minimal one; that is the theorem this unit stops just short of. Treat "one polynomial that knows everything about your operator" as a promise about later work, and this unit as the construction of the polynomial.
+<strong>Where this unit stops, and what comes next.</strong> Theorem 5.21's proof below carries a germ worth naming. For <var>v</var> ≠ 0 in an <var>n</var>-dimensional space the list <var>v</var>, <var>Tv</var>, …, <var>T</var><sup><var>n</var></sup><var>v</var> has <var>n</var> + 1 members and so must be dependent, which hands you a nonzero polynomial <var>p</var> with <var>p</var>(<var>T</var>)<var>v</var> = 0. Run the same argument on ℒ(<var>V</var>) rather than on a single vector and you get a polynomial that annihilates <var>T</var> itself; the monic one of least degree is the <em>minimal polynomial</em>, and every polynomial annihilating <var>T</var> turns out to be a multiple of it. That is Axler §8.C, beyond Semester 1. Keep the construction — it is the tool this unit uses twice — and take the theorem on account.
 </div>
 
 <div class="selfcheck">
