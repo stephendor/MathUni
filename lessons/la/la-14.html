@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-14 — Orthonormal bases and Gram-Schmidt</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Orthonormal bases and Gram-Schmidt <span class="cite">(la-14)</span></h1>
+
+<div class="hook">
+Straightening a skewed coordinate system, one vector at a time.
+<p>la-04 said every finite-dimensional space has a basis and that all bases are equally legitimate. With an inner product in hand that stops being true: some bases are enormously better than others. In an <strong>orthonormal</strong> basis the coefficients of a vector are not solved for — they are read off, as <var>a</var><sub><var>j</var></sub> = ⟨<var>v</var>, <var>e</var><sub><var>j</var></sub>⟩ — and the norm of a vector is the root-sum-of-squares of those coefficients, exactly as in <strong>R</strong><var>ⁿ</var>.</p>
+<p>The <strong>Gram–Schmidt procedure</strong> is what makes this practical: it takes any independent list and straightens it into an orthonormal one with the same spans all the way up. Everything else in the unit falls out of it — existence of orthonormal bases, extension of orthonormal lists, Schur's theorem, and the Riesz representation theorem, which says the inner product already contains every linear functional there is. It is also the machinery PCA runs on, which is where a TDA pipeline usually starts.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Fix a vector <var>u</var> in an inner product space. The map <var>v</var> ↦ ⟨<var>v</var>, <var>u</var>⟩ is a linear functional — la-13 established that. Now consider a specific functional on 𝒫₂(<strong>R</strong>) with ⟨<var>p</var>, <var>q</var>⟩ = ∫<sub>−1</sub><sup>1</sup> <var>pq</var>: define φ(<var>p</var>) = ∫<sub>−1</sub><sup>1</sup> <var>p</var>(<var>t</var>)cos(π<var>t</var>) d<var>t</var>. The obvious candidate for <var>u</var> would be cos(π<var>t</var>) — which is <em>not a polynomial</em>, so it is not in the space. Do you predict that some <var>u</var> ∈ 𝒫₂(<strong>R</strong>) nevertheless satisfies φ(<var>p</var>) = ⟨<var>p</var>, <var>u</var>⟩ for every <var>p</var>? Commit before Segment 3.
+</div>
+
+<p class="mission">Why this matters for the mission: PCA preprocessing before TDA pipelines is this machinery.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>Orthonormal lists and bases</h2>
+
+<div class="definition">
+<strong>Definition 6.23 (orthonormal).</strong> A list <var>e</var>₁, …, <var>e</var><sub><var>m</var></sub> is <em>orthonormal</em> if each vector has norm 1 and each is orthogonal to all the others — that is, ⟨<var>e</var><sub><var>j</var></sub>, <var>e</var><sub><var>k</var></sub>⟩ is 1 when <var>j</var> = <var>k</var> and 0 otherwise. <span class="cite">— Axler §6.B, Definition 6.23, p. 180</span>
+</div>
+
+<p>The standard basis of <strong>F</strong><var>ⁿ</var> is the model, but orthonormal lists are common and easy to make: (1/√3, 1/√3, 1/√3), (−1/√2, 1/√2, 0) is one in <strong>F</strong>³, and a third vector (1/√6, 1/√6, −2/√6) extends it. <span class="cite">— Axler §6.B, Example 6.24, p. 180</span></p>
+
+<div class="theorem">
+<strong>Theorems 6.25 and 6.26.</strong> If <var>e</var>₁, …, <var>e</var><sub><var>m</var></sub> is orthonormal then ‖<var>a</var>₁<var>e</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>e</var><sub><var>m</var></sub>‖² = |<var>a</var>₁|² + ⋯ + |<var>a</var><sub><var>m</var></sub>|² for all scalars. Consequently every orthonormal list is linearly independent. <span class="cite">— Axler §6.B, Theorem 6.25 and Theorem 6.26, p. 180</span>
+</div>
+
+<div class="worked fade">
+<strong>Why they are true, and how cheaply.</strong> The first is repeated Pythagoras (la-13, Theorem 6.13): the terms <var>a</var><sub><var>j</var></sub><var>e</var><sub><var>j</var></sub> are pairwise orthogonal, so their norms square and add, and ‖<var>a</var><sub><var>j</var></sub><var>e</var><sub><var>j</var></sub>‖ = |<var>a</var><sub><var>j</var></sub>|‖<var>e</var><sub><var>j</var></sub>‖ = |<var>a</var><sub><var>j</var></sub>|.
+<p>Independence is then a corollary rather than a separate argument. If <var>a</var>₁<var>e</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>e</var><sub><var>m</var></sub> = 0, the identity gives |<var>a</var>₁|² + ⋯ + |<var>a</var><sub><var>m</var></sub>|² = 0, and a sum of nonnegative reals vanishes only when every term does. Compare the effort with la-03's independence proofs, which had to solve systems: here the geometry does it. <span class="cite">— Axler §6.B, p. 181</span></p>
+</div>
+
+<div class="theorem">
+<strong>Definition 6.27 and Theorem 6.28 (orthonormal basis).</strong> An <em>orthonormal basis</em> of <var>V</var> is an orthonormal list that is also a basis. Every orthonormal list of length dim <var>V</var> is an orthonormal basis. <span class="cite">— Axler §6.B, Definition 6.27 and Theorem 6.28, p. 181</span>
+</div>
+
+<p>Theorem 6.28 is la-04's Theorem 2.39 with independence supplied free by Theorem 6.26 — so checking that a list of the right length is an orthonormal basis reduces to computing inner products, with no spanning check and no independence check. <span class="cite">— Axler §2.C, Theorem 2.39, p. 45</span></p>
+
+<div class="worked">
+<strong>Worked example — certifying an orthonormal basis of <strong>F</strong>⁴ (fully worked).</strong> Consider (½, ½, ½, ½), (½, ½, −½, −½), (½, −½, −½, ½), (−½, ½, −½, ½).
+<p>Each has norm √(¼ + ¼ + ¼ + ¼) = 1. For orthogonality take the first two: ¼ + ¼ − ¼ − ¼ = 0, and the same computation on each of the remaining five pairs gives 0. So the list is orthonormal, it has length 4 = dim <strong>F</strong>⁴, and Theorem 6.28 makes it an orthonormal basis without a further line of work. <span class="cite">— Axler §6.B, Example 6.29, p. 181</span></p>
+<p>Count what was avoided: proving this list spans <strong>F</strong>⁴ directly would mean solving a four-by-four system. Six inner products replaced it.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 6.30 (coefficients are read off).</strong> If <var>e</var>₁, …, <var>e</var><sub><var>n</var></sub> is an orthonormal basis of <var>V</var> and <var>v</var> ∈ <var>V</var>, then <var>v</var> = ⟨<var>v</var>, <var>e</var>₁⟩<var>e</var>₁ + ⋯ + ⟨<var>v</var>, <var>e</var><sub><var>n</var></sub>⟩<var>e</var><sub><var>n</var></sub> and ‖<var>v</var>‖² = |⟨<var>v</var>, <var>e</var>₁⟩|² + ⋯ + |⟨<var>v</var>, <var>e</var><sub><var>n</var></sub>⟩|². <span class="cite">— Axler §6.B, Theorem 6.30, p. 182</span>
+</div>
+
+<div class="heuristic">
+<strong>This is why orthonormal bases matter.</strong> For an arbitrary basis, finding the coefficients of <var>v</var> means solving a linear system — la-04's Theorem 2.29 guarantees a unique answer and offers no way to compute it. For an orthonormal basis each coefficient is a single inner product, computed independently of all the others. The proof is one line: expand <var>v</var> = Σ<var>a</var><sub><var>k</var></sub><var>e</var><sub><var>k</var></sub>, take the inner product of both sides with <var>e</var><sub><var>j</var></sub>, and every term but the <var>j</var>-th vanishes, leaving ⟨<var>v</var>, <var>e</var><sub><var>j</var></sub>⟩ = <var>a</var><sub><var>j</var></sub>. <span class="cite">— Axler §6.B, p. 182</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A list of 5 orthonormal vectors is given in a 5-dimensional inner product space. What still needs checking before calling it an orthonormal basis?</p>
+<button onclick="check(this,true)" data-ok>Nothing — Theorem 6.28 settles it</button>
+<button onclick="check(this,false)">That it spans the space</button>
+<button onclick="check(this,false)">That it is linearly independent</button>
+<div class="explain">Orthonormality gives independence (Theorem 6.26), and an independent list of length dim <var>V</var> is a basis (la-04, Theorem 2.39). Both of the other options have already been discharged by the orthonormality hypothesis, which is exactly the labour-saving Theorem 6.28 is there to record.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Gram–Schmidt, and what it delivers</h2>
+
+<div class="theorem">
+<strong>Theorem 6.31 (Gram–Schmidt Procedure).</strong> Suppose <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> is linearly independent. Set <var>e</var>₁ = <var>v</var>₁/‖<var>v</var>₁‖, and for <var>j</var> ≥ 2 define <var>e</var><sub><var>j</var></sub> to be <var>v</var><sub><var>j</var></sub> − ⟨<var>v</var><sub><var>j</var></sub>, <var>e</var>₁⟩<var>e</var>₁ − ⋯ − ⟨<var>v</var><sub><var>j</var></sub>, <var>e</var><sub><var>j</var>−1</sub>⟩<var>e</var><sub><var>j</var>−1</sub>, divided by its own norm. Then <var>e</var>₁, …, <var>e</var><sub><var>m</var></sub> is orthonormal and span(<var>v</var>₁, …, <var>v</var><sub><var>j</var></sub>) = span(<var>e</var>₁, …, <var>e</var><sub><var>j</var></sub>) for every <var>j</var>. <span class="cite">— Axler §6.B, Theorem 6.31, p. 183</span>
+</div>
+
+<div class="worked fade">
+<strong>What the formula is doing, and the one thing that could go wrong.</strong> Each step is la-13's orthogonal decomposition run against everything already built: subtract from <var>v</var><sub><var>j</var></sub> its shadow along each earlier <var>e</var><sub><var>k</var></sub>, leaving a remainder orthogonal to all of them, then normalise. Checking orthogonality is immediate — ⟨<var>e</var><sub><var>j</var></sub>, <var>e</var><sub><var>k</var></sub>⟩ has numerator ⟨<var>v</var><sub><var>j</var></sub>, <var>e</var><sub><var>k</var></sub>⟩ − ⟨<var>v</var><sub><var>j</var></sub>, <var>e</var><sub><var>k</var></sub>⟩ = 0, since the other subtracted terms are orthogonal to <var>e</var><sub><var>k</var></sub>.
+<p>The step that needs the hypothesis is the division. If <var>v</var><sub><var>j</var></sub> lay in span(<var>v</var>₁, …, <var>v</var><sub><var>j</var>−1</sub>) = span(<var>e</var>₁, …, <var>e</var><sub><var>j</var>−1</sub>), the numerator would be 0 and the procedure would divide by zero. Independence of the original list is precisely what rules that out — and the problem set asks what happens when it is dropped. <span class="cite">— Axler §6.B, p. 183</span></p>
+<p>The span claim then follows by induction: the formula puts <var>v</var><sub><var>j</var></sub> into span(<var>e</var>₁, …, <var>e</var><sub><var>j</var></sub>), giving one inclusion, and both lists are independent of length <var>j</var>, so la-04's dimension count forces equality.</p>
+</div>
+
+<h3>Canvas: one step of Gram–Schmidt</h3>
+<p><var>v</var>₁ (blue) is normalised to <var>e</var>₁ (green). <var>v</var>₂ (amber) sweeps around; the dashed line is its shadow along <var>e</var>₁, and the red vector is what is left after that shadow is subtracted — always perpendicular to <var>e</var>₁, and normalised to give <var>e</var>₂.</p>
+<canvas id="gs" width="440" height="310"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('gs'),ctx=cv.getContext('2d'),cx=170,cy=185,s=50;
+let t=0;
+function scr(p){return [cx+p[0]*s, cy-p[1]*s];}
+function seg(p,q,col,w,dash){
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=w;
+  if(dash)ctx.setLineDash([5,4]);
+  const a=scr(p),b=scr(q);
+  ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+  ctx.restore();
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const v1=[2.0,0.6];
+  const n1=Math.hypot(v1[0],v1[1]);
+  const e1=[v1[0]/n1, v1[1]/n1];
+  // v1 points at angle atan2(0.6,2.0) = 0.29 rad; keep th clear of it, or
+  // v2 becomes a multiple of v1 and the residual r is the zero vector.
+  const th=1.35+0.85*Math.sin(t*0.6);
+  const v2=[2.0*Math.cos(th), 2.0*Math.sin(th)];
+  const d=v2[0]*e1[0]+v2[1]*e1[1];
+  const proj=[d*e1[0], d*e1[1]];
+  const r=[v2[0]-proj[0], v2[1]-proj[1]];
+  const nr=Math.hypot(r[0],r[1]);
+  if(nr<1e-9){t+=0.012;return;}   // v2 parallel to v1: no second basis vector exists
+  const e2=[r[0]/nr, r[1]/nr];
+  seg([0,0],v1,'#8ab4f8',2.2);
+  seg([0,0],e1,'#4caf82',3.4);
+  seg([0,0],v2,'#d8a657',2.2);
+  seg([0,0],proj,'#9aa5b1',1.6,true);
+  seg(proj,v2,'#e06c75',2.2,true);
+  seg([0,0],e2,'#e06c75',3.4);
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('blue: v₁   green: e₁ = v₁/‖v₁‖   amber: v₂',220,262);
+  ctx.fillText('dashed grey: ⟨v₂, e₁⟩e₁   red: v₂ − ⟨v₂, e₁⟩e₁, normalised to e₂',220,280);
+  ctx.fillText('⟨v₂, e₁⟩ = '+d.toFixed(2)+'   —   the red vector is always ⟂ e₁',220,298);
+  ctx.textAlign='left';
+  t+=0.012;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="worked">
+<strong>Worked example — orthonormalising 1, <var>x</var>, <var>x</var>² (fully worked).</strong> On 𝒫₂(<strong>R</strong>) with ⟨<var>p</var>, <var>q</var>⟩ = ∫<sub>−1</sub><sup>1</sup> <var>pq</var>, apply Gram–Schmidt to the standard basis 1, <var>x</var>, <var>x</var>².
+<p>‖1‖² = ∫<sub>−1</sub><sup>1</sup> 1 d<var>x</var> = 2, so <var>e</var>₁ = 1/√2. Then ⟨<var>x</var>, <var>e</var>₁⟩ = 0 because <var>x</var> is odd and the interval is symmetric — worth noticing, since it means the second step subtracts nothing and <var>e</var>₂ is just <var>x</var> normalised. Continuing produces an orthonormal basis whose members are the Legendre polynomials up to scaling. <span class="cite">— Axler §6.B, Example 6.33, p. 184</span></p>
+<p>The general lesson: an inner product defined by integration converts a symmetry of the interval into orthogonality for free, and the procedure is much lighter than the formula suggests whenever such a symmetry is present. The problem set runs the same computation on [0, 1], where no symmetry helps and every term must be computed.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorems 6.34, 6.35, 6.37 and 6.38 (four corollaries).</strong> Every finite-dimensional inner product space has an orthonormal basis. Every orthonormal list in one extends to an orthonormal basis. If <var>T</var> has an upper-triangular matrix with respect to <em>some</em> basis, it has one with respect to some <em>orthonormal</em> basis. Hence (Schur's Theorem) every operator on a finite-dimensional complex inner product space has an upper-triangular matrix with respect to some orthonormal basis. <span class="cite">— Axler §6.B, Theorem 6.34 and Theorem 6.35, p. 185, and Theorem 6.37 and Theorem 6.38, p. 186</span>
+</div>
+
+<div class="worked fade">
+<strong>Each is Gram–Schmidt applied to something already in hand.</strong> For 6.34: take any basis and orthonormalise it; the result has length dim <var>V</var>, so Theorem 6.28 applies. For 6.35: an orthonormal list is independent, so extend it to a basis (la-04's Theorem 2.33) and orthonormalise — and the procedure <em>leaves the first vectors unchanged</em>, because a vector already orthonormal to its predecessors has nothing subtracted and unit norm to begin with. That fixed-point property is what makes it an extension rather than a replacement.
+<p>For 6.37: la-12's Theorem 5.26 says an upper-triangular matrix means span(<var>v</var>₁, …, <var>v</var><sub><var>j</var></sub>) is invariant for each <var>j</var>; Gram–Schmidt preserves those spans exactly, so the same invariance holds for the <var>e</var>'s and Theorem 5.26 reads backwards. Schur's Theorem is then 6.37 fed by la-12's Theorem 5.27, which supplies the non-orthonormal basis over <strong>C</strong>. <span class="cite">— Axler §6.B, pp. 185–186</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Gram–Schmidt is applied to a list whose third vector lies in the span of the first two. What happens?</p>
+<button onclick="check(this,false)">The third output vector comes out as 0</button>
+<button onclick="check(this,true)" data-ok>The procedure attempts to divide by 0 at the third step and breaks down</button>
+<button onclick="check(this,false)">Nothing — the procedure skips the redundant vector automatically</button>
+<div class="explain">The numerator <var>v</var>₃ − ⟨<var>v</var>₃, <var>e</var>₁⟩<var>e</var>₁ − ⟨<var>v</var>₃, <var>e</var>₂⟩<var>e</var>₂ is exactly <var>v</var>₃ minus its component in span(<var>e</var>₁, <var>e</var>₂) = span(<var>v</var>₁, <var>v</var>₂), which is 0 — and the formula then divides by ‖0‖ = 0. Nothing skips it: the procedure as stated has no case for this, which is precisely why Theorem 6.31 assumes independence.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Theorem 6.35 produce an <em>extension</em> rather than a different orthonormal basis?</p>
+<button onclick="check(this,false)">Because extensions are always possible for independent lists</button>
+<button onclick="check(this,true)" data-ok>Because Gram–Schmidt leaves an already-orthonormal initial segment unchanged</button>
+<button onclick="check(this,false)">Because the inner product is preserved by the procedure</button>
+<div class="explain">Applied to <var>e</var>₁, …, <var>e</var><sub><var>m</var></sub>, <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub>, the formula subtracts nothing from each <var>e</var><sub><var>j</var></sub> (it is already orthogonal to its predecessors) and divides by 1 (it already has norm 1), so the first <var>m</var> outputs are the inputs. The first option gives an extension to a basis, not an orthonormal one — that is la-04's Theorem 2.33, and it is only half the argument.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Riesz: every functional is an inner product</h2>
+
+<div class="definition">
+<strong>Definition 6.39 (linear functional, again).</strong> A <em>linear functional</em> on <var>V</var> is a linear map from <var>V</var> to <strong>F</strong>. <span class="cite">— Axler §6.B, Definition 6.39, p. 187</span>
+</div>
+
+<p>la-10 studied these in the absence of an inner product, where the dual space <var>V</var>′ was isomorphic to <var>V</var> only after choosing a basis. An inner product changes that, and the change is the subject of this segment. <span class="cite">— Axler §3.F, Definition 3.92, p. 101</span></p>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="theorem">
+<strong>Theorem 6.42 (Riesz Representation Theorem).</strong> Suppose <var>V</var> is finite-dimensional and φ is a linear functional on <var>V</var>. Then there is a <em>unique</em> <var>u</var> ∈ <var>V</var> with φ(<var>v</var>) = ⟨<var>v</var>, <var>u</var>⟩ for every <var>v</var> ∈ <var>V</var>. <span class="cite">— Axler §6.B, Theorem 6.42, p. 188</span>
+</div>
+
+<div class="worked">
+<strong>Verdict: yes — and Theorem 6.30 hands you the vector.</strong> The gate's functional φ(<var>p</var>) = ∫<sub>−1</sub><sup>1</sup> <var>p</var>(<var>t</var>)cos(π<var>t</var>) d<var>t</var> on 𝒫₂(<strong>R</strong>) does have a representing polynomial, even though cos(π<var>t</var>) itself is not one.
+<p><em>Why one exists.</em> Take an orthonormal basis <var>e</var>₁, …, <var>e</var><sub><var>n</var></sub>. For any <var>v</var>, Theorem 6.30 gives <var>v</var> = Σ⟨<var>v</var>, <var>e</var><sub><var>j</var></sub>⟩<var>e</var><sub><var>j</var></sub>, so linearity gives φ(<var>v</var>) = Σ⟨<var>v</var>, <var>e</var><sub><var>j</var></sub>⟩φ(<var>e</var><sub><var>j</var></sub>). Pulling each φ(<var>e</var><sub><var>j</var></sub>) into the second slot of the inner product costs a conjugate (la-13, Theorem 6.7), so φ(<var>v</var>) = ⟨<var>v</var>, conj(φ(<var>e</var>₁))<var>e</var>₁ + ⋯ + conj(φ(<var>e</var><sub><var>n</var></sub>))<var>e</var><sub><var>n</var></sub>⟩. That bracketed vector is <var>u</var>. <span class="cite">— Axler §6.B, p. 188</span></p>
+<p><em>Why only one.</em> If ⟨<var>v</var>, <var>u</var>₁⟩ = ⟨<var>v</var>, <var>u</var>₂⟩ for every <var>v</var>, then ⟨<var>v</var>, <var>u</var>₁ − <var>u</var>₂⟩ = 0 for every <var>v</var>; taking <var>v</var> = <var>u</var>₁ − <var>u</var>₂ gives ‖<var>u</var>₁ − <var>u</var>₂‖² = 0, so <var>u</var>₁ = <var>u</var>₂ by la-13's definiteness. The trick of testing a "for all <var>v</var>" statement at the one vector that makes it collapse is worth keeping.</p>
+<p>For the gate's functional the formula produces <var>u</var>(<var>x</var>) = −(45/2π²)(<var>x</var>² − ⅓), after a little calculus. Note what has happened: the representing vector is a polynomial that looks nothing like cos(π<var>t</var>), and yet integrating any <var>p</var> ∈ 𝒫₂(<strong>R</strong>) against either gives the same number. The inner product cannot tell them apart <em>within the subspace</em>, and Riesz says the subspace's own vector always exists. <span class="cite">— Axler §6.B, Example 6.41, p. 187</span></p>
+</div>
+
+<div class="heuristic">
+<strong>What Riesz says about la-10.</strong> la-10 found dim <var>V</var>′ = dim <var>V</var> and warned that the isomorphism <var>V</var> → <var>V</var>′ depended on a choice of basis. With an inner product the map <var>u</var> ↦ ⟨·, <var>u</var>⟩ is such an isomorphism <em>without any choice</em> — Theorem 6.42 says it is onto and its uniqueness clause says it is injective. An inner product is exactly the extra structure that makes a space and its dual identifiable, which is why the distinction between vectors and functionals is invisible in <strong>R</strong><var>ⁿ</var> and unavoidable without a metric.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> The formula <var>u</var> = conj(φ(<var>e</var>₁))<var>e</var>₁ + ⋯ + conj(φ(<var>e</var><sub><var>n</var></sub>))<var>e</var><sub><var>n</var></sub> uses a chosen orthonormal basis. Does <var>u</var> depend on that choice?</p>
+<button onclick="check(this,false)">Yes — a different orthonormal basis gives a different <var>u</var></button>
+<button onclick="check(this,true)" data-ok>No — Theorem 6.42's uniqueness clause forces every choice to give the same <var>u</var></button>
+<button onclick="check(this,false)">Only when <var>V</var> is a complex vector space</button>
+<div class="explain">The right-hand side <em>looks</em> basis-dependent, and the uniqueness half of the theorem proves it is not: any <var>u</var> representing φ is the only one, so every orthonormal basis must produce it. This is the same pattern as la-04's dimension — a construction that names a representative, proved afterwards not to depend on the choice.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where does the conjugate in conj(φ(<var>e</var><sub><var>j</var></sub>)) come from?</p>
+<button onclick="check(this,false)">From the definition of a linear functional</button>
+<button onclick="check(this,true)" data-ok>From moving a scalar into the <em>second</em> slot of the inner product, which conjugates it</button>
+<button onclick="check(this,false)">It is a convention and could be omitted over <strong>R</strong> or <strong>C</strong></button>
+<div class="explain">la-13's Theorem 6.7(e) says ⟨<var>u</var>, λ<var>v</var>⟩ = conj(λ)⟨<var>u</var>, <var>v</var>⟩, so writing φ(<var>e</var><sub><var>j</var></sub>)⟨<var>v</var>, <var>e</var><sub><var>j</var></sub>⟩ as ⟨<var>v</var>, conj(φ(<var>e</var><sub><var>j</var></sub>))<var>e</var><sub><var>j</var></sub>⟩ requires conjugating. Over <strong>R</strong> it is invisible because conjugation is the identity there; over <strong>C</strong> omitting it gives the wrong vector.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>e</var>₁, …, <var>e</var><sub><var>m</var></sub> is an orthonormal list in <var>V</var> (not necessarily a basis) and <var>v</var> ∈ <var>V</var>. Prove that ‖<var>v</var>‖² = |⟨<var>v</var>, <var>e</var>₁⟩|² + ⋯ + |⟨<var>v</var>, <var>e</var><sub><var>m</var></sub>⟩|² <strong>if and only if</strong> <var>v</var> ∈ span(<var>e</var>₁, …, <var>e</var><sub><var>m</var></sub>). (Build the vector Theorem 6.30 would produce, subtract it from <var>v</var>, and show the remainder is orthogonal to everything in sight.) <span class="cite">— cf. Axler §6.B, Exercise 2, p. 189</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> Put <var>w</var> = ⟨<var>v</var>, <var>e</var>₁⟩<var>e</var>₁ + ⋯ + ⟨<var>v</var>, <var>e</var><sub><var>m</var></sub>⟩<var>e</var><sub><var>m</var></sub>, which lies in span(<var>e</var>₁, …, <var>e</var><sub><var>m</var></sub>), and let <var>r</var> = <var>v</var> − <var>w</var>.</p>
+<p>For each <var>k</var>, ⟨<var>r</var>, <var>e</var><sub><var>k</var></sub>⟩ = ⟨<var>v</var>, <var>e</var><sub><var>k</var></sub>⟩ − ⟨<var>w</var>, <var>e</var><sub><var>k</var></sub>⟩ = ⟨<var>v</var>, <var>e</var><sub><var>k</var></sub>⟩ − ⟨<var>v</var>, <var>e</var><sub><var>k</var></sub>⟩ = 0, using orthonormality to evaluate ⟨<var>w</var>, <var>e</var><sub><var>k</var></sub>⟩. So <var>r</var> is orthogonal to every <var>e</var><sub><var>k</var></sub>, hence to every linear combination of them, hence to <var>w</var>.</p>
+<p>By the Pythagorean Theorem (la-13, Theorem 6.13), ‖<var>v</var>‖² = ‖<var>w</var> + <var>r</var>‖² = ‖<var>w</var>‖² + ‖<var>r</var>‖², and Theorem 6.25 evaluates ‖<var>w</var>‖² = |⟨<var>v</var>, <var>e</var>₁⟩|² + ⋯ + |⟨<var>v</var>, <var>e</var><sub><var>m</var></sub>⟩|².</p>
+<p>So the claimed identity holds if and only if ‖<var>r</var>‖² = 0, which by la-13's Theorem 6.10(a) holds if and only if <var>r</var> = 0, that is, if and only if <var>v</var> = <var>w</var> ∈ span(<var>e</var>₁, …, <var>e</var><sub><var>m</var></sub>). ∎</p>
+<p class="cite">Two things fall out. Since ‖<var>r</var>‖² ≥ 0 always, the identity is an inequality in general — |⟨<var>v</var>, <var>e</var>₁⟩|² + ⋯ + |⟨<var>v</var>, <var>e</var><sub><var>m</var></sub>⟩|² ≤ ‖<var>v</var>‖², which is Bessel's inequality, obtained here for free. And <var>w</var> is the orthogonal projection of <var>v</var> onto the span, so the proof also shows that projection is the closest point: any other point of the span differs from <var>v</var> by more, since the difference picks up an extra orthogonal term.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>An <strong>orthonormal</strong> list has ⟨<var>e</var><sub><var>j</var></sub>, <var>e</var><sub><var>k</var></sub>⟩ equal to 1 or 0 (Definition 6.23). Norms of combinations become sums of squared moduli (Theorem 6.25), which makes independence free (Theorem 6.26) and a list of the right length automatically a basis (Theorem 6.28). In such a basis the coefficients of a vector are <em>read off</em> as inner products (Theorem 6.30) rather than solved for.</li>
+<li><strong>Gram–Schmidt</strong> (Theorem 6.31) converts any independent list into an orthonormal one with the same spans at every stage, by repeatedly subtracting shadows and normalising; independence is what stops it dividing by zero. Four results follow immediately: existence of orthonormal bases (6.34), extension of orthonormal lists (6.35, because the procedure fixes what is already orthonormal), upper-triangularity with respect to an orthonormal basis (6.37), and <strong>Schur's Theorem</strong> over <strong>C</strong> (6.38).</li>
+<li>The <strong>Riesz Representation Theorem</strong> (6.42): on a finite-dimensional inner product space every linear functional is ⟨·, <var>u</var>⟩ for exactly one <var>u</var>, constructed from any orthonormal basis and independent of the choice. An inner product is therefore precisely the structure that identifies a space with its dual without choosing a basis.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §6.B "Orthonormal Bases": "Orthonormal Bases" (Definition 6.23, Example 6.24, Theorem 6.25, Theorem 6.26, Definition 6.27, Theorem 6.28, Example 6.29, Theorem 6.30), pp. 180–182; "The Gram-Schmidt Procedure" (Theorem 6.31, Example 6.33, Theorem 6.34, Theorem 6.35, Theorem 6.37, Theorem 6.38 Schur's Theorem), pp. 183–186; "Linear Functionals on Inner Product Spaces" (Definition 6.39, Example 6.40, Example 6.41, Theorem 6.42 Riesz Representation Theorem), pp. 187–188; §6.B, Exercise 2, p. 189.
+<br>Builds on la-13: the Pythagorean Theorem is Axler §6.A, Theorem 6.13, p. 170. Almost every computation above is that result applied to an orthogonal decomposition.
+<br>Builds also on la-04: a linearly independent list of length dim <var>V</var> is a basis, Axler §2.C, Theorem 2.39, p. 45. It is what turns orthonormality into a basis test with no spanning check.
+<br>Deferred to la-15: self-adjoint operators and the real spectral theorem (Axler §7.A–7.B).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

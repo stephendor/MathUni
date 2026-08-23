@@ -76,13 +76,13 @@ Polynomials, sequences, and functions are all secretly the same thing.
 <p>Fix a positive integer <var>n</var>. Generalising the plane <strong>R</strong>² and space <strong>R</strong>³, we get:</p>
 
 <div class="definition">
-<p><strong>Definition 1.10.</strong> <strong>F</strong><var>ⁿ</var> is the set of all lists of length <var>n</var> of elements of <strong>F</strong>: <strong>F</strong><var>ⁿ</var> = {(<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) : <var>x</var><sub><var>j</var></sub> ∈ <strong>F</strong> for <var>j</var> = 1, …, <var>n</var>}. <span class="cite">— Axler §1.A, Definition 1.10, p. 5</span></p>
+<p><strong>Definition 1.10.</strong> <strong>F</strong><var>ⁿ</var> is the set of all lists of length <var>n</var> of elements of <strong>F</strong>: <strong>F</strong><var>ⁿ</var> = {(<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) : <var>x</var><sub><var>j</var></sub> ∈ <strong>F</strong> for <var>j</var> = 1, …, <var>n</var>}. <span class="cite">— Axler §1.A, Definition 1.10, p. 6</span></p>
 </div>
 
 <p>Two operations make <strong>F</strong><var>ⁿ</var> come alive. <strong>Addition</strong> adds corresponding coordinates; <strong>scalar multiplication</strong> multiplies every coordinate by the same number:</p>
 
 <div class="definition">
-<p><strong>Definitions 1.12, 1.17.</strong> (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) + (<var>y</var>₁, …, <var>y</var><sub><var>n</var></sub>) = (<var>x</var>₁ + <var>y</var>₁, …, <var>x</var><sub><var>n</var></sub> + <var>y</var><sub><var>n</var></sub>). For λ ∈ <strong>F</strong>: λ(<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) = (λ<var>x</var>₁, …, λ<var>x</var><sub><var>n</var></sub>). <span class="cite">— Axler §1.A, Definitions 1.12 and 1.17, pp. 6, 10</span></p>
+<p><strong>Definitions 1.12, 1.17.</strong> (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) + (<var>y</var>₁, …, <var>y</var><sub><var>n</var></sub>) = (<var>x</var>₁ + <var>y</var>₁, …, <var>x</var><sub><var>n</var></sub> + <var>y</var><sub><var>n</var></sub>). For λ ∈ <strong>F</strong>: λ(<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) = (λ<var>x</var>₁, …, λ<var>x</var><sub><var>n</var></sub>). <span class="cite">— Axler §1.A, Definitions 1.12 and 1.17, pp. 7, 10</span></p>
 </div>
 
 <p>Geometrically, in <strong>R</strong>²: adding <var>x</var> + <var>y</var> means sliding the arrow <var>y</var> so its tail sits at the head of <var>x</var>; the sum is the arrow from the origin to <var>y</var>'s new head. Scaling λ<var>x</var> stretches or shrinks the arrow by a factor of λ (and flips its direction if λ is negative). These two pictures — the parallelogram of addition, the stretching ray of scaling — are the entire geometric content of everything that follows. Once <var>n</var> ≥ 4 you lose the picture, Axler notes wryly, but not the algebra: "even if <var>n</var> is large, we can perform algebraic manipulations in <strong>F</strong><var>ⁿ</var> as easily as in <strong>R</strong>² or <strong>R</strong>³." <span class="cite">— Axler §1.A, p. 6</span></p>
@@ -136,7 +136,7 @@ draw();
 <p><strong>Proof.</strong> Suppose <var>x</var> = (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) and <var>y</var> = (<var>y</var>₁, …, <var>y</var><sub><var>n</var></sub>). Then</p>
 <p>&emsp;<var>x</var> + <var>y</var> = (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) + (<var>y</var>₁, …, <var>y</var><sub><var>n</var></sub>) = (<var>x</var>₁ + <var>y</var>₁, …, <var>x</var><sub><var>n</var></sub> + <var>y</var><sub><var>n</var></sub>) = (<var>y</var>₁ + <var>x</var>₁, …, <var>y</var><sub><var>n</var></sub> + <var>x</var><sub><var>n</var></sub>) = <var>y</var> + <var>x</var>,</p>
 <p>where the second and fourth equalities hold by the definition of addition in <strong>F</strong><var>ⁿ</var>, and the third equality holds because addition of numbers in <strong>F</strong> is already commutative. ∎</p>
-<p class="cite">— Axler §1.A, Theorem 1.13, p. 6</p>
+<p class="cite">— Axler §1.A, Theorem 1.13, p. 7</p>
 </div>
 
 <div class="you-try">

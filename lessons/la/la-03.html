@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-03 — Span and linear independence</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Span and linear independence <span class="cite">(la-03)</span></h1>
+
+<div class="hook">
+Redundancy detection: which vectors are freeloaders?
+<p>Hand someone four vectors in <strong>R</strong>³ and ask what they generate. Whatever the answer is, at least one of the four is dead weight: you could delete it and generate exactly the same set. That is not a fact about those particular four vectors — it is forced, and by the end of this lesson you will be able to prove it without looking at a single coordinate.</p>
+<p>The two ideas that make it work are opposites. <strong>Span</strong> measures how much a list generates: bigger lists span more. <strong>Linear independence</strong> measures how efficiently it does so: no vector in the list is reachable from the others. Push them together and you get a squeeze — an independent list can never be longer than a spanning list — and every dimension count in the rest of mathematics is a consequence of that one inequality.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> A list of vectors is called <em>linearly dependent</em> when it has redundancy in it. Suppose you are told that <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> is linearly dependent. Do you predict it follows that <strong>every</strong> vector in the list is a linear combination of the others — yes or no? Write down your answer, and if you predict "no", try to produce a three-vector list in <strong>F</strong>² that settles it. The verdict arrives in Segment 3.
+</div>
+
+<p class="mission">Why this matters for the mission: Betti numbers count independent cycles — independence is the point.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>Span: everything a list can reach</h2>
+
+<p>Fix a vector space <var>V</var> over <strong>F</strong>, where <strong>F</strong> is <strong>R</strong> or <strong>C</strong>. Lists of vectors are written without parentheses — <var>v</var>₁, <var>v</var>₂, <var>v</var>₃ — to keep them visually distinct from the tuples inside <strong>F</strong><var>ⁿ</var>. <span class="cite">— Axler §2.A, Notation 2.2, p. 28</span></p>
+
+<div class="definition">
+<strong>Definition 2.3 (linear combination).</strong> A <em>linear combination</em> of a list <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> of vectors in <var>V</var> is a vector of the form <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub>, where <var>a</var>₁, …, <var>a</var><sub><var>m</var></sub> ∈ <strong>F</strong>. <span class="cite">— Axler §2.A, Definition 2.3, p. 28</span>
+</div>
+
+<p>Two operations, nothing else: scale each vector, then add. That is the whole vocabulary la-01 gave us, and the whole vocabulary linear algebra will ever use.</p>
+
+<div class="worked">
+<strong>Worked example — deciding membership by hand (fully worked).</strong> In <strong>F</strong>³, is (17, −4, 2) a linear combination of (2, 1, −3) and (1, −2, 4)?
+<p>We are asking whether scalars <var>a</var>₁, <var>a</var>₂ exist with (17, −4, 2) = <var>a</var>₁(2, 1, −3) + <var>a</var>₂(1, −2, 4). Comparing slots gives three equations: 17 = 2<var>a</var>₁ + <var>a</var>₂, −4 = <var>a</var>₁ − 2<var>a</var>₂, 2 = −3<var>a</var>₁ + 4<var>a</var>₂. From the first two, <var>a</var>₂ = 17 − 2<var>a</var>₁ and <var>a</var>₁ − 2(17 − 2<var>a</var>₁) = −4, so 5<var>a</var>₁ = 30 and <var>a</var>₁ = 6, <var>a</var>₂ = 5. The third equation is not automatic — it is a genuine constraint and must be checked: −3(6) + 4(5) = −18 + 20 = 2. ✓ So (17, −4, 2) = 6(2, 1, −3) + 5(1, −2, 4).</p>
+<p>Change the last slot to 5 and the same first two equations still force <var>a</var>₁ = 6, <var>a</var>₂ = 5, but now the third demands −18 + 20 = 5, which is false. So (17, −4, 5) is <em>not</em> a linear combination of that pair. The lesson to carry: solving a subsystem does not settle the question. The leftover equations are where the answer actually lives. <span class="cite">— Axler §2.A, Example 2.4, p. 28</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 2.5 (span).</strong> The set of all linear combinations of <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> in <var>V</var> is called the <em>span</em> of the list, written span(<var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>) = {<var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> : <var>a</var>₁, …, <var>a</var><sub><var>m</var></sub> ∈ <strong>F</strong>}. The span of the empty list ( ) is defined to be {0}. <span class="cite">— Axler §2.A, Definition 2.5, p. 29</span>
+</div>
+
+<p>That last clause looks like bookkeeping and is not. Defining span( ) = {0} rather than ∅ is what makes the empty list behave like a legitimate list all the way through the theory — it is the reason the results below need no exception for <var>m</var> = 0, and it is exactly the convention that Segment 3's lemma leans on.</p>
+
+<div class="theorem">
+<strong>Theorem 2.7 (span is the smallest containing subspace).</strong> The span of a list of vectors in <var>V</var> is the smallest subspace of <var>V</var> containing all the vectors in the list. <span class="cite">— Axler §2.A, Theorem 2.7, p. 29</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> Two halves, and it is worth seeing that they are genuinely different jobs.
+<p><em>Half one: the span is a subspace.</em> Run la-02's Theorem 1.34 checklist. 0 = 0<var>v</var>₁ + ⋯ + 0<var>v</var><sub><var>m</var></sub> is a linear combination, so 0 is in. Adding two linear combinations gives (<var>a</var>₁ + <var>c</var>₁)<var>v</var>₁ + ⋯ + (<var>a</var><sub><var>m</var></sub> + <var>c</var><sub><var>m</var></sub>)<var>v</var><sub><var>m</var></sub>, again a linear combination. Scaling gives λ<var>a</var>₁<var>v</var>₁ + ⋯ + λ<var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub>, likewise. All three conditions hold.</p>
+<p><em>Half two: it is the smallest such.</em> Each <var>v</var><sub><var>j</var></sub> is itself in the span (take <var>a</var><sub><var>j</var></sub> = 1 and the rest 0), so the span does contain the list. Conversely, let <var>U</var> be <em>any</em> subspace containing every <var>v</var><sub><var>j</var></sub>. Being closed under scalar multiplication and addition, <var>U</var> must contain every <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> — that is, <var>U</var> ⊇ span(<var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>). So the span sits inside every competitor, which is what "smallest" means. <span class="cite">— Axler §2.A, p. 29</span></p>
+</div>
+
+<div class="heuristic">
+<strong>Reading a "smallest object" claim.</strong> "Smallest <var>X</var> containing <var>Y</var>" is always two obligations: <em>it is an <var>X</var> and it contains <var>Y</var></em>, and <em>it fits inside every <var>X</var> that contains <var>Y</var></em>. Proving only the first is the standard way to lose half the marks. You will meet this exact pattern again in la-04 (extending to a basis) and in every "generated by" construction in the semester.
+</div>
+
+<div class="definition">
+<strong>Definition 2.8 (spans) and Definition 2.10 (finite-dimensional).</strong> If span(<var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>) equals <var>V</var>, we say the list <em>spans</em> <var>V</var>. A vector space is <em>finite-dimensional</em> if some list of vectors in it spans the space; it is <em>infinite-dimensional</em> if it is not finite-dimensional. <span class="cite">— Axler §2.A, Definitions 2.8, 2.10, pp. 30, and Definition 2.15, p. 31</span>
+</div>
+
+<p>Note what "finite-dimensional" does <em>not</em> yet say: no number has been attached to <var>V</var>. It says only that <em>some</em> finite list is enough. Pinning down a number — and showing every honest count gives the same one — is la-04's entire job, and it depends on the theorem in Segment 3.</p>
+
+<div class="worked">
+<strong>Worked example — <strong>F</strong><var>ⁿ</var> is finite-dimensional (fully worked).</strong> Let <var>e</var><sub><var>j</var></sub> be the <var>n</var>-tuple with 1 in slot <var>j</var> and 0 elsewhere. For any (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) ∈ <strong>F</strong><var>ⁿ</var> we have (<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) = <var>x</var>₁<var>e</var>₁ + ⋯ + <var>x</var><sub><var>n</var></sub><var>e</var><sub><var>n</var></sub>, so every element of <strong>F</strong><var>ⁿ</var> lies in span(<var>e</var>₁, …, <var>e</var><sub><var>n</var></sub>). Hence that list spans <strong>F</strong><var>ⁿ</var>, and <strong>F</strong><var>ⁿ</var> is finite-dimensional. <span class="cite">— Axler §2.A, Example 2.9, p. 30</span>
+</div>
+
+<div class="worked fade">
+<strong>Contrast — 𝒫(<strong>F</strong>) is infinite-dimensional (fully worked).</strong> Let 𝒫(<strong>F</strong>) be the space of all polynomials with coefficients in <strong>F</strong>, and 𝒫<sub><var>m</var></sub>(<strong>F</strong>) those of degree at most <var>m</var>. Take <em>any</em> list of polynomials and let <var>m</var> be the largest degree appearing in it. Every linear combination of the list has degree at most <var>m</var>, so <var>z</var><sup><var>m</var>+1</sup> is not in its span. No list spans 𝒫(<strong>F</strong>), so 𝒫(<strong>F</strong>) is infinite-dimensional.
+<p>The move worth stealing: to show <em>no</em> list works, you do not enumerate lists. You take an arbitrary one, extract one number from it (here the top degree), and build the escapee out of that number. <span class="cite">— Axler §2.A, Example 2.16, p. 32, with Definitions 2.11–2.13, pp. 30–31</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In <strong>R</strong>³, what is span((1, 0, 0), (2, 0, 0))?</p>
+<button onclick="check(this,false)">The whole of <strong>R</strong>³</button>
+<button onclick="check(this,true)" data-ok>The line {(<var>t</var>, 0, 0) : <var>t</var> ∈ <strong>R</strong>}</button>
+<button onclick="check(this,false)">The plane {(<var>x</var>, <var>y</var>, 0)}</button>
+<div class="explain">Every linear combination is <var>a</var>₁(1,0,0) + <var>a</var>₂(2,0,0) = (<var>a</var>₁ + 2<var>a</var>₂, 0, 0), and as the scalars range over <strong>R</strong> the quantity <var>a</var>₁ + 2<var>a</var>₂ takes every real value. So the span is a line, even though the list has length 2 — the second vector adds nothing, which is precisely the redundancy Segment 2 names.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why is span( ) defined to be {0} rather than the empty set?</p>
+<button onclick="check(this,false)">Convenience — nothing depends on it</button>
+<button onclick="check(this,true)" data-ok>Because a span must be a subspace, and ∅ is not one</button>
+<button onclick="check(this,false)">Because 0 is a linear combination of no vectors by Definition 2.3</button>
+<div class="explain">Theorem 2.7 says every span is a subspace, and la-02 established that ∅ is never a subspace — a subspace must contain 0. {0} is the only candidate that keeps Theorem 2.7 true with no exception carved out for the empty list. The third option is tempting but backwards: Definition 2.3 needs at least one vector before it produces anything, so it does not by itself deliver 0 from an empty list; the value {0} is a definition made to keep the theory seamless.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~20 min</span>
+<h2>Linear independence: spanning without waste</h2>
+
+<p>Here is the question that produces the definition. Suppose <var>v</var> ∈ span(<var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>), so <var>v</var> = <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> for some scalars. Are those scalars forced? Suppose <var>v</var> = <var>c</var>₁<var>v</var>₁ + ⋯ + <var>c</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> as well. Subtracting,</p>
+
+<p style="text-align:center">0 = (<var>a</var>₁ − <var>c</var>₁)<var>v</var>₁ + ⋯ + (<var>a</var><sub><var>m</var></sub> − <var>c</var><sub><var>m</var></sub>)<var>v</var><sub><var>m</var></sub>.</p>
+
+<p>So the two representations agree exactly when the only way to write 0 as a combination of the list is with all scalars 0. Uniqueness of representation and triviality of the zero-representation are the same condition, transported. That single observation is why the definition below is stated about 0 and not about a general vector. <span class="cite">— Axler §2.A, p. 32</span></p>
+
+<div class="definition">
+<strong>Definition 2.17 (linearly independent).</strong> A list <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> of vectors in <var>V</var> is <em>linearly independent</em> if the only choice of <var>a</var>₁, …, <var>a</var><sub><var>m</var></sub> ∈ <strong>F</strong> making <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> equal 0 is <var>a</var>₁ = ⋯ = <var>a</var><sub><var>m</var></sub> = 0. The empty list ( ) is declared linearly independent. <span class="cite">— Axler §2.A, Definition 2.17, p. 32</span>
+</div>
+
+<div class="definition">
+<strong>Definition 2.19 (linearly dependent).</strong> A list is <em>linearly dependent</em> if it is not linearly independent — equivalently, if there exist <var>a</var>₁, …, <var>a</var><sub><var>m</var></sub> ∈ <strong>F</strong>, <em>not all 0</em>, with <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> = 0. <span class="cite">— Axler §2.A, Definition 2.19, p. 33</span>
+</div>
+
+<div class="heuristic">
+<strong>The two words that carry the definition.</strong> "Not all 0" is not the same as "all nonzero". A dependence relation is allowed — usually required — to have some zero coefficients; it must merely have at least one nonzero one. Students who read it as "all nonzero" conclude, wrongly, that a list containing 0 might be independent. It never is: 1·0 = 0 is a dependence relation with a single nonzero coefficient. <span class="cite">— Axler §2.A, Example 2.20, p. 33</span>
+</div>
+
+<p>Small cases are worth memorising, because they turn a definition into something you can see. A one-vector list <var>v</var> is independent exactly when <var>v</var> ≠ 0. A two-vector list is independent exactly when neither vector is a scalar multiple of the other. And any list containing 0 is dependent. <span class="cite">— Axler §2.A, Example 2.18, p. 33</span></p>
+
+<h3>Canvas: independence and redundancy in R³</h3>
+<p>Two vectors (blue, green) span a plane through the origin; the third (amber) is drawn sweeping in and out of that plane. When it lies in the plane the list is dependent and the span stays two-dimensional; when it leaves, the span jumps to all of <strong>R</strong>³. The plane mesh is the span of the first two.</p>
+<canvas id="ic" width="440" height="340"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('ic'),ctx=cv.getContext('2d'),cx=220,cy=170,scale=52;
+let t=0;
+function project(p,ang){
+  const cA=Math.cos(ang),sA=Math.sin(ang);
+  const x=p[0]*cA - p[2]*sA, z=p[0]*sA + p[2]*cA, y=p[1];
+  const persp=1/(2.6+z*0.3);
+  return [cx+x*scale*persp, cy-y*scale*persp*0.85];
+}
+function arrow(p,ang,color){
+  const o=project([0,0,0],ang),q=project(p,ang);
+  ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.4;
+  ctx.beginPath();ctx.moveTo(o[0],o[1]);ctx.lineTo(q[0],q[1]);ctx.stroke();
+  ctx.beginPath();ctx.arc(q[0],q[1],3.5,0,7);ctx.fill();
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const ang=t*0.5, h=1.15*Math.sin(t*0.9);
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  for(let i=-2;i<=2;i++){
+    let p0=project([-2,0,i],ang),p1=project([2,0,i],ang);
+    ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+    p0=project([i,0,-2],ang);p1=project([i,0,2],ang);
+    ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+  }
+  arrow([1.6,0,0.3],ang,'#8ab4f8');
+  arrow([-0.4,0,1.7],ang,'#4caf82');
+  arrow([1.1,h,-1.2],ang,'#d8a657');
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText(Math.abs(h)<0.16?'amber in the plane — dependent, span is the plane'
+                              :'amber off the plane — independent, span is R³',cx,306);
+  ctx.fillText('mesh = span of the blue and green vectors',cx,324);
+  ctx.textAlign='left';
+  t+=0.012;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="worked">
+<strong>Worked example — a dependence relation, found by hand (fully worked).</strong> Show (2, 3, 1), (1, −1, 2), (7, 3, 8) is linearly dependent in <strong>F</strong>³.
+<p>We must produce scalars, not all zero, killing the combination. Try <var>a</var>(2, 3, 1) + <var>b</var>(1, −1, 2) + <var>c</var>(7, 3, 8) = (0, 0, 0). Set <var>c</var> = −1 and solve the first two slots: 2<var>a</var> + <var>b</var> = 7 and 3<var>a</var> − <var>b</var> = 3. Adding, 5<var>a</var> = 10, so <var>a</var> = 2 and <var>b</var> = 3. As always, the remaining slot is a real check, not a formality: <var>a</var> + 2<var>b</var> + 8<var>c</var> = 2 + 6 − 8 = 0. ✓</p>
+<p>So 2(2, 3, 1) + 3(1, −1, 2) + (−1)(7, 3, 8) = (0, 0, 0), with coefficients 2, 3, −1 — not all zero. The list is dependent. <span class="cite">— Axler §2.A, Example 2.20, p. 33</span></p>
+</div>
+
+<div class="you-try">
+<strong>You try (solo).</strong> Regard <strong>C</strong> as a vector space over <strong>R</strong> and show that the list 1 + <var>i</var>, 1 − <var>i</var> is linearly independent. Then regard <strong>C</strong> as a vector space over <strong>C</strong> and show the same list is linearly dependent. (Hint: independence is a statement about a list <em>and</em> the field of scalars you are allowed to use, and nothing about the vectors changes between the two parts. In the second part, ask what you may multiply 1 + <var>i</var> by to reach 1 − <var>i</var>.) <span class="cite">— cf. Axler §2.A, Exercise 5, p. 37</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> The list (1, 2), (2, 4), (0, 1) in <strong>R</strong>² is linearly dependent. Which of these is a correct dependence relation?</p>
+<button onclick="check(this,true)" data-ok>2(1, 2) + (−1)(2, 4) + 0(0, 1) = (0, 0)</button>
+<button onclick="check(this,false)">No relation exists — the list has three vectors, which is allowed in <strong>R</strong>²</button>
+<button onclick="check(this,false)">1(1, 2) + 1(2, 4) + 1(0, 1) = (0, 0)</button>
+<div class="explain">2(1, 2) − 1(2, 4) = (2 − 2, 4 − 4) = (0, 0), and the coefficients 2, −1, 0 are not all zero — the zero coefficient on (0, 1) is entirely legitimate, which is the "not all 0" point above. The third option is simply false: it sums to (3, 7). The second confuses "having three vectors" with "having a relation"; three vectors in <strong>R</strong>² are always dependent, but that is a theorem (Segment 3), not a definition.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The squeeze: independent ≤ spanning</h2>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="worked fade">
+<strong>The verdict: no.</strong> Dependence does <em>not</em> make every vector in the list a combination of the others. Take (1, 0), (2, 0), (0, 1) in <strong>F</strong>². It is dependent — 2(1, 0) + (−1)(2, 0) + 0(0, 1) = (0, 0). But (0, 1) is not a linear combination of (1, 0) and (2, 0): every such combination has second slot 0, and (0, 1) does not.
+<p>What dependence gives you is <em>some</em> removable vector, not any one you nominate. The lemma below says precisely which ones qualify, and it is sharper than "some": it hands you a specific position <var>j</var>, and it guarantees that deleting that one does not shrink the span at all.</p>
+</div>
+
+<div class="lemma">
+<strong>Lemma 2.21 (Linear Dependence Lemma).</strong> Suppose <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> is a linearly dependent list in <var>V</var>. Then there exists <var>j</var> ∈ {1, …, <var>m</var>} such that (a) <var>v</var><sub><var>j</var></sub> ∈ span(<var>v</var>₁, …, <var>v</var><sub><var>j</var>−1</sub>), and (b) removing the <var>j</var>-th term from the list leaves the span unchanged. <span class="cite">— Axler §2.A, Lemma 2.21, p. 34</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> Dependence gives scalars <var>a</var>₁, …, <var>a</var><sub><var>m</var></sub>, not all 0, with <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> = 0. Let <var>j</var> be the <strong>largest</strong> index with <var>a</var><sub><var>j</var></sub> ≠ 0 — the choice of <em>largest</em> is the whole trick, because it makes every term after position <var>j</var> vanish. Then all the surviving terms sit at positions below <var>j</var>, and dividing by <var>a</var><sub><var>j</var></sub> (legal exactly because <var>a</var><sub><var>j</var></sub> ≠ 0) gives
+<p style="text-align:center"><var>v</var><sub><var>j</var></sub> = −(<var>a</var>₁/<var>a</var><sub><var>j</var></sub>)<var>v</var>₁ − ⋯ − (<var>a</var><sub><var>j</var>−1</sub>/<var>a</var><sub><var>j</var></sub>)<var>v</var><sub><var>j</var>−1</sub>,</p>
+<p>which is (a). For (b), any <var>u</var> in the original span is some <var>c</var>₁<var>v</var>₁ + ⋯ + <var>c</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub>; substitute the displayed expression for <var>v</var><sub><var>j</var></sub> and <var>u</var> is exhibited as a combination of the shortened list. The reverse inclusion is free, since the shortened list is part of the original. <span class="cite">— Axler §2.A, pp. 34</span></p>
+<p>The <var>j</var> = 1 case is where the empty-list convention earns its keep: (a) then reads <var>v</var>₁ ∈ span( ) = {0}, i.e. <var>v</var>₁ = 0, which is exactly right and needs no separate clause. <span class="cite">— Axler §2.A, p. 34</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 2.23 (independent ≤ spanning).</strong> In a finite-dimensional vector space, the length of every linearly independent list of vectors is less than or equal to the length of every spanning list of vectors. <span class="cite">— Axler §2.A, Theorem 2.23, p. 35</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> Let <var>u</var>₁, …, <var>u</var><sub><var>m</var></sub> be independent and <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub> spanning; we want <var>m</var> ≤ <var>n</var>. Run a swap process, keeping a list <var>B</var> of length exactly <var>n</var> that spans <var>V</var> at every stage.
+<p><em>Step 1.</em> Start with <var>B</var> = <var>w</var>₁, …, <var>w</var><sub><var>n</var></sub>. Adjoining <var>u</var>₁ makes it dependent (the newcomer is already in the span). Apply the Linear Dependence Lemma: some term is in the span of its predecessors and can be deleted without changing the span. It cannot be <var>u</var>₁, since <var>u</var>₁ sits first and span( ) = {0} while <var>u</var>₁ ≠ 0. So a <var>w</var> goes, and <var>B</var> — now <var>u</var>₁ plus <var>n</var> − 1 of the <var>w</var>'s — still spans, still has length <var>n</var>.</p>
+<p><em>Step j.</em> Adjoin <var>u</var><sub><var>j</var></sub> just after <var>u</var>₁, …, <var>u</var><sub><var>j</var>−1</sub>. The result is dependent, so the lemma removes something. The removed term cannot be one of the <var>u</var>'s: that would put some <var>u</var> in the span of earlier <var>u</var>'s, contradicting independence of <var>u</var>₁, …, <var>u</var><sub><var>j</var></sub>. So again a <var>w</var> goes.</p>
+<p>Each of the <var>m</var> steps consumes one <var>w</var>, and there are only <var>n</var> of them, so <var>m</var> ≤ <var>n</var>. <span class="cite">— Axler §2.A, p. 35</span></p>
+</div>
+
+<div class="heuristic">
+<strong>What the theorem is for.</strong> It converts <em>counting</em> into <em>proof</em>. Two corollaries fall out with no computation at all: a list longer than some spanning list cannot be independent, and a list shorter than some independent list cannot span. Both are used constantly, and both look like magic the first time — you settle a question about specific vectors by never looking at them.
+</div>
+
+<div class="worked">
+<strong>Worked example — two verdicts with no arithmetic (fully worked).</strong>
+<p>(i) Is (1, 2, 3), (4, 5, 8), (9, 6, 7), (−3, 2, 8) linearly independent in <strong>R</strong>³? The list (1, 0, 0), (0, 1, 0), (0, 0, 1) spans <strong>R</strong>³ and has length 3. By Theorem 2.23 no independent list in <strong>R</strong>³ can exceed length 3. Ours has length 4. So no — and we never touched the entries.</p>
+<p>(ii) Does (1, 2, 3, −5), (4, 5, 8, 3), (9, 6, 7, −1) span <strong>R</strong>⁴? The four standard vectors are independent in <strong>R</strong>⁴, so by Theorem 2.23 every spanning list of <strong>R</strong>⁴ has length at least 4. Ours has length 3. So no. <span class="cite">— Axler §2.A, Examples 2.24 and 2.25, p. 36</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 2.26 (subspaces inherit finite-dimensionality).</strong> Every subspace of a finite-dimensional vector space is finite-dimensional. <span class="cite">— Axler §2.A, Theorem 2.26, p. 36</span>
+</div>
+
+<p>The proof builds an independent list inside the subspace one vector at a time, and Theorem 2.23 is what stops the construction: the list can never outgrow a spanning list of the ambient space, so the process must terminate, and when it does the list it has built spans the subspace. Termination is the content here — the construction itself is obvious, and the reason it halts is not. <span class="cite">— Axler §2.A, pp. 36</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> A list of 5 vectors spans <var>V</var>, and a different list of 5 vectors in <var>V</var> is linearly independent. What does Theorem 2.23 let you conclude about a list of 6 vectors in <var>V</var>?</p>
+<button onclick="check(this,true)" data-ok>It cannot be linearly independent</button>
+<button onclick="check(this,false)">It cannot span <var>V</var></button>
+<button onclick="check(this,false)">Neither — 6 is compatible with both</button>
+<div class="explain">A spanning list of length 5 exists, so every independent list has length ≤ 5; a list of 6 therefore fails independence. Spanning is not obstructed at all: you may always adjoin extra vectors to a spanning list and it still spans. The asymmetry is worth holding onto — long lists are bad for independence, short lists are bad for spanning.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In the Linear Dependence Lemma, why is <var>j</var> chosen to be the <em>largest</em> index with <var>a</var><sub><var>j</var></sub> ≠ 0, rather than any index with <var>a</var><sub><var>j</var></sub> ≠ 0?</p>
+<button onclick="check(this,false)">To make the coefficients −<var>a</var><sub><var>i</var></sub>/<var>a</var><sub><var>j</var></sub> come out smallest</button>
+<button onclick="check(this,true)" data-ok>So that all surviving terms have index below <var>j</var>, giving conclusion (a) its "span of the <em>previous</em> ones" form</button>
+<button onclick="check(this,false)">Because <var>a</var><sub><var>m</var></sub> is always nonzero for a dependent list</button>
+<div class="explain">Any index with <var>a</var><sub><var>j</var></sub> ≠ 0 would let you solve for <var>v</var><sub><var>j</var></sub> and would deliver conclusion (b). Choosing the largest is what makes the solved expression involve only <var>v</var>₁, …, <var>v</var><sub><var>j</var>−1</sub> — the strictly-earlier form that Theorem 2.23's proof needs to argue "the removed vector cannot be one of the <var>u</var>'s". The third option is false: a dependent list can perfectly well have <var>a</var><sub><var>m</var></sub> = 0, as Self-check 3's relation shows.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> is linearly independent in <var>V</var> and <var>w</var> ∈ <var>V</var>. Prove that <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>, <var>w</var> is linearly independent <strong>if and only if</strong> <var>w</var> ∉ span(<var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>). (Two directions. For one of them, contraposition is much the easier route — and note which hypothesis, independence of the original list, is used in which direction.) <span class="cite">— cf. Axler §2.A, Exercise 11, p. 38</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> (⇐, by contraposition.) Suppose <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>, <var>w</var> is <em>dependent</em>: there are scalars <var>a</var>₁, …, <var>a</var><sub><var>m</var></sub>, <var>b</var>, not all 0, with <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> + <var>b</var><var>w</var> = 0. If <var>b</var> = 0, the relation reduces to a nontrivial dependence among <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> alone — impossible, since that list is independent and the remaining coefficients cannot all be 0 either. Hence <var>b</var> ≠ 0, and dividing by it gives <var>w</var> = −(<var>a</var>₁/<var>b</var>)<var>v</var>₁ − ⋯ − (<var>a</var><sub><var>m</var></sub>/<var>b</var>)<var>v</var><sub><var>m</var></sub> ∈ span(<var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>). So dependence forces <var>w</var> into the span; contrapositively, <var>w</var> ∉ span implies independence.</p>
+<p>(⇒, by contraposition.) Suppose <var>w</var> ∈ span(<var>v</var>₁, …, <var>v</var><sub><var>m</var></sub>), say <var>w</var> = <var>c</var>₁<var>v</var>₁ + ⋯ + <var>c</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub>. Then <var>c</var>₁<var>v</var>₁ + ⋯ + <var>c</var><sub><var>m</var></sub><var>v</var><sub><var>m</var></sub> + (−1)<var>w</var> = 0 is a dependence relation whose coefficients are not all 0 — the coefficient −1 on <var>w</var> is nonzero regardless of what the <var>c</var><sub><var>j</var></sub> happen to be. So the extended list is dependent. ∎</p>
+<p class="cite">Where the hypotheses are used: independence of <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> is needed only in (⇐), to rule out <var>b</var> = 0. Direction (⇒) holds for any list at all, independent or not — worth noticing, because it means the theorem is not symmetric in the work it demands.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li><strong>Span</strong> (Definition 2.5) is everything a list reaches by scaling and adding, and it is exactly the smallest subspace containing the list (Theorem 2.7) — so "generated by" is a subspace notion, not merely a set notion. A space is <strong>finite-dimensional</strong> when <em>some</em> list spans it (Definition 2.10); no number is attached yet.</li>
+<li><strong>Independence</strong> (Definition 2.17) is the statement that 0 has only the trivial representation — equivalently, that <em>every</em> vector in the span has only one representation. The <strong>Linear Dependence Lemma</strong> (2.21) turns dependence into something usable: some term is in the span of its predecessors, and deleting it does not shrink the span.</li>
+<li>Feeding the lemma a swap process proves the squeeze: <strong>every independent list is at most as long as every spanning list</strong> (Theorem 2.23). This settles independence and spanning questions by length alone (Examples 2.24, 2.25), and its termination argument is what makes subspaces of finite-dimensional spaces finite-dimensional (Theorem 2.26). la-04 turns the squeeze into an actual number.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §2.A "Span and Linear Independence": "Linear Combinations and Span" (Notation 2.2, Definition 2.3 linear combination, Example 2.4, Definition 2.5 span, Theorem 2.7 smallest containing subspace, Definition 2.8 spans, Example 2.9, Definition 2.10 finite-dimensional), pp. 28–30; polynomials and infinite dimension (Definitions 2.11–2.13, Example 2.14, Definition 2.15, Example 2.16), pp. 30–32; "Linear Independence" (Definition 2.17, Example 2.18, Definition 2.19, Example 2.20, Lemma 2.21 Linear Dependence Lemma, Theorem 2.23, Examples 2.24–2.25, Theorem 2.26), pp. 32–36; §2.A, Exercises 5 and 11, pp. 37–38.
+<br>Builds on la-01 (vector space axioms, Axler §1.A–1.B) and on la-02, whose three-condition subspace test is Axler §1.C, Theorem 1.34, pp. 18–19; the proof of Theorem 2.7 above runs straight through it.
+<br>Deferred to la-04: bases, dimension, and the fact that every basis of a space has the same length (Axler §2.B–2.C).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

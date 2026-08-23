@@ -67,7 +67,15 @@ for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 KINDS = ("Theorem", "Lemma", "Proposition", "Definition", "Corollary",
-         "Example", "Exercise", "Fact", "Axiom", "Remark", "Principle")
+         "Example", "Exercise", "Fact", "Axiom", "Remark", "Principle",
+         # Axler heads several numbered items "Notation": Notation 3.3 names
+         # L(V, W), Notation 3.39 names F^{m,n}, Notation 3.44 names the rows
+         # and columns of a matrix. Each is a numbered result on a specific
+         # page and the la lessons cite them as such. Without the kind word
+         # here the citation produced no id at all, so the folio was never
+         # checked and the denominator never moved -- the absence looked
+         # exactly like a file with nothing to check.
+         "Notation")
 # Multi-level numbers must be captured WHOLE. Abbott numbers three deep —
 # "Lemma 1.3.7", "Theorem 2.4.2" — and a pattern stopping at two components
 # truncates that to "Lemma 1.3", which then matches a page carrying Lemma 1.3.9
@@ -100,7 +108,7 @@ PLURALS = {"Theorem": "Theorems", "Lemma": "Lemmas", "Proposition": "Proposition
            # pw-02 cites Principle 4.1 and Principle 4.7. Omitting the kind
            # meant both citations were skipped without touching the
            # denominator. (CodeRabbit review of PR #21.)
-           "Principle": "Principles"}
+           "Principle": "Principles", "Notation": "Notations"}
 SINGULAR = {p.lower(): s for s, p in PLURALS.items()}
 # A member of a plural list may carry a PART: `Exercises 8(a) and 8(b)`. The
 # part interrupted the separator pattern, so the whole list matched nothing and
@@ -529,8 +537,37 @@ def book_label_for(num, raw):
     # "1 Prove that ..." and Lindström writes "1. Let f, g ..." — one
     # punctuation mark apart, and omitting it turned every Lindström exercise
     # citation in the an2 sets into a hard FAIL.
-    m = re.search(r"^\s*%s[.)]?\s+([A-Za-z$\\][^\n]*)$" % re.escape(num),
-                  raw, re.M)
+    #
+    # An exercise whose first part is lettered opens with the item marker
+    # rather than a word — Axler's 2.A.5 is printed "5 (a) Show that if we
+    # think of C as a vector space over R ...". Demanding a letter immediately
+    # after the number reported that citation as a wrong page while it named
+    # the right one. The marker is admitted, but only in bracketed item form
+    # and still followed by prose, so a displayed formula opening "5 (x + y)"
+    # is not promoted to a header.
+    #
+    # The converter sometimes reads an exercise block as a markdown ordered
+    # list and emits its own marker in front of the book's number, so Axler's
+    # exercise 1 on printed 88 arrives as "1. 1 Suppose T in L(U, V)". The
+    # number then sits where the guard demanded a word, the exercise had no
+    # label, and a citation naming its correct page was reported wrong.
+    #
+    # The marker need not agree with the book's number. On printed 189 the
+    # converter counted part (b) of exercise 1 as an item of its own, so every
+    # later marker is one ahead: exercise 3 arrives as "4. 3 Suppose T in
+    # L(R^3)". Requiring the marker to repeat the number therefore still
+    # reported a correct citation as wrong.
+    #
+    # Any leading integer marker is admitted, because the number being looked
+    # for is anchored AFTER it and so can never be confused with it. That is
+    # what keeps the relaxation safe: on the same page, "3. 2 Suppose e_1" is
+    # exercise 2, and a citation of exercise 3 matches neither branch — not
+    # the marker branch, where the number after the marker is 2, nor the
+    # bare branch, where a digit sits where prose is required.
+    m = re.search(
+        r"^\s*(?:\d{1,3}[.)]\s+)?%s[.)]?\s+"
+        r"(?:\((?:[a-z]|[ivx]{1,4}|\d{1,2})\)\s*)?"
+        r"([A-Za-z$\\][^\n]*)$" % re.escape(num), raw, re.M)
     return re.sub(r"[*#$]", "", m.group(1)).strip()[:60] if m else None
 
 
@@ -906,6 +943,32 @@ def selftest():
     check_one("a bare number in prose does not count as a header",
               book_label_for("9.9", "as shown in 9.9 above, the result") is None)
 
+    # Axler prints a lettered exercise as "5 (a) Show that ...". The item
+    # marker sits where the guard demanded a word, so the exercise had no
+    # label and a correct citation to it was reported as a wrong page.
+    # A markdown ordered-list marker in front of the book's own number.
+    check_one("a doubled list marker does not hide the exercise",
+              book_label_for("1", "1. 1 Suppose T in L(U, V) and S in L(V, W)")
+              == "Suppose T in L(U, V) and S in L(V, W)")
+    # On printed 189 the converter counted a part (b) as its own item, so
+    # every later marker runs one ahead of the book's number.
+    check_one("...and a marker one ahead of the number still finds it",
+              book_label_for("3", "4. 3 Suppose T in L(R^3) has an upper")
+              == "Suppose T in L(R^3) has an upper")
+    check_one("...while the MARKER is never mistaken for the number",
+              book_label_for("3", "3. 2 Suppose e_1 is an orthonormal list")
+              is None)
+    check_one("...and the marker is still required to precede prose",
+              book_label_for("1", "1. 1 2 3 4") is None)
+
+    check_one("a lettered exercise item is a header despite the (a) marker",
+              book_label_for("5", "5 (a) Show that if we think of C as a vector")
+              == "Show that if we think of C as a vector")
+    check_one("...and the marker does not admit a displayed formula",
+              book_label_for("5", "5 (x + y) = 5x + 5y for all x, y") is None)
+    check_one("...nor a bare marker with no prose after it",
+              book_label_for("5", "5 (a)") is None)
+
     # Abbott numbers three deep. Truncating to two components turns a wrong
     # citation into a passing one.
     check_one("a three-level number is captured whole (Abbott)",
@@ -1020,6 +1083,19 @@ def selftest():
               and [sorted(pg) for _c, pg in clauses(
                   "Cummings 2nd ed. §4.3, Theorem 4.8, pp. 125-126")]
               == [[125, 126]])
+    # Axler heads L(V, W), F^{m,n} and the row/column notation as numbered
+    # "Notation" items. Without the kind word the citation made no id, so the
+    # page went unchecked and the denominator never moved.
+    check_one("a Notation citation produces an id like any other result",
+              results_in("Axler 3.C, Notation 3.39, p. 73") == ["Notation 3.39"])
+    check_one("...and it is located on the page the book prints it on",
+              found_on_page("Notation 3.39",
+                            normalise_for_search("### 3.39 Notation F^{m,n}"),
+                            "### 3.39 Notation F^{m,n}") == "exact")
+    check_one("...and the plural form expands too",
+              results_in("Notations 3.39 and 3.44, p. 76")
+              == ["Notation 3.39", "Notation 3.44"])
+
     check_one("a plural list survives a parenthesised part",
               results_in("Exercises 8(a) and 8(b), pp. 83-84") == ["Exercise 8"])
     check_one("...and parts on distinct numbers still give distinct ids",
