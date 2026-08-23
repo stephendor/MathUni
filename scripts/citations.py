@@ -1182,7 +1182,36 @@ def main(argv=None):
     all_names = sorted(bm)
     titles = {k: v.get("title") for k, v in bm.items()}
     rc, total, blocked = 0, 0, False
+
+    def per_path_book(path):
+        """This file's own primary book, or None with the reason printed."""
+        uid = os.path.splitext(os.path.basename(path))[0]
+        try:
+            name = book_for_unit(uid) or book_name
+        except Unreadable as e:
+            print("=== %s" % path)
+            print("ERROR could not read %s" % e)
+            return None
+        if name not in books:
+            print("=== %s" % path)
+            print("ERROR pages tree for %r is not on this machine" % name)
+            return None
+        return books[name]
+
     for p in paths:
+        # The primary book is a property of the UNIT, not of the run. It was
+        # read once from paths[0] and reused for every path behind it, so a
+        # run spanning two books checked the second book's folios against the
+        # first book's pagination — silently, because a wrong pagination still
+        # resolves to real pages and some of them still carry the result
+        # named. aa-01 cites Aluffi throughout, was checked against Carter
+        # because aa-00 came first on the command line, and five of its eight
+        # citations PASSED. Single-book modules never exposed it. --book is
+        # still an override for the whole run, since that is what it is for.
+        book = per_path_book(p) if not a.book else books[book_name]
+        if book is None:
+            blocked = True
+            continue
         print("=== %s  (primary %s)" % (p, book.name))
         try:
             failures, checked, unavailable = check_file(

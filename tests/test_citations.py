@@ -551,3 +551,43 @@ def test_every_citation_on_an_invalid_folio_is_counted(tmp_path, monkeypatch):
     failures, checked, _unavailable = C.check_file(str(src), C.Book("Fake"))
     assert checked == 2
     assert len(failures) == 2
+
+
+# --- the primary book is a property of the unit, not of the run -------------
+
+def test_each_path_is_checked_against_its_own_primary_book(tmp_path,
+                                                           monkeypatch):
+    """The primary book was read once from paths[0] and reused for every path
+    behind it, so a run spanning two books measured the second book's folios
+    against the first book's pagination. It was silent: a wrong pagination
+    still resolves to real pages, and some of them still carry the result
+    named. aa-01 cites Aluffi throughout, was checked against Carter because
+    aa-00 came first on the command line, and five of its eight citations
+    PASSED. Single-book modules never exposed it."""
+    import scripts.citations as C
+    trees = {"Alpha": (40, "Theorem 1.1"), "Beta": (70, "Theorem 2.2")}
+    for name, (first, result) in trees.items():
+        root = tmp_path / name
+        for k in range(3):
+            d = root / ("page-%d" % (10 + k))
+            d.mkdir(parents=True)
+            body = "%d\n\n%s is stated here.\n" % (first + k, result)
+            (d / "markdown.md").write_text(body, encoding="utf-8")
+    monkeypatch.setattr(C, "pages_dir", lambda name: str(tmp_path / name))
+    monkeypatch.setattr(C, "load_bookmap",
+                        lambda: {"Alpha": {"title": "Alpha (A)"},
+                                 "Beta": {"title": "Beta (B)"}})
+    monkeypatch.setattr(C, "book_for_unit",
+                        lambda uid: {"u1": "Alpha", "u2": "Beta"}.get(uid))
+    # Neither clause names its book, so each one falls to its unit's primary.
+    # That is the whole path the defect lived on.
+    (tmp_path / "u1.md").write_text("*(Theorem 1.1, p. 40)*\n",
+                                    encoding="utf-8")
+    (tmp_path / "u2.md").write_text("*(Theorem 2.2, p. 70)*\n",
+                                    encoding="utf-8")
+    assert C.main([str(tmp_path / "u1.md"), str(tmp_path / "u2.md")]) == 0
+    # The negative control: the same two files in the same run, with u2 now
+    # naming a page its own book does not have, must still fail.
+    (tmp_path / "u2.md").write_text("*(Theorem 2.2, p. 41)*\n",
+                                    encoding="utf-8")
+    assert C.main([str(tmp_path / "u1.md"), str(tmp_path / "u2.md")]) == 1
