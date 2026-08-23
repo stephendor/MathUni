@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-12 — The derivative and the Mean Value Theorem</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>The derivative and the Mean Value Theorem <span class="cite">(an-12)</span></h1>
+
+<div class="hook">
+MVT: the theorem that quietly proves half of calculus.
+<p>The derivative is not a new kind of limit. It is an-10's functional limit applied to one particular quotient, which means every theorem of the last two units is available and nothing has to be rebuilt. What is new is what the derivative <em>knows</em> about the function it came from.</p>
+<p>One theorem carries almost all of that knowledge. The Mean Value Theorem says a chord's slope is attained somewhere by the tangent, which sounds like a picture and behaves like a lever: it is what proves that a zero derivative means a constant function, what makes L'Hospital's rule true, and what licenses differentiating a series term by term. It is also, in an-13 and beyond, the step where an inequality about derivatives becomes an inequality about values.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> an-11 showed that a function with the intermediate value property need not be continuous, and promised a reason. <strong>(i)</strong> If <var>f</var> is differentiable on [<var>a</var>, <var>b</var>], must <var>f</var>′ be continuous? <strong>(ii)</strong> Must <var>f</var>′ take every value between <var>f</var>′(<var>a</var>) and <var>f</var>′(<var>b</var>)?</p>
+<button onclick="check(this,false)">Yes to both — a derivative is a limit, and limits are continuous</button>
+<button onclick="check(this,true)" data-ok>No to (i), yes to (ii)</button>
+<button onclick="check(this,false)">No to both — nothing can be said about <var>f</var>′ without further hypotheses</button>
+<div class="explain">Derivatives can be genuinely discontinuous — <var>g</var>(<var>x</var>) = <var>x</var>² sin(1/<var>x</var>) with <var>g</var>(0) = 0 is differentiable everywhere and <var>g</var>′ jumps around wildly near 0. Yet every derivative has the intermediate value property, which is Darboux's Theorem below. So the class of derivatives sits strictly between the continuous functions and the arbitrary ones, and that is exactly why an-11's converse to the Intermediate Value Theorem needed a hypothesis.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Morse-theoretic TDA needs derivatives treated honestly.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The derivative as a functional limit</h2>
+
+<div class="definition">
+<p><strong>Definition 5.2.1.</strong> Let <var>g</var> : <var>A</var> → ℝ be defined on an interval <var>A</var>, and let <var>c</var> ∈ <var>A</var>. The <em>derivative of <var>g</var> at <var>c</var></em> is <var>g</var>′(<var>c</var>) = lim<sub><var>x</var>→<var>c</var></sub> (<var>g</var>(<var>x</var>) − <var>g</var>(<var>c</var>))/(<var>x</var> − <var>c</var>), provided the limit exists. <span class="cite">— Abbott §5.2, Definition 5.2.1, p. 132</span></p>
+</div>
+
+<p>Two features of that sentence are choices, not conventions. The domain is an <em>interval</em> — a connected set, in an-09's vocabulary — because a rate of change wants the variable to move without jumping. And the difference quotient is undefined at <var>x</var> = <var>c</var>, which is exactly why an-10's Definition 4.2.1 excluded that point: the derivative would be unstatable otherwise. <span class="cite">— Abbott §5.2, p. 132</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 5.2.3.</strong> <em>If <var>g</var> is differentiable at <var>c</var>, then <var>g</var> is continuous at <var>c</var>.</em> <span class="cite">— Abbott §5.2, Theorem 5.2.3, p. 132</span></p>
+</div>
+
+<p>The proof is one line of algebra plus an-03's Algebraic Limit Theorem: <var>g</var>(<var>x</var>) − <var>g</var>(<var>c</var>) is the difference quotient times (<var>x</var> − <var>c</var>), a quantity with a limit times one going to 0. The converse fails at every corner — |<var>x</var>| at 0 is continuous with no derivative — so differentiability is strictly stronger. <span class="cite">— Abbott §5.2, Example 5.2.2, p. 132</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 5.2.4.</strong> <em>If <var>f</var> and <var>g</var> are differentiable at <var>c</var>, then so are <var>f</var> + <var>g</var>, <var>kf</var>, <var>fg</var> and, when <var>g</var>(<var>c</var>) ≠ 0, <var>f</var>/<var>g</var>, with the familiar formulas — in particular (<var>fg</var>)′(<var>c</var>) = <var>f</var>′(<var>c</var>)<var>g</var>(<var>c</var>) + <var>f</var>(<var>c</var>)<var>g</var>′(<var>c</var>).</em> <span class="cite">— Abbott §5.2, Theorem 5.2.4, p. 133</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 5.2.5 (Chain Rule).</strong> <em>If <var>g</var> is differentiable at <var>c</var> and <var>f</var> is differentiable at <var>g</var>(<var>c</var>), then <var>f</var> ∘ <var>g</var> is differentiable at <var>c</var> with (<var>f</var> ∘ <var>g</var>)′(<var>c</var>) = <var>f</var>′(<var>g</var>(<var>c</var>))<var>g</var>′(<var>c</var>).</em> <span class="cite">— Abbott §5.2, Theorem 5.2.5, p. 134</span></p>
+</div>
+
+<p>These are the rules from calculus, now with proofs. The product rule's proof is the add-and-subtract move that has appeared in every unit since an-05: insert <var>f</var>(<var>x</var>)<var>g</var>(<var>c</var>) into the numerator and split. The Chain Rule needs more care than the naive cancellation suggests, because the inner difference <var>g</var>(<var>x</var>) − <var>g</var>(<var>c</var>) may be zero for <var>x</var> arbitrarily close to <var>c</var> — a detail this unit's problem set takes up.</p>
+
+<div class="theorem">
+<p><strong>Theorem 5.2.6 (Interior Extremum Theorem).</strong> <em>Let <var>f</var> be differentiable on (<var>a</var>, <var>b</var>). If <var>f</var> attains a maximum or minimum value at <var>c</var> ∈ (<var>a</var>, <var>b</var>), then <var>f</var>′(<var>c</var>) = 0.</em> <span class="cite">— Abbott §5.2, Theorem 5.2.6, p. 135</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example — the proof of the Interior Extremum Theorem (faded).</strong> <span class="cite">— Abbott §5.2, p. 135</span></p>
+<p>Because <var>c</var> lies in the <em>open</em> interval, there is room on both sides: choose sequences (<var>x<sub>n</sub></var>) → <var>c</var> and (<var>y<sub>n</sub></var>) → <var>c</var> with <var>x<sub>n</sub></var> &lt; <var>c</var> &lt; <var>y<sub>n</sub></var> for every <var>n</var>.</p>
+<p>Suppose <var>f</var>(<var>c</var>) is a maximum. Then <var>f</var>(<var>y<sub>n</sub></var>) − <var>f</var>(<var>c</var>) ≤ 0 while <var>y<sub>n</sub></var> − <var>c</var> &gt; 0, so each quotient is ≤ 0 and <span class="gap">⟨your step: which theorem passes that to the limit?⟩</span> gives <var>f</var>′(<var>c</var>) ≤ 0.</p>
+<p>On the other side <var>f</var>(<var>x<sub>n</sub></var>) − <var>f</var>(<var>c</var>) ≤ 0 and <var>x<sub>n</sub></var> − <var>c</var> &lt; 0, so each quotient is ≥ 0 and the same theorem gives <var>f</var>′(<var>c</var>) ≥ 0. Both hold, so <var>f</var>′(<var>c</var>) = 0. ∎</p>
+<p class="cite">Gap solution: an-03's Order Limit Theorem, Theorem 2.3.4. Note where "open interval" was spent: at an endpoint only one of the two sequences exists, and the conclusion genuinely fails — <var>f</var>(<var>x</var>) = <var>x</var> on [0, 1] has a maximum at 1 with <var>f</var>′(1) = 1.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 5.2.7 (Darboux's Theorem).</strong> <em>If <var>f</var> is differentiable on [<var>a</var>, <var>b</var>] and α satisfies <var>f</var>′(<var>a</var>) &lt; α &lt; <var>f</var>′(<var>b</var>), then there exists <var>c</var> ∈ (<var>a</var>, <var>b</var>) with <var>f</var>′(<var>c</var>) = α.</em> <span class="cite">— Abbott §5.2, Theorem 5.2.7, p. 136</span></p>
+</div>
+
+<p>Abbott's reduction is the elegant part: set <var>g</var>(<var>x</var>) = <var>f</var>(<var>x</var>) − α<var>x</var>, so that <var>g</var>′ = <var>f</var>′ − α and the hypothesis becomes <var>g</var>′(<var>a</var>) &lt; 0 &lt; <var>g</var>′(<var>b</var>). Now a minimum of <var>g</var> on [<var>a</var>, <var>b</var>] exists by an-11's Extreme Value Theorem, and the sign conditions place it in the interior rather than at an endpoint, so Theorem 5.2.6 finishes. This answers the gate: every derivative has an-11's intermediate value property, whether or not it is continuous. <span class="cite">— Abbott §4.5, Definition 4.5.3, p. 124</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Definition 5.2.1 insist the domain be an interval?</p>
+<button onclick="check(this,false)">Because limits only exist on intervals</button>
+<button onclick="check(this,true)" data-ok>Because a rate of change needs the variable to approach <var>c</var> from within the domain, and an interval guarantees every point is a limit point of it</button>
+<button onclick="check(this,false)">Because derivatives are always continuous on intervals</button>
+<div class="explain">an-10's Definition 4.2.1 requires <var>c</var> to be a limit point of the domain, and on a set with isolated points there is nothing to take a limit along. On an interval every point is a limit point of the interval, so the difference quotient always has something to converge through. Abbott's phrasing — a connected domain — is an-09's word for the same requirement.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> <var>f</var> is continuous on [0, 1] and attains its maximum at <var>c</var> = 1. Does the Interior Extremum Theorem give <var>f</var>′(1) = 0?</p>
+<button onclick="check(this,false)">Yes — a maximum forces a zero derivative</button>
+<button onclick="check(this,true)" data-ok>No — the theorem needs the extremum to be at an interior point, and 1 is an endpoint</button>
+<button onclick="check(this,false)">Yes, provided <var>f</var> is differentiable at 1</button>
+<div class="explain"><var>f</var>(<var>x</var>) = <var>x</var> is differentiable on [0, 1] with maximum at 1 and <var>f</var>′(1) = 1. At an endpoint only one of the two approach directions is available, so only one of the two inequalities in the proof survives. This is why Rolle's Theorem asks for differentiability on the <em>open</em> interval and continuity on the closed one.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The Mean Value Theorem, and what it is for</h2>
+
+<div class="theorem">
+<p><strong>Theorem 5.3.1 (Rolle's Theorem).</strong> <em>Let <var>f</var> be continuous on [<var>a</var>, <var>b</var>] and differentiable on (<var>a</var>, <var>b</var>). If <var>f</var>(<var>a</var>) = <var>f</var>(<var>b</var>), then there exists <var>c</var> ∈ (<var>a</var>, <var>b</var>) with <var>f</var>′(<var>c</var>) = 0.</em> <span class="cite">— Abbott §5.3, Theorem 5.3.1, p. 138</span></p>
+</div>
+
+<p>Two earlier theorems and nothing else. an-11's Extreme Value Theorem gives a maximum and a minimum on the compact [<var>a</var>, <var>b</var>]; if both are attained at endpoints then <var>f</var>(<var>a</var>) = <var>f</var>(<var>b</var>) forces <var>f</var> to be constant and any interior point serves; otherwise an extremum is interior and Theorem 5.2.6 applies. The two hypotheses split cleanly — continuity on the closed interval is what Extreme Value needs, differentiability on the open one is what Interior Extremum needs. <span class="cite">— Abbott §4.4, Theorem 4.4.3, p. 115</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 5.3.2 (Mean Value Theorem).</strong> <em>If <var>f</var> is continuous on [<var>a</var>, <var>b</var>] and differentiable on (<var>a</var>, <var>b</var>), then there exists <var>c</var> ∈ (<var>a</var>, <var>b</var>) with <var>f</var>′(<var>c</var>) = (<var>f</var>(<var>b</var>) − <var>f</var>(<var>a</var>))/(<var>b</var> − <var>a</var>).</em> <span class="cite">— Abbott §5.3, Theorem 5.3.2, p. 138</span></p>
+</div>
+
+<p>Rolle's Theorem is the case <var>f</var>(<var>a</var>) = <var>f</var>(<var>b</var>), and the general case reduces to it by subtracting the chord: apply Rolle to <var>d</var>(<var>x</var>) = <var>f</var>(<var>x</var>) − <var>L</var>(<var>x</var>), where <var>L</var> is the line through the two endpoints. Tilting the picture until the chord is horizontal is the whole proof, and the same trick appeared in Darboux's Theorem as subtracting α<var>x</var>.</p>
+
+<h3>Interactive visual: the chord and the tangent</h3>
+<p>The blue curve is a function on [0, 1]; the grey line is the chord from (0, <var>f</var>(0)) to (1, <var>f</var>(1)). The green line is the tangent at the point <var>c</var> the Mean Value Theorem promises — found here by scanning for equal slopes. As the right endpoint moves, the chord tilts and <var>c</var> moves with it; the two lines stay parallel throughout, because that is what the theorem says.</p>
+<canvas id="mvtCanvas" width="640" height="300" role="img" aria-label="A curve with its chord and a parallel tangent line at the point promised by the Mean Value Theorem"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('mvtCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height,L=44,R=W-24,T=22,B=H-58;
+function f(x){return 0.42+0.30*Math.sin(3.1*x)+0.34*x;}
+function df(x){return 0.30*3.1*Math.cos(3.1*x)+0.34;}
+function px(x){return L+x*(R-L);}
+function py(y){return B-(y/1.15)*(B-T);}
+let t=0;
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const b=0.55+0.42*(1+Math.sin(t*0.012))/2;
+  const a=0.05;
+  const slope=(f(b)-f(a))/(b-a);
+  // find c with df(c) = slope
+  let c=null,best=1e9;
+  for(let k=1;k<400;k++){
+    const x=a+(b-a)*k/400;
+    const err=Math.abs(df(x)-slope);
+    if(err<best){best=err;c=x;}
+  }
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,B);ctx.lineTo(R,B);ctx.stroke();
+  ctx.strokeStyle='#8ab4f8';ctx.lineWidth=2;ctx.beginPath();
+  for(let k=0;k<=300;k++){const x=k/300;const X=px(x),Y=py(f(x));if(k===0)ctx.moveTo(X,Y);else ctx.lineTo(X,Y);}
+  ctx.stroke();
+  ctx.strokeStyle='#9aa5b1';ctx.lineWidth=1.6;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(px(a),py(f(a)));ctx.lineTo(px(b),py(f(b)));ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle='#4caf82';ctx.lineWidth=2;
+  const half=0.22;
+  ctx.beginPath();
+  ctx.moveTo(px(c-half),py(f(c)-half*slope));
+  ctx.lineTo(px(c+half),py(f(c)+half*slope));
+  ctx.stroke();
+  ctx.fillStyle='#e06c75';
+  [[a,f(a)],[b,f(b)]].forEach(function(p){ctx.beginPath();ctx.arc(px(p[0]),py(p[1]),3.5,0,2*Math.PI);ctx.fill();});
+  ctx.fillStyle='#4caf82';
+  ctx.beginPath();ctx.arc(px(c),py(f(c)),4.5,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillText('chord slope = '+slope.toFixed(4)+'     f′(c) = '+df(c).toFixed(4)+'     c = '+c.toFixed(3),L,H-34);
+  ctx.fillText('grey: the chord over [a,b].  green: the tangent at c, parallel to it.',L,H-14);
+  t++;requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<p>Now the payoff. The Mean Value Theorem is almost never used for its own statement; it is used to convert a fact about <var>f</var>′ into a fact about <var>f</var>, which no other tool in the course can do.</p>
+
+<div class="theorem">
+<p><strong>Corollary 5.3.3.</strong> <em>If <var>g</var> is differentiable on an interval <var>A</var> with <var>g</var>′(<var>x</var>) = 0 for all <var>x</var> ∈ <var>A</var>, then <var>g</var> is constant on <var>A</var>.</em> <span class="cite">— Abbott §5.3, Corollary 5.3.3, p. 140</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 5.3.4.</strong> <em>If <var>f</var>′ = <var>g</var>′ on an interval <var>A</var>, then <var>f</var> = <var>g</var> + <var>k</var> for some constant <var>k</var>.</em> <span class="cite">— Abbott §5.3, Corollary 5.3.4, p. 140</span></p>
+</div>
+
+<p>The first is three lines: for <var>x</var> &lt; <var>y</var> in <var>A</var>, the Mean Value Theorem on [<var>x</var>, <var>y</var>] gives <var>g</var>(<var>y</var>) − <var>g</var>(<var>x</var>) = <var>g</var>′(<var>c</var>)(<var>y</var> − <var>x</var>) = 0. The second follows by applying the first to <var>f</var> − <var>g</var>. Every "+ <var>C</var>" ever written in an integration problem is Corollary 5.3.4, and the reason it needs <var>A</var> to be an interval is that on a disconnected domain the constants may differ on different pieces.</p>
+
+<div class="theorem">
+<p><strong>Theorem 5.3.5 (Generalised Mean Value Theorem).</strong> <em>If <var>f</var> and <var>g</var> are continuous on [<var>a</var>, <var>b</var>] and differentiable on (<var>a</var>, <var>b</var>), then there exists <var>c</var> ∈ (<var>a</var>, <var>b</var>) with [<var>f</var>(<var>b</var>) − <var>f</var>(<var>a</var>)]<var>g</var>′(<var>c</var>) = [<var>g</var>(<var>b</var>) − <var>g</var>(<var>a</var>)]<var>f</var>′(<var>c</var>).</em> <span class="cite">— Abbott §5.3, Theorem 5.3.5, p. 140</span></p>
+</div>
+
+<p>Taking <var>g</var>(<var>x</var>) = <var>x</var> recovers Theorem 5.3.2, and the general form is what L'Hospital's rule actually needs. Abbott states the 0/0 case as Theorem 5.3.6 and the ∞/∞ case as Theorem 5.3.8, and both are consequences rather than separate ideas. <span class="cite">— Abbott §5.3, Theorem 5.3.6, p. 141</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> <var>g</var>′(<var>x</var>) = 0 for every <var>x</var> in the domain <var>A</var> = (0, 1) ∪ (2, 3). Must <var>g</var> be constant on <var>A</var>?</p>
+<button onclick="check(this,false)">Yes — a zero derivative always means constant</button>
+<button onclick="check(this,true)" data-ok>No — it is constant on each piece, but the two constants may differ</button>
+<button onclick="check(this,false)">No — the derivative cannot be zero on a disconnected set</button>
+<div class="explain">Corollary 5.3.3 asks for an interval. Take <var>g</var> = 0 on (0, 1) and <var>g</var> = 1 on (2, 3): differentiable with zero derivative throughout, and not constant. The Mean Value Theorem needs the two points joined by an interval inside the domain, and on a disconnected set there is no such interval to apply it to.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> A function is differentiable on ℝ. Is its derivative necessarily Riemann integrable, or at least continuous?</p>
+<button onclick="check(this,false)">Continuous, since it is a limit</button>
+<button onclick="check(this,true)" data-ok>Neither is guaranteed — derivatives can be discontinuous, though by Darboux's Theorem they cannot have jump discontinuities</button>
+<button onclick="check(this,false)">Continuous, by Theorem 5.2.3</button>
+<div class="explain">Theorem 5.2.3 says a differentiable function is continuous, not that its derivative is. The gate's example <var>x</var>² sin(1/<var>x</var>) has a derivative that is discontinuous at 0. Darboux's Theorem constrains the damage: a jump discontinuity would skip values, and derivatives cannot skip values.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which hypothesis of the Mean Value Theorem does <var>f</var>(<var>x</var>) = |<var>x</var>| on [−1, 1] violate?</p>
+<button onclick="check(this,false)">Continuity on [−1, 1]</button>
+<button onclick="check(this,true)" data-ok>Differentiability on (−1, 1), which fails at 0</button>
+<button onclick="check(this,false)">Neither — the theorem applies and gives <var>c</var> = 0</button>
+<div class="explain">The chord from (−1, 1) to (1, 1) has slope 0, and <var>f</var>′ is −1 on the left and +1 on the right and undefined at 0, so no <var>c</var> works. The function is continuous everywhere, which is why the failure has to be located precisely: one point of non-differentiability inside the open interval is enough to break the conclusion.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> A function is <em>Lipschitz</em> on <var>A</var> if there is <var>M</var> &gt; 0 with |(<var>f</var>(<var>x</var>) − <var>f</var>(<var>y</var>))/(<var>x</var> − <var>y</var>)| ≤ <var>M</var> for all <var>x</var> ≠ <var>y</var> in <var>A</var>. Show that if <var>f</var> is differentiable on [<var>a</var>, <var>b</var>] and <var>f</var>′ is continuous on [<var>a</var>, <var>b</var>], then <var>f</var> is Lipschitz there. <span class="cite">— Abbott §5.3, Exercise 5.3.1, p. 143</span></p>
+<p><em>Hint:</em> the Mean Value Theorem turns the quotient into a value of <var>f</var>′, and an-11’s Extreme Value Theorem bounds those values because [<var>a</var>, <var>b</var>] is compact. Notice which hypothesis each half of the argument uses.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove the Mean Value Theorem from Rolle's Theorem. <em>Hint:</em> Rolle applies only when the two endpoint values agree. You cannot change <var>f</var>, but you can subtract something from it whose derivative you know exactly and which agrees with <var>f</var> at both endpoints. Write down that something before doing any calculus, then check both hypotheses of Rolle for the difference. <span class="cite">— Abbott §5.3, Theorem 5.3.2, p. 138</span></p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Let <var>L</var> be the line through (<var>a</var>, <var>f</var>(<var>a</var>)) and (<var>b</var>, <var>f</var>(<var>b</var>)):</p>
+<div class="math-block">
+<var>L</var>(<var>x</var>) = <var>f</var>(<var>a</var>) + <span class="frac"><span class="num"><var>f</var>(<var>b</var>) − <var>f</var>(<var>a</var>)</span><span class="den"><var>b</var> − <var>a</var></span></span>(<var>x</var> − <var>a</var>),
+</div>
+<p>and set <var>d</var>(<var>x</var>) = <var>f</var>(<var>x</var>) − <var>L</var>(<var>x</var>). Then <var>d</var> is continuous on [<var>a</var>, <var>b</var>] and differentiable on (<var>a</var>, <var>b</var>), being a difference of two such functions by Theorem 5.2.4; and <var>d</var>(<var>a</var>) = 0 = <var>d</var>(<var>b</var>) by construction.</p>
+<p>Rolle's Theorem therefore supplies <var>c</var> ∈ (<var>a</var>, <var>b</var>) with <var>d</var>′(<var>c</var>) = 0. Since <var>L</var> is linear with slope (<var>f</var>(<var>b</var>) − <var>f</var>(<var>a</var>))/(<var>b</var> − <var>a</var>), we have <var>d</var>′(<var>x</var>) = <var>f</var>′(<var>x</var>) − (<var>f</var>(<var>b</var>) − <var>f</var>(<var>a</var>))/(<var>b</var> − <var>a</var>), and setting this to zero at <var>c</var> gives the statement. ∎</p>
+<p><strong>The move, named.</strong> Subtracting a function whose behaviour is completely known, in order to normalise the hypothesis of a theorem you already have, is the same manoeuvre as Darboux's <var>g</var>(<var>x</var>) = <var>f</var>(<var>x</var>) − α<var>x</var> and as Corollary 5.3.4's <var>h</var> = <var>f</var> − <var>g</var>. Three of this unit's proofs are the same idea, and recognising it is worth more than remembering any of them.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>Definition 5.2.1 as an instance of an-10's functional limit, and why the domain is an interval.</li>
+<li>The Interior Extremum Theorem's two-sided sequence argument, and where "open interval" is spent (Theorem 5.2.6).</li>
+<li>Rolle's Theorem from the Extreme Value Theorem plus the Interior Extremum Theorem, and the Mean Value Theorem from Rolle by subtracting the chord.</li>
+<li>Corollary 5.3.3, and why it needs the domain to be an interval.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) the difference quotient, undefined at <var>c</var>, which is why the limit excludes it; (2) two sequences straddling <var>c</var>, two inequalities, the Order Limit Theorem; (3) extremes exist on a compact set and interior extremes kill the derivative; tilt until the chord is level; (4) two points need an interval between them for the theorem to be applied along — then you have the unit.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §5.2 "Derivatives and the Intermediate Value Property" (Definition 5.2.1, Example 5.2.2, Theorem 5.2.3), p. 132; (Theorem 5.2.4), p. 133; (Theorem 5.2.5), p. 134; (Theorem 5.2.6), p. 135; (Theorem 5.2.7), p. 136. §5.3 "The Mean Value Theorems" (Theorem 5.3.1, Theorem 5.3.2), p. 138; (Corollary 5.3.3, Corollary 5.3.4, Theorem 5.3.5), p. 140; (Theorem 5.3.6), p. 141; (Exercise 5.3.1), p. 143.
+<br>Builds on an-10, whose Definition 4.2.1 is the limit this unit's derivative instantiates, and whose exclusion of the point <var>x</var> = <var>c</var> is what makes the difference quotient statable — Abbott §4.2, p. 104. Its Corollary 4.2.4 evaluates the quotients this unit's problem set computes, and its Corollary 4.3.3 is how a function is shown non-differentiable by first showing it discontinuous — Abbott §4.2, p. 106, and §4.3, p. 110.
+<br>Builds on an-11, whose Theorem 4.4.3 supplies the extremes that Rolle's Theorem picks from and whose Definition 4.5.3 is the property Darboux's Theorem shows every derivative has — Abbott §4.4, p. 115, and §4.5, p. 124.
+<br>Builds on an-03, whose Theorem 2.3.4 passes both inequalities to the limit in the Interior Extremum Theorem and whose Theorem 2.3.3 proves that differentiability implies continuity — Abbott §2.3, pp. 45 and 48.
+<br>Builds on an-09, whose connected subsets of ℝ are the intervals that both the definition of the derivative and the constancy corollary insist on — Abbott §3.4, p. 92.
+<br>Deferred to an-13: differentiating a limit of functions term by term, which is where the Mean Value Theorem does its heaviest work (Abbott §6.2 and beyond).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
