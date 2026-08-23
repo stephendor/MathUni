@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-14 — Metric spaces bridge</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Metric spaces bridge <span class="cite">(an-14)</span></h1>
+
+<div class="hook">
+Everything you just proved for ℝ, replayed on any set with a distance.
+<p>Look back at what the last eleven units actually used. Convergence needed |<var>x<sub>n</sub></var> − <var>x</var>| to be small; the Cauchy condition needed |<var>x<sub>n</sub></var> − <var>x<sub>m</sub></var>| to be small; open, closed, compact and continuous were all written in &epsilon;-neighbourhoods. Almost nothing needed <var>x</var> to be a <em>number</em>.</p>
+<p>Replace |<var>x</var> − <var>y</var>| by a function <var>d</var>(<var>x</var>, <var>y</var>) with three properties and every one of those definitions survives verbatim. Most of the theorems survive too — but not all, and the ones that break are the ones that used the order of ℝ or its completeness. Sorting the survivors from the casualties is this unit, and it is also the reason the mission's objects can be studied at all: a point cloud, a space of persistence diagrams, and a space of functions are all metric spaces and none of them is ℝ.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> an-08 proved that a subset of ℝ is compact if and only if it is closed and bounded. In a general metric space (<var>X</var>, <var>d</var>): <strong>(i)</strong> must a compact set be closed and bounded? <strong>(ii)</strong> must a closed bounded set be compact?</p>
+<button onclick="check(this,false)">Yes to both — Heine–Borel is a theorem about metric spaces</button>
+<button onclick="check(this,true)" data-ok>Yes to (i), no to (ii)</button>
+<button onclick="check(this,false)">No to both — compactness is unrelated to these properties outside ℝ</button>
+<div class="explain">The proofs that compact implies closed and bounded used only sequences and distances, so they transfer. The converse used Bolzano–Weierstrass, which used the Axiom of Completeness, which is a statement about the <em>order</em> of ℝ — and a general metric space has no order. The discrete metric gives the counterexample in Segment 2: an infinite set in which every subset is closed and the whole space is bounded, and almost nothing is compact.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Point clouds, diagram space, bottleneck distance: all metric spaces.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Three axioms, and everything written again</h2>
+
+<div class="definition">
+<p><strong>Definition 8.2.1.</strong> Given a set <var>X</var>, a function <var>d</var> : <var>X</var> × <var>X</var> → ℝ is a <em>metric</em> if for all <var>x</var>, <var>y</var>, <var>z</var> ∈ <var>X</var>: (i) <var>d</var>(<var>x</var>, <var>y</var>) ≥ 0, with equality if and only if <var>x</var> = <var>y</var>; (ii) <var>d</var>(<var>x</var>, <var>y</var>) = <var>d</var>(<var>y</var>, <var>x</var>); (iii) <var>d</var>(<var>x</var>, <var>y</var>) ≤ <var>d</var>(<var>x</var>, <var>z</var>) + <var>d</var>(<var>z</var>, <var>y</var>). A <em>metric space</em> is a set together with a metric on it. <span class="cite">— Abbott §8.2, Definition 8.2.1, p. 222</span></p>
+</div>
+
+<p>Lindström states the same three conditions and names them: positivity, symmetry, and the triangle inequality. He also notes that symmetry is a genuine assumption rather than a fact about distance — measure <var>d</var>(<var>x</var>, <var>y</var>) by how long it takes to walk from <var>x</var> to <var>y</var> and the axiom fails. What is being defined is a useful class of distance functions, not distance itself. <span class="cite">— Lindström §3.1, Definition 3.1.1, printed 44</span></p>
+
+<p>Now the translation table. In each case the ℝ definition is recovered by taking <var>d</var>(<var>x</var>, <var>y</var>) = |<var>x</var> − <var>y</var>|, and nothing else about ℝ appears.</p>
+
+<div class="definition">
+<p><strong>Definition 8.2.2.</strong> (<var>x<sub>n</sub></var>) <em>converges</em> to <var>x</var> if for all &epsilon; &gt; 0 there is <var>N</var> ∈ ℕ with <var>d</var>(<var>x<sub>n</sub></var>, <var>x</var>) &lt; &epsilon; whenever <var>n</var> ≥ <var>N</var>. <span class="cite">— Abbott §8.2, Definition 8.2.2, p. 223</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 8.2.3.</strong> (<var>x<sub>n</sub></var>) is a <em>Cauchy sequence</em> if for all &epsilon; &gt; 0 there is <var>N</var> ∈ ℕ with <var>d</var>(<var>x<sub>m</sub></var>, <var>x<sub>n</sub></var>) &lt; &epsilon; whenever <var>m</var>, <var>n</var> ≥ <var>N</var>. <span class="cite">— Abbott §8.2, Definition 8.2.3, p. 223</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 8.2.4.</strong> (<var>X</var>, <var>d</var>) is <em>complete</em> if every Cauchy sequence in <var>X</var> converges to an element of <var>X</var>. <span class="cite">— Abbott §8.2, Definition 8.2.4, p. 223</span></p>
+</div>
+
+<p>That is the pay-off an-05 promised. Of the five equivalent descriptions of completeness in ℝ, four mentioned order or suprema and could not be written here at all; the Cauchy criterion mentioned only distances, so it survives — and it survives by being <em>promoted from a theorem to a definition</em>. In ℝ, "every Cauchy sequence converges" is proved; in a metric space it is the property being named. <span class="cite">— Lindström §3.4, Definition 3.4.1, printed 59</span></p>
+
+<div class="definition">
+<p><strong>Definition 8.2.6.</strong> The &epsilon;-<em>neighbourhood</em> of <var>x</var> is <var>V</var><sub>&epsilon;</sub>(<var>x</var>) = {<var>y</var> ∈ <var>X</var> : <var>d</var>(<var>x</var>, <var>y</var>) &lt; &epsilon;}. <span class="cite">— Abbott §8.2, Definition 8.2.6, p. 224</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 8.2.7.</strong> <var>K</var> ⊆ <var>X</var> is <em>compact</em> if every sequence in <var>K</var> has a subsequence converging to a limit in <var>K</var>. <span class="cite">— Abbott §8.2, Definition 8.2.7, p. 224</span></p>
+</div>
+
+<p>Once the neighbourhood is defined, an-07's Definition 3.2.1 for open sets, Definition 3.2.4 for limit points and Definition 3.2.7 for closed sets can be copied out word for word, and Abbott does exactly that for closure and interior in Definition 8.2.8. Which is the point of the unit: the vocabulary was never about ℝ. <span class="cite">— Abbott §8.2, Definition 8.2.8, p. 225</span></p>
+
+<h3>Interactive visual: the same set, four different distances</h3>
+<p>Each panel shows the unit ball {<var>y</var> : <var>d</var>(0, <var>y</var>) &lt; 1} for a different metric on ℝ². The Euclidean, taxicab and maximum metrics give different shapes but the same open sets, so they define the same convergence and the same continuous functions. The discrete metric — distance 1 between any two distinct points — is a genuine metric whose unit ball is a single point, and it breaks Heine–Borel.</p>
+<canvas id="metricCanvas" width="640" height="220" role="img" aria-label="Unit balls of the Euclidean, taxicab, maximum and discrete metrics on the plane"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('metricCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height;
+const panels=[
+  {name:'Euclidean  d2', f:function(x,y){return Math.sqrt(x*x+y*y);}},
+  {name:'taxicab  d1',   f:function(x,y){return Math.abs(x)+Math.abs(y);}},
+  {name:'maximum  d-inf',f:function(x,y){return Math.max(Math.abs(x),Math.abs(y));}},
+  {name:'discrete',      f:function(x,y){return (x===0&&y===0)?0:1;}}
+];
+const pw=W/4, cyy=96, s=34;
+ctx.clearRect(0,0,W,H);
+panels.forEach(function(p,i){
+  const cxx=pw*i+pw/2;
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cxx-s*1.5,cyy);ctx.lineTo(cxx+s*1.5,cyy);
+  ctx.moveTo(cxx,cyy-s*1.5);ctx.lineTo(cxx,cyy+s*1.5);ctx.stroke();
+  if(i===3){
+    ctx.fillStyle='#8ab4f8';
+    ctx.beginPath();ctx.arc(cxx,cyy,4,0,2*Math.PI);ctx.fill();
+  }else{
+    ctx.fillStyle='rgba(138,180,248,0.28)';
+    ctx.strokeStyle='#8ab4f8';ctx.lineWidth=2;
+    ctx.beginPath();
+    let started=false;
+    for(let k=0;k<=360;k++){
+      const th=k*Math.PI/180;
+      // walk outward until the metric reaches 1
+      let r=0.02;
+      while(p.f(r*Math.cos(th),r*Math.sin(th))<1 && r<3) r+=0.005;
+      const X=cxx+r*Math.cos(th)*s, Y=cyy-r*Math.sin(th)*s;
+      if(!started){ctx.moveTo(X,Y);started=true;}else ctx.lineTo(X,Y);
+    }
+    ctx.closePath();ctx.fill();ctx.stroke();
+  }
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText(p.name,cxx,H-58);
+});
+ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+ctx.fillText('the unit ball {y : d(0,y) < 1} under four metrics on the plane',W/2,24);
+ctx.fillText('the first three give different balls and the same open sets; the fourth gives a ball with one point in it',W/2,H-32);
+ctx.fillText('so "the open sets" is a coarser piece of data than "the metric" — which is what topology keeps',W/2,H-12);
+})();
+</script>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Is <var>d</var>(<var>x</var>, <var>y</var>) = (<var>x</var> − <var>y</var>)² a metric on ℝ?</p>
+<button onclick="check(this,false)">Yes — it is non-negative and symmetric, and zero only when <var>x</var> = <var>y</var></button>
+<button onclick="check(this,true)" data-ok>No — the triangle inequality fails, for example with <var>x</var> = 0, <var>z</var> = 1, <var>y</var> = 2</button>
+<button onclick="check(this,false)">No — a metric must be a linear function of <var>x</var> − <var>y</var></button>
+<div class="explain">Two axioms hold and the third does not: <var>d</var>(0, 2) = 4 while <var>d</var>(0, 1) + <var>d</var>(1, 2) = 1 + 1 = 2. Checking all three axioms rather than the two easy ones is the routine discipline here, and the triangle inequality is nearly always the one that fails.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In an-13, uniform convergence of <var>f<sub>n</sub></var> to <var>f</var> meant sup|<var>f<sub>n</sub></var> − <var>f</var>| → 0. What is that, in this unit's language?</p>
+<button onclick="check(this,true)" data-ok>Ordinary convergence of the sequence (<var>f<sub>n</sub></var>) in the metric space of bounded functions with <var>d</var>(<var>f</var>, <var>g</var>) = sup|<var>f</var> − <var>g</var>|</button>
+<button onclick="check(this,false)">A different notion entirely, since functions are not points</button>
+<button onclick="check(this,false)">Pointwise convergence, restated</button>
+<div class="explain">Functions become points of a space and the sup-norm becomes the distance between them, at which point Definition 8.2.2 is exactly Definition 6.2.3. This is not a re-labelling exercise: once uniform convergence is convergence in a metric space, an-13's Cauchy criterion for uniform convergence becomes the statement that this space is complete, and that is the theorem the mission's stability results are built on.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>What survives, and what does not</h2>
+
+<p>Every proof in an-03 through an-13 that used only distances transfers unchanged. Limits are unique; convergent sequences are Cauchy; a convergent sequence is bounded; compact sets are closed and bounded; continuous images of compact sets are compact; a continuous function on a compact set is uniformly continuous. Lindström proves these in the general setting and the arguments are the ones you have already read. <span class="cite">— Lindström §3.4, Proposition 3.4.2, printed 59</span></p>
+
+<p>Three things do not transfer, and they are exactly the three that used the order of ℝ.</p>
+
+<p><strong>The Axiom of Completeness has no statement.</strong> "Bounded above" needs an order, and a metric space has none. So the Monotone Convergence Theorem, the Nested Interval Property, and Bolzano–Weierstrass cannot even be written down, let alone proved. Only the Cauchy criterion survives, and — as Segment 1 said — it survives as a definition rather than a theorem.</p>
+
+<p><strong>Heine–Borel fails.</strong> Take any infinite set <var>X</var> with the discrete metric: <var>d</var>(<var>x</var>, <var>y</var>) = 1 for <var>x</var> ≠ <var>y</var>. Every subset is both open and closed, since <var>V</var><sub>1/2</sub>(<var>x</var>) = {<var>x</var>}; the whole space is bounded, since all distances are at most 1; and <var>X</var> is <em>not</em> compact, because a sequence of distinct points has no convergent subsequence — no two of its terms are ever within 1/2 of each other. Closed and bounded, and not compact. <span class="cite">— Abbott §8.2, p. 224</span></p>
+
+<p><strong>Completeness is a property of the metric, not of the set.</strong> Lindström makes the point with the space of continuous functions on [<var>a</var>, <var>b</var>] under three different metrics, of which some are complete and some are not, on the same underlying set. In ℝ we could speak of "the" completeness of the reals because there was one distance in play; here the distance is part of the data. <span class="cite">— Lindström §3.4, Definition 3.4.3, printed 60</span></p>
+
+<div class="worked fade">
+<p><strong>Worked example — the discrete metric, in full (faded).</strong> Let <var>X</var> be any infinite set and <var>d</var>(<var>x</var>, <var>y</var>) = 0 if <var>x</var> = <var>y</var> and 1 otherwise. <span class="cite">— Abbott §8.2, Exercise 8.2.1, p. 222</span></p>
+<p>The three axioms hold: positivity and symmetry by inspection, and the triangle inequality because the right-hand side <var>d</var>(<var>x</var>, <var>z</var>) + <var>d</var>(<var>z</var>, <var>y</var>) is 0 only when <var>z</var> equals both <var>x</var> and <var>y</var>, in which case the left-hand side is 0 too.</p>
+<p>Which sequences converge? If <var>x<sub>n</sub></var> → <var>x</var>, then taking &epsilon; = 1/2 gives <var>N</var> with <var>d</var>(<var>x<sub>n</sub></var>, <var>x</var>) &lt; 1/2 for <var>n</var> ≥ <var>N</var>, and the only distance below 1/2 is 0. So <span class="gap">⟨your step: what must the sequence do?⟩</span>. The same computation shows the Cauchy sequences are the same sequences, so (<var>X</var>, <var>d</var>) is complete.</p>
+<p>And <var>X</var> is closed in itself and bounded by 1, while a sequence of distinct points has no convergent subsequence — every subsequence still consists of distinct points. So <var>X</var> is a complete, closed, bounded, non-compact space. ∎</p>
+<p class="cite">Gap solution: the sequence must be eventually constant, equal to <var>x</var> from index <var>N</var> onwards. Note what this example separates: complete and bounded do not give compact, though in ℝ closed and bounded did.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 3.6.4 (Lindström).</strong> <em>A subset <var>K</var> of a metric space is compact if and only if it has the open covering property: every open covering of <var>K</var> has a finite subcovering.</em> <span class="cite">— Lindström §3.6, Theorem 3.6.4, printed 70</span></p>
+</div>
+
+<p>This is the survivor among an-08's three characterisations, and it is worth seeing which one made it. "Closed and bounded" failed. "Every sequence has a convergent subsequence" survives as the definition. And the open-cover property remains equivalent to it — in a metric space, though not in a general topological space, where the two come apart and the cover version is the one kept. an-08 predicted this: the cover formulation was the one that mentioned no distance. <span class="cite">— Lindström §3.6, Definition 3.6.1, printed 69</span></p>
+
+<h3>Where the mission's objects live</h3>
+
+<p>Three metric spaces carry the whole of topological data analysis, and none of them is ℝ.</p>
+
+<p>A <em>point cloud</em> is a finite subset of ℝ<sup><var>n</var></sup> with the Euclidean metric — or, increasingly often, a finite set with an abstract distance matrix and no ambient space at all. Finite metric spaces are automatically compact and complete, which is why the algorithms terminate.</p>
+
+<p>The space of <em>continuous functions</em> on a compact set, with <var>d</var>(<var>f</var>, <var>g</var>) = sup|<var>f</var> − <var>g</var>|, is where an-13 was really working. Filtration functions live here, and this space is complete — which is Abbott's setting for the Baire Category Theorem and, in a different direction, the reason limits of filtrations behave. <span class="cite">— Abbott §8.2, Theorem 8.2.10, p. 226</span></p>
+
+<p>The space of <em>persistence diagrams</em> with the bottleneck distance is a metric space in exactly the sense of Definition 8.2.1, and the stability theorem is the statement that the map from filtration functions to diagrams is continuous in the sense of Definition 8.2.5 — indeed 1-Lipschitz. Both sides of that statement are metric spaces built in this unit's language, and neither is a subset of the real line. That is the whole reason Semester 1 ends here.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In a metric space, is every compact set closed?</p>
+<button onclick="check(this,true)" data-ok>Yes — the proof from an-08 used only sequences and distances</button>
+<button onclick="check(this,false)">No — that needed Heine–Borel, which fails here</button>
+<button onclick="check(this,false)">Only in complete spaces</button>
+<div class="explain">Take a sequence in <var>K</var> converging to some <var>x</var> ∈ <var>X</var>. Compactness gives a subsequence converging to a point of <var>K</var>; the subsequence also converges to <var>x</var>; limits are unique; so <var>x</var> ∈ <var>K</var>. Every step is a distance argument. The direction that fails is the converse, which is why the gate had two halves.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> ℚ with <var>d</var>(<var>x</var>, <var>y</var>) = |<var>x</var> − <var>y</var>| is a metric space. Is it complete?</p>
+<button onclick="check(this,false)">Yes — the metric is inherited from ℝ, which is complete</button>
+<button onclick="check(this,true)" data-ok>No — an-05's decimal truncations of √2 are a Cauchy sequence in ℚ with no limit in ℚ</button>
+<button onclick="check(this,false)">Yes — every Cauchy sequence of rationals has a rational limit</button>
+<div class="explain">Completeness is not inherited by subspaces; only <em>closed</em> subspaces of a complete space are complete, which is an-07's Theorem 3.2.8 read in this language. ℚ is not closed in ℝ, and the same example that motivated the Axiom of Completeness in an-01 is the counterexample here.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which of an-08's three characterisations of compactness is the one that generalises furthest?</p>
+<button onclick="check(this,false)">Closed and bounded</button>
+<button onclick="check(this,true)" data-ok>Every open cover has a finite subcover</button>
+<button onclick="check(this,false)">Every sequence has a convergent subsequence</button>
+<div class="explain">Closed and bounded fails already for metric spaces. The sequential form survives here and comes apart from the cover form in general topological spaces, where sequences are too weak a tool. The cover form survives everywhere, because it mentions only open sets — which is what an-08 flagged and an-07 explained.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Verify that <var>d</var>(<var>x</var>, <var>y</var>) = |<var>x</var>₁ − <var>y</var>₁| + |<var>x</var>₂ − <var>y</var>₂| is a metric on ℝ², describe its &epsilon;-neighbourhoods, and decide whether ℝ² is complete under it. <span class="cite">— Abbott §8.2, Exercise 8.2.1, p. 222</span> <span class="cite">— Abbott §8.2, Exercise 8.2.5, p. 223</span></p>
+<p><em>Hint:</em> for the triangle inequality, apply the one-dimensional triangle inequality in each coordinate and add. For completeness, show that a sequence is Cauchy in this metric exactly when both coordinate sequences are Cauchy in ℝ.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove that in any metric space, a compact set is closed and bounded — and then explain precisely where the converse breaks. <em>Hint:</em> for closedness, take a sequence in <var>K</var> converging in <var>X</var> and use compactness on it. For boundedness, argue by contradiction as an-08 did, choosing points at ever greater distance from a fixed point. For the converse, do not look for a repair: name the step of an-08's proof that has no counterpart here. <span class="cite">— Lindström §3.5, Definition 3.5.2, printed 63</span></p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> <em>Closed.</em> Let <var>x</var> ∈ <var>X</var> be the limit of a sequence (<var>x<sub>n</sub></var>) in <var>K</var>. By compactness there is a subsequence converging to some <var>y</var> ∈ <var>K</var>. That subsequence also converges to <var>x</var>, since a subsequence of a convergent sequence has the parent's limit — an-04's Theorem 2.5.2, whose proof used only the index inequality <var>n<sub>k</sub></var> ≥ <var>k</var> and the definition of convergence, both available here. Limits in a metric space are unique, because if <var>x</var> ≠ <var>y</var> then <var>d</var>(<var>x</var>, <var>y</var>) &gt; 0 and no tail can be within <var>d</var>(<var>x</var>, <var>y</var>)/2 of both. Hence <var>x</var> = <var>y</var> ∈ <var>K</var>.</p>
+<p><em>Bounded.</em> Suppose not, and fix any <var>p</var> ∈ <var>X</var>. For each <var>n</var> choose <var>x<sub>n</sub></var> ∈ <var>K</var> with <var>d</var>(<var>p</var>, <var>x<sub>n</sub></var>) &gt; <var>n</var>. Compactness gives a convergent subsequence, and a convergent sequence is bounded — the same &epsilon; = 1 argument as an-03's Theorem 2.3.2, with |·| replaced by <var>d</var>(<var>p</var>, ·) — contradicting <var>d</var>(<var>p</var>, <var>x</var><sub><var>n<sub>k</sub></var></sub>) &gt; <var>n<sub>k</sub></var> ≥ <var>k</var>.</p>
+<p><em>Where the converse dies.</em> an-08 proved closed and bounded implies compact by invoking Bolzano–Weierstrass, and Bolzano–Weierstrass was proved by bisecting an interval — a construction that needs the order of ℝ to say what "half" means, and the Axiom of Completeness to say the nested intervals meet. Neither is available. And the failure is not a gap in the argument but a genuine one: the discrete metric on an infinite set is closed, bounded, complete, and not compact. ∎</p>
+<p><strong>The habit worth keeping.</strong> For each earlier theorem, ask what its proof consumed. If the answer is only distances, it transfers; if it is order or suprema, it does not. That question — not the theorem list — is what this unit is for.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>The three metric axioms, and which of them fails for (<var>x</var> − <var>y</var>)² (Definition 8.2.1).</li>
+<li>The definitions of convergence, Cauchy, complete and compact in a metric space, and how each recovers its ℝ version.</li>
+<li>The discrete metric: which sequences converge, why the space is complete and bounded, and why it is not compact.</li>
+<li>Which of an-08's three characterisations of compactness survives, and the reason it is that one.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) positivity, symmetry, triangle — and the third fails; (2) replace |<var>x</var> − <var>y</var>| by <var>d</var>(<var>x</var>, <var>y</var>) and change nothing else; (3) eventually constant, hence Cauchy sequences converge, and distinct points never get close; (4) the open-cover one, because it mentions no distance — then you have the unit, and Semester 1.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §8.2 "Metric Spaces and the Baire Category Theorem" (Definition 8.2.1, Exercise 8.2.1), p. 222; (Definition 8.2.2, Definition 8.2.3, Definition 8.2.4, Definition 8.2.5, Exercise 8.2.5), p. 223; (Definition 8.2.6, Definition 8.2.7), p. 224; (Definition 8.2.8, Definition 8.2.9), p. 225; (Theorem 8.2.10), p. 226.
+<br>Sources: Lindström, <em>Spaces: An Introduction to Real Analysis</em> — §3.1 (Definition 3.1.1), printed 44; §3.2 (Definition 3.2.1), printed 48; (Definition 3.2.4), printed 49; §3.3 (Definition 3.3.2), printed 53; §3.4 (Definition 3.4.1, Proposition 3.4.2), printed 59; (Definition 3.4.3), printed 60; §3.5 (Definition 3.5.2, Definition 3.5.3), printed 63; §3.6 (Definition 3.6.1), printed 69; (Theorem 3.6.4), printed 70.
+<br>Builds on an-05, whose Cauchy criterion is the only one of the five completeness statements that can be written here, and which becomes a definition rather than a theorem — Abbott §2.6, p. 59.
+<br>Builds on an-07 and an-08, whose definitions of open, closed and compact are copied out verbatim above, and whose open-cover characterisation is the one that survives — Abbott §3.2, p. 78, and §3.3, p. 87.
+<br>Builds on an-13, whose uniform convergence is convergence in the metric <var>d</var>(<var>f</var>, <var>g</var>) = sup|<var>f</var> − <var>g</var>| — Abbott §6.2, p. 157. Its Theorem 6.2.5 becomes the statement that this space of functions is complete. — Abbott §6.2, p. 160.
+<br>Builds on an-07 again in this unit's problem set: Theorem 3.2.13 exchanged open and closed under complementation in ℝ, and the same proof, with <var>d</var>(<var>x</var>, <var>y</var>) in place of |<var>x</var> − <var>y</var>|, exchanges closure and interior here. — Abbott §3.2, p. 82.
+<br>Deferred to Semester 2: dropping the metric entirely and keeping only the open sets. That this can be done at all is an-07's Theorem 3.2.3. — Abbott §3.2, p. 79. It is also the reason the cover formulation of compactness is the one that generalises, which is this unit's last self-check.
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
