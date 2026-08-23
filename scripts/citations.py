@@ -550,14 +550,24 @@ def book_label_for(num, raw):
     # list and emits its own marker in front of the book's number, so Axler's
     # exercise 1 on printed 88 arrives as "1. 1 Suppose T in L(U, V)". The
     # number then sits where the guard demanded a word, the exercise had no
-    # label, and a citation naming its correct page was reported wrong. A
-    # leading marker is admitted only when it REPEATS the number being looked
-    # for: accepting any marker would let "3. 1 Suppose ..." answer to a
-    # citation of exercise 3, which is a different exercise on the same page.
+    # label, and a citation naming its correct page was reported wrong.
+    #
+    # The marker need not agree with the book's number. On printed 189 the
+    # converter counted part (b) of exercise 1 as an item of its own, so every
+    # later marker is one ahead: exercise 3 arrives as "4. 3 Suppose T in
+    # L(R^3)". Requiring the marker to repeat the number therefore still
+    # reported a correct citation as wrong.
+    #
+    # Any leading integer marker is admitted, because the number being looked
+    # for is anchored AFTER it and so can never be confused with it. That is
+    # what keeps the relaxation safe: on the same page, "3. 2 Suppose e_1" is
+    # exercise 2, and a citation of exercise 3 matches neither branch — not
+    # the marker branch, where the number after the marker is 2, nor the
+    # bare branch, where a digit sits where prose is required.
     m = re.search(
-        r"^\s*(?:%s[.)]\s+)?%s[.)]?\s+"
+        r"^\s*(?:\d{1,3}[.)]\s+)?%s[.)]?\s+"
         r"(?:\((?:[a-z]|[ivx]{1,4}|\d{1,2})\)\s*)?"
-        r"([A-Za-z$\\][^\n]*)$" % (re.escape(num), re.escape(num)), raw, re.M)
+        r"([A-Za-z$\\][^\n]*)$" % re.escape(num), raw, re.M)
     return re.sub(r"[*#$]", "", m.group(1)).strip()[:60] if m else None
 
 
@@ -936,13 +946,19 @@ def selftest():
     # Axler prints a lettered exercise as "5 (a) Show that ...". The item
     # marker sits where the guard demanded a word, so the exercise had no
     # label and a correct citation to it was reported as a wrong page.
-    # A markdown ordered-list marker duplicating the book's own number.
+    # A markdown ordered-list marker in front of the book's own number.
     check_one("a doubled list marker does not hide the exercise",
               book_label_for("1", "1. 1 Suppose T in L(U, V) and S in L(V, W)")
               == "Suppose T in L(U, V) and S in L(V, W)")
-    check_one("...and a marker that does NOT repeat the number is refused",
-              book_label_for("1", "3. 1 Suppose T in L(U, V)") is None)
-    check_one("...and the doubled marker is still required to precede prose",
+    # On printed 189 the converter counted a part (b) as its own item, so
+    # every later marker runs one ahead of the book's number.
+    check_one("...and a marker one ahead of the number still finds it",
+              book_label_for("3", "4. 3 Suppose T in L(R^3) has an upper")
+              == "Suppose T in L(R^3) has an upper")
+    check_one("...while the MARKER is never mistaken for the number",
+              book_label_for("3", "3. 2 Suppose e_1 is an orthonormal list")
+              is None)
+    check_one("...and the marker is still required to precede prose",
               book_label_for("1", "1. 1 2 3 4") is None)
 
     check_one("a lettered exercise item is a header despite the (a) marker",
