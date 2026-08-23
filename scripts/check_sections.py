@@ -36,7 +36,16 @@ INDEX = os.path.join(REPO, "resources", "sections.json")
 # tag, or the end of the sentence. Stopping at the sentence boundary matters:
 # pages named in a FOLLOWING sentence belong to whatever that sentence cites,
 # and letting the tail run on reports them against this label.
-CITE = re.compile(r"§(\d+(?:\.[A-Z])?)((?:(?!\.\s+[A-Z])[^§<]){0,220})")
+#
+# The length cap is a safety net, not the primary stop, and it must never cut
+# inside a number. A Sources line reading "§3.F (Definitions ...), pp. 101-114"
+# is one long sentence: the cap landed in the middle of "101", the tail ended
+# "pp. 1", and a correct citation was reported as naming printed page 1. A cap
+# that silently shortens a page number is worse than no cap at all, because it
+# can turn a wrong page into a plausible one just as easily as it turned a
+# right one into an absurd one. The trailing \d* runs the tail on to the end of
+# whatever digit run it stopped in.
+CITE = re.compile(r"§(\d+(?:\.[A-Z])?)((?:(?!\.\s+[A-Z])[^§<]){0,400}\d*)")
 # "pp. 28-38" names two pages, not one. Matching only the first let a range
 # whose FAR end lands in the next section pass unexamined, which is the
 # likeliest place for a footer's label to be wrong. Only the numbers actually
@@ -192,6 +201,14 @@ def selftest():
     # A bare chapter number is not a section claim and must not be judged.
     one("a bare chapter label is skipped, not guessed at",
         check_text("Axler §4, p. 30", rows) == [])
+
+    # The length cap must not cut a page number in half.
+    long_tail = ("Axler §2.A (" + "Theorem 2.7, " * 40 + "), pp. 28-38.")
+    one("a page number straddling the length cap is read whole",
+        check_text(long_tail, rows) == [])
+    one("...and the number it would have been cut to is not reported",
+        all(page not in (2, 3) for _lab, page, _act
+            in check_text("Axler §9.9 (" + "x" * 398 + "), pp. 28-38.", rows)))
 
     # Absence must never look like cleanliness.
     try:

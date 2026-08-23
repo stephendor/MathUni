@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-10 — Duality</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Duality <span class="cite">(la-10)</span></h1>
+
+<div class="hook">
+Every space has a mirror world of measurements.
+<p>So far a vector space has been a place where vectors live. Duality shifts attention to the <em>measurements</em> you can make on it — the linear maps from <var>V</var> into the scalars — and observes that those measurements themselves form a vector space, the <strong>dual space</strong> <var>V</var>′. When <var>V</var> is finite-dimensional the two have the same dimension, so nothing is gained or lost in size; what is gained is that every map <var>T</var> : <var>V</var> → <var>W</var> induces one in the <em>opposite</em> direction, <var>T</var>′ : <var>W</var>′ → <var>V</var>′.</p>
+<p>That reversal is the whole subject. It converts injectivity into surjectivity and back, it turns "the matrix of <var>T</var>" into "the transpose", and it produces a theorem that has no business being true: the dimension of the span of a matrix's <em>rows</em> equals the dimension of the span of its <em>columns</em>, even though those two spans live in different spaces of wildly different sizes. In the mission's setting the same reversal turns homology into cohomology — and since the reversed computation is often the cheaper one, persistent cohomology is what fast software actually runs.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Take a 2-by-1000 matrix <var>A</var>. Its two rows are vectors in a 1000-dimensional space; its thousand columns are vectors in a 2-dimensional space. Let <var>r</var> be the dimension of the span of the rows and <var>c</var> the dimension of the span of the columns. Do you predict <var>r</var> = <var>c</var> always, for every matrix of every shape? Or do you predict they can differ? Commit before Segment 3 — and if you predict they are equal, try to say what could possibly force it.
+</div>
+
+<p class="mission">Why this matters for the mission: Cohomology is homology's dual; persistent cohomology runs faster.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>Functionals, the dual space, and the dual basis</h2>
+
+<div class="definition">
+<strong>Definition 3.92 and Definition 3.94 (linear functional, dual space).</strong> A <em>linear functional</em> on <var>V</var> is a linear map from <var>V</var> to <strong>F</strong> — an element of ℒ(<var>V</var>, <strong>F</strong>). The <em>dual space</em> <var>V</var>′ is the vector space of all of them: <var>V</var>′ = ℒ(<var>V</var>, <strong>F</strong>). <span class="cite">— Axler §3.F, Definition 3.92 and Definition 3.94, p. 101</span>
+</div>
+
+<p>You have been meeting functionals for five units without the name. φ(<var>x</var>, <var>y</var>, <var>z</var>) = 4<var>x</var> − 5<var>y</var> + 2<var>z</var> on <strong>R</strong>³; φ(<var>p</var>) = 3<var>p</var>″(5) + 7<var>p</var>(4) on 𝒫(<strong>R</strong>); φ(<var>p</var>) = ∫₀¹ <var>p</var> — evaluation, differentiation-then-evaluation, and integration are all linear functionals. Anything that turns a vector into a single number linearly qualifies. <span class="cite">— Axler §3.F, Example 3.93, p. 101</span></p>
+
+<div class="heuristic">
+<strong>A functional cannot do much.</strong> The range of a linear map is a subspace of its codomain. <span class="cite">— Axler §3.B, Theorem 3.19, p. 62</span> For a functional the codomain is <strong>F</strong>, which has dimension 1, and a subspace has dimension at most that of the space containing it. <span class="cite">— Axler §2.C, Theorem 2.38, p. 45</span> So range φ has dimension 0 or 1 and there are only two possibilities: φ is the zero map, or φ is surjective. Nothing in between can happen, and the problem set asks you to write that argument out.
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.95 (the dual has the same dimension).</strong> If <var>V</var> is finite-dimensional then so is <var>V</var>′, and dim <var>V</var>′ = dim <var>V</var>. <span class="cite">— Axler §3.F, Theorem 3.95, p. 101</span>
+</div>
+
+<p>No work is needed: la-08's Theorem 3.61 says dim ℒ(<var>V</var>, <var>W</var>) = (dim <var>V</var>)(dim <var>W</var>), and here <var>W</var> = <strong>F</strong> has dimension 1. The interest is in what the equality does <em>not</em> say — there is no natural isomorphism <var>V</var> → <var>V</var>′ available, only one for each choice of basis, and that distinction is the reason duality is a subject rather than a triviality. <span class="cite">— Axler §3.F, p. 101</span></p>
+
+<div class="definition">
+<strong>Definition 3.96 and Theorem 3.98 (dual basis).</strong> If <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> is a basis of <var>V</var>, its <em>dual basis</em> is the list φ₁, …, φ<sub><var>n</var></sub> in <var>V</var>′ with φ<sub><var>j</var></sub>(<var>v</var><sub><var>k</var></sub>) = 1 when <var>k</var> = <var>j</var> and 0 otherwise. It is a basis of <var>V</var>′. <span class="cite">— Axler §3.F, Definition 3.96, p. 102, and Theorem 3.98, p. 102</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — the dual basis is the coordinate functions (fully worked).</strong> What is the dual basis of the standard basis <var>e</var>₁, …, <var>e</var><sub><var>n</var></sub> of <strong>F</strong><var>ⁿ</var>?
+<p>Let φ<sub><var>j</var></sub>(<var>x</var>₁, …, <var>x</var><sub><var>n</var></sub>) = <var>x</var><sub><var>j</var></sub>, the map that reads off slot <var>j</var>. Then φ<sub><var>j</var></sub>(<var>e</var><sub><var>k</var></sub>) is 1 when <var>k</var> = <var>j</var> and 0 otherwise, which is exactly Definition 3.96. So the dual basis of the standard basis is the list of coordinate functions. <span class="cite">— Axler §3.F, Example 3.97, p. 102</span></p>
+<p>That is the picture to keep: <em>a dual basis is a set of coordinate readings</em>, one per basis vector, each blind to all the others. It exists because la-05's Theorem 3.5 lets you prescribe a linear map's values on a basis arbitrarily — the values 1 and 0 in Definition 3.96 are exactly such a prescription. <span class="cite">— Axler §3.F, p. 102</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Why the dual basis is a basis.</strong> Suppose <var>a</var>₁φ₁ + ⋯ + <var>a</var><sub><var>n</var></sub>φ<sub><var>n</var></sub> = 0. Apply both sides to <var>v</var><sub><var>j</var></sub>: on the left every term dies except the <var>j</var>-th, leaving <var>a</var><sub><var>j</var></sub>; on the right, 0. So every <var>a</var><sub><var>j</var></sub> = 0 and the list is independent. It has length <var>n</var> = dim <var>V</var> = dim <var>V</var>′, so la-04's Theorem 2.39 makes it a basis without any spanning check.
+<p>The move worth stealing: to extract the <var>j</var>-th coefficient of an unknown combination of functionals, <em>evaluate at the <var>j</var>-th basis vector</em>. It is the dual-side version of reading off a coordinate, and every later proof in this unit uses it. <span class="cite">— Axler §3.F, p. 102</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> <var>V</var> is 7-dimensional. What is dim <var>V</var>′?</p>
+<button onclick="check(this,true)" data-ok>7</button>
+<button onclick="check(this,false)">1, since functionals land in <strong>F</strong></button>
+<button onclick="check(this,false)">Infinite, since there are infinitely many functionals</button>
+<div class="explain">dim <var>V</var>′ = dim ℒ(<var>V</var>, <strong>F</strong>) = (dim <var>V</var>)(dim <strong>F</strong>) = 7 · 1 = 7 (la-08, Theorem 3.61). The second option confuses the codomain of each functional with the dimension of the space of functionals. The third repeats la-08's confusion of cardinality with dimension.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The dual map reverses everything</h2>
+
+<div class="definition">
+<strong>Definition 3.99 (dual map).</strong> For <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>), the <em>dual map</em> is <var>T</var>′ ∈ ℒ(<var>W</var>′, <var>V</var>′) defined by <var>T</var>′(φ) = φ ∘ <var>T</var> for φ ∈ <var>W</var>′. <span class="cite">— Axler §3.F, Definition 3.99, p. 103</span>
+</div>
+
+<p>Check the directions, because they are the point. <var>T</var> goes from <var>V</var> to <var>W</var>. A functional φ on <var>W</var> measures things in <var>W</var>. Composing it with <var>T</var> gives a way of measuring things in <var>V</var> — push the vector across with <var>T</var>, then measure. So <var>T</var>′ sends measurements on <var>W</var> to measurements on <var>V</var>: it points from <var>W</var>′ to <var>V</var>′, backwards. Nothing about the construction could make it point forwards.</p>
+
+<h3>Canvas: the arrow turns around</h3>
+<p>Above, <var>T</var> carries <var>V</var> to <var>W</var>. Below, <var>T</var>′ carries <var>W</var>′ back to <var>V</var>′. The functional φ travels along the lower arrow while the vector <var>v</var> travels along the upper one, and the number they agree on — φ(<var>Tv</var>) = (<var>T</var>′φ)(<var>v</var>) — is the same reading taken two ways.</p>
+<canvas id="dual" width="440" height="270"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('dual'),ctx=cv.getContext('2d');
+let t=0;
+function box(x,y,w,h,label,col){
+  ctx.strokeStyle=col;ctx.lineWidth=2;ctx.strokeRect(x,y,w,h);
+  ctx.fillStyle=col;ctx.font='15px serif';ctx.textAlign='center';
+  ctx.fillText(label,x+w/2,y+h/2+5);
+}
+function arrow(x1,x2,y,col,label,dir){
+  ctx.strokeStyle=col;ctx.fillStyle=col;ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x1,y);ctx.lineTo(x2,y);ctx.stroke();
+  const hx=(dir>0)?x2:x1, s=(dir>0)?-1:1;
+  ctx.beginPath();ctx.moveTo(hx,y);ctx.lineTo(hx+s*11,y-6);ctx.lineTo(hx+s*11,y+6);ctx.closePath();ctx.fill();
+  ctx.font='14px serif';ctx.textAlign='center';
+  ctx.fillText(label,(x1+x2)/2,y-12);
+}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  box(50,40,90,44,'V','#8ab4f8');   box(300,40,90,44,'W','#8ab4f8');
+  box(50,160,90,44,"V'",'#d8a657'); box(300,160,90,44,"W'",'#d8a657');
+  arrow(145,295,62,'#8ab4f8','T',1);
+  arrow(145,295,182,'#d8a657',"T'",-1);
+  const u=(Math.sin(t)+1)/2;
+  ctx.fillStyle='#4caf82';
+  ctx.beginPath();ctx.arc(145+150*u,62,5,0,7);ctx.fill();
+  ctx.beginPath();ctx.arc(295-150*u,182,5,0,7);ctx.fill();
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText("φ(Tv) = (T'φ)(v) — one number, read two ways",220,236);
+  ctx.fillText('a map forwards induces a map backwards on measurements',220,254);
+  ctx.textAlign='left';
+  t+=0.014;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="worked">
+<strong>Worked example — dualising differentiation (fully worked).</strong> Let <var>D</var> : 𝒫(<strong>R</strong>) → 𝒫(<strong>R</strong>) be <var>Dp</var> = <var>p</var>′. (The prime is doing two jobs in this example: <var>D</var>′ is a dual map, <var>p</var>′ a derivative.)
+<p>Take φ(<var>p</var>) = <var>p</var>(3), evaluation at 3. Then (<var>D</var>′φ)(<var>p</var>) = φ(<var>Dp</var>) = φ(<var>p</var>′) = <var>p</var>′(3). So <var>D</var>′ turns "evaluate at 3" into "evaluate the derivative at 3".</p>
+<p>Take instead φ(<var>p</var>) = ∫₀¹ <var>p</var>. Then (<var>D</var>′φ)(<var>p</var>) = ∫₀¹ <var>p</var>′ = <var>p</var>(1) − <var>p</var>(0), by the fundamental theorem of calculus. So <var>D</var>′ turns "integrate over [0, 1]" into "take the difference of the endpoint values" — which is exactly the statement that integration and boundary-evaluation are dual operations. That observation, taken seriously, is where Stokes' theorem comes from, and it is the same duality the mission strip's cohomology exploits. <span class="cite">— Axler §3.F, Example 3.100, p. 103</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.101 (algebra of dual maps).</strong> (<var>S</var> + <var>T</var>)′ = <var>S</var>′ + <var>T</var>′, (λ<var>T</var>)′ = λ<var>T</var>′, and — note the reversal — (<var>ST</var>)′ = <var>T</var>′<var>S</var>′. <span class="cite">— Axler §3.F, Theorem 3.101, p. 104</span>
+</div>
+
+<p>The first two say the map <var>T</var> ↦ <var>T</var>′ is itself linear. The third is the same order-reversal la-08 met in (<var>ST</var>)<sup>−1</sup> = <var>T</var><sup>−1</sup><var>S</var><sup>−1</sup>, and it has the same one-line proof by associativity of composition: (<var>ST</var>)′(φ) = φ ∘ (<var>ST</var>) = (φ ∘ <var>S</var>) ∘ <var>T</var> = <var>T</var>′(<var>S</var>′(φ)). Check the types if you ever doubt the order — <var>T</var>′<var>S</var>′ is the only composite that is even defined. <span class="cite">— Axler §3.F, p. 104</span></p>
+
+<div class="definition">
+<strong>Definition 3.102 (annihilator).</strong> For <var>U</var> ⊆ <var>V</var>, the <em>annihilator</em> <var>U</var>⁰ = {φ ∈ <var>V</var>′ : φ(<var>u</var>) = 0 for all <var>u</var> ∈ <var>U</var>} — the functionals blind to <var>U</var>. <span class="cite">— Axler §3.F, Definition 3.102, p. 104</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.106 (dimension of the annihilator).</strong> If <var>V</var> is finite-dimensional and <var>U</var> is a subspace, then dim <var>U</var> + dim <var>U</var>⁰ = dim <var>V</var>. <span class="cite">— Axler §3.F, Theorem 3.106, p. 106</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> Let <var>i</var> ∈ ℒ(<var>U</var>, <var>V</var>) be the inclusion, <var>i</var>(<var>u</var>) = <var>u</var>. Then <var>i</var>′ ∈ ℒ(<var>V</var>′, <var>U</var>′), and unwinding the definitions gives null <var>i</var>′ = <var>U</var>⁰ — a functional on <var>V</var> restricts to zero on <var>U</var> exactly when it annihilates <var>U</var>. la-06's Fundamental Theorem applied to <var>i</var>′ then reads dim range <var>i</var>′ + dim <var>U</var>⁰ = dim <var>V</var>′ = dim <var>V</var>.
+<p>It remains to see that <var>i</var>′ is surjective, i.e. that every functional on <var>U</var> extends to one on <var>V</var> — which is la-05's extension construction, prescribing values on a basis of <var>U</var> and extending that basis. So dim range <var>i</var>′ = dim <var>U</var>′ = dim <var>U</var>. <span class="cite">— Axler §3.F, p. 106</span></p>
+<p>The concrete version is worth knowing too: take a basis of <var>U</var>, extend it to a basis of <var>V</var>, and the dual functionals belonging to the <em>added</em> vectors form a basis of <var>U</var>⁰. That is where the subtraction comes from.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorems 3.107 to 3.110 (the dictionary).</strong> For finite-dimensional <var>V</var>, <var>W</var> and <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>):
+<br>null <var>T</var>′ = (range <var>T</var>)⁰ and range <var>T</var>′ = (null <var>T</var>)⁰, with dim range <var>T</var>′ = dim range <var>T</var>;
+<br><var>T</var> is surjective if and only if <var>T</var>′ is injective, and <var>T</var> is injective if and only if <var>T</var>′ is surjective. <span class="cite">— Axler §3.F, Theorem 3.107, p. 106, Theorem 3.108, p. 107, Theorem 3.109, p. 107, and Theorem 3.110, p. 108</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — how the equivalences fall out (fully worked).</strong> Take <var>T</var> surjective ⟺ <var>T</var>′ injective, and read the chain of "if and only if"s.
+<p><var>T</var> surjective ⟺ range <var>T</var> = <var>W</var> ⟺ (range <var>T</var>)⁰ = {0} ⟺ null <var>T</var>′ = {0} ⟺ <var>T</var>′ injective. The middle step is the observation that only the zero functional annihilates all of <var>W</var>, and the third is Theorem 3.107. The last is la-06's Theorem 3.16.</p>
+<p>Two of the four links are pure bookkeeping about annihilators and one is the theorem. That is characteristic: once null <var>T</var>′ and range <var>T</var>′ are identified as annihilators, every statement about <var>T</var> has a mirror statement about <var>T</var>′, and the proofs are chains of equivalences rather than constructions. <span class="cite">— Axler §3.F, p. 107</span></p>
+</div>
+
+<p>Putting Theorems 3.108 and 3.110 together, <var>T</var> is injective and surjective exactly when <var>T</var>′ is, so <var>T</var> is invertible if and only if <var>T</var>′ is — invertibility being precisely injectivity plus surjectivity. <span class="cite">— Axler §3.D, Theorem 3.56, p. 80</span> Note what is <em>not</em> in play: la-08's shortcut, that for an operator on a finite-dimensional space either condition alone gives the other, needs domain and codomain to coincide. <span class="cite">— Axler §3.D, Theorem 3.69, p. 87</span> <var>T</var>′ runs from <var>W</var>′ to <var>V</var>′ and is not an operator unless <var>V</var> and <var>W</var> happen to be the same space, so each equivalence above has to be established on its own.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> <var>U</var> is a 2-dimensional subspace of <strong>R</strong>⁵. What is dim <var>U</var>⁰?</p>
+<button onclick="check(this,true)" data-ok>3</button>
+<button onclick="check(this,false)">2</button>
+<button onclick="check(this,false)">5</button>
+<div class="explain">Theorem 3.106: dim <var>U</var> + dim <var>U</var>⁰ = dim <var>V</var>, so dim <var>U</var>⁰ = 5 − 2 = 3. Concretely, extend a basis of <var>U</var> to a basis of <strong>R</strong>⁵ and take the three dual functionals belonging to the added vectors: each kills <var>U</var>, and together they span <var>U</var>⁰. Note the family resemblance to la-09's dim <var>V</var>/<var>U</var> = dim <var>V</var> − dim <var>U</var>; they are not the same construction, but they are counting the same shortfall.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) is injective, with <var>V</var>, <var>W</var> finite-dimensional. What follows about <var>T</var>′?</p>
+<button onclick="check(this,false)"><var>T</var>′ is injective</button>
+<button onclick="check(this,true)" data-ok><var>T</var>′ is surjective</button>
+<button onclick="check(this,false)">Nothing, unless dim <var>V</var> = dim <var>W</var></button>
+<div class="explain">Theorem 3.110 swaps the two conditions: injective for <var>T</var> becomes surjective for <var>T</var>′. Expecting the property to be preserved rather than exchanged is the standard error, and the arrow-reversal in the canvas is the reason it is exchanged — <var>T</var>′ runs the other way, so the condition on its domain corresponds to a condition on <var>T</var>'s codomain.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Transpose, and why row rank equals column rank</h2>
+
+<div class="definition">
+<strong>Definition 3.111 and Theorem 3.114 (transpose).</strong> The <em>transpose</em> <var>A</var><sup>t</sup> of an <var>m</var>-by-<var>n</var> matrix is the <var>n</var>-by-<var>m</var> matrix with (<var>A</var><sup>t</sup>)<sub><var>k</var>,<var>j</var></sub> = <var>A</var><sub><var>j</var>,<var>k</var></sub>. With respect to a pair of bases and their dual bases, <var>ℳ</var>(<var>T</var>′) = (<var>ℳ</var>(<var>T</var>))<sup>t</sup>. <span class="cite">— Axler §3.F, Definition 3.111, p. 109, and Theorem 3.114, p. 110</span>
+</div>
+
+<p>Recall what a matrix records: column <var>k</var> of <var>ℳ</var>(<var>T</var>) is <var>Tv</var><sub><var>k</var></sub> written in the codomain's basis. <span class="cite">— Axler §3.C, Definition 3.32, p. 70</span> Theorem 3.114 is the reason the transpose exists as a concept. Transposing looks like a formal shuffle of entries; it is the matrix of the dual map, and the order-reversal (<var>AC</var>)<sup>t</sup> = <var>C</var><sup>t</sup><var>A</var><sup>t</sup> is Theorem 3.101's (<var>ST</var>)′ = <var>T</var>′<var>S</var>′ read through <var>ℳ</var>. <span class="cite">— Axler §3.F, Theorem 3.113, p. 109</span></p>
+
+<div class="definition">
+<strong>Definitions 3.115 and 3.119 (row rank, column rank, rank).</strong> The <em>row rank</em> of <var>A</var> is the dimension of the span of its rows in <strong>F</strong><sup>1,<var>n</var></sup>; the <em>column rank</em> is the dimension of the span of its columns in <strong>F</strong><sup><var>m</var>,1</sup>. Once they are proved equal, the common value is the <em>rank</em>. <span class="cite">— Axler §3.F, Definition 3.115, p. 111, and Definition 3.119, p. 112</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 3.117 (column rank is intrinsic).</strong> If <var>V</var>, <var>W</var> are finite-dimensional and <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>), then dim range <var>T</var> equals the column rank of <var>ℳ</var>(<var>T</var>). <span class="cite">— Axler §3.F, Theorem 3.117, p. 112</span>
+</div>
+
+<p>This is la-07's "combination of columns" reading, upgraded: range <var>T</var> = span(<var>Tv</var>₁, …, <var>Tv</var><sub><var>n</var></sub>), and passing to coordinates carries that span isomorphically onto the span of the columns. The consequence is worth stating on its own — <em>the column rank does not depend on the bases chosen</em>, because range <var>T</var> does not. <span class="cite">— Axler §3.F, p. 111</span></p>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="theorem">
+<strong>Theorem 3.118 (row rank equals column rank).</strong> For every <var>A</var> ∈ <strong>F</strong><sup><var>m</var>,<var>n</var></sup>, the row rank of <var>A</var> equals the column rank of <var>A</var>. <span class="cite">— Axler §3.F, Theorem 3.118, p. 112</span>
+</div>
+
+<div class="worked">
+<strong>Verdict: always equal — and duality is what forces it.</strong> For a 2-by-1000 matrix both are at most 2, which already shows the rows cannot span much of their 1000-dimensional home; but the theorem is exact and holds for every shape.
+<p><em>The chain.</em> Define <var>T</var> : <strong>F</strong><sup><var>n</var>,1</sup> → <strong>F</strong><sup><var>m</var>,1</sup> by <var>Tx</var> = <var>Ax</var>, so <var>ℳ</var>(<var>T</var>) = <var>A</var> in the standard bases. Then</p>
+<p style="text-align:center">column rank of <var>A</var> = dim range <var>T</var> = dim range <var>T</var>′ = column rank of <var>ℳ</var>(<var>T</var>′) = column rank of <var>A</var><sup>t</sup> = row rank of <var>A</var>.</p>
+<p>Reading left to right: Theorem 3.117; then Theorem 3.109(a), which is the one genuinely non-formal step; then Theorem 3.117 again, now for <var>T</var>′ with the dual bases; then Theorem 3.114; then the definition, since the columns of <var>A</var><sup>t</sup> are the rows of <var>A</var>. <span class="cite">— Axler §3.F, p. 112</span></p>
+<p>So the answer to "what could possibly force it" is: nothing about the matrix, and everything about the map. Rows and columns are two coordinate shadows of one linear map and its dual, and dim range <var>T</var>′ = dim range <var>T</var> is the statement that dualising loses no information about size. Once the terms are known to agree, Definition 3.119 drops the qualifiers and speaks of <em>the</em> rank.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> <var>A</var> is 4-by-9 with rank 3. What is the rank of <var>A</var><sup>t</sup>?</p>
+<button onclick="check(this,true)" data-ok>3</button>
+<button onclick="check(this,false)">9 − 3 = 6</button>
+<button onclick="check(this,false)">Cannot be determined from the rank of <var>A</var></button>
+<div class="explain">The column rank of <var>A</var><sup>t</sup> is by definition the row rank of <var>A</var>, which Theorem 3.118 says equals the column rank of <var>A</var> — that is, 3. Rank is transpose-invariant, which is exactly what Theorem 3.118 asserts once the terminology is collapsed. The second option computes something real (dim null of the associated map) and reports it under the wrong name.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why is Theorem 3.117 stated as "column rank of <var>ℳ</var>(<var>T</var>)" rather than being a statement about a particular matrix?</p>
+<button onclick="check(this,false)">Because column rank is only defined for square matrices</button>
+<button onclick="check(this,true)" data-ok>Because it shows the column rank is the same for every choice of bases, since range <var>T</var> is basis-independent</button>
+<button onclick="check(this,false)">Because <var>ℳ</var>(<var>T</var>) does not depend on the bases</button>
+<div class="explain">The matrix very much depends on the bases (la-07), but dim range <var>T</var> does not, so Theorem 3.117 pins the column rank to a basis-free quantity — that is the content. The third option contradicts la-07's whole point, and the first is simply false.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>V</var> is finite-dimensional and <var>v</var> ∈ <var>V</var> with <var>v</var> ≠ 0. Prove that there exists φ ∈ <var>V</var>′ with φ(<var>v</var>) = 1. (You are not asked to write a formula. Build a basis in which <var>v</var> appears, and let the dual basis do the work.) <span class="cite">— cf. Axler §3.F, Exercise 3, p. 113</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> Since <var>v</var> ≠ 0, the one-element list <var>v</var> is linearly independent (la-03, Example 2.18(a)). As <var>V</var> is finite-dimensional, that list extends to a basis <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> of <var>V</var> with <var>v</var>₁ = <var>v</var> (la-04, Theorem 2.33).</p>
+<p>Let φ₁, …, φ<sub><var>n</var></sub> be the dual basis (Definition 3.96), which exists because la-05's Theorem 3.5 permits prescribing a linear map's values on a basis arbitrarily. By construction φ₁(<var>v</var>₁) = 1, that is, φ₁(<var>v</var>) = 1. Take φ = φ₁. ∎</p>
+<p class="cite">Stated abstractly, this says the dual space <em>separates points</em>: for any two distinct vectors <var>u</var> ≠ <var>w</var>, applying the result to <var>v</var> = <var>u</var> − <var>w</var> gives a functional with φ(<var>u</var>) ≠ φ(<var>w</var>). Measurements are enough to tell vectors apart, which is why passing to the dual side loses nothing — and is the reason cohomology carries the same information as homology.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>The <strong>dual space</strong> <var>V</var>′ = ℒ(<var>V</var>, <strong>F</strong>) collects the linear measurements on <var>V</var>. It has the same dimension as <var>V</var> (Theorem 3.95), witnessed by the <strong>dual basis</strong> of coordinate readings (Definition 3.96, Theorem 3.98) — but the isomorphism depends on the basis, which is why duality is not a triviality.</li>
+<li>A map <var>T</var> : <var>V</var> → <var>W</var> induces <var>T</var>′ : <var>W</var>′ → <var>V</var>′ pointing <strong>backwards</strong> (Definition 3.99), with (<var>ST</var>)′ = <var>T</var>′<var>S</var>′. Identifying null <var>T</var>′ = (range <var>T</var>)⁰ and range <var>T</var>′ = (null <var>T</var>)⁰ (Theorems 3.107, 3.109), together with dim <var>U</var> + dim <var>U</var>⁰ = dim <var>V</var> (Theorem 3.106), makes every statement about <var>T</var> equivalent to a mirror statement about <var>T</var>′ — surjective ↔ injective, and back (Theorems 3.108, 3.110).</li>
+<li><var>ℳ</var>(<var>T</var>′) is the <strong>transpose</strong> of <var>ℳ</var>(<var>T</var>) (Theorem 3.114), so the transpose is not a shuffle of entries but the matrix of the dual map. Since dim range <var>T</var>′ = dim range <var>T</var> and column rank measures dim range (Theorem 3.117), <strong>row rank equals column rank</strong> (Theorem 3.118) — a fact about matrices whose only proof runs through the dual map.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §3.F "Duality": "The Dual Space and the Dual Map" (Definition 3.92 linear functional, Example 3.93, Definition 3.94 dual space, Theorem 3.95, Definition 3.96 dual basis, Example 3.97, Theorem 3.98, Definition 3.99 dual map, Example 3.100, Theorem 3.101), pp. 101–104; "The Null Space and Range of the Dual of a Linear Map" (Definition 3.102 annihilator, Example 3.103, Theorem 3.106, Theorem 3.107, Theorem 3.108, Theorem 3.109, Theorem 3.110), pp. 104–108; "The Matrix of the Dual of a Linear Map" (Definition 3.111 transpose, Example 3.112, Theorem 3.113, Theorem 3.114), pp. 109–110; "The Rank of a Matrix" (Definition 3.115, Example 3.116, Theorem 3.117, Theorem 3.118, Definition 3.119), pp. 111–112; §3.F, Exercise 3, p. 113.
+<br>Builds on la-08, whose Theorem 3.61 gives dim ℒ(<var>V</var>, <var>W</var>) = (dim <var>V</var>)(dim <var>W</var>) and hence dim <var>V</var>′ = dim <var>V</var>; it is Axler §3.D, p. 83.
+<br>Builds also on la-05: prescribing a map's values on a basis is Axler §3.A, Theorem 3.5, p. 54, and is what constructs every dual basis above.
+<br>Deferred to la-11: eigenvalues, eigenvectors and invariant subspaces (Axler §5.A).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

@@ -115,3 +115,14 @@ def test_the_committed_index_is_readable_and_ordered():
 
 def test_selftest_passes():
     assert selftest() == 0
+
+
+def test_the_length_cap_never_cuts_a_page_number_in_half():
+    """la-10's Sources line is one long sentence ending "pp. 101-114". The cap
+    landed inside "101", the tail ended "pp. 1", and a correct citation was
+    reported as naming printed page 1. A cap that silently shortens a page
+    number can turn a wrong page into a plausible one just as easily."""
+    long_tail = "Axler §2.A (" + "Theorem 2.7, " * 40 + "), pp. 28-38."
+    assert len(long_tail) > 400
+    assert check_text(long_tail, ROWS) == []
+    assert 1 not in pages_in(long_tail[long_tail.index("§"):])
