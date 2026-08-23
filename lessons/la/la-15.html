@@ -190,7 +190,7 @@ The crown jewel: symmetric operators diagonalise perfectly. Why?
 </div>
 
 <h3>Canvas: a symmetric operator has perpendicular axes</h3>
-<p>The grey circle is the unit vectors of <strong>R</strong>²; the green curve is its image under a varying operator. When the matrix is <em>symmetric</em> the image is an ellipse whose axes (amber) are perpendicular — those axes are the orthonormal eigenvectors the theorem promises. Toggle to a non-symmetric matrix and the axes tilt out of square.</p>
+<p>The grey circle is the unit vectors of <strong>R</strong>² and the green curve is its image under a varying operator; the amber lines are the operator's <em>eigenvector directions</em>, computed from the matrix rather than read off the picture. In the symmetric state they are perpendicular, whatever the off-diagonal entry does — that is the theorem. The non-symmetric state is upper-triangular with distinct real eigenvalues, so it is still diagonalisable and still has two eigenvector directions; they simply stop being at right angles. Watch also where the eigenvector lines sit relative to the ellipse: in the symmetric state they are its axes, and in the non-symmetric state they are not.</p>
 <canvas id="spec" width="440" height="330"></canvas>
 <script>
 (function(){
@@ -200,7 +200,10 @@ function scr(p){return [cx+p[0]*s, cy-p[1]*s];}
 function draw(){
   ctx.clearRect(0,0,cv.width,cv.height);
   const sym = (Math.floor(t/6)%2)===0;
-  const a=1.9, d=1.0, b=1.1*Math.sin(t*0.35), c= sym ? b : -b;
+  // symmetric state: c = b. non-symmetric state: c = 0, which keeps the
+  // eigenvalues real and distinct (1.9 and 1.0) so the operator is still
+  // diagonalisable -- only the orthogonality is lost.
+  const a=1.9, d=1.0, b=1.1*Math.sin(t*0.35), c= sym ? b : 0;
   function map(p){return [a*p[0]+b*p[1], c*p[0]+d*p[1]];}
   ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;ctx.beginPath();
   for(let k=0;k<=120;k++){const th=k/120*2*Math.PI,p=scr([Math.cos(th),Math.sin(th)]);
@@ -210,23 +213,34 @@ function draw(){
   for(let k=0;k<=120;k++){const th=k/120*2*Math.PI,p=scr(map([Math.cos(th),Math.sin(th)]));
     if(k===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1]);}
   ctx.stroke();
-  // longest and shortest image directions, found by sampling
-  let lo=null,hi=null,rlo=1e9,rhi=-1;
-  for(let k=0;k<180;k++){
-    const th=k/180*Math.PI, q=map([Math.cos(th),Math.sin(th)]);
-    const r=Math.hypot(q[0],q[1]);
-    if(r>rhi){rhi=r;hi=th;} if(r<rlo){rlo=r;lo=th;}
+  // eigenvector directions of [[a,b],[c,d]], from the characteristic polynomial.
+  // These are NOT the ellipse's axes in general: the axes of the image ellipse are
+  // singular directions, and those are perpendicular for every matrix, symmetric
+  // or not, so they could not show what this canvas is about.
+  const tr=a+d, det=a*d-b*c, disc=tr*tr/4-det;
+  let dirs=null;
+  if(disc>1e-12){
+    const rt=Math.sqrt(disc);
+    dirs=[tr/2+rt, tr/2-rt].map(function(lam){
+      const v = Math.abs(b)>1e-9 ? [b, lam-a] : (Math.abs(c)>1e-9 ? [lam-d, c] : (Math.abs(lam-a)<1e-9?[1,0]:[0,1]));
+      const n=Math.hypot(v[0],v[1]);
+      return [v[0]/n, v[1]/n];
+    });
+    dirs.forEach(function(u){
+      const p0=scr([-2.6*u[0],-2.6*u[1]]), p1=scr([2.6*u[0],2.6*u[1]]);
+      ctx.strokeStyle='#d8a657';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+    });
   }
-  [[hi,'#d8a657'],[lo,'#d8a657']].forEach(function(pair){
-    const th=pair[0], u=[Math.cos(th),Math.sin(th)];
-    const p0=scr([-2.6*u[0],-2.6*u[1]]), p1=scr([2.6*u[0],2.6*u[1]]);
-    ctx.strokeStyle=pair[1];ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
-  });
-  const ang=Math.abs(((hi-lo)*180/Math.PI));
   ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
-  ctx.fillText(sym?'symmetric matrix — self-adjoint':'non-symmetric matrix — not self-adjoint',220,296);
-  ctx.fillText('angle between the two axes: '+ang.toFixed(1)+'°',220,314);
+  ctx.fillText(sym?'symmetric matrix \u2014 self-adjoint':'non-symmetric matrix \u2014 not self-adjoint',220,296);
+  if(dirs){
+    const dot=Math.abs(dirs[0][0]*dirs[1][0]+dirs[0][1]*dirs[1][1]);
+    const ang=Math.acos(Math.min(1,dot))*180/Math.PI;
+    ctx.fillText('angle between the eigenvector directions: '+ang.toFixed(1)+'\u00b0',220,314);
+  }else{
+    ctx.fillText('no real eigenvalue \u2014 no eigenvector direction to draw',220,314);
+  }
   ctx.textAlign='left';
   t+=0.012;
   requestAnimationFrame(draw);
