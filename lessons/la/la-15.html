@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-15 — Spectral theorem (real case)</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Spectral theorem (real case) <span class="cite">(la-15)</span></h1>
+
+<div class="hook">
+The crown jewel: symmetric operators diagonalise perfectly. Why?
+<p>Two results earlier in this module were bad news. la-11 produced a real operator with no eigenvalues at all — the rotation of the plane. la-12 produced an operator over <strong>C</strong>, where eigenvalues are guaranteed, that still fails to be diagonalisable. Between them they say that neither existence nor decomposability can be taken for granted.</p>
+<p>The <strong>Real Spectral Theorem</strong> says that one hypothesis repairs both at once. If an operator on a real inner product space is <strong>self-adjoint</strong> — equivalently, if its matrix in an orthonormal basis is symmetric — then it has an eigenvalue, it is diagonalisable, and the diagonalising basis can be taken <em>orthonormal</em>. Nothing weaker delivers this, and nothing more is needed. It is the last unit of Semester 1's linear algebra because everything before it is used in the proof, and because the symmetric matrices it governs are exactly the graph Laplacians the mission's Mapper pipelines compute with.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Let <var>T</var> be an operator on a finite-dimensional <em>real</em> inner product space, and suppose <var>T</var> is <strong>self-adjoint</strong> — that is, ⟨<var>Tv</var>, <var>w</var>⟩ = ⟨<var>v</var>, <var>Tw</var>⟩ for all <var>v</var>, <var>w</var>. Answer both halves. <strong>(i)</strong> Do you predict <var>T</var> must have an eigenvalue, given that la-11's rotation of <strong>R</strong>² has none? <strong>(ii)</strong> Do you predict <var>T</var> must be diagonalisable, given that la-12 found non-diagonalisable operators even over <strong>C</strong>? Commit to both before Segment 3.
+</div>
+
+<p class="mission">Why this matters for the mission: Graph Laplacians in Mapper are symmetric — their spectra behave.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>The adjoint</h2>
+
+<div class="definition">
+<strong>Definition 7.2 (adjoint).</strong> For <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>), the <em>adjoint</em> <var>T</var>* : <var>W</var> → <var>V</var> is the function satisfying ⟨<var>Tv</var>, <var>w</var>⟩ = ⟨<var>v</var>, <var>T</var>*<var>w</var>⟩ for every <var>v</var> ∈ <var>V</var> and <var>w</var> ∈ <var>W</var>. <span class="cite">— Axler §7.A, Definition 7.2, p. 204</span>
+</div>
+
+<div class="heuristic">
+<strong>Why the definition defines anything.</strong> It asserts the existence of a vector <var>T</var>*<var>w</var> without constructing one. Fix <var>w</var>; the map <var>v</var> ↦ ⟨<var>Tv</var>, <var>w</var>⟩ is a linear functional on <var>V</var>, so la-14's Riesz Representation Theorem supplies a unique vector representing it — and that vector <em>is</em> <var>T</var>*<var>w</var>. <span class="cite">— Axler §6.B, Theorem 6.42, p. 188</span> Uniqueness is what makes <var>T</var>* well defined as a function; the whole of la-14 is standing behind this one definition. <span class="cite">— Axler §7.A, p. 204</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — computing an adjoint from the definition (fully worked).</strong> Define <var>T</var> : <strong>R</strong>³ → <strong>R</strong>² by <var>T</var>(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃) = (<var>x</var>₂ + 3<var>x</var>₃, 2<var>x</var>₁). Find <var>T</var>*.
+<p><var>T</var>* goes from <strong>R</strong>² to <strong>R</strong>³ — check the direction first, since it is reversed. Fix (<var>y</var>₁, <var>y</var>₂) and compute ⟨<var>T</var>(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃), (<var>y</var>₁, <var>y</var>₂)⟩ = (<var>x</var>₂ + 3<var>x</var>₃)<var>y</var>₁ + 2<var>x</var>₁<var>y</var>₂. Regroup by the <var>x</var>'s: this is <var>x</var>₁(2<var>y</var>₂) + <var>x</var>₂(<var>y</var>₁) + <var>x</var>₃(3<var>y</var>₁), which is ⟨(<var>x</var>₁, <var>x</var>₂, <var>x</var>₃), (2<var>y</var>₂, <var>y</var>₁, 3<var>y</var>₁)⟩.</p>
+<p>Since that holds for every <var>x</var>, Definition 7.2 gives <var>T</var>*(<var>y</var>₁, <var>y</var>₂) = (2<var>y</var>₂, <var>y</var>₁, 3<var>y</var>₁). The technique is always the same: expand, then <em>regroup by the first argument</em> until the second argument is visible. <span class="cite">— Axler §7.A, Example 7.3, p. 204</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorems 7.5 and 7.6 (the adjoint is linear, and its algebra).</strong> If <var>T</var> ∈ ℒ(<var>V</var>, <var>W</var>) then <var>T</var>* ∈ ℒ(<var>W</var>, <var>V</var>). Moreover (<var>S</var> + <var>T</var>)* = <var>S</var>* + <var>T</var>*, (λ<var>T</var>)* = conj(λ)<var>T</var>*, (<var>T</var>*)* = <var>T</var>, <var>I</var>* = <var>I</var>, and (<var>ST</var>)* = <var>T</var>*<var>S</var>*. <span class="cite">— Axler §7.A, Theorem 7.5, p. 205, and Theorem 7.6, p. 206</span>
+</div>
+
+<p>Every one of these proofs is the same manoeuvre: <em>flip <var>T</var>* from one side of the inner product to become <var>T</var> on the other</em>, compute, and flip back. Two features are worth marking. The conjugate in (λ<var>T</var>)* = conj(λ)<var>T</var>* is la-13's second-slot conjugation surfacing again. And (<var>ST</var>)* = <var>T</var>*<var>S</var>* reverses order — the third time this module has met that reversal, after la-08's inverses and la-10's dual maps, and for the same reason. <span class="cite">— Axler §7.A, p. 206</span></p>
+
+<div class="theorem">
+<strong>Definition 7.8 and Theorem 7.10 (the matrix of the adjoint).</strong> The <em>conjugate transpose</em> of a matrix is obtained by interchanging rows and columns and conjugating every entry. With respect to <em>orthonormal</em> bases, <var>ℳ</var>(<var>T</var>*) is the conjugate transpose of <var>ℳ</var>(<var>T</var>) — over <strong>R</strong>, simply the transpose. <span class="cite">— Axler §7.A, Definition 7.8, p. 207, and Theorem 7.10, p. 208</span>
+</div>
+
+<div class="heuristic">
+<strong>Adjoint and dual are not the same map, and this is where they meet.</strong> la-10's dual map <var>T</var>′ sends <var>W</var>′ to <var>V</var>′ and needs no inner product; <var>ℳ</var>(<var>T</var>′) is the transpose. The adjoint <var>T</var>* sends <var>W</var> to <var>V</var> and needs one; with orthonormal bases its matrix is the conjugate transpose. The two agree once Riesz is used to identify each space with its dual — which is exactly what an inner product buys, and is why the transpose appears twice in this module wearing different clothes. The hypothesis <em>orthonormal</em> in Theorem 7.10 is not decoration: in a non-orthonormal basis the matrix of <var>T</var>* is not the conjugate transpose. <span class="cite">— Axler §3.F, Theorem 3.114, p. 110</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> <var>T</var> ∈ ℒ(<strong>R</strong>⁵, <strong>R</strong>³). What are the domain and codomain of <var>T</var>*, and what size is <var>ℳ</var>(<var>T</var>*)?</p>
+<button onclick="check(this,true)" data-ok><var>T</var>* : <strong>R</strong>³ → <strong>R</strong>⁵, with a 5-by-3 matrix</button>
+<button onclick="check(this,false)"><var>T</var>* : <strong>R</strong>⁵ → <strong>R</strong>³, with a 3-by-5 matrix</button>
+<button onclick="check(this,false)"><var>T</var>* : <strong>R</strong>³ → <strong>R</strong>⁵, with a 3-by-5 matrix</button>
+<div class="explain">The adjoint reverses direction, so it maps <strong>R</strong>³ to <strong>R</strong>⁵. la-07's rule then makes its matrix 5-by-3 — rows indexed by the codomain, columns by the domain — which is also what transposing the 3-by-5 matrix of <var>T</var> produces. The third option gets the direction right and the matrix convention backwards.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Self-adjoint and normal operators</h2>
+
+<div class="definition">
+<strong>Definition 7.11 (self-adjoint).</strong> An operator <var>T</var> ∈ ℒ(<var>V</var>) is <em>self-adjoint</em> if <var>T</var> = <var>T</var>*, equivalently if ⟨<var>Tv</var>, <var>w</var>⟩ = ⟨<var>v</var>, <var>Tw</var>⟩ for all <var>v</var>, <var>w</var> ∈ <var>V</var>. <span class="cite">— Axler §7.A, Definition 7.11, p. 209</span>
+</div>
+
+<div class="heuristic">
+<strong>The analogy to keep.</strong> The adjoint plays the role on ℒ(<var>V</var>) that complex conjugation plays on <strong>C</strong>. A complex number is real exactly when <var>z</var> = conj(<var>z</var>); an operator is self-adjoint exactly when <var>T</var> = <var>T</var>*. Every result in this unit is a version of something true about real numbers — self-adjoint operators have real eigenvalues, sums of them are self-adjoint, real multiples of them are self-adjoint, and Segment 3's quadratic argument is completing the square. Carry the analogy and the theorems stop being surprising. <span class="cite">— Axler §7.A, p. 209</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — reading self-adjointness off a matrix (fully worked).</strong> Suppose <var>T</var> on <strong>F</strong>² has matrix with rows (2, <var>b</var>) and (3, 7) in the standard basis, which is orthonormal. For which <var>b</var> is <var>T</var> self-adjoint?
+<p><var>ℳ</var>(<var>T</var>*) is the conjugate transpose, with rows (2, 3) and (conj(<var>b</var>), 7). Self-adjointness means <var>ℳ</var>(<var>T</var>) = <var>ℳ</var>(<var>T</var>*), so <var>b</var> = 3 and conj(<var>b</var>) = 3 — both satisfied exactly when <var>b</var> = 3. <span class="cite">— Axler §7.A, Example 7.12, p. 209</span></p>
+<p>Over <strong>R</strong> this is the familiar statement that a self-adjoint operator is one whose matrix is <em>symmetric</em> — provided the basis is orthonormal, which is where the hypothesis of Theorem 7.10 earns its place.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 7.13 (real eigenvalues).</strong> Every eigenvalue of a self-adjoint operator is real. <span class="cite">— Axler §7.A, Theorem 7.13, p. 210</span>
+</div>
+
+<p>Over <strong>R</strong> that is automatic and the theorem says nothing; over <strong>C</strong> it is the analogy's first payoff, and it is proved in one chain of equalities — the unit's guided proof asks you to write it. <span class="cite">— Axler §7.A, p. 210</span></p>
+
+<div class="definition">
+<strong>Definition 7.18 and Theorem 7.20 (normal).</strong> An operator is <em>normal</em> if it commutes with its adjoint, <var>TT</var>* = <var>T</var>*<var>T</var>. Equivalently, <var>T</var> is normal if and only if ‖<var>Tv</var>‖ = ‖<var>T</var>*<var>v</var>‖ for every <var>v</var> ∈ <var>V</var>. <span class="cite">— Axler §7.A, Definition 7.18, p. 212, and Theorem 7.20, p. 213</span>
+</div>
+
+<div class="worked fade">
+<strong>Normal is strictly weaker than self-adjoint.</strong> Every self-adjoint operator is normal, since <var>T</var>* = <var>T</var> certainly commutes with <var>T</var>. The converse fails: the operator on <strong>F</strong>² with matrix rows (2, −3) and (3, 2) is not self-adjoint — the entry 3 is not the conjugate of −3 — yet both <var>TT</var>* and <var>T</var>*<var>T</var> have matrix rows (13, 0) and (0, 13), so it is normal. <span class="cite">— Axler §7.A, Example 7.19, p. 212</span>
+<p>Schur's upper-triangular matrix already gives the eigenvalues, since for a triangular matrix they are exactly the diagonal entries. <span class="cite">— Axler §5.B, Theorem 5.32, p. 152</span> What the complex case adds is that for a normal operator the off-diagonal entries must vanish as well.</p>
+
+<p>Theorem 7.20 is the characterisation actually used in proofs, because it converts an operator identity into a statement about norms, one vector at a time. It is the engine of the Complex Spectral Theorem, which shows Schur's upper-triangular matrix must in fact be diagonal by comparing ‖<var>Te</var><sub><var>j</var></sub>‖ with ‖<var>T</var>*<var>e</var><sub><var>j</var></sub>‖ row by row. <span class="cite">— Axler §7.B, Theorem 7.24, p. 218</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which implication holds between "self-adjoint" and "normal"?</p>
+<button onclick="check(this,true)" data-ok>Self-adjoint implies normal, and not conversely</button>
+<button onclick="check(this,false)">Normal implies self-adjoint, and not conversely</button>
+<button onclick="check(this,false)">They are equivalent</button>
+<div class="explain"><var>T</var> = <var>T</var>* makes <var>TT</var>* = <var>T</var>*<var>T</var> immediately. The reverse fails, and Example 7.19's rotation-and-scaling matrix is the standard witness. This is why the Complex Spectral Theorem is stated for normal operators — a strictly larger class — while the Real Spectral Theorem needs self-adjointness.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Over <strong>R</strong>, what does self-adjointness say about the matrix of <var>T</var>?</p>
+<button onclick="check(this,true)" data-ok>It is symmetric — but only with respect to an orthonormal basis</button>
+<button onclick="check(this,false)">It is symmetric with respect to every basis</button>
+<button onclick="check(this,false)">It is diagonal</button>
+<div class="explain">Theorem 7.10 identifies <var>ℳ</var>(<var>T</var>*) with the transpose only when the basis is orthonormal, so "symmetric matrix" and "self-adjoint operator" correspond only under that hypothesis. Diagonality is the <em>conclusion</em> of the Real Spectral Theorem, not the hypothesis — and it holds for a particular orthonormal basis, not for the one you started with.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The Real Spectral Theorem</h2>
+
+<p>One ingredient comes from a section this module has not otherwise used. For a subspace <var>U</var> of an inner product space, the <em>orthogonal complement</em> <var>U</var><sup>⊥</sup> is the set of vectors orthogonal to every vector in <var>U</var>. <span class="cite">— Axler §6.C, Definition 6.45, p. 193</span> All that is needed below is that it is a subspace and that <var>V</var> = <var>U</var> ⊕ <var>U</var><sup>⊥</sup>. <span class="cite">— Axler §6.C, Theorem 6.47, p. 194</span></p>
+
+<div class="theorem">
+<strong>Theorem 7.26 (invertible quadratics).</strong> If <var>T</var> ∈ ℒ(<var>V</var>) is self-adjoint and <var>b</var>, <var>c</var> ∈ <strong>R</strong> satisfy <var>b</var>² &lt; 4<var>c</var>, then <var>T</var>² + <var>bT</var> + <var>cI</var> is invertible. <span class="cite">— Axler §7.B, Theorem 7.26, p. 219</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — completing the square, with operators.</strong> The condition <var>b</var>² &lt; 4<var>c</var> is exactly the condition under which the real quadratic <var>x</var>² + <var>bx</var> + <var>c</var> = (<var>x</var> + <var>b</var>/2)² + (<var>c</var> − <var>b</var>²/4) is strictly positive, hence never zero. The operator version runs the same computation inside an inner product.
+<p>For <var>v</var> ≠ 0, ⟨(<var>T</var>² + <var>bT</var> + <var>cI</var>)<var>v</var>, <var>v</var>⟩ = ‖<var>Tv</var>‖² + <var>b</var>⟨<var>Tv</var>, <var>v</var>⟩ + <var>c</var>‖<var>v</var>‖², where ⟨<var>T</var>²<var>v</var>, <var>v</var>⟩ = ⟨<var>Tv</var>, <var>Tv</var>⟩ <em>because <var>T</var> is self-adjoint</em> — that is the only place the hypothesis is used, and it is indispensable. Bounding the middle term below by −|<var>b</var>|‖<var>Tv</var>‖‖<var>v</var>‖ with la-13's Cauchy–Schwarz and completing the square gives (‖<var>Tv</var>‖ − |<var>b</var>|‖<var>v</var>‖/2)² + (<var>c</var> − <var>b</var>²/4)‖<var>v</var>‖² &gt; 0. <span class="cite">— Axler §6.A, Theorem 6.15, p. 172</span></p>
+<p>A positive inner product forces (<var>T</var>² + <var>bT</var> + <var>cI</var>)<var>v</var> ≠ 0, so the operator is injective, hence invertible by la-08's Theorem 3.69. <span class="cite">— Axler §7.B, p. 219</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 7.27 (self-adjoint operators have eigenvalues).</strong> If <var>V</var> ≠ {0} and <var>T</var> ∈ ℒ(<var>V</var>) is self-adjoint, then <var>T</var> has an eigenvalue. <span class="cite">— Axler §7.B, Theorem 7.27, p. 220</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — la-12's argument, repaired for <strong>R</strong>.</strong> la-12 proved existence over <strong>C</strong> by taking <var>v</var>, <var>Tv</var>, …, <var>T</var><sup><var>n</var></sup><var>v</var>, which is too long to be independent, and factoring the resulting polynomial into linear factors. Over <strong>R</strong> a polynomial need not factor that far — that is precisely why la-11's rotation has no eigenvalue — but it does factor into linear factors and <em>irreducible quadratics</em>.
+<p>So the relation becomes 0 = <var>c</var>(<var>T</var>² + <var>b</var>₁<var>T</var> + <var>c</var>₁<var>I</var>)⋯(<var>T</var> − λ₁<var>I</var>)⋯(<var>T</var> − λ<sub><var>m</var></sub><var>I</var>)<var>v</var> with every <var>b</var><sub><var>j</var></sub>² &lt; 4<var>c</var><sub><var>j</var></sub>. Theorem 7.26 makes every quadratic factor <em>invertible</em>, so they can all be cancelled — and since <var>c</var> ≠ 0 and <var>v</var> ≠ 0, at least one linear factor must survive, giving <var>m</var> &gt; 0 and some non-injective <var>T</var> − λ<sub><var>j</var></sub><var>I</var>. <span class="cite">— Axler §7.B, p. 220</span></p>
+<p>That is the whole role of self-adjointness in the existence half: it turns the quadratic factors, which over <strong>R</strong> are exactly the obstruction, into invertible operators that cannot absorb the vector.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 7.28 (complements stay invariant).</strong> If <var>T</var> is self-adjoint and <var>U</var> is invariant under <var>T</var>, then <var>U</var><sup>⊥</sup> is invariant under <var>T</var>, and both <var>T</var>|<sub><var>U</var></sub> and <var>T</var>|<sub><var>U</var><sup>⊥</sup></sub> are self-adjoint. <span class="cite">— Axler §7.B, Theorem 7.28, p. 221</span>
+</div>
+
+<p>The proof of the first part is one line — for <var>v</var> ∈ <var>U</var><sup>⊥</sup> and <var>u</var> ∈ <var>U</var>, ⟨<var>Tv</var>, <var>u</var>⟩ = ⟨<var>v</var>, <var>Tu</var>⟩ = 0, since <var>Tu</var> ∈ <var>U</var> — and it is exactly what la-11's Example 5.15 showed can fail in general: there an invariant subspace had <em>no</em> invariant complement, and the decomposition programme stalled. Self-adjointness is what supplies one, and supplies it canonically. <span class="cite">— Axler §7.B, p. 221</span></p>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="theorem">
+<strong>Theorem 7.29 (Real Spectral Theorem).</strong> Suppose <strong>F</strong> = <strong>R</strong> and <var>T</var> ∈ ℒ(<var>V</var>). Then the following are equivalent: <var>T</var> is self-adjoint; <var>V</var> has an orthonormal basis consisting of eigenvectors of <var>T</var>; <var>T</var> has a diagonal matrix with respect to some orthonormal basis of <var>V</var>. <span class="cite">— Axler §7.B, Theorem 7.29, p. 221</span>
+</div>
+
+<div class="worked">
+<strong>Verdict: yes to both — and the two halves are the two halves of the proof.</strong>
+<p><em>(i) An eigenvalue exists.</em> Theorem 7.27, whose proof is la-12's polynomial argument with the irreducible quadratics neutralised by Theorem 7.26. So la-11's rotation is not a counterexample to anything here: it is not self-adjoint, its matrix being antisymmetric.</p>
+<p><em>(ii) Diagonalisable, and orthonormally.</em> Induct on dim <var>V</var>. Take a unit eigenvector <var>u</var> — Theorem 7.27 supplies one, and dividing by its norm makes it a unit vector — and set <var>U</var> = span(<var>u</var>), invariant and one-dimensional. Theorem 7.28 makes <var>T</var>|<sub><var>U</var><sup>⊥</sup></sub> self-adjoint on a space of dimension dim <var>V</var> − 1, so the induction hypothesis gives an orthonormal basis of <var>U</var><sup>⊥</sup> of eigenvectors. Adjoining <var>u</var> gives one for <var>V</var>. <span class="cite">— Axler §7.B, p. 222</span></p>
+<p>The reverse implication is the easy one and worth doing first: a diagonal real matrix equals its own transpose, so an operator diagonal in an orthonormal basis satisfies <var>T</var> = <var>T</var>*.</p>
+<p>What the theorem costs is worth stating. Every earlier unit is in the proof — la-03's squeeze bounds the list <var>v</var>, …, <var>T</var><sup><var>n</var></sup><var>v</var>; la-04 extends bases; la-08 turns injectivity into invertibility; la-12 supplies the polynomial argument; la-13 supplies Cauchy–Schwarz; la-14 supplies Riesz, which is what makes the adjoint exist at all. The Real Spectral Theorem is where the module's machinery is spent all at once.</p>
+</div>
+
+<h3>Canvas: a symmetric operator has perpendicular axes</h3>
+<p>The grey circle is the unit vectors of <strong>R</strong>²; the green curve is its image under a varying operator. When the matrix is <em>symmetric</em> the image is an ellipse whose axes (amber) are perpendicular — those axes are the orthonormal eigenvectors the theorem promises. Toggle to a non-symmetric matrix and the axes tilt out of square.</p>
+<canvas id="spec" width="440" height="330"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('spec'),ctx=cv.getContext('2d'),cx=220,cy=150,s=42;
+let t=0;
+function scr(p){return [cx+p[0]*s, cy-p[1]*s];}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const sym = (Math.floor(t/6)%2)===0;
+  const a=1.9, d=1.0, b=1.1*Math.sin(t*0.35), c= sym ? b : -b;
+  function map(p){return [a*p[0]+b*p[1], c*p[0]+d*p[1]];}
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;ctx.beginPath();
+  for(let k=0;k<=120;k++){const th=k/120*2*Math.PI,p=scr([Math.cos(th),Math.sin(th)]);
+    if(k===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1]);}
+  ctx.stroke();
+  ctx.strokeStyle='#4caf82';ctx.lineWidth=1.8;ctx.beginPath();
+  for(let k=0;k<=120;k++){const th=k/120*2*Math.PI,p=scr(map([Math.cos(th),Math.sin(th)]));
+    if(k===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1]);}
+  ctx.stroke();
+  // longest and shortest image directions, found by sampling
+  let lo=null,hi=null,rlo=1e9,rhi=-1;
+  for(let k=0;k<180;k++){
+    const th=k/180*Math.PI, q=map([Math.cos(th),Math.sin(th)]);
+    const r=Math.hypot(q[0],q[1]);
+    if(r>rhi){rhi=r;hi=th;} if(r<rlo){rlo=r;lo=th;}
+  }
+  [[hi,'#d8a657'],[lo,'#d8a657']].forEach(function(pair){
+    const th=pair[0], u=[Math.cos(th),Math.sin(th)];
+    const p0=scr([-2.6*u[0],-2.6*u[1]]), p1=scr([2.6*u[0],2.6*u[1]]);
+    ctx.strokeStyle=pair[1];ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+  });
+  const ang=Math.abs(((hi-lo)*180/Math.PI));
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText(sym?'symmetric matrix — self-adjoint':'non-symmetric matrix — not self-adjoint',220,296);
+  ctx.fillText('angle between the two axes: '+ang.toFixed(1)+'°',220,314);
+  ctx.textAlign='left';
+  t+=0.012;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="worked">
+<strong>Worked example — the theorem in three dimensions (fully worked).</strong> Let <var>T</var> on <strong>R</strong>³ have matrix with rows (14, −13, 8), (−13, 14, 8), (8, 8, −7) in the standard basis.
+<p>The matrix is symmetric and the standard basis is orthonormal, so <var>T</var> is self-adjoint by Theorem 7.10 and Definition 7.11, and Theorem 7.29 promises an orthonormal eigenbasis. It is (1, −1, 0)/√2, (1, 1, 1)/√3, (1, 1, −2)/√6, with respect to which <var>ℳ</var>(<var>T</var>) is diagonal with entries 27, 9, −15. <span class="cite">— Axler §7.B, Example 7.30, p. 222</span></p>
+<p>Once such a basis is known the operator is completely pinned down by it, and so is any operator built by prescribing values on it. <span class="cite">— Axler §3.A, Theorem 3.5, p. 54</span> That is what makes "define <var>S</var> on the eigenbasis" a construction rather than a wish, and this unit's problem set uses it to build a cube root.</p>
+<p>Two things to notice. The eigenvalues are real, as Theorem 7.13 requires. And the three eigenvectors are mutually orthogonal without being made so — they came out that way, which is the content of the theorem and not a feature of this example.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why is la-11's rotation <var>T</var>(<var>x</var>, <var>y</var>) = (−<var>y</var>, <var>x</var>) not a counterexample to Theorem 7.29?</p>
+<button onclick="check(this,true)" data-ok>It is not self-adjoint — its matrix is antisymmetric, not symmetric</button>
+<button onclick="check(this,false)">It is, and Theorem 7.29 requires <strong>F</strong> = <strong>C</strong></button>
+<button onclick="check(this,false)"><strong>R</strong>² is too small for the theorem to apply</button>
+<div class="explain">Its matrix in the standard orthonormal basis has rows (0, −1) and (1, 0), whose transpose has rows (0, 1) and (−1, 0) — so <var>T</var>* = −<var>T</var>, not <var>T</var>. Theorem 7.29 is stated for <strong>F</strong> = <strong>R</strong>, so the second option has it backwards, and the theorem holds in every finite dimension including 2.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where exactly does the proof of Theorem 7.29 use self-adjointness?</p>
+<button onclick="check(this,false)">Only once, to produce the first eigenvector</button>
+<button onclick="check(this,true)" data-ok>Twice: to produce an eigenvector, and to make the restriction to <var>U</var><sup>⊥</sup> self-adjoint so the induction can continue</button>
+<button onclick="check(this,false)">Nowhere in the induction — only in the base case</button>
+<div class="explain">Theorem 7.27 supplies the eigenvector, and Theorem 7.28 supplies the self-adjointness of <var>T</var>|<sub><var>U</var><sup>⊥</sup></sub> without which the induction hypothesis would not apply. Dropping the second use is the standard gap in this proof: la-11's Example 5.15 shows an invariant subspace need not have an invariant complement at all, so nothing about the restriction can be taken for granted.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Prove that every eigenvalue of a self-adjoint operator is real. (Let <var>Tv</var> = λ<var>v</var> with <var>v</var> ≠ 0, and compute ⟨<var>Tv</var>, <var>v</var>⟩ in two ways — once moving λ out of the first slot, once out of the second. Say where <var>v</var> ≠ 0 is used.) <span class="cite">— cf. Axler §7.A, Theorem 7.13, p. 210</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> Let <var>T</var> be self-adjoint, λ an eigenvalue, and <var>v</var> ≠ 0 with <var>Tv</var> = λ<var>v</var>. Then</p>
+<p style="text-align:center">λ‖<var>v</var>‖² = ⟨λ<var>v</var>, <var>v</var>⟩ = ⟨<var>Tv</var>, <var>v</var>⟩ = ⟨<var>v</var>, <var>Tv</var>⟩ = ⟨<var>v</var>, λ<var>v</var>⟩ = conj(λ)‖<var>v</var>‖².</p>
+<p>The third equality is self-adjointness; the last is la-13's second-slot conjugation. Since <var>v</var> ≠ 0, definiteness gives ‖<var>v</var>‖² ≠ 0, so it may be cancelled, leaving λ = conj(λ) — that is, λ is real. ∎</p>
+<p class="cite">Two remarks. The hypothesis <var>v</var> ≠ 0 is used exactly once, for the cancellation, and without it the chain would read 0 = 0 and prove nothing — which is also why Definition 5.5 insists an eigenvector be nonzero. And note that the statement is empty over <strong>R</strong>, where every scalar is real by definition; its content is entirely about <strong>C</strong>, and it is the sharpest form of the analogy between self-adjoint operators and real numbers.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>The <strong>adjoint</strong> <var>T</var>* is defined by ⟨<var>Tv</var>, <var>w</var>⟩ = ⟨<var>v</var>, <var>T</var>*<var>w</var>⟩ (Definition 7.2) and exists because Riesz says the functional <var>v</var> ↦ ⟨<var>Tv</var>, <var>w</var>⟩ has a unique representing vector. It is linear (7.5), reverses products (7.6), and with respect to an <em>orthonormal</em> basis its matrix is the conjugate transpose (7.10).</li>
+<li><strong>Self-adjoint</strong> means <var>T</var> = <var>T</var>* (Definition 7.11) — over <strong>R</strong>, a symmetric matrix in an orthonormal basis. The adjoint behaves like complex conjugation, so self-adjoint operators behave like real numbers: their eigenvalues are real (7.13). <strong>Normal</strong>, <var>TT</var>* = <var>T</var>*<var>T</var> (7.18), is strictly weaker and governs the complex case.</li>
+<li>The <strong>Real Spectral Theorem</strong> (7.29): over <strong>R</strong>, self-adjoint ⟺ an orthonormal basis of eigenvectors exists ⟺ a diagonal matrix in an orthonormal basis exists. The proof needs two things self-adjointness alone provides — an eigenvalue (7.27, via the invertibility of irreducible quadratics in <var>T</var>, 7.26) and an <em>invariant orthogonal complement</em> to induct into (7.28), which la-11 showed is not available in general.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §7.A "Self-Adjoint and Normal Operators": "Adjoints" (Definition 7.2, Example 7.3, Theorem 7.5, Theorem 7.6, Theorem 7.7, Definition 7.8 conjugate transpose, Theorem 7.10), pp. 204–208; "Self-Adjoint Operators" (Definition 7.11, Example 7.12, Theorem 7.13), pp. 209–210; "Normal Operators" (Definition 7.18, Example 7.19, Theorem 7.20), pp. 212–213. §7.B "The Spectral Theorem" (Theorem 7.24 Complex Spectral Theorem, Theorem 7.26, Theorem 7.27, Theorem 7.28, Theorem 7.29 Real Spectral Theorem, Example 7.30), pp. 218–222.
+<br>Builds on la-14: the Riesz Representation Theorem is Axler §6.B, Theorem 6.42, p. 188. Without it the adjoint could not be defined at all, since the definition asserts a vector rather than constructing one.
+<br>Builds also on la-13: the Cauchy-Schwarz Inequality is Axler §6.A, Theorem 6.15, p. 172. It is what completes the square in the quadratic argument above.
+<br>One ingredient comes from outside this module's declared sources: the orthogonal complement is Axler §6.C, Definition 6.45, p. 193, and the splitting it provides is §6.C, Theorem 6.47, p. 194.
+<br>Semester 1's linear algebra ends here. Axler continues with positive operators, the singular value decomposition, and generalised eigenvectors; the minimal polynomial, promised by la-12's title, is §8.C.
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
