@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-09 — Connectedness and the Cantor set</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Connectedness and the Cantor set <span class="cite">(an-09)</span></h1>
+
+<div class="hook">
+A set with zero length and uncountably many points.
+<p>Remove the middle third of [0, 1], then the middle third of each piece that remains, and repeat for ever. What is left has total length 0 — the removed pieces sum to exactly 1 — and yet it has as many points as ℝ itself, contains no interval whatsoever, and is compact.</p>
+<p>The Cantor set is the standing counterexample of this chapter: it separates properties that intuition bundles together. Alongside it this unit takes up connectedness, the last of the topological vocabulary, and the one that becomes the mission's zeroth Betti number.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Let <var>C</var> be the Cantor set: everything left in [0, 1] after removing middle thirds for ever. <strong>(i)</strong> Is <var>C</var> countable? <strong>(ii)</strong> Does <var>C</var> contain an interval (<var>a</var>, <var>b</var>) with <var>a</var> &lt; <var>b</var>?</p>
+<button onclick="check(this,false)">Countable, and contains no interval</button>
+<button onclick="check(this,true)" data-ok>Uncountable, and contains no interval</button>
+<button onclick="check(this,false)">Uncountable, and therefore contains some interval</button>
+<div class="explain">Uncountable and empty of intervals at once. The endpoints of the removed intervals are a countable set and they are <em>not</em> all of <var>C</var>: every sequence of zeros and ones names a point of <var>C</var>, and an-02 proved the set of such sequences uncountable. Meanwhile <var>C</var> ⊆ <var>C<sub>n</sub></var>, a union of intervals of length 3<sup>−<var>n</var></sup>, so no interval of positive length fits inside. Uncountability and containing an interval are unrelated, and this set is what proves it.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Connected components are H0 — the first Betti story.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The Cantor set, and perfect sets</h2>
+
+<p>The construction: <var>C</var>₀ = [0, 1]; <var>C</var>₁ = <var>C</var>₀ with the open middle third (1/3, 2/3) removed; <var>C</var>₂ removes the open middle third of each of the two pieces of <var>C</var>₁; and so on. Each <var>C<sub>n</sub></var> is a union of 2<sup><var>n</var></sup> closed intervals of length 1/3<sup><var>n</var></sup>, and <var>C</var> is the intersection of all of them. <span class="cite">— Abbott §3.1, p. 75</span></p>
+
+<p>Three properties follow almost immediately from earlier units, and it is worth naming which unit pays for each. <var>C</var> is closed, being an intersection of closed sets by an-07's Theorem 3.2.14. It is bounded, sitting inside [0, 1]. So it is compact by an-08's Theorem 3.3.4 — a compact set containing no interval, which is exactly the warning an-08 attached to closed intervals as an archetype. <span class="cite">— Abbott §3.3, Theorem 3.3.4, p. 84</span></p>
+
+<h3>Interactive visual: the construction, and what it leaves</h3>
+<p>Each row is a stage <var>C<sub>n</sub></var>. The total length shown at each stage is (2/3)<sup><var>n</var></sup>, which tends to 0; the number of intervals is 2<sup><var>n</var></sup>, which does not. The two numbers moving in opposite directions is the whole paradox.</p>
+<canvas id="cantorCanvas" width="640" height="270" role="img" aria-label="Successive stages of the Cantor set construction with total length and interval count"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('cantorCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height,L=30,R=W-30;
+let n=0,t=0;
+function stage(k){
+  let iv=[[0,1]];
+  for(let i=0;i<k;i++){
+    const next=[];
+    iv.forEach(function(p){
+      const a=p[0],b=p[1],third=(b-a)/3;
+      next.push([a,a+third]);next.push([b-third,b]);
+    });
+    iv=next;
+  }
+  return iv;
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  for(let k=0;k<=n;k++){
+    const y=44+k*22;
+    if(y>H-70)break;
+    ctx.strokeStyle=(k===n)?'#4caf82':'#8ab4f8';
+    ctx.lineWidth=(k===n)?6:5;
+    ctx.globalAlpha=(k===n)?1:0.5;
+    stage(k).forEach(function(p){
+      const x0=L+p[0]*(R-L),x1=L+p[1]*(R-L);
+      ctx.beginPath();ctx.moveTo(x0,y);ctx.lineTo(Math.max(x0+1,x1),y);ctx.stroke();
+    });
+    ctx.globalAlpha=1;
+    ctx.fillStyle='#9aa5b1';ctx.font='11px sans-serif';ctx.textAlign='right';
+    ctx.fillText('C'+k,L-6,y+4);
+  }
+  ctx.textAlign='center';ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';
+  ctx.fillText('stage '+n+':  '+Math.pow(2,n)+' interval'+(n===1?'':'s')+
+               ',  each of length 1/'+Math.pow(3,n)+
+               ',  total length '+Math.pow(2/3,n).toFixed(5),W/2,22);
+  ctx.fillText('length goes to 0; the number of pieces goes to infinity; the set that survives is uncountable',W/2,H-34);
+  ctx.fillText('every point of C is a limit of other points of C — no point of it is isolated',W/2,H-14);
+  ctx.textAlign='left';
+  t++; if(t%55===0){n++; if(n>7)n=0;}
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<p>The uncountability argument is worth carrying in full, because it is short. Each point of <var>C</var> is located by an infinite list of choices — at each stage, left piece or right piece — and every such list locates a point. So the points of <var>C</var> correspond exactly to the sequences of zeros and ones, and an-02 proved that set uncountable. The endpoints of the removed intervals form only a countable part of <var>C</var>; the rest is invisible to the construction's own bookkeeping. <span class="cite">— Abbott §3.1, p. 77</span></p>
+
+<div class="definition">
+<p><strong>Definition 3.4.1.</strong> A set <var>P</var> ⊆ ℝ is <em>perfect</em> if it is closed and contains no isolated points. <span class="cite">— Abbott §3.4, Definition 3.4.1, p. 89</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 3.4.2.</strong> <em>The Cantor set is perfect.</em> <span class="cite">— Abbott §3.4, Theorem 3.4.2, p. 89</span></p>
+</div>
+
+<p>Closedness is the intersection argument above. That no point is isolated takes an idea: given <var>x</var> ∈ <var>C</var>, at each stage <var>x</var> lies in one of the 2<sup><var>n</var></sup> intervals of <var>C<sub>n</sub></var>, and that interval has two endpoints, both in <var>C</var>. Take the one different from <var>x</var>. Those points converge to <var>x</var>, since they are within 3<sup>−<var>n</var></sup>, and they differ from <var>x</var>, so an-07's Definition 3.2.4 is satisfied. <span class="cite">— Abbott §3.4, p. 90</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 3.4.3.</strong> <em>A nonempty perfect set is uncountable.</em> <span class="cite">— Abbott §3.4, Theorem 3.4.3, p. 90</span></p>
+</div>
+
+<p>This gives a second and more structural proof that <var>C</var> is uncountable, and its method is worth more than its statement. Suppose <var>P</var> = {<var>x</var>₁, <var>x</var>₂, <var>x</var>₃, …} listed every element. Build nested closed intervals <var>I<sub>n</sub></var> with <var>x<sub>n</sub></var> ∉ <var>I</var><sub><var>n</var>+1</sub> and each <var>I<sub>n</sub></var> ∩ <var>P</var> nonempty — possible precisely because no point of <var>P</var> is isolated, so there is always another point of <var>P</var> nearby to build the next interval around. <span class="cite">— Abbott §3.4, p. 91</span></p>
+
+<p>Then <var>K<sub>n</sub></var> = <var>I<sub>n</sub></var> ∩ <var>P</var> is compact and nonempty and nested, so an-08's Theorem 3.3.5 puts a point in every one of them; that point is in <var>P</var> and is excluded from the list by construction. The contradiction is Cantor's diagonal argument from an-02 with an interval in place of a digit. <span class="cite">— Abbott §3.3, Theorem 3.3.5, p. 85</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> The endpoints of the removed intervals — 0, 1, 1/3, 2/3, 1/9, … — all belong to <var>C</var>. Do they exhaust it?</p>
+<button onclick="check(this,false)">Yes — nothing else survives every stage</button>
+<button onclick="check(this,true)" data-ok>No — they are countable and <var>C</var> is not</button>
+<button onclick="check(this,false)">Yes, provided you also include their limits</button>
+<div class="explain">The endpoints form a countable set: finitely many appear at each stage, and a countable union of finite sets is countable. Since <var>C</var> is uncountable, uncountably many of its points are never named as endpoints. The point 1/4 is one such: it survives every stage and is not an endpoint of any removed interval.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Is the closed interval [0, 1] perfect?</p>
+<button onclick="check(this,true)" data-ok>Yes — it is closed, and every one of its points is a limit of others in it</button>
+<button onclick="check(this,false)">No — perfect sets must have empty interior like <var>C</var></button>
+<button onclick="check(this,false)">No — its endpoints are isolated</button>
+<div class="explain">Definition 3.4.1 asks for closed and no isolated points, and nothing else. Endpoints are not isolated: every neighbourhood of 0 contains points of [0, 1] other than 0. So Theorem 3.4.3 also reproves that [0, 1] is uncountable — the same theorem covering a set with interior and one without.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Connectedness, and what a component is</h2>
+
+<div class="definition">
+<p><strong>Definition 3.4.4.</strong> Two nonempty sets <var>A</var>, <var>B</var> ⊆ ℝ are <em>separated</em> if <var>A</var>‾ ∩ <var>B</var> and <var>A</var> ∩ <var>B</var>‾ are both empty. A set <var>E</var> is <em>disconnected</em> if it can be written as <var>E</var> = <var>A</var> ∪ <var>B</var> with <var>A</var> and <var>B</var> separated, and <em>connected</em> otherwise. <span class="cite">— Abbott §3.4, Definition 3.4.4, p. 91</span></p>
+</div>
+
+<p>Separated is a stronger demand than disjoint, and the difference is the point. (1, 2) and (2, 5) are separated: neither contains a limit point of the other, so there is space between them even though they share the limit point 2. But (1, 2] and (2, 5) are disjoint and <em>not</em> separated, because 2 belongs to the first and is a limit point of the second. Splitting an interval always leaves the two halves touching somewhere. <span class="cite">— Abbott §3.4, p. 91</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 3.4.6.</strong> <em><var>E</var> ⊆ ℝ is connected if and only if, for all nonempty disjoint <var>A</var> and <var>B</var> with <var>E</var> = <var>A</var> ∪ <var>B</var>, there always exists a convergent sequence (<var>x<sub>n</sub></var>) → <var>x</var> with (<var>x<sub>n</sub></var>) contained in one of <var>A</var>, <var>B</var> and <var>x</var> an element of the other.</em> <span class="cite">— Abbott §3.4, Theorem 3.4.6, p. 92</span></p>
+</div>
+
+<p>This is an-07's Theorem 3.2.5 applied to Definition 3.4.4: "contains a limit point of the other" becomes "there is a sequence in one converging into the other". However you cut a connected set in two, the cut cannot be clean.</p>
+
+<div class="theorem">
+<p><strong>Theorem 3.4.7.</strong> <em><var>E</var> ⊆ ℝ is connected if and only if whenever <var>a</var> &lt; <var>c</var> &lt; <var>b</var> with <var>a</var>, <var>b</var> ∈ <var>E</var>, it follows that <var>c</var> ∈ <var>E</var>.</em> <span class="cite">— Abbott §3.4, Theorem 3.4.7, p. 92</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example — the forward direction (faded).</strong> Assume <var>E</var> is connected, let <var>a</var>, <var>b</var> ∈ <var>E</var> with <var>a</var> &lt; <var>c</var> &lt; <var>b</var>, and suppose for contradiction that <var>c</var> ∉ <var>E</var>. <span class="cite">— Abbott §3.4, p. 92</span></p>
+<p>Split <var>E</var> at the missing point: <var>A</var> = (−∞, <var>c</var>) ∩ <var>E</var> and <var>B</var> = (<var>c</var>, ∞) ∩ <var>E</var>. Neither is empty, since <var>a</var> ∈ <var>A</var> and <var>b</var> ∈ <var>B</var>. Neither contains a limit point of the other, because any such limit point would have to be <span class="gap">⟨your step: which single number?⟩</span>, which is in neither set.</p>
+<p>And <var>E</var> = <var>A</var> ∪ <var>B</var>, because the only element of <var>E</var> that could be missing from the union is <var>c</var>, and <var>c</var> ∉ <var>E</var> by assumption. So <var>E</var> is disconnected, contradicting the hypothesis. Hence <var>c</var> ∈ <var>E</var>. ∎</p>
+<p class="cite">Gap solution: <var>c</var> itself. A limit point of <var>A</var> is at most <var>c</var> and a limit point of <var>B</var> is at least <var>c</var>, so the only candidate for a shared boundary is <var>c</var> — and removing it is what let the split be clean.</p>
+</div>
+
+<p>So in ℝ the connected sets are exactly the intervals, unbounded ones included. That makes connectedness look like a small idea; it is not. Abbott notes that the concept earns its keep in the plane and higher dimensions, and the reason is that "no gaps in the ordering" is available only on a line while "cannot be split cleanly" makes sense anywhere. <span class="cite">— Abbott §3.4, p. 92</span></p>
+
+<p>For the mission, this is the first Betti number. A space breaks up into maximal connected pieces — its <em>components</em> — and counting them is counting zero-dimensional holes, the rank of <var>H</var>₀. When a filtration is built over a point cloud, the components merge as the radius grows, and the bars of the zeroth persistence diagram record exactly when two pieces that were separated in the sense of Definition 3.4.4 stop being so. Everything later in the mission is this idea in one dimension up.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Is the Cantor set connected?</p>
+<button onclick="check(this,false)">Yes — it is closed and bounded, and compact sets are connected</button>
+<button onclick="check(this,true)" data-ok>No — it contains 0 and 1 but not 1/2, so Theorem 3.4.7 fails</button>
+<button onclick="check(this,false)">Yes — it has no isolated points</button>
+<div class="explain">The first removal took out (1/3, 2/3), so 1/2 ∉ <var>C</var> while 0, 1 ∈ <var>C</var>. In fact <var>C</var> is <em>totally</em> disconnected: its only connected subsets are single points, since any two distinct points of <var>C</var> have a removed interval between them. Compactness and connectedness are independent properties, and <var>C</var> is the example that shows it.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Are the sets ℚ and its complement, the irrationals, separated in the sense of Definition 3.4.4?</p>
+<button onclick="check(this,false)">Yes — they are disjoint and neither contains the other's points</button>
+<button onclick="check(this,true)" data-ok>No — the closure of ℚ is all of ℝ, so it meets the irrationals everywhere</button>
+<button onclick="check(this,false)">Yes, since every rational is isolated from every irrational</button>
+<div class="explain">an-07's Theorem 3.2.10 gives ℚ‾ = ℝ, so ℚ‾ ∩ (irrationals) is the whole set of irrationals, not empty. Disjoint is easy; separated is hard. And it must be hard, or Theorem 3.4.7 would be false — ℝ = ℚ ∪ (irrationals) is a partition into two disjoint nonempty pieces, and ℝ is connected.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> A set has two connected components. What does that say about the zeroth Betti number of the space it models?</p>
+<button onclick="check(this,false)">It is 0, since there are no holes</button>
+<button onclick="check(this,true)" data-ok>It is 2 — the rank of <var>H</var>₀ counts connected components</button>
+<button onclick="check(this,false)">It is 1, since components are counted after merging</button>
+<div class="explain">Counting components is the zero-dimensional case of counting holes, and the mission's persistence bars in dimension 0 record when components merge as a filtration grows. The vocabulary of Definition 3.4.4 is what makes "component" a definition rather than a picture.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> A set <var>E</var> is <em>totally disconnected</em> if, given any two distinct points <var>x</var>, <var>y</var> ∈ <var>E</var>, there exist separated sets <var>A</var> and <var>B</var> with <var>x</var> ∈ <var>A</var>, <var>y</var> ∈ <var>B</var>, and <var>E</var> = <var>A</var> ∪ <var>B</var>. Show that ℚ is totally disconnected. <span class="cite">— Abbott §3.4, Exercise 3.4.8, p. 93</span> Then show the Cantor set is. <span class="cite">— Abbott §3.4, Exercise 3.4.9, p. 93</span></p>
+<p><em>Hint:</em> for ℚ, split at an irrational between <var>x</var> and <var>y</var>. For <var>C</var>, split at a point of a removed interval lying between them — and say why such a removed interval must exist.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove Theorem 3.4.6: <var>E</var> is connected if and only if, for every partition of <var>E</var> into nonempty disjoint <var>A</var> and <var>B</var>, some sequence in one of them converges to a point of the other. <em>Hint:</em> both directions are the contrapositive of Definition 3.4.4 read through an-07's Theorem 3.2.5. Work out first what "<var>A</var>‾ ∩ <var>B</var> is nonempty" says in the language of sequences, and mind the clause <var>a<sub>n</sub></var> ≠ <var>x</var> in that theorem. <span class="cite">— Abbott §3.4, Exercise 3.4.6, p. 93</span></p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Both directions rest on one translation. For disjoint <var>A</var> and <var>B</var>, the set <var>A</var>‾ ∩ <var>B</var> is nonempty exactly when some <var>x</var> ∈ <var>B</var> lies in <var>A</var>‾ = <var>A</var> ∪ <var>L</var>(<var>A</var>); since <var>A</var> and <var>B</var> are disjoint, <var>x</var> ∉ <var>A</var>, so <var>x</var> is a limit point of <var>A</var>. By an-07's Theorem 3.2.5 that is the same as saying some sequence in <var>A</var>, avoiding <var>x</var>, converges to <var>x</var> ∈ <var>B</var> — and it avoids <var>x</var> automatically, because it lies in <var>A</var> and <var>x</var> does not.</p>
+<p>(⇒) Assume <var>E</var> is connected and let <var>E</var> = <var>A</var> ∪ <var>B</var> with <var>A</var>, <var>B</var> nonempty and disjoint. If no sequence of the stated kind existed, then by the translation both <var>A</var>‾ ∩ <var>B</var> and <var>A</var> ∩ <var>B</var>‾ would be empty, making <var>A</var> and <var>B</var> separated and <var>E</var> disconnected — a contradiction.</p>
+<p>(⇐) Assume the sequence condition holds for every such partition, and suppose <var>E</var> were disconnected, say <var>E</var> = <var>A</var> ∪ <var>B</var> with <var>A</var>, <var>B</var> separated. Separated sets are in particular disjoint and nonempty, so the hypothesis gives a sequence in one converging to a point of the other; by the translation, that makes one of <var>A</var>‾ ∩ <var>B</var>, <var>A</var> ∩ <var>B</var>‾ nonempty, contradicting separation. So <var>E</var> is connected. ∎</p>
+<p><strong>Why the awkward clause is free here.</strong> Theorem 3.2.5 characterises limit points using sequences that avoid the point, which was a real nuisance in an-08's guided proof. Here disjointness supplies it at no cost: a sequence in <var>A</var> can never equal a point of <var>B</var>. Recognising when a hypothesis is automatically satisfied is as useful as knowing when it must be checked.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>The construction of <var>C</var>, the two numbers that move in opposite directions, and why <var>C</var> is compact.</li>
+<li>The correspondence between points of <var>C</var> and sequences of zeros and ones, and what an-02 then gives you.</li>
+<li>Why a nonempty perfect set is uncountable, and which earlier theorem produces the point missing from the list (Theorem 3.4.3).</li>
+<li>Separated versus disjoint, and the statement that the connected subsets of ℝ are exactly the intervals (Theorem 3.4.7).</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) 2<sup><var>n</var></sup> intervals of length 3<sup>−<var>n</var></sup>, closed and bounded; (2) left or right at every stage, and the set of such sequences is uncountable; (3) nested nonempty compact sets meet, and no isolated points is what keeps them nonempty; (4) (1,2] and (2,5) are disjoint and not separated — then you have the unit.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §3.1 "Discussion: The Cantor Set", the construction and its total length, p. 75; the correspondence with sequences of zeros and ones, and the dimension calculation, p. 77. §3.4 "Perfect Sets and Connected Sets" (Definition 3.4.1, Theorem 3.4.2), p. 89; (Theorem 3.4.3), p. 90; (Definition 3.4.4, Example 3.4.5), p. 91; (Theorem 3.4.6, Theorem 3.4.7), p. 92; (Exercise 3.4.6, Exercise 3.4.8, Exercise 3.4.9), p. 93.
+<br>Builds on an-07, whose Theorem 3.2.14 makes the Cantor set closed, whose Definition 3.2.4 is what "no isolated points" negates, whose Theorem 3.2.5 is the translation used in the guided proof, and whose Theorem 3.2.10 answers self-check 4 — Abbott §3.2, pp. 79, 81 and 82.
+<br>Builds on an-08, whose Theorem 3.3.4 makes the Cantor set compact and whose Theorem 3.3.5 supplies the point that breaks the list in Segment 1's uncountability proof — Abbott §3.3, pp. 84 and 85.
+<br>Builds on an-02, whose uncountability of the set of zero-one sequences is what makes the Cantor set large — Abbott §1.5, p. 30.
+<br>Deferred to an-11: the Intermediate Value Theorem, which is Theorem 3.4.7 combined with the fact that continuous images of connected sets are connected (Abbott §4.5).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
