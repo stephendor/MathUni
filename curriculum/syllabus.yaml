@@ -202,10 +202,10 @@ units:
     mission_link: "Spectral methods appear in Mapper and graph-based TDA."
   - id: la-12
     module: la
-    title: "Minimal polynomial and diagonalisability"
+    title: "Upper-triangular matrices and diagonalisability"
     prereqs: ["la-11"]
     resources: ["Axler 5B-5C"]
-    hook: "One polynomial that knows everything about your operator."
+    hook: "Every complex operator can be put in triangular form. Which ones go further, to diagonal?"
     mission_link: "Structure theorems here foreshadow persistence module decomposition."
   - id: la-13
     module: la
