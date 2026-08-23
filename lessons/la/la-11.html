@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-11 — Eigenvalues, eigenvectors, invariant subspaces</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Eigenvalues, eigenvectors, invariant subspaces <span class="cite">(la-11)</span></h1>
+
+<div class="hook">
+Directions a transformation cannot bend, only stretch.
+<p>An operator maps a space to itself, and the way to understand one is to break the space into pieces the operator preserves — subspaces it maps into themselves. Restricted to such a subspace the operator is still an operator, so every tool that needs a domain and codomain to coincide is still available, on a smaller space.</p>
+<p>The smallest interesting pieces are the one-dimensional ones, and a one-dimensional invariant subspace is exactly a direction that the operator only scales. The scale factor is an <strong>eigenvalue</strong>, the direction an <strong>eigenvector</strong>, and the whole of the rest of the module is about finding enough of them. They also come with a warning that this unit delivers early: whether they exist at all depends on the field, and the same operator can have none over <strong>R</strong> and a full complement over <strong>C</strong>.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Define <var>T</var> on <strong>F</strong>² by <var>T</var>(<var>w</var>, <var>z</var>) = (−<var>z</var>, <var>w</var>). Over <strong>R</strong> this is a 90° counterclockwise rotation of the plane. Does <var>T</var> have an eigenvalue when <strong>F</strong> = <strong>R</strong>? Does it when <strong>F</strong> = <strong>C</strong>? Commit to an answer for each — and note that <em>nothing about the formula changes</em> between the two cases. Only the scalars you are allowed to use do. The verdict arrives in Segment 2.
+</div>
+
+<p class="mission">Why this matters for the mission: Spectral methods appear in Mapper and graph-based TDA.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>Invariant subspaces</h2>
+
+<div class="definition">
+<strong>Definition 5.2 (invariant subspace).</strong> Suppose <var>T</var> ∈ ℒ(<var>V</var>). A subspace <var>U</var> of <var>V</var> is <em>invariant</em> under <var>T</var> if <var>u</var> ∈ <var>U</var> implies <var>Tu</var> ∈ <var>U</var> — equivalently, if <var>T</var>|<sub><var>U</var></sub> is an operator on <var>U</var>. <span class="cite">— Axler §5.A, Definition 5.2, p. 132</span>
+</div>
+
+<p>The motivation is worth stating before the examples. If <var>V</var> = <var>U</var>₁ ⊕ ⋯ ⊕ <var>U</var><sub><var>m</var></sub> then understanding <var>T</var> ought to reduce to understanding it on each piece — but only if each restriction is still an <em>operator</em>, so that powers <var>T</var>², <var>T</var>³ and the machinery of la-08 remain available. That is precisely what invariance buys, and it is why the definition is about mapping <var>U</var> into itself rather than merely somewhere. <span class="cite">— Axler §5.A, p. 132</span></p>
+
+<div class="worked">
+<strong>Worked example — four subspaces that are always invariant (fully worked).</strong> For any <var>T</var> ∈ ℒ(<var>V</var>):
+<p>{0}: if <var>u</var> ∈ {0} then <var>u</var> = 0 and <var>Tu</var> = 0 ∈ {0}. <var>V</var>: if <var>u</var> ∈ <var>V</var> then <var>Tu</var> ∈ <var>V</var>, since <var>T</var> maps into <var>V</var>. null <var>T</var>: if <var>Tu</var> = 0 then <var>Tu</var> = 0 ∈ null <var>T</var> — read that twice, the point being that 0 lies in every null space. range <var>T</var>: if <var>u</var> ∈ range <var>T</var> then <var>Tu</var> is an output of <var>T</var>, hence in range <var>T</var>, and the hypothesis on <var>u</var> is not even used. <span class="cite">— Axler §5.A, Example 5.3, pp. 132–133</span></p>
+<p>The two trivial ones, {0} and <var>V</var>, are invariant for every operator and tell you nothing. Whether <em>other</em> invariant subspaces must exist is a real question, and null <var>T</var> and range <var>T</var> do not settle it: when <var>T</var> is invertible they are {0} and <var>V</var> again. <span class="cite">— Axler §5.A, p. 133</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Contrast — an invariant subspace found by degree.</strong> Let <var>T</var> ∈ ℒ(𝒫(<strong>R</strong>)) be <var>Tp</var> = <var>p</var>′. Then 𝒫₄(<strong>R</strong>) is invariant under <var>T</var>, because differentiating a polynomial of degree at most 4 gives one of degree at most 4 — in fact of degree at most 3, which is more than invariance requires. <span class="cite">— Axler §5.A, Example 5.4, p. 133</span>
+<p>Note the shape of the check: identify a property that membership of the subspace is defined by, and show <var>T</var> preserves it. Every invariance proof in this unit's problem set has that form.</p>
+</div>
+
+<div class="heuristic">
+<strong>Why one dimension is the interesting case.</strong> Take <var>v</var> ≠ 0 and let <var>U</var> = span(<var>v</var>), a one-dimensional subspace — and every one-dimensional subspace arises this way. If <var>U</var> is invariant then <var>Tv</var> ∈ <var>U</var>, so <var>Tv</var> = λ<var>v</var> for some scalar λ. Conversely if <var>Tv</var> = λ<var>v</var> then span(<var>v</var>) is invariant. So <em><var>T</var> has a one-dimensional invariant subspace if and only if the equation <var>Tv</var> = λ<var>v</var> has a solution with <var>v</var> ≠ 0</em>, and that equation is what the next segment names. <span class="cite">— Axler §5.A, p. 133</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Is range <var>T</var> invariant under <var>T</var> for every operator <var>T</var>?</p>
+<button onclick="check(this,true)" data-ok>Yes, and the proof does not use any property of the vector chosen</button>
+<button onclick="check(this,false)">Only when <var>T</var> is injective</button>
+<button onclick="check(this,false)">Only when range <var>T</var> = <var>V</var></button>
+<div class="explain">If <var>u</var> ∈ range <var>T</var> then <var>Tu</var> is an output of <var>T</var> and so lies in range <var>T</var> — and the argument never used that <var>u</var> was in the range, only that it was in <var>V</var>. Invariance of the range is that cheap. The two conditions offered are irrelevant to it, though they do bear on whether the range is a <em>useful</em> invariant subspace: when <var>T</var> is invertible, range <var>T</var> = <var>V</var> and the information is vacuous.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Eigenvalues and eigenvectors</h2>
+
+<div class="definition">
+<strong>Definition 5.5 and Definition 5.7 (eigenvalue, eigenvector).</strong> For <var>T</var> ∈ ℒ(<var>V</var>), a scalar λ ∈ <strong>F</strong> is an <em>eigenvalue</em> of <var>T</var> if there is <var>v</var> ∈ <var>V</var> with <var>v</var> ≠ 0 and <var>Tv</var> = λ<var>v</var>; such a <var>v</var> is an <em>eigenvector</em> of <var>T</var> corresponding to λ. <span class="cite">— Axler §5.A, Definition 5.5 and Definition 5.7, p. 134</span>
+</div>
+
+<p>The clause <var>v</var> ≠ 0 is not decoration. <var>T</var>0 = λ0 holds for <em>every</em> scalar λ, so without it every scalar would be an eigenvalue of every operator and the definition would say nothing. Since <var>Tv</var> = λ<var>v</var> is the same equation as (<var>T</var> − λ<var>I</var>)<var>v</var> = 0, a nonzero <var>v</var> is an eigenvector for λ exactly when <var>v</var> ∈ null(<var>T</var> − λ<var>I</var>). <span class="cite">— Axler §5.A, pp. 134–135</span></p>
+
+<div class="theorem">
+<strong>Theorem 5.6 (equivalent conditions).</strong> Suppose <var>V</var> is finite-dimensional, <var>T</var> ∈ ℒ(<var>V</var>) and λ ∈ <strong>F</strong>. Then these are equivalent: λ is an eigenvalue of <var>T</var>; <var>T</var> − λ<var>I</var> is not injective; <var>T</var> − λ<var>I</var> is not surjective; <var>T</var> − λ<var>I</var> is not invertible. <span class="cite">— Axler §5.A, Theorem 5.6, p. 134</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true — and where the hypothesis is spent.</strong> The first two are equivalent by rewriting: <var>Tv</var> = λ<var>v</var> with <var>v</var> ≠ 0 says exactly that null(<var>T</var> − λ<var>I</var>) contains a nonzero vector, which by la-06's Theorem 3.16 is failure of injectivity. No finiteness is needed for that.
+<p>The remaining equivalences are la-08's Theorem 3.69 verbatim — for an operator on a finite-dimensional space, injective, surjective and invertible coincide. <span class="cite">— Axler §3.D, Theorem 3.69, p. 87</span> That is the only place dim <var>V</var> &lt; ∞ is used, and it is why the theorem states the hypothesis. The practical value is the third condition: "λ is an eigenvalue" becomes "<var>T</var> − λ<var>I</var> is singular", which is what every computational method actually tests. <span class="cite">— Axler §5.A, p. 134</span></p>
+</div>
+
+<h3>Canvas: most directions bend, a few only stretch</h3>
+<p>The grey circle is the set of unit vectors; the green curve is its image under a varying operator <var>T</var> on <strong>R</strong>². A vector and its image are drawn as it sweeps round. When the two are parallel — the image lying along the same line through the origin — the vector is an eigenvector and the pair is highlighted amber.</p>
+<canvas id="eig" width="440" height="320"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('eig'),ctx=cv.getContext('2d'),cx=220,cy=150,s=46;
+let t=0;
+function scr(p){return [cx+p[0]*s, cy-p[1]*s];}
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  const a=1.6, b=0.7+0.6*Math.sin(t*0.3), c=0.4, d=1.0;
+  function map(p){return [a*p[0]+b*p[1], c*p[0]+d*p[1]];}
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  ctx.beginPath();
+  for(let k=0;k<=90;k++){const th=k/90*2*Math.PI,p=scr([Math.cos(th),Math.sin(th)]);
+    if(k===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1]);}
+  ctx.stroke();
+  ctx.strokeStyle='#4caf82';ctx.lineWidth=1.6;
+  ctx.beginPath();
+  for(let k=0;k<=90;k++){const th=k/90*2*Math.PI,p=scr(map([Math.cos(th),Math.sin(th)]));
+    if(k===0)ctx.moveTo(p[0],p[1]);else ctx.lineTo(p[0],p[1]);}
+  ctx.stroke();
+  const th=t, v=[Math.cos(th),Math.sin(th)], w=map(v);
+  const cross=Math.abs(v[0]*w[1]-v[1]*w[0]);
+  const aligned=cross<0.035;
+  const col=aligned?'#d8a657':'#8ab4f8';
+  const o=scr([0,0]),pv=scr(v),pw=scr(w);
+  ctx.strokeStyle='#8ab4f8';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(o[0],o[1]);ctx.lineTo(pv[0],pv[1]);ctx.stroke();
+  ctx.strokeStyle=col;ctx.lineWidth=aligned?3.4:2;
+  ctx.beginPath();ctx.moveTo(o[0],o[1]);ctx.lineTo(pw[0],pw[1]);ctx.stroke();
+  ctx.fillStyle=col;ctx.beginPath();ctx.arc(pw[0],pw[1],4,0,7);ctx.fill();
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText(aligned?'Tv is parallel to v — v is an eigenvector'
+                     :'Tv points somewhere else — v is not an eigenvector',220,294);
+  ctx.fillText('grey: unit vectors   green: their images under T',220,312);
+  ctx.textAlign='left';
+  t+=0.008;
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="worked">
+<strong>Verdict: no eigenvalues over <strong>R</strong>, two of them over <strong>C</strong>.</strong> With <var>T</var>(<var>w</var>, <var>z</var>) = (−<var>z</var>, <var>w</var>):
+<p><em>Over <strong>R</strong>.</em> <var>T</var> rotates the plane by 90° counterclockwise. A nonzero vector and its 90° rotation are never parallel, so <var>Tv</var> is never a scalar multiple of <var>v</var>, and <var>T</var> has no eigenvalues and no eigenvectors at all.</p>
+<p><em>Over <strong>C</strong>.</em> Solve honestly. <var>T</var>(<var>w</var>, <var>z</var>) = λ(<var>w</var>, <var>z</var>) means −<var>z</var> = λ<var>w</var> and <var>w</var> = λ<var>z</var>. Substituting the second into the first gives −<var>z</var> = λ²<var>z</var>. Here <var>z</var> ≠ 0 — if <var>z</var> were 0 the second equation would force <var>w</var> = 0 and we are looking for a nonzero vector — so λ² = −1, giving λ = <var>i</var> and λ = −<var>i</var>. The eigenvectors for <var>i</var> are the (<var>w</var>, −<var>wi</var>) with <var>w</var> ≠ 0, and for −<var>i</var> the (<var>w</var>, <var>wi</var>) with <var>w</var> ≠ 0. <span class="cite">— Axler §5.A, Example 5.8, p. 135</span></p>
+<p>Nothing about the operator changed. The rotation still rotates; over <strong>C</strong> there are simply more scalars available, and multiplication by <var>i</var> <em>is</em> a rotation by 90° in the complex plane, so the "impossible" scaling becomes possible. This is the third time the field has decided an answer — la-04's dim<sub><strong>R</strong></sub><strong>C</strong> = 2 against dim<sub><strong>C</strong></sub><strong>C</strong> = 1, la-05's conjugation, and now this — and it is the reason Axler's later chapters split into a complex case and a real case.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 5.10 and Theorem 5.13 (distinct eigenvalues, independent eigenvectors).</strong> Eigenvectors corresponding to distinct eigenvalues are linearly independent. Consequently, if <var>V</var> is finite-dimensional then each operator on <var>V</var> has at most dim <var>V</var> distinct eigenvalues. <span class="cite">— Axler §5.A, Theorem 5.10 and Theorem 5.13, p. 136</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof).</strong> Suppose <var>v</var>₁, …, <var>v</var><sub><var>m</var></sub> were dependent. By la-03's Linear Dependence Lemma there is a smallest <var>k</var> with <var>v</var><sub><var>k</var></sub> ∈ span(<var>v</var>₁, …, <var>v</var><sub><var>k</var>−1</sub>), say <var>v</var><sub><var>k</var></sub> = <var>a</var>₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>k</var>−1</sub><var>v</var><sub><var>k</var>−1</sub>.
+<p>Apply <var>T</var>: λ<sub><var>k</var></sub><var>v</var><sub><var>k</var></sub> = <var>a</var>₁λ₁<var>v</var>₁ + ⋯ + <var>a</var><sub><var>k</var>−1</sub>λ<sub><var>k</var>−1</sub><var>v</var><sub><var>k</var>−1</sub>. Multiply the previous line by λ<sub><var>k</var></sub> instead and subtract: 0 = <var>a</var>₁(λ<sub><var>k</var></sub> − λ₁)<var>v</var>₁ + ⋯ + <var>a</var><sub><var>k</var>−1</sub>(λ<sub><var>k</var></sub> − λ<sub><var>k</var>−1</sub>)<var>v</var><sub><var>k</var>−1</sub>. Minimality of <var>k</var> makes <var>v</var>₁, …, <var>v</var><sub><var>k</var>−1</sub> independent, so every coefficient vanishes; the λ differences are nonzero because the eigenvalues are distinct, so every <var>a</var><sub><var>j</var></sub> = 0 — which makes <var>v</var><sub><var>k</var></sub> = 0, contradicting that it is an eigenvector. <span class="cite">— Axler §5.A, p. 136</span></p>
+<p>Two devices worth keeping. <em>Subtracting two expressions for the same vector</em> to cancel the awkward term is the same move la-03 used to derive independence from uniqueness. And Theorem 5.13 is then immediate: independent lists cannot exceed dim <var>V</var> by la-03's Theorem 2.23, so there cannot be more than dim <var>V</var> distinct eigenvalues. <span class="cite">— Axler §2.A, Theorem 2.23, p. 35</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> An operator on a 4-dimensional space has eigenvalues 1, 2, 3, 4 and 5. What can you conclude?</p>
+<button onclick="check(this,true)" data-ok>No such operator exists — five distinct eigenvalues need dimension at least 5</button>
+<button onclick="check(this,false)">It is invertible, since 0 is not among them</button>
+<button onclick="check(this,false)">It is diagonalisable, having the maximum number of eigenvalues</button>
+<div class="explain">Theorem 5.13 caps the number of distinct eigenvalues at dim <var>V</var> = 4, so the situation described cannot occur. The other options answer questions about a situation that does not exist — always check the hypotheses are satisfiable before reasoning from them.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Definition 5.5 insist that <var>v</var> ≠ 0?</p>
+<button onclick="check(this,false)">To ensure λ ≠ 0</button>
+<button onclick="check(this,true)" data-ok>Because <var>T</var>0 = λ0 for every λ, so without it every scalar would be an eigenvalue of every operator</button>
+<button onclick="check(this,false)">Because 0 is not in any invariant subspace</button>
+<div class="explain">The zero vector satisfies the eigenvalue equation for every scalar at once, so admitting it would make the definition vacuous. Note that 0 may perfectly well <em>be</em> an eigenvalue — it is one exactly when <var>T</var> is not injective — which is why the first option is wrong. The third is false twice over: 0 belongs to every subspace, invariant or not.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Restriction and quotient operators</h2>
+
+<div class="definition">
+<strong>Definition 5.14 (<var>T</var>|<sub><var>U</var></sub> and <var>T</var>/<var>U</var>).</strong> Suppose <var>T</var> ∈ ℒ(<var>V</var>) and <var>U</var> is invariant under <var>T</var>. The <em>restriction operator</em> <var>T</var>|<sub><var>U</var></sub> ∈ ℒ(<var>U</var>) is <var>T</var>|<sub><var>U</var></sub>(<var>u</var>) = <var>Tu</var>, and the <em>quotient operator</em> <var>T</var>/<var>U</var> ∈ ℒ(<var>V</var>/<var>U</var>) is (<var>T</var>/<var>U</var>)(<var>v</var> + <var>U</var>) = <var>Tv</var> + <var>U</var>. <span class="cite">— Axler §5.A, Definition 5.14, p. 137</span>
+</div>
+
+<div class="worked fade">
+<strong>Where invariance is spent — twice, differently.</strong> For the restriction, invariance is what makes <var>T</var>|<sub><var>U</var></sub> land in <var>U</var> rather than merely in <var>V</var>, so that it is an operator on <var>U</var> and not just a linear map out of it. Nothing else is needed.
+<p>For the quotient, invariance is what makes the formula well defined. Suppose <var>v</var> + <var>U</var> = <var>w</var> + <var>U</var>; then <var>v</var> − <var>w</var> ∈ <var>U</var> by la-09's Theorem 3.85, so <var>T</var>(<var>v</var> − <var>w</var>) ∈ <var>U</var> <em>because <var>U</var> is invariant</em>, hence <var>Tv</var> − <var>Tw</var> ∈ <var>U</var> and <var>Tv</var> + <var>U</var> = <var>Tw</var> + <var>U</var>. <span class="cite">— Axler §3.E, Theorem 3.85, p. 95</span> Without invariance the recipe would give different answers for different representatives — the same representative-independence obligation la-09 met, now with an extra hypothesis to discharge it. <span class="cite">— Axler §5.A, p. 137</span></p>
+</div>
+
+<div class="worked">
+<strong>Worked example — when the two pieces tell you nothing (fully worked).</strong> Define <var>T</var> ∈ ℒ(<strong>F</strong>²) by <var>T</var>(<var>x</var>, <var>y</var>) = (<var>y</var>, 0), and let <var>U</var> = {(<var>x</var>, 0) : <var>x</var> ∈ <strong>F</strong>}.
+<p>(a) <var>T</var>(<var>x</var>, 0) = (0, 0) ∈ <var>U</var>, so <var>U</var> is invariant and <var>T</var>|<sub><var>U</var></sub> is the zero operator on <var>U</var>.</p>
+<p>(b) There is <em>no</em> subspace <var>W</var> invariant under <var>T</var> with <strong>F</strong>² = <var>U</var> ⊕ <var>W</var>. Such a <var>W</var> would have dim <var>W</var> = 1, so every nonzero vector in it would be an eigenvector of <var>T</var>. But the only eigenvalue of <var>T</var> is 0 and every eigenvector lies in <var>U</var>, so no one-dimensional invariant <var>W</var> can avoid <var>U</var>.</p>
+<p>(c) (<var>T</var>/<var>U</var>)((<var>x</var>, <var>y</var>) + <var>U</var>) = (<var>y</var>, 0) + <var>U</var> = 0 + <var>U</var>, since (<var>y</var>, 0) ∈ <var>U</var>. So <var>T</var>/<var>U</var> is the zero operator too. <span class="cite">— Axler §5.A, Example 5.15, p. 138</span></p>
+<p>Both pieces are zero and <var>T</var> is not. The moral is a caution against the programme the segment opened with: decomposing along an invariant subspace does not always decompose the operator, because the invariant subspace need not have an invariant complement. Repairing that is what Axler's later chapters spend their effort on.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> <var>U</var> is invariant under <var>T</var>. What makes (<var>T</var>/<var>U</var>)(<var>v</var> + <var>U</var>) = <var>Tv</var> + <var>U</var> a legitimate definition?</p>
+<button onclick="check(this,false)">Nothing needs checking — the formula is the only sensible one</button>
+<button onclick="check(this,true)" data-ok>Invariance of <var>U</var>, which makes the answer independent of the representative <var>v</var></button>
+<button onclick="check(this,false)">Linearity of <var>T</var> alone</button>
+<div class="explain">A coset has many representatives, so the formula must be shown to give the same coset for all of them — and the step <var>T</var>(<var>v</var> − <var>w</var>) ∈ <var>U</var> needs exactly that <var>U</var> is invariant. Linearity alone gives <var>Tv</var> − <var>Tw</var> = <var>T</var>(<var>v</var> − <var>w</var>) but says nothing about where that lands. This is la-09's well-definedness obligation with one more hypothesis in play.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In Example 5.15 both <var>T</var>|<sub><var>U</var></sub> and <var>T</var>/<var>U</var> are the zero operator, yet <var>T</var> ≠ 0. What does that show?</p>
+<button onclick="check(this,false)">That the definitions of restriction and quotient are flawed</button>
+<button onclick="check(this,true)" data-ok>That knowing an operator on an invariant subspace and on the quotient does not determine it</button>
+<button onclick="check(this,false)">That <var>U</var> was not really invariant</button>
+<div class="explain">Both operators are correctly defined and correctly computed; the pair simply loses information, because <var>T</var> also moves vectors <em>from</em> outside <var>U</var> <em>into</em> <var>U</var>, and neither piece records that. Part (b) of the example is the underlying obstruction: <var>U</var> has no invariant complement, so the decomposition the segment hoped for is unavailable.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>S</var>, <var>T</var> ∈ ℒ(<var>V</var>) satisfy <var>ST</var> = <var>TS</var>. Prove that null <var>S</var> is invariant under <var>T</var>. (Take <var>u</var> ∈ null <var>S</var> and ask what must be shown; then find the one place the hypothesis can be applied.) <span class="cite">— cf. Axler §5.A, Exercise 2, p. 138</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> Let <var>u</var> ∈ null <var>S</var>, so <var>Su</var> = 0. To show null <var>S</var> is invariant under <var>T</var> we must show <var>Tu</var> ∈ null <var>S</var>, that is, <var>S</var>(<var>Tu</var>) = 0. Now</p>
+<p style="text-align:center"><var>S</var>(<var>Tu</var>) = (<var>ST</var>)<var>u</var> = (<var>TS</var>)<var>u</var> = <var>T</var>(<var>Su</var>) = <var>T</var>0 = 0,</p>
+<p>using the hypothesis at the second equality and la-05's Theorem 3.11 at the last. So <var>Tu</var> ∈ null <var>S</var>, and null <var>S</var> is invariant under <var>T</var>. ∎</p>
+<p class="cite">Two things to notice. The proof is symmetric in <var>S</var> and <var>T</var> only in appearance: it shows null <var>S</var> is invariant under <var>T</var>, and swapping the names gives that null <var>T</var> is invariant under <var>S</var> — two different statements from one hypothesis. And the same three-step computation, with range in place of null, is a problem in this unit's set; the difference is that a range membership must be <em>produced</em> rather than assumed, exactly as in la-06.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>A subspace is <strong>invariant</strong> under <var>T</var> when <var>T</var> maps it into itself (Definition 5.2), which is what makes the restriction an <em>operator</em> and keeps la-08's machinery available. {0}, <var>V</var>, null <var>T</var> and range <var>T</var> always qualify (Example 5.3), and the first two say nothing while the other two can collapse to them.</li>
+<li>A <strong>one-dimensional</strong> invariant subspace is exactly a solution of <var>Tv</var> = λ<var>v</var> with <var>v</var> ≠ 0 — an <strong>eigenvalue</strong> and <strong>eigenvector</strong> (Definitions 5.5, 5.7). Equivalently <var>T</var> − λ<var>I</var> fails to be injective, surjective, or invertible, these being the same failure in finite dimensions (Theorem 5.6). Eigenvectors for distinct eigenvalues are independent (Theorem 5.10), capping the number of distinct eigenvalues at dim <var>V</var> (Theorem 5.13). <strong>Existence depends on the field</strong>: the 90° rotation has none over <strong>R</strong> and two over <strong>C</strong>.</li>
+<li>An invariant <var>U</var> yields two smaller operators, <var>T</var>|<sub><var>U</var></sub> and <var>T</var>/<var>U</var> (Definition 5.14) — invariance making the first land in <var>U</var> and the second well defined on cosets. But the pair need not determine <var>T</var>: Example 5.15 has both zero with <var>T</var> ≠ 0, because <var>U</var> has no invariant complement.</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §5.A "Invariant Subspaces": "Invariant Subspaces" (Definition 5.2, Example 5.3, Example 5.4), pp. 132–133; "Eigenvalues and Eigenvectors" (Definition 5.5 eigenvalue, Theorem 5.6 equivalent conditions, Definition 5.7 eigenvector, Example 5.8, Theorem 5.10 independent eigenvectors, Theorem 5.13 number of eigenvalues), pp. 134–136; "Restriction and Quotient Operators" (Definition 5.14, Example 5.15), pp. 137–138; §5.A, Exercise 2, p. 138.
+<br>Builds on la-08, whose Theorem 3.69 collapses injectivity, surjectivity and invertibility for an operator in finite dimensions — Axler §3.D, p. 87. That single result is the whole of this unit's equivalent-conditions theorem beyond its first clause.
+<br>Builds also on la-03: the Linear Dependence Lemma is Axler §2.A, Lemma 2.21, p. 34. It is what drives the proof that eigenvectors for distinct eigenvalues are independent.
+<br>Deferred to la-12: polynomials applied to operators, and diagonalisability (Axler §5.B–5.C).
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
