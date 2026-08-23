@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-11 — Continuity on compact sets; IVT and EVT</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Continuity on compact sets; IVT and EVT <span class="cite">(an-11)</span></h1>
+
+<div class="hook">
+Why continuous images of compact sets can't misbehave.
+<p>an-10 gave you continuity and warned that images are less well behaved than preimages: a continuous function can send an open set to a set that is not open, and a closed set to one that is not closed. This unit finds the two properties that <em>are</em> preserved, and they are the two an-08 and an-09 spent their time on.</p>
+<p>The consequences are the theorems everyone remembers from calculus, now with hypotheses that can be checked. A continuous function on a compact set attains its maximum; a continuous function on an interval takes every intermediate value. Both are corollaries of one preservation statement each, and the hypotheses are exactly what the counterexamples require.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Recall that continuity at each point allows &delta; to depend on the point as well as on &epsilon;; <em>uniform</em> continuity demands one &delta; that works at every point of the domain at once. <strong>(i)</strong> Is <var>g</var>(<var>x</var>) = <var>x</var>² uniformly continuous on ℝ? <strong>(ii)</strong> Is it uniformly continuous on [−10, 10]?</p>
+<button onclick="check(this,false)">Yes to both — it is continuous everywhere, and uniform continuity is the same thing</button>
+<button onclick="check(this,true)" data-ok>No to (i), yes to (ii)</button>
+<button onclick="check(this,false)">No to both — only linear functions are uniformly continuous</button>
+<div class="explain">On ℝ, take <var>x<sub>n</sub></var> = <var>n</var> and <var>y<sub>n</sub></var> = <var>n</var> + 1/<var>n</var>. Then |<var>x<sub>n</sub></var> − <var>y<sub>n</sub></var>| → 0 while |<var>x<sub>n</sub></var>² − <var>y<sub>n</sub></var>²| = 2 + 1/<var>n</var>² stays above 2, so no single &delta; can serve. On [−10, 10] the estimate |<var>x</var>² − <var>y</var>²| = |<var>x</var> − <var>y</var>||<var>x</var> + <var>y</var>| ≤ 20|<var>x</var> − <var>y</var>| gives &delta; = &epsilon;/20 for every point at once. The difference is the domain, not the function — and Theorem 4.4.8 will show that compactness of the domain is what makes the difference disappear.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Filtration functions on compact spaces attain their bounds.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>What a continuous function does to a compact set</h2>
+
+<p>Start with what fails, since it explains the shape of what follows. If <var>f</var>(<var>x</var>) = <var>x</var>² and <var>A</var> = (−1, 1), then <var>f</var>(<var>A</var>) = [0, 1), so open sets need not map to open sets. If <var>g</var>(<var>x</var>) = 1/(1 + <var>x</var>²) and <var>A</var> = [0, ∞), then <var>g</var>(<var>A</var>) = (0, 1], so closed sets need not map to closed sets — and note the counterexample needed an <em>unbounded</em> closed set. <span class="cite">— Abbott §4.4, p. 115</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 4.4.2 (Preservation of Compact Sets).</strong> <em>Let <var>f</var> : <var>A</var> → ℝ be continuous on <var>A</var>. If <var>K</var> ⊆ <var>A</var> is compact, then <var>f</var>(<var>K</var>) is compact.</em> <span class="cite">— Abbott §4.4, Theorem 4.4.2, p. 115</span></p>
+</div>
+
+<p>The proof is a paragraph and every step has been prepared. Take a sequence (<var>y<sub>n</sub></var>) in <var>f</var>(<var>K</var>); each <var>y<sub>n</sub></var> = <var>f</var>(<var>x<sub>n</sub></var>) for some <var>x<sub>n</sub></var> ∈ <var>K</var>. Compactness of <var>K</var> gives a subsequence (<var>x</var><sub><var>n<sub>k</sub></var></sub>) → <var>x</var> ∈ <var>K</var>; continuity in the form of an-10's Theorem 4.3.2(iv) gives <var>f</var>(<var>x</var><sub><var>n<sub>k</sub></var></sub>) → <var>f</var>(<var>x</var>); and <var>f</var>(<var>x</var>) ∈ <var>f</var>(<var>K</var>). So an arbitrary sequence in <var>f</var>(<var>K</var>) has a subsequence converging inside <var>f</var>(<var>K</var>), which is an-08's Definition 3.3.1. <span class="cite">— Abbott §3.3, Definition 3.3.1, p. 84</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 4.4.3 (Extreme Value Theorem).</strong> <em>If <var>f</var> : <var>K</var> → ℝ is continuous on a compact set <var>K</var>, then <var>f</var> attains a maximum and a minimum: there exist <var>x</var>₀, <var>x</var>₁ ∈ <var>K</var> with <var>f</var>(<var>x</var>₀) ≤ <var>f</var>(<var>x</var>) ≤ <var>f</var>(<var>x</var>₁) for all <var>x</var> ∈ <var>K</var>.</em> <span class="cite">— Abbott §4.4, Theorem 4.4.3, p. 115</span></p>
+</div>
+
+<p>Abbott leaves this as Exercise 4.4.3, and once Theorem 4.4.2 is in hand it is three lines: <var>f</var>(<var>K</var>) is compact, so it is closed and bounded, so it has a supremum which — being a closed set's supremum — belongs to it, and anything in <var>f</var>(<var>K</var>) is a value of <var>f</var>. Every word of that sentence is an earlier unit. <span class="cite">— Abbott §4.4, Exercise 4.4.3, p. 119</span></p>
+
+<p>It is worth saying plainly why this is the theorem the mission needs. A filtration function on a point cloud is continuous on a compact set, and the Extreme Value Theorem is what guarantees the filtration has a largest and smallest value that are actually attained — so the barcode has finite endpoints rather than suprema that are approached and never reached.</p>
+
+<div class="definition">
+<p><strong>Definition 4.4.5.</strong> A function <var>f</var> : <var>A</var> → ℝ is <em>uniformly continuous on <var>A</var></em> if for every &epsilon; &gt; 0 there exists a &delta; &gt; 0 such that |<var>x</var> − <var>y</var>| &lt; &delta; implies |<var>f</var>(<var>x</var>) − <var>f</var>(<var>y</var>)| &lt; &epsilon;. <span class="cite">— Abbott §4.4, Definition 4.4.5, p. 116</span></p>
+</div>
+
+<p>Compare with an-10's Definition 4.3.1 and exactly one thing has moved: there, the point <var>c</var> was fixed before &epsilon; was chosen, so &delta; could depend on both; here <var>x</var> and <var>y</var> are quantified <em>after</em> &delta;, so &delta; may depend only on &epsilon;. Uniform continuity is also a property of a <em>domain</em>, never of a point — the prediction gate's function is the same function in both halves. <span class="cite">— Abbott §4.4, p. 117</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 4.4.6 (Sequential Criterion for Nonuniform Continuity).</strong> <em><var>f</var> fails to be uniformly continuous on <var>A</var> if there exist &epsilon;₀ &gt; 0 and two sequences (<var>x<sub>n</sub></var>), (<var>y<sub>n</sub></var>) in <var>A</var> with |<var>x<sub>n</sub></var> − <var>y<sub>n</sub></var>| → 0 and |<var>f</var>(<var>x<sub>n</sub></var>) − <var>f</var>(<var>y<sub>n</sub></var>)| ≥ &epsilon;₀.</em> <span class="cite">— Abbott §4.4, Theorem 4.4.6, p. 117</span></p>
+</div>
+
+<p>This is the tool the prediction gate used, and Abbott's other instance is worth having: <var>h</var>(<var>x</var>) = sin(1/<var>x</var>) on (0, 1), with <var>x<sub>n</sub></var> = 1/(π/2 + 2<var>n</var>π) and <var>y<sub>n</sub></var> = 1/(3π/2 + 2<var>n</var>π), where the inputs close up and the outputs stay 2 apart. Note the domain is bounded here — so boundedness alone is not what buys uniform continuity. <span class="cite">— Abbott §4.4, p. 118</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 4.4.8.</strong> <em>A function that is continuous on a compact set <var>K</var> is uniformly continuous on <var>K</var>.</em> <span class="cite">— Abbott §4.4, Theorem 4.4.8, p. 118</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example — the proof of Theorem 4.4.8 (faded).</strong> <span class="cite">— Abbott §4.4, p. 118</span></p>
+<p>Suppose <var>f</var> is continuous on the compact <var>K</var> but not uniformly continuous. Theorem 4.4.6 gives &epsilon;₀ &gt; 0 and sequences (<var>x<sub>n</sub></var>), (<var>y<sub>n</sub></var>) in <var>K</var> with |<var>x<sub>n</sub></var> − <var>y<sub>n</sub></var>| → 0 and |<var>f</var>(<var>x<sub>n</sub></var>) − <var>f</var>(<var>y<sub>n</sub></var>)| ≥ &epsilon;₀ for every <var>n</var>.</p>
+<p>Because <var>K</var> is compact, <span class="gap">⟨your step: what does that give you about (<var>x<sub>n</sub></var>)?⟩</span>, say (<var>x</var><sub><var>n<sub>k</sub></var></sub>) → <var>x</var> ∈ <var>K</var>. Since |<var>x<sub>n</sub></var> − <var>y<sub>n</sub></var>| → 0, the matching terms (<var>y</var><sub><var>n<sub>k</sub></var></sub>) converge to the same <var>x</var>, by an-03's Algebraic Limit Theorem applied to <var>y</var><sub><var>n<sub>k</sub></var></sub> = <var>x</var><sub><var>n<sub>k</sub></var></sub> + (<var>y</var><sub><var>n<sub>k</sub></var></sub> − <var>x</var><sub><var>n<sub>k</sub></var></sub>).</p>
+<p>Continuity at <var>x</var> now gives <var>f</var>(<var>x</var><sub><var>n<sub>k</sub></var></sub>) → <var>f</var>(<var>x</var>) and <var>f</var>(<var>y</var><sub><var>n<sub>k</sub></var></sub>) → <var>f</var>(<var>x</var>), so their difference tends to 0 — contradicting that it stays at least &epsilon;₀. ∎</p>
+<p class="cite">Gap solution: a subsequence of (<var>x<sub>n</sub></var>) converging to a point of <var>K</var>, by Definition 3.3.1. Note that both sequences are forced to the <em>same</em> limit, which is what makes the two image sequences collide.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Is 1/<var>x</var> uniformly continuous on (0, 1)?</p>
+<button onclick="check(this,false)">Yes — it is continuous at every point of (0, 1)</button>
+<button onclick="check(this,true)" data-ok>No — take <var>x<sub>n</sub></var> = 1/<var>n</var> and <var>y<sub>n</sub></var> = 1/(<var>n</var>+1), whose images stay 1 apart</button>
+<button onclick="check(this,false)">Yes — the domain is bounded</button>
+<div class="explain">|<var>x<sub>n</sub></var> − <var>y<sub>n</sub></var>| = 1/(<var>n</var>(<var>n</var>+1)) → 0 while |<var>f</var>(<var>x<sub>n</sub></var>) − <var>f</var>(<var>y<sub>n</sub></var>)| = |<var>n</var> − (<var>n</var>+1)| = 1, so Theorem 4.4.6 applies with &epsilon;₀ = 1. The third option is the trap: (0, 1) is bounded but not closed, so it is not compact, and Theorem 4.4.8 does not apply.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>What a continuous function does to a connected set</h2>
+
+<div class="theorem">
+<p><strong>Theorem 4.5.1 (Intermediate Value Theorem).</strong> <em>If <var>f</var> : [<var>a</var>, <var>b</var>] → ℝ is continuous and <var>L</var> satisfies <var>f</var>(<var>a</var>) &lt; <var>L</var> &lt; <var>f</var>(<var>b</var>) or <var>f</var>(<var>a</var>) &gt; <var>L</var> &gt; <var>f</var>(<var>b</var>), then there exists <var>c</var> ∈ (<var>a</var>, <var>b</var>) with <var>f</var>(<var>c</var>) = <var>L</var>.</em> <span class="cite">— Abbott §4.5, Theorem 4.5.1, p. 120</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 4.5.2 (Preservation of Connectedness).</strong> <em>Let <var>f</var> : <var>A</var> → ℝ be continuous. If <var>E</var> ⊆ <var>A</var> is connected, then <var>f</var>(<var>E</var>) is connected.</em> <span class="cite">— Abbott §4.5, Theorem 4.5.2, p. 121</span></p>
+</div>
+
+<p>The second implies the first, and seeing that is the point of the section. [<var>a</var>, <var>b</var>] is connected by an-09's Theorem 3.4.7, so <var>f</var>([<var>a</var>, <var>b</var>]) is connected, so — by that same theorem read the other way — <var>f</var>([<var>a</var>, <var>b</var>]) contains every point between any two of its points. It contains <var>f</var>(<var>a</var>) and <var>f</var>(<var>b</var>), hence <var>L</var>, hence <var>L</var> = <var>f</var>(<var>c</var>) for some <var>c</var>. <span class="cite">— Abbott §3.4, Theorem 3.4.7, p. 92</span></p>
+
+<p>Theorem 4.5.2's own proof runs through an-09's Theorem 3.4.6: split <var>f</var>(<var>E</var>) into two nonempty disjoint pieces, pull the split back to <var>E</var>, use connectedness of <var>E</var> to get a sequence in one piece converging into the other, and push it forward with continuity. Every step is a theorem from an-09 or an-10 with nothing new added, which is the sense in which the whole chapter has been preparation. <span class="cite">— Abbott §3.4, Theorem 3.4.6, p. 92</span></p>
+
+<h3>Interactive visual: both theorems, and the hypotheses that carry them</h3>
+<p>The blue curve is continuous on [0, 1]; the amber one has a jump. The dashed line is a target value <var>L</var> strictly between the two endpoint values. The continuous curve is forced to cross it; the discontinuous one steps over it. The markers on the left edge show where each function attains its maximum and minimum — and whether it attains them at all.</p>
+<canvas id="ivtCanvas" width="640" height="300" role="img" aria-label="A continuous function crossing an intermediate value and a discontinuous function jumping over it"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('ivtCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height,L=48,R=W-24,T=24,B=H-56;
+function px(x){return L+x*(R-L);}
+function py(y){return B-((y+0.2)/1.6)*(B-T);}
+let t=0;
+function cont(x){return 0.15+0.9*x+0.32*Math.sin(6.0*x);}
+function jump(x){return x<0.5 ? 0.15+0.5*x : 0.75+0.5*x;}
+function plot(f,col,dash){
+  ctx.strokeStyle=col;ctx.lineWidth=2;if(dash)ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  let started=false;
+  for(let k=0;k<=300;k++){
+    const x=k/300,y=f(x);
+    if(f===jump && Math.abs(x-0.5)<0.0018){started=false;continue;}
+    const X=px(x),Y=py(y);
+    if(!started){ctx.moveTo(X,Y);started=true;}else ctx.lineTo(X,Y);
+  }
+  ctx.stroke();ctx.setLineDash([]);
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const Lv=0.55+0.18*Math.sin(t*0.02);
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,B);ctx.lineTo(R,B);ctx.stroke();
+  ctx.strokeStyle='#9aa5b1';ctx.setLineDash([4,4]);ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(L,py(Lv));ctx.lineTo(R,py(Lv));ctx.stroke();ctx.setLineDash([]);
+  plot(cont,'#8ab4f8');
+  plot(jump,'#d8a657');
+  // crossings of the continuous curve
+  let hits=0;
+  for(let k=0;k<300;k++){
+    const a=k/300,b=(k+1)/300;
+    if((cont(a)-Lv)*(cont(b)-Lv)<=0){
+      ctx.fillStyle='#4caf82';
+      ctx.beginPath();ctx.arc(px((a+b)/2),py(Lv),4,0,2*Math.PI);ctx.fill();hits++;
+    }
+  }
+  let jhits=0;
+  for(let k=0;k<300;k++){
+    const a=k/300,b=(k+1)/300;
+    if(Math.abs(a-0.5)<0.01) continue;
+    if((jump(a)-Lv)*(jump(b)-Lv)<=0) jhits++;
+  }
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillText('L = '+Lv.toFixed(3)+'    blue (continuous) crosses L '+hits+' time'+(hits===1?'':'s')+
+               '    amber (one jump) crosses '+jhits+' time'+(jhits===1?'':'s'),L,H-32);
+  ctx.fillText('continuity is not needed for the value to be attained — it is needed for it to be GUARANTEED',L,H-14);
+  t++;requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<p>The sentence under the picture is the one to take away. Discontinuous functions sometimes hit intermediate values; the theorem is that continuous ones always do. A theorem whose conclusion occasionally holds without its hypothesis is not thereby weaker — it is a guarantee, and the counterexample shows the guarantee is not free.</p>
+
+<div class="definition">
+<p><strong>Definition 4.5.3.</strong> A function <var>f</var> has the <em>intermediate value property</em> on [<var>a</var>, <var>b</var>] if for every <var>L</var> strictly between <var>f</var>(<var>a</var>) and <var>f</var>(<var>b</var>) there is <var>c</var> ∈ (<var>a</var>, <var>b</var>) with <var>f</var>(<var>c</var>) = <var>L</var>. <span class="cite">— Abbott §4.5, Definition 4.5.3, p. 124</span></p>
+</div>
+
+<p>Giving the conclusion its own name invites the obvious question: does the intermediate value property imply continuity? It does not, and an-12's Darboux Theorem produces the counterexamples — every derivative has this property, and derivatives need not be continuous. So the converse fails for an interesting reason rather than a cheap one. <span class="cite">— Abbott §4.5, p. 124</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> <var>f</var> is continuous on (0, 1]. Must it attain a maximum?</p>
+<button onclick="check(this,false)">Yes — the domain is bounded</button>
+<button onclick="check(this,true)" data-ok>No — (0, 1] is not compact, and <var>f</var>(<var>x</var>) = 1/<var>x</var> is unbounded on it</button>
+<button onclick="check(this,false)">Yes, provided <var>f</var> is bounded</button>
+<div class="explain">Theorem 4.4.3 needs <var>K</var> compact, and (0, 1] is bounded but not closed. The third option also fails: <var>f</var>(<var>x</var>) = <var>x</var> on (0, 1) is bounded and continuous with supremum 1, which it never attains. Boundedness of the function is not enough; attainment is what compactness buys.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Does the Intermediate Value Theorem hold for continuous functions on ℚ ∩ [0, 2]?</p>
+<button onclick="check(this,false)">Yes — the proof never mentions irrational numbers</button>
+<button onclick="check(this,true)" data-ok>No — <var>f</var>(<var>x</var>) = <var>x</var>² − 2 is continuous there, changes sign, and is never 0 on ℚ</button>
+<button onclick="check(this,false)">Yes, provided <var>L</var> is rational</button>
+<div class="explain">an-09's Theorem 3.4.7 makes connectedness in ℝ the statement that no point between two members is missing, and ℚ ∩ [0, 2] fails that at every irrational. The theorem is about connectedness, connectedness is about completeness, and this is the same gap that made an-01's √2 argument necessary in the first place.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which single hypothesis does the Extreme Value Theorem share with Theorem 4.4.8?</p>
+<button onclick="check(this,false)">That the function is bounded</button>
+<button onclick="check(this,true)" data-ok>That the domain is compact</button>
+<button onclick="check(this,false)">That the domain is an interval</button>
+<div class="explain">Both theorems take a continuous function on a compact set and conclude something that fails on non-compact domains — attainment of extrema in one case, a uniform &delta; in the other. Neither needs the domain to be an interval, which is why they apply to the Cantor set as readily as to [0, 1].</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> A continuous function maps a compact set to a compact set and a connected set to a connected set. What does it map an open set to?</p>
+<button onclick="check(this,false)">An open set</button>
+<button onclick="check(this,true)" data-ok>Nothing in particular — <var>x</var>² sends (−1, 1) to [0, 1)</button>
+<button onclick="check(this,false)">A closed set</button>
+<div class="explain">Openness is preserved by <em>preimages</em>, as an-10's topological characterisation says, and by images not at all. Keeping straight which direction each property travels in is most of what this section is for.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Prove the Extreme Value Theorem from Theorem 4.4.2 rather than from scratch. <span class="cite">— Abbott §4.4, Exercise 4.4.3, p. 119</span></p>
+<p><em>Hint:</em> <var>f</var>(<var>K</var>) is compact, hence closed and bounded, so it has a supremum. The only thing to prove is that a nonempty closed bounded set contains its supremum — and an-07's Exercise 3.2.11 already says the supremum is in the closure.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove Theorem 4.4.2: the continuous image of a compact set is compact. <em>Hint:</em> start from an arbitrary sequence in <var>f</var>(<var>K</var>) and work backwards to <var>K</var>. Every term of that sequence is a value, so it has at least one preimage in <var>K</var> — say why you may choose one. Then use compactness of <var>K</var> and the sequential characterisation of continuity in turn. <span class="cite">— Abbott §4.4, Theorem 4.4.2, p. 115</span></p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Let (<var>y<sub>n</sub></var>) be an arbitrary sequence in <var>f</var>(<var>K</var>). By definition of the image, for each <var>n</var> there is at least one point <var>x<sub>n</sub></var> ∈ <var>K</var> with <var>f</var>(<var>x<sub>n</sub></var>) = <var>y<sub>n</sub></var>; fix one such choice for each <var>n</var>.</p>
+<p>Since <var>K</var> is compact, an-08's Definition 3.3.1 gives a subsequence (<var>x</var><sub><var>n<sub>k</sub></var></sub>) converging to some <var>x</var> ∈ <var>K</var>. Because <var>f</var> is continuous at <var>x</var> ∈ <var>K</var>, an-10's Theorem 4.3.2(iv) gives <var>f</var>(<var>x</var><sub><var>n<sub>k</sub></var></sub>) → <var>f</var>(<var>x</var>); that is, (<var>y</var><sub><var>n<sub>k</sub></var></sub>) → <var>f</var>(<var>x</var>).</p>
+<p>Finally <var>f</var>(<var>x</var>) ∈ <var>f</var>(<var>K</var>) since <var>x</var> ∈ <var>K</var>. So the arbitrary sequence (<var>y<sub>n</sub></var>) has a subsequence converging to a point of <var>f</var>(<var>K</var>), and <var>f</var>(<var>K</var>) is compact. ∎</p>
+<p><strong>Two remarks.</strong> The proof never mentions closed, bounded, or &epsilon; — it is pure Definition 3.3.1, which is why the sequential form of compactness was worth keeping alongside Heine–Borel. And the phrase "fix one such choice" is the only step with any logical weight: the preimage of <var>y<sub>n</sub></var> may contain many points, and a choice is being made for every <var>n</var> at once. At this level that passes without comment, but it is worth noticing that a choice was made rather than a formula given.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>The proof that continuous images of compact sets are compact, and the two earlier results it chains (Theorem 4.4.2).</li>
+<li>The one quantifier that separates Definition 4.4.5 from an-10's Definition 4.3.1, and why <var>x</var>² is uniformly continuous on [−10, 10] and not on ℝ.</li>
+<li>The contradiction proving continuity on a compact set is uniform, and why both sequences are forced to the same limit (Theorem 4.4.8).</li>
+<li>How Theorem 4.5.2 gives the Intermediate Value Theorem in three lines through an-09's characterisation of connected subsets of ℝ.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) preimage of a sequence, compactness, sequential continuity; (2) &delta; before <var>x</var> and <var>y</var> instead of after <var>c</var>, and |<var>x</var> + <var>y</var>| ≤ 20; (3) the difference of the two image limits is 0 and at least &epsilon;₀; (4) intervals are exactly the connected sets, both ways — then you have the unit.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §4.4 "Continuous Functions on Compact Sets", the failed conjectures for open and closed sets, p. 115; (Theorem 4.4.2, Theorem 4.4.3), p. 115; (Example 4.4.4, Definition 4.4.5), p. 116; (Theorem 4.4.6), p. 117; (Theorem 4.4.8), p. 118; (Exercise 4.4.3), p. 119. §4.5 "The Intermediate Value Theorem" (Theorem 4.5.1), p. 120; (Theorem 4.5.2), p. 121; (Definition 4.5.3), p. 124.
+<br>Builds on an-08, whose Definition 3.3.1 is used directly in both preservation proofs and whose Theorem 3.3.4 turns the compact image into a closed bounded set — Abbott §3.3, p. 84.
+<br>Builds on an-09, whose Theorem 3.4.6 is the characterisation the preservation-of-connectedness proof runs through and whose Theorem 3.4.7 converts connectedness into the intermediate value statement — Abbott §3.4, p. 92.
+<br>Builds on an-10, whose Theorem 4.3.2 supplies the sequential form of continuity used in every proof above and whose Definition 4.3.1 is the statement Segment 1's uniform version strengthens — Abbott §4.3, p. 109. Its Theorem 4.3.4 keeps a difference of continuous functions continuous, which is how this unit's problem set turns a fixed point into a zero — Abbott §4.3, p. 110.
+<br>Builds on an-05, whose Theorem 2.6.2, Lemma 2.6.3 and Theorem 2.6.4 decide whether a continuous function can carry a Cauchy sequence to a non-Cauchy one, and on an-07, whose Theorem 3.2.8 says where such a sequence's limit must land — Abbott §2.6, p. 59, and §3.2, p. 80.
+<br>Deferred to an-12: Darboux's Theorem, which produces functions with the intermediate value property that are not continuous, so the converse of the Intermediate Value Theorem fails for a real reason (Abbott §5.2).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
