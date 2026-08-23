@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-05 — Cauchy sequences and completeness</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Cauchy sequences and completeness <span class="cite">(an-05)</span></h1>
+
+<div class="hook">
+Convergence without knowing the destination.
+<p>Every convergence proof so far has needed a limit in hand before it could start. an-04 got around that twice — the Monotone Convergence Theorem manufactured a limit out of a supremum, and Bolzano–Weierstrass manufactured one out of nested intervals — but both bought their limit with a hypothesis: order in the first case, boundedness plus a sacrifice of most of the sequence in the second.</p>
+<p>This unit removes the limit from the statement altogether. The Cauchy condition is a property of a sequence that mentions only its own terms, and in ℝ it is <em>equivalent</em> to convergence. That equivalence is not a logical triviality: it is false in ℚ, and what makes it true in ℝ is completeness. By the end of the unit you will have seen the same fact wearing five different faces.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Two conditions on a sequence (<var>s<sub>n</sub></var>) of reals. <strong>(i)</strong> Consecutive terms get arbitrarily close: for every &epsilon; &gt; 0 there is <var>N</var> with |<var>s</var><sub><var>n</var>+1</sub> − <var>s<sub>n</sub></var>| &lt; &epsilon; for all <var>n</var> ≥ <var>N</var>. <strong>(ii)</strong> All later terms get arbitrarily close to <em>each other</em>: for every &epsilon; &gt; 0 there is <var>N</var> with |<var>s<sub>n</sub></var> − <var>s<sub>m</sub></var>| &lt; &epsilon; for all <var>m</var>, <var>n</var> ≥ <var>N</var>. Which of these forces (<var>s<sub>n</sub></var>) to converge?</p>
+<button onclick="check(this,false)">Both — they say the same thing with different letters</button>
+<button onclick="check(this,true)" data-ok>Only (ii)</button>
+<button onclick="check(this,false)">Neither — without a named limit nothing can be concluded</button>
+<div class="explain">Only (ii). Condition (i) is satisfied by the partial sums of the harmonic series, since |<var>s</var><sub><var>n</var>+1</sub> − <var>s<sub>n</sub></var>| = 1/(<var>n</var>+1) → 0, and an-04 proved those partial sums diverge. The two conditions differ by a quantifier — one index free or two — and that difference is the entire unit. Abbott calls (i) the <em>pseudo-Cauchy</em> property and asks you to separate them in Exercise 2.6.3.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: The space of persistence diagrams is complete — same criterion.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>A convergence condition with no limit in it</h2>
+
+<div class="definition">
+<p><strong>Definition 2.6.1.</strong> A sequence (<var>a<sub>n</sub></var>) is called a <em>Cauchy sequence</em> if, for every &epsilon; &gt; 0, there exists an <var>N</var> ∈ ℕ such that whenever <var>m</var>, <var>n</var> ≥ <var>N</var> it follows that |<var>a<sub>n</sub></var> − <var>a<sub>m</sub></var>| &lt; &epsilon;. <span class="cite">— Abbott §2.6, Definition 2.6.1, p. 58</span></p>
+</div>
+
+<p>Set that beside an-03's Definition 2.2.3 and the resemblance is deliberate: same quantifier order, same &epsilon;, same threshold <var>N</var>. Exactly one symbol has changed — the fixed limit <var>a</var> has become a second free index <var>m</var>. Abbott prints the two definitions on facing halves of the same page so the substitution is impossible to miss. <span class="cite">— Abbott §2.6, p. 58</span></p>
+
+<p>The consequence is the whole point of the definition: <em>it can be checked without knowing the limit</em>. Every statement in it is about terms of the sequence. Compare the Monotone Convergence Theorem, which also proves convergence without a named limit but demands that the sequence never turn back; the Cauchy condition asks for nothing but the terms crowding together.</p>
+
+<div class="theorem">
+<p><strong>Theorem 2.6.2.</strong> <em>Every convergent sequence is a Cauchy sequence.</em> <span class="cite">— Abbott §2.6, Theorem 2.6.2, p. 59</span></p>
+</div>
+
+<p>This is the easy direction and Abbott leaves it as Exercise 2.6.2; it is the Guided Proof below. The idea is one triangle inequality: if every term past some point is within &epsilon;/2 of <var>a</var>, then any two such terms are within &epsilon; of each other, because the limit sits between them as a relay point.</p>
+
+<div class="worked fade">
+<p><strong>Worked example — Cauchy sequences are bounded (faded).</strong> <span class="cite">— Abbott §2.6, Lemma 2.6.3, p. 59</span></p>
+<p>The Cauchy condition holds for <em>every</em> &epsilon;, so it holds for one convenient value. Take &epsilon; = <span class="gap">⟨your step: which &epsilon; makes the arithmetic trivial?⟩</span>. There is then an <var>N</var> with |<var>x<sub>m</sub></var> − <var>x<sub>n</sub></var>| &lt; 1 for all <var>m</var>, <var>n</var> ≥ <var>N</var>.</p>
+<p>Fix <var>m</var> = <var>N</var> and let <var>n</var> ≥ <var>N</var> vary. Then |<var>x<sub>n</sub></var>| = |<var>x<sub>n</sub></var> − <var>x<sub>N</sub></var> + <var>x<sub>N</sub></var>| ≤ |<var>x<sub>n</sub></var> − <var>x<sub>N</sub></var>| + |<var>x<sub>N</sub></var>| &lt; |<var>x<sub>N</sub></var>| + 1, so the tail is bounded. The initial segment <var>x</var>₁, …, <var>x</var><sub><var>N</var>−1</sub> is a finite list, and a finite list of numbers has a largest absolute value. Take <var>M</var> = max{|<var>x</var>₁|, |<var>x</var>₂|, …, |<var>x</var><sub><var>N</var>−1</sub>|, |<var>x<sub>N</sub></var>| + 1}. ∎</p>
+<p class="cite">Gap solution: &epsilon; = 1. Any fixed positive number works; 1 is chosen because it makes the bound readable.</p>
+</div>
+
+<p>Compare an-03's Theorem 2.3.2, that convergent sequences are bounded: same statement, same proof shape, and Abbott says so explicitly when he introduces this lemma. The difference is that the proof above never mentions a limit, which is the only reason it is available at this point in the argument — the whole aim of the section is to reach convergence, so a proof that assumed it would be circular. <span class="cite">— Abbott §2.6, p. 59</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why can Lemma 2.6.3 not simply be deduced from an-03's Theorem 2.3.2, that every convergent sequence is bounded?</p>
+<button onclick="check(this,false)">It can — Cauchy sequences converge, so the deduction is immediate</button>
+<button onclick="check(this,true)" data-ok>Because "Cauchy sequences converge" is the theorem still being proved, and the lemma is a step in proving it</button>
+<button onclick="check(this,false)">Because Theorem 2.3.2 applies only to monotone sequences</button>
+<div class="explain">The first option is true as a statement and useless as an argument: it assumes Theorem 2.6.4, which is what Lemma 2.6.3 is used to prove. Watching where a proof sits in the dependency order is as important as watching whether each step is valid.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> The sequence 1, 1.4, 1.41, 1.414, 1.4142, … of decimal truncations of √2 is a Cauchy sequence of rational numbers. Does it converge in ℚ?</p>
+<button onclick="check(this,false)">Yes — Cauchy sequences always converge</button>
+<button onclick="check(this,true)" data-ok>No — it is Cauchy, but its only candidate limit is irrational</button>
+<button onclick="check(this,false)">No — it is not really Cauchy, since ℚ has gaps</button>
+<div class="explain">Being Cauchy is a condition on the terms, and the terms are rational, so the sequence is Cauchy in ℚ on any reading. What fails in ℚ is the <em>converse</em> theorem. This is the precise sense in which ℚ is incomplete, and the third option gets it backwards: the gap is not in the hypothesis but in the number field.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The Cauchy Criterion, and five faces of one fact</h2>
+
+<div class="theorem">
+<p><strong>Theorem 2.6.4 (Cauchy Criterion).</strong> <em>A sequence converges if and only if it is a Cauchy sequence.</em> <span class="cite">— Abbott §2.6, Theorem 2.6.4, p. 59</span></p>
+</div>
+
+<p>The forward direction is Theorem 2.6.2. For the converse, the difficulty is the familiar one: to prove convergence we need a candidate limit, and the hypothesis names none. The strategy is to extract one. A Cauchy sequence is bounded by Lemma 2.6.3, so an-04's Bolzano–Weierstrass Theorem supplies a convergent subsequence (<var>x</var><sub><var>n<sub>k</sub></var></sub>) → <var>x</var>, and <em>that</em> <var>x</var> is the candidate. <span class="cite">— Abbott §2.5, Theorem 2.5.5, p. 56</span></p>
+
+<p>The rest is an &epsilon;/2 split with the subsequence as the relay. Given &epsilon; &gt; 0, choose <var>N</var> with |<var>x<sub>n</sub></var> − <var>x<sub>m</sub></var>| &lt; &epsilon;/2 for <var>m</var>, <var>n</var> ≥ <var>N</var>, then choose a subsequence term <var>x</var><sub><var>n<sub>K</sub></var></sub> with <var>n<sub>K</sub></var> ≥ <var>N</var> and |<var>x</var><sub><var>n<sub>K</sub></var></sub> − <var>x</var>| &lt; &epsilon;/2. For <var>n</var> ≥ <var>n<sub>K</sub></var>, insert that term: |<var>x<sub>n</sub></var> − <var>x</var>| ≤ |<var>x<sub>n</sub></var> − <var>x</var><sub><var>n<sub>K</sub></var></sub>| + |<var>x</var><sub><var>n<sub>K</sub></var></sub> − <var>x</var>| &lt; &epsilon;/2 + &epsilon;/2 = &epsilon;. <span class="cite">— Abbott §2.6, p. 60</span></p>
+
+<p>Read what that did. A subsequence converging is ordinarily much weaker than the sequence converging — an-04's self-check 4 turned on exactly that gap. The Cauchy hypothesis closes the gap: it says the terms cannot spread out, so once <em>some</em> subsequence settles, the rest has nowhere else to be.</p>
+
+<h3>Interactive visual: crowding together versus stepping smaller</h3>
+<p>Two sequences, both with consecutive gaps shrinking to zero. The blue one is Cauchy; the amber one is the partial sums of the harmonic series, which is pseudo-Cauchy and divergent. The bars measure the <em>spread</em> of all terms from index <var>N</var> onward — the quantity Definition 2.6.1 controls. Watch the blue spread collapse and the amber spread refuse to.</p>
+<canvas id="cauchyCanvas" width="640" height="260" role="img" aria-label="Comparison of the tail spread of a Cauchy sequence and of the divergent harmonic partial sums"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('cauchyCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height;
+const M=400;
+// blue: partial sums of 1/2^n, Cauchy. amber: partial sums of 1/n, not.
+const blue=[],amber=[];
+let b=0,a=0;
+for(let n=1;n<=M;n++){b+=Math.pow(0.5,n);blue.push(b);a+=1/n;amber.push(a);}
+function spread(arr,N){ // sup - inf over the tail, capped at 60 terms ahead
+  let lo=Infinity,hi=-Infinity;
+  for(let i=N;i<Math.min(M,N+60);i++){if(arr[i]<lo)lo=arr[i];if(arr[i]>hi)hi=arr[i];}
+  return hi-lo;
+}
+let N=0,t=0;
+function bar(x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(x,y,w,Math.max(1,h));}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const sb=spread(blue,N), sa=spread(amber,N);
+  const scale=110/Math.max(0.35,sa);
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('threshold N = '+(N+1),W/2,24);
+  ctx.textAlign='left';
+  ctx.fillStyle='#8ab4f8';ctx.fillText('sum of 1/2^n  —  tail spread '+sb.toFixed(5),60,60);
+  bar(60,70,Math.min(240,sb*scale*6),22,'#8ab4f8');
+  ctx.fillStyle='#d8a657';ctx.fillText('sum of 1/n  —  tail spread '+sa.toFixed(5),60,130);
+  bar(60,140,Math.min(240,sa*scale*6),22,'#d8a657');
+  ctx.fillStyle='#9aa5b1';
+  ctx.fillText('consecutive gap 1/2^N = '+Math.pow(0.5,N+1).toFixed(6)+
+               '     consecutive gap 1/N = '+(1/(N+1)).toFixed(6),60,200);
+  ctx.fillText('Both consecutive gaps tend to 0. Only the blue tail spread does.',60,224);
+  ctx.fillText('The amber sequence is pseudo-Cauchy and divergent.',60,244);
+  t++; if(t%14===0){N++; if(N>300)N=0;}
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<p>The picture is Exercise 2.6.3 in motion. Both sequences have |<var>s</var><sub><var>n</var>+1</sub> − <var>s<sub>n</sub></var>| → 0; only one has the tail collapsing to a point. A single free index controls neighbours; two free indices control the whole tail at once, and only the second is strong enough. <span class="cite">— Abbott §2.6, Exercise 2.6.3, p. 61</span></p>
+
+<h3>Five statements, one axiom</h3>
+
+<p>Abbott closes the section by tracing the dependency chain the course has actually built: the Axiom of Completeness gives the Nested Interval Property and the Monotone Convergence Theorem; the Nested Interval Property gives Bolzano–Weierstrass; and Bolzano–Weierstrass gives the Cauchy Criterion. That is the order in which they were proved. <span class="cite">— Abbott §2.6, p. 61</span></p>
+
+<div class="math-block">
+AoC ⇒ NIP ⇒ BW ⇒ CC,&nbsp;&nbsp;&nbsp;and AoC ⇒ MCT
+</div>
+
+<p>The surprise is that the arrows all reverse. Any one of the five can be taken as the axiom and the other four derived from it, so they are five descriptions of a single property of ℝ rather than five separate facts. Abbott sets the missing implications as Exercise 2.6.6, and this unit's problem set works two of them. <span class="cite">— Abbott §2.6, Exercise 2.6.6, p. 62</span></p>
+
+<p>Two consequences are worth carrying forward. First, none of the five can be proved from the field and order axioms alone, because ℚ satisfies those and satisfies none of the five. Completeness is genuinely extra. Second — and this is why the unit exists for the mission — the Cauchy Criterion is the only one of the five that survives verbatim when ℝ is replaced by a general metric space, since it alone mentions neither order nor suprema. an-14 takes that step, and it is why "complete metric space" is the phrase that appears in the stability theory of persistence diagrams rather than "ordered field with the least upper bound property".</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A sequence has a convergent subsequence. Must the sequence be Cauchy?</p>
+<button onclick="check(this,false)">Yes — Bolzano–Weierstrass makes the two conditions equivalent</button>
+<button onclick="check(this,true)" data-ok>No — (−1)<sup><var>n</var></sup> has a convergent subsequence and is not Cauchy</button>
+<button onclick="check(this,false)">Only if the sequence is bounded</button>
+<div class="explain">Take &epsilon; = 1 and any <var>N</var>: the terms <var>a<sub>N</sub></var> and <var>a</var><sub><var>N</var>+1</sub> differ by 2. So (−1)<sup><var>n</var></sup> is bounded, has two convergent subsequences, and is not Cauchy — which also disposes of the third option. The implication runs one way only: Cauchy is strictly stronger than having a convergent subsequence, and Theorem 2.6.4's proof is exactly the work of upgrading the weaker to the stronger.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which of these is the reason the Cauchy Criterion, rather than the Monotone Convergence Theorem, is the completeness statement that generalises to metric spaces?</p>
+<button onclick="check(this,false)">Because it is easier to check in practice</button>
+<button onclick="check(this,true)" data-ok>Because its statement uses only distances between terms, while monotonicity and suprema need an order</button>
+<button onclick="check(this,false)">Because it was proved later</button>
+<div class="explain">"Increasing", "bounded above" and "supremum" all presuppose that the elements can be compared. A metric space has a distance and no order at all, so Definition 2.6.1 transfers by replacing |<var>x<sub>n</sub></var> − <var>x<sub>m</sub></var>| with <var>d</var>(<var>x<sub>n</sub></var>, <var>x<sub>m</sub></var>) and the other four do not transfer at all.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Is every bounded sequence Cauchy?</p>
+<button onclick="check(this,false)">Yes, by Lemma 2.6.3</button>
+<button onclick="check(this,true)" data-ok>No — Lemma 2.6.3 runs the other way, and (−1)<sup><var>n</var></sup> is the counterexample</button>
+<button onclick="check(this,false)">Yes, provided the bound is sharp</button>
+<div class="explain">Lemma 2.6.3 says Cauchy implies bounded. Reading an implication backwards is the most common single error in a first analysis course, and it is worth naming: the converse of a true statement is a <em>different</em> statement, needing its own proof or its own counterexample.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Give an example of each of the following, or argue that the request is impossible: (a) a Cauchy sequence that is not monotone; (b) a monotone sequence that is not Cauchy; (c) a Cauchy sequence with a divergent subsequence; (d) an unbounded sequence containing a subsequence that is Cauchy. <span class="cite">— Abbott §2.6, Exercise 2.6.1, p. 61</span></p>
+<p><em>Hint:</em> for each request, decide first whether it contradicts one of the three results above. Two of the four are impossible, and naming which theorem forbids them is the answer.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove Theorem 2.6.2: every convergent sequence is a Cauchy sequence. <em>Hint:</em> the definition of convergence gives you closeness to <var>a</var>, and you need closeness between two terms. You have one point of contact with <var>a</var> and two terms to relate, so ask what quantity you should insert and remove — and what that forces you to demand of each term separately. <span class="cite">— Abbott §2.6, Exercise 2.6.2, p. 61</span></p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Assume (<var>x<sub>n</sub></var>) → <var>x</var> and let &epsilon; &gt; 0. Applying the definition of convergence with the positive number &epsilon;/2, there is <var>N</var> ∈ ℕ such that |<var>x<sub>n</sub></var> − <var>x</var>| &lt; &epsilon;/2 whenever <var>n</var> ≥ <var>N</var>.</p>
+<p>Now take any <var>m</var>, <var>n</var> ≥ <var>N</var>. Insert and remove <var>x</var>:</p>
+<div class="math-block">
+|<var>x<sub>n</sub></var> − <var>x<sub>m</sub></var>| = |(<var>x<sub>n</sub></var> − <var>x</var>) + (<var>x</var> − <var>x<sub>m</sub></var>)| ≤ |<var>x<sub>n</sub></var> − <var>x</var>| + |<var>x</var> − <var>x<sub>m</sub></var>| &lt; &epsilon;/2 + &epsilon;/2 = &epsilon;.
+</div>
+<p>Since &epsilon; &gt; 0 was arbitrary, (<var>x<sub>n</sub></var>) satisfies Definition 2.6.1. ∎</p>
+<p><strong>Why &epsilon;/2 and not &epsilon;.</strong> The estimate consumes the convergence hypothesis <em>twice</em>, once for each index, and the two errors add. Asking for &epsilon; each time would deliver 2&epsilon;, which is not what the definition demands. Applying the hypothesis at &epsilon;/2 is legitimate because convergence was assumed for <em>every</em> positive number, not merely for the one you were handed — the same manoeuvre that let Lemma 2.6.3 pick &epsilon; = 1.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>Definition 2.6.1 beside an-03's definition of convergence, and the single symbol that differs between them.</li>
+<li>Why Cauchy sequences are bounded, and which &epsilon; the proof chooses (Lemma 2.6.3).</li>
+<li>The proof of Theorem 2.6.4: bounded, then Bolzano–Weierstrass for a candidate limit, then an &epsilon;/2 split relayed through a subsequence term.</li>
+<li>The chain AoC ⇒ NIP ⇒ BW ⇒ CC, and the claim that every arrow reverses.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) the limit <var>a</var> becomes a second index <var>m</var>; (2) &epsilon; = 1, then max over a finite list; (3) Lemma 2.6.3, then Theorem 2.5.5, then &epsilon;/2 through <var>x</var><sub><var>n<sub>K</sub></var></sub>; (4) five equivalent statements, none provable from the field and order axioms because ℚ satisfies those and none of the five — then you have the unit.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §2.6 "The Cauchy Criterion" (Definition 2.6.1), p. 58; (Theorem 2.6.2, Lemma 2.6.3, Theorem 2.6.4), p. 59; the proof of the Cauchy Criterion, p. 60; the equivalence of the completeness statements, with Exercise 2.6.1, Exercise 2.6.2 and Exercise 2.6.3, p. 61; Exercise 2.6.6, p. 62.
+<br>Builds on an-04, whose Theorem 2.5.5 supplies the convergent subsequence used as the candidate limit in Segment 2, and whose Definition 2.4.1 and Theorem 2.4.2 are the other limit-free convergence test — Abbott §2.5, p. 56, and §2.4, p. 51. Both are used again in this unit's problem set, where the Monotone Convergence Theorem is turned around to prove the Nested Interval Property.
+<br>Builds on an-03, whose Definition 2.2.3 is the statement this unit's definition is built by editing, whose Theorem 2.3.2 is the model for Segment 1's lemma, and whose Theorem 2.3.4 carries non-strict inequalities across a limit — Abbott §2.2, p. 39, and §2.3, pp. 44 and 48.
+<br>Builds on an-01, whose Theorem 1.4.1 is the Nested Interval Property named in the equivalence chain above — Abbott §1.4, p. 18.
+<br>Deferred to an-06: the Cauchy Criterion restated for series, where it becomes the tool that makes rearrangement questions answerable (Abbott §2.7). Deferred to an-14: the same definition with |<var>x</var> − <var>y</var>| replaced by <var>d</var>(<var>x</var>, <var>y</var>), which is where completeness stops being about ℝ (Abbott §8.2).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
