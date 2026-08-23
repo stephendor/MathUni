@@ -8,7 +8,7 @@ import json
 import pytest
 
 from scripts.check_sections import (CAP, LETTERED, NUMBERED, NoVerdict,
-                                    check_text, load_index, main,
+                                    admissible, check_text, load_index, main,
                                     main_text_plateaus, pages_in, section_of,
                                     selftest, unreadable)
 
@@ -65,7 +65,7 @@ def test_the_label_that_runs_on_through_a_gap_is_caught():
 def test_an_unsectioned_chapter_is_a_gap_throughout():
     """Axler's chapter 4 has no sections. Every page of it must resolve to no
     section, not to §3.F running on from the chapter before."""
-    index = load_index()["Axler"]
+    index, _shared = load_index()["Axler"]
     assert section_of(101, index) == "3.F"
     for page in (117, 120, 131):
         assert section_of(page, index) is None
@@ -141,7 +141,7 @@ def test_a_file_naming_no_indexed_book_is_skipped_not_passed(tmp_path, capsys):
 def test_the_committed_index_is_readable_and_ordered():
     index = load_index()
     assert "Axler" in index
-    rows = index["Axler"]
+    rows, _shared = index["Axler"]
     assert rows == sorted(rows)
     starts = {lab: p for p, lab in rows}
     assert starts["3.B"] == 59
@@ -225,9 +225,38 @@ def test_a_book_with_drifting_offsets_keeps_every_plateau():
 
 
 def test_the_committed_abbott_index_is_the_book_not_the_manual():
-    index = load_index()["Abbott"]
+    index, _shared = load_index()["Abbott"]
     starts = {lab: p for p, lab in index if lab}
     assert starts["1.3"] == 13      # The Axiom of Completeness
     assert starts["3.3"] == 84      # Compact Sets
     assert starts["8.2"] == 222     # Metric Spaces
     assert max(p for p, _lab in index) < 258
+
+
+def test_a_page_shared_by_two_sections_admits_both():
+    """Abbott prints Exercise 1.4.13 at the top of printed 29 and opens §1.5
+    below it, so "§1.4, Exercise 1.4.13, p. 29" is a correct citation. The
+    one-label rule failed it."""
+    rows = [(18, "1.4"), (29, "1.5")]
+    assert admissible(29, rows, shared={29}) == ["1.5", "1.4"]
+    assert check_text("Abbott §1.4, Exercise 1.4.13, p. 29", rows, {29}) == []
+    assert check_text("Abbott §1.5, Theorem 1.5.1, p. 29", rows, {29}) == []
+
+
+def test_an_unshared_start_page_still_admits_only_its_own_section():
+    """The negative control, and the gate's founding case: Axler opens §3.B at
+    the top of printed 59 with nothing above it but the running head, so the
+    la-06 citation "§3.A ... p. 59" must still fail."""
+    rows = [(52, "3.A"), (59, "3.B")]
+    assert admissible(59, rows, shared=set()) == ["3.B"]
+    assert check_text("Axler §3.A, Definition 3.12, p. 59", rows) == [
+        ("3.A", 59, "3.B")]
+
+
+def test_the_two_books_share_pages_differently():
+    """Abbott runs sections on down the page; Axler starts each on a fresh one.
+    The index is generated from the books, so it says so."""
+    _rows_a, shared_abbott = load_index()["Abbott"]
+    _rows_x, shared_axler = load_index()["Axler"]
+    assert 29 in shared_abbott and len(shared_abbott) > 20
+    assert shared_axler == set()

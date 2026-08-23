@@ -130,7 +130,7 @@ def main_text_plateaus(plateaus):
 
 
 def load_index(path=INDEX):
-    """{book: [(printed_page, label_or_None), ...]} sorted by page.
+    """{book: (rows, shared)} — rows sorted by page, shared a set of pages.
 
     A row with label None marks a page from which no section is in force. The
     older flat format carried no such rows, so it is refused rather than read:
@@ -154,7 +154,8 @@ def load_index(path=INDEX):
         rows += [(int(p), None) for p in entry.get("gaps", [])]
         # A gap and a section starting on the same page: the section wins,
         # so it must sort last.
-        out[book] = sorted(rows, key=lambda r: (r[0], r[1] is not None))
+        out[book] = (sorted(rows, key=lambda r: (r[0], r[1] is not None)),
+                     set(entry.get("shared", [])))
     return out
 
 
@@ -182,16 +183,49 @@ def section_of(page, rows):
     return found
 
 
-def check_text(text, rows):
+# How much text before a section's heading counts as the previous section
+# still running. Running heads and bare folios are dropped first, so this is
+# body text or nothing; the threshold only has to separate "nothing" from "a
+# page of exercises".
+SHARE_MIN = 120
+
+
+def admissible(page, rows, shared=()):
+    """Every section label a citation of `page` may legitimately name.
+
+    Usually one. A page that carries the tail of one section above the heading
+    of the next carries two, and both are right: Abbott prints Exercise 1.4.13
+    at the top of printed 29 and opens §1.5 below it, so "§1.4, Exercise
+    1.4.13, p. 29" is a correct citation that the one-label rule would fail.
+
+    The second label is admitted only where the book actually shares the page,
+    which --refresh decides by looking for body text above the heading. Axler's
+    printed 59 opens §3.B at the top with nothing above it but the running
+    head, so 59 admits §3.B alone — which is what makes the defect this gate
+    was built for still fire.
+    """
+    here = section_of(page, rows)
+    if page not in shared:
+        return [here]
+    before = None
+    for start, label in rows:
+        if start >= page:
+            break
+        if label != here:
+            before = label
+    return [here, before] if before else [here]
+
+
+def check_text(text, rows, shared=()):
     """[(label, page, actual)] for every citation whose label is wrong."""
     wrong = []
     for label, tail, _cut in tails(text):
         if "." not in label:          # a bare chapter number, e.g. "§4"
             continue
         for page in pages_in(tail):
-            actual = section_of(page, rows)
-            if actual != label:
-                wrong.append((label, page, actual))
+            ok = admissible(page, rows, shared)
+            if label not in ok:
+                wrong.append((label, page, ok[0]))
     return wrong
 
 
@@ -234,6 +268,7 @@ def refresh(book, out=INDEX):
 
     found = {}
     gaps = []
+    shared = set()
     for n in all_pages(d):
         p = printed(n)
         if p is None:
@@ -243,7 +278,17 @@ def refresh(book, out=INDEX):
             # A section starts once. A later page mentioning the label in a
             # running head or a table of contents must not move the boundary,
             # so the FIRST page carrying the heading wins.
-            found.setdefault(m.group(1), p)
+            if m.group(1) in found:
+                continue
+            found[m.group(1)] = p
+            # Does the previous section still occupy the top of this page?
+            # Drop bare folios and running heads before deciding: they are
+            # short and they are on every page.
+            kept = [ln.strip() for ln in text[:m.start()].splitlines()
+                    if ln.strip() and not ln.strip().isdigit()
+                    and len(ln.strip()) >= 60]
+            if sum(len(ln) for ln in kept) >= SHARE_MIN:
+                shared.add(p)
         # A chapter's opening page carries the word CHAPTER alone on its first
         # line, above the chapter number; a running head puts the folio and
         # the chapter title on the same line. The opening page belongs to no
@@ -268,11 +313,12 @@ def refresh(book, out=INDEX):
                  ", ".join("PDF %d-%d (printed %d-%d)"
                            % (lo, hi, lo + off, hi + off)
                            for off, lo, hi, _c in dropped)))
-    data[book] = {"sections": found, "gaps": sorted(gaps)}
+    data[book] = {"sections": found, "gaps": sorted(gaps),
+                  "shared": sorted(shared)}
     with io.open(out, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(data, fh, indent=1, sort_keys=True, ensure_ascii=False)
         fh.write("\n")
-    return found, sorted(gaps)
+    return found, sorted(gaps), sorted(shared)
 
 
 def selftest():
@@ -378,6 +424,18 @@ def selftest():
     one("a capped citation is unreadable even if an early page survived",
         unreadable(both) == ["2.A"])
 
+    # A page carrying the tail of one section above the heading of the next
+    # admits both labels -- but only where the book actually shares it.
+    share_rows = [(18, "1.4"), (29, "1.5")]
+    one("a shared page admits the section above the heading",
+        check_text("Abbott §1.4, Exercise 1.4.13, p. 29", share_rows, {29}) == [])
+    one("...and the section below it",
+        check_text("Abbott §1.5, Theorem 1.5.1, p. 29", share_rows, {29}) == [])
+    one("...while an unshared start page admits only its own section",
+        check_text("Axler §3.A, Definition 3.12, p. 59", rows) == [("3.A", 59, "3.B")])
+    one("admissible names the page's own section first",
+        admissible(29, share_rows, {29}) == ["1.5", "1.4"])
+
     # The pre-gap index format cannot express a gap, so it is refused.
     import tempfile
     fd, tmp = tempfile.mkstemp(suffix=".json")
@@ -416,13 +474,15 @@ def main(argv=None):
 
     try:
         if args.refresh:
-            found, gaps = refresh(args.refresh)
+            found, gaps, shared = refresh(args.refresh)
             print("%s: %d section(s) indexed, %d chapter gap(s)"
                   % (args.refresh, len(found), len(gaps)))
             for label, page in sorted(found.items(), key=lambda kv: kv[1]):
                 print("  §%-5s printed %d" % (label, page))
             print("  gaps (no section in force from): %s"
                   % ", ".join(str(g) for g in gaps))
+            print("  shared (two sections on one page): %s"
+                  % (", ".join(str(x) for x in shared) or "none"))
             return 0
 
         index = load_index()
@@ -454,7 +514,8 @@ def main(argv=None):
                   "with no page marker — cannot be checked"
                   % (path, cut[0], CAP), file=sys.stderr)
             return 2
-        wrong = check_text(text, index[book])
+        rows, shared = index[book]
+        wrong = check_text(text, rows, shared)
         total += 1
         for label, page, actual in wrong:
             bad += 1
