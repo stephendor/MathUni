@@ -586,6 +586,7 @@ def main(argv=None):
         return 2
     total = bad = 0
     unindexed = {}
+    unattributed = 0
     for path in args.paths:
         try:
             text = io.open(path, encoding="utf-8").read()
@@ -593,26 +594,34 @@ def main(argv=None):
             print("NO VERDICT: cannot read %s: %s" % (path, exc),
                   file=sys.stderr)
             return 2
-        if not any(b.lower() in text.lower() for b in index):
-            print("SKIP %s — names no indexed book" % path)
-            continue
         cut = unreadable(text)
         if cut:
             print("NO VERDICT: %s: citation of §%s runs past %d characters "
                   "with no page marker — cannot be checked"
                   % (path, cut[0], CAP), file=sys.stderr)
             return 2
-        total += 1
+        # Split BEFORE deciding whether this file is worth looking at. The
+        # skip used to come first, so a file citing only Lindstrom was printed
+        # as SKIP and its citations were never counted -- and the NOTE line
+        # below, which exists precisely to be the honest denominator for the
+        # PASS line, reported 195 when the true figure across the corpus was
+        # 1432 in 112 files. A count that is itself silently short is worse
+        # than no count, because it looks like the answer.
+        # (CodeRabbit review of PR #25.)
+        checked_here = False
         current = None
         for part, named in split_at_books(text, names, titles):
             if named is not None:
                 current = named
             if current is None or current not in index:
-                if current is not None:
-                    n = len([1 for lab, _t, _c in tails(part) if "." in lab])
-                    if n:
+                n = len([1 for lab, _t, _c in tails(part) if "." in lab])
+                if n:
+                    if current is None:
+                        unattributed += n
+                    else:
                         unindexed[current] = unindexed.get(current, 0) + n
                 continue
+            checked_here = True
             rows, shared = index[current]
             for label, page, actual in check_text(part, rows, shared):
                 bad += 1
@@ -621,6 +630,10 @@ def main(argv=None):
                          ("§" + actual) if actual
                          else "no section (a chapter opening, or an "
                               "unsectioned chapter)"))
+        if checked_here:
+            total += 1
+        else:
+            print("SKIP %s — names no indexed book" % path)
     if not total:
         print("NO VERDICT: no file named an indexed book", file=sys.stderr)
         return 2
@@ -631,6 +644,9 @@ def main(argv=None):
               "not checked: %s"
               % (sum(unindexed.values()),
                  ", ".join("%s %d" % kv for kv in sorted(unindexed.items()))))
+    if unattributed:
+        print("NOTE %d citation(s) name no book at all and were not checked"
+              % unattributed)
     print("%s %d file(s) checked, %d wrong label(s)"
           % ("FAIL" if bad else "PASS", total, bad))
     return 1 if bad else 0

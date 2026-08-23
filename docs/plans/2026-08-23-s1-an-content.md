@@ -374,9 +374,9 @@ Run on the completed branch with the book drive present.
 
 | check | result |
 |---|---|
-| `citations` — 14 lessons | **440 checked, 0 wrong** |
+| `citations` — 14 lessons | **445 checked, 0 wrong** |
 | `citations` — 14 problem sets | **361 checked, 0 wrong** |
-| `check_lesson_coverage` — 14 units | 155 refs, **0 missing** |
+| `check_lesson_coverage` — 14 units | 156 refs, **0 missing** |
 | `check_sections` — 28 files | **0 wrong labels**, 476 numbered citations now actually checked |
 | `gate` (4–6) — 14 lessons | 56/56 rows, exit 0 |
 | `lesson_lint` | 15/15 on each of 14 |
@@ -385,7 +385,7 @@ Run on the completed branch with the book drive present.
 | `check_resources --shallow` | 145 units, 217 references, 0 wrong |
 | `check_sections --selftest` | 42/42 |
 | `gate --selftest` | 73/73 |
-| `pytest` | **341 passed** |
+| `pytest` | **344 passed** |
 
 `ruff` reports one pre-existing E702 in `tests/test_scheduler.py`, untouched by
 this branch.
@@ -491,6 +491,63 @@ per-file book attribution it exposed, and the `lettered >= 2` heading selection.
   concrete witness for the bad inference is included — `g_n` equal to 1 at 0,
   0 on `[1/n,1]` and linear between, so `d(g_n, 0) = 1/(2n) → 0` while
   `g_n(0) = 1` throughout.
+
+**Fourth round.** Seven findings, all real.
+
+*Gate:*
+
+- **The unchecked count was itself short.** The per-file SKIP happened *before*
+  `split_at_books`, so a file citing only an unindexed book was printed as SKIP
+  and its citations never counted. The `NOTE` line added in §5.1 as "the honest
+  denominator" reported **195** when the true figure was **1432 in 112 files**.
+  A count that is silently short is worse than no count, because it looks like
+  the answer. Splitting now happens first; SKIP is decided by whether anything
+  was actually checked; and citations naming no book at all are reported on
+  their own line. Corpus-wide the report is now 1600 unindexed across eleven
+  books, plus 27 naming no book. (CodeRabbit, PR #25.)
+
+*Mathematics:*
+
+- **an-12 Problem 3(b) rejected a correct answer.** "a = 3 will not do, since
+  `g_3'` turns out to be differentiable at 0" is false: `g_3'(x)/x = 3x sin(1/x)
+  − cos(1/x)`, which oscillates between ±1 and has no limit. `a = 3` answers (b)
+  perfectly well. Rewritten to give the three thresholds instead of a guess —
+  `g_a'(0)` exists iff `a > 1`, `g_a'` is continuous at 0 iff `a > 2`,
+  differentiable iff `a > 3` — so (b) is the window `2 < a ≤ 3` and (c) is
+  `3 < a ≤ 4`. Verified numerically. (Codex.)
+- **an-12 Problem 4 produced a constant outside the required range.** `s = max
+  |f'|` is 0 for constant `f`, but the problem asks for `0 < s < 1`. Take
+  `s = (q+1)/2`. Part (a) had the same hole — it asks for `M > 0` — so `M = q+1`
+  there. (Codex.)
+- **an-12 Self-check 1 taught the wrong reason.** It gave "every point is a
+  limit point" as what the interval hypothesis is for. That is strictly weaker:
+  on `(0,1) ∪ (2,3)` every point is a limit point and the difference quotient is
+  perfectly well defined. What the interval buys is *connectedness*, and Abbott
+  says so in the sentence before Definition 5.2.1 (printed 132). The witness now
+  in the explanation: `f = 0` on `(0,1)`, `1` on `(2,3)` is differentiable with
+  `f' ≡ 0` and is not constant, killing the MVT corollary and Darboux. (Codex.)
+- **an-14 said Bolzano–Weierstrass cannot be written down.** It can:
+  "bounded" is Lindström's Definition 3.5.3 (printed 63) and is purely metric.
+  BW is expressible and *false* — and the lesson's own next paragraph gives the
+  counterexample, so the text contradicted itself. Separated from the Monotone
+  Convergence Theorem and the Nested Interval Property, which really are
+  inexpressible ("monotone" and "interval" are order words). Added what happens
+  instead: Lindström promotes BW's *conclusion* to the definition of compactness
+  (Definition 3.5.2, printed 63), and Corollary 3.5.5 (printed 64) is where that
+  class coincides with the closed bounded sets. (Codex.)
+- **an-13 Problem 5(b) applied Heine–Borel to a relatively closed set.** `g_n`
+  is defined only on `K`, so `g_n⁻¹([ε,∞))` is closed *in `K`*, not in ℝ. Two
+  completions are now written out: through Heine–Borel (`K` compact ⟹ closed in
+  ℝ, so a relatively closed subset is closed), or straight from Definition 3.3.1
+  by subsequences, which never leaves `K` at all and is shorter. (Codex.)
+- **an-14's `g_n` witness was described wrongly.** "the values at a point do not
+  converge at all" — `g_n(0) = 1` for every `n`, so they converge, just not to
+  the limit. The claim is that integral convergence to a limit does not force
+  pointwise convergence *to that limit*. (CodeRabbit.)
+
+Definition 3.3.1 was new to an-13's problem set, so `check_lesson_coverage`
+failed until it was named in the lesson — authoring rule 4 again, for the third
+time in this review.
 
 **Did not reproduce:** CodeRabbit's outside-diff comment on `an-05.md` lines
 194–196 describes a four-part construction problem with a miscounted number of

@@ -400,3 +400,48 @@ def test_the_committed_index_marks_no_page_both_gap_and_shared():
     index = json.loads(open("resources/sections.json", encoding="utf-8").read())
     for book, v in index.items():
         assert not (set(v["shared"]) & set(v["gaps"])), book
+
+
+# --- the unchecked count must not itself be short --------------------------
+
+def test_a_file_citing_only_an_unindexed_book_still_counts_its_citations(
+        tmp_path, capsys):
+    """The skip used to happen before the split, so a file citing only an
+    unindexed book was printed as SKIP and its citations vanished from the
+    NOTE line -- which exists precisely to be the honest denominator for the
+    PASS line above it. Corpus-wide it reported 195 when the true figure was
+    1432 in 112 files. (CodeRabbit review of PR #25.)"""
+    only = tmp_path / "only.md"
+    only.write_text("Sources: Lindstrom, Spaces — §3.1, p. 43; §3.2, p. 48.",
+                    encoding="utf-8")
+    indexed = tmp_path / "indexed.md"
+    indexed.write_text("Sources: Abbott — §1.3, p. 16.", encoding="utf-8")
+    assert main([str(only), str(indexed)]) == 0
+    out = capsys.readouterr().out
+    assert "SKIP" in out                 # still reported as unchecked...
+    assert "Lindstrom 2" in out          # ...and still counted
+    assert "1 file(s) checked" in out    # but not counted as checked
+
+
+def test_a_citation_naming_no_book_is_counted_separately(tmp_path, capsys):
+    """A citation before any book name belongs to nothing. It is neither
+    checked nor attributable, and saying so is not the same as saying it names
+    an unindexed book."""
+    p = tmp_path / "unit.md"
+    p.write_text("§9.9, p. 400. Abbott — §1.3, p. 16.", encoding="utf-8")
+    assert main([str(p)]) == 0
+    out = capsys.readouterr().out
+    assert "1 citation(s) name no book at all" in out
+
+
+def test_no_checkable_file_is_still_no_verdict(tmp_path, capsys):
+    """Counting a file's citations must not make it look checked. Two files
+    naming only an unindexed book are both SKIPped and the run has no verdict
+    at all -- exit 2, never a PASS over an empty set."""
+    for name in ("a.md", "b.md"):
+        (tmp_path / name).write_text(
+            "Sources: Hatcher — §1.1, p. 30; §1.2, p. 40.", encoding="utf-8")
+    assert main([str(tmp_path / "a.md"), str(tmp_path / "b.md")]) == 2
+    out = capsys.readouterr().out
+    assert out.count("SKIP") == 2
+    assert "PASS" not in out
