@@ -80,12 +80,53 @@ def pages_in(tail):
     return [int(n) for m in PAGES.finditer(tail)
             for n in _NUM.findall(m.group(1))]
 
-# The section heading as the books print it: "## 3.B Null Spaces and Ranges".
-HEADING = re.compile(r"^#{1,6}\s*\**\s*(\d+\.[A-F])\**\s+(.{2,60})", re.M)
+# The section heading as the books print it. Two shapes so far: Axler letters
+# its sections ("## 3.B Null Spaces and Ranges") and Abbott numbers them
+# ("## 1.3 The Axiom of Completeness"). A book that labels sections some third
+# way is not silently unsupported — refresh raises NoVerdict when it finds no
+# heading at all.
+_HEAD = r"^#{1,6}\s*\**\s*(\d+\.%s)\**\s+(.{2,60})"
+LETTERED = re.compile(_HEAD % "[A-F]", re.M)
+NUMBERED = re.compile(_HEAD % r"\d{1,2}", re.M)
+# Which shape a book uses is read off the book, not configured. The numbered
+# pattern alone would be a disaster on Axler, whose RESULTS are headed "10.58
+# Definition"; run over Axler it invented sections 10.58 and 10.59 out of two
+# of them. So the lettered pattern is tried first over the whole book and
+# wins outright if it finds anything, because no book labels sections both
+# ways and no book numbers a result with a letter.
+HEADING = LETTERED   # the default, and what the selftest's fixtures use
+# A chapter opening: "CHAPTER" alone above its number (Axler), or a markdown
+# heading carrying the word and the number (Abbott's "# Chapter 1"). The page
+# belongs to no section, and neither does anything after it until that
+# chapter's first section heading.
+CHAPTER_OPEN = re.compile(r"^#{0,6}\s*CHAPTER\s*\d{0,2}\s*$", re.I)
 
 
 class NoVerdict(Exception):
     """The check could not run. Exit 2 — never a silent pass."""
+
+
+def main_text_plateaus(plateaus):
+    """(kept, dropped) — plateaus whose printed range repeats an earlier one.
+
+    Abbott's PDF carries the Instructor's Solutions Manual bound in behind the
+    book: PDF 13-269 is printed 1-257, and PDF 277-429 starts again at printed
+    1. Printed page 100 therefore exists twice in one file. For the section
+    index that is not an ambiguity to be resolved page by page — the second
+    document is a different document, its headings are not this book's
+    sections, and indexing it would move section boundaries to pages the book
+    does not have. A plateau whose printed span overlaps one already accepted
+    is dropped, and the caller says so rather than deciding quietly.
+    """
+    kept, dropped, spans = [], [], []
+    for off, lo, hi, cnt in plateaus:
+        a, b = lo + off, hi + off
+        if any(a <= y and x <= b for x, y in spans):
+            dropped.append((off, lo, hi, cnt))
+        else:
+            spans.append((a, b))
+            kept.append((off, lo, hi, cnt))
+    return kept, dropped
 
 
 def load_index(path=INDEX):
@@ -155,13 +196,19 @@ def check_text(text, rows):
 
 
 def unreadable(text):
-    """[label] for each citation whose tail hit the cap before any page.
+    """[label] for each citation whose tail was cut off by the cap.
 
     These are not passes and not failures: the check could not be performed on
     them, which is exit 2 and must be said out loud.
+
+    Every capped citation counts, not only one that retained no page at all.
+    The first version asked `not pages_in(tail)`, which still lost the case
+    that matters most: a citation naming a correct page BEFORE the cut and a
+    wrong one after it read as fully checked, and the page past the cut was
+    skipped in silence. A tail that was cut has an unknown remainder, and an
+    unknown remainder cannot be called clean.
     """
-    return [label for label, tail, cut in tails(text)
-            if cut and "." in label and not pages_in(tail)]
+    return [label for label, _tail, cut in tails(text) if cut and "." in label]
 
 
 def refresh(book, out=INDEX):
@@ -173,12 +220,17 @@ def refresh(book, out=INDEX):
     d = pages_dir(book)
     _, plateaus = fit_offsets([(n, folio_candidates(page_text(d, n) or ""))
                                for n in all_pages(d)])
+    plateaus, dropped = main_text_plateaus(plateaus)
 
     def printed(n):
         for off, lo, hi, _cnt in plateaus:
             if lo <= n <= hi:
                 return n + off
         return None
+
+    lettered = sum(len(LETTERED.findall(page_text(d, n) or ""))
+                   for n in all_pages(d))
+    heading = LETTERED if lettered >= 2 else NUMBERED
 
     found = {}
     gaps = []
@@ -187,7 +239,7 @@ def refresh(book, out=INDEX):
         if p is None:
             continue
         text = page_text(d, n) or ""
-        for m in HEADING.finditer(text):
+        for m in heading.finditer(text):
             # A section starts once. A later page mentioning the label in a
             # running head or a table of contents must not move the boundary,
             # so the FIRST page carrying the heading wins.
@@ -199,15 +251,23 @@ def refresh(book, out=INDEX):
         # first section heading — which for an unsectioned chapter (Axler's
         # chapter 4) is the whole chapter.
         first = next((ln.strip() for ln in text.splitlines() if ln.strip()), "")
-        if first.upper().startswith("CHAPTER") and len(first) <= 12:
+        if CHAPTER_OPEN.match(first):
             gaps.append(p)
     if not found:
-        raise NoVerdict("no section headings found for %r" % book)
+        raise NoVerdict("no section headings found for %r — neither the "
+                        "lettered nor the numbered shape matched anything, so "
+                        "this book labels its sections some third way" % book)
 
     data = {}
     if os.path.exists(out):
         with io.open(out, encoding="utf-8") as fh:
             data = json.load(fh)
+    if dropped:
+        print("  note: %d plateau(s) ignored as a bound-in second document: %s"
+              % (len(dropped),
+                 ", ".join("PDF %d-%d (printed %d-%d)"
+                           % (lo, hi, lo + off, hi + off)
+                           for off, lo, hi, _c in dropped)))
     data[book] = {"sections": found, "gaps": sorted(gaps)}
     with io.open(out, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(data, fh, indent=1, sort_keys=True, ensure_ascii=False)
@@ -291,6 +351,32 @@ def selftest():
         unreadable("Axler §2.A, pp. 28-38.") == [])
     one("...and a short wrong citation is still judged, not deferred",
         check_text("Axler §2.A, p. 59", rows) == [("2.A", 59, "3.B")])
+
+    # Two books, two heading shapes, and the discriminator between them.
+    one("Abbott's numbered section heading is read",
+        NUMBERED.search("## 1.3 The Axiom of Completeness").group(1) == "1.3")
+    one("...and the lettered pattern does not see it",
+        LETTERED.search("## 1.3 The Axiom of Completeness") is None)
+    one("Axler's lettered section heading is read",
+        LETTERED.search("### 3.B Null Spaces and Ranges").group(1) == "3.B")
+    one("a numbered RESULT heading is why the shape is not guessed per page",
+        NUMBERED.search("### 10.58 **Definition**").group(1) == "10.58"
+        and LETTERED.search("### 10.58 **Definition**") is None)
+    one("a three-part result number is not a section heading",
+        NUMBERED.search("### 1.3.6 Example") is None)
+
+    # A bound-in solutions manual repeats the book's printed numbers.
+    keep, drop = main_text_plateaus([(-12, 13, 269, 254), (-276, 277, 429, 150)])
+    one("a plateau that repeats an earlier printed range is dropped",
+        len(keep) == 1 and drop == [(-276, 277, 429, 150)])
+    one("...while a book with drifting offsets keeps all of them",
+        len(main_text_plateaus([(-17, 18, 66, 49), (-16, 67, 177, 111),
+                                (-15, 178, 346, 169)])[0]) == 3)
+
+    # Truncation is unreadable even when a page survived the cut.
+    both = "Axler §2.A, p. 28 " + "y" * (CAP + 50) + " pp. 59"
+    one("a capped citation is unreadable even if an early page survived",
+        unreadable(both) == ["2.A"])
 
     # The pre-gap index format cannot express a gap, so it is refused.
     import tempfile

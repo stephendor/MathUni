@@ -7,9 +7,10 @@ import json
 
 import pytest
 
-from scripts.check_sections import (CAP, NoVerdict, check_text, load_index,
-                                    main, pages_in, section_of, selftest,
-                                    unreadable)
+from scripts.check_sections import (CAP, LETTERED, NUMBERED, NoVerdict,
+                                    check_text, load_index, main,
+                                    main_text_plateaus, pages_in, section_of,
+                                    selftest, unreadable)
 
 # A None label is a gap: a chapter-opening page, or an unsectioned chapter.
 # Printed 27 opens Axler's chapter 2 and printed 51 opens chapter 3.
@@ -183,3 +184,50 @@ def test_a_truncated_citation_makes_main_exit_two(tmp_path, capsys):
     f.write_text("Axler §2.A " + "y" * (CAP + 50) + " pp. 59",
                  encoding="utf-8")
     assert main([str(f)]) == 2
+
+
+def test_a_capped_citation_is_unreadable_even_when_a_page_survived():
+    """The case the first truncation fix still lost: a correct page before the
+    cut and a wrong one after it read as fully checked, and the page past the
+    cut was skipped in silence."""
+    both = "Axler §2.A, p. 28 " + "y" * (CAP + 50) + " pp. 59"
+    assert check_text(both, ROWS) == []      # 28 is right, 59 never seen
+    assert unreadable(both) == ["2.A"]
+
+
+def test_the_two_heading_shapes_do_not_overlap():
+    """Abbott numbers its sections and Axler letters them. Running the numbered
+    pattern over Axler invents sections out of result headings — it read 10.58
+    and 10.59, which are a Definition and a Theorem."""
+    assert NUMBERED.search("## 1.3 The Axiom of Completeness").group(1) == "1.3"
+    assert LETTERED.search("## 1.3 The Axiom of Completeness") is None
+    assert LETTERED.search("### 3.B Null Spaces and Ranges").group(1) == "3.B"
+    assert NUMBERED.search("### 10.58 **Definition**").group(1) == "10.58"
+    assert LETTERED.search("### 10.58 **Definition**") is None
+    assert NUMBERED.search("### 1.3.6 Example") is None
+
+
+def test_a_bound_in_second_document_is_not_indexed():
+    """Abbott's PDF carries the Instructor's Solutions Manual behind the book,
+    restarting at printed 1, so printed 100 exists twice in one file. Indexing
+    the second copy would move section boundaries onto pages the book has."""
+    keep, drop = main_text_plateaus([(-12, 13, 269, 254), (-276, 277, 429, 150)])
+    assert keep == [(-12, 13, 269, 254)]
+    assert drop == [(-276, 277, 429, 150)]
+
+
+def test_a_book_with_drifting_offsets_keeps_every_plateau():
+    """The negative control for the rule above: Axler's three plateaus run
+    forward, never repeating a printed page, and all three are kept."""
+    keep, drop = main_text_plateaus([(-17, 18, 66, 49), (-16, 67, 177, 111),
+                                     (-15, 178, 346, 169)])
+    assert len(keep) == 3 and drop == []
+
+
+def test_the_committed_abbott_index_is_the_book_not_the_manual():
+    index = load_index()["Abbott"]
+    starts = {lab: p for p, lab in index if lab}
+    assert starts["1.3"] == 13      # The Axiom of Completeness
+    assert starts["3.3"] == 84      # Compact Sets
+    assert starts["8.2"] == 222     # Metric Spaces
+    assert max(p for p, _lab in index) < 258
