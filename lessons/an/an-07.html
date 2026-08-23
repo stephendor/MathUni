@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-07 — Open and closed sets in R</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Open and closed sets in ℝ <span class="cite">(an-07)</span></h1>
+
+<div class="hook">
+The vocabulary the whole of topology is built from.
+<p>Everything so far has been about sequences: objects with an index, a tail, and a limit. This unit changes the subject to <em>sets</em>, and defines four words — open, limit point, closed, closure — out of nothing but the &epsilon;-neighbourhood an-03 already introduced.</p>
+<p>The definitions look modest and the payoff is not. Semester 2 opens by taking Definition 3.2.1's <em>conclusion</em> — that a collection of sets is closed under arbitrary unions and finite intersections — and promoting it to an axiom, at which point ℝ disappears and topology begins. What you meet here is that axiom's original instance, with proofs you can still see the ε in.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Suppose each set in a collection is open. <strong>(i)</strong> Must the union of the whole collection be open, however many sets it contains? <strong>(ii)</strong> Must the intersection be open, however many sets it contains?</p>
+<button onclick="check(this,false)">Yes to both — open is preserved by both operations</button>
+<button onclick="check(this,true)" data-ok>Yes to (i), no to (ii)</button>
+<button onclick="check(this,false)">No to (i), yes to (ii)</button>
+<div class="explain">Unions are unconditional; intersections are not. The intervals <var>O<sub>n</sub></var> = (−1/<var>n</var>, 1/<var>n</var>) are each open, and every one of them contains 0, but their intersection over all <var>n</var> ∈ ℕ is exactly {0} — a set containing no interval at all, and so not open. Theorem 3.2.3 states the asymmetry, and the canvas below is this counterexample.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Direct on-ramp to Semester 2's point-set topology.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>Open sets, and an asymmetry worth remembering</h2>
+
+<p>The primitive is an-03's &epsilon;-neighbourhood <var>V</var><sub>&epsilon;</sub>(<var>a</var>) = {<var>x</var> ∈ ℝ : |<var>x</var> − <var>a</var>| &lt; &epsilon;}, which is just the open interval (<var>a</var> − &epsilon;, <var>a</var> + &epsilon;). Every definition in this unit is built from it. <span class="cite">— Abbott §3.2, p. 78</span></p>
+
+<div class="definition">
+<p><strong>Definition 3.2.1.</strong> A set <var>O</var> ⊆ ℝ is <em>open</em> if for every <var>a</var> ∈ <var>O</var> there exists an &epsilon;-neighbourhood <var>V</var><sub>&epsilon;</sub>(<var>a</var>) ⊆ <var>O</var>. <span class="cite">— Abbott §3.2, Definition 3.2.1, p. 78</span></p>
+</div>
+
+<p>Read the quantifiers before anything else: <em>for every</em> point, <em>there exists</em> a radius. The radius is allowed to depend on the point, and in every interesting example it does — near the edge of an interval you must take a smaller one. A set is open when no point of it sits on an edge of it.</p>
+
+<p>Two examples are worth having permanently. ℝ itself is open, since any &epsilon; will do for any point; and ∅ is open, because the definition asks something of every element and there are none to ask it of. That second one is a piece of logic rather than geometry, and Abbott flags it as such. <span class="cite">— Abbott §3.2, Example 3.2.2, p. 78</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 3.2.3.</strong> <em>(i) The union of an arbitrary collection of open sets is open. (ii) The intersection of a finite collection of open sets is open.</em> <span class="cite">— Abbott §3.2, Theorem 3.2.3, p. 79</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example — why (ii) says "finite" (faded).</strong> <span class="cite">— Abbott §3.2, p. 79</span></p>
+<p>For (i), let <var>a</var> lie in the union. Then <var>a</var> lies in <em>some</em> member <var>O</var><sub>λ′</sub> of the collection, which is open, so some <var>V</var><sub>&epsilon;</sub>(<var>a</var>) ⊆ <var>O</var><sub>λ′</sub> ⊆ the union. One member did all the work, and how many others there are never entered the argument.</p>
+<p>For (ii), let <var>a</var> lie in <var>O</var>₁ ∩ ⋯ ∩ <var>O<sub>N</sub></var>. Each <var>O<sub>k</sub></var> supplies its own radius &epsilon;<sub><var>k</var></sub> with <var>V</var><sub>&epsilon;<sub><var>k</var></sub></sub>(<var>a</var>) ⊆ <var>O<sub>k</sub></var>, and we need one radius that works for all of them at once. Take &epsilon; = <span class="gap">⟨your step: which combination of the &epsilon;<sub><var>k</var></sub>?⟩</span>. Then <var>V</var><sub>&epsilon;</sub>(<var>a</var>) ⊆ <var>V</var><sub>&epsilon;<sub><var>k</var></sub></sub>(<var>a</var>) ⊆ <var>O<sub>k</sub></var> for every <var>k</var>, so <var>V</var><sub>&epsilon;</sub>(<var>a</var>) is inside the intersection. ∎</p>
+<p class="cite">Gap solution: &epsilon; = min{&epsilon;₁, …, &epsilon;<sub><var>N</var></sub>}. This is where finiteness is spent: a finite set of positive numbers has a smallest element, and it is positive. An infinite set of positive numbers need have neither.</p>
+</div>
+
+<h3>Interactive visual: an intersection that loses its interior</h3>
+<p>Each blue band is the open interval (−1/<var>n</var>, 1/<var>n</var>). Every one of them contains 0 together with room on both sides. The green marker is the intersection of the first <var>n</var> of them, which is the smallest band so far — still an interval, still open. Taken over <em>all</em> <var>n</var>, nothing is left but the single point 0.</p>
+<canvas id="openCanvas" width="640" height="250" role="img" aria-label="Nested open intervals shrinking toward the single point zero"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('openCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height,cx=W/2,scale=240;
+let n=1,t=0;
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(40,H-70);ctx.lineTo(W-40,H-70);ctx.stroke();
+  for(let k=1;k<=n;k++){
+    const r=scale/k, y=40+ (k-1)*9;
+    if(y>H-95) break;
+    ctx.strokeStyle='#8ab4f8';ctx.lineWidth=2;ctx.globalAlpha=0.35+0.5/k;
+    ctx.beginPath();ctx.moveTo(cx-r,y);ctx.lineTo(cx+r,y);ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  const r=scale/n;
+  ctx.strokeStyle='#4caf82';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(cx-r,H-70);ctx.lineTo(cx+r,H-70);ctx.stroke();
+  ctx.fillStyle='#e06c75';
+  ctx.beginPath();ctx.arc(cx,H-70,3.5,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
+  ctx.fillText('blue: the intervals (−1/k, 1/k) for k = 1 to '+n,cx,22);
+  ctx.fillText('green: the intersection of the first '+n+', which is (−1/'+n+', 1/'+n+') — still open',cx,H-44);
+  ctx.fillText('red: the point 0, which is all that survives the intersection over every k',cx,H-24);
+  ctx.textAlign='left';
+  t++; if(t%40===0){n++; if(n>18)n=1;}
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<p>Each finite stage is open and the limit is not, which is the sharpest way to see that "open" is not a property preserved by limits of sets. Abbott turns the point into Exercise 3.2.1, which asks you to locate the exact line of the proof where finiteness was used — the answer is in the gap solution above. <span class="cite">— Abbott §3.2, Exercise 3.2.1, p. 82</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Is the interval [0, 1] open?</p>
+<button onclick="check(this,false)">Yes — it is an interval, and intervals are open</button>
+<button onclick="check(this,true)" data-ok>No — no neighbourhood of 0 fits inside it, since every one contains negative numbers</button>
+<button onclick="check(this,false)">Yes — take &epsilon; = 1 at every point</button>
+<div class="explain">Definition 3.2.1 demands a neighbourhood at <em>every</em> point of the set, and 0 is a point of the set. Any <var>V</var><sub>&epsilon;</sub>(0) = (−&epsilon;, &epsilon;) contains −&epsilon;/2, which is not in [0, 1]. A single failing point is enough; the definition is not about most points.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Limit points and closed sets</h2>
+
+<div class="definition">
+<p><strong>Definition 3.2.4.</strong> A point <var>x</var> is a <em>limit point</em> of a set <var>A</var> if every &epsilon;-neighbourhood <var>V</var><sub>&epsilon;</sub>(<var>x</var>) of <var>x</var> intersects <var>A</var> in some point other than <var>x</var> itself. <span class="cite">— Abbott §3.2, Definition 3.2.4, p. 79</span></p>
+</div>
+
+<p>The clause "other than <var>x</var>" is the whole definition. Without it every point of every set would qualify, since a neighbourhood of <var>x</var> always meets <var>A</var> at <var>x</var> when <var>x</var> ∈ <var>A</var>. With it, being a limit point says that <var>A</var> crowds up against <var>x</var> — and notably <var>x</var> need not belong to <var>A</var> at all.</p>
+
+<div class="theorem">
+<p><strong>Theorem 3.2.5.</strong> <em>A point <var>x</var> is a limit point of <var>A</var> if and only if <var>x</var> = lim <var>a<sub>n</sub></var> for some sequence (<var>a<sub>n</sub></var>) contained in <var>A</var> with <var>a<sub>n</sub></var> ≠ <var>x</var> for all <var>n</var>.</em> <span class="cite">— Abbott §3.2, Theorem 3.2.5, p. 79</span></p>
+</div>
+
+<p>This is the bridge between the two halves of the course, and it is why the vocabulary is worth the trouble: a statement about neighbourhoods becomes a statement about sequences, so every theorem from Chapter 2 is available. The forward proof takes &epsilon; = 1/<var>n</var> in turn and picks a point of <var>A</var> from each neighbourhood; the reverse reads the definition of convergence back.</p>
+
+<div class="definition">
+<p><strong>Definition 3.2.6.</strong> A point <var>a</var> ∈ <var>A</var> is an <em>isolated point</em> of <var>A</var> if it is not a limit point of <var>A</var>. <span class="cite">— Abbott §3.2, Definition 3.2.6, p. 80</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 3.2.7.</strong> A set <var>F</var> ⊆ ℝ is <em>closed</em> if it contains its limit points. <span class="cite">— Abbott §3.2, Definition 3.2.7, p. 80</span></p>
+</div>
+
+<p>Abbott's gloss is the one to carry: elsewhere in mathematics "closed" means an operation does not take you out of the set — closed under addition, closed under scalar multiplication. Here the operation is <em>taking limits</em>. A closed set is one you cannot escape by converging.</p>
+
+<div class="theorem">
+<p><strong>Theorem 3.2.8.</strong> <em>A set <var>F</var> ⊆ ℝ is closed if and only if every Cauchy sequence contained in <var>F</var> has a limit that is also an element of <var>F</var>.</em> <span class="cite">— Abbott §3.2, Theorem 3.2.8, p. 80</span></p>
+</div>
+
+<p>Abbott sets the proof as Exercise 3.2.6 and it is the Guided Proof below. Note which hypothesis is used where: an-05's Cauchy Criterion supplies the limit in ℝ, and closedness is exactly the extra fact that the limit lands back in <var>F</var>. That division of labour is the definition of a complete <em>subspace</em>, and an-14 will state it in those words. <span class="cite">— Abbott §2.6, Theorem 2.6.4, p. 59</span></p>
+
+<div class="worked">
+<p><strong>Worked example — a set all of whose points are isolated, with a limit point outside it (fully worked).</strong> Let <var>A</var> = {1/<var>n</var> : <var>n</var> ∈ ℕ}. <span class="cite">— Abbott §3.2, Example 3.2.9, p. 80</span></p>
+<p>Every point of <var>A</var> is isolated. Given 1/<var>n</var> ∈ <var>A</var>, take &epsilon; = 1/<var>n</var> − 1/(<var>n</var>+1), the distance to the nearest smaller element. Then <var>V</var><sub>&epsilon;</sub>(1/<var>n</var>) ∩ <var>A</var> = {1/<var>n</var>}, so the neighbourhood meets <var>A</var> in no point other than 1/<var>n</var> itself, and Definition 3.2.4 fails.</p>
+<p>Yet 0 <em>is</em> a limit point of <var>A</var>: any <var>V</var><sub>&epsilon;</sub>(0) contains 1/<var>n</var> for every <var>n</var> &gt; 1/&epsilon;, and those points are in <var>A</var> and differ from 0. So <var>A</var> has exactly one limit point, and it is not in <var>A</var> — hence <var>A</var> is not closed.</p>
+<p><strong>What the example separates.</strong> "Every point isolated" and "no limit points" are different statements: the first is about points <em>of</em> <var>A</var>, the second about points of ℝ. Conflating them is the standard error here, and this set is the standing witness against it.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 3.2.10 (Density of ℚ in ℝ).</strong> <em>Given any <var>y</var> ∈ ℝ, there exists a sequence of rational numbers that converges to <var>y</var>.</em> <span class="cite">— Abbott §3.2, Theorem 3.2.10, p. 81</span></p>
+</div>
+
+<p>an-01's density property said that between any two reals there is a rational; combining it with Theorem 3.2.5 says every real is a limit point of ℚ. So the set of limit points of ℚ is all of ℝ, and ℚ is very far from closed. The same argument works for the irrationals, which is worth noticing: two disjoint sets can both be dense. <span class="cite">— Abbott §1.4, Theorem 1.4.3, p. 20</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Is a finite set closed?</p>
+<button onclick="check(this,true)" data-ok>Yes — it has no limit points at all, so it vacuously contains them</button>
+<button onclick="check(this,false)">No — closed sets must be infinite</button>
+<button onclick="check(this,false)">Only if its points are evenly spaced</button>
+<div class="explain">Given a finite set <var>A</var> and any <var>x</var> ∈ ℝ, let &epsilon; be smaller than the distance from <var>x</var> to the nearest point of <var>A</var> other than <var>x</var>; then <var>V</var><sub>&epsilon;</sub>(<var>x</var>) meets <var>A</var> in no point other than possibly <var>x</var>. So there are no limit points and Definition 3.2.7 is satisfied with nothing to check. Vacuous satisfaction is real satisfaction.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A set is not open. Does it follow that it is closed?</p>
+<button onclick="check(this,false)">Yes — the two are complementary properties</button>
+<button onclick="check(this,true)" data-ok>No — the half-open interval [0, 1) is neither, and ℝ is both</button>
+<button onclick="check(this,false)">Yes, provided the set is bounded</button>
+<div class="explain">The words are not opposites, and the vocabulary is at its most misleading here. [0, 1) is not open because of the point 0, and not closed because 1 is a limit point it does not contain. Meanwhile ℝ and ∅ are both open and closed. Theorem 3.2.13 gives the correct relationship, and it is about <em>complements</em>, not about negation.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~20 min</span>
+<h2>Closure, complements, and the symmetry that appears</h2>
+
+<div class="definition">
+<p><strong>Definition 3.2.11.</strong> Given <var>A</var> ⊆ ℝ, let <var>L</var> be the set of all limit points of <var>A</var>. The <em>closure</em> of <var>A</var> is <var>A</var>‾ = <var>A</var> ∪ <var>L</var>. <span class="cite">— Abbott §3.2, Definition 3.2.11, p. 81</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 3.2.12.</strong> <em>For any <var>A</var> ⊆ ℝ, the closure <var>A</var>‾ is a closed set, and it is the smallest closed set containing <var>A</var>.</em> <span class="cite">— Abbott §3.2, Theorem 3.2.12, p. 81</span></p>
+</div>
+
+<p>Two clauses, doing different jobs. That <var>A</var>‾ is closed is the non-obvious half — adding the limit points might have created new ones, and the proof is that it does not. That it is smallest makes the closure canonical: it is not merely <em>a</em> closed set around <var>A</var> but the intersection of all of them. Worked examples: {1/<var>n</var>}‾ = {1/<var>n</var>} ∪ {0}, (<var>a</var>, <var>b</var>)‾ = [<var>a</var>, <var>b</var>], and ℚ‾ = ℝ. <span class="cite">— Abbott §3.2, p. 81</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 3.2.13.</strong> <em>A set <var>O</var> is open if and only if <var>O</var><sup>c</sup> is closed; a set <var>F</var> is closed if and only if <var>F</var><sup>c</sup> is open.</em> <span class="cite">— Abbott §3.2, Theorem 3.2.13, p. 82</span></p>
+</div>
+
+<p>Here is the correct relationship between the two words, and it explains the earlier asymmetry rather than removing it. Complementation turns unions into intersections, so a statement about arbitrary unions of open sets becomes a statement about arbitrary intersections of closed sets.</p>
+
+<div class="theorem">
+<p><strong>Theorem 3.2.14.</strong> <em>(i) The union of a finite collection of closed sets is closed. (ii) The intersection of an arbitrary collection of closed sets is closed.</em> <span class="cite">— Abbott §3.2, Theorem 3.2.14, p. 82</span></p>
+</div>
+
+<p>The proof is Theorem 3.2.3 read through Theorem 3.2.13 using De Morgan's Laws, which Abbott sets as Exercise 3.2.10. Every "arbitrary" in one theorem has become a "finite" in the other and vice versa, and no new mathematics was needed to get it — which is the first appearance in this course of a duality that Semester 2 uses constantly. <span class="cite">— Abbott §3.2, Exercise 3.2.10, p. 83</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Take the closure of the closure: is <var>A</var>‾‾ larger than <var>A</var>‾?</p>
+<button onclick="check(this,false)">Yes — each closure adds new limit points</button>
+<button onclick="check(this,true)" data-ok>No — <var>A</var>‾ is already closed, so it contains its own limit points and closure adds nothing</button>
+<button onclick="check(this,false)">Only when <var>A</var> is unbounded</button>
+<div class="explain">This is the first clause of Theorem 3.2.12 doing visible work. If closure could keep growing, the operation would be far less useful; the content of "the closure is closed" is exactly that the process stops after one step.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which of these is the reason Semester 2 can define a topology without mentioning ℝ?</p>
+<button onclick="check(this,false)">Because every topological space is a subset of ℝ</button>
+<button onclick="check(this,true)" data-ok>Because Theorem 3.2.3's conclusion — arbitrary unions and finite intersections stay open — can be taken as an axiom about a collection of sets, with no metric needed to state it</button>
+<button onclick="check(this,false)">Because &epsilon;-neighbourhoods exist in every set</button>
+<div class="explain">Definition 3.2.1 needs a distance to say what <var>V</var><sub>&epsilon;</sub>(<var>a</var>) is; Theorem 3.2.3's conclusion does not mention distance at all. Promoting the conclusion to a definition is the whole move, and it is why an-14's metric spaces sit between this unit and Semester 2 rather than after them.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Give an example of an infinite collection of nested open sets <var>O</var>₁ ⊇ <var>O</var>₂ ⊇ <var>O</var>₃ ⊇ ⋯ whose intersection is closed and nonempty. <span class="cite">— Abbott §3.2, Exercise 3.2.1, p. 82</span></p>
+<p><em>Hint:</em> the canvas above is already an example — identify what its intersection is, and check that set against Definition 3.2.7 rather than against intuition.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove Theorem 3.2.8: a set <var>F</var> ⊆ ℝ is closed if and only if every Cauchy sequence contained in <var>F</var> has a limit that is also an element of <var>F</var>. <em>Hint:</em> both directions go through Theorem 3.2.5, which converts between limit points and sequences. In one direction you are handed a Cauchy sequence and must produce a limit point; in the other you are handed a limit point and must produce a sequence. Watch the clause <var>a<sub>n</sub></var> ≠ <var>x</var> — it is needed in one direction and is a nuisance in the other. <span class="cite">— Abbott §3.2, Exercise 3.2.6, p. 83</span></p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> (⇒) Assume <var>F</var> is closed and let (<var>x<sub>n</sub></var>) be a Cauchy sequence with every <var>x<sub>n</sub></var> ∈ <var>F</var>. By an-05's Cauchy Criterion the sequence converges to some <var>x</var> ∈ ℝ. If <var>x<sub>n</sub></var> = <var>x</var> for some <var>n</var>, then <var>x</var> ∈ <var>F</var> immediately. Otherwise <var>x<sub>n</sub></var> ≠ <var>x</var> for every <var>n</var>, and Theorem 3.2.5 makes <var>x</var> a limit point of <var>F</var>; since <var>F</var> is closed, <var>x</var> ∈ <var>F</var>.</p>
+<p>(⇐) Assume every Cauchy sequence in <var>F</var> has its limit in <var>F</var>, and let <var>x</var> be a limit point of <var>F</var>. By Theorem 3.2.5 there is a sequence (<var>x<sub>n</sub></var>) in <var>F</var> with <var>x<sub>n</sub></var> ≠ <var>x</var> and <var>x<sub>n</sub></var> → <var>x</var>. A convergent sequence is Cauchy by an-05's Theorem 2.6.2, so the hypothesis applies and gives <var>x</var> ∈ <var>F</var>. Hence <var>F</var> contains its limit points and is closed by Definition 3.2.7. ∎</p>
+<p><strong>The case split is not padding.</strong> Theorem 3.2.5 characterises limit points using sequences that avoid <var>x</var>, and a Cauchy sequence in <var>F</var> is under no obligation to avoid anything — the constant sequence <var>x</var>, <var>x</var>, <var>x</var>, … is Cauchy. Without the split, the forward direction would be applying Theorem 3.2.5 to a sequence that does not satisfy its hypothesis. Notice also where completeness entered: only once, in the forward direction, to produce a limit at all.</p>
+</details>
+</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>Definition 3.2.1, with its quantifiers in the right order, and why ∅ is open.</li>
+<li>The two halves of Theorem 3.2.3, and the single line of the proof where finiteness is spent.</li>
+<li>Theorem 3.2.5, the bridge from neighbourhoods to sequences, and the clause <var>a<sub>n</sub></var> ≠ <var>x</var> in its statement.</li>
+<li>Theorem 3.2.13 and how it converts Theorem 3.2.3 into Theorem 3.2.14 with the quantifiers exchanged.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) for every point there exists a radius; (2) &epsilon; = min of finitely many positive numbers is positive; (3) take &epsilon; = 1/<var>n</var> and pick a point of <var>A</var> each time; (4) complement swaps union with intersection, so arbitrary swaps with finite — then you have the unit.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §3.2 "Open and Closed Sets" (Definition 3.2.1, Example 3.2.2), p. 78; (Theorem 3.2.3, Definition 3.2.4, Theorem 3.2.5), p. 79; (Definition 3.2.6, Definition 3.2.7, Theorem 3.2.8, Example 3.2.9), p. 80; (Theorem 3.2.10, Definition 3.2.11, Theorem 3.2.12), p. 81; (Theorem 3.2.13, Theorem 3.2.14, Exercise 3.2.1), p. 82; (Exercise 3.2.6, Exercise 3.2.10), p. 83.
+<br>Builds on an-03, whose &epsilon;-neighbourhood is the primitive every definition above is written in, and whose Definition 2.2.3 is the notion of convergence Segment 2's bridge theorem converts limit points into — Abbott §2.2, p. 39.
+<br>Builds on an-05, whose Theorem 2.6.2 and Theorem 2.6.4 are the two halves used in the guided proof — Abbott §2.6, p. 59.
+<br>Builds on an-01, whose Theorem 1.4.3 is the density property restated above as a statement about sequences — Abbott §1.4, p. 20.
+<br>Builds on an-04 and an-06 in this unit's problem set, where a set of partial sums is tested against these definitions: Definition 2.4.3 says what those partial sums are, and Corollary 2.4.7 decides whether the set has a limit point outside itself — Abbott §2.4, pp. 51 and 54.
+<br>Deferred to an-08: compactness, which adds to "closed" the one further hypothesis that makes infinite sets behave like finite ones (Abbott §3.3). Deferred to an-10: the preimage characterisation of continuity, which is Definition 3.2.1 used as the definition of something else entirely (Abbott §4.3).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
