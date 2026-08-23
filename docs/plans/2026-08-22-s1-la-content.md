@@ -31,10 +31,10 @@ all fifteen units cite Axler and nothing else.
 | la-09 | Products and quotient spaces | 3E | **✓** | written this branch |
 | la-10 | Duality | 3F | **✓** | written this branch |
 | la-11 | Eigenvalues, eigenvectors, invariant subspaces | 5A | **✓** | written this branch |
-| la-12 | Minimal polynomial and diagonalisability | 5B–5C | **✓** | written this branch; **title/source mismatch, D-1** |
+| la-12 | Minimal polynomial and diagonalisability | 5B–5C | **✓** | written this branch; **title/source mismatch, D-1 open** |
 | la-13 | Inner product spaces | 6A | **✓** | written this branch |
 | la-14 | Orthonormal bases and Gram-Schmidt | 6B | **✓** | written this branch |
-| la-15 | Spectral theorem (real case) | 7A–7B | **✓** | written this branch; needs one §6.C definition, F-1 |
+| la-15 | Spectral theorem (real case) | 7A–7B | **✓** | written this branch; needs one §6.C definition, F-1 (closed) |
 
 ---
 
@@ -128,37 +128,102 @@ resource of any `la` unit: la-14 is 6B and la-15 is 7A–7B. The lesson therefor
 states the definition where it is needed and cites it — Axler §6.C, Definition
 6.45, printed 193, with the splitting V = U ⊕ U^⊥ at Theorem 6.47, printed 194 —
 and says in the footer that the ingredient comes from outside the module's
-declared sources. No action needed unless the syllabus is being revised anyway,
-in which case adding `Axler 6C` to la-14 or la-15 would close it.
+declared sources.
+
+**Closed, 2026-08-23.** Owner decision: the dependency is acceptable as it
+stands, because the definition is carried in the lesson rather than assumed. No
+syllabus change. If `la-14` or `la-15` is edited for another reason, adding
+`Axler 6C` to its resource list would tidy it, but nothing depends on that.
+
+### 3.4 F-2 — no edition is recorded for any book
+
+D-1's mismatch is the visible symptom of a gap: neither `resources/bookmap.json`
+nor `curriculum/syllabus.yaml` records which *edition* of a text a unit is
+pinned to. `bookmap.json` gives Axler a title, a PDF path and a page tree, and
+no edition field. A section pin such as `5B-5C` is edition-relative — in the
+copy on disk it is upper-triangular matrices and eigenspaces, in the 4th edition
+the same string is the minimal polynomial and upper-triangular matrices — so a
+unit drafted from one edition and read against another produces a pin that is
+valid, resolvable, and about different mathematics.
+
+Nothing can catch this today. `check_resources` asks whether a pinned section
+exists, and 5.B exists in both editions; `check_sections.py` (§5.1) asks whether
+a citation's section label agrees with the page it names, which is a
+within-edition question. The check that would have caught D-1 compares a unit's
+*title* against the *heading* of the section it pins, both read off the book —
+the comparison this plan ran by hand in §4, D-1, which found one mismatch in
+fifteen.
+
+Recommend an `edition` field in `bookmap.json`, populated from each book's title
+page, before the next module pins a new text. That is a prerequisite for the
+title-versus-heading check, not a substitute for it.
 
 ---
 
 ## 4. Open decisions
 
-### D-1 — la-12's title names a result its source does not contain
+### D-1 — la-12's title names a result no section of this book delivers
 
 `la-12` is titled **"Minimal polynomial and diagonalisability"** with resource
-`Axler 5B-5C`. In the 3rd edition the minimal polynomial is **§8.C
+`Axler 5B-5C`. In the copy on disk the minimal polynomial is **§8.C
 "Characteristic and Minimal Polynomials", printed 261–270**. Sections 5.B and
-5.C contain no minimal polynomial at all: 5.B is `p(T)`, the existence of an
-eigenvalue over **C**, and upper-triangular matrices; 5.C is eigenspaces and
-diagonalisability.
+5.C contain no minimal polynomial at all: 5.B is "Eigenvectors and
+Upper-Triangular Matrices" — p(T), the existence of an eigenvalue over **C**,
+and the invariant-flag characterisation — and 5.C is "Eigenspaces and Diagonal
+Matrices".
 
-Content branches do not edit `curriculum/syllabus.yaml`, so the unit is written
-against its declared resource. What 5.B *does* give is the germ the minimal
-polynomial grows from — for v ≠ 0 the list v, Tv, …, Tⁿv is dependent, so some
-nonzero polynomial p has p(T)v = 0 (Axler's proof of 5.21) — and the lesson
-develops exactly that, names it as the germ, and says plainly that the minimal
-polynomial itself is §8.C and out of scope for S1. Its problem set's Problem 3
-proves the §8.C statement in one special case, which is as close as the declared
-source allows.
+**The title is a one-off.** Reading each Axler section's own heading off its
+printed page and setting it beside the unit title that pins it, all fourteen
+other `la` units track their sections closely (la-13 "Inner product spaces" /
+6.A "Inner Products and Norms"; la-15 "Spectral theorem (real case)" / 7.B "The
+Spectral Theorem"). la-12 is the only unit of fifteen whose title names
+something its sections do not contain, so this is drift in one entry rather
+than a systematic mispinning.
 
-**Decision needed:** either (a) leave it, with the lesson's forward pointer
-carrying the honesty; (b) amend the title to "Polynomials applied to operators
-and diagonalisability" on a syllabus branch; or (c) add `Axler 8C` to the
-resource list and grow the unit. Recommend **(b)** — the current title promises
-a result the student will not meet, and (c) makes the heaviest unit in the
-module heavier still.
+**Where the title comes from.** "The Minimal Polynomial" is a section name in
+Axler's *4th* edition, where chapter 5 runs 5.A Invariant Subspaces, 5.B The
+Minimal Polynomial, 5.C Upper-Triangular Matrices, 5.D Diagonalizable
+Operators. This entry reads as having been drafted from that table of contents.
+I cannot verify the 4e TOC from disk — no copy is in `bookmap.json` — so treat
+the provenance as inference; the decision below does not depend on it. The
+edition itself is nowhere recorded (F-2), which is why nothing could flag the
+mismatch.
+
+**Option (c) — add `Axler 8C` and grow the unit — is not available.** It was
+listed as the expensive option in the draft of this plan; it is in fact
+impossible. The string "diagonaliz" does not occur anywhere in printed 261–269.
+§8.C never connects the minimal polynomial to diagonalisability; the criterion
+that does — a diagonalisable operator is exactly one whose minimal polynomial
+has distinct linear factors — is a 4th-edition result and is absent here. So
+(c) would buy the minimal polynomial and still not buy "and diagonalisability".
+It is also dearer than it looks: 8.40's existence proof is cheap (it needs only
+dim L(V) = n², 3.61, and the Linear Dependence Lemma 2.21, both already in the
+module), but everything that makes §8.C worth teaching is built on chapter 8 —
+8.34 defines the characteristic polynomial through generalized-eigenspace
+multiplicities, 8.37 Cayley–Hamilton is proved through them, and both are
+stated for **C** only.
+
+**The sections are load-bearing and cannot be swapped out.** la-15 lists la-12
+as a prerequisite, and what its proof actually consumes is 5.B and 5.C — the
+polynomial machinery behind 7.27 and the eigenspace decomposition — not the
+minimal polynomial. The mission strip, "Structure theorems here foreshadow
+persistence module decomposition", is likewise served by 5.C's V as a direct sum
+of eigenspaces and not by the minimal polynomial. Repointing the resource would
+break both.
+
+**Recommendation: (b), amend the title.** The unit as written is the correct
+unit; only its name is wrong. Suggested edit, on a syllabus branch:
+
+| field | from | to |
+|---|---|---|
+| `title` | Minimal polynomial and diagonalisability | Upper-triangular matrices and diagonalisability |
+| `hook` | One polynomial that knows everything about your operator. | Every complex operator can be put in triangular form. Which ones go further, to diagonal? |
+
+`resources`, `prereqs` and `mission_link` stand unchanged. The lesson's
+`<title>` and `<h1>` mirror the syllabus title and change with it; the body does
+not, beyond deleting the forward pointer that currently apologises for the
+title. The germ argument stays — it is good mathematics and the honest lead-in
+to §8.C — but it becomes a closing remark rather than a repair.
 
 ### D-2 — whether to wire `scripts/check_sections.py` into CI
 
