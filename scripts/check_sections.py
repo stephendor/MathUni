@@ -49,7 +49,7 @@ INDEX = os.path.join(REPO, "resources", "sections.json")
 # detected and reported as NO VERDICT rather than absorbed. The cap is also
 # large enough that reaching it means something is malformed, not long.
 CAP = 2000
-CITE = re.compile(r"§(\d+(?:\.[A-Z])?)")
+CITE = re.compile(r"§(\d+(?:\.(?:[A-Z]|\d{1,2}))?)")
 # The tail runs to the next citation, the next tag, or the end of the sentence.
 # Stopping at the sentence boundary matters: pages named in a FOLLOWING
 # sentence belong to whatever that sentence cites, and letting the tail run on
@@ -245,6 +245,30 @@ def unreadable(text):
     return [label for label, _tail, cut in tails(text) if cut and "." in label]
 
 
+def _attribution():
+    """(names, titles, split_at_books) for attributing citations to books.
+
+    Borrowed from citations.py rather than re-derived. That module already
+    pays for the hard parts -- de-accenting so "Lindstrom" matches
+    "Lindstrom" with its o-umlaut, requiring a name to appear as a
+    CONSECUTIVE phrase so "Cummings Real Analysis" wins over "Cummings", and
+    treating any book name as a cut point -- and every one of those was a
+    reported failure before it was a rule. A second implementation here would
+    be a second place for them to come back.
+
+    Nothing in this reaches the book drive: bookmap.json is in the repo, so
+    the section gate still runs anywhere.
+    """
+    try:
+        sys.path.insert(0, REPO)
+        from scripts.citations import (load_bookmap,  # noqa: E402
+                                       split_at_books)
+    except ImportError as exc:
+        raise NoVerdict("cannot import citation attribution: %s" % exc)
+    bm = load_bookmap()
+    return sorted(bm), {k: v.get("title") for k, v in bm.items()},         split_at_books
+
+
 def refresh(book, out=INDEX):
     """Regenerate the index for one book from its page tree."""
     sys.path.insert(0, REPO)
@@ -264,7 +288,7 @@ def refresh(book, out=INDEX):
 
     lettered = sum(len(LETTERED.findall(page_text(d, n) or ""))
                    for n in all_pages(d))
-    heading = LETTERED if lettered >= 2 else NUMBERED
+    heading = LETTERED if lettered else NUMBERED
 
     found = {}
     gaps = []
@@ -364,6 +388,20 @@ def selftest():
     # A bare chapter number is not a section claim and must not be judged.
     one("a bare chapter label is skipped, not guessed at",
         check_text("Axler §4, p. 30", rows) == [])
+
+    # A numbered book's labels must actually reach check_text. CITE read only
+    # "§N" and "§N.LETTER", so Abbott's "§1.4" parsed as the bare chapter
+    # "1" and every one of its citations was skipped as a non-claim -- 476 of
+    # them in the `an` module alone, all reported as a clean pass. Adding the
+    # numbered HEADING pattern indexed the book without ever checking it.
+    # (Codex review of PR #25.) These two are the negative control.
+    num = [(29, "1.4"), (36, "1.5")]
+    one("a numbered section label is parsed, not read as a chapter",
+        [lab for lab, _t, _c in tails("Abbott §1.4, p. 29")] == ["1.4"])
+    one("...and a wrong numbered label fails",
+        check_text("Abbott §9.9, p. 36", num) == [("9.9", 36, "1.5")])
+    one("...while a bare chapter still is not judged",
+        check_text("Abbott §1, p. 36", num) == [])
 
     # The length cap must not cut a page number in half.
     long_tail = ("Axler §2.A (" + "Theorem 2.7, " * 40 + "), pp. 28-38.")
@@ -493,10 +531,22 @@ def main(argv=None):
     if not args.paths:
         ap.error("give at least one path, or --refresh BOOK, or --selftest")
 
-    # Every file in this repo cites one book, named in its Sources line. The
-    # index is keyed by book so a second primary text cannot be checked
-    # against the first one's page numbers.
+    # A file does NOT cite one book. pw-04 cites Abbott and Cummings in one
+    # Sources line; an2 cites Lindstrom. Taking the first indexed name in the
+    # file and checking every citation against it is the exact mechanism
+    # citations.py already had to remove (see its attribute() docstring, which
+    # names pw-04): it reported 60 wrong labels the moment numeric labels
+    # started being parsed at all, and not one of them was about a citation.
+    # Attribution here is the same rule -- sticky, left to right, cut at each
+    # book NAME -- and a span belonging to a book with no index is counted and
+    # reported as unchecked rather than measured against the wrong book.
+    try:
+        names, titles, split_at_books = _attribution()
+    except NoVerdict as exc:
+        print("NO VERDICT: %s" % exc, file=sys.stderr)
+        return 2
     total = bad = 0
+    unindexed = {}
     for path in args.paths:
         try:
             text = io.open(path, encoding="utf-8").read()
@@ -504,8 +554,7 @@ def main(argv=None):
             print("NO VERDICT: cannot read %s: %s" % (path, exc),
                   file=sys.stderr)
             return 2
-        book = next((b for b in index if b.lower() in text.lower()), None)
-        if book is None:
+        if not any(b.lower() in text.lower() for b in index):
             print("SKIP %s — names no indexed book" % path)
             continue
         cut = unreadable(text)
@@ -514,19 +563,35 @@ def main(argv=None):
                   "with no page marker — cannot be checked"
                   % (path, cut[0], CAP), file=sys.stderr)
             return 2
-        rows, shared = index[book]
-        wrong = check_text(text, rows, shared)
         total += 1
-        for label, page, actual in wrong:
-            bad += 1
-            print("FAIL %s: cited §%s, but printed p. %d is in %s"
-                  % (path, label, page,
-                     ("§" + actual) if actual
-                     else "no section (a chapter opening, or an "
-                          "unsectioned chapter)"))
+        current = None
+        for part, named in split_at_books(text, names, titles):
+            if named is not None:
+                current = named
+            if current is None or current not in index:
+                if current is not None:
+                    n = len([1 for lab, _t, _c in tails(part) if "." in lab])
+                    if n:
+                        unindexed[current] = unindexed.get(current, 0) + n
+                continue
+            rows, shared = index[current]
+            for label, page, actual in check_text(part, rows, shared):
+                bad += 1
+                print("FAIL %s: cited §%s of %s, but printed p. %d is in %s"
+                      % (path, label, current, page,
+                         ("§" + actual) if actual
+                         else "no section (a chapter opening, or an "
+                              "unsectioned chapter)"))
     if not total:
         print("NO VERDICT: no file named an indexed book", file=sys.stderr)
         return 2
+    if unindexed:
+        # A number, not a wall of lines, and never silence: these citations
+        # were parsed and then not checked, and the report says how many.
+        print("NOTE %d citation(s) name a book with no section index and were "
+              "not checked: %s"
+              % (sum(unindexed.values()),
+                 ", ".join("%s %d" % kv for kv in sorted(unindexed.items()))))
     print("%s %d file(s) checked, %d wrong label(s)"
           % ("FAIL" if bad else "PASS", total, bad))
     return 1 if bad else 0

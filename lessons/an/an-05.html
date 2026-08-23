@@ -112,20 +112,29 @@ Convergence without knowing the destination.
 <p>Read what that did. A subsequence converging is ordinarily much weaker than the sequence converging — an-04's self-check 4 turned on exactly that gap. The Cauchy hypothesis closes the gap: it says the terms cannot spread out, so once <em>some</em> subsequence settles, the rest has nowhere else to be.</p>
 
 <h3>Interactive visual: crowding together versus stepping smaller</h3>
-<p>Two sequences, both with consecutive gaps shrinking to zero. The blue one is Cauchy; the amber one is the partial sums of the harmonic series, which is pseudo-Cauchy and divergent. The bars measure the <em>spread</em> of all terms from index <var>N</var> onward — the quantity Definition 2.6.1 controls. Watch the blue spread collapse and the amber spread refuse to.</p>
+<p>Two sequences, both with consecutive gaps shrinking to zero. The blue one is Cauchy; the amber one is the partial sums of the harmonic series, which is pseudo-Cauchy and divergent. The bars measure the <em>spread</em> of the terms from index <var>N</var> out to index <var>e</var>·<var>N</var> — a window that widens as the threshold rises, because Definition 2.6.1 lets both indices run free and a fixed-width window would not test it. Watch the blue spread collapse and the amber spread sit at about ln <var>e</var> = 1 however far out you push <var>N</var>.</p>
 <canvas id="cauchyCanvas" width="640" height="260" role="img" aria-label="Comparison of the tail spread of a Cauchy sequence and of the divergent harmonic partial sums"></canvas>
 <script>
 (function(){
 const cv=document.getElementById('cauchyCanvas'),ctx=cv.getContext('2d');
 const W=cv.width,H=cv.height;
-const M=400;
+const M=1200;   // long enough that the e*N horizon stays inside the array
 // blue: partial sums of 1/2^n, Cauchy. amber: partial sums of 1/n, not.
 const blue=[],amber=[];
 let b=0,a=0;
 for(let n=1;n<=M;n++){b+=Math.pow(0.5,n);blue.push(b);a+=1/n;amber.push(a);}
-function spread(arr,N){ // sup - inf over the tail, capped at 60 terms ahead
+// The spread over the tail from N, measured out to a horizon that GROWS with
+// N. A fixed window was the wrong instrument and gave the wrong answer: over
+// N..N+60 the harmonic partial sums spread by about ln((N+61)/(N+1)), which
+// tends to 0 — so the amber bar collapsed too, and the picture taught that the
+// harmonic partial sums are Cauchy. Definition 2.6.1 quantifies over BOTH
+// indices freely, so the witness must be allowed to run away with N. Out to
+// e*N the harmonic spread is about ln(e) = 1 for every N, which is the
+// constant the definition is failed by.
+function horizon(N){return Math.min(M-1,Math.ceil((N+1)*Math.E)-1);}
+function spread(arr,N){ // sup - inf over arr[N .. horizon(N)]
   let lo=Infinity,hi=-Infinity;
-  for(let i=N;i<Math.min(M,N+60);i++){if(arr[i]<lo)lo=arr[i];if(arr[i]>hi)hi=arr[i];}
+  for(let i=N;i<=horizon(N);i++){if(arr[i]<lo)lo=arr[i];if(arr[i]>hi)hi=arr[i];}
   return hi-lo;
 }
 let N=0,t=0;
@@ -193,7 +202,7 @@ AoC ⇒ NIP ⇒ BW ⇒ CC,&nbsp;&nbsp;&nbsp;and AoC ⇒ MCT
 
 <div class="you-try">
 <p><strong>You try (solo).</strong> Give an example of each of the following, or argue that the request is impossible: (a) a Cauchy sequence that is not monotone; (b) a monotone sequence that is not Cauchy; (c) a Cauchy sequence with a divergent subsequence; (d) an unbounded sequence containing a subsequence that is Cauchy. <span class="cite">— Abbott §2.6, Exercise 2.6.1, p. 61</span></p>
-<p><em>Hint:</em> for each request, decide first whether it contradicts one of the three results above. Two of the four are impossible, and naming which theorem forbids them is the answer.</p>
+<p><em>Hint:</em> for each request, decide first whether it contradicts one of the three results above. Exactly one of the four is impossible, and naming which theorem forbids it is the answer. The other three all have examples, and the one most often given up on is (d) — an unbounded sequence may still have a <em>constant</em> subsequence.</p>
 </div>
 
 <div class="guided-proof">

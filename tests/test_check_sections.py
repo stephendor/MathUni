@@ -10,7 +10,7 @@ import pytest
 from scripts.check_sections import (CAP, LETTERED, NUMBERED, NoVerdict,
                                     admissible, check_text, load_index, main,
                                     main_text_plateaus, pages_in, section_of,
-                                    selftest, unreadable)
+                                    selftest, tails, unreadable)
 
 # A None label is a gap: a chapter-opening page, or an unsectioned chapter.
 # Printed 27 opens Axler's chapter 2 and printed 51 opens chapter 3.
@@ -260,3 +260,97 @@ def test_the_two_books_share_pages_differently():
     _rows_x, shared_axler = load_index()["Axler"]
     assert 29 in shared_abbott and len(shared_abbott) > 20
     assert shared_axler == set()
+
+
+# --- a numbered book must actually be checked, not merely indexed ----------
+
+NUM = [(29, "1.4"), (36, "1.5"), (44, "1.6")]
+
+
+def test_a_numbered_section_label_is_parsed_whole():
+    """CITE read only "§N" and "§N.LETTER". Abbott's "§1.4" therefore parsed
+    as the bare chapter "1", check_text skipped it as a non-claim, and every
+    numbered citation in the corpus passed without being looked at — 476 of
+    them in `an` alone. Indexing the book was not the same as checking it.
+    (Codex review of PR #25.)"""
+    assert [lab for lab, _t, _c in tails("Abbott §1.4, p. 29")] == ["1.4"]
+
+
+def test_a_wrong_numbered_label_fails():
+    """The negative control for the line above: if this ever passes, the
+    numbered half of the gate has gone quiet again."""
+    assert check_text("Abbott §9.9, p. 36", NUM) == [("9.9", 36, "1.5")]
+
+
+def test_a_bare_chapter_is_still_not_judged_in_a_numbered_book():
+    """Widening the label must not turn "§1" into a claim about §1.5."""
+    assert check_text("Abbott §1, p. 36", NUM) == []
+
+
+def test_a_two_digit_numbered_label_is_read_whole():
+    assert [lab for lab, _t, _c in tails("Abbott §4.11, p. 44")] == ["4.11"]
+
+
+def test_the_corpus_numbered_citations_are_actually_checked():
+    """Not a tautology: this counts the citations the parser now hands to
+    check_text, so a regression in CITE shows up as a collapse in the count
+    rather than as a still-green PASS line."""
+    labels = [lab for lab, _t, _c in
+              tails("Abbott §1.3, p. 16. Abbott §2.4, pp. 59, 60.")
+              if "." in lab]
+    assert labels == ["1.3", "2.4"]
+
+
+# --- one book per file was never true --------------------------------------
+
+def test_a_second_book_in_one_file_is_not_checked_against_the_first(
+        tmp_path, capsys):
+    """pw-04 cites Abbott and Cummings in one Sources line. Attributing the
+    whole file to the first indexed name it happened to contain reported all
+    four Cummings citations as wrong labels in Abbott — the same mechanism
+    citations.py's attribute() was written to remove. Cummings has no section
+    index, so its citations are counted as unchecked and said out loud."""
+    p = tmp_path / "unit.md"
+    p.write_text(
+        "Sources: Abbott, Understanding Analysis — §1.3, p. 16. "
+        "Cummings, Real Analysis: A Long-Form Mathematics Textbook — "
+        "§6.3, Definition 6.8 p. 226.", encoding="utf-8")
+    assert main([str(p)]) == 0
+    out = capsys.readouterr().out
+    assert "FAIL" not in out
+    assert "not checked" in out and "Cummings Real Analysis 1" in out
+
+
+def test_an_unindexed_book_is_counted_not_silently_dropped(tmp_path, capsys):
+    """Silence is the failure mode this script exists to remove. A citation
+    that was parsed and then not checked is neither a pass nor a failure, and
+    the report gives its count."""
+    p = tmp_path / "unit.md"
+    p.write_text(
+        "Sources: Abbott, Understanding Analysis — §1.3, p. 16. "
+        "Lindstrom, Spaces — §3.1, p. 43; §3.2, p. 48.", encoding="utf-8")
+    assert main([str(p)]) == 0
+    assert "Lindstrom 2" in capsys.readouterr().out
+
+
+def test_the_first_book_named_still_wins_before_any_name():
+    """Attribution is sticky and left to right. Text before any book name
+    belongs to nothing yet and must not be charged to a book chosen by
+    alphabetical accident."""
+    from scripts.check_sections import _attribution
+    names, titles, split = _attribution()
+    parts = split("§1.3, p. 16. Abbott — §1.4, p. 29", names, titles)
+    assert parts[0][1] is None
+    assert parts[-1][1] == "Abbott"
+
+
+# --- the heading shape is chosen by one match, not two ---------------------
+
+def test_one_lettered_heading_selects_the_lettered_shape():
+    """`lettered >= 2` contradicted the rule stated beside it — the lettered
+    pattern wins outright if it finds ANYTHING. A book with a single lettered
+    section fell through to NUMBERED, matched nothing, and raised NoVerdict.
+    (CodeRabbit review of PR #25.)"""
+    one = "## 3.B Null Spaces and Ranges\n"
+    assert len(LETTERED.findall(one)) == 1
+    assert NUMBERED.findall(one) == []

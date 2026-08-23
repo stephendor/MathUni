@@ -197,6 +197,16 @@ Recommendation: wire it in **scoped to the books that are indexed** — that is,
 fail the build on a wrong label and report the SKIP count as a number rather
 than as a wall of lines. Owner decision; nothing on this branch depends on it.
 
+**Updated after review.** The argument above cited "28 files with 0 wrong
+labels" as evidence the gate was working. §5.1 shows that number was vacuous
+for Abbott: no numbered citation was being checked at all. That strengthens the
+case for wiring it in rather than weakening it — a gate nobody runs in CI is a
+gate whose silence nobody has reason to question, and this one stayed silent
+through a full module review. The count-of-unchecked line added in §5.1 is what
+makes the CI output readable: `PASS n files, 0 wrong` followed by `NOTE 195
+citations named a book with no section index`, so the denominator is visible
+without a wall of SKIPs.
+
 ---
 
 ## 5. Gate changes on this branch
@@ -232,6 +242,55 @@ it read as fully checked. Every capped citation is unreadable now.
 
   `check_sections` selftest 23 → 35, tests 22 → 30.
 
+### 5.1 Two more, added in review — and one of them retracts a claim above
+
+**The numbered half of the gate was never running.** `CITE` matched `§N` and
+`§N.LETTER` only, so Abbott's `§1.4` parsed as the label `1`, `check_text` read
+that as a bare chapter number and skipped it as a non-claim. Every numbered
+citation in the repository passed without being looked at — **476 of them in
+this module alone**, reported as `PASS 28 file(s) checked, 0 wrong label(s)`.
+Adding the numbered *heading* pattern indexed the book; it did not check it, and
+the two look identical from the outside. (Codex, PR #25.)
+
+This retracts a sentence in §5's third paragraph as originally written, which
+said the one-label rule "made `§1.4, Exercise 1.4.13, p. 29` a FAIL". It could
+not have: that citation never reached `check_text`. The shared-page relaxation
+is nevertheless load-bearing *now* — with `shared` removed, that citation fails
+against §1.5 — so the change was right for a reason that was not yet true when
+it was made. Both directions are in the selftest and the tests.
+
+  Negative controls: `§9.9, p. 36` fails against a numbered index; `§1` is still
+  not judged; la-06's `§3.A … p. 59` still fires.
+
+**One file, several books.** Fixing `CITE` immediately produced 60 FAIL rows
+across `pw-04` and `an2-*`, and not one of them was about a citation. The book
+was chosen per FILE — the first indexed name appearing anywhere in the text —
+so `pw-04`, which cites Abbott and Cummings in one Sources line, had its four
+Cummings citations measured against Abbott's index, and the `an2` units had
+Lindström's citations measured the same way.
+
+This is the mechanism `citations.py` already removed; its `attribute()`
+docstring names `pw-04` explicitly. `check_sections.py` had reintroduced it
+behind a comment asserting that "every file in this repo cites one book", which
+was never true. Attribution now reuses `citations.py`'s own `split_at_books` —
+sticky, left to right, cut at each book name — rather than being re-derived,
+because every hard case in that function (de-accenting `Lindström`, requiring a
+consecutive phrase so `Cummings Real Analysis` beats `Cummings`) was a reported
+failure before it was a rule.
+
+A span belonging to a book with no section index is **counted and reported**,
+not silently dropped: the run now ends with a line naming how many citations
+were parsed and then not checked, and for which books. Corpus-wide that is 195
+— Lindström 187, Dey 3, Cummings 2, Cummings Real Analysis 2 — and it is the
+honest denominator for the `PASS` line above it.
+
+  `check_sections` selftest 35 → 38, tests 30 → 39.
+
+**Also fixed:** `heading = LETTERED if lettered >= 2 else NUMBERED` contradicted
+the rule stated beside it, which is that the lettered pattern wins outright if
+it finds *anything*. A book with a single lettered section fell through to
+NUMBERED, matched nothing, and raised NoVerdict. (CodeRabbit, PR #25.)
+
 ---
 
 ## 6. Authoring rules this module cost
@@ -263,16 +322,103 @@ Run on the completed branch with the book drive present.
 
 | check | result |
 |---|---|
-| `citations` — 14 lessons | **434 checked, 0 wrong** |
-| `citations` — 14 problem sets | **354 checked, 0 wrong** |
-| `check_lesson_coverage` — 14 units | 153 refs, **0 missing** |
-| `check_sections` — 28 files | **0 wrong labels** |
+| `citations` — 14 lessons | **440 checked, 0 wrong** |
+| `citations` — 14 problem sets | **361 checked, 0 wrong** |
+| `check_lesson_coverage` — 14 units | 155 refs, **0 missing** |
+| `check_sections` — 28 files | **0 wrong labels**, 476 numbered citations now actually checked |
 | `gate` (4–6) — 14 lessons | 56/56 rows, exit 0 |
 | `lesson_lint` | 15/15 on each of 14 |
 | `mission` (gate 8) | verbatim, exit 0 |
 | `check_id_consistency`, `validate_syllabus` | clean |
 | `check_resources --shallow` | 145 units, 217 references, 0 wrong |
-| `pytest` | **327 passed** |
+| `check_sections --selftest` | 38/38 |
+| `gate --selftest` | 73/73 |
+| `pytest` | **336 passed** |
 
 `ruff` reports one pre-existing E702 in `tests/test_scheduler.py`, untouched by
 this branch.
+
+The `check_sections` row is the one worth reading twice. Before §5.1's fix the
+same row read `0 wrong labels` while checking no Abbott citation at all. The
+number that makes it meaningful is the second half — 476 citations that now
+reach the comparison — and the `NOTE` line reporting the 195 corpus-wide
+citations that still do not, because their books have no index.
+
+---
+
+## 8. Review round on PR #25
+
+Eleven findings from two reviewers; nine were real and are fixed, one named the
+wrong file but was real in the file it should have named, and one did not
+reproduce.
+
+**Gate defects** — §5.1 above: the vacuous numbered-label parse (Codex, P1), the
+per-file book attribution it exposed, and the `lettered >= 2` heading selection.
+
+**Mathematics that was wrong or unproved:**
+
+- **an-04 Problem 1.** The monotonicity argument derived a numerator whose sign
+  needs `x_n ≥ 2 − √3 ≈ 0.2679`, but the proved invariant only gives `x_n >
+  1/4`. Replaced with the monotone-map induction: `f(x) = 1/(4−x)` is increasing
+  for `x < 4`, `x₂ ≤ x₁`, so `f` applied to both sides propagates the order. The
+  failed route is kept and labelled, because the gap is instructive.
+- **an-05 canvas.** `spread()` measured a fixed 60-term window, over which the
+  harmonic partial sums spread by `≈ ln((N+61)/(N+1)) → 0`. The amber bar
+  collapsed, and the picture taught that the harmonic partial sums are Cauchy —
+  the exact opposite of the section. The horizon now grows with `N`: measured
+  out to `e·N` the spread sits at `ln e = 1` for every `N` (verified: 0.98 at
+  N=10, 1.00 at N=400) while the blue collapses to 0.
+- **an-05 You-try.** "Two of the four are impossible" — only (c) is. (a) has
+  `(−1)ⁿ/n`, (b) has `xₙ = n`, (d) has `0,1,0,2,0,3,…`. Corrected, with (d)
+  called out as the one usually given up on. *(CodeRabbit filed this against
+  `problems/sets/an-05.md`, which has 153 lines and no such text; it is in the
+  lesson.)*
+- **an-06 Problem 1.** The `p ≤ 0` case was disposed of in one clause claiming
+  Theorem 2.4.6 "was never applicable because the terms are not decreasing".
+  At `p = 0` the terms are constantly 1, which *is* decreasing in Abbott's sense
+  — Definition 2.4.1 asks `bₙ ≥ bₙ₊₁`, verified on printed 51 — so the test
+  applies and returns divergence. Split into `p < 0` (hypothesis fails) and
+  `p = 0` (test applies, series diverges).
+- **an-07 Problem 5(f).** The worked solution built `⋃ V_{ε2⁻ⁿ}(qₙ)` and then
+  could not prove it omits anything, deferring to "total length" — Lebesgue
+  measure, which this course has not built. Replaced with `ℝ \ {√2}`, which is
+  open by part (e) of the same problem. The union is kept as a discussion of why
+  a correct intuition resting on an unavailable theorem is not an argument.
+- **an-08 canvas and Self-check 4.** Every band is `(x/2, 1)`, so the family
+  omits **1** as surely as it omits 0; closed mode drew one repair set and
+  claimed a finite subcover of `[0,1]` that missed an endpoint. Two green sets
+  now, one at each end. Self-check 4 was worse than the canvas: its distractor
+  "At the point 1, which no `O_x` contains" was keyed **wrong** and is true. The
+  options were rewritten so exactly one is correct.
+- **an-12 Problem 3.** `g_a(x) = x^a sin(1/x)` with `a = 3/2, 5/2` is undefined
+  for `x < 0`, so "differentiable on ℝ" cannot hold. Abbott's own statement has
+  this gap — verified verbatim on printed 136 — so his wording is quoted and a
+  note fixes the reading as `|x|^a`, which is odd and therefore transfers the
+  `x > 0` work to `x < 0` for free.
+- **an-13 Problem 2(b).** The worked start built a moving spike, observed that
+  its limit is the zero function, then said "amend the construction" and offered
+  two sketches without carrying either out. Replaced with an explicit
+  construction: `T_k` of height `k` centred at `2⁻ᵏ` with support half-width
+  `2⁻⁽ᵏ⁺²⁾`, disjoint because `5/8 < 3/4`, and `gₙ = Σ₁ⁿ Tₖ`. Continuity comes
+  from finiteness of the partial sum; pointwise convergence is trivial because
+  each `x` meets at most one spike.
+- **an-14 Self-check 2.** The keyed answer named the space of *bounded*
+  functions and was right, but the explanation asserted an unrestricted
+  equivalence. `fₙ(x) = x + 1/n → x` on ℝ converges uniformly with no bounded
+  function in sight. The explanation now states the exact condition: uniform
+  convergence to `f` is metric convergence within the set at finite sup-distance
+  *from f*.
+- **an-14 Problem 6.** Completeness of `C[0,1]` under the sup metric was
+  attributed to Theorem 6.2.5 alone. 6.2.5 produces a uniform limit; it says
+  nothing about continuity, and completeness needs the limit back inside the
+  space. Theorem 6.2.6 is the missing step — both verified on printed 160.
+
+**Did not reproduce:** CodeRabbit's outside-diff comment on `an-05.md` lines
+194–196 describes a four-part construction problem with a miscounted number of
+impossible cases. That file is 153 lines long and contains no such problem; the
+text it describes is the lesson's You-try, fixed above.
+
+Two of these repairs — an-06's Definition 2.4.1 and an-14's Theorem 6.2.6 — were
+caught by `check_lesson_coverage` for being cited in a problem set and not named
+in the lesson, which is the module's most frequent gate failure and is recorded
+as an authoring rule in §6. Both results belonged in the lesson footers anyway.

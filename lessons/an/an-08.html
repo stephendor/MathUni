@@ -122,7 +122,7 @@ The property that makes infinite behave like finite.
 <p>Note what a finite subcover is not: it is not permission to choose new smaller sets, and it is not a claim that some clever cover is finite. The sets must come from the cover you were handed, and the claim must hold for <em>every</em> cover — which is what makes it a strong hypothesis and an awkward one to verify directly.</p>
 
 <h3>Interactive visual: a cover with no finite subcover, and the repair</h3>
-<p>The bands are the sets <var>O<sub>x</sub></var> = (<var>x</var>/2, 1) for various <var>x</var>. Together they cover (0, 1). The green marker shows the union of the finitely many bands drawn so far — always an interval (<var>x</var>′/2, 1) that misses everything to the left of <var>x</var>′/2. Toggle to the closed interval and one extra set, a neighbourhood of 0, finishes the job at once.</p>
+<p>The bands are the sets <var>O<sub>x</sub></var> = (<var>x</var>/2, 1) for various <var>x</var>. Together they cover (0, 1). The marker below shows the union of the finitely many bands drawn so far — always an interval (<var>x</var>′/2, 1) that misses everything to the left of <var>x</var>′/2. Toggle to the closed interval and two extra sets finish the job at once, one at each endpoint. Both are needed: every band is (<var>x</var>/2, 1), which omits the point 1 exactly as it omits 0, so this family is a cover of the <em>open</em> interval and does not cover [0, 1] until both ends are patched. The right-hand endpoint is the one that gets forgotten, because the bands all visibly run towards it.</p>
 <canvas id="coverCanvas" width="640" height="250" role="img" aria-label="An open cover of the open unit interval whose finite subcollections never reach zero, contrasted with a cover of the closed interval that has a finite subcover"></canvas>
 <script>
 (function(){
@@ -146,17 +146,25 @@ function draw(){
     ctx.beginPath();ctx.moveTo(sx(x/2),y);ctx.lineTo(sx(1),y);ctx.stroke();
     ctx.globalAlpha=1;
   }
+  // TWO extra sets, not one. Every band is (x/2, 1) and so omits the point 1
+  // as surely as it omits 0 — Abbott's family covers the OPEN interval and is
+  // not a cover of [0,1] at all until both ends are repaired. Drawing only the
+  // neighbourhood of 0 showed a "finite subcover" that missed an endpoint, and
+  // 1 is the endpoint students forget, because the bands visibly run towards
+  // it. (CodeRabbit review of PR #25.)
   if(closed){
     const y=36+Math.min(n,7)*11;
     ctx.strokeStyle='#4caf82';ctx.lineWidth=2;
     ctx.beginPath();ctx.moveTo(sx(-0.03),y);ctx.lineTo(sx(smallest+0.06),y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx(0.94),y+11);ctx.lineTo(sx(1.03),y+11);ctx.stroke();
     smallest=-0.03;
   }
   ctx.strokeStyle=closed?'#4caf82':'#e06c75';ctx.lineWidth=3;
-  ctx.beginPath();ctx.moveTo(sx(Math.max(0,smallest)),H-64);ctx.lineTo(sx(1),H-64);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sx(Math.max(0,smallest)),H-64);
+  ctx.lineTo(sx(closed?1.03:1),H-64);ctx.stroke();
   ctx.fillStyle='#9aa5b1';ctx.textAlign='center';ctx.font='12px sans-serif';
   ctx.fillText(closed
-    ? 'covering [0,1]: the extra green set around 0 completes a finite subcover'
+    ? 'covering [0,1]: two extra green sets — one at each endpoint — complete a finite subcover'
     : 'covering (0,1): the union of these '+n+' sets starts at '+Math.max(0,smallest).toFixed(4)+', so points below it are uncovered',
     W/2,H-28);
   ctx.fillText(closed
@@ -194,10 +202,10 @@ draw();
 
 <div class="selfcheck">
 <p><strong>Self-check 4.</strong> Where exactly does Example 3.3.7's cover fail to be a cover of [0, 1]?</p>
-<button onclick="check(this,false)">At the point 1, which no <var>O<sub>x</sub></var> contains</button>
-<button onclick="check(this,true)" data-ok>At the point 0, which no <var>O<sub>x</sub></var> = (<var>x</var>/2, 1) contains</button>
+<button onclick="check(this,false)">At the point 0 only, since every <var>O<sub>x</sub></var> reaches up to 1</button>
+<button onclick="check(this,true)" data-ok>At both endpoints: <var>O<sub>x</sub></var> = (<var>x</var>/2, 1) is open at each end, so it contains neither 0 nor 1</button>
 <button onclick="check(this,false)">It does cover [0, 1]</button>
-<div class="explain">Every <var>O<sub>x</sub></var> has left endpoint <var>x</var>/2 &gt; 0, so 0 is in none of them; the point 1 is also missing, which is why Abbott adds a set around it too when building the [0,1] example. The single extra set around 0 is what changes everything, and it is the reason the closed interval behaves and the open one does not.</div>
+<div class="explain">Both endpoints are missing, and the second one is the one that gets forgotten. Every <var>O<sub>x</sub></var> has left endpoint <var>x</var>/2 &gt; 0, so 0 is in none of them — that much is obvious from the picture. But (<var>x</var>/2, 1) is open at its right end too, so 1 is in none of them either, however close the bands appear to come. "Reaches up to 1" and "contains 1" are different claims, and an open interval never makes the second one. Repairing this cover into a cover of [0, 1] therefore takes two extra sets, not one.</div>
 </div>
 
 <div class="selfcheck">
