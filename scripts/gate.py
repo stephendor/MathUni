@@ -381,13 +381,32 @@ def script_errors(bodies, modules=None):
 # checker never looks at attributes. The handler then throws at click time,
 # in a self-check button, where the failure is invisible to everything except
 # a student who clicks it. One shipped in la-07 before this row existed.
-HANDLER = re.compile(r"\son(?:click|change|input|submit|load|mouse\w+|key\w+)"
-                     r"\s*=\s*\"([^\"]*)\"", re.I)
+# Extraction goes through the HTML parser, not a regex over the source. The
+# first version of this row matched only double-quoted values, so a
+# single-quoted `onclick='check(this,false'` carried the very defect the row
+# exists to catch and was counted as zero handlers — a PASS produced by not
+# looking. A regex also cannot tell an attribute from the same text appearing
+# in prose or inside a <pre>. The parser decides both questions the way a
+# browser does, including entity-unescaping the value before it is compiled.
+class _Handlers(HTMLParser):
+    def __init__(self):
+        HTMLParser.__init__(self, convert_charrefs=True)
+        self.found = []
+
+    def handle_starttag(self, tag, attrs):
+        for name, value in attrs:
+            if name.startswith("on") and value is not None:
+                self.found.append(value)
+
+    handle_startendtag = handle_starttag
 
 
 def handler_bodies(html):
     """Every event-handler attribute value, in document order."""
-    return [m.group(1) for m in HANDLER.finditer(html)]
+    p = _Handlers()
+    p.feed(html)
+    p.close()
+    return p.found
 
 
 # One node process per FILE, not per handler. A lesson carries fifteen or so
@@ -396,12 +415,18 @@ def handler_bodies(html):
 # stops being run. The bodies go over as JSON and each is compiled separately
 # inside the one process, so a syntax error in one handler still reports its
 # own index and message rather than masking its neighbours.
-_VM_EACH_CHECK = (
-    "const vm=require('vm'),fs=require('fs');"
+#
+# The grammar matters as much as the batching. A handler attribute is compiled
+# by the browser as a FUNCTION BODY, not as a program, so `onclick="return
+# false"` is valid there and vm.Script — which parses Script grammar — rejects
+# it with "Illegal return statement". Compiling with the Function constructor
+# is the same grammar the browser uses, so the row cannot fail valid HTML.
+_FN_EACH_CHECK = (
+    "const fs=require('fs');"
     "const bodies=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));"
     "const out=[];"
     "bodies.forEach(function(b,i){"
-    "  try{new vm.Script(b);}catch(e){out.push([i,e.message]);}"
+    "  try{new Function(b);}catch(e){out.push([i,e.message]);}"
     "});"
     "process.stdout.write(JSON.stringify(out));"
 )
@@ -410,10 +435,11 @@ _VM_EACH_CHECK = (
 def handler_errors(bodies):
     """Parse each handler. Returns (errors, checked). Raises if node is absent.
 
-    A handler body is Script grammar, like a classic inline <script>, so the
-    same vm.Script compile applies. Missing node is raised rather than
-    swallowed, for the same reason as script_errors: a checker that reports
-    PASS for a check it could not run manufactures a green result.
+    A handler body is FUNCTION-BODY grammar, not the Script grammar an inline
+    <script> gets, so it is compiled with the Function constructor. Missing
+    node is raised rather than swallowed, for the same reason as
+    script_errors: a checker that reports PASS for a check it could not run
+    manufactures a green result.
     """
     if not shutil.which("node"):
         raise RuntimeError(
@@ -426,7 +452,7 @@ def handler_errors(bodies):
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         json.dump([b for _n, b in live], f)
     try:
-        proc = subprocess.run(["node", "-e", _VM_EACH_CHECK, tmp],
+        proc = subprocess.run(["node", "-e", _FN_EACH_CHECK, tmp],
                               capture_output=True, text=True)
         if proc.returncode != 0:
             raise RuntimeError("node failed while checking handlers: %s"
@@ -668,9 +694,18 @@ def selftest():
     check_one("both quoted handlers on one button are found",
               handler_bodies('<button onclick="f()" onmouseover="g()">x</button>')
               == ["f()", "g()"])
-    check_one("a handler-looking word that is not an attribute is not matched",
-              handler_bodies("<p>the onclick=\"x\" idea</p>") == ["x"]
+    check_one("handler-looking TEXT is not an attribute and is not compiled",
+              handler_bodies("<p>the onclick=\"x\" idea</p>") == []
               and handler_bodies("<p>onclickish stuff</p>") == [])
+    check_one("a single-quoted handler is found (a regex over the source was not)",
+              handler_bodies("<button onclick='check(this,false'>x</button>")
+              == ["check(this,false"])
+    check_one("entities in a handler are unescaped, as a browser unescapes them",
+              handler_bodies('<b onclick="a&amp;&amp;b()">x</b>') == ["a&&b()"])
+    check_one("`return` is legal in a handler body and must not fail the row",
+              handler_errors(["return false;"]) == ([], 1))
+    check_one("...and the relaxed grammar still refuses the shipped defect",
+              len(handler_errors(["return false", "check(this,false"])[0]) == 1)
     check_one("a non-handler attribute is left alone",
               handler_bodies('<a href="index.html">x</a>') == [])
     if shutil.which("node"):

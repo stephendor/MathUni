@@ -37,15 +37,36 @@ INDEX = os.path.join(REPO, "resources", "sections.json")
 # pages named in a FOLLOWING sentence belong to whatever that sentence cites,
 # and letting the tail run on reports them against this label.
 #
-# The length cap is a safety net, not the primary stop, and it must never cut
-# inside a number. A Sources line reading "§3.F (Definitions ...), pp. 101-114"
-# is one long sentence: the cap landed in the middle of "101", the tail ended
-# "pp. 1", and a correct citation was reported as naming printed page 1. A cap
-# that silently shortens a page number is worse than no cap at all, because it
-# can turn a wrong page into a plausible one just as easily as it turned a
-# right one into an absurd one. The trailing \d* runs the tail on to the end of
-# whatever digit run it stopped in.
-CITE = re.compile(r"§(\d+(?:\.[A-Z])?)((?:(?!\.\s+[A-Z])[^§<]){0,400}\d*)")
+# The cap is a safety net, not the primary stop, and the first version of it
+# was itself a defect twice over. A Sources line reading "§3.F (Definitions
+# ...), pp. 101-114" is one long sentence: a 220-character cap landed in the
+# middle of "101", the tail ended "pp. 1", and a correct citation was reported
+# as naming printed page 1. Raising the cap and making it digit-safe fixed the
+# loud direction and left the quiet one: when the cap lands BEFORE the page
+# marker, the tail carries no page at all, pages_in returns nothing, and the
+# citation is silently accepted however wrong its label is. Silence is the
+# failure mode this whole script exists to remove, so truncation is now
+# detected and reported as NO VERDICT rather than absorbed. The cap is also
+# large enough that reaching it means something is malformed, not long.
+CAP = 2000
+CITE = re.compile(r"§(\d+(?:\.[A-Z])?)")
+# The tail runs to the next citation, the next tag, or the end of the sentence.
+# Stopping at the sentence boundary matters: pages named in a FOLLOWING
+# sentence belong to whatever that sentence cites, and letting the tail run on
+# reports them against this label.
+_STOP = re.compile(r"[§<]|\.\s+[A-Z]")
+
+
+def tails(text):
+    """(label, tail, truncated) for each §LABEL in `text`, in order."""
+    out = []
+    for m in CITE.finditer(text):
+        rest = text[m.end():]
+        stop = _STOP.search(rest)
+        end = stop.start() if stop else len(rest)
+        truncated = end > CAP
+        out.append((m.group(1), rest[:min(end, CAP)], truncated))
+    return out
 # "pp. 28-38" names two pages, not one. Matching only the first let a range
 # whose FAR end lands in the next section pass unexamined, which is the
 # likeliest place for a footer's label to be wrong. Only the numbers actually
@@ -68,7 +89,13 @@ class NoVerdict(Exception):
 
 
 def load_index(path=INDEX):
-    """{book: [[label, first_printed_page], ...]} sorted by page."""
+    """{book: [(printed_page, label_or_None), ...]} sorted by page.
+
+    A row with label None marks a page from which no section is in force. The
+    older flat format carried no such rows, so it is refused rather than read:
+    an index that cannot express a gap would answer gap questions wrongly, and
+    a wrong answer here is worse than no answer.
+    """
     try:
         with io.open(path, encoding="utf-8") as fh:
             data = json.load(fh)
@@ -76,24 +103,34 @@ def load_index(path=INDEX):
         raise NoVerdict("cannot read section index %s: %s" % (path, exc))
     if not data or not any(data.values()):
         raise NoVerdict("section index %s names no section" % path)
-    return {book: sorted((int(p), lab) for lab, p in rows.items())
-            for book, rows in data.items()}
+    out = {}
+    for book, entry in data.items():
+        if not isinstance(entry, dict) or "sections" not in entry:
+            raise NoVerdict(
+                "section index %s is in the pre-gap format for %r; re-run "
+                "--refresh %s" % (path, book, book))
+        rows = [(int(p), lab) for lab, p in entry["sections"].items()]
+        rows += [(int(p), None) for p in entry.get("gaps", [])]
+        # A gap and a section starting on the same page: the section wins,
+        # so it must sort last.
+        out[book] = sorted(rows, key=lambda r: (r[0], r[1] is not None))
+    return out
 
 
 def section_of(page, rows):
     """The label of the last section that has started by printed `page`.
 
-    None only for a page before the first section of the book.
+    None for a page before the first section of the book, and None for a page
+    in a gap between sections — a chapter-opening page, or the whole of an
+    unsectioned chapter such as Axler's chapter 4.
 
-    The index records where each section STARTS, not where it ends, so a page
-    in the gap between a chapter's last section and the next chapter's first
-    — Axler's chapter-opening pages, which carry Notation 3.1 and its
-    siblings — is attributed to the section that precedes the gap. The verdict
-    is still right in that case (the cited label does not match, and it should
-    not have been a section label at all), but the "is in §X" hint names the
-    section before the gap rather than saying "no section". Reported as a
-    known limit rather than papered over: widening it would need the index to
-    record chapter openings too.
+    Gaps are why the index records chapter openings alongside section starts.
+    Without them the last section of the previous chapter runs on through the
+    gap, and a citation naming a gap page under that section's label is
+    accepted: "§2.C, ..., p. 51" passed, though printed 51 is the chapter-3
+    opening page and belongs to no section at all. A gap is recorded as a row
+    whose label is None, so the same "last row at or before this page" rule
+    answers "no section" without a special case.
     """
     found = None
     for start, label in rows:
@@ -107,8 +144,7 @@ def section_of(page, rows):
 def check_text(text, rows):
     """[(label, page, actual)] for every citation whose label is wrong."""
     wrong = []
-    for m in CITE.finditer(text):
-        label, tail = m.group(1), m.group(2)
+    for label, tail, _cut in tails(text):
         if "." not in label:          # a bare chapter number, e.g. "§4"
             continue
         for page in pages_in(tail):
@@ -116,6 +152,16 @@ def check_text(text, rows):
             if actual != label:
                 wrong.append((label, page, actual))
     return wrong
+
+
+def unreadable(text):
+    """[label] for each citation whose tail hit the cap before any page.
+
+    These are not passes and not failures: the check could not be performed on
+    them, which is exit 2 and must be said out loud.
+    """
+    return [label for label, tail, cut in tails(text)
+            if cut and "." in label and not pages_in(tail)]
 
 
 def refresh(book, out=INDEX):
@@ -135,15 +181,26 @@ def refresh(book, out=INDEX):
         return None
 
     found = {}
+    gaps = []
     for n in all_pages(d):
         p = printed(n)
         if p is None:
             continue
-        for m in HEADING.finditer(page_text(d, n) or ""):
+        text = page_text(d, n) or ""
+        for m in HEADING.finditer(text):
             # A section starts once. A later page mentioning the label in a
             # running head or a table of contents must not move the boundary,
             # so the FIRST page carrying the heading wins.
             found.setdefault(m.group(1), p)
+        # A chapter's opening page carries the word CHAPTER alone on its first
+        # line, above the chapter number; a running head puts the folio and
+        # the chapter title on the same line. The opening page belongs to no
+        # section, and neither does anything after it until the chapter's
+        # first section heading — which for an unsectioned chapter (Axler's
+        # chapter 4) is the whole chapter.
+        first = next((ln.strip() for ln in text.splitlines() if ln.strip()), "")
+        if first.upper().startswith("CHAPTER") and len(first) <= 12:
+            gaps.append(p)
     if not found:
         raise NoVerdict("no section headings found for %r" % book)
 
@@ -151,11 +208,11 @@ def refresh(book, out=INDEX):
     if os.path.exists(out):
         with io.open(out, encoding="utf-8") as fh:
             data = json.load(fh)
-    data[book] = found
+    data[book] = {"sections": found, "gaps": sorted(gaps)}
     with io.open(out, "w", encoding="utf-8", newline="\n") as fh:
         json.dump(data, fh, indent=1, sort_keys=True, ensure_ascii=False)
         fh.write("\n")
-    return found
+    return found, sorted(gaps)
 
 
 def selftest():
@@ -210,6 +267,44 @@ def selftest():
         all(page not in (2, 3) for _lab, page, _act
             in check_text("Axler §9.9 (" + "x" * 398 + "), pp. 28-38.", rows)))
 
+    # A page in a chapter gap belongs to no section, and the label that ran on
+    # through the gap must not be accepted. Printed 51 is Axler's chapter-3
+    # opening page: §2.C has ended and §3.A has not begun.
+    gapped = [(44, "2.C"), (51, None), (52, "3.A")]
+    one("a chapter-opening page is in no section",
+        section_of(51, gapped) is None)
+    one("...and a label that ran on through the gap is caught",
+        check_text("Axler §2.C, Notation 3.1, p. 51", gapped)
+        == [("2.C", 51, None)])
+    one("...while the section after the gap is unaffected",
+        check_text("Axler §3.A, p. 52", gapped) == [])
+    one("a section starting on a gap page still wins",
+        section_of(51, [(51, None), (51, "3.A")]) == "3.A")
+
+    # Truncation must produce NO VERDICT, never a pass. The quiet direction of
+    # the old cap: cut before the page marker, pages_in finds nothing, and a
+    # wrong label is accepted in silence.
+    runaway = "Axler §2.A " + "y" * (CAP + 50) + " pp. 59"
+    one("a citation cut off before its page marker is reported unreadable",
+        unreadable(runaway) == ["2.A"])
+    one("...and a citation that reaches its pages is not",
+        unreadable("Axler §2.A, pp. 28-38.") == [])
+    one("...and a short wrong citation is still judged, not deferred",
+        check_text("Axler §2.A, p. 59", rows) == [("2.A", 59, "3.B")])
+
+    # The pre-gap index format cannot express a gap, so it is refused.
+    import tempfile
+    fd, tmp = tempfile.mkstemp(suffix=".json")
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        json.dump({"Axler": {"1.A": 2}}, fh)
+    try:
+        load_index(tmp)
+        one("the pre-gap index format is refused, not read", False)
+    except NoVerdict:
+        one("the pre-gap index format is refused, not read", True)
+    finally:
+        os.unlink(tmp)
+
     # Absence must never look like cleanliness.
     try:
         load_index(os.path.join(REPO, "resources", "no-such-file.json"))
@@ -235,10 +330,13 @@ def main(argv=None):
 
     try:
         if args.refresh:
-            found = refresh(args.refresh)
-            print("%s: %d section(s) indexed" % (args.refresh, len(found)))
+            found, gaps = refresh(args.refresh)
+            print("%s: %d section(s) indexed, %d chapter gap(s)"
+                  % (args.refresh, len(found), len(gaps)))
             for label, page in sorted(found.items(), key=lambda kv: kv[1]):
                 print("  §%-5s printed %d" % (label, page))
+            print("  gaps (no section in force from): %s"
+                  % ", ".join(str(g) for g in gaps))
             return 0
 
         index = load_index()
@@ -264,14 +362,21 @@ def main(argv=None):
         if book is None:
             print("SKIP %s — names no indexed book" % path)
             continue
+        cut = unreadable(text)
+        if cut:
+            print("NO VERDICT: %s: citation of §%s runs past %d characters "
+                  "with no page marker — cannot be checked"
+                  % (path, cut[0], CAP), file=sys.stderr)
+            return 2
         wrong = check_text(text, index[book])
         total += 1
         for label, page, actual in wrong:
             bad += 1
             print("FAIL %s: cited §%s, but printed p. %d is in %s"
                   % (path, label, page,
-                     ("§" + actual) if actual else "no section (before §"
-                      + index[book][0][1] + ")"))
+                     ("§" + actual) if actual
+                     else "no section (a chapter opening, or an "
+                          "unsectioned chapter)"))
     if not total:
         print("NO VERDICT: no file named an indexed book", file=sys.stderr)
         return 2

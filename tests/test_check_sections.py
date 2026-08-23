@@ -7,11 +7,14 @@ import json
 
 import pytest
 
-from scripts.check_sections import (NoVerdict, check_text, load_index, main,
-                                    pages_in, section_of, selftest)
+from scripts.check_sections import (CAP, NoVerdict, check_text, load_index,
+                                    main, pages_in, section_of, selftest,
+                                    unreadable)
 
-ROWS = [(2, "1.A"), (12, "1.B"), (18, "1.C"), (28, "2.A"), (39, "2.B"),
-        (44, "2.C"), (52, "3.A"), (59, "3.B")]
+# A None label is a gap: a chapter-opening page, or an unsectioned chapter.
+# Printed 27 opens Axler's chapter 2 and printed 51 opens chapter 3.
+ROWS = [(2, "1.A"), (12, "1.B"), (18, "1.C"), (27, None), (28, "2.A"),
+        (39, "2.B"), (44, "2.C"), (51, None), (52, "3.A"), (59, "3.B")]
 
 
 # --- the defect the gate was built for -------------------------------------
@@ -39,15 +42,46 @@ def test_a_page_before_the_first_section_is_unplaceable():
     assert section_of(1, ROWS) is None
 
 
-def test_a_chapter_opening_page_is_still_reported_as_wrong():
-    """Axler's Notation 3.1 sits on printed 51, the chapter-3 opening page,
-    which belongs to no section — §2.C's exercises have ended and §3.A does
-    not begin until 52. The citation "§3.A ... p. 51" is therefore wrong and
-    is reported. The index knows only where sections START, so the hint names
-    §2.C rather than "no section"; that limit is documented in section_of and
-    does not affect the verdict."""
+def test_a_chapter_opening_page_belongs_to_no_section():
+    """Axler's Notation 3.1 sits on printed 51, the chapter-3 opening page:
+    §2.C's exercises have ended and §3.A does not begin until 52. Citing it
+    under either neighbour is wrong, and the hint says "no section"."""
+    assert section_of(51, ROWS) is None
     assert check_text("Axler §3.A, Notation 3.1, p. 51", ROWS) == [
-        ("3.A", 51, "2.C")]
+        ("3.A", 51, None)]
+
+
+def test_the_label_that_runs_on_through_a_gap_is_caught():
+    """Without gap rows the previous section runs on through the chapter
+    opening, and a citation naming the gap page under THAT label is accepted
+    — a silent pass on a page that is in no section at all."""
+    no_gaps = [(44, "2.C"), (52, "3.A")]
+    assert check_text("Axler §2.C, Notation 3.1, p. 51", no_gaps) == []
+    assert check_text("Axler §2.C, Notation 3.1, p. 51", ROWS) == [
+        ("2.C", 51, None)]
+
+
+def test_an_unsectioned_chapter_is_a_gap_throughout():
+    """Axler's chapter 4 has no sections. Every page of it must resolve to no
+    section, not to §3.F running on from the chapter before."""
+    index = load_index()["Axler"]
+    assert section_of(101, index) == "3.F"
+    for page in (117, 120, 131):
+        assert section_of(page, index) is None
+    assert section_of(132, index) == "5.A"
+
+
+def test_a_section_starting_on_a_gap_page_still_wins():
+    assert section_of(51, [(51, None), (51, "3.A")]) == "3.A"
+
+
+def test_the_pre_gap_index_format_is_refused(tmp_path):
+    """An index that cannot express a gap would answer gap questions wrongly.
+    Wrong is worse than absent, so the old format is NoVerdict."""
+    p = tmp_path / "old.json"
+    p.write_text(json.dumps({"Axler": {"1.A": 2, "1.B": 12}}), encoding="utf-8")
+    with pytest.raises(NoVerdict):
+        load_index(str(p))
 
 
 def test_a_range_is_checked_at_both_ends():
@@ -126,3 +160,26 @@ def test_the_length_cap_never_cuts_a_page_number_in_half():
     assert len(long_tail) > 400
     assert check_text(long_tail, ROWS) == []
     assert 1 not in pages_in(long_tail[long_tail.index("§"):])
+
+
+def test_a_citation_cut_off_before_its_page_marker_gives_no_verdict():
+    """The quiet direction of the length cap. When the cap lands before the
+    page marker the tail carries no page, pages_in returns nothing, and the
+    citation is accepted however wrong its label is — a pass manufactured by
+    not looking. Truncation is now reported instead."""
+    runaway = "Axler §2.A " + "y" * (CAP + 50) + " pp. 59"
+    assert check_text(runaway, ROWS) == []      # nothing to judge...
+    assert unreadable(runaway) == ["2.A"]       # ...and it says so
+
+
+def test_a_citation_that_reaches_its_pages_is_not_reported_unreadable():
+    assert unreadable("Axler §2.A, pp. 28-38.") == []
+    assert unreadable("Axler §2.A (" + "Theorem 2.7, " * 40 + "), pp. 28-38.") == []
+
+
+def test_a_truncated_citation_makes_main_exit_two(tmp_path, capsys):
+    """Exit 2, not 0: the check could not be performed."""
+    f = tmp_path / "runaway.html"
+    f.write_text("Axler §2.A " + "y" * (CAP + 50) + " pp. 59",
+                 encoding="utf-8")
+    assert main([str(f)]) == 2

@@ -337,3 +337,46 @@ def test_only_event_handler_attributes_are_treated_as_script():
     assert handler_bodies('<a href="i.html" title="onclick">x</a>') == []
     assert handler_bodies('<b onclick="f()" onmouseover="g()">x</b>') == [
         "f()", "g()"]
+
+
+def test_a_single_quoted_handler_is_extracted_too():
+    """The first version of this row matched double-quoted values only, so the
+    same defect it exists to catch was counted as zero handlers and passed."""
+    from scripts.gate import handler_bodies, handler_errors
+    single = "<button onclick='check(this,false'>x</button>"
+    assert handler_bodies(single) == ["check(this,false"]
+    bad, checked = handler_errors(handler_bodies(single))
+    assert checked == 1 and len(bad) == 1
+
+
+def test_handler_like_text_outside_an_attribute_is_not_compiled():
+    from scripts.gate import handler_bodies
+    prose = '<p>Write onclick="f(" to see the gate fire.</p>'
+    assert handler_bodies(prose) == []
+
+
+def test_return_in_a_handler_is_valid_and_must_not_fail_the_gate():
+    """A handler attribute is compiled by the browser as a function BODY, so
+    `return false` is legal there. Parsing it as Script grammar rejects it with
+    "Illegal return statement" — a gate that fails valid lesson HTML."""
+    from scripts.gate import handler_errors
+    assert handler_errors(["return false;"]) == ([], 1)
+    assert handler_errors(["if(x){return false}else{g()}"]) == ([], 1)
+
+
+def test_a_broken_handler_is_still_caught_under_function_body_grammar():
+    """The negative control for the change above: relaxing the grammar must not
+    relax the check."""
+    from scripts.gate import handler_errors
+    bad, checked = handler_errors(["return false", "check(this,false"])
+    assert checked == 2
+    assert len(bad) == 1 and bad[0].startswith("handler 2 ")
+
+
+def test_entities_in_a_handler_are_unescaped_before_compiling():
+    """A browser unescapes the attribute value first, so `&amp;&amp;` is the
+    operator && and must compile."""
+    from scripts.gate import handler_bodies, handler_errors
+    bodies = handler_bodies('<b onclick="a&amp;&amp;b()">x</b>')
+    assert bodies == ["a&&b()"]
+    assert handler_errors(bodies) == ([], 1)
