@@ -456,6 +456,21 @@ per-file book attribution it exposed, and the `lettered >= 2` heading selection.
   adds limit points and nothing else, so it can repair a single removed point
   but not a removed interval.
 
+**Third round.** One finding, Codex, real:
+
+- **an-14 Problem 6(b).** The proof that no continuous limit exists inferred
+  pointwise agreement directly from `∫|f_n − f| → 0`, which does not follow —
+  convergence in the integral metric constrains an *area* and is blind to any
+  single point. The step was asserted, not proved, and it is the step the whole
+  argument turns on. Rewritten to go through continuity, which is available
+  because `f` is assumed continuous: if `f` differs from the target anywhere,
+  it differs by a fixed amount on a whole interval, and that interval's area
+  bounds `d(f_n, f)` away from zero. The left half holds for every `n` (every
+  `f_n` is identically 0 on `[0,1/2]`); the right half needs `n > 1/δ`. A
+  concrete witness for the bad inference is included — `g_n` equal to 1 at 0,
+  0 on `[1/n,1]` and linear between, so `d(g_n, 0) = 1/(2n) → 0` while
+  `g_n(0) = 1` throughout.
+
 **Did not reproduce:** CodeRabbit's outside-diff comment on `an-05.md` lines
 194–196 describes a four-part construction problem with a miscounted number of
 impossible cases. That file is 153 lines long and contains no such problem; the
