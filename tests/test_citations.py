@@ -597,3 +597,66 @@ def test_each_path_is_checked_against_its_own_primary_book(tmp_path,
     (tmp_path / "u2.md").write_text("*(Theorem 2.2, p. 41)*\n",
                                     encoding="utf-8")
     assert C.main([str(tmp_path / "u1.md"), str(tmp_path / "u2.md")]) == 1
+
+
+def _two_fake_books(tmp_path, monkeypatch, present=("Alpha", "Beta")):
+    """Two book trees on disk, with `present` deciding which are readable."""
+    import scripts.citations as C
+    trees = {"Alpha": (40, "Theorem 1.1"), "Beta": (70, "Theorem 2.2")}
+    for name, (first, result) in trees.items():
+        if name not in present:
+            continue
+        root = tmp_path / name
+        for k in range(3):
+            d = root / ("page-%d" % (10 + k))
+            d.mkdir(parents=True)
+            (d / "markdown.md").write_text(
+                "%d\n\n%s is stated here.\n" % (first + k, result),
+                encoding="utf-8")
+    monkeypatch.setattr(C, "pages_dir", lambda name: str(tmp_path / name))
+    monkeypatch.setattr(C, "load_bookmap",
+                        lambda: {"Alpha": {"title": "Alpha (A)"},
+                                 "Beta": {"title": "Beta (B)"}})
+    return C
+
+
+def test_a_path_with_no_syllabus_book_does_not_stop_the_run(tmp_path,
+                                                            monkeypatch):
+    """main() derived the book from paths[0] and returned 2 before the loop
+    when that path had no syllabus record. Putting a scratch file first on the
+    command line therefore meant every unit behind it went unchecked, and the
+    run still produced a verdict. Only the unresolvable path is blocked now.
+    (CodeRabbit, PR #26.)"""
+    C = _two_fake_books(tmp_path, monkeypatch)
+    monkeypatch.setattr(C, "book_for_unit",
+                        lambda uid: {"u2": "Beta"}.get(uid))
+    (tmp_path / "scratch.md").write_text("no citations here\n",
+                                         encoding="utf-8")
+    # Beta has no printed page 41, so this is a wrong citation.
+    (tmp_path / "u2.md").write_text("*(Theorem 2.2, p. 41)*\n",
+                                    encoding="utf-8")
+    assert C.main([str(tmp_path / "scratch.md"),
+                   str(tmp_path / "u2.md")]) == 1
+
+
+def test_a_missing_primary_does_not_blind_the_rest_of_the_file(tmp_path,
+                                                               monkeypatch,
+                                                               capsys):
+    """A file's primary is only the default attribution for a clause naming no
+    book of its own. Returning early when the PRIMARY's page tree was absent
+    skipped the whole file, so citations naming books that ARE present went
+    unchecked. (Codex, PR #26.)"""
+    C = _two_fake_books(tmp_path, monkeypatch, present=("Alpha",))
+    monkeypatch.setattr(C, "book_for_unit", lambda uid: "Beta")
+    (tmp_path / "u3.md").write_text(
+        "*(Alpha, Theorem 1.1, p. 99)*\n\n*(Theorem 2.2, p. 70)*\n",
+        encoding="utf-8")
+    # Alpha is present and printed 99 is not one of its pages, so the wrong
+    # citation is reported and the run fails; Beta is absent, and the clause
+    # that fell back to it is reported as having had no verdict rather than
+    # being counted either way. Both statements have to appear: the file used
+    # to produce neither.
+    assert C.main([str(tmp_path / "u3.md")]) == 1
+    out = capsys.readouterr().out
+    assert "Theorem 1.1" in out and "p. 99" in out
+    assert "NOVERDICT" in out and "Beta" in out

@@ -49,14 +49,24 @@ INDEX = os.path.join(REPO, "resources", "sections.json")
 # detected and reported as NO VERDICT rather than absorbed. The cap is also
 # large enough that reaching it means something is malformed, not long.
 CAP = 2000
-_LABEL = r"\d+(?:\.(?:[A-Z]|\d{1,2}))?"
+_SECTION = r"\d+\.(?:[A-Z]|\d{1,2})"
+_CHAPTER = r"\d+"
+_DASH = r"\s*[–—-]\s*"
 # A Sources line names a RANGE of sections at least as often as a single one,
 # and the range is part of the label, not text following it. Reading only the
 # first half of "§1.2-1.5" and then testing every page in the clause against
 # it reported four correct citations in one unit as wrong, each of them naming
-# a page in the later half of its own range. The second label is optional and
-# must be digits, so "§1.4 - the four rules" is still one label.
-CITE = re.compile(r"§(%s(?:\s*[–—-]\s*%s)?)" % (_LABEL, _LABEL))
+# a page in the later half of its own range.
+#
+# The two ends must have the SAME SHAPE — both sectioned, or both bare chapter
+# numbers. The first version allowed any number after the dash, so ordinary
+# prose reading "§1.4 — 4 rules, p. 6" parsed as the label "1.4 — 4", which
+# span() cannot resolve, and a correct citation was reported wrong. The
+# negative control written alongside it used "§1.4 - the rules" and passed,
+# because a word after the dash was never the risk: a NUMBER after the dash
+# was, and the control had no way to fire. (Codex, PR #26.)
+CITE = re.compile(r"§(%s(?:%s%s)?|%s(?:%s%s)?)"
+                  % (_SECTION, _DASH, _SECTION, _CHAPTER, _DASH, _CHAPTER))
 # The tail runs to the next citation, the next tag, or the end of the sentence.
 # Stopping at the sentence boundary matters: pages named in a FOLLOWING
 # sentence belong to whatever that sentence cites, and letting the tail run on
@@ -599,6 +609,11 @@ def selftest():
     one("a hyphen before a word is not a range",
         [lab for lab, _t, _c in tails("Carter §1.4 - the rules, p. 6")]
         == ["1.4"])
+    one("...nor is a hyphen before a bare COUNT",
+        [lab for lab, _t, _c in tails("Carter §1.4 — 4 rules, p. 6")]
+        == ["1.4"])
+    one("...and that citation still passes",
+        check_text("Carter §1.4 — 4 rules, p. 6", RANGE) == [])
 
     # A folio-less run at the lower edge of the first plateau is main text.
     one("the first plateau reaches down over folio-less pages",

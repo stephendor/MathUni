@@ -536,3 +536,18 @@ def test_a_file_that_is_no_unit_still_has_no_primary():
     """The negative control: nothing invents a book for a file the syllabus
     does not know."""
     assert _primary("notes/scratch.md") is None
+
+
+def test_a_bare_count_after_a_dash_is_not_a_range_endpoint():
+    """The first range grammar allowed any number after the dash, so prose
+    reading "§1.4 — 4 rules" parsed as the label "1.4 — 4", span() could not
+    resolve it, and a correct citation was reported wrong. The negative
+    control written alongside it used a WORD after the dash and could never
+    have fired. Both ends of a range must now have the same shape.
+    (Codex, PR #26.)"""
+    assert [lab for lab, _t, _c in tails("Carter §1.4 — 4 rules, p. 6")] \
+        == ["1.4"]
+    assert check_text("Carter §1.4 — 4 rules, p. 6", RANGE) == []
+    # ...while a genuine range is still read as one.
+    assert [lab for lab, _t, _c in tails("Carter §1.2–1.5, pp. 4–7")] \
+        == ["1.2–1.5"]

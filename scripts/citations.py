@@ -713,7 +713,12 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
         # (Codex review of PR #21.)
         raise Unreadable("%s: %s" % (path, e)) from e
     failures, warnings, checked = [], [], 0
-    books = books if books is not None else {book.name: book}
+    # `book` may be a Book or just a book NAME. Only its name is used here —
+    # as the default attribution for a clause that names no book — and every
+    # clause is resolved against `books` below, so a primary whose page tree is
+    # absent must still be namable. (Codex, PR #26.)
+    primary = getattr(book, "name", book)
+    books = books if books is not None else {primary: book}
     unavailable = set()
     # Attribution is offered EVERY bookmap name, not only the ones whose page
     # trees are here. Passing `sorted(books)` meant a clause naming a book we
@@ -721,7 +726,7 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
     # stayed attributed to the primary and its citations were reported wrong,
     # which is the one verdict the docstring promises never to give for a check
     # that could not run. (Codex review of PR #21.)
-    for span, pages, line, name in attribute(text, book.name,
+    for span, pages, line, name in attribute(text, primary,
                                              all_names or sorted(books),
                                              titles):
         results = results_in(span)
@@ -1149,14 +1154,8 @@ def main(argv=None):
             book_name = book_name or book_for_unit(a.unit)
         if not paths:
             ap.error("give paths or --unit")
-        if not book_name:
-            uid = os.path.splitext(os.path.basename(paths[0]))[0]
-            book_name = book_for_unit(uid)
     except Unreadable as e:
         print("ERROR could not read %s" % e)
-        return 2
-    if not book_name:
-        print("ERROR could not tell which book to check against; pass --book")
         return 2
 
     # Every book on this machine is available for attribution, not only the
@@ -1169,11 +1168,18 @@ def main(argv=None):
             books[name] = Book(name)
         except RuntimeError:
             absent.append(name)
-    if book_name not in books:
-        print("ERROR pages tree for %r is not on this machine" % book_name)
+    # The only condition that stops the whole run before it starts. Anything
+    # narrower belongs to a path: a run used to derive the book from paths[0]
+    # and return 2 here when that one path had no syllabus record, so putting
+    # a scratch file first on the command line meant every unit behind it went
+    # unchecked and the run still reported a verdict. (CodeRabbit, PR #26.)
+    if not books:
+        print("ERROR no book on this machine has a page tree")
         print("This gate needs the per-page markdown tree and cannot run here.")
         return 2
-    book = books[book_name]
+    if book_name is not None and book_name not in books:
+        print("ERROR pages tree for %r is not on this machine" % book_name)
+        return 2
     if absent:
         print("NOTE %d book(s) have no page tree here and cannot be checked "
               "against: %s" % (len(absent), ", ".join(absent)))
@@ -1184,7 +1190,16 @@ def main(argv=None):
     rc, total, blocked = 0, 0, False
 
     def per_path_book(path):
-        """This file's own primary book, or None with the reason printed."""
+        """This file's own primary book NAME, or None with the reason printed.
+
+        A name, not a Book. The primary is only the default attribution for a
+        clause that names no book of its own; check_file resolves each clause
+        against `books` separately, and a clause naming a book with no page
+        tree is already reported as unavailable rather than measured. Returning
+        None when the PRIMARY's tree was missing skipped the whole file, so a
+        unit whose primary is absent lost the checks on its citations that
+        named books which are present. (Codex, PR #26.)
+        """
         uid = os.path.splitext(os.path.basename(path))[0]
         try:
             name = book_for_unit(uid) or book_name
@@ -1192,11 +1207,12 @@ def main(argv=None):
             print("=== %s" % path)
             print("ERROR could not read %s" % e)
             return None
-        if name not in books:
+        if name is None:
             print("=== %s" % path)
-            print("ERROR pages tree for %r is not on this machine" % name)
+            print("ERROR could not tell which book to check %s against; "
+                  "pass --book" % path)
             return None
-        return books[name]
+        return name
 
     for p in paths:
         # The primary book is a property of the UNIT, not of the run. It was
@@ -1208,14 +1224,14 @@ def main(argv=None):
         # because aa-00 came first on the command line, and five of its eight
         # citations PASSED. Single-book modules never exposed it. --book is
         # still an override for the whole run, since that is what it is for.
-        book = per_path_book(p) if not a.book else books[book_name]
-        if book is None:
+        primary = book_name if a.book else per_path_book(p)
+        if primary is None:
             blocked = True
             continue
-        print("=== %s  (primary %s)" % (p, book.name))
+        print("=== %s  (primary %s)" % (p, primary))
         try:
             failures, checked, unavailable = check_file(
-                p, book, a.verbose, books, all_names, titles)
+                p, primary, a.verbose, books, all_names, titles)
         except Unreadable as e:
             # Exit 2, never 1: an input that could not be read is an absence of
             # analysis, and this script promises those never look alike.
