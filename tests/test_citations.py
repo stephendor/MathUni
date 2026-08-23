@@ -352,12 +352,18 @@ def test_unit_requires_both_halves():
     failed in CI, where the page trees are absent and the run exits 2 with a
     different message. A control whose verdict depends on the environment is
     testing the environment.
+
+    The id is one the syllabus does not contain and never will -- aa runs to
+    aa-30. It was aa-05 until that unit's problem set was written, at which
+    point the "must not exist" control started failing on a fixture rather
+    than on a defect. A control that a normal week of authoring can turn red
+    is pinned to the wrong thing.
     """
     from scripts.citations import unit_paths
-    got = unit_paths("aa-05")
+    got = unit_paths("aa-99")
     assert len(got) == 2
-    assert got[0].endswith(os.path.join("problems", "sets", "aa-05.md"))
-    assert got[1].endswith(os.path.join("lessons", "aa", "aa-05.html"))
+    assert got[0].endswith(os.path.join("problems", "sets", "aa-99.md"))
+    assert got[1].endswith(os.path.join("lessons", "aa", "aa-99.html"))
     assert not any(os.path.exists(p) for p in got), "fixture must name a unit that does not exist"
 
 

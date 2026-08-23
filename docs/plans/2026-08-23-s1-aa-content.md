@@ -17,12 +17,12 @@ the three gate defects in §3.
 |---|---|---|---|---|
 | aa-00 | Symmetry: groups before the definition | Carter ch. 1–2 | **✓** | pre-existing; 5 repairs, F-1 |
 | aa-01 | Integers: well-ordering, induction, division | Aluffi §1.1–1.2 | **✓** | pre-existing; mission strip, F-1 |
-| aa-02 | GCD, Bézout, FTA | Aluffi §1.3–1.4 | | |
-| aa-03 | Equivalence relations, quotients, ℤ/nℤ | Aluffi §2.1–2.2 | | |
-| aa-04 | Arithmetic in ℤ/nℤ; Fermat, RSA | Aluffi §2.3–2.5 | | |
-| aa-05 | Rings: definition, examples | Aluffi §3.1–3.2 | | |
-| aa-06 | Domains, fields, zero-divisors | Aluffi §3.3 | | |
-| aa-07 | Category of rings I: products, subrings | Aluffi §4.1–4.2 | | |
+| aa-02 | GCD, Bézout, FTA | Aluffi §1.3–1.4 | **set** | lesson outstanding |
+| aa-03 | Equivalence relations, quotients, ℤ/nℤ | Aluffi §2.1–2.2 | **set** | lesson outstanding |
+| aa-04 | Arithmetic in ℤ/nℤ; Fermat, RSA | Aluffi §2.3–2.5 | **set** | lesson outstanding |
+| aa-05 | Rings: definition, examples | Aluffi §3.1–3.2 | **set** | lesson outstanding |
+| aa-06 | Domains, fields, zero-divisors | Aluffi §3.3 | **set** | lesson outstanding |
+| aa-07 | Category of rings I: products, subrings | Aluffi §4.1–4.2 | **set** | lesson outstanding |
 | aa-08 | Ring homomorphisms and isomorphisms | Aluffi §4.3–4.4 | | |
 | aa-09 | Kernels, ideals, quotient rings | Aluffi §5.1–5.3 | | |
 | aa-10 | Isomorphism theorems; CRT | Aluffi §5.4–5.7 | | |
@@ -242,6 +242,51 @@ A blank run **between** two plateaus has no such pin. Either neighbour's
 offset could be the right one and the page tree does not say which, so those
 pages are reported by `--refresh` rather than guessed at.
 
+### 3.6 F-6 — a result number named without a page is checked by nothing
+
+Drafting aa-07 I wrote a forward reference to "Theorem 5.20, the Chinese
+Remainder Theorem". It is **Theorem 5.52**, printed 97. The citation gate
+reported `PASS 30 citation(s) checked, 0 wrong` with the wrong number in the
+file, and counted that citation among the thirty.
+
+The mechanism: `citations.py` checks the pair (result number, printed page).
+A result named with no page in its clause has an empty page list, the
+checking loop never runs, and the citation is tallied as checked. The blind
+spot sits exactly where the risk is highest — a cross-unit reference, where
+the author has no page open and is quoting from memory, which is what
+authoring rule 1 exists to forbid and cannot enforce.
+
+Caught by hand, because pinning the folio before committing is the standing
+practice. Logged as an OPEN GATE-lane observation with a proposed fix: look a
+pageless result number up in the book's own index of stated results, and
+report a number that heads a different result or no result at all. At
+minimum, stop counting pageless references in the PASS denominator.
+
+### 3.7 F-7 — the ratchet caught the repair, in the test suite
+
+Striking the two mission strips made `curriculum/mission-drift.txt` stale, and
+four tests went red: three in `test_mission.py` and one in `test_citations.py`.
+Every one of them was the gate working.
+
+- `test_every_listed_unit_still_actually_fails` reported `aa-00 is on the
+  drift list but now passes gate 8 — strike it off`. That is precisely the
+  ratchet's purpose: an allowlist is silent in the state that matters, and
+  this list cannot be. aa-00 and aa-01 are struck, with the reason recorded in
+  the file; Class A is down to one entry.
+- Two fixtures were pinned to whichever committed unit happened to be broken
+  (`aa-00`) and to a unit that happened not to exist yet (`aa-05`). Both went
+  red on a repair and on an ordinary week of authoring, respectively —
+  neither on a defect. `test_mission.py` already carried a note, from an
+  earlier round, that a fixture pinned to aa-00 tests the corpus rather than
+  the gate; the note had been acted on for one test and not for its
+  neighbours. Both are now synthetic, and `unit_paths` is tested against
+  `aa-99`, an id the syllabus will never contain.
+
+Worth recording that the earlier commit's message claims `pytest 357 passed`.
+That figure was measured before the mission strips were repaired in the same
+commit, and it did not hold at commit time; the four failures above are what
+was actually there. The number in §6 is measured after.
+
 ---
 
 ## 4. What the section index caught the moment it existed
@@ -284,19 +329,38 @@ One rule is new here:
 
 ---
 
+## 5b. Sets ahead of lessons
+
+Six problem sets (aa-02 … aa-07) are written and their lessons are not. That
+ordering is deliberate for this pass and has one consequence worth stating:
+`check_lesson_coverage.py` asks that every result a set cites be named in its
+lesson, so it cannot pass for a unit whose lesson does not exist. That gate is
+a **local** run and is not wired into CI, so the branch stays green; each
+lesson must be checked against its set as it lands, and the tracker's "lesson
+outstanding" is the queue.
+
+The order has a benefit as well as a cost. A set written first fixes what the
+lesson must cover, rather than the lesson fixing what the set may ask — and
+the six sets already name the results that matter: Theorem 1.8 and Theorem
+1.21 in aa-02, Claim 2.12 and Theorem 2.19 in aa-04, Proposition 3.33 in
+aa-06, Proposition 4.14 in aa-07.
+
+---
+
 ## 6. Verification
 
 | gate | result |
 |---|---|
-| `citations.py` on the aa units | 4 files, 0 wrong |
-| `check_sections.py` on the corpus | 76 files, 0 wrong labels |
-| `check_lesson_coverage.py` | 0 missing |
-| `mission.py` | verbatim, exit 0 |
+| `citations.py` on the aa units | 10 files, 190 citations, 0 wrong |
+| `check_sections.py` on the corpus | 82 files, 0 wrong labels |
+| `check_lesson_coverage.py` | 0 missing on aa-00, aa-01 (see §5b) |
+| `mission.py` | verbatim on both lessons, exit 0 |
 | `lesson_lint.py` | 15/15 on each of 2 |
 | `check_sections.py --selftest` | 52/52 |
 | `gate.py --selftest` | 73/73 |
 | `pytest` | 357 passed |
 | `check_resources.py --shallow` | 145 units, 217 refs, 0 wrong |
+| `ruff` | one pre-existing E702 in `tests/test_scheduler.py` |
 | `resources/sections.json` | Abbott and Axler regenerate byte-identical |
 
 The last row is the regression check for §3.5: the extension is additive, and
