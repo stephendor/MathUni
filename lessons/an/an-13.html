@@ -81,7 +81,12 @@ function py(y){return B-y*(B-T);}
 const eps=0.18;
 let n=1,t=0,mode=0;
 function fpow(x,n){return Math.pow(x,n);}
-function fdec(x,n){return 1/(n*(1+9*x*x));}
+// The function the prose names, exactly. It used to be 1/(n(1+9x^2)) here and
+// in the on-canvas label, while the paragraph above said 1/(n(1+x^2)) -- both
+// converge uniformly, so nothing was wrong with the demonstration, but the
+// reader was told to watch one function and shown another, and any arithmetic
+// they did against the stated one disagreed. (Codex review of PR #25.)
+function fdec(x,n){return 1/(n*(1+x*x));}
 function draw(){
   ctx.clearRect(0,0,W,H);
   const usePow=(mode===0);
@@ -109,7 +114,7 @@ function draw(){
   }
   ctx.stroke();
   ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='left';
-  ctx.fillText((usePow?'f_n(x) = x^n on [0,1]':'f_n(x) = 1/(n(1+9x^2)) on [0,1]')+'     n = '+n+
+  ctx.fillText((usePow?'f_n(x) = x^n on [0,1]':'f_n(x) = 1/(n(1+x^2)) on [0,1]')+'     n = '+n+
                '     epsilon = '+eps.toFixed(2),L,H-46);
   ctx.fillText(outside>0
     ? 'part of the graph is OUTSIDE the band — this n does not answer this epsilon'

@@ -549,6 +549,54 @@ Definition 3.3.1 was new to an-13's problem set, so `check_lesson_coverage`
 failed until it was named in the lesson — authoring rule 4 again, for the third
 time in this review.
 
+**Fifth round.** Six findings, all Codex, all real.
+
+*Two canvases did not show what their prose said:*
+
+- **an-11 never drew the Extreme Value half.** The paragraph promises left-edge
+  markers for each function's maximum and minimum; the draw routine plotted the
+  two curves, the target line and the IVT crossings, and nothing else. The
+  heading says "both theorems" and one of them was absent for every viewer.
+  Markers now computed and drawn, with a dot on the curve at the argument where
+  each extreme occurs. The prose is corrected too: both functions *do* attain
+  both extremes, and that is the better teaching point — blue attains because
+  Theorem 4.4.2 forces it, amber attains with nothing promising it. A theorem
+  whose conclusion survives its hypothesis failing has not been refuted.
+- **an-13 plotted a different function from the one named.** The prose says
+  `1/(n(1+x²))`; the code and the on-canvas label both said `1/(n(1+9x²))`.
+  Both converge uniformly, so the demonstration was sound — but a reader told to
+  watch one function saw another, and any arithmetic against the stated one
+  disagreed. Code and label now match the prose.
+
+*Three degenerate or missing cases:*
+
+- **an-08 Problem 5(a) was never proved.** "the sum set can be checked to be all
+  of `[0,2]`" is the substantive content of the exercise, asserted. Written out
+  as an induction on the self-similarity `C_{n+1} = ⅓C_n ∪ (⅔ + ⅓C_n)`: the
+  three pairwise sums are `[0,2/3]`, `[2/3,4/3]` and `[4/3,2]`, abutting exactly, so
+  the union is `[0,2]`. Verified numerically to stage 5. The remark that (a)
+  gives no compatibility between stages is now explicit, which is what makes (b)
+  a separate problem.
+- **an-08 Problem 3(a) ignored the empty family.** Under the standard reading
+  `⋂∅ = ℝ`, which is not compact, and the proof silently needed a member to
+  inherit boundedness from. Abbott's wording is his and stays; the solution now
+  answers the intended question and records the boundary case. `∅` is noted as
+  finite and vacuously compact in (d), where the degenerate input goes the
+  other way — which is the argument for looking.
+- **an-09 Problem 6 stated an unsatisfiable claim.** "for any two points
+  `x, y ∈ C`" includes `x = y`, and separated sets are disjoint, so no set would
+  be totally disconnected. Abbott's Exercise 3.4.8 has the same implicit
+  distinctness and his own 3.4.9(a) begins "Given `x < y`". "Distinct" supplied,
+  with a note — part (a) turns on `ε = y − x` being positive.
+
+*One wrong reason:*
+
+- **an-07 Problem 5(b) carried a false exception.** "no neighbourhood of `a`
+  lies inside `A` unless `A = {a}`" — a singleton contains no open neighbourhood
+  of its point either, so there is no exception. Replaced with the direct
+  argument: intersect the isolating neighbourhood with the alleged one and get
+  an interval of positive radius inside `{a}`.
+
 **Did not reproduce:** CodeRabbit's outside-diff comment on `an-05.md` lines
 194–196 describes a four-part construction problem with a miscounted number of
 impossible cases. That file is 153 lines long and contains no such problem; the

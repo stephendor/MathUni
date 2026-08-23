@@ -123,7 +123,7 @@ Why continuous images of compact sets can't misbehave.
 <p>Theorem 4.5.2's own proof runs through an-09's Theorem 3.4.6: split <var>f</var>(<var>E</var>) into two nonempty disjoint pieces, pull the split back to <var>E</var>, use connectedness of <var>E</var> to get a sequence in one piece converging into the other, and push it forward with continuity. Every step is a theorem from an-09 or an-10 with nothing new added, which is the sense in which the whole chapter has been preparation. <span class="cite">— Abbott §3.4, Theorem 3.4.6, p. 92</span></p>
 
 <h3>Interactive visual: both theorems, and the hypotheses that carry them</h3>
-<p>The blue curve is continuous on [0, 1]; the amber one has a jump. The dashed line is a target value <var>L</var> strictly between the two endpoint values. The continuous curve is forced to cross it; the discontinuous one steps over it. The markers on the left edge show where each function attains its maximum and minimum — and whether it attains them at all.</p>
+<p>The blue curve is continuous on [0, 1]; the amber one has a jump. The dashed line is a target value <var>L</var> strictly between the two endpoint values. The continuous curve is forced to cross it; the discontinuous one steps over it. The bars on the left edge mark each function's largest and smallest value, with a dot on the curve at the point where it occurs. Both functions attain both — and that is the point worth pausing on. Blue attains them <em>because</em> Theorem 4.4.2 says a continuous function on a compact set must; amber attains them with nothing guaranteeing it, since it is not continuous. The Extreme Value Theorem is a promise, not a description, and a function that keeps the promise without meeting the hypothesis has not refuted anything.</p>
 <canvas id="ivtCanvas" width="640" height="300" role="img" aria-label="A continuous function crossing an intermediate value and a discontinuous function jumping over it"></canvas>
 <script>
 (function(){
@@ -170,10 +170,40 @@ function draw(){
     if(Math.abs(a-0.5)<0.01) continue;
     if((jump(a)-Lv)*(jump(b)-Lv)<=0) jhits++;
   }
+  // The EVT half. These markers were described in the prose and never drawn:
+  // the draw routine plotted the curves, the target line and the crossings,
+  // and nothing else, so the "both theorems" visual showed one theorem.
+  // (Codex review of PR #25.) Extremes are sampled on the same grid the
+  // curves are drawn on, and a marker sits at the left edge at that height
+  // with a tick on the curve at the argument where it occurs.
+  function extremes(f){
+    let lo=Infinity,hi=-Infinity,alo=0,ahi=0;
+    for(let k=0;k<=300;k++){
+      const x=k/300;
+      if(f===jump && Math.abs(x-0.5)<0.0018) continue;
+      const y=f(x);
+      if(y<lo){lo=y;alo=x;}
+      if(y>hi){hi=y;ahi=x;}
+    }
+    return {lo:lo,hi:hi,alo:alo,ahi:ahi};
+  }
+  function marks(f,col,dx){
+    const e=extremes(f);
+    ctx.fillStyle=col;
+    [[e.hi,e.ahi],[e.lo,e.alo]].forEach(function(p){
+      ctx.fillRect(L-10+dx,py(p[0])-1.5,7,3);          // left-edge marker
+      ctx.beginPath();ctx.arc(px(p[1]),py(p[0]),3,0,2*Math.PI);ctx.fill();
+    });
+    return e;
+  }
+  const eb=marks(cont,'#8ab4f8',0), ea=marks(jump,'#d8a657',-9);
   ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='left';
   ctx.fillText('L = '+Lv.toFixed(3)+'    blue (continuous) crosses L '+hits+' time'+(hits===1?'':'s')+
-               '    amber (one jump) crosses '+jhits+' time'+(jhits===1?'':'s'),L,H-32);
-  ctx.fillText('continuity is not needed for the value to be attained — it is needed for it to be GUARANTEED',L,H-14);
+               '    amber (one jump) crosses '+jhits+' time'+(jhits===1?'':'s'),L,H-46);
+  ctx.fillText('extremes — blue max '+eb.hi.toFixed(2)+' min '+eb.lo.toFixed(2)+
+               ' (attained, and GUARANTEED by 4.4.2)     amber max '+ea.hi.toFixed(2)+
+               ' min '+ea.lo.toFixed(2)+' (attained, but nothing promised it)',L,H-30);
+  ctx.fillText('continuity is not needed for a value to be attained — it is needed for it to be GUARANTEED',L,H-14);
   t++;requestAnimationFrame(draw);
 }
 draw();
