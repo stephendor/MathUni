@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>la-12 — Minimal polynomial and diagonalisability</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}.lemma{border-left:4px solid #b48ead}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.heuristic{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0;border-left:4px solid #d8a657}
+.predict{background:#241a2b;border:1px dashed #b48ead;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.guided{background:#1a1f2b;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+textarea{width:100%;min-height:5rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;box-sizing:border-box}
+details{background:var(--panel);border-radius:10px;padding:.7rem 1rem;margin:.8rem 0}
+details summary{cursor:pointer;color:var(--acc);font-family:Segoe UI,sans-serif}
+.blankpage{background:#151b21;border:2px dashed var(--dim);border-radius:10px;padding:1.2rem;margin:2rem 0;text-align:center}
+</style></head><body>
+<p class="cite">Linear Algebra · Nexus College</p>
+<h1>Minimal polynomial and diagonalisability <span class="cite">(la-12)</span></h1>
+
+<div class="hook">
+One polynomial that knows everything about your operator.
+<p>Operators can be raised to powers, and general linear maps cannot — that single asymmetry is why operators have a theory. Once <var>T</var>², <var>T</var>³ and so on exist, any polynomial <var>p</var> can be evaluated <em>at <var>T</var></em>, producing another operator <var>p</var>(<var>T</var>). Polynomials in one operator commute with each other, so a whole commutative algebra sits inside ℒ(<var>V</var>), and factorising a polynomial factorises the operator built from it.</p>
+<p>That is the engine behind the two results this unit is aimed at. Over <strong>C</strong> every operator on a nonzero finite-dimensional space has an eigenvalue — the proof simply builds a polynomial that kills some vector and factors it. And an operator is <strong>diagonalisable</strong> exactly when its eigenspaces fill the whole space, which is the cleanest possible structure an operator can have: the space breaks into pieces on which <var>T</var> is nothing but multiplication by a number.</p>
+</div>
+
+<div class="predict">
+<strong>Prediction gate — commit before reading on.</strong> Let <var>T</var> be an operator on an <var>n</var>-dimensional space. Answer both halves separately. <strong>(i)</strong> If <var>T</var> has <var>n</var> distinct eigenvalues, do you predict it must be diagonalisable? <strong>(ii)</strong> If <var>T</var> has <em>fewer</em> than <var>n</var> distinct eigenvalues, do you predict it must fail to be diagonalisable? Commit to yes or no for each before Segment 3 — and notice that the two halves are not the same question asked twice.
+</div>
+
+<p class="mission">Why this matters for the mission: Structure theorems here foreshadow persistence module decomposition.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~20 min</span>
+<h2>Polynomials applied to operators</h2>
+
+<div class="definition">
+<strong>Definition 5.16 and Definition 5.17 (<var>T</var><sup><var>m</var></sup> and <var>p</var>(<var>T</var>)).</strong> For <var>T</var> ∈ ℒ(<var>V</var>) and <var>m</var> a positive integer, <var>T</var><sup><var>m</var></sup> is <var>T</var> composed with itself <var>m</var> times, <var>T</var>⁰ = <var>I</var>, and <var>T</var><sup>−<var>m</var></sup> = (<var>T</var><sup>−1</sup>)<sup><var>m</var></sup> when <var>T</var> is invertible. If <var>p</var>(<var>z</var>) = <var>a</var>₀ + <var>a</var>₁<var>z</var> + ⋯ + <var>a</var><sub><var>m</var></sub><var>z</var><sup><var>m</var></sup>, then <var>p</var>(<var>T</var>) = <var>a</var>₀<var>I</var> + <var>a</var>₁<var>T</var> + ⋯ + <var>a</var><sub><var>m</var></sub><var>T</var><sup><var>m</var></sup>. <span class="cite">— Axler §5.B, Definition 5.16 and Definition 5.17, p. 143</span>
+</div>
+
+<p>Two details are doing real work. <var>T</var>⁰ = <var>I</var> rather than anything else is what makes the constant term of <var>p</var> come out as <var>a</var>₀<var>I</var> — a scalar cannot be added to an operator, so the identity has to appear. And the powers exist at all only because the domain and codomain coincide, which is exactly what la-08's definition of <em>operator</em> secured. <span class="cite">— Axler §5.B, p. 143</span></p>
+
+<div class="worked">
+<strong>Worked example — a polynomial in the differentiation operator (fully worked).</strong> Let <var>D</var> ∈ ℒ(𝒫(<strong>R</strong>)) be <var>Dq</var> = <var>q</var>′ and let <var>p</var>(<var>x</var>) = 7 − 3<var>x</var> + 5<var>x</var>². Then <var>p</var>(<var>D</var>) = 7<var>I</var> − 3<var>D</var> + 5<var>D</var>², so
+<p style="text-align:center">(<var>p</var>(<var>D</var>))<var>q</var> = 7<var>q</var> − 3<var>q</var>′ + 5<var>q</var>″</p>
+<p>for every <var>q</var>. So a polynomial in the differentiation operator is a constant-coefficient linear differential operator — the objects an entire branch of analysis is about. Reading the correspondence in reverse, solving 5<var>q</var>″ − 3<var>q</var>′ + 7<var>q</var> = 0 is asking for null <var>p</var>(<var>D</var>). <span class="cite">— Axler §5.B, Example 5.18, p. 144</span></p>
+</div>
+
+<div class="theorem">
+<strong>Definition 5.19 and Theorem 5.20 (products, and commutativity).</strong> With (<var>pq</var>)(<var>z</var>) = <var>p</var>(<var>z</var>)<var>q</var>(<var>z</var>), we have (<var>pq</var>)(<var>T</var>) = <var>p</var>(<var>T</var>)<var>q</var>(<var>T</var>) and, consequently, <var>p</var>(<var>T</var>)<var>q</var>(<var>T</var>) = <var>q</var>(<var>T</var>)<var>p</var>(<var>T</var>). <span class="cite">— Axler §5.B, Definition 5.19 and Theorem 5.20, p. 144</span>
+</div>
+
+<p>The proof of the first part is a double sum rearranged, and the point is that expanding a product of polynomials never needs the symbol to be a number — the distributive law is all it uses, and operators have that. The second part then follows because <var>pq</var> = <var>qp</var> for polynomials. This is worth pausing on: la-05 made a great deal of the fact that operators do <em>not</em> commute in general, and here is a large family that does. <span class="cite">— Axler §5.B, p. 144</span></p>
+
+<div class="heuristic">
+<strong>A note on this unit's title, and what is out of scope.</strong> The <em>minimal polynomial</em> of an operator — the monic polynomial of least degree with <var>p</var>(<var>T</var>) = 0 — is Axler §8.C, and Semester 1 does not reach it. What §5.B supplies is the germ it grows from, and Theorem 5.21's proof below is where you will see it: for <var>v</var> ≠ 0 in an <var>n</var>-dimensional space, the list <var>v</var>, <var>Tv</var>, …, <var>T</var><sup><var>n</var></sup><var>v</var> has <var>n</var> + 1 members and so must be dependent, which hands you a nonzero polynomial <var>p</var> with <var>p</var>(<var>T</var>)<var>v</var> = 0. Every polynomial annihilating <var>T</var> is a multiple of the minimal one; that is the theorem this unit stops just short of. Treat "one polynomial that knows everything about your operator" as a promise about later work, and this unit as the construction of the polynomial.
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why must <var>T</var>⁰ be defined as <var>I</var> rather than left undefined?</p>
+<button onclick="check(this,false)">It need not be — <var>p</var>(<var>T</var>) can be defined without it</button>
+<button onclick="check(this,true)" data-ok>So that a polynomial's constant term becomes <var>a</var>₀<var>I</var>, since a scalar cannot be added to an operator</button>
+<button onclick="check(this,false)">Because every operator satisfies <var>T</var>⁰ = <var>I</var> as a computation</button>
+<div class="explain"><var>a</var>₀ + <var>a</var>₁<var>T</var> is not a legal expression: the two terms live in different sets. Writing <var>a</var>₀<var>I</var> puts the constant into ℒ(<var>V</var>) where it can be added. The third option treats a convention as a derivation — there is nothing to compute, since composing <var>T</var> with itself zero times has no independent meaning.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Eigenvalues exist over C, and upper-triangular matrices</h2>
+
+<div class="theorem">
+<strong>Theorem 5.21 (existence of an eigenvalue over <strong>C</strong>).</strong> Every operator on a finite-dimensional, nonzero, complex vector space has an eigenvalue. <span class="cite">— Axler §5.B, Theorem 5.21, p. 145</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true (the shape of Axler's proof) — and it is worth following closely.</strong> Let dim <var>V</var> = <var>n</var> &gt; 0 and pick any <var>v</var> ≠ 0. The list <var>v</var>, <var>Tv</var>, <var>T</var>²<var>v</var>, …, <var>T</var><sup><var>n</var></sup><var>v</var> has <var>n</var> + 1 members in an <var>n</var>-dimensional space, so it is dependent by la-03's squeeze. That gives complex <var>a</var>₀, …, <var>a</var><sub><var>n</var></sub>, not all 0, with <var>a</var>₀<var>v</var> + <var>a</var>₁<var>Tv</var> + ⋯ + <var>a</var><sub><var>n</var></sub><var>T</var><sup><var>n</var></sup><var>v</var> = 0. Note that <var>a</var>₁, …, <var>a</var><sub><var>n</var></sub> cannot all vanish, since that would leave <var>a</var>₀<var>v</var> = 0 and force <var>a</var>₀ = 0 too.
+<p>Now make the <var>a</var>'s the coefficients of a polynomial and factor it into linear factors over <strong>C</strong>. <span class="cite">— Axler, Chapter 4, Theorem 4.14, p. 125</span> That factorisation is where the Fundamental Theorem of Algebra enters. <span class="cite">— Axler, Chapter 4, Theorem 4.13, p. 124</span> The relation becomes 0 = <var>c</var>(<var>T</var> − λ₁<var>I</var>) ⋯ (<var>T</var> − λ<sub><var>m</var></sub><var>I</var>)<var>v</var> with <var>c</var> ≠ 0, so at least one factor <var>T</var> − λ<sub><var>j</var></sub><var>I</var> fails to be injective — and by la-11's Theorem 5.6 that λ<sub><var>j</var></sub> is an eigenvalue. <span class="cite">— Axler §5.B, p. 145</span></p>
+<p>The step that converts an equation about polynomials into an equation about operators is Theorem 5.20(a): factoring the polynomial factors the operator. Nothing in the argument constructs an eigenvector explicitly, and nothing could — the proof is an existence argument through and through, which is why it works at all.</p>
+<p><strong>The hypothesis <strong>F</strong> = <strong>C</strong> is not removable.</strong> la-11's rotation of <strong>R</strong>² has no eigenvalue, and the reason shows up exactly here: over <strong>R</strong> a polynomial need not factor into linear factors.</p>
+</div>
+
+<div class="definition">
+<strong>Definitions 5.24 and 5.25 (diagonal, upper triangular).</strong> The <em>diagonal</em> of a square matrix consists of the entries from the upper-left to the bottom-right corner. A matrix is <em>upper triangular</em> if every entry below the diagonal is 0. <span class="cite">— Axler §5.B, Definition 5.24 and Definition 5.25, p. 147</span>
+</div>
+
+<div class="theorem">
+<strong>Theorem 5.26 (what upper-triangular means).</strong> For <var>T</var> ∈ ℒ(<var>V</var>) and a basis <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub> of <var>V</var>, these are equivalent: the matrix of <var>T</var> with respect to that basis is upper triangular; <var>Tv</var><sub><var>j</var></sub> ∈ span(<var>v</var>₁, …, <var>v</var><sub><var>j</var></sub>) for each <var>j</var>; span(<var>v</var>₁, …, <var>v</var><sub><var>j</var></sub>) is invariant under <var>T</var> for each <var>j</var>. <span class="cite">— Axler §5.B, Theorem 5.26, p. 148</span>
+</div>
+
+<p>This is the bridge between the matrix picture and la-11's invariant subspaces. "Upper triangular" looks like a statement about where zeros sit; the theorem says it is a statement about a <em>chain</em> of nested invariant subspaces, each one dimension larger than the last. Every proof about upper-triangular matrices in this unit works through the third condition rather than the first. <span class="cite">— Axler §5.B, p. 148</span></p>
+
+<div class="theorem">
+<strong>Theorem 5.27 (over <strong>C</strong>, every operator is upper-triangularisable).</strong> If <var>V</var> is a finite-dimensional complex vector space and <var>T</var> ∈ ℒ(<var>V</var>), then <var>T</var> has an upper-triangular matrix with respect to some basis of <var>V</var>. <span class="cite">— Axler §5.B, Theorem 5.27, p. 149</span>
+</div>
+
+<p>Axler gives two proofs, both by induction on dim <var>V</var>, and the second is the one la-09 makes available: take an eigenvector <var>v</var>₁ (Theorem 5.21 supplies one), let <var>U</var> = span(<var>v</var>₁), apply the induction hypothesis to the quotient operator <var>T</var>/<var>U</var> on <var>V</var>/<var>U</var>, whose dimension is dim <var>V</var> − 1, and lift the resulting basis back. That is la-11's quotient operator and la-09's dimension formula doing exactly the work they were built for. <span class="cite">— Axler §5.B, p. 150</span></p>
+
+<div class="theorem">
+<strong>Theorems 5.30 and 5.32 (reading an upper-triangular matrix).</strong> If <var>T</var> has an upper-triangular matrix with respect to some basis, then <var>T</var> is invertible if and only if every diagonal entry is nonzero; and the eigenvalues of <var>T</var> are precisely the entries on that diagonal. <span class="cite">— Axler §5.B, Theorem 5.30, p. 150, and Theorem 5.32, p. 152</span>
+</div>
+
+<div class="worked">
+<strong>Worked example — eigenvalues read off in one glance (fully worked).</strong> Define <var>T</var> ∈ ℒ(<strong>F</strong>³) by <var>T</var>(<var>x</var>, <var>y</var>, <var>z</var>) = (2<var>x</var> + <var>y</var>, 5<var>y</var> + 3<var>z</var>, 8<var>z</var>).
+<p>Column <var>k</var> of the matrix is <var>T</var> applied to the <var>k</var>-th standard basis vector (la-07): <var>T</var>(1,0,0) = (2,0,0), <var>T</var>(0,1,0) = (1,5,0), <var>T</var>(0,0,1) = (0,3,8). So the matrix has rows (2,1,0), (0,5,3), (0,0,8) — upper triangular. By Theorem 5.32 the eigenvalues are 2, 5 and 8, with no further computation. <span class="cite">— Axler §5.B, Example 5.33, p. 152</span></p>
+<p>Theorem 5.32 is the practical payoff of the whole section, and it is worth being clear about what it does <em>not</em> give: there is no general method for computing eigenvalues exactly from an arbitrary matrix. The theorem is only available once you have found a basis making the matrix triangular, which is itself the hard part. <span class="cite">— Axler §5.B, p. 151</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does Theorem 5.27 fail over <strong>R</strong>?</p>
+<button onclick="check(this,false)">Real matrices cannot be upper triangular</button>
+<button onclick="check(this,true)" data-ok>The first basis vector of such a basis is an eigenvector, and a real operator may have none</button>
+<button onclick="check(this,false)">Because the induction cannot start when dim <var>V</var> = 1</button>
+<div class="explain">If <var>ℳ</var>(<var>T</var>) is upper triangular with respect to <var>v</var>₁, …, <var>v</var><sub><var>n</var></sub>, then <var>Tv</var>₁ ∈ span(<var>v</var>₁), so <var>v</var>₁ is an eigenvector. la-11's rotation of <strong>R</strong>² has no eigenvectors at all, so it has no upper-triangular matrix with respect to any basis. The induction starts perfectly well at dimension 1; what fails is the appeal to Theorem 5.21, which is where <strong>C</strong> is needed.</div>
+</div>
+
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Eigenspaces and diagonalisability</h2>
+
+<div class="definition">
+<strong>Definition 5.34 and Definition 5.36 (diagonal matrix, eigenspace).</strong> A <em>diagonal matrix</em> is a square matrix that is 0 everywhere except possibly on the diagonal. For <var>T</var> ∈ ℒ(<var>V</var>) and λ ∈ <strong>F</strong>, the <em>eigenspace</em> is <var>E</var>(λ, <var>T</var>) = null(<var>T</var> − λ<var>I</var>) — the eigenvectors for λ together with 0. <span class="cite">— Axler §5.C, Definition 5.34 and Definition 5.36, p. 155</span>
+</div>
+
+<p><var>E</var>(λ, <var>T</var>) is a subspace, being a null space (la-06), and λ is an eigenvalue of <var>T</var> exactly when <var>E</var>(λ, <var>T</var>) ≠ {0}. Restricted to <var>E</var>(λ, <var>T</var>) the operator <var>T</var> is nothing but multiplication by λ, which is why eigenspaces are the pieces one hopes to decompose into. <span class="cite">— Axler §5.C, p. 155</span></p>
+
+<h3>Canvas: how much structure a basis can buy</h3>
+<p>The same operator, seen through three bases: an arbitrary one, one making the matrix upper triangular, and one making it diagonal. Zero entries are dark; the amber cells are the diagonal. Nothing about the operator changes — only which entries are forced to vanish.</p>
+<canvas id="tri" width="440" height="300"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('tri'),ctx=cv.getContext('2d');
+const n=5,cell=34,x0=136,y0=48;
+const labels=['an arbitrary basis: no zeros forced',
+              'a basis from Theorem 5.27: upper triangular',
+              'a basis of eigenvectors: diagonal'];
+let k=0,t=0;
+function draw(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  for(let i=0;i<n;i++)for(let j=0;j<n;j++){
+    let zero=false;
+    if(k===1) zero = (i>j);
+    if(k===2) zero = (i!==j);
+    const x=x0+j*cell, y=y0+i*cell;
+    ctx.fillStyle = zero ? '#141a20' : (i===j ? '#d8a657' : '#8ab4f8');
+    ctx.fillRect(x,y,cell-3,cell-3);
+    if(zero){ctx.fillStyle='#3a4652';ctx.font='13px monospace';ctx.textAlign='center';
+      ctx.fillText('0',x+(cell-3)/2,y+(cell-3)/2+5);}
+  }
+  ctx.fillStyle='#e8e8e8';ctx.font='13px sans-serif';ctx.textAlign='center';
+  ctx.fillText(labels[k],220,y0+n*cell+30);
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';
+  ctx.fillText('amber: the diagonal — where the eigenvalues appear',220,y0+n*cell+50);
+  ctx.textAlign='left';
+  t++; if(t%160===0){k=(k+1)%3;}
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="theorem">
+<strong>Theorem 5.38 (eigenspaces are independent).</strong> If <var>V</var> is finite-dimensional and λ₁, …, λ<sub><var>m</var></sub> are distinct eigenvalues of <var>T</var>, then <var>E</var>(λ₁, <var>T</var>) + ⋯ + <var>E</var>(λ<sub><var>m</var></sub>, <var>T</var>) is a direct sum, and dim <var>E</var>(λ₁, <var>T</var>) + ⋯ + dim <var>E</var>(λ<sub><var>m</var></sub>, <var>T</var>) ≤ dim <var>V</var>. <span class="cite">— Axler §5.C, Theorem 5.38, p. 156</span>
+</div>
+
+<div class="worked fade">
+<strong>Why it is true.</strong> Suppose <var>u</var>₁ + ⋯ + <var>u</var><sub><var>m</var></sub> = 0 with each <var>u</var><sub><var>j</var></sub> ∈ <var>E</var>(λ<sub><var>j</var></sub>, <var>T</var>). Any nonzero <var>u</var><sub><var>j</var></sub> among them would be an eigenvector, and eigenvectors for distinct eigenvalues are independent by la-11's Theorem 5.10 — so no nontrivial relation among them is possible and every <var>u</var><sub><var>j</var></sub> = 0. la-02's zero-decomposition test then makes the sum direct. <span class="cite">— Axler §1.C, Theorem 1.44, pp. 21–23</span>
+<p>The dimension inequality follows because a direct sum's dimension is the sum of the dimensions — la-09's Theorem 3.78 — and it is a subspace of <var>V</var>, so la-04's Theorem 2.38 bounds it. <span class="cite">— Axler §2.C, Theorem 2.38, p. 45</span> Everything here is assembled from earlier units; the only genuinely new ingredient is Theorem 5.10. <span class="cite">— Axler §5.C, p. 156</span></p>
+</div>
+
+<div class="theorem">
+<strong>Definition 5.39 and Theorem 5.41 (diagonalisable, five ways).</strong> <var>T</var> is <em>diagonalisable</em> if it has a diagonal matrix with respect to some basis. For finite-dimensional <var>V</var> with distinct eigenvalues λ₁, …, λ<sub><var>m</var></sub>, the following are equivalent: <var>T</var> is diagonalisable; <var>V</var> has a basis of eigenvectors of <var>T</var>; <var>V</var> is a direct sum of one-dimensional <var>T</var>-invariant subspaces; <var>V</var> = <var>E</var>(λ₁, <var>T</var>) ⊕ ⋯ ⊕ <var>E</var>(λ<sub><var>m</var></sub>, <var>T</var>); dim <var>V</var> = dim <var>E</var>(λ₁, <var>T</var>) + ⋯ + dim <var>E</var>(λ<sub><var>m</var></sub>, <var>T</var>). <span class="cite">— Axler §5.C, Definition 5.39, p. 156, and Theorem 5.41, p. 157</span>
+</div>
+
+<div class="heuristic">
+<strong>Which of the five to reach for.</strong> The first is the definition and is almost never the one to check. The second is the working criterion — <em>find enough eigenvectors</em>. The third is the structural statement, and it is the one that generalises: a persistence module decomposing into interval modules is the same shape of claim, which is what this unit's mission strip is pointing at. The fourth says the eigenspaces exhaust the space. The fifth turns all of it into a single arithmetic check, and is the one to use when the eigenspaces are already computed.
+</div>
+
+<h3>Resolving the prediction gate</h3>
+
+<div class="worked">
+<strong>(i) Yes. (ii) No — and the second half is where the mistake usually lives.</strong>
+<p><em>(i)</em> If <var>T</var> has <var>n</var> = dim <var>V</var> distinct eigenvalues, pick one eigenvector for each. They are independent by la-11's Theorem 5.10, and an independent list of length dim <var>V</var> is a basis by la-04's Theorem 2.39. That basis consists of eigenvectors, so criterion (b) of Theorem 5.41 holds and <var>T</var> is diagonalisable. <span class="cite">— Axler §5.C, Theorem 5.44, p. 159</span></p>
+<p><em>(ii)</em> The converse is false. Define <var>T</var> on <strong>F</strong>³ by <var>T</var>(<var>z</var>₁, <var>z</var>₂, <var>z</var>₃) = (4<var>z</var>₁, 4<var>z</var>₂, 5<var>z</var>₃). Its matrix in the standard basis is already diagonal, so <var>T</var> is diagonalisable — and it has only <em>two</em> distinct eigenvalues, 4 and 5, in a three-dimensional space. Having fewer than dim <var>V</var> eigenvalues is no obstruction at all; what matters is whether the eigenspaces are large enough to fill <var>V</var>, and here dim <var>E</var>(4, <var>T</var>) = 2 and dim <var>E</var>(5, <var>T</var>) = 1 sum to 3. <span class="cite">— Axler §5.C, p. 160</span></p>
+<p>Theorem 5.44 is a <em>sufficient</em> condition and nothing more. Reading it as a criterion — "diagonalisable if and only if enough distinct eigenvalues" — is the standard error, and criterion (e) of Theorem 5.41 is the actual test.</p>
+</div>
+
+<div class="worked fade">
+<strong>Contrast — an operator that genuinely fails, over <strong>C</strong>.</strong> Define <var>T</var> ∈ ℒ(<strong>C</strong>²) by <var>T</var>(<var>w</var>, <var>z</var>) = (<var>z</var>, 0). Then <var>T</var>² = 0, so any eigenvalue λ satisfies λ²<var>v</var> = <var>T</var>²<var>v</var> = 0 for an eigenvector <var>v</var> ≠ 0, giving λ = 0; and <var>E</var>(0, <var>T</var>) = null <var>T</var> = {(<var>w</var>, 0)} has dimension 1. The eigenspace dimensions sum to 1, not 2, so criterion (e) fails and <var>T</var> is not diagonalisable. <span class="cite">— Axler §5.C, Example 5.43, p. 158</span>
+<p>Being over <strong>C</strong> guarantees an eigenvalue (Theorem 5.21) and an upper-triangular matrix (Theorem 5.27), and guarantees nothing about diagonalisability. That gap is what Axler's Chapter 8 exists to close, and it is where the minimal polynomial finally does its work.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> <var>T</var> is an operator on a 5-dimensional space with distinct eigenvalues 1, 2 and 3, and dim <var>E</var>(1, <var>T</var>) = 2, dim <var>E</var>(2, <var>T</var>) = 2, dim <var>E</var>(3, <var>T</var>) = 1. Is <var>T</var> diagonalisable?</p>
+<button onclick="check(this,true)" data-ok>Yes — the eigenspace dimensions sum to 5 = dim <var>V</var></button>
+<button onclick="check(this,false)">No — only 3 distinct eigenvalues in a 5-dimensional space</button>
+<button onclick="check(this,false)">Cannot be decided without the matrix</button>
+<div class="explain">Criterion (e) of Theorem 5.41: 2 + 2 + 1 = 5 = dim <var>V</var>, so <var>T</var> is diagonalisable. The second option applies the converse of Theorem 5.44, which the prediction gate just disproved. The third is unnecessary — the eigenspace dimensions are exactly the data the criterion needs, and no matrix is required.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> <var>T</var> is an operator on <strong>C</strong>⁴. Which is guaranteed?</p>
+<button onclick="check(this,false)"><var>T</var> is diagonalisable</button>
+<button onclick="check(this,true)" data-ok><var>T</var> has an eigenvalue, and an upper-triangular matrix with respect to some basis</button>
+<button onclick="check(this,false)"><var>T</var> has four distinct eigenvalues</button>
+<div class="explain">Theorem 5.21 gives an eigenvalue and Theorem 5.27 an upper-triangular matrix, both because the field is <strong>C</strong>. Neither diagonalisability nor a full complement of eigenvalues follows: <var>T</var>(<var>w</var>, <var>z</var>) = (<var>z</var>, 0) extended by zeros is a counterexample to both.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In the proof of Theorem 5.38, where is it used that the eigenvalues are <em>distinct</em>?</p>
+<button onclick="check(this,false)">Nowhere — the argument works for any list of eigenvalues</button>
+<button onclick="check(this,true)" data-ok>In the appeal to la-11's Theorem 5.10, which requires distinct eigenvalues to conclude independence</button>
+<button onclick="check(this,false)">In the dimension inequality at the end</button>
+<div class="explain">Theorem 5.10's hypothesis is that the eigenvalues are distinct; without it eigenvectors for one eigenvalue can certainly be dependent, and the sum of eigenspaces would not be direct — indeed <var>E</var>(λ, <var>T</var>) + <var>E</var>(λ, <var>T</var>) = <var>E</var>(λ, <var>T</var>) is never direct for a nonzero eigenspace. The dimension inequality is a consequence of directness, not a place where the hypothesis is spent.</div>
+</div>
+
+<h3>Guided proof practice</h3>
+<div class="guided">
+<p><strong>Write your own proof.</strong> Suppose <var>T</var> ∈ ℒ(<var>V</var>) and <var>U</var> is a subspace of <var>V</var> invariant under <var>T</var>. Prove that <var>U</var> is invariant under <var>p</var>(<var>T</var>) for every polynomial <var>p</var> ∈ 𝒫(<strong>F</strong>). (Two stages: first handle the powers <var>T</var><sup><var>k</var></sup>, then assemble. Say which subspace property each stage uses.) <span class="cite">— cf. Axler §5.B, Exercise 6, p. 153</span></p>
+<textarea placeholder="Write your proof here — it will not be saved or submitted, this is for your own comparison against the model answer below."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><strong>Proof.</strong> <em>Stage 1: <var>U</var> is invariant under <var>T</var><sup><var>k</var></sup> for every integer <var>k</var> ≥ 0.</em> Induct on <var>k</var>. For <var>k</var> = 0, <var>T</var>⁰ = <var>I</var> and <var>Iu</var> = <var>u</var> ∈ <var>U</var>. Suppose <var>U</var> is invariant under <var>T</var><sup><var>k</var>−1</sup> and let <var>u</var> ∈ <var>U</var>. Then <var>T</var><sup><var>k</var>−1</sup><var>u</var> ∈ <var>U</var> by hypothesis, and applying <var>T</var> to a vector of <var>U</var> keeps it in <var>U</var> by invariance, so <var>T</var><sup><var>k</var></sup><var>u</var> = <var>T</var>(<var>T</var><sup><var>k</var>−1</sup><var>u</var>) ∈ <var>U</var>.</p>
+<p><em>Stage 2: assemble.</em> Let <var>p</var>(<var>z</var>) = <var>a</var>₀ + <var>a</var>₁<var>z</var> + ⋯ + <var>a</var><sub><var>m</var></sub><var>z</var><sup><var>m</var></sup> and <var>u</var> ∈ <var>U</var>. By Definition 5.17, <var>p</var>(<var>T</var>)<var>u</var> = <var>a</var>₀<var>u</var> + <var>a</var>₁<var>Tu</var> + ⋯ + <var>a</var><sub><var>m</var></sub><var>T</var><sup><var>m</var></sup><var>u</var>. Each <var>T</var><sup><var>k</var></sup><var>u</var> lies in <var>U</var> by Stage 1; each <var>a</var><sub><var>k</var></sub><var>T</var><sup><var>k</var></sup><var>u</var> lies in <var>U</var> because <var>U</var> is closed under scalar multiplication; and the sum lies in <var>U</var> because <var>U</var> is closed under addition. So <var>p</var>(<var>T</var>)<var>u</var> ∈ <var>U</var>, and <var>U</var> is invariant under <var>p</var>(<var>T</var>). ∎</p>
+<p class="cite">Both closure conditions of la-02's subspace test are used, and in the second stage only — the first stage needs nothing but invariance. That division is the reason the proof splits into two stages rather than being one induction: powers need invariance, combinations need subspace-hood, and running them together hides which is doing what.</p>
+</details>
+</div>
+
+</div>
+
+<div class="blankpage">
+<strong>Blank-page reconstruction.</strong> Close your eyes (or look away from the screen) and rebuild this lesson's argument skeleton from nothing — just the 3 load-bearing claims, and why each one forces the next. Don't reread above; write or say your reconstruction first, then check it against the reveal.
+<details><summary>Reveal the skeleton to check against</summary>
+<ol style="text-align:left">
+<li>Operators, unlike general linear maps, can be <strong>raised to powers</strong>, so polynomials can be applied to them (Definition 5.17). Polynomials in one operator multiply as polynomials do and therefore commute (Theorem 5.20) — factoring the polynomial factors the operator.</li>
+<li>Over <strong>C</strong> that gives an eigenvalue for every operator on a nonzero finite-dimensional space (Theorem 5.21): the list <var>v</var>, <var>Tv</var>, …, <var>T</var><sup><var>n</var></sup><var>v</var> is too long to be independent, so some nonzero polynomial kills <var>v</var>, and factoring it exhibits a non-injective <var>T</var> − λ<var>I</var>. Iterating gives an <strong>upper-triangular</strong> matrix (Theorem 5.27), which is really a chain of nested invariant subspaces (Theorem 5.26) and off which the eigenvalues can simply be read (Theorem 5.32). None of this survives over <strong>R</strong>.</li>
+<li>Eigenspaces for distinct eigenvalues always form a direct sum (Theorem 5.38). <strong>Diagonalisable</strong> means that sum is all of <var>V</var> — equivalently a basis of eigenvectors exists, equivalently the eigenspace dimensions add to dim <var>V</var> (Theorem 5.41). Enough distinct eigenvalues is <em>sufficient</em> (Theorem 5.44) and not necessary, and even over <strong>C</strong> some operators fail entirely (Example 5.43).</li>
+</ol>
+</details>
+</div>
+
+<footer>Sources: Axler, <em>Linear Algebra Done Right</em>, 3rd ed. — §5.B "Eigenvectors and Upper-Triangular Matrices": "Polynomials Applied to Operators" (Definition 5.16, Definition 5.17, Example 5.18, Definition 5.19, Theorem 5.20), pp. 143–144; "Existence of Eigenvalues" (Theorem 5.21), p. 145; "Upper-Triangular Matrices" (Definition 5.24, Definition 5.25, Theorem 5.26, Theorem 5.27, Theorem 5.30, Theorem 5.32, Example 5.33), pp. 147–152; §5.B, Exercise 6, p. 153. §5.C "Eigenspaces and Diagonal Matrices" (Definition 5.34, Definition 5.36 eigenspace, Example 5.37, Theorem 5.38, Definition 5.39, Example 5.40, Theorem 5.41 conditions for diagonalisability, Example 5.43, Theorem 5.44, Example 5.45), pp. 155–159.
+<br>Builds on la-11, whose Theorem 5.10 gives independence of eigenvectors for distinct eigenvalues and whose Theorem 5.6 turns non-injectivity of <var>T</var> − λ<var>I</var> into an eigenvalue — Axler §5.A, pp. 134 and 136. Both are used in nearly every proof above.
+<br>Builds also on la-09: the quotient operator route to upper-triangularisation needs dim <var>V</var>/<var>U</var> = dim <var>V</var> − dim <var>U</var>, which is Axler §3.E, Theorem 3.89, p. 97.
+<br>Deferred to la-13: inner products, where geometry enters (Axler §6.A). The minimal polynomial itself is Axler §8.C and is out of scope for Semester 1.
+</footer>
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
