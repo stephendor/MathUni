@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-06 — Infinite series</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Infinite series <span class="cite">(an-06)</span></h1>
+
+<div class="hook">
+Rearrange a series, change its sum: conditional convergence is wild.
+<p>Finite addition is commutative, and nobody has ever had to say so. Infinite addition is not — and the failure is not exotic. Take the alternating harmonic series 1 − 1/2 + 1/3 − 1/4 + ⋯, a convergent series of perfectly ordinary terms, permute its terms so that two positives are followed by one negative, and the sum increases by half.</p>
+<p>The whole unit is an answer to one question: what is the extra hypothesis that makes infinite addition behave? It is not convergence. It is <em>absolute</em> convergence, and the distinction between the two is the most consequential thing in this chapter.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Let ∑<var>a<sub>k</sub></var> be a convergent series with sum <var>A</var>, and let ∑<var>b<sub>k</sub></var> be a rearrangement of it — the same terms, each used exactly once, in a different order. <strong>(i)</strong> Must ∑<var>b<sub>k</sub></var> converge to <var>A</var>? <strong>(ii)</strong> Must it, if in addition ∑|<var>a<sub>k</sub></var>| converges?</p>
+<button onclick="check(this,false)">Yes to both — addition does not care about order</button>
+<button onclick="check(this,true)" data-ok>No to (i), yes to (ii)</button>
+<button onclick="check(this,false)">No to both — order always matters for infinite sums</button>
+<div class="explain">No to (i): the canvas in Segment 2 shows the alternating harmonic series and one of its rearrangements converging to visibly different numbers. Yes to (ii): that is Theorem 2.7.10. The gap between the two halves is Definition 2.7.8's distinction between absolute and conditional convergence, and it is the reason the word "absolutely" appears in so many later hypotheses.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Rigour training; series estimates appear in vectorisation methods.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Series are sequences, so the sequence theorems come free</h2>
+
+<p>an-04 defined ∑<var>a<sub>k</sub></var> as the limit of the partial sums <var>s<sub>n</sub></var> = <var>a</var>₁ + ⋯ + <var>a<sub>n</sub></var>, and that definition is not a formality to be recited and forgotten. It means every theorem about sequences is already a theorem about series, applied to (<var>s<sub>n</sub></var>). The first two results of this section are exactly that observation, cashed twice.</p>
+
+<div class="theorem">
+<p><strong>Theorem 2.7.1 (Algebraic Limit Theorem for Series).</strong> <em>If ∑<var>a<sub>k</sub></var> = <var>A</var> and ∑<var>b<sub>k</sub></var> = <var>B</var>, then ∑<var>ca<sub>k</sub></var> = <var>cA</var> for all <var>c</var> ∈ ℝ, and ∑(<var>a<sub>k</sub></var> + <var>b<sub>k</sub></var>) = <var>A</var> + <var>B</var>.</em> <span class="cite">— Abbott §2.7, Theorem 2.7.1, p. 62</span></p>
+</div>
+
+<p>The proof of the first part is one line: the partial sums of ∑<var>ca<sub>k</sub></var> are <var>c</var> times the partial sums of ∑<var>a<sub>k</sub></var>, so an-03's Theorem 2.3.3 applies. Abbott leaves the second part as Exercise 2.7.8. Notice what is <em>absent</em> from the statement: nothing at all about products of series, because a product requires a choice of ordering for the cross terms, and ordering is the thing this unit is about. <span class="cite">— Abbott §2.7, p. 63</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 2.7.2 (Cauchy Criterion for Series).</strong> <em>The series ∑<var>a<sub>k</sub></var> converges if and only if, given &epsilon; &gt; 0, there exists <var>N</var> ∈ ℕ such that whenever <var>n</var> &gt; <var>m</var> ≥ <var>N</var> it follows that |<var>a</var><sub><var>m</var>+1</sub> + <var>a</var><sub><var>m</var>+2</sub> + ⋯ + <var>a<sub>n</sub></var>| &lt; &epsilon;.</em> <span class="cite">— Abbott §2.7, Theorem 2.7.2, p. 63</span></p>
+</div>
+
+<p>The proof is one observation: |<var>s<sub>n</sub></var> − <var>s<sub>m</sub></var>| is exactly the block sum <var>a</var><sub><var>m</var>+1</sub> + ⋯ + <var>a<sub>n</sub></var>, so an-05's Cauchy Criterion for sequences, applied to (<var>s<sub>n</sub></var>), <em>is</em> this theorem. It is worth pausing on how much that buys: a convergence test for series that never names the sum, stated entirely in terms of the terms. Everything else in Segment 1 is a corollary of it. <span class="cite">— Abbott §2.6, Theorem 2.6.4, p. 59</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 2.7.3.</strong> <em>If the series ∑<var>a<sub>k</sub></var> converges, then (<var>a<sub>k</sub></var>) → 0.</em> <span class="cite">— Abbott §2.7, Theorem 2.7.3, p. 63</span></p>
+</div>
+
+<p>Take <var>n</var> = <var>m</var> + 1 in Theorem 2.7.2 and the block sum is the single term <var>a</var><sub><var>m</var>+1</sub>. That is the entire proof, and it is the Guided Proof below. Abbott attaches a warning to every statement of it, and so does this lesson: <em>the converse is false</em>, and an-04's harmonic series is the standing witness. Terms tending to zero is necessary and never sufficient. <span class="cite">— Abbott §2.4, Example 2.4.5, p. 52</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 2.7.4 (Comparison Test).</strong> <em>Assume 0 ≤ <var>a<sub>k</sub></var> ≤ <var>b<sub>k</sub></var> for all <var>k</var> ∈ ℕ. If ∑<var>b<sub>k</sub></var> converges then ∑<var>a<sub>k</sub></var> converges; if ∑<var>a<sub>k</sub></var> diverges then ∑<var>b<sub>k</sub></var> diverges.</em> <span class="cite">— Abbott §2.7, Theorem 2.7.4, p. 63</span></p>
+</div>
+
+<p>Both halves follow from Theorem 2.7.2 and the observation that the block sums are ordered the same way as the terms. Two remarks Abbott makes are worth keeping. The hypothesis need only hold <em>eventually</em>, since convergence is immune to changing finitely many terms. And a comparison test is useless without a stock of series to compare against — which is what the next example, together with an-04's Corollary 2.4.7, is for. <span class="cite">— Abbott §2.7, p. 64</span></p>
+
+<div class="worked fade">
+<p><strong>Worked example — the geometric series (faded).</strong> A series is geometric if it has the form ∑<var>ar</var><sup><var>k</var></sup> = <var>a</var> + <var>ar</var> + <var>ar</var>² + ⋯. <span class="cite">— Abbott §2.7, Example 2.7.5, p. 64</span></p>
+<p>If <var>r</var> = 1 and <var>a</var> ≠ 0 the partial sums are <var>ma</var> and the series diverges. For <var>r</var> ≠ 1, the algebraic identity (1 − <var>r</var>)(1 + <var>r</var> + <var>r</var>² + ⋯ + <var>r</var><sup><var>m</var>−1</sup>) = 1 − <var>r</var><sup><var>m</var></sup> rewrites the partial sum in closed form:</p>
+<div class="math-block">
+<var>s<sub>m</sub></var> = <var>a</var> + <var>ar</var> + ⋯ + <var>ar</var><sup><var>m</var>−1</sup> = <span class="frac"><span class="num"><var>a</var>(1 − <var>r</var><sup><var>m</var></sup>)</span><span class="den">1 − <var>r</var></span></span>
+</div>
+<p>A closed form turns a question about a series into a question about a single sequence, namely (<var>r</var><sup><var>m</var></sup>). That sequence tends to 0 exactly when <span class="gap">⟨your step: what condition on <var>r</var>?⟩</span>, which an-04 established, and fails to converge otherwise. Hence ∑<var>ar</var><sup><var>k</var></sup> = <var>a</var>/(1 − <var>r</var>) if and only if that condition holds. ∎</p>
+<p class="cite">Gap solution: |<var>r</var>| &lt; 1 — an-04's Example 2.5.3 and its extension, Exercise 2.5.5.</p>
+</div>
+
+<p>With geometric series in hand, an-04's Corollary 2.4.7 can finally be proved rather than asserted: condensing ∑1/<var>n</var><sup><var>p</var></sup> produces ∑(2<sup>1−<var>p</var></sup>)<sup><var>n</var></sup>, whose ratio is below 1 exactly when <var>p</var> &gt; 1. Abbott sets this as Exercise 2.7.7 and this unit's problem set works it. <span class="cite">— Abbott §2.7, Exercise 2.7.7, p. 68</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> The terms of ∑1/<var>n</var> tend to 0, and the series diverges. Does that contradict Theorem 2.7.3?</p>
+<button onclick="check(this,false)">Yes — the theorem must have an unstated hypothesis</button>
+<button onclick="check(this,true)" data-ok>No — the theorem gives a necessary condition, and the harmonic series shows it is not sufficient</button>
+<button onclick="check(this,false)">No — the harmonic series actually converges very slowly</button>
+<div class="explain">Theorem 2.7.3 says convergence implies terms → 0. The harmonic series has terms → 0 and no convergence, which contradicts the <em>converse</em> and confirms it is false. The third option is the misconception the theorem exists to prevent: an-04 proved the partial sums exceed 1 + <var>k</var>/2, so they exceed every real number.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> The Comparison Test requires 0 ≤ <var>a<sub>k</sub></var> ≤ <var>b<sub>k</sub></var>. Why must the terms be non-negative?</p>
+<button onclick="check(this,false)">Because negative terms make the series diverge</button>
+<button onclick="check(this,true)" data-ok>Because with signs allowed, an inequality between terms no longer gives an inequality between the sizes of block sums</button>
+<button onclick="check(this,false)">Because the Cauchy Criterion needs positive terms</button>
+<div class="explain">The proof compares |<var>a</var><sub><var>m</var>+1</sub> + ⋯ + <var>a<sub>n</sub></var>| with |<var>b</var><sub><var>m</var>+1</sub> + ⋯ + <var>b<sub>n</sub></var>|, and that comparison needs the block sums to be sums of non-negative numbers. Allow signs and cancellation can make the larger terms produce the smaller block. Segment 2's Absolute Convergence Test is how the test is recovered for general signs.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Absolute convergence, and what order does to a sum</h2>
+
+<div class="theorem">
+<p><strong>Theorem 2.7.6 (Absolute Convergence Test).</strong> <em>If ∑|<var>a<sub>n</sub></var>| converges, then ∑<var>a<sub>n</sub></var> converges.</em> <span class="cite">— Abbott §2.7, Theorem 2.7.6, p. 65</span></p>
+</div>
+
+<p>The proof uses both directions of Theorem 2.7.2 in one breath, which is worth watching. Convergence of ∑|<var>a<sub>n</sub></var>| gives, by <em>necessity</em>, small blocks of absolute values; the triangle inequality turns those into small blocks of the terms themselves; and <em>sufficiency</em> then returns convergence of ∑<var>a<sub>n</sub></var>. A criterion that runs both ways is doing genuine work here, not decoration.</p>
+
+<div class="theorem">
+<p><strong>Theorem 2.7.7 (Alternating Series Test).</strong> <em>If (<var>a<sub>n</sub></var>) satisfies <var>a</var>₁ ≥ <var>a</var>₂ ≥ <var>a</var>₃ ≥ ⋯ ≥ 0 and (<var>a<sub>n</sub></var>) → 0, then the alternating series ∑(−1)<sup><var>n</var>+1</sup><var>a<sub>n</sub></var> converges.</em> <span class="cite">— Abbott §2.7, Theorem 2.7.7, p. 65</span></p>
+</div>
+
+<p>The alternating harmonic series 1 − 1/2 + 1/3 − 1/4 + ⋯ satisfies both hypotheses and therefore converges, while the series of its absolute values is the harmonic series and does not. So the converse of Theorem 2.7.6 is false, and the gap between the two behaviours needs a name. <span class="cite">— Abbott §2.7, p. 65</span></p>
+
+<div class="definition">
+<p><strong>Definition 2.7.8.</strong> If ∑|<var>a<sub>n</sub></var>| converges, then ∑<var>a<sub>n</sub></var> is said to converge <em>absolutely</em>. If ∑<var>a<sub>n</sub></var> converges but ∑|<var>a<sub>n</sub></var>| does not, then ∑<var>a<sub>n</sub></var> converges <em>conditionally</em>. <span class="cite">— Abbott §2.7, Definition 2.7.8, p. 65</span></p>
+</div>
+
+<p>Read the word "conditionally" as a warning label rather than a description. It marks a series whose convergence depends on cancellation between positive and negative terms — and cancellation depends on the order in which the terms arrive.</p>
+
+<div class="definition">
+<p><strong>Definition 2.7.9.</strong> ∑<var>b<sub>k</sub></var> is a <em>rearrangement</em> of ∑<var>a<sub>k</sub></var> if there is a one-to-one and onto function <var>f</var> : ℕ → ℕ with <var>b</var><sub><var>f</var>(<var>k</var>)</sub> = <var>a<sub>k</sub></var> for every <var>k</var> ∈ ℕ. <span class="cite">— Abbott §2.7, Definition 2.7.9, p. 66</span></p>
+</div>
+
+<p>The bijection is what makes this an honest permutation: every original term appears, none is repeated, none is lost. Abbott is careful to show two series that look like reorderings of the alternating harmonic series and are not, because they change which terms appear rather than only their order — and the distinction matters, since a series that quietly drops or duplicates terms can be made to do anything at all. <span class="cite">— Abbott §2.7, p. 66</span></p>
+
+<h3>Interactive visual: the same terms, two orders, two sums</h3>
+<p>Blue plots the partial sums of the alternating harmonic series in its given order. Amber plots the partial sums of the rearrangement that takes two positive terms for each negative one: 1 + 1/3 − 1/2 + 1/5 + 1/7 − 1/4 + ⋯. Identical terms, each used exactly once in each. The dashed lines are the two limits.</p>
+<canvas id="rearrCanvas" width="640" height="280" role="img" aria-label="Partial sums of the alternating harmonic series and of its two-positive-one-negative rearrangement converging to different limits"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('rearrCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height,L=54,R=W-16,T=30,B=H-52;
+const M=600;
+const ln2=Math.log(2);
+const orig=[]; let s=0;
+for(let n=1;n<=M;n++){s+=(n%2===1?1:-1)/n;orig.push(s);}
+// two positive terms for each negative one: 1 + 1/3 - 1/2 + 1/5 + 1/7 - 1/4 + ...
+const re=[]; let t2=0,odd=1,even=2;
+for(let n=1;n<=M;n++){
+  if(n%3===0){t2-=1/even;even+=2;}
+  else{t2+=1/odd;odd+=2;}
+  re.push(t2);
+}
+function px(i){return L+(i/(M-1))*(R-L);}
+function py(v){const lo=0.4,hi=1.25;return B-((v-lo)/(hi-lo))*(B-T);}
+function plot(arr,col){
+  ctx.strokeStyle=col;ctx.lineWidth=1.6;ctx.beginPath();
+  for(let i=8;i<M;i++){const x=px(i),y=py(arr[i]);if(i===8)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+  ctx.stroke();
+}
+function level(v,col,label){
+  ctx.strokeStyle=col;ctx.lineWidth=1;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(L,py(v));ctx.lineTo(R,py(v));ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=col;ctx.font='11px sans-serif';ctx.textAlign='left';
+  ctx.fillText(label,L+4,py(v)-5);
+}
+ctx.clearRect(0,0,W,H);
+ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,B);ctx.lineTo(R,B);ctx.stroke();
+level(ln2,'#8ab4f8','ln 2 = '+ln2.toFixed(4));
+level(1.5*ln2,'#d8a657','(3/2) ln 2 = '+(1.5*ln2).toFixed(4));
+plot(orig,'#8ab4f8');
+plot(re,'#d8a657');
+ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='left';
+ctx.fillText('blue: 1 − 1/2 + 1/3 − 1/4 + ⋯',L,H-32);
+ctx.fillText('amber: 1 + 1/3 − 1/2 + 1/5 + 1/7 − 1/4 + ⋯   (same terms, each used once)',L,H-14);
+ctx.textAlign='center';
+ctx.fillText('partial sums, n = 8 to '+M,(L+R)/2,20);
+})();
+</script>
+
+<p>Nothing was added and nothing was removed; the sum went up by half. That is only possible because the alternating harmonic series converges conditionally: it holds a reservoir of positive terms summing to infinity and a reservoir of negative terms summing to negative infinity, and taking more from one reservoir before the other shifts where the partial sums settle. An absolutely convergent series has no such reservoirs, and the next theorem is that observation made precise.</p>
+
+<div class="theorem">
+<p><strong>Theorem 2.7.10.</strong> <em>If ∑<var>a<sub>k</sub></var> converges absolutely, then any rearrangement of it converges to the same limit.</em> <span class="cite">— Abbott §2.7, Theorem 2.7.10, p. 66</span></p>
+</div>
+
+<p>The proof is an &epsilon;/2 argument with one genuinely new move. Choose <var>N</var> so the original partial sum <var>s<sub>N</sub></var> is within &epsilon;/2 of <var>A</var> and so the absolute tail past <var>N</var> is under &epsilon;/2. The first <var>N</var> terms all appear somewhere in the rearranged series, so let <var>M</var> = max{<var>f</var>(<var>k</var>) : 1 ≤ <var>k</var> ≤ <var>N</var>} be the point by which all of them have been used. For <var>m</var> ≥ <var>M</var>, the difference <var>t<sub>m</sub></var> − <var>s<sub>N</sub></var> consists only of terms from beyond index <var>N</var>, so the absolute tail bounds it. <span class="cite">— Abbott §2.7, p. 67</span></p>
+
+<p>That maximum over a finite set is where the bijection is spent. It exists because only finitely many terms need to be located, and it is why "rearrangement" had to be defined with a bijection rather than loosely as "the terms in some other order".</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Does ∑(−1)<sup><var>n</var>+1</sup>/<var>n</var>² converge absolutely, conditionally, or not at all?</p>
+<button onclick="check(this,true)" data-ok>Absolutely — the absolute series is ∑1/<var>n</var>², which converges</button>
+<button onclick="check(this,false)">Conditionally — the signs are what makes it converge</button>
+<button onclick="check(this,false)">It diverges, since the terms alternate</button>
+<div class="explain">an-04's Corollary 2.4.7 gives convergence of ∑1/<var>n</var><sup><var>p</var></sup> for <var>p</var> &gt; 1, so the series of absolute values is ∑1/<var>n</var>², which converges, and Definition 2.7.8 makes this absolute. The alternation is doing nothing here — which is exactly the difference from 1/<var>n</var>, where it does everything.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> A series has all terms positive and converges. Can a rearrangement of it converge to a different value?</p>
+<button onclick="check(this,false)">Yes — rearrangement can change any infinite sum</button>
+<button onclick="check(this,true)" data-ok>No — with positive terms convergence is automatically absolute, so Theorem 2.7.10 applies</button>
+<button onclick="check(this,false)">Only if the terms are not decreasing</button>
+<div class="explain">If <var>a<sub>n</sub></var> ≥ 0 then |<var>a<sub>n</sub></var>| = <var>a<sub>n</sub></var>, so convergence and absolute convergence are the same statement. Abbott makes the point directly: any convergent series whose terms are positive from some point onwards converges absolutely. Conditional convergence needs infinitely many terms of each sign.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Where in Theorem 2.7.10's proof is absolute convergence used, as opposed to plain convergence?</p>
+<button onclick="check(this,false)">In choosing <var>N</var> so that <var>s<sub>N</sub></var> is within &epsilon;/2 of <var>A</var></button>
+<button onclick="check(this,true)" data-ok>In bounding <var>t<sub>m</sub></var> − <var>s<sub>N</sub></var> by the tail of the series of absolute values</button>
+<button onclick="check(this,false)">In the existence of the bijection <var>f</var></button>
+<div class="explain">The first choice needs only convergence of the original series. The bijection is part of the definition of a rearrangement. The single step that fails without absolute convergence is the middle one: <var>t<sub>m</sub></var> − <var>s<sub>N</sub></var> is some finite collection of terms beyond index <var>N</var>, in unknown positions and unknown quantity, and the only way to bound such a collection is by the sum of the absolute values of everything past <var>N</var>.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Show that if ∑<var>x<sub>n</sub></var> converges absolutely and (<var>y<sub>n</sub></var>) is bounded, then ∑<var>x<sub>n</sub></var><var>y<sub>n</sub></var> converges. Then find a counterexample showing the claim fails when ∑<var>x<sub>n</sub></var> converges only conditionally. <span class="cite">— Abbott §2.7, Exercise 2.7.6, p. 68</span></p>
+<p><em>Hint:</em> for the first half, bound |<var>x<sub>n</sub></var><var>y<sub>n</sub></var>| and use Theorem 2.7.4 followed by Theorem 2.7.6. For the counterexample, take <var>x<sub>n</sub></var> = (−1)<sup><var>n</var>+1</sup>/<var>n</var> and choose (<var>y<sub>n</sub></var>) to cancel the signs.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove Theorem 2.7.3: if ∑<var>a<sub>k</sub></var> converges then (<var>a<sub>k</sub></var>) → 0. <em>Hint:</em> Theorem 2.7.2 controls the block <var>a</var><sub><var>m</var>+1</sub> + ⋯ + <var>a<sub>n</sub></var> for every pair <var>n</var> &gt; <var>m</var> ≥ <var>N</var>. You are allowed to choose the pair. Which choice makes the block a single term? Then write down what the resulting statement says, and compare it letter by letter with an-03's Definition 2.2.3.</p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Let &epsilon; &gt; 0. Since ∑<var>a<sub>k</sub></var> converges, Theorem 2.7.2 supplies <var>N</var> ∈ ℕ such that |<var>a</var><sub><var>m</var>+1</sub> + ⋯ + <var>a<sub>n</sub></var>| &lt; &epsilon; whenever <var>n</var> &gt; <var>m</var> ≥ <var>N</var>.</p>
+<p>Take <var>n</var> = <var>m</var> + 1. The block collapses to the single term <var>a</var><sub><var>m</var>+1</sub>, so |<var>a</var><sub><var>m</var>+1</sub>| &lt; &epsilon; for every <var>m</var> ≥ <var>N</var>. Equivalently, |<var>a<sub>k</sub></var> − 0| &lt; &epsilon; for every <var>k</var> ≥ <var>N</var> + 1. Since &epsilon; was arbitrary, (<var>a<sub>k</sub></var>) → 0 by Definition 2.2.3. ∎</p>
+<p><strong>Two things to notice.</strong> The proof used only <em>one</em> instance of a criterion that speaks about all pairs, which is why it is three lines; the strength of Theorem 2.7.2 is that you may choose the pair to suit the goal. And the index bookkeeping at the end is not pedantry — the criterion delivers a bound on terms indexed <var>m</var> + 1 with <var>m</var> ≥ <var>N</var>, which is the terms from <var>N</var> + 1 onwards, and a proof that writes <var>N</var> where it means <var>N</var> + 1 has not quite proved the statement.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>Why the Cauchy Criterion for Series is a one-line consequence of the one for sequences, and why that makes it the engine of the section (Theorem 2.7.2).</li>
+<li>The proof that terms tend to zero, and the standing counterexample to its converse (Theorem 2.7.3).</li>
+<li>The closed form for a geometric partial sum, and the single sequence its convergence reduces to (Example 2.7.5).</li>
+<li>The definitions of absolute and conditional convergence, and the one step of Theorem 2.7.10's proof that distinguishes them.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) |<var>s<sub>n</sub></var> − <var>s<sub>m</sub></var>| is the block sum; (2) take <var>n</var> = <var>m</var> + 1, and remember 1/<var>n</var>; (3) <var>s<sub>m</sub></var> = <var>a</var>(1 − <var>r</var><sup><var>m</var></sup>)/(1 − <var>r</var>), so everything is (<var>r</var><sup><var>m</var></sup>); (4) the tail of the absolute series is what bounds <var>t<sub>m</sub></var> − <var>s<sub>N</sub></var> — then you have the unit.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §2.7 "Properties of Infinite Series" (Theorem 2.7.1), p. 62; (Theorem 2.7.2, Theorem 2.7.3, Theorem 2.7.4), p. 63; (Example 2.7.5), p. 64; (Theorem 2.7.6, Theorem 2.7.7, Definition 2.7.8), p. 65; (Definition 2.7.9, Theorem 2.7.10), p. 66; the proof of the rearrangement theorem, p. 67; (Exercise 2.7.6, Exercise 2.7.7, Exercise 2.7.8), p. 68.
+<br>Builds on an-05, whose Theorem 2.6.4 becomes this unit's criterion for series by the substitution of a block sum for a difference of partial sums — Abbott §2.6, p. 59.
+<br>Builds on an-04, whose Definition 2.4.3 defines a series as the limit of its partial sums, whose Example 2.4.5 is the standing counterexample above, whose Theorem 2.4.6 condenses a decreasing non-negative series, and whose Corollary 2.4.7 is finally provable once geometric series are available — Abbott §2.4, pp. 51, 52, 53 and 54. The condensation test and the corollary are what this unit's problem set opens with.
+<br>Builds on an-03, whose Theorem 2.3.3 multiplies limits by a constant in the proof of the first result above, and whose Theorem 2.3.2 bounds a convergent sequence — Abbott §2.3, pp. 44 and 45.
+<br>Deferred to an-13: uniform convergence, where a series of functions raises the same order-of-limits questions one level up (Abbott §6.2).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>
