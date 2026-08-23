@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-08 — Compactness and Heine-Borel</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Compactness and Heine–Borel <span class="cite">(an-08)</span></h1>
+
+<div class="hook">
+The property that makes infinite behave like finite.
+<p>A finite set has properties an infinite one has no right to: every sequence in it repeats a value infinitely often, every cover of it by anything at all has a finite subcover, every continuous function on it attains a maximum. Compactness is the exact hypothesis that buys those properties back for infinite sets.</p>
+<p>The remarkable thing about ℝ is that the hypothesis has three completely different-looking descriptions — one about sequences, one about closedness and boundedness, one about covers — and they are the same condition. That is the Heine–Borel Theorem, and the third description is the one that survives when ℝ is left behind.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> A collection of open sets whose union contains a set <var>A</var> is called an open cover of <var>A</var>. <strong>(i)</strong> Must every open cover of the open interval (0, 1) contain finitely many sets that already cover (0, 1)? <strong>(ii)</strong> Must every open cover of the closed interval [0, 1] contain such a finite subcollection?</p>
+<button onclick="check(this,false)">Yes to both — a cover can always be thinned out</button>
+<button onclick="check(this,true)" data-ok>No to (i), yes to (ii)</button>
+<button onclick="check(this,false)">No to both — infinitely many sets are needed to cover an infinite set</button>
+<div class="explain">The intervals <var>O<sub>x</sub></var> = (<var>x</var>/2, 1) for <var>x</var> ∈ (0, 1) cover (0, 1), because every point is above half of itself. But any finite subcollection has a smallest left endpoint, and everything below that endpoint is uncovered — so no finite subcover exists. Add the endpoints and the situation reverses completely. Both facts are drawn in the canvas in Segment 2, and the difference between them is Theorem 3.3.8.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Compact metric spaces are where TDA's theory lives.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Compactness by sequences, and what it forces</h2>
+
+<div class="definition">
+<p><strong>Definition 3.3.1.</strong> A set <var>K</var> ⊆ ℝ is <em>compact</em> if every sequence in <var>K</var> has a subsequence that converges to a limit that is also in <var>K</var>. <span class="cite">— Abbott §3.3, Definition 3.3.1, p. 84</span></p>
+</div>
+
+<p>Two demands, and it is worth separating them, because they are met by two different earlier theorems. A convergent subsequence must <em>exist</em>: that is an-04's Bolzano–Weierstrass Theorem and it needs boundedness. Its limit must be <em>in <var>K</var></em>: that is an-07's Definition 3.2.7 and it needs closedness. The whole of Heine–Borel is the observation that these two are not merely sufficient but necessary.</p>
+
+<div class="worked">
+<p><strong>Worked example — closed intervals are compact (fully worked).</strong> Let (<var>a<sub>n</sub></var>) be any sequence contained in [<var>c</var>, <var>d</var>]. <span class="cite">— Abbott §3.3, Example 3.3.2, p. 84</span></p>
+<p>The sequence is bounded, since every term lies between <var>c</var> and <var>d</var>, so an-04's Theorem 2.5.5 supplies a convergent subsequence (<var>a</var><sub><var>n<sub>k</sub></var></sub>) → <var>x</var>. And [<var>c</var>, <var>d</var>] is a closed set, so it contains its limit points and <var>x</var> ∈ [<var>c</var>, <var>d</var>]. Both clauses of Definition 3.3.1 are met. ∎ <span class="cite">— Abbott §2.5, Theorem 2.5.5, p. 56</span></p>
+<p><strong>Read the proof as a list of hypotheses consumed.</strong> Boundedness was spent on Bolzano–Weierstrass and closedness on the limit. Nothing else about intervals was used at any point — which is the clue that "closed interval" is the wrong archetype and "closed and bounded" is the right one.</p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 3.3.3.</strong> A set <var>A</var> ⊆ ℝ is <em>bounded</em> if there exists <var>M</var> &gt; 0 such that |<var>a</var>| ≤ <var>M</var> for all <var>a</var> ∈ <var>A</var>. <span class="cite">— Abbott §3.3, Definition 3.3.3, p. 84</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 3.3.4 (Heine–Borel Theorem).</strong> <em>A set <var>K</var> ⊆ ℝ is compact if and only if it is closed and bounded.</em> <span class="cite">— Abbott §3.3, Theorem 3.3.4, p. 84</span></p>
+</div>
+
+<div class="worked fade">
+<p><strong>Worked example — compact forces bounded (faded).</strong> <span class="cite">— Abbott §3.3, p. 85</span></p>
+<p>Suppose <var>K</var> is compact but not bounded. Unboundedness means no <var>M</var> works, so for each <var>n</var> ∈ ℕ there is a point <var>x<sub>n</sub></var> ∈ <var>K</var> with |<var>x<sub>n</sub></var>| &gt; <var>n</var>. That is a sequence in <var>K</var>, so compactness hands back a convergent subsequence (<var>x</var><sub><var>n<sub>k</sub></var></sub>).</p>
+<p>But the terms of that subsequence satisfy |<var>x</var><sub><var>n<sub>k</sub></var></sub>| &gt; <var>n<sub>k</sub></var> ≥ <var>k</var>, so the subsequence is unbounded — and an-03's <span class="gap">⟨your step: which theorem?⟩</span> says a convergent sequence cannot be. Contradiction, so <var>K</var> is bounded. ∎</p>
+<p class="cite">Gap solution: Theorem 2.3.2, every convergent sequence is bounded. Note also where an-04's index fact <var>n<sub>k</sub></var> ≥ <var>k</var> earned its keep — without it the subsequence's terms carry no bound at all.</p>
+</div>
+
+<p>The other half of the forward direction is shorter: if <var>x</var> is the limit of a sequence in <var>K</var>, compactness gives a convergent subsequence, an-04's Theorem 2.5.2 says it converges to the same <var>x</var>, and Definition 3.3.1 puts that limit in <var>K</var>. So <var>K</var> contains its limit points. Abbott leaves the converse — closed and bounded implies compact — as Exercise 3.3.2, and it is the Guided Proof below. <span class="cite">— Abbott §3.3, p. 85</span></p>
+
+<p>Abbott adds a warning worth repeating: closed intervals are a misleading archetype. The Cantor set of an-09 is compact and contains no interval at all. What compactness controls is not shape but the two properties above. <span class="cite">— Abbott §3.3, Exercise 3.3.3, p. 88</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 3.3.5 (Nested Compact Set Property).</strong> <em>If <var>K</var>₁ ⊇ <var>K</var>₂ ⊇ <var>K</var>₃ ⊇ ⋯ is a nested sequence of nonempty compact sets, then the intersection of all of them is not empty.</em> <span class="cite">— Abbott §3.3, Theorem 3.3.5, p. 85</span></p>
+</div>
+
+<p>This is an-01's Nested Interval Property with "closed interval" weakened to "compact set", and the proof shows why that weakening is free: pick a point from each <var>K<sub>n</sub></var>, note the resulting sequence lies in <var>K</var>₁, extract a convergent subsequence, and observe that its limit lies in every <var>K<sub>n</sub></var> because from index <var>n</var> onwards the whole tail does.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Is the set ℕ = {1, 2, 3, …} compact?</p>
+<button onclick="check(this,false)">Yes — it is closed, as an-07 established</button>
+<button onclick="check(this,true)" data-ok>No — it is closed but not bounded, and Theorem 3.3.4 needs both</button>
+<button onclick="check(this,false)">Yes — every sequence in it has a constant subsequence</button>
+<div class="explain">The sequence <var>x<sub>n</sub></var> = <var>n</var> has no convergent subsequence at all, since every subsequence is unbounded. The third option is a real trap: <em>some</em> sequences in ℕ do have constant subsequences, but Definition 3.3.1 quantifies over every sequence.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Is the set {1/<var>n</var> : <var>n</var> ∈ ℕ} compact?</p>
+<button onclick="check(this,false)">Yes — it is bounded by 1</button>
+<button onclick="check(this,true)" data-ok>No — it is bounded but not closed, since 0 is a limit point it omits</button>
+<button onclick="check(this,false)">Yes — every point of it is isolated</button>
+<div class="explain">an-07's worked example established that 0 is the only limit point and is not in the set. Concretely, the sequence 1, 1/2, 1/3, … lies in the set, converges to 0, and every subsequence also converges to 0 — which is not in the set, so Definition 3.3.1 fails. Adding the single point 0 makes it compact.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Open covers, and the description that outlives ℝ</h2>
+
+<div class="definition">
+<p><strong>Definition 3.3.6.</strong> An <em>open cover</em> for <var>A</var> ⊆ ℝ is a possibly infinite collection of open sets whose union contains <var>A</var>. Given an open cover, a <em>finite subcover</em> is a finite subcollection of those same sets whose union still contains <var>A</var>. <span class="cite">— Abbott §3.3, Definition 3.3.6, p. 86</span></p>
+</div>
+
+<p>Note what a finite subcover is not: it is not permission to choose new smaller sets, and it is not a claim that some clever cover is finite. The sets must come from the cover you were handed, and the claim must hold for <em>every</em> cover — which is what makes it a strong hypothesis and an awkward one to verify directly.</p>
+
+<h3>Interactive visual: a cover with no finite subcover, and the repair</h3>
+<p>The bands are the sets <var>O<sub>x</sub></var> = (<var>x</var>/2, 1) for various <var>x</var>. Together they cover (0, 1). The marker below shows the union of the finitely many bands drawn so far — always an interval (<var>x</var>′/2, 1) that misses everything to the left of <var>x</var>′/2. Toggle to the closed interval and two extra sets finish the job at once, one at each endpoint. Both are needed: every band is (<var>x</var>/2, 1), which omits the point 1 exactly as it omits 0, so this family is a cover of the <em>open</em> interval and does not cover [0, 1] until both ends are patched. The right-hand endpoint is the one that gets forgotten, because the bands all visibly run towards it.</p>
+<canvas id="coverCanvas" width="640" height="250" role="img" aria-label="An open cover of the open unit interval whose finite subcollections never reach zero, contrasted with a cover of the closed interval that has a finite subcover"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('coverCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height,L=60,R=W-60;
+function sx(v){return L+v*(R-L);}
+let n=1,t=0,closed=false;
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(L,H-64);ctx.lineTo(R,H-64);ctx.stroke();
+  ctx.fillStyle='#9aa5b1';ctx.font='11px sans-serif';ctx.textAlign='center';
+  ctx.fillText('0',L,H-48);ctx.fillText('1',R,H-48);
+  let smallest=1;
+  for(let k=1;k<=n;k++){
+    const x=1/Math.pow(1.6,k-1)*0.9;
+    smallest=Math.min(smallest,x/2);
+    const y=36+(k-1)*11;
+    if(y>H-96)break;
+    ctx.strokeStyle='#8ab4f8';ctx.lineWidth=2;ctx.globalAlpha=0.8;
+    ctx.beginPath();ctx.moveTo(sx(x/2),y);ctx.lineTo(sx(1),y);ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  // TWO extra sets, not one. Every band is (x/2, 1) and so omits the point 1
+  // as surely as it omits 0 — Abbott's family covers the OPEN interval and is
+  // not a cover of [0,1] at all until both ends are repaired. Drawing only the
+  // neighbourhood of 0 showed a "finite subcover" that missed an endpoint, and
+  // 1 is the endpoint students forget, because the bands visibly run towards
+  // it. (CodeRabbit review of PR #25.)
+  if(closed){
+    const y=36+Math.min(n,7)*11;
+    ctx.strokeStyle='#4caf82';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(sx(-0.03),y);ctx.lineTo(sx(smallest+0.06),y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx(0.94),y+11);ctx.lineTo(sx(1.03),y+11);ctx.stroke();
+    smallest=-0.03;
+  }
+  ctx.strokeStyle=closed?'#4caf82':'#e06c75';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(sx(Math.max(0,smallest)),H-64);
+  ctx.lineTo(sx(closed?1.03:1),H-64);ctx.stroke();
+  ctx.fillStyle='#9aa5b1';ctx.textAlign='center';ctx.font='12px sans-serif';
+  ctx.fillText(closed
+    ? 'covering [0,1]: two extra green sets — one at each endpoint — complete a finite subcover'
+    : 'covering (0,1): the union of these '+n+' sets starts at '+Math.max(0,smallest).toFixed(4)+', so points below it are uncovered',
+    W/2,H-28);
+  ctx.fillText(closed
+    ? 'every open cover of [0,1] has a finite subcover — Theorem 3.3.8 (iii)'
+    : 'no finite subcollection ever reaches 0 — Example 3.3.7',
+    W/2,H-10);
+  ctx.textAlign='left';
+  t++;
+  if(t%38===0){n++; if(n>7){n=1; closed=!closed;}}
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<p>Formally: given any finite subcollection <var>O</var><sub><var>x</var>₁</sub>, …, <var>O</var><sub><var>x<sub>n</sub></var></sub>, let <var>x</var>′ = min{<var>x</var>₁, …, <var>x<sub>n</sub></var>}. The union of those sets is exactly (<var>x</var>′/2, 1), which omits every point of (0, 1) at or below <var>x</var>′/2 — and there are such points, since <var>x</var>′/2 &gt; 0. The minimum over a finite set is doing the work again, and it is doing it in the opposite direction from an-07's Theorem 3.2.3. <span class="cite">— Abbott §3.3, Example 3.3.7, p. 86</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 3.3.8.</strong> <em>For <var>K</var> ⊆ ℝ the following are equivalent: (i) <var>K</var> is compact; (ii) <var>K</var> is closed and bounded; (iii) every open cover for <var>K</var> has a finite subcover.</em> <span class="cite">— Abbott §3.3, Theorem 3.3.8, p. 87</span></p>
+</div>
+
+<p>The equivalence of (i) and (ii) is Theorem 3.3.4, so the work is in (iii). That (iii) implies bounded is quick and worth having in mind, because it shows the technique: cover <var>K</var> by the neighbourhoods <var>V</var>₁(<var>x</var>) for <var>x</var> ∈ <var>K</var>, take a finite subcover, and note that a finite union of bounded sets is bounded. <span class="cite">— Abbott §3.3, p. 87</span></p>
+
+<p>That (iii) implies closed is more delicate and is the argument to study. Suppose <var>y</var> is a limit of a sequence in <var>K</var> but <var>y</var> ∉ <var>K</var>. Every <var>x</var> ∈ <var>K</var> is then a positive distance from <var>y</var>, so the intervals of radius |<var>x</var> − <var>y</var>|/2 around each <var>x</var> ∈ <var>K</var> form an open cover — one built to keep <var>y</var> out with room to spare. A finite subcover has a smallest such radius, and that leaves a neighbourhood of <var>y</var> disjoint from all of them, contradicting that points of <var>K</var> come arbitrarily close to <var>y</var>. <span class="cite">— Abbott §3.3, p. 87</span></p>
+
+<p>Why does this description matter more than the other two? Because of what it does not mention. Sequences need a notion of convergence and boundedness needs a distance; "every open cover has a finite subcover" mentions only open sets, which is precisely the structure an-07's Theorem 3.2.3 showed can be axiomatised without a metric. In Semester 2 this becomes <em>the</em> definition of compactness, and Definitions 3.3.1 and 3.3.3 become theorems that hold in some spaces and fail in others.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Does the collection {(−1, 1)} — a single open set — form an open cover of [0, 1]?</p>
+<button onclick="check(this,true)" data-ok>Yes, and it is already finite, so it trivially has a finite subcover</button>
+<button onclick="check(this,false)">No — a cover must contain infinitely many sets</button>
+<button onclick="check(this,false)">No — the sets in a cover must be disjoint</button>
+<div class="explain">Definition 3.3.6 asks only that the union contain the set; the collection may be finite, the sets may overlap freely, and they may spill outside. What Theorem 3.3.8(iii) claims is that <em>whatever</em> cover you are given — including deliberately awkward infinite ones — a finite subcollection suffices.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Where exactly does Example 3.3.7's cover fail to be a cover of [0, 1]?</p>
+<button onclick="check(this,false)">At the point 0 only, since every <var>O<sub>x</sub></var> reaches up to 1</button>
+<button onclick="check(this,true)" data-ok>At both endpoints: <var>O<sub>x</sub></var> = (<var>x</var>/2, 1) is open at each end, so it contains neither 0 nor 1</button>
+<button onclick="check(this,false)">It does cover [0, 1]</button>
+<div class="explain">Both endpoints are missing, and the second one is the one that gets forgotten. Every <var>O<sub>x</sub></var> has left endpoint <var>x</var>/2 &gt; 0, so 0 is in none of them — that much is obvious from the picture. But (<var>x</var>/2, 1) is open at its right end too, so 1 is in none of them either, however close the bands appear to come. "Reaches up to 1" and "contains 1" are different claims, and an open interval never makes the second one. Repairing this cover into a cover of [0, 1] therefore takes two extra sets, not one.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> A set is compact. Is every subset of it compact?</p>
+<button onclick="check(this,false)">Yes — subsets of bounded sets are bounded</button>
+<button onclick="check(this,true)" data-ok>No — (0, 1) is a subset of the compact [0, 1] and is not compact</button>
+<button onclick="check(this,false)">Yes, by the Nested Compact Set Property</button>
+<div class="explain">Boundedness is inherited by subsets; closedness is not. So the correct statement is that a <em>closed</em> subset of a compact set is compact — and by Theorem 3.3.4 that is the same as saying a closed subset of a closed bounded set is closed and bounded.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Prove that if <var>K</var> is compact and <var>F</var> is closed, then <var>K</var> ∩ <var>F</var> is compact, in two ways: once from Definition 3.3.1, and once from Theorem 3.3.4. <span class="cite">— Abbott §3.3, Exercise 3.3.4, p. 88</span></p>
+<p><em>Hint:</em> the second proof is two lines and uses an-07's Theorem 3.2.14. Do it first, then write the sequence proof and notice which parts of it are doing the same work.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove the converse half of Theorem 3.3.4: if <var>K</var> ⊆ ℝ is closed and bounded, then <var>K</var> is compact. <em>Hint:</em> you must start from an arbitrary sequence in <var>K</var> and produce a convergent subsequence with its limit in <var>K</var>. You have exactly two hypotheses; each buys exactly one of those two requirements, and an-04 supplies the machinery for the first. <span class="cite">— Abbott §3.3, Exercise 3.3.2, p. 88</span></p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Let (<var>x<sub>n</sub></var>) be an arbitrary sequence with every <var>x<sub>n</sub></var> ∈ <var>K</var>. Because <var>K</var> is bounded, there is <var>M</var> &gt; 0 with |<var>a</var>| ≤ <var>M</var> for all <var>a</var> ∈ <var>K</var>, so in particular |<var>x<sub>n</sub></var>| ≤ <var>M</var> for every <var>n</var> and the sequence is bounded in the sense of an-03's Definition 2.3.1.</p>
+<p>By an-04's Bolzano–Weierstrass Theorem there is a convergent subsequence (<var>x</var><sub><var>n<sub>k</sub></var></sub>) → <var>x</var> for some <var>x</var> ∈ ℝ. It remains to show <var>x</var> ∈ <var>K</var>. The terms <var>x</var><sub><var>n<sub>k</sub></var></sub> all lie in <var>K</var>, and they converge to <var>x</var>, so an-07's Theorem 3.2.8 applies: a convergent sequence is Cauchy, and a Cauchy sequence in a closed set has its limit in that set. Hence <var>x</var> ∈ <var>K</var>, both requirements of Definition 3.3.1 are met, and <var>K</var> is compact. ∎</p>
+<p><strong>Note the one subtlety.</strong> Concluding <var>x</var> ∈ <var>K</var> directly from Definition 3.2.7 requires <var>x</var> to be a <em>limit point</em> of <var>K</var>, and a limit point needs a sequence avoiding <var>x</var> — which a subsequence of an arbitrary sequence is under no obligation to do. Routing through Theorem 3.2.8 sidesteps that case split, which is exactly why an-07 proved it. Alternatively, split into the case where <var>x</var><sub><var>n<sub>k</sub></var></sub> = <var>x</var> for some <var>k</var>, where <var>x</var> ∈ <var>K</var> at once, and the case where it never does.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>Definition 3.3.1, and which of its two demands is met by boundedness and which by closedness.</li>
+<li>The contradiction proving compact implies bounded: the sequence with |<var>x<sub>n</sub></var>| &gt; <var>n</var>, and why its subsequences are still unbounded.</li>
+<li>Example 3.3.7's cover of (0, 1), and the one-line reason a finite subcollection always misses something.</li>
+<li>The three equivalent statements of Theorem 3.3.8, and which of the three mentions no distance.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) Bolzano–Weierstrass for existence, closedness for the limit landing home; (2) |<var>x</var><sub><var>n<sub>k</sub></var></sub>| &gt; <var>n<sub>k</sub></var> ≥ <var>k</var>, and convergent sequences are bounded; (3) the finite minimum <var>x</var>′/2 is positive, so everything below it is missed; (4) compact, closed and bounded, every open cover has a finite subcover — and the third is the metric-free one — then you have the unit.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §3.3 "Compact Sets" (Definition 3.3.1, Example 3.3.2, Definition 3.3.3, Theorem 3.3.4), p. 84; (Theorem 3.3.5), p. 85; (Definition 3.3.6, Example 3.3.7), p. 86; (Theorem 3.3.8), p. 87; (Exercise 3.3.2, Exercise 3.3.3, Exercise 3.3.4), p. 88.
+<br>Builds on an-04, whose Theorem 2.5.5 supplies every convergent subsequence used above and whose Theorem 2.5.2 identifies its limit with the parent's — Abbott §2.5, pp. 55 and 56.
+<br>Builds on an-07, whose Definition 3.2.7 is the second half of compactness, whose Theorem 3.2.8 is what the guided proof routes through, and whose Theorem 3.2.14 gives the two-line proof requested in the You try, whose Theorem 3.2.13 turns a closed set's complement into an open one when this unit's problem set builds covers, and whose Theorem 3.2.10 makes every real a limit point of the rationals — Abbott §3.2, pp. 80, 81 and 82. See also Abbott §3.3, Exercise 3.3.4, p. 88.
+<br>Builds on an-03, whose Definition 2.3.1 and Theorem 2.3.2 are the boundedness facts used in Segment 1 — Abbott §2.3, p. 44.
+<br>Deferred to an-09: the Cantor set, a compact set containing no interval, which is why closed intervals are the wrong archetype (Abbott §3.1). Deferred to an-11: what compactness does to a continuous function, which is the reason the property was worth isolating (Abbott §4.4).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

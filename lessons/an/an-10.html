@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-10 — Functional limits and continuity</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Functional limits and continuity <span class="cite">(an-10)</span></h1>
+
+<div class="hook">
+Continuity recast: preimages of open sets are open. Remember pw-03?
+<p>The &epsilon;-<var>N</var> game of an-03 had a challenger who names a tolerance and a responder who names an index. For functions the responder names a <em>radius</em> instead: given &epsilon; around the target value, produce a &delta; around the input point. Same game, one letter changed.</p>
+<p>What makes this unit matter is that the game has an equivalent form with no &epsilon; and no &delta; in it at all — continuity says the preimage of every open set is open. That version mentions only the vocabulary of an-07, and it is the version that becomes the definition when Semester 2 removes the real line from underneath.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Consider <var>g</var>(<var>x</var>) = <var>x</var> sin(1/<var>x</var>) for <var>x</var> ≠ 0 and <var>g</var>(0) = 0. The factor sin(1/<var>x</var>) oscillates without limit as <var>x</var> → 0. <strong>(i)</strong> Does lim<sub><var>x</var>→0</sub> sin(1/<var>x</var>) exist? <strong>(ii)</strong> Is <var>g</var> continuous at 0?</p>
+<button onclick="check(this,false)">No to (i), so no to (ii) — a product cannot be tamer than its factors</button>
+<button onclick="check(this,true)" data-ok>No to (i), yes to (ii)</button>
+<button onclick="check(this,false)">Yes to both — the oscillation averages out</button>
+<div class="explain">The limit in (i) fails: take <var>x<sub>n</sub></var> = 1/(<var>n</var>π) and <var>y<sub>n</sub></var> = 1/(2<var>n</var>π + π/2), both tending to 0, along which sin(1/<var>x</var>) is constantly 0 and constantly 1. Yet |<var>g</var>(<var>x</var>) − <var>g</var>(0)| = |<var>x</var> sin(1/<var>x</var>)| ≤ |<var>x</var>|, so &delta; = &epsilon; answers every challenge and <var>g</var> is continuous at 0. The bounded factor is multiplied by something going to zero, and a product can indeed be tamer than its factors.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: This definition, verbatim, is the one topology keeps.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Functional limits, and the bridge back to sequences</h2>
+
+<div class="definition">
+<p><strong>Definition 4.2.1.</strong> Let <var>f</var> : <var>A</var> → ℝ and let <var>c</var> be a limit point of <var>A</var>. Then lim<sub><var>x</var>→<var>c</var></sub> <var>f</var>(<var>x</var>) = <var>L</var> means: for all &epsilon; &gt; 0 there exists &delta; &gt; 0 such that whenever 0 &lt; |<var>x</var> − <var>c</var>| &lt; &delta; and <var>x</var> ∈ <var>A</var>, it follows that |<var>f</var>(<var>x</var>) − <var>L</var>| &lt; &epsilon;. <span class="cite">— Abbott §4.2, Definition 4.2.1, p. 104</span></p>
+</div>
+
+<p>Three details in that statement are load-bearing and easy to read past. <em><var>c</var> must be a limit point of <var>A</var></em> — an-07's Definition 3.2.4 — because otherwise there are no nearby points of the domain to test and every <var>L</var> would qualify. The strict inequality 0 &lt; |<var>x</var> − <var>c</var>| excludes <var>x</var> = <var>c</var>, so the value <var>f</var>(<var>c</var>) is irrelevant and may not even exist. And &delta; depends on &epsilon;, never the reverse. <span class="cite">— Abbott §4.2, p. 104</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 4.2.3 (Sequential Criterion for Functional Limits).</strong> <em>For <var>f</var> : <var>A</var> → ℝ and <var>c</var> a limit point of <var>A</var>, the following are equivalent: (i) lim<sub><var>x</var>→<var>c</var></sub> <var>f</var>(<var>x</var>) = <var>L</var>; (ii) for every sequence (<var>x<sub>n</sub></var>) ⊆ <var>A</var> with <var>x<sub>n</sub></var> ≠ <var>c</var> and (<var>x<sub>n</sub></var>) → <var>c</var>, it follows that <var>f</var>(<var>x<sub>n</sub></var>) → <var>L</var>.</em> <span class="cite">— Abbott §4.2, Theorem 4.2.3, p. 106</span></p>
+</div>
+
+<p>This is the second bridge of the course, and it pays the same dividend an-07's Theorem 3.2.5 did: once functional limits are sequential limits in disguise, everything proved in Chapter 2 applies without reproof. Abbott takes the two immediate corollaries in that spirit rather than reproving them. <span class="cite">— Abbott §4.2, Corollary 4.2.4, p. 106</span></p>
+
+<div class="theorem">
+<p><strong>Corollary 4.2.5 (Divergence Criterion for Functional Limits).</strong> <em>If two sequences (<var>x<sub>n</sub></var>) and (<var>y<sub>n</sub></var>) in <var>A</var>, both converging to <var>c</var> with terms different from <var>c</var>, produce image sequences <var>f</var>(<var>x<sub>n</sub></var>) and <var>f</var>(<var>y<sub>n</sub></var>) with different limits, then lim<sub><var>x</var>→<var>c</var></sub> <var>f</var>(<var>x</var>) does not exist.</em> <span class="cite">— Abbott §4.2, Corollary 4.2.5, p. 107</span></p>
+</div>
+
+<p>That is the tool the prediction gate used, and it is the standard way to prove a limit fails: exhibiting two routes to <var>c</var> with different destinations. Abbott's own instance is sin(1/<var>x</var>) at the origin. <span class="cite">— Abbott §4.2, Example 4.2.6, p. 107</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Definition 4.2.1 require <var>c</var> to be a limit point of the domain?</p>
+<button onclick="check(this,false)">So that <var>f</var>(<var>c</var>) is defined</button>
+<button onclick="check(this,true)" data-ok>So that there are points of <var>A</var> other than <var>c</var> arbitrarily close to <var>c</var> — otherwise the condition is vacuous and every <var>L</var> satisfies it</button>
+<button onclick="check(this,false)">So that the limit is unique</button>
+<div class="explain">If <var>c</var> is isolated in <var>A</var>, some <var>V</var><sub>&delta;</sub>(<var>c</var>) contains no point of <var>A</var> other than <var>c</var>, so the hypothesis "0 &lt; |<var>x</var> − <var>c</var>| &lt; &delta; and <var>x</var> ∈ <var>A</var>" is never satisfied and the implication holds for every <var>L</var> at once. The first option is precisely what the definition does <em>not</em> require, which is the difference from continuity.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In the &epsilon;-&delta; definition, may &delta; depend on <var>c</var>?</p>
+<button onclick="check(this,true)" data-ok>Yes — the definition fixes <var>c</var> first, so &delta; may depend on both &epsilon; and <var>c</var></button>
+<button onclick="check(this,false)">No — &delta; may depend only on &epsilon;</button>
+<button onclick="check(this,false)">No — &delta; must be a fixed constant</button>
+<div class="explain">The quantifiers run: fix <var>c</var>, then for all &epsilon;, there exists &delta;. So &delta; is allowed to shrink as <var>c</var> moves, and for most functions it must. Forbidding that dependence gives a strictly stronger property — uniform continuity, which an-11 takes up, and where the whole content is that one quantifier moved.</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Continuity, four ways</h2>
+
+<div class="definition">
+<p><strong>Definition 4.3.1.</strong> A function <var>f</var> : <var>A</var> → ℝ is <em>continuous at</em> <var>c</var> ∈ <var>A</var> if for all &epsilon; &gt; 0 there exists &delta; &gt; 0 such that whenever |<var>x</var> − <var>c</var>| &lt; &delta; and <var>x</var> ∈ <var>A</var>, it follows that |<var>f</var>(<var>x</var>) − <var>f</var>(<var>c</var>)| &lt; &epsilon;. If this holds at every point of <var>A</var>, then <var>f</var> is <em>continuous on</em> <var>A</var>. <span class="cite">— Abbott §4.3, Definition 4.3.1, p. 109</span></p>
+</div>
+
+<p>Set this beside Definition 4.2.1 and two things have changed. The target <var>L</var> has become the value <var>f</var>(<var>c</var>), so <var>c</var> must now be <em>in</em> the domain; and the exclusion 0 &lt; |<var>x</var> − <var>c</var>| has been dropped, which costs nothing since <var>x</var> = <var>c</var> gives |<var>f</var>(<var>c</var>) − <var>f</var>(<var>c</var>)| = 0 &lt; &epsilon;. Continuity at <var>c</var> is "the limit exists and equals the value", with a small caveat: at an isolated point of <var>A</var> the definition is satisfied automatically while the functional limit is not defined at all. <span class="cite">— Abbott §4.3, p. 109</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 4.3.2 (Characterisations of Continuity).</strong> <em>Let <var>f</var> : <var>A</var> → ℝ and <var>c</var> ∈ <var>A</var>. The following are equivalent: (i) the &epsilon;-&delta; condition of Definition 4.3.1; (ii) if <var>c</var> is a limit point of <var>A</var>, then lim<sub><var>x</var>→<var>c</var></sub> <var>f</var>(<var>x</var>) = <var>f</var>(<var>c</var>); (iii) for every <var>V</var><sub>&epsilon;</sub>(<var>f</var>(<var>c</var>)) there is <var>V</var><sub>&delta;</sub>(<var>c</var>) with <var>f</var>(<var>V</var><sub>&delta;</sub>(<var>c</var>) ∩ <var>A</var>) ⊆ <var>V</var><sub>&epsilon;</sub>(<var>f</var>(<var>c</var>)); (iv) for every sequence (<var>x<sub>n</sub></var>) → <var>c</var> in <var>A</var>, it follows that <var>f</var>(<var>x<sub>n</sub></var>) → <var>f</var>(<var>c</var>).</em> <span class="cite">— Abbott §4.3, Theorem 4.3.2, p. 109</span></p>
+</div>
+
+<p>Abbott warns that the length of the list is deceiving. Statements (i), (ii) and (iii) are the same sentence in three notations. Statement (iv) is different in kind, and it is the one that does most of the work — usually to prove a function is <em>not</em> continuous, by exhibiting one bad sequence. <span class="cite">— Abbott §4.3, p. 110</span></p>
+
+<div class="theorem">
+<p><strong>Corollary 4.3.3 (Criterion for Discontinuity).</strong> <em>If there is a sequence (<var>x<sub>n</sub></var>) ⊆ <var>A</var> with (<var>x<sub>n</sub></var>) → <var>c</var> but <var>f</var>(<var>x<sub>n</sub></var>) not converging to <var>f</var>(<var>c</var>), then <var>f</var> is not continuous at <var>c</var>.</em> <span class="cite">— Abbott §4.3, Corollary 4.3.3, p. 110</span></p>
+</div>
+
+<h3>Interactive visual: the challenge and the response</h3>
+<p>The horizontal band is the challenge <var>V</var><sub>&epsilon;</sub>(<var>f</var>(<var>c</var>)); the vertical band is the response <var>V</var><sub>&delta;</sub>(<var>c</var>). Continuity at <var>c</var> means: whatever height the horizontal band is given, some width of vertical band keeps the graph inside it. Watch &delta; shrink as &epsilon; does — and watch how much faster it must shrink where the graph is steep.</p>
+<canvas id="contCanvas" width="640" height="300" role="img" aria-label="An epsilon band around a function value and the delta band around the input that keeps the graph inside it"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('contCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height,L=50,R=W-30,T=20,B=H-56;
+function f(x){return 0.35+0.55*x*x;}   // steeper as x grows
+function px(x){return L+x*(R-L);}
+function py(y){return B-(y)*(B-T);}
+let t=0,ci=0;
+const cs=[0.25,0.75];
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const c=cs[ci];
+  const eps=0.055+0.05*(1+Math.sin(t*0.02))/2;
+  // largest delta that works, found by scanning
+  let d=0.5;
+  for(let k=500;k>=1;k--){
+    const dd=k/1000;
+    let ok=true;
+    for(let j=-20;j<=20;j++){
+      const x=c+dd*j/20;
+      if(x<0||x>1)continue;
+      if(Math.abs(f(x)-f(c))>=eps){ok=false;break;}
+    }
+    if(ok){d=dd;break;}
+  }
+  ctx.fillStyle='#26313c';
+  ctx.fillRect(L,py(f(c)+eps),R-L,py(f(c)-eps)-py(f(c)+eps));
+  ctx.fillStyle='#1d2a20';
+  ctx.fillRect(px(Math.max(0,c-d)),T,px(Math.min(1,c+d))-px(Math.max(0,c-d)),B-T);
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(L,B);ctx.lineTo(R,B);ctx.moveTo(L,T);ctx.lineTo(L,B);ctx.stroke();
+  ctx.strokeStyle='#8ab4f8';ctx.lineWidth=2;ctx.beginPath();
+  for(let k=0;k<=200;k++){const x=k/200;const X=px(x),Y=py(f(x));if(k===0)ctx.moveTo(X,Y);else ctx.lineTo(X,Y);}
+  ctx.stroke();
+  ctx.fillStyle='#e06c75';
+  ctx.beginPath();ctx.arc(px(c),py(f(c)),4,0,2*Math.PI);ctx.fill();
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillText('c = '+c.toFixed(2)+'    epsilon = '+eps.toFixed(4)+'    largest usable delta = '+d.toFixed(4),L,H-30);
+  ctx.fillText('grey band: the challenge around f(c).  green band: the response around c.',L,H-12);
+  t++; if(t%420===0){ci=(ci+1)%cs.length;}
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<p>The picture makes one thing plain that the symbols hide: &delta; depends on <var>c</var> as well as on &epsilon;. At <var>c</var> = 0.75 the graph is steeper and the same &epsilon; buys a much narrower &delta; than at <var>c</var> = 0.25. Whether a single &delta; can be made to serve every <var>c</var> at once is a different question, and an-11's answer to it is the difference between continuity and uniform continuity.</p>
+
+<div class="worked fade">
+<p><strong>Worked example — the greatest integer function (faded).</strong> Let <var>h</var>(<var>x</var>) = ⟦<var>x</var>⟧ be the largest integer not exceeding <var>x</var>. <span class="cite">— Abbott §4.3, Example 4.3.7, p. 111</span></p>
+<p>At an integer <var>m</var>, take <var>x<sub>n</sub></var> = <var>m</var> − 1/<var>n</var>. Then (<var>x<sub>n</sub></var>) → <var>m</var>, while <var>h</var>(<var>x<sub>n</sub></var>) = <var>m</var> − 1 for every <var>n</var>, so <var>h</var>(<var>x<sub>n</sub></var>) → <var>m</var> − 1 ≠ <var>m</var> = <var>h</var>(<var>m</var>). By <span class="gap">⟨your step: which result?⟩</span>, <var>h</var> is not continuous at <var>m</var>.</p>
+<p>At a non-integer <var>c</var>, with <var>n</var> &lt; <var>c</var> &lt; <var>n</var> + 1, take &delta; = min{<var>c</var> − <var>n</var>, (<var>n</var> + 1) − <var>c</var>}. Then <var>h</var>(<var>x</var>) = <var>h</var>(<var>c</var>) for every <var>x</var> ∈ <var>V</var><sub>&delta;</sub>(<var>c</var>), so |<var>h</var>(<var>x</var>) − <var>h</var>(<var>c</var>)| = 0 &lt; &epsilon; whatever &epsilon; is. ∎ <span class="cite">— Abbott §4.3, p. 112</span></p>
+<p class="cite">Gap solution: Corollary 4.3.3. Note the oddity of the second half, which Abbott points out: &delta; does not depend on &epsilon; at all here. Usually smaller &epsilon; forces smaller &delta;; on a locally constant function one &delta; answers every challenge.</p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 4.3.4 (Algebraic Continuity Theorem).</strong> <em>If <var>f</var> and <var>g</var> are continuous at <var>c</var>, then so are <var>kf</var> for <var>k</var> ∈ ℝ, <var>f</var> + <var>g</var>, <var>fg</var>, and <var>f</var>/<var>g</var> provided <var>g</var>(<var>c</var>) ≠ 0.</em> <span class="cite">— Abbott §4.3, Theorem 4.3.4, p. 110</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 4.3.9 (Composition of Continuous Functions).</strong> <em>If <var>f</var> : <var>A</var> → ℝ is continuous at <var>c</var> ∈ <var>A</var> and <var>g</var> : <var>B</var> → ℝ is continuous at <var>f</var>(<var>c</var>) ∈ <var>B</var>, with <var>f</var>(<var>A</var>) ⊆ <var>B</var>, then <var>g</var> ∘ <var>f</var> is continuous at <var>c</var>.</em> <span class="cite">— Abbott §4.3, Theorem 4.3.9, p. 112</span></p>
+</div>
+
+<p>Both are proved by quoting Theorem 4.3.2(iv) and then an-03's Algebraic Limit Theorem, which is the dividend the sequential characterisation was set up to pay. With the constant and identity functions continuous, every polynomial follows, and every rational function away from its zeros. <span class="cite">— Abbott §4.3, p. 111</span></p>
+
+<h3>The version with no &epsilon; in it</h3>
+
+<p>The hook promised a formulation in the vocabulary of an-07, and here it is: for <var>g</var> defined on all of ℝ, writing <var>g</var><sup>−1</sup>(<var>A</var>) = {<var>x</var> ∈ ℝ : <var>g</var>(<var>x</var>) ∈ <var>A</var>}, the function <var>g</var> is continuous if and only if <var>g</var><sup>−1</sup>(<var>O</var>) is open whenever <var>O</var> ⊆ ℝ is open. Abbott sets it as an exercise, in the section an-11 covers rather than this one. <span class="cite">— Abbott §4.4, Exercise 4.4.11, p. 120</span></p>
+
+<p>Why it is the same statement: Theorem 4.3.2(iii) says every &epsilon;-neighbourhood of <var>g</var>(<var>c</var>) pulls back to contain a &delta;-neighbourhood of <var>c</var>. An open set is exactly a set containing a neighbourhood of each of its points, so "every neighbourhood of the image pulls back to a neighbourhood" and "every open set pulls back to an open set" are the same demand, made point by point in one case and all at once in the other.</p>
+
+<p>And why it matters more than the others: it mentions no distance, no &epsilon;, no sequence — only open sets, whose behaviour an-07's Theorem 3.2.3 showed can be axiomatised on its own. In Semester 2 this becomes <em>the</em> definition of a continuous map, and Definition 4.3.1 becomes a theorem about one particular kind of space. That is the sense in which this unit's definition is the one topology keeps.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> The preimage characterisation says preimages of open sets are open. Are <em>images</em> of open sets open under a continuous function?</p>
+<button onclick="check(this,false)">Yes — the statement is symmetric</button>
+<button onclick="check(this,true)" data-ok>No — a constant function sends every open set to a single point</button>
+<button onclick="check(this,false)">Yes, provided the function is not constant</button>
+<div class="explain">A constant function is continuous and maps (0, 1) to {<var>k</var>}, which is not open. Nor does the third option rescue it: <var>f</var>(<var>x</var>) = <var>x</var>² maps (−1, 1) to [0, 1), which is not open either. Preimage and image behave quite differently, and the correct statements about images are an-11's business: continuous images of <em>compact</em> sets are compact, and of <em>connected</em> sets are connected.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> A function <var>f</var> has lim<sub><var>x</var>→2</sub> <var>f</var>(<var>x</var>) = 5 and <var>f</var>(2) = 7. Is <var>f</var> continuous at 2?</p>
+<button onclick="check(this,false)">Yes — the limit exists, which is what continuity requires</button>
+<button onclick="check(this,true)" data-ok>No — continuity requires the limit to equal the value, and 5 ≠ 7</button>
+<button onclick="check(this,false)">There is not enough information</button>
+<div class="explain">Theorem 4.3.2(ii) is an equation, not an existence claim. A removable discontinuity is exactly this situation, and it is why Definition 4.2.1 excludes <var>x</var> = <var>c</var>: the limit is deliberately blind to the value, so that the two can be compared.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> To prove a function is discontinuous at <var>c</var>, which characterisation is usually easiest?</p>
+<button onclick="check(this,false)">The &epsilon;-&delta; form, by finding a bad &delta;</button>
+<button onclick="check(this,true)" data-ok>The sequential form — one sequence converging to <var>c</var> whose images do not converge to <var>f</var>(<var>c</var>)</button>
+<button onclick="check(this,false)">The preimage form, by finding an open set with non-open preimage</button>
+<div class="explain">Negating the &epsilon;-&delta; statement requires producing an &epsilon; that defeats <em>every</em> &delta;, which is a statement about infinitely many candidates. Corollary 4.3.3 needs a single sequence. That asymmetry is why Abbott says (iv) is qualitatively different from the first three.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Prove the Squeeze Theorem for functional limits: if <var>f</var>(<var>x</var>) ≤ <var>g</var>(<var>x</var>) ≤ <var>h</var>(<var>x</var>) on a common domain <var>A</var>, and lim<sub><var>x</var>→<var>c</var></sub> <var>f</var>(<var>x</var>) = lim<sub><var>x</var>→<var>c</var></sub> <var>h</var>(<var>x</var>) = <var>L</var> at a limit point <var>c</var> of <var>A</var>, then lim<sub><var>x</var>→<var>c</var></sub> <var>g</var>(<var>x</var>) = <var>L</var>. <span class="cite">— Abbott §4.2, Exercise 4.2.9, p. 109</span></p>
+<p><em>Hint:</em> do not repeat the &epsilon;-&delta; argument from scratch. Use Theorem 4.2.3 to turn all three hypotheses into statements about sequences, and quote an-03's version of the same result.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove the forward direction of Theorem 4.2.3: if lim<sub><var>x</var>→<var>c</var></sub> <var>f</var>(<var>x</var>) = <var>L</var>, and (<var>x<sub>n</sub></var>) is any sequence in <var>A</var> with <var>x<sub>n</sub></var> ≠ <var>c</var> and (<var>x<sub>n</sub></var>) → <var>c</var>, then <var>f</var>(<var>x<sub>n</sub></var>) → <var>L</var>. <em>Hint:</em> you are given a &delta; that governs points and must produce an <var>N</var> that governs indices. The sequence hypothesis converts one into the other — apply it with &delta; in the role of the tolerance. <span class="cite">— Abbott §4.2, Theorem 4.2.3, p. 106</span></p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Let &epsilon; &gt; 0. By Definition 4.2.1 there is &delta; &gt; 0 such that every <var>x</var> ∈ <var>A</var> with 0 &lt; |<var>x</var> − <var>c</var>| &lt; &delta; satisfies |<var>f</var>(<var>x</var>) − <var>L</var>| &lt; &epsilon;.</p>
+<p>Now apply the definition of convergence to (<var>x<sub>n</sub></var>) → <var>c</var>, using the positive number &delta; as its tolerance: there is <var>N</var> ∈ ℕ such that <var>n</var> ≥ <var>N</var> implies |<var>x<sub>n</sub></var> − <var>c</var>| &lt; &delta;. Since <var>x<sub>n</sub></var> ≠ <var>c</var> by hypothesis, we in fact have 0 &lt; |<var>x<sub>n</sub></var> − <var>c</var>| &lt; &delta;, and every <var>x<sub>n</sub></var> lies in <var>A</var>.</p>
+<p>So for <var>n</var> ≥ <var>N</var> the point <var>x<sub>n</sub></var> meets the condition governed by &delta;, giving |<var>f</var>(<var>x<sub>n</sub></var>) − <var>L</var>| &lt; &epsilon;. Since &epsilon; was arbitrary, <var>f</var>(<var>x<sub>n</sub></var>) → <var>L</var> by an-03's Definition 2.2.3. ∎</p>
+<p><strong>The move worth naming.</strong> The proof feeds &delta; — a number produced as a <em>response</em> in one definition — in as the <em>challenge</em> in another. That is the standard way two &epsilon;-style definitions are chained, and it is exactly why the hypothesis <var>x<sub>n</sub></var> ≠ <var>c</var> appears in the statement: without it the sequence could sit at <var>c</var>, where Definition 4.2.1 says nothing at all.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>Definition 4.2.1, and the three details in it: <var>c</var> a limit point, the exclusion of <var>x</var> = <var>c</var>, and which quantity depends on which.</li>
+<li>The Sequential Criterion, and what it buys you from Chapter 2 for free (Theorem 4.2.3).</li>
+<li>The four characterisations of continuity, and which one is different in kind from the others (Theorem 4.3.2).</li>
+<li>The preimage form of continuity, and the one-sentence reason it is equivalent to the neighbourhood form.</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) no limit point, no test; the value is excluded so it can be compared; &delta; answers &epsilon;; (2) the Algebraic Limit Theorem and the Order Limit Theorem transfer at once; (3) (iv), the sequential one, and it is the one that disproves continuity; (4) open means "contains a neighbourhood of each of its points", so pulling back all neighbourhoods is pulling back all open sets — then you have the unit.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §4.2 "Functional Limits" (Definition 4.2.1), p. 104; (Example 4.2.2), p. 105; (Theorem 4.2.3, Corollary 4.2.4), p. 106; (Corollary 4.2.5, Example 4.2.6), p. 107; (Exercise 4.2.9), p. 109. §4.3 "Combinations of Continuous Functions" (Definition 4.3.1, Theorem 4.3.2), p. 109; (Corollary 4.3.3, Theorem 4.3.4), p. 110; (Example 4.3.6, Example 4.3.7), p. 111; (Example 4.3.8, Theorem 4.3.9), p. 112.
+<br>Outside this unit's declared sections: the topological characterisation of continuity, which the syllabus hook promises, is Abbott's Exercise 4.4.11, p. 120 — in §4.4, which is an-11's resource. It is stated and justified here rather than assumed, and this unit does not use §4.4 for anything else.
+<br>Builds on an-07, whose Definition 3.2.4 is the hypothesis on <var>c</var> in Segment 1's definition of a functional limit, whose Definition 3.2.1 is what the preimage formulation is written in, and whose Theorem 3.2.3 is why that formulation can be axiomatised — Abbott §3.2, pp. 78 and 79. Its Definition 3.2.6 returns in this unit's problem set, where continuity at an isolated point turns out to be free — Abbott §3.2, p. 80.
+<br>Builds on an-01, whose Theorem 1.1.1 is what makes a sequence of irrationals available whenever one is needed to defeat a limit — Abbott §1.1, p. 1.
+<br>Builds on an-03, whose Definition 2.2.3 ends the guided proof and whose Theorem 2.3.3 and Theorem 2.3.4 transfer to functions through the Sequential Criterion — Abbott §2.2, p. 39, and §2.3, pp. 45 and 48.
+<br>Deferred to an-11: uniform continuity, which is this unit's definition with one quantifier moved, and what continuity does to compact and connected sets (Abbott §4.4 and §4.5).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

@@ -201,7 +201,7 @@ setInterval(function(){step=(step+1)%approx.length;draw();},900);
 <button onclick="check(this,false)">Because greatest lower bounds don't always exist</button>
 <button onclick="check(this,true)" data-ok>Because inf A can be recovered as −sup(−A), so the existence of infima follows from the axiom rather than needing separate assumption</button>
 <button onclick="check(this,false)">Because bounded-below sets are always finite</button>
-<div class="explain">Abbott notes this explicitly (§1.3, p. 16, and Exercise 1.3.3): given A bounded below, the set of its lower bounds is bounded above, and its supremum turns out to equal inf A. One axiom, both directions, for free.</div>
+<div class="explain">Abbott notes this explicitly (Abbott §1.3, p. 17) and sets it as Exercise 1.3.3 (Abbott §1.3, p. 17): given A bounded below, the set of its lower bounds is bounded above, and its supremum turns out to equal inf A. One axiom, both directions, for free.</div>
 </div>
 
 <div class="selfcheck">
@@ -219,7 +219,7 @@ setInterval(function(){step=(step+1)%approx.length;draw();},900);
 <summary>Click to reveal model answer</summary>
 <p><strong>Model Answer:</strong> Let &epsilon; &gt; 0 be arbitrary, and suppose for contradiction that no element of <var>A</var> satisfies <var>a</var> &gt; <var>s</var> − &epsilon;. Then every <var>a</var> ∈ <var>A</var> satisfies <var>a</var> ≤ <var>s</var> − &epsilon;, which is precisely the statement that <var>s</var> − &epsilon; is an upper bound for <var>A</var> (Definition 1.3.1).</p>
 <p>But <var>s</var> = sup <var>A</var>, so by part (ii) of Definition 1.3.2, <var>s</var> is less than or equal to <em>every</em> upper bound of <var>A</var>. Applying this to the upper bound <var>s</var> − &epsilon; gives <var>s</var> ≤ <var>s</var> − &epsilon;, hence &epsilon; ≤ 0 — contradicting &epsilon; &gt; 0.</p>
-<p>So the supposition fails, and some <var>a</var> ∈ <var>A</var> does satisfy <var>a</var> &gt; <var>s</var> − &epsilon;. Since &epsilon; &gt; 0 was arbitrary, this holds for every &epsilon; &gt; 0. ∎ <span class="cite">— Abbott §1.3, Lemma 1.3.8, p. 18</span></p>
+<p>So the supposition fails, and some <var>a</var> ∈ <var>A</var> does satisfy <var>a</var> &gt; <var>s</var> − &epsilon;. Since &epsilon; &gt; 0 was arbitrary, this holds for every &epsilon; &gt; 0. ∎ <span class="cite">— Abbott §1.3, Lemma 1.3.7, p. 16</span></p>
 <p><strong>Why this is the load-bearing form.</strong> Definition 1.3.2 part (ii) is a statement about <em>all upper bounds</em>, which is awkward to use: upper bounds are not objects you have in your hands. This lemma converts it into a statement that hands you an actual element of <var>A</var> for each &epsilon; you name — exactly the shape an &epsilon;-argument can consume. When Abbott proves α² = 2 for α = sup <var>T</var> (§1.4, Theorem 1.4.5), this is the tool doing the work.</p>
 </details>
 </div>

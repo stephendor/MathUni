@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>an-13 — Uniform convergence</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition,.lemma{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem,.lemma{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.gap{color:var(--acc);font-style:italic}
+.math-block{text-align:center;margin:0.8rem 0;font-style:italic}
+.frac{display:inline-block;vertical-align:-0.4em;text-align:center;font-size:0.9em;line-height:1;padding:0 0.15em}
+.frac>span{display:block}
+.frac span.num{border-bottom:1px solid var(--ink);padding:0 1px 2px 1px}
+.frac span.den{padding:2px 1px 0 1px}
+.guided-proof{background:#161f28;border-left:4px solid #8ab4f8;border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+textarea.proof-input{width:96%;height:6rem;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:6px;padding:.6rem;font-family:Georgia,serif;font-size:1rem;margin-top:.6rem}
+details.model-answer{margin-top:.8rem;color:var(--dim)}
+details.model-answer summary{cursor:pointer;color:var(--acc);font-weight:bold}
+.blank-page{background:#181520;border-left:4px solid #c3e88d;border-radius:10px;padding:1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Real Analysis I · Nexus College</p>
+<h1>Uniform convergence <span class="cite">(an-13)</span></h1>
+
+<div class="hook">
+When limits of nice functions go wrong — and the fix.
+<p>Every function <var>g<sub>n</sub></var>(<var>x</var>) = <var>x</var><sup><var>n</var></sup> on [0, 1] is a polynomial: continuous, differentiable, as well behaved as a function can be. Their limit is 0 on [0, 1) and 1 at <var>x</var> = 1 — a step function. Continuity did not survive the limit.</p>
+<p>The diagnosis is a quantifier. Pointwise convergence lets the threshold <var>N</var> depend on the point, so different parts of the domain arrive at different speeds and the limit can tear. Demanding one <var>N</var> for the whole domain at once repairs it, and the same move — moving a quantifier to make a response uniform over the domain — is the one an-11 made for continuity. In the mission's language, that uniform bound is the sup-norm, and it is the metric the stability theorem is stated in.</p>
+</div>
+
+<div class="selfcheck" style="background:transparent;padding:0;margin:1rem 0 0 0;">
+<p><strong>Prediction gate — commit before reading on.</strong> Let <var>f<sub>n</sub></var> be continuous on a set <var>A</var> and suppose <var>f<sub>n</sub></var>(<var>x</var>) → <var>f</var>(<var>x</var>) for every <var>x</var> ∈ <var>A</var>. <strong>(i)</strong> Must <var>f</var> be continuous? <strong>(ii)</strong> Must it be, if in addition a single threshold <var>N</var> can be chosen that works for every <var>x</var> ∈ <var>A</var> at once?</p>
+<button onclick="check(this,false)">Yes to both — a limit of continuous functions is continuous</button>
+<button onclick="check(this,true)" data-ok>No to (i), yes to (ii)</button>
+<button onclick="check(this,false)">No to both — continuity is never preserved by limits</button>
+<div class="explain"><var>x</var><sup><var>n</var></sup> on [0, 1] settles (i): every term is continuous and the limit is not. The repair in (ii) is Definition 6.2.3, and the theorem that it works is Theorem 6.2.6. Notice how little was changed — the same &epsilon;, the same <var>N</var>, the same inequality, with only the order of two quantifiers exchanged.</div>
+</div>
+
+<p class="mission">Why this matters for the mission: Uniform (sup-norm) bounds are the language of the stability theorem.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Two ways for a sequence of functions to converge</h2>
+
+<div class="definition">
+<p><strong>Definition 6.2.1.</strong> For each <var>n</var> ∈ ℕ let <var>f<sub>n</sub></var> be a function on <var>A</var> ⊆ ℝ. The sequence (<var>f<sub>n</sub></var>) <em>converges pointwise on <var>A</var></em> to <var>f</var> : <var>A</var> → ℝ if, for every <var>x</var> ∈ <var>A</var>, the sequence of real numbers <var>f<sub>n</sub></var>(<var>x</var>) converges to <var>f</var>(<var>x</var>). <span class="cite">— Abbott §6.2, Definition 6.2.1, p. 154</span></p>
+</div>
+
+<p>Read as an &epsilon;-<var>N</var> statement this says: for every &epsilon; &gt; 0 <em>and every <var>x</var> ∈ <var>A</var></em>, there exists <var>N</var> — possibly depending on <var>x</var> — with |<var>f<sub>n</sub></var>(<var>x</var>) − <var>f</var>(<var>x</var>)| &lt; &epsilon; for <var>n</var> ≥ <var>N</var>. Abbott restates it in exactly that form, side by side with the uniform version, so the single difference is visible. <span class="cite">— Abbott §6.2, p. 158</span></p>
+
+<p>Two examples do all the work. <var>f<sub>n</sub></var>(<var>x</var>) = (<var>x</var>² + <var>nx</var>)/<var>n</var> converges pointwise to <var>f</var>(<var>x</var>) = <var>x</var> on ℝ, since <var>x</var>²/<var>n</var> → 0 for each fixed <var>x</var>. And <var>g<sub>n</sub></var>(<var>x</var>) = <var>x</var><sup><var>n</var></sup> on [0, 1] converges pointwise to the function that is 0 on [0, 1) and 1 at 1 — every term continuous, the limit not. <span class="cite">— Abbott §6.2, Example 6.2.2, pp. 154, 155</span></p>
+
+<div class="definition">
+<p><strong>Definition 6.2.3.</strong> (<var>f<sub>n</sub></var>) <em>converges uniformly on <var>A</var></em> to <var>f</var> if, for every &epsilon; &gt; 0, there exists <var>N</var> ∈ ℕ such that |<var>f<sub>n</sub></var>(<var>x</var>) − <var>f</var>(<var>x</var>)| &lt; &epsilon; whenever <var>n</var> ≥ <var>N</var> <em>and</em> <var>x</var> ∈ <var>A</var>. <span class="cite">— Abbott §6.2, Definition 6.2.3, p. 157</span></p>
+</div>
+
+<p>The letters are identical; the placement of "<var>x</var> ∈ <var>A</var>" is not. In Definition 6.2.1 the point is chosen before <var>N</var>; in Definition 6.2.3 it is chosen after. Abbott points at the parallel with an-11's uniform continuity, and it is exact: in both cases "uniformly" means the response to &epsilon; can be chosen once for the whole domain. <span class="cite">— Abbott §6.2, p. 158</span></p>
+
+<h3>Interactive visual: a band around the limit</h3>
+<p>The dashed grey lines are the band of width &epsilon; around the limit function. Uniform convergence means: from some index onwards, the whole graph of <var>f<sub>n</sub></var> lies inside that band. Watch <var>x</var><sup><var>n</var></sup> on [0, 1], whose graphs always escape the band near <var>x</var> = 1 however large <var>n</var> is, against 1/(<var>n</var>(1 + <var>x</var>²)), whose graphs eventually fit entirely.</p>
+<canvas id="uconvCanvas" width="640" height="300" role="img" aria-label="Graphs of two sequences of functions against an epsilon band around their limits, one escaping the band and one fitting inside it"></canvas>
+<script>
+(function(){
+const cv=document.getElementById('uconvCanvas'),ctx=cv.getContext('2d');
+const W=cv.width,H=cv.height,L=44,R=W-24,T=22,B=H-70;
+function px(x){return L+x*(R-L);}
+function py(y){return B-y*(B-T);}
+const eps=0.18;
+let n=1,t=0,mode=0;
+function fpow(x,n){return Math.pow(x,n);}
+// The function the prose names, exactly. It used to be 1/(n(1+9x^2)) here and
+// in the on-canvas label, while the paragraph above said 1/(n(1+x^2)) -- both
+// converge uniformly, so nothing was wrong with the demonstration, but the
+// reader was told to watch one function and shown another, and any arithmetic
+// they did against the stated one disagreed. (Codex review of PR #25.)
+function fdec(x,n){return 1/(n*(1+x*x));}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  const usePow=(mode===0);
+  // limit function: 0 on [0,1) with a jump to 1 at x=1, or the zero function
+  ctx.strokeStyle='#9aa5b1';ctx.setLineDash([5,4]);ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(px(0),py(eps));ctx.lineTo(px(1),py(eps));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(px(0),py(-eps));ctx.lineTo(px(1),py(-eps));ctx.stroke();
+  if(usePow){
+    ctx.beginPath();ctx.moveTo(px(1),py(1-eps));ctx.lineTo(px(1),py(1+eps));ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  ctx.strokeStyle='#2a3a52';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(L,T);ctx.lineTo(L,B);ctx.lineTo(R,B);ctx.stroke();
+  ctx.strokeStyle='#4caf82';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(px(0),py(0));ctx.lineTo(px(usePow?0.999:1),py(0));ctx.stroke();
+  if(usePow){ctx.fillStyle='#4caf82';ctx.beginPath();ctx.arc(px(1),py(1),4,0,2*Math.PI);ctx.fill();}
+  ctx.strokeStyle='#8ab4f8';ctx.lineWidth=2;ctx.beginPath();
+  let outside=0;
+  for(let k=0;k<=300;k++){
+    const x=k/300;
+    const y=usePow?fpow(x,n):fdec(x,n);
+    if(Math.abs(y-(usePow&&x===1?1:0))>eps)outside++;
+    const X=px(x),Y=py(y);
+    if(k===0)ctx.moveTo(X,Y);else ctx.lineTo(X,Y);
+  }
+  ctx.stroke();
+  ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='left';
+  ctx.fillText((usePow?'f_n(x) = x^n on [0,1]':'f_n(x) = 1/(n(1+x^2)) on [0,1]')+'     n = '+n+
+               '     epsilon = '+eps.toFixed(2),L,H-46);
+  ctx.fillText(outside>0
+    ? 'part of the graph is OUTSIDE the band — this n does not answer this epsilon'
+    : 'the whole graph is inside the band — this n answers this epsilon for every x at once',L,H-28);
+  ctx.fillText(usePow
+    ? 'and no n ever works: near x = 1 the graph always climbs out. Pointwise, not uniform.'
+    : 'and every larger n works too. Uniform convergence.',L,H-10);
+  t++; if(t%26===0){n++; if(n>14){n=1;mode=1-mode;}}
+  requestAnimationFrame(draw);
+}
+draw();
+})();
+</script>
+
+<div class="worked fade">
+<p><strong>Worked example — one sequence of each kind (faded).</strong> <span class="cite">— Abbott §6.2, Example 6.2.4, p. 158</span></p>
+<p><em>Uniform.</em> Let <var>g<sub>n</sub></var>(<var>x</var>) = 1/(<var>n</var>(1 + <var>x</var>²)) on ℝ, with pointwise limit <var>g</var> = 0. Since 1/(1 + <var>x</var>²) ≤ 1 for every <var>x</var>, we have |<var>g<sub>n</sub></var>(<var>x</var>) − 0| ≤ 1/<var>n</var>, a bound with no <var>x</var> in it. Given &epsilon; &gt; 0, take <span class="gap">⟨your step: which <var>N</var>?⟩</span> and the same <var>N</var> answers every point.</p>
+<p><em>Not uniform.</em> Let <var>g<sub>n</sub></var>(<var>x</var>) = <var>x</var><sup><var>n</var></sup> on [0, 1). The pointwise limit is 0. Take &epsilon; = 1/2. For any proposed <var>N</var>, the point <var>x</var> = (1/2)<sup>1/<var>N</var></sup> lies in [0, 1) and has <var>x</var><sup><var>N</var></sup> = 1/2, which is not less than &epsilon;. So no single <var>N</var> works for every point, though for each fixed <var>x</var> some <var>N</var> does. ∎</p>
+<p class="cite">Gap solution: <var>N</var> &gt; 1/&epsilon;. The whole difference between the two halves is whether the bound on |<var>f<sub>n</sub></var>(<var>x</var>) − <var>f</var>(<var>x</var>)| still mentions <var>x</var>.</p>
+</div>
+
+<p>That last remark is the working test, and it is worth stating as a rule: bound |<var>f<sub>n</sub></var>(<var>x</var>) − <var>f</var>(<var>x</var>)| by something depending on <var>n</var> alone and you have uniform convergence; if every bound you can find still involves <var>x</var>, look for a point that defeats each <var>N</var> in turn.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Does uniform convergence imply pointwise convergence?</p>
+<button onclick="check(this,true)" data-ok>Yes — an <var>N</var> that works for every <var>x</var> works for each <var>x</var> separately</button>
+<button onclick="check(this,false)">No — they are independent conditions</button>
+<button onclick="check(this,false)">Only on compact sets</button>
+<div class="explain">Uniform convergence is strictly stronger: it is the same statement with the choice of <var>N</var> restricted. So the uniform limit, when it exists, is the pointwise limit — which is why one first computes the pointwise limit and then asks whether the convergence to it is uniform. There is never a separate candidate to find.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> On [0, 1/2] rather than [0, 1], is <var>x</var><sup><var>n</var></sup> → 0 uniform?</p>
+<button onclick="check(this,true)" data-ok>Yes — |<var>x</var><sup><var>n</var></sup>| ≤ (1/2)<sup><var>n</var></sup> for every <var>x</var> in the set, a bound free of <var>x</var></button>
+<button onclick="check(this,false)">No — it fails on [0, 1] and shrinking the domain cannot help</button>
+<button onclick="check(this,false)">No — uniform convergence is a property of the functions, not the domain</button>
+<div class="explain">Uniform convergence, like uniform continuity, is a property of a sequence <em>on a domain</em>. The failure on [0, 1] happened entirely near <var>x</var> = 1; remove a neighbourhood of that point and the bound (1/2)<sup><var>n</var></sup> works everywhere at once. Exactly the same phenomenon as an-11's <var>x</var>² on ℝ versus on [−10, 10].</div>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>What uniform convergence buys, and why the proof needed it</h2>
+
+<div class="theorem">
+<p><strong>Theorem 6.2.5 (Cauchy Criterion for Uniform Convergence).</strong> <em>(<var>f<sub>n</sub></var>) converges uniformly on <var>A</var> if and only if for every &epsilon; &gt; 0 there exists <var>N</var> ∈ ℕ such that |<var>f<sub>n</sub></var>(<var>x</var>) − <var>f<sub>m</sub></var>(<var>x</var>)| &lt; &epsilon; for all <var>m</var>, <var>n</var> ≥ <var>N</var> and all <var>x</var> ∈ <var>A</var>.</em> <span class="cite">— Abbott §6.2, Theorem 6.2.5, p. 160</span></p>
+</div>
+
+<p>This is an-05's Cauchy Criterion one level up, and it earns its place for the same reason: it decides uniform convergence without requiring the limit function to be known in advance. Abbott sets the proof as Exercise 6.2.6, and it runs by applying the numerical criterion at each fixed <var>x</var> to get the limit, then checking that the resulting convergence is uniform. <span class="cite">— Abbott §2.6, Theorem 2.6.4, p. 59</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 6.2.6 (Continuous Limit Theorem).</strong> <em>If (<var>f<sub>n</sub></var>) converges uniformly on <var>A</var> to <var>f</var>, and each <var>f<sub>n</sub></var> is continuous at <var>c</var> ∈ <var>A</var>, then <var>f</var> is continuous at <var>c</var>.</em> <span class="cite">— Abbott §6.2, Theorem 6.2.6, p. 160</span></p>
+</div>
+
+<p>The proof is the &epsilon;/3 argument, and it is one of the few proofs in this course where reading the <em>failed</em> attempt first is worth more than reading the successful one. Abbott gives both. <span class="cite">— Abbott §6.2, p. 157</span></p>
+
+<p>The estimate is forced: |<var>f</var>(<var>x</var>) − <var>f</var>(<var>c</var>)| is split into |<var>f</var>(<var>x</var>) − <var>f<sub>N</sub></var>(<var>x</var>)| + |<var>f<sub>N</sub></var>(<var>x</var>) − <var>f<sub>N</sub></var>(<var>c</var>)| + |<var>f<sub>N</sub></var>(<var>c</var>) − <var>f</var>(<var>c</var>)|, with the middle term handled by continuity of <var>f<sub>N</sub></var> and the outer two by convergence. Under pointwise convergence the third term is fine — <var>c</var> is fixed, so choose <var>N</var> for it — but the first is not. It must hold for every <var>x</var> in a neighbourhood of <var>c</var>, and that neighbourhood's size &delta; depends on <var>N</var>, which was chosen before &delta; existed. You cannot go back and pick a larger <var>N</var>, because &delta; would change with it. <span class="cite">— Abbott §6.2, p. 157</span></p>
+
+<p>Uniform convergence dissolves the circularity at a stroke: the <var>N</var> works for all <var>x</var> at once, so it can be chosen first and &delta; afterwards. The hypothesis is not merely sufficient — it was reverse-engineered from precisely this obstruction, which is why Definition 6.2.3 looks the way it does.</p>
+
+<p>For the mission, the same object appears with a different name. Uniform convergence says sup<sub><var>x</var>∈<var>A</var></sub>|<var>f<sub>n</sub></var>(<var>x</var>) − <var>f</var>(<var>x</var>)| → 0, and that supremum is the <em>sup-norm</em> distance between two functions. The stability theorem for persistence diagrams is an inequality in exactly this metric: perturb a filtration function by at most &epsilon; in sup-norm and its diagram moves by at most &epsilon; in bottleneck distance. The reason the theory is stated with sup-norms rather than pointwise closeness is the reason this unit exists.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> The limit of continuous functions <var>x</var><sup><var>n</var></sup> on [0, 1] is discontinuous. Does that contradict Theorem 6.2.6?</p>
+<button onclick="check(this,false)">Yes — the theorem must have an unstated hypothesis</button>
+<button onclick="check(this,true)" data-ok>No — the convergence is pointwise and not uniform, so the theorem does not apply</button>
+<button onclick="check(this,false)">No — <var>x</var><sup><var>n</var></sup> is not continuous at 1</button>
+<div class="explain">Each <var>x</var><sup><var>n</var></sup> is a polynomial and continuous everywhere, so the third option is wrong. The theorem's hypothesis is uniform convergence, and the faded example showed it fails here. Notice the logical direction this gives you: since the limit is discontinuous and every term is continuous, the convergence <em>cannot</em> be uniform — the theorem used contrapositively is often the quickest disproof.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Where exactly does the &epsilon;/3 proof break down under pointwise convergence?</p>
+<button onclick="check(this,false)">At the middle term, since <var>f<sub>N</sub></var> might not be continuous</button>
+<button onclick="check(this,true)" data-ok>At the term |<var>f</var>(<var>x</var>) − <var>f<sub>N</sub></var>(<var>x</var>)|, which must be small for every <var>x</var> near <var>c</var> and not merely at <var>c</var></button>
+<button onclick="check(this,false)">At the triangle inequality, which needs uniformity</button>
+<div class="explain">The middle term is fine: <var>f<sub>N</sub></var> is continuous by hypothesis. The triangle inequality is unconditional. The failure is that <var>N</var> would have to be chosen after &delta;, and &delta; is chosen after <var>N</var> — a circular dependency that uniform convergence removes by making <var>N</var> independent of the point.</div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which earlier definition has the same relationship to its non-uniform version as Definition 6.2.3 has to Definition 6.2.1?</p>
+<button onclick="check(this,false)">The Cauchy criterion, relative to convergence</button>
+<button onclick="check(this,true)" data-ok>an-11's uniform continuity, relative to continuity</button>
+<button onclick="check(this,false)">Absolute convergence, relative to conditional convergence</button>
+<div class="explain">In both cases the response to &epsilon; — a &delta; there, an <var>N</var> here — is required to work simultaneously at every point of the domain, rather than being chosen after the point. That is what the adverb "uniformly" means throughout analysis, and recognising the pattern is more useful than either definition on its own.</div>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Decide whether <var>h<sub>n</sub></var>(<var>x</var>) = <var>x</var>/(1 + <var>nx</var>²) converges uniformly on ℝ, and prove your answer. <span class="cite">— Abbott §6.2, Exercise 6.2.4, p. 161</span></p>
+<p><em>Hint:</em> find the pointwise limit first, then try to bound |<var>h<sub>n</sub></var>(<var>x</var>)| by something free of <var>x</var>. Calculus on the function <var>x</var> ↦ <var>x</var>/(1 + <var>nx</var>²), using an-12's Interior Extremum Theorem, will tell you the largest value it takes.</p>
+</div>
+
+<div class="guided-proof">
+<h3>Guided proof practice</h3>
+<p><strong>Prompt:</strong> Prove Theorem 6.2.6: a uniform limit of functions continuous at <var>c</var> is continuous at <var>c</var>. <em>Hint:</em> the quantity to estimate is |<var>f</var>(<var>x</var>) − <var>f</var>(<var>c</var>)|, and you have information about <var>f<sub>n</sub></var> rather than <var>f</var>. Insert a single well-chosen <var>f<sub>N</sub></var> twice, so that three terms appear. Then decide, deliberately, in which order <var>N</var> and &delta; must be chosen, and say what would go wrong in the other order. <span class="cite">— Abbott §6.2, Theorem 6.2.6, p. 160</span></p>
+<textarea class="proof-input" placeholder="Write your proof here..."></textarea>
+<details class="model-answer">
+<summary>Click to reveal model answer</summary>
+<p><strong>Model answer.</strong> Fix <var>c</var> ∈ <var>A</var> and let &epsilon; &gt; 0. By uniform convergence choose <var>N</var> ∈ ℕ such that |<var>f<sub>N</sub></var>(<var>x</var>) − <var>f</var>(<var>x</var>)| &lt; &epsilon;/3 <em>for every</em> <var>x</var> ∈ <var>A</var>.</p>
+<p>With <var>N</var> now fixed, <var>f<sub>N</sub></var> is continuous at <var>c</var>, so there is &delta; &gt; 0 with |<var>f<sub>N</sub></var>(<var>x</var>) − <var>f<sub>N</sub></var>(<var>c</var>)| &lt; &epsilon;/3 whenever |<var>x</var> − <var>c</var>| &lt; &delta; and <var>x</var> ∈ <var>A</var>.</p>
+<p>For such <var>x</var>, insert and remove <var>f<sub>N</sub></var> twice:</p>
+<div class="math-block">
+|<var>f</var>(<var>x</var>) − <var>f</var>(<var>c</var>)| ≤ |<var>f</var>(<var>x</var>) − <var>f<sub>N</sub></var>(<var>x</var>)| + |<var>f<sub>N</sub></var>(<var>x</var>) − <var>f<sub>N</sub></var>(<var>c</var>)| + |<var>f<sub>N</sub></var>(<var>c</var>) − <var>f</var>(<var>c</var>)| &lt; &epsilon;/3 + &epsilon;/3 + &epsilon;/3 = &epsilon;.
+</div>
+<p>So <var>f</var> is continuous at <var>c</var> by an-10's Definition 4.3.1. ∎</p>
+<p><strong>The order is the proof.</strong> <var>N</var> is chosen first, before &delta; exists, and that is legitimate only because uniform convergence lets <var>N</var> be chosen without reference to any point. Under pointwise convergence the first term would need an <var>N</var> depending on <var>x</var>, and the values of <var>x</var> in question are the ones within &delta; of <var>c</var> — but &delta; is not available until <var>N</var> has been fixed. Writing the two choices in the wrong order produces a proof that looks complete and is circular, which is why Abbott shows the failed attempt before the successful one.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — stand up, 5 minutes.</div>
+</div>
+
+<div class="blank-page">
+<h3>Exit ritual: blank-page reconstruction</h3>
+<p>Look away from the screen and reconstruct the four load-bearing steps of this unit:</p>
+<ol>
+<li>The two definitions written as &epsilon;-<var>N</var> statements, and the one difference between them (Definitions 6.2.1 and 6.2.3).</li>
+<li><var>x</var><sup><var>n</var></sup> on [0, 1]: the pointwise limit, why it is not continuous, and the point that defeats each proposed <var>N</var>.</li>
+<li>The working test — a bound on |<var>f<sub>n</sub></var>(<var>x</var>) − <var>f</var>(<var>x</var>)| that is free of <var>x</var> — and the two examples it separates.</li>
+<li>The &epsilon;/3 proof, and the order in which <var>N</var> and &delta; must be chosen (Theorem 6.2.6).</li>
+</ol>
+<details>
+<summary>Check your mental skeleton</summary>
+<p>If you can say: (1) the point is chosen before <var>N</var>, or after it; (2) the limit is 0 then 1, and <var>x</var> = (1/2)<sup>1/<var>N</var></sup> beats <var>N</var>; (3) 1/<var>n</var> is free of <var>x</var> and <var>x</var><sup><var>n</var></sup> is not; (4) <var>N</var> first, &delta; second, and the reverse is circular — then you have the unit.</p>
+</details>
+</div>
+
+<footer>
+Sources: Abbott, <em>Understanding Analysis</em> — §6.2 "Uniform Convergence of a Sequence of Functions" (Definition 6.2.1), p. 154; (Example 6.2.2), pp. 154, 155; the failed proof that a pointwise limit of continuous functions is continuous, p. 157; (Definition 6.2.3), p. 157; (Example 6.2.4), p. 158; (Theorem 6.2.5, Theorem 6.2.6), p. 160; (Exercise 6.2.4), p. 161.
+<br>Builds on an-11, whose Definition 4.4.5 is the same quantifier move applied to continuity, and whose Theorem 4.4.8 is the corresponding statement that compactness makes the two notions coincide — Abbott §4.4, pp. 116 and 118.
+<br>Builds on an-05, whose Theorem 2.6.4 is the criterion Segment 2 lifts to sequences of functions — Abbott §2.6, p. 59.
+<br>Builds on an-08, whose Definition 3.3.1 makes compactness a statement about subsequences rather than about closedness. The problem set's Dini argument runs on it directly, because the functions there live on a compact domain that is not all of ℝ, and working inside that domain is cleaner than closing its subsets in ℝ — Abbott §3.3, Definition 3.3.1, p. 84.
+<br>Builds on an-10, whose Definition 4.3.1 is what the limit function is finally shown to satisfy — Abbott §4.3, p. 109.
+<br>Builds on an-12, whose Theorem 5.2.6 locates the largest value of a function in this unit's You try — Abbott §5.2, p. 135.
+<br>This unit's problem set draws on four earlier results. Theorem 2.3.4 passes inequalities through a limit of function values. — Abbott §2.3, p. 48.
+<br>Theorem 3.2.3 is why a union of two uniform domains has to be a finite union. — Abbott §3.2, p. 79.
+<br>Theorem 3.3.4 and Theorem 3.3.5 turn a failure of uniformity into a nested family of nonempty compact sets. — Abbott §3.3, pp. 84 and 85.
+<br>Theorem 4.3.4 keeps a difference of continuous functions continuous, and Lemma 2.6.3 is the bound whose role a uniform bound takes over. — Abbott §4.3, p. 110, and §2.6, p. 59.
+<br>Deferred to an-14: the observation that the uniform distance sup|<var>f</var> − <var>g</var>| is a metric, which makes this unit's convergence ordinary convergence in a metric space of functions (Abbott §8.2).
+</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+</script></body></html>

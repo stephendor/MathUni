@@ -7,9 +7,10 @@ import json
 
 import pytest
 
-from scripts.check_sections import (CAP, NoVerdict, check_text, load_index,
-                                    main, pages_in, section_of, selftest,
-                                    unreadable)
+from scripts.check_sections import (CAP, LETTERED, NUMBERED, NoVerdict,
+                                    admissible, check_text, load_index, main,
+                                    main_text_plateaus, pages_in, section_of,
+                                    selftest, tails, unreadable)
 
 # A None label is a gap: a chapter-opening page, or an unsectioned chapter.
 # Printed 27 opens Axler's chapter 2 and printed 51 opens chapter 3.
@@ -64,7 +65,7 @@ def test_the_label_that_runs_on_through_a_gap_is_caught():
 def test_an_unsectioned_chapter_is_a_gap_throughout():
     """Axler's chapter 4 has no sections. Every page of it must resolve to no
     section, not to §3.F running on from the chapter before."""
-    index = load_index()["Axler"]
+    index, _shared = load_index()["Axler"]
     assert section_of(101, index) == "3.F"
     for page in (117, 120, 131):
         assert section_of(page, index) is None
@@ -140,7 +141,7 @@ def test_a_file_naming_no_indexed_book_is_skipped_not_passed(tmp_path, capsys):
 def test_the_committed_index_is_readable_and_ordered():
     index = load_index()
     assert "Axler" in index
-    rows = index["Axler"]
+    rows, _shared = index["Axler"]
     assert rows == sorted(rows)
     starts = {lab: p for p, lab in rows}
     assert starts["3.B"] == 59
@@ -183,3 +184,264 @@ def test_a_truncated_citation_makes_main_exit_two(tmp_path, capsys):
     f.write_text("Axler §2.A " + "y" * (CAP + 50) + " pp. 59",
                  encoding="utf-8")
     assert main([str(f)]) == 2
+
+
+def test_a_capped_citation_is_unreadable_even_when_a_page_survived():
+    """The case the first truncation fix still lost: a correct page before the
+    cut and a wrong one after it read as fully checked, and the page past the
+    cut was skipped in silence."""
+    both = "Axler §2.A, p. 28 " + "y" * (CAP + 50) + " pp. 59"
+    assert check_text(both, ROWS) == []      # 28 is right, 59 never seen
+    assert unreadable(both) == ["2.A"]
+
+
+def test_the_two_heading_shapes_do_not_overlap():
+    """Abbott numbers its sections and Axler letters them. Running the numbered
+    pattern over Axler invents sections out of result headings — it read 10.58
+    and 10.59, which are a Definition and a Theorem."""
+    assert NUMBERED.search("## 1.3 The Axiom of Completeness").group(1) == "1.3"
+    assert LETTERED.search("## 1.3 The Axiom of Completeness") is None
+    assert LETTERED.search("### 3.B Null Spaces and Ranges").group(1) == "3.B"
+    assert NUMBERED.search("### 10.58 **Definition**").group(1) == "10.58"
+    assert LETTERED.search("### 10.58 **Definition**") is None
+    assert NUMBERED.search("### 1.3.6 Example") is None
+
+
+def test_a_bound_in_second_document_is_not_indexed():
+    """Abbott's PDF carries the Instructor's Solutions Manual behind the book,
+    restarting at printed 1, so printed 100 exists twice in one file. Indexing
+    the second copy would move section boundaries onto pages the book has."""
+    keep, drop = main_text_plateaus([(-12, 13, 269, 254), (-276, 277, 429, 150)])
+    assert keep == [(-12, 13, 269, 254)]
+    assert drop == [(-276, 277, 429, 150)]
+
+
+def test_a_book_with_drifting_offsets_keeps_every_plateau():
+    """The negative control for the rule above: Axler's three plateaus run
+    forward, never repeating a printed page, and all three are kept."""
+    keep, drop = main_text_plateaus([(-17, 18, 66, 49), (-16, 67, 177, 111),
+                                     (-15, 178, 346, 169)])
+    assert len(keep) == 3 and drop == []
+
+
+def test_the_committed_abbott_index_is_the_book_not_the_manual():
+    index, _shared = load_index()["Abbott"]
+    starts = {lab: p for p, lab in index if lab}
+    assert starts["1.3"] == 13      # The Axiom of Completeness
+    assert starts["3.3"] == 84      # Compact Sets
+    assert starts["8.2"] == 222     # Metric Spaces
+    assert max(p for p, _lab in index) < 258
+
+
+def test_a_page_shared_by_two_sections_admits_both():
+    """Abbott prints Exercise 1.4.13 at the top of printed 29 and opens §1.5
+    below it, so "§1.4, Exercise 1.4.13, p. 29" is a correct citation. The
+    one-label rule failed it."""
+    rows = [(18, "1.4"), (29, "1.5")]
+    assert admissible(29, rows, shared={29}) == ["1.5", "1.4"]
+    assert check_text("Abbott §1.4, Exercise 1.4.13, p. 29", rows, {29}) == []
+    assert check_text("Abbott §1.5, Theorem 1.5.1, p. 29", rows, {29}) == []
+
+
+def test_an_unshared_start_page_still_admits_only_its_own_section():
+    """The negative control, and the gate's founding case: Axler opens §3.B at
+    the top of printed 59 with nothing above it but the running head, so the
+    la-06 citation "§3.A ... p. 59" must still fail."""
+    rows = [(52, "3.A"), (59, "3.B")]
+    assert admissible(59, rows, shared=set()) == ["3.B"]
+    assert check_text("Axler §3.A, Definition 3.12, p. 59", rows) == [
+        ("3.A", 59, "3.B")]
+
+
+def test_the_two_books_share_pages_differently():
+    """Abbott runs sections on down the page; Axler starts each on a fresh one.
+    The index is generated from the books, so it says so."""
+    _rows_a, shared_abbott = load_index()["Abbott"]
+    _rows_x, shared_axler = load_index()["Axler"]
+    assert 29 in shared_abbott and len(shared_abbott) > 20
+    assert shared_axler == set()
+
+
+# --- a numbered book must actually be checked, not merely indexed ----------
+
+NUM = [(29, "1.4"), (36, "1.5"), (44, "1.6")]
+
+
+def test_a_numbered_section_label_is_parsed_whole():
+    """CITE read only "§N" and "§N.LETTER". Abbott's "§1.4" therefore parsed
+    as the bare chapter "1", check_text skipped it as a non-claim, and every
+    numbered citation in the corpus passed without being looked at — 476 of
+    them in `an` alone. Indexing the book was not the same as checking it.
+    (Codex review of PR #25.)"""
+    assert [lab for lab, _t, _c in tails("Abbott §1.4, p. 29")] == ["1.4"]
+
+
+def test_a_wrong_numbered_label_fails():
+    """The negative control for the line above: if this ever passes, the
+    numbered half of the gate has gone quiet again."""
+    assert check_text("Abbott §9.9, p. 36", NUM) == [("9.9", 36, "1.5")]
+
+
+def test_a_bare_chapter_is_still_not_judged_in_a_numbered_book():
+    """Widening the label must not turn "§1" into a claim about §1.5."""
+    assert check_text("Abbott §1, p. 36", NUM) == []
+
+
+def test_a_two_digit_numbered_label_is_read_whole():
+    assert [lab for lab, _t, _c in tails("Abbott §4.11, p. 44")] == ["4.11"]
+
+
+def test_the_corpus_numbered_citations_are_actually_checked():
+    """Not a tautology: this counts the citations the parser now hands to
+    check_text, so a regression in CITE shows up as a collapse in the count
+    rather than as a still-green PASS line."""
+    labels = [lab for lab, _t, _c in
+              tails("Abbott §1.3, p. 16. Abbott §2.4, pp. 59, 60.")
+              if "." in lab]
+    assert labels == ["1.3", "2.4"]
+
+
+# --- one book per file was never true --------------------------------------
+
+def test_a_second_book_in_one_file_is_not_checked_against_the_first(
+        tmp_path, capsys):
+    """pw-04 cites Abbott and Cummings in one Sources line. Attributing the
+    whole file to the first indexed name it happened to contain reported all
+    four Cummings citations as wrong labels in Abbott — the same mechanism
+    citations.py's attribute() was written to remove. Cummings has no section
+    index, so its citations are counted as unchecked and said out loud."""
+    p = tmp_path / "unit.md"
+    p.write_text(
+        "Sources: Abbott, Understanding Analysis — §1.3, p. 16. "
+        "Cummings, Real Analysis: A Long-Form Mathematics Textbook — "
+        "§6.3, Definition 6.8 p. 226.", encoding="utf-8")
+    assert main([str(p)]) == 0
+    out = capsys.readouterr().out
+    assert "FAIL" not in out
+    assert "not checked" in out and "Cummings Real Analysis 1" in out
+
+
+def test_an_unindexed_book_is_counted_not_silently_dropped(tmp_path, capsys):
+    """Silence is the failure mode this script exists to remove. A citation
+    that was parsed and then not checked is neither a pass nor a failure, and
+    the report gives its count."""
+    p = tmp_path / "unit.md"
+    p.write_text(
+        "Sources: Abbott, Understanding Analysis — §1.3, p. 16. "
+        "Lindstrom, Spaces — §3.1, p. 43; §3.2, p. 48.", encoding="utf-8")
+    assert main([str(p)]) == 0
+    assert "Lindstrom 2" in capsys.readouterr().out
+
+
+def test_the_first_book_named_still_wins_before_any_name():
+    """Attribution is sticky and left to right. Text before any book name
+    belongs to nothing yet and must not be charged to a book chosen by
+    alphabetical accident."""
+    from scripts.check_sections import _attribution
+    names, titles, split = _attribution()
+    parts = split("§1.3, p. 16. Abbott — §1.4, p. 29", names, titles)
+    assert parts[0][1] is None
+    assert parts[-1][1] == "Abbott"
+
+
+# --- the heading shape is chosen by one match, not two ---------------------
+
+def test_one_lettered_heading_selects_the_lettered_shape():
+    """`lettered >= 2` contradicted the rule stated beside it — the lettered
+    pattern wins outright if it finds ANYTHING. A book with a single lettered
+    section fell through to NUMBERED, matched nothing, and raised NoVerdict.
+    (CodeRabbit review of PR #25.)"""
+    one = "## 3.B Null Spaces and Ranges\n"
+    assert len(LETTERED.findall(one)) == 1
+    assert NUMBERED.findall(one) == []
+
+
+# --- a gap page is never a shared page -------------------------------------
+
+# Abbott's printed 213 as the committed index recorded it: the chapter-8
+# opening page, which is both a gap and a section start, and which refresh
+# also marked shared because the chapter title and epigraph sit above the
+# heading and look like a previous section running on.
+GAP_SHARE = [(210, "7.7"), (213, None), (213, "8.1")]
+
+
+def test_a_gap_page_does_not_admit_the_label_from_before_the_gap():
+    """Sharing and a gap say opposite things about the same page — "the
+    previous section runs on into this" against "nothing from before is in
+    force here". The gap is read off the book's structure, the sharing off a
+    character count, and the character count is the one that misfires on a
+    chapter opening. (Codex review of PR #25.)"""
+    assert admissible(213, GAP_SHARE, {213}) == ["8.1"]
+
+
+def test_the_label_that_ran_on_through_a_gap_is_caught_even_when_shared():
+    """The negative control. This gate's whole purpose is that a section does
+    not run on past its end; `shared` must not be able to buy that back."""
+    assert (check_text("Abbott §7.7, p. 213", GAP_SHARE, {213})
+            == [("7.7", 213, "8.1")])
+
+
+def test_a_section_starting_on_a_gap_page_is_still_citable_there():
+    """The other direction: the guard must not cost the page its own label."""
+    assert check_text("Abbott §8.1, p. 213", GAP_SHARE, {213}) == []
+
+
+def test_a_genuinely_shared_page_still_admits_both():
+    """Printed 29 is shared and is not a gap, so the relaxation still applies
+    and Abbott's `§1.4, Exercise 1.4.13, p. 29` still passes."""
+    rows, shared = load_index()["Abbott"]
+    assert check_text("Abbott §1.4, Exercise 1.4.13, p. 29", rows, shared) == []
+
+
+def test_the_committed_index_marks_no_page_both_gap_and_shared():
+    """Belt and braces: `admissible` guards against a stale index, and refresh
+    no longer produces one. If this fails, the index was regenerated by a
+    build that lost the `shared -= set(gaps)` line."""
+    index = json.loads(open("resources/sections.json", encoding="utf-8").read())
+    for book, v in index.items():
+        assert not (set(v["shared"]) & set(v["gaps"])), book
+
+
+# --- the unchecked count must not itself be short --------------------------
+
+def test_a_file_citing_only_an_unindexed_book_still_counts_its_citations(
+        tmp_path, capsys):
+    """The skip used to happen before the split, so a file citing only an
+    unindexed book was printed as SKIP and its citations vanished from the
+    NOTE line -- which exists precisely to be the honest denominator for the
+    PASS line above it. Corpus-wide it reported 195 when the true figure was
+    1432 in 112 files. (CodeRabbit review of PR #25.)"""
+    only = tmp_path / "only.md"
+    only.write_text("Sources: Lindstrom, Spaces — §3.1, p. 43; §3.2, p. 48.",
+                    encoding="utf-8")
+    indexed = tmp_path / "indexed.md"
+    indexed.write_text("Sources: Abbott — §1.3, p. 16.", encoding="utf-8")
+    assert main([str(only), str(indexed)]) == 0
+    out = capsys.readouterr().out
+    assert "SKIP" in out                 # still reported as unchecked...
+    assert "Lindstrom 2" in out          # ...and still counted
+    assert "1 file(s) checked" in out    # but not counted as checked
+
+
+def test_a_citation_naming_no_book_is_counted_separately(tmp_path, capsys):
+    """A citation before any book name belongs to nothing. It is neither
+    checked nor attributable, and saying so is not the same as saying it names
+    an unindexed book."""
+    p = tmp_path / "unit.md"
+    p.write_text("§9.9, p. 400. Abbott — §1.3, p. 16.", encoding="utf-8")
+    assert main([str(p)]) == 0
+    out = capsys.readouterr().out
+    assert "1 citation(s) name no book at all" in out
+
+
+def test_no_checkable_file_is_still_no_verdict(tmp_path, capsys):
+    """Counting a file's citations must not make it look checked. Two files
+    naming only an unindexed book are both SKIPped and the run has no verdict
+    at all -- exit 2, never a PASS over an empty set."""
+    for name in ("a.md", "b.md"):
+        (tmp_path / name).write_text(
+            "Sources: Hatcher — §1.1, p. 30; §1.2, p. 40.", encoding="utf-8")
+    assert main([str(tmp_path / "a.md"), str(tmp_path / "b.md")]) == 2
+    out = capsys.readouterr().out
+    assert out.count("SKIP") == 2
+    assert "PASS" not in out
