@@ -660,3 +660,22 @@ def test_a_missing_primary_does_not_blind_the_rest_of_the_file(tmp_path,
     out = capsys.readouterr().out
     assert "Theorem 1.1" in out and "p. 99" in out
     assert "NOVERDICT" in out and "Beta" in out
+
+
+def test_a_unit_run_whose_primary_is_absent_still_checks_the_rest(tmp_path,
+                                                                  monkeypatch,
+                                                                  capsys):
+    """--unit fills book_name from the syllabus without the caller asserting
+    anything, so guarding the early return on book_name rather than on --book
+    caught --unit too: a unit whose primary tree is absent aborted the run
+    before per_path_book() could see it, losing the checks on its citations
+    that named a secondary book which IS present. Only --book aborts now.
+    (Codex, PR #26.)"""
+    C = _two_fake_books(tmp_path, monkeypatch, present=("Alpha",))
+    monkeypatch.setattr(C, "book_for_unit", lambda uid: "Beta")
+    monkeypatch.setattr(C, "unit_paths", lambda uid: [str(tmp_path / "u4.md")])
+    (tmp_path / "u4.md").write_text("*(Alpha, Theorem 1.1, p. 99)*\n",
+                                    encoding="utf-8")
+    assert C.main(["--unit", "u4"]) == 1
+    out = capsys.readouterr().out
+    assert "Theorem 1.1" in out and "p. 99" in out

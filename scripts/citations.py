@@ -1177,8 +1177,16 @@ def main(argv=None):
         print("ERROR no book on this machine has a page tree")
         print("This gate needs the per-page markdown tree and cannot run here.")
         return 2
-    if book_name is not None and book_name not in books:
-        print("ERROR pages tree for %r is not on this machine" % book_name)
+    # Only --book aborts the run here, because --book is the caller asserting
+    # a book and deserving a loud answer when the assertion cannot be honoured.
+    # Testing `book_name` instead caught --unit too, which fills book_name from
+    # the syllabus without the caller saying anything: a --unit run whose
+    # primary tree was absent aborted before per_path_book() could run, losing
+    # the checks on that unit's citations naming a secondary book that IS
+    # present. That is the same partial-check behaviour the per-path logic
+    # exists to provide, reintroduced one line above it. (Codex, PR #26.)
+    if a.book is not None and a.book not in books:
+        print("ERROR pages tree for %r is not on this machine" % a.book)
         return 2
     if absent:
         print("NOTE %d book(s) have no page tree here and cannot be checked "
