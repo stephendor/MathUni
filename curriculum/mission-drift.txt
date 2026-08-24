@@ -20,7 +20,7 @@
 #
 # The 15 fall into two classes, and the class decides who repairs them.
 #
-# --- Class A: content divergence (3 remaining of 4) -------------------------------------
+# --- Class A: content divergence (1 remaining of 4) -------------------------------------
 # The lesson asserts something the syllabus does not. aa-00's syllabus strip
 # calls the unit an optional on-ramp about abstracting structure; its lesson
 # claims groups measure symmetry as homology measures holes. These are two
@@ -36,8 +36,15 @@
 # syllabus sentence exactly and carries the flourish in the paragraph below.
 # The ratchet reported it as STALE before it was struck, which is the stale
 # rule doing its job on a real repair rather than on a control.
-aa-00
-aa-01
+#
+# aa-00 and aa-01 STRUCK 2026-08-23 on the s1-aa branch. aa-00 had been
+# carrying a sentence about groups and homology that belongs to no unit's
+# syllabus entry; aa-01 quoted the right sentence but promoted its Z to a
+# blackboard bold and added a clause about integer coefficients. Both now
+# quote the syllabus character for character. The ratchet reported both as
+# STALE before they were struck -- in the pytest suite rather than at the
+# command line, which is where the binding between this list and reality
+# actually lives.
 tda2-02
 #
 # --- Class B: typography reverted while quoting (11) ---------------------

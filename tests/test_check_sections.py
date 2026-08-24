@@ -8,9 +8,11 @@ import json
 import pytest
 
 from scripts.check_sections import (CAP, LETTERED, NUMBERED, NoVerdict,
-                                    admissible, check_text, load_index, main,
+                                    _primary, admissible, check_text,
+                                    extend_first_plateau, load_index, main,
                                     main_text_plateaus, pages_in, section_of,
-                                    selftest, tails, unreadable)
+                                    selftest, span, tails, uncovered,
+                                    unreadable)
 
 # A None label is a gap: a chapter-opening page, or an unsectioned chapter.
 # Printed 27 opens Axler's chapter 2 and printed 51 opens chapter 3.
@@ -445,3 +447,107 @@ def test_no_checkable_file_is_still_no_verdict(tmp_path, capsys):
     out = capsys.readouterr().out
     assert out.count("SKIP") == 2
     assert "PASS" not in out
+
+
+# --- a section range is one label naming several sections -------------------
+
+RANGE = [(3, "1.1"), (4, "1.2"), (5, "1.3"), (6, "1.4"), (7, "1.5")]
+
+
+def test_a_range_covers_every_section_between_its_ends():
+    assert span("1.2–1.5", RANGE) == ["1.2", "1.3", "1.4", "1.5"]
+
+
+def test_a_page_in_the_later_half_of_a_range_is_right():
+    """Carter's Sources line names §1.2–1.5 over printed 4–7. Read as the
+    single label §1.2, printed 7 -- which is §1.5 -- was reported wrong, and
+    four citations failed in one unit with nothing wrong with any of them."""
+    assert check_text("Carter §1.2–1.5, pp. 4–7", RANGE) == []
+
+
+def test_a_page_outside_the_range_is_still_wrong():
+    """The negative control. A range must not become a way of naming every
+    section at once: printed 7 is outside §1.2–1.3 and still fails."""
+    assert check_text("Carter §1.2–1.3, p. 7", RANGE) == [("1.2–1.3", 7, "1.5")]
+
+
+def test_a_range_end_the_book_does_not_have_is_not_resolved():
+    """Sections do not always run consecutively, so the run is read off the
+    index rather than counted out. An end that is not in the index leaves the
+    label alone, to fail loudly rather than resolve to something plausible."""
+    assert span("1.2–1.9", RANGE) == ["1.2–1.9"]
+    assert check_text("Carter §1.2–1.9, p. 4", RANGE) != []
+
+
+def test_a_dash_before_a_word_is_not_a_range():
+    assert [lab for lab, _t, _c in tails("Carter §1.4 - the rules, p. 6")] \
+        == ["1.4"]
+
+
+# --- the folio-less run at the lower edge of the first plateau --------------
+
+def test_the_first_plateau_reaches_down_over_folio_less_pages():
+    """Aluffi's chapter-1 opening page carries §1.1 and no folio, and it sits
+    one page below the first folio the fit could read. §1.1 was missing from a
+    76-section index in silence, and the correct citation "§1.1, p. 3" was the
+    thing that failed."""
+    assert extend_first_plateau([(-18, 22, 384, 350)], {19, 20, 21}) \
+        == [(-18, 19, 384, 350)]
+
+
+def test_the_extension_stops_where_printed_page_1_would():
+    """Front matter numbered in roman also reads as folio-less. Without the
+    guard a plateau swallows the introduction and hands it printed page 0."""
+    assert extend_first_plateau([(-18, 22, 384, 350)],
+                                set(range(1, 22)))[0][1] == 19
+
+
+def test_the_extension_does_not_cross_a_page_whose_folio_was_read():
+    """The negative control: page 21 is not blank, so nothing moves."""
+    assert extend_first_plateau([(-18, 22, 384, 350)], {19, 20}) \
+        == [(-18, 22, 384, 350)]
+
+
+def test_a_later_plateau_is_left_alone_and_its_orphans_are_reported():
+    """A blank run between two plateaus could belong to either offset, and
+    the page tree does not say which. Those pages are reported, not guessed
+    at -- a heading on one of them is absent from the index."""
+    ps = [(-17, 18, 66, 49), (-16, 70, 177, 111)]
+    assert extend_first_plateau(ps, {67, 68, 69}) == ps
+    assert uncovered(ps) == [67, 68, 69]
+
+
+def test_abutting_plateaus_have_no_orphans():
+    assert uncovered([(-17, 18, 66, 49), (-16, 67, 177, 111)]) == []
+
+
+# --- the two gates now agree on which book a file is about ------------------
+
+def test_the_primary_book_comes_from_the_syllabus():
+    """citations.py reads the unit's primary book from the syllabus resource
+    line and lets an unnamed clause stay with it; this gate started at None
+    and waited to be told. A lesson writing "Aluffi §1.1, p. 5" throughout
+    therefore passed one gate and was SKIPped whole by the other."""
+    assert _primary("lessons/aa/aa-01.html") == "Aluffi Underground"
+    assert _primary("problems/sets/aa-01.md") == "Aluffi Underground"
+
+
+def test_a_file_that_is_no_unit_still_has_no_primary():
+    """The negative control: nothing invents a book for a file the syllabus
+    does not know."""
+    assert _primary("notes/scratch.md") is None
+
+
+def test_a_bare_count_after_a_dash_is_not_a_range_endpoint():
+    """The first range grammar allowed any number after the dash, so prose
+    reading "§1.4 — 4 rules" parsed as the label "1.4 — 4", span() could not
+    resolve it, and a correct citation was reported wrong. The negative
+    control written alongside it used a WORD after the dash and could never
+    have fired. Both ends of a range must now have the same shape.
+    (Codex, PR #26.)"""
+    assert [lab for lab, _t, _c in tails("Carter §1.4 — 4 rules, p. 6")] \
+        == ["1.4"]
+    assert check_text("Carter §1.4 — 4 rules, p. 6", RANGE) == []
+    # ...while a genuine range is still read as one.
+    assert [lab for lab, _t, _c in tails("Carter §1.2–1.5, pp. 4–7")] \
+        == ["1.2–1.5"]

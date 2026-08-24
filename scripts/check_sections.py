@@ -49,7 +49,24 @@ INDEX = os.path.join(REPO, "resources", "sections.json")
 # detected and reported as NO VERDICT rather than absorbed. The cap is also
 # large enough that reaching it means something is malformed, not long.
 CAP = 2000
-CITE = re.compile(r"§(\d+(?:\.(?:[A-Z]|\d{1,2}))?)")
+_SECTION = r"\d+\.(?:[A-Z]|\d{1,2})"
+_CHAPTER = r"\d+"
+_DASH = r"\s*[–—-]\s*"
+# A Sources line names a RANGE of sections at least as often as a single one,
+# and the range is part of the label, not text following it. Reading only the
+# first half of "§1.2-1.5" and then testing every page in the clause against
+# it reported four correct citations in one unit as wrong, each of them naming
+# a page in the later half of its own range.
+#
+# The two ends must have the SAME SHAPE — both sectioned, or both bare chapter
+# numbers. The first version allowed any number after the dash, so ordinary
+# prose reading "§1.4 — 4 rules, p. 6" parsed as the label "1.4 — 4", which
+# span() cannot resolve, and a correct citation was reported wrong. The
+# negative control written alongside it used "§1.4 - the rules" and passed,
+# because a word after the dash was never the risk: a NUMBER after the dash
+# was, and the control had no way to fire. (Codex, PR #26.)
+CITE = re.compile(r"§(%s(?:%s%s)?|%s(?:%s%s)?)"
+                  % (_SECTION, _DASH, _SECTION, _CHAPTER, _DASH, _CHAPTER))
 # The tail runs to the next citation, the next tag, or the end of the sentence.
 # Stopping at the sentence boundary matters: pages named in a FOLLOWING
 # sentence belong to whatever that sentence cites, and letting the tail run on
@@ -127,6 +144,53 @@ def main_text_plateaus(plateaus):
             spans.append((a, b))
             kept.append((off, lo, hi, cnt))
     return kept, dropped
+
+
+def extend_first_plateau(plateaus, blanks):
+    """Extend the first plateau down over the folio-less pages above it.
+
+    ``fit_offsets`` skips a page whose folio nothing could read, so a blank
+    page in the MIDDLE of a plateau is still covered by the range around it.
+    A run of them at the lower EDGE is not: those pages fall outside every
+    plateau, ``printed()`` answers None, and any section heading standing
+    there is dropped from the index without a word. Aluffi's chapter-1
+    opening page is exactly that page — it carries no folio, it sits one page
+    below the first folio the fit could read, and §1.1 went missing from a
+    75-section index in silence, which then made the CORRECT citation
+    "§1.1, p. 3" the thing that failed.
+
+    Only the first plateau is extended, and only while the offset keeps the
+    printed page at 1 or above. Both halves of that are the point. A book's
+    main text starts at printed 1, so the guard stops the walk exactly where
+    the book does — front matter numbered in roman reads as folio-less too,
+    and without it a plateau would swallow the introduction and hand it
+    printed page 0 and below. A blank run BETWEEN two plateaus has no such
+    pin: either neighbour's offset could be the right one, the choice is not
+    determinable from the page tree, and refresh reports those pages instead
+    of guessing at them.
+    """
+    out = []
+    for i, (off, lo, hi, cnt) in enumerate(plateaus):
+        if i == 0:
+            while lo - 1 in blanks and lo - 1 + off >= 1:
+                lo -= 1
+        out.append((off, lo, hi, cnt))
+    return out
+
+
+def uncovered(plateaus):
+    """Pages between two kept plateaus that neither one covers.
+
+    These are the folio-less runs `extend_first_plateau` deliberately leaves
+    alone. A heading on one of them would be missing from the index, so the
+    pages are reported rather than left for someone to find through a FAIL on
+    a citation that was right.
+    """
+    out = []
+    for (_o, _lo, hi, _c), (_o2, lo2, _h2, _c2) in zip(plateaus,
+                                                       plateaus[1:]):
+        out.extend(range(hi + 1, lo2))
+    return out
 
 
 def load_index(path=INDEX):
@@ -229,15 +293,37 @@ def admissible(page, rows, shared=()):
     return [here, before] if before else [here]
 
 
+def span(label, rows):
+    """Every section a label covers — one, or the whole run of a range.
+
+    A range is checked against the index rather than expanded arithmetically.
+    Sections do not always run 1, 2, 3: a book may stop at §3.3 and go to
+    §4.1, and "§3.1-3.6" would then name three sections that do not exist and
+    admit pages that belong to the next chapter. Reading the run off the index
+    admits exactly the sections the book has between the two ends, and a range
+    naming an end the book does not have is left as-is, to fail loudly rather
+    than resolve to something plausible.
+    """
+    parts = re.split(r"\s*[–—-]\s*", label)
+    if len(parts) != 2:
+        return [label]
+    order = [lab for _p, lab in rows if lab is not None]
+    if parts[0] not in order or parts[1] not in order:
+        return [label]
+    i, j = order.index(parts[0]), order.index(parts[1])
+    return order[i:j + 1] if i <= j else [label]
+
+
 def check_text(text, rows, shared=()):
     """[(label, page, actual)] for every citation whose label is wrong."""
     wrong = []
     for label, tail, _cut in tails(text):
         if "." not in label:          # a bare chapter number, e.g. "§4"
             continue
+        named = span(label, rows)
         for page in pages_in(tail):
             ok = admissible(page, rows, shared)
-            if label not in ok:
+            if not set(named) & set(ok):
                 wrong.append((label, page, ok[0]))
     return wrong
 
@@ -279,7 +365,31 @@ def _attribution():
     except ImportError as exc:
         raise NoVerdict("cannot import citation attribution: %s" % exc)
     bm = load_bookmap()
-    return sorted(bm), {k: v.get("title") for k, v in bm.items()},         split_at_books
+    return (sorted(bm), {k: v.get("title") for k, v in bm.items()},
+            split_at_books)
+
+
+def _primary(path):
+    """The unit's primary book, or None — the same one citations.py uses.
+
+    Attribution here started at None and waited to be told a book. That is
+    right for the FIRST gate a citation meets and wrong for this one, because
+    the two gates then disagree about the same file: a lesson writing "Aluffi
+    §1.1, p. 5" throughout passes citations.py — bare "Aluffi" names no book,
+    so the clause stays with the unit's primary, which is Aluffi Underground
+    — and was SKIPPED entirely here as naming no indexed book. Thirteen
+    citations, one gate saying PASS and the other saying nothing at all.
+
+    Reading the primary from the syllabus makes the two agree by construction.
+    A unit with no syllabus record, or a syllabus that cannot be read, gets
+    None and the old behaviour: attribution waits to be told.
+    """
+    try:
+        sys.path.insert(0, REPO)
+        from scripts.citations import book_for_unit  # noqa: E402
+        return book_for_unit(os.path.splitext(os.path.basename(path))[0])
+    except Exception:
+        return None
 
 
 def refresh(book, out=INDEX):
@@ -289,9 +399,12 @@ def refresh(book, out=INDEX):
                               folio_candidates, page_text, pages_dir)
 
     d = pages_dir(book)
-    _, plateaus = fit_offsets([(n, folio_candidates(page_text(d, n) or ""))
-                               for n in all_pages(d)])
+    rows_off, plateaus = fit_offsets(
+        [(n, folio_candidates(page_text(d, n) or "")) for n in all_pages(d)])
     plateaus, dropped = main_text_plateaus(plateaus)
+    blanks = set(n for n, _f, _w, off, _s in rows_off if off is None)
+    plateaus = extend_first_plateau(plateaus, blanks)
+    orphans = uncovered(plateaus)
 
     def printed(n):
         for off, lo, hi, _cnt in plateaus:
@@ -358,6 +471,10 @@ def refresh(book, out=INDEX):
                  ", ".join("PDF %d-%d (printed %d-%d)"
                            % (lo, hi, lo + off, hi + off)
                            for off, lo, hi, _c in dropped)))
+    if orphans:
+        print("  note: %d page(s) covered by no plateau, so a section "
+              "heading on one of them is not in this index: PDF %s"
+              % (len(orphans), ", ".join(str(n) for n in orphans)))
     data[book] = {"sections": found, "gaps": sorted(gaps),
                   "shared": sorted(shared)}
     with io.open(out, "w", encoding="utf-8", newline="\n") as fh:
@@ -477,6 +594,45 @@ def selftest():
     one("...while a book with drifting offsets keeps all of them",
         len(main_text_plateaus([(-17, 18, 66, 49), (-16, 67, 177, 111),
                                 (-15, 178, 346, 169)])[0]) == 3)
+
+    # A section range names every section between its ends.
+    RANGE = [(3, "1.1"), (4, "1.2"), (5, "1.3"), (6, "1.4"), (7, "1.5")]
+    one("a range covers the sections between its ends",
+        span("1.2–1.5", RANGE) == ["1.2", "1.3", "1.4", "1.5"])
+    one("...so a page in the later half of a range is right",
+        check_text("Carter §1.2–1.5, pp. 4–7", RANGE) == [])
+    one("...and a page outside the range is still wrong",
+        check_text("Carter §1.2–1.3, p. 7", RANGE)
+        == [("1.2–1.3", 7, "1.5")])
+    one("a range whose end the book does not have is not resolved",
+        span("1.2–1.9", RANGE) == ["1.2–1.9"])
+    one("a hyphen before a word is not a range",
+        [lab for lab, _t, _c in tails("Carter §1.4 - the rules, p. 6")]
+        == ["1.4"])
+    one("...nor is a hyphen before a bare COUNT",
+        [lab for lab, _t, _c in tails("Carter §1.4 — 4 rules, p. 6")]
+        == ["1.4"])
+    one("...and that citation still passes",
+        check_text("Carter §1.4 — 4 rules, p. 6", RANGE) == [])
+
+    # A folio-less run at the lower edge of the first plateau is main text.
+    one("the first plateau reaches down over folio-less pages",
+        extend_first_plateau([(-18, 22, 384, 350)], {19, 20, 21})
+        == [(-18, 19, 384, 350)])
+    one("...and stops where the printed page would fall below 1",
+        extend_first_plateau([(-18, 22, 384, 350)],
+                             set(range(1, 22)))[0][1] == 19)
+    one("...and does not reach over a page whose folio was read",
+        extend_first_plateau([(-18, 22, 384, 350)], {19, 20})
+        == [(-18, 22, 384, 350)])
+    one("a later plateau is left alone, and its orphans are reported",
+        extend_first_plateau([(-17, 18, 66, 49), (-16, 70, 177, 111)],
+                             {67, 68, 69}) == [(-17, 18, 66, 49),
+                                               (-16, 70, 177, 111)]
+        and uncovered([(-17, 18, 66, 49), (-16, 70, 177, 111)])
+        == [67, 68, 69])
+    one("a book whose plateaus abut has no orphans",
+        uncovered([(-17, 18, 66, 49), (-16, 67, 177, 111)]) == [])
 
     # Truncation is unreadable even when a page survived the cut.
     both = "Axler §2.A, p. 28 " + "y" * (CAP + 50) + " pp. 59"
@@ -609,7 +765,7 @@ def main(argv=None):
         # than no count, because it looks like the answer.
         # (CodeRabbit review of PR #25.)
         checked_here = False
-        current = None
+        current = _primary(path)
         for part, named in split_at_books(text, names, titles):
             if named is not None:
                 current = named

@@ -66,11 +66,24 @@ def test_known_failing_list_ignores_comments_and_blanks(tmp_path):
     assert load_known_failing(str(f)) == {"aa-00", "pw-03"}
 
 
-def test_a_listed_unit_that_fails_does_not_fail_the_run(capsys):
-    repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    drift = os.path.join(repo, "curriculum", "mission-drift.txt")
-    lesson = os.path.join(repo, "lessons", "aa", "aa-00.html")
-    assert main(["--known-failing", drift, lesson]) == 0
+def test_a_listed_unit_that_fails_does_not_fail_the_run(tmp_path, capsys):
+    """Against a SYNTHETIC drifted lesson and a synthetic list, for the reason
+    recorded below for the STALE control: a fixture pinned to whichever
+    committed unit happens to be broken tests the corpus rather than the gate,
+    and stops testing anything the day that unit is repaired. This one was
+    pinned to aa-00 and went red the moment aa-00's strip was fixed on the
+    s1-aa branch -- the gate was right and the fixture was measuring the wrong
+    thing. The uid must still be real, since mission.py looks its strip up in
+    the syllabus; only the lesson and the list are made here."""
+    d = tmp_path / "lessons" / "aa"
+    d.mkdir(parents=True)
+    lesson = d / "aa-00.html"
+    lesson.write_text(
+        '<p class="mission">Why this matters for the mission: something the '
+        'syllabus does not say.</p>', encoding="utf-8")
+    f = tmp_path / "drift.txt"
+    f.write_text("aa-00\n", encoding="utf-8")
+    assert main(["--known-failing", str(f), str(lesson)]) == 0
     assert "KNOWN-FAIL aa-00" in capsys.readouterr().out
 
 
