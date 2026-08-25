@@ -34,8 +34,8 @@ def test_workflow_consumes_the_manifest_runner():
     manifest = json.loads((ROOT / "curriculum" / "unit-gates.json").read_text(
         encoding="utf-8"))
     assert {gate["id"] for gate in manifest["gates"]} == {
-        "lesson-lint", "html-js", "mission", "coverage", "sections",
-        "lab-outputs"}
+        "lesson-lint", "html-js", "mission", "coverage",
+        "hypothesis-parity", "sections", "lab-outputs"}
 
 
 def test_discovery_names_only_complete_unit_pairs():
