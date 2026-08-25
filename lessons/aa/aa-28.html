@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-28 — Lagrange's theorem and the class equation</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Lagrange's theorem and the class equation <span class="cite">(aa-28)</span></h1>
+
+<div class="hook">
+Count a group by tiling it with copies of a subgroup — and counting suddenly proves structure.
+<p>Everything so far has been structural: subgroups, homomorphisms, quotients, isomorphisms. This unit is arithmetic, and it is startling how much structure falls out of pure counting. Aluffi says he could have introduced Lagrange's theorem much earlier, while discussing cosets of ideals or of subgroups in abelian groups, and waited only because its applications shine in the theory of finite groups. By the end of this unit you will prove that every group of order p² is commutative, using nothing but division.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> aa-26 showed the left cosets of a subgroup H partition G. If G is finite, what do you expect about the sizes of those cosets?</p>
+<button data-ok onclick="check(this,true)">They all have exactly |H| elements</button>
+<button onclick="check(this,false)">They vary, with H itself the largest</button>
+<button onclick="check(this,false)">They vary, but their sizes all divide |H|</button>
+<div class="explain">All equal, and the proof is a single cancellation: h ↦ gh is a bijection from H onto gH. That one line is the whole of Lagrange's theorem, since G is then tiled by equal-sized disjoint blocks. Note that H is itself one of the cosets, namely eH, so it is not distinguished by size in any way. <span class="cite">— Aluffi Underground §12.1, Lemma 12.2, p. 267</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Counting arguments recur in covering-space degrees and orbit decompositions.</p>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 1 — Tiling a group with cosets</h2>
+
+<div class="definition">
+<p><strong>Definition 12.1.</strong> The <strong>index</strong> of a subgroup H in G, written [G : H], is the number of left cosets of H in G, when that number is finite. <span class="cite">— Aluffi Underground §12.1, Definition 12.1, p. 267</span></p>
+</div>
+
+<p>It is also the number of right cosets, which Aluffi leaves as Exercise 12.1. Note the care in the phrasing: G/H is the <em>set</em> of left cosets whether or not H is normal — aa-26's Definition 11.50 — and the index is its size. When H happens to be normal, G/H is a group and [G : H] is its order, but the number is meaningful in any case. <span class="cite">— Aluffi Underground §12.1, p. 267</span></p>
+
+<div class="theorem">
+<p><strong>Lemma 12.2.</strong> For a subgroup H of G and any g in G, the map H → gH given by h ↦ gh is a bijection. <span class="cite">— Aluffi Underground §12.1, Lemma 12.2, p. 267</span></p>
+<p><em>Proof.</em> Surjective by the definition of gH; injective by cancellation, since gh₁ = gh₂ gives h₁ = g⁻¹gh₁ = g⁻¹gh₂ = h₂. <span class="cite">— Aluffi Underground §12.1, p. 267</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 12.3 (Lagrange's theorem).</strong> For a finite group G and a subgroup H, |H| divides |G|; in fact |G| = [G : H] · |H|. <span class="cite">— Aluffi Underground §12.1, Theorem 12.3, p. 267</span></p>
+<p><em>Proof.</em> G is the union of [G : H] disjoint cosets, each with |H| elements by Lemma 12.2. <span class="cite">— Aluffi Underground §12.1, p. 268</span></p>
+</div>
+
+<p>Three retrospective payments come due immediately. First, aa-26's Example 11.59 — index two implies normal — becomes almost visual: |K| is half of |G|, so G minus K is the other left coset <em>and</em> the other right coset, the two families coincide, and K is normal. <span class="cite">— Aluffi Underground §12.1, p. 268</span> Second, the rotation subgroup of D<sub>2n</sub> is normal for free, being half the size. Third, x and y generate D<sub>2n</sub>: a subgroup containing both properly contains the rotations, so its index is strictly between 1 and 2, leaving only index 1. <span class="cite">— Aluffi Underground §12.1, p. 268</span></p>
+
+<p>And |A<sub>n</sub>| = n!/2, since [S<sub>n</sub> : A<sub>n</sub>] = 2 from aa-27's Example 11.69. Aluffi notes this is otherwise clear — multiply all even permutations by a fixed transposition to get all odd ones — but the point of the theorem is that "having Lagrange's theorem, we are dispensed from the need to come up with such ad hoc arguments". <span class="cite">— Aluffi Underground §12.1, p. 268</span></p>
+
+<div class="theorem">
+<p><strong>Proposition 12.4.</strong> For a finite group G and g in G, the order |g| divides |G|; equivalently g<sup>|G|</sup> = e. <span class="cite">— Aluffi Underground §12.1, Proposition 12.4, p. 268</span></p>
+<p><em>Proof.</em> |g| is the order of the subgroup ⟨g⟩, so Theorem 12.3 applies. <span class="cite">— Aluffi Underground §12.1, p. 268</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Worked, then faded — Fermat's little theorem falls out.</strong> aa-04 proved that if p is a positive prime and p does not divide a, then a<sup>p−1</sup> ≡ 1 mod p, and the proof took some cleverness. Aluffi's remark is that after Proposition 12.4 it "should appear evident to you".
+<p>Worked: [a]<sub>p</sub> is an element of the group (Z/pZ)*, whose order is p − 1. By Proposition 12.4, raising any element of a group to the order of the group gives the identity. So [a]<sub>p</sub><sup>p−1</sup> = [1]<sub>p</sub>. That is the theorem. <span class="cite">— Aluffi Underground §12.1, p. 268</span></p>
+<p>Now fade it and derive Euler's generalisation, which Aluffi sets as Exercise 12.2: for n &gt; 0 and a coprime to n, what is a<sup>φ(n)</sup> mod n? The relevant group is ⟨?⟩; its order is ⟨?⟩; Proposition 12.4 then gives ⟨?⟩.</p>
+<details><summary>Check</summary>The group is (Z/nZ)*, the units of Z/nZ, and [a]<sub>n</sub> lies in it precisely because a is coprime to n. Its order is φ(n) by definition of the Euler function — that was aa-04's count of the residues coprime to n. Proposition 12.4 says every element raised to the order of the group is the identity, so [a]<sub>n</sub><sup>φ(n)</sup> = [1]<sub>n</sub>, that is a<sup>φ(n)</sup> ≡ 1 mod n. Fermat's is the case n = p, where φ(p) = p − 1.
+<p>Nothing here is about number theory. The same one-line argument applies verbatim to any finite group whatever, which is exactly Aluffi's point about ad hoc arguments.</p></details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> A group G has order 15. What orders can its elements have?</p>
+<button onclick="check(this,false)">Any order from 1 to 15</button>
+<button data-ok onclick="check(this,true)">Only 1, 3, 5 or 15 — the divisors of 15</button>
+<button onclick="check(this,false)">Only 1 and 15</button>
+<div class="explain">By Proposition 12.4 the order of an element divides the order of the group, and the divisors of 15 are 1, 3, 5, 15. Order 1 belongs to the identity alone. This is a genuine restriction obtained without knowing anything about G beyond its size — no multiplication table, no generators. <span class="cite">— Aluffi Underground §12.1, Proposition 12.4, p. 268</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Next: what Lagrange does <em>not</em> say.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 2 — Orbits are indices</h2>
+
+<p>One more consequence, then a warning. <strong>Proposition 12.5:</strong> if |G| = p is prime then G is cyclic, G ≅ C<sub>p</sub>. Take any g ≠ e; then |g| &gt; 1 and |g| divides p, so |g| = p and ⟨g⟩ = G. <span class="cite">— Aluffi Underground, Proposition 12.5, p. 269</span> There is exactly one group of each prime order, and you never have to look at it.</p>
+
+<p>Now the warning, because the natural converse is false. Lagrange says a subgroup of order m forces m to divide |G|. Does every divisor of |G| occur as the order of a subgroup? For commutative G, yes. For general G, no.</p>
+
+<div class="worked">
+<strong>Example 12.6 — the missing subgroup of A<sub>4</sub>.</strong> |A<sub>4</sub>| = 12, so by Lagrange a subgroup has order 1, 2, 3, 4, 6 or 12. Suppose there were one of order 6. It would have index 2, hence be normal, hence — by aa-26's Proposition 11.57 — be a union of conjugacy classes. But the conjugacy classes of A<sub>4</sub> have sizes 1, 3, 4, 4, and no sub-collection of those including the identity's class sums to 6. Contradiction: A<sub>4</sub> has no subgroup of order 6. <span class="cite">— Aluffi Underground, Example 12.6, p. 269</span>
+<p>Check the arithmetic yourself: from {1, 3, 4, 4} the achievable sums containing the 1 are 1, 4, 5, 8, 9, 12. Six is not among them. Every ingredient — index two implies normal, normal implies a union of classes — has been proved in an earlier unit; only the arithmetic is new.</p>
+</div>
+
+<p>The index is otherwise very well behaved. <strong>Proposition 12.7:</strong> for subgroups H inside K inside G, [G : H] = [G : K][K : H]. K is a disjoint union of cosets k<sub>i</sub>H, and then gK is the disjoint union of the gk<sub>i</sub>H, so each coset of K splits into [K : H] cosets of H. Aluffi remarks that this is transparent when H and K are normal, via the Third Isomorphism Theorem and Lagrange — but that the hypothesis is not needed. <span class="cite">— Aluffi Underground, Proposition 12.7, p. 269</span></p>
+
+<p>The rest of the unit comes from marrying Lagrange to aa-24's actions. Recall an action of G on A and the orbit of a point.</p>
+
+<div class="definition">
+<p><strong>Definition 12.8.</strong> The <strong>stabilizer</strong> of a in A is Stab<sub>G</sub>(a) = {g in G : ga = a}, a subgroup of G. <span class="cite">— Aluffi Underground §12.2, Definition 12.8, p. 270</span></p>
+</div>
+
+<p>It is a subgroup by the criterion of aa-23: e fixes a, and if g and h both fix a then a = h⁻¹a and so gh⁻¹a = ga = a. <span class="cite">— Aluffi Underground §12.2, p. 270</span></p>
+
+<div class="theorem">
+<p><strong>Lemma 12.9.</strong> There is a bijection between the orbit of a and the set G/Stab<sub>G</sub>(a) of left cosets of the stabilizer. <span class="cite">— Aluffi Underground §12.2, Lemma 12.9, p. 270</span></p>
+</div>
+
+<p>The map is α(g·Stab<sub>G</sub>(a)) := ga, and the proof is one chain of equivalences used three times over. Well defined: if g₁Stab = g₂Stab then g₁⁻¹g₂ stabilises a, so g₁a = g₂a. Surjective: every b in the orbit is ga for some g. Injective: g₁a = g₂a gives g₁⁻¹g₂a = a, so g₁⁻¹g₂ is in the stabilizer and the cosets agree. <span class="cite">— Aluffi Underground §12.2, p. 270</span> Note that "well defined" and "injective" are the two directions of the same implication — which is why the lemma is really a single observation, not three.</p>
+
+<div class="theorem">
+<p><strong>Theorem 12.10 (Orbit–stabilizer).</strong> For a finite group G acting on A, |O<sub>a</sub>| = [G : Stab<sub>G</sub>(a)]. In particular <em>every orbit size divides |G|</em>. <span class="cite">— Aluffi Underground §12.2, Theorem 12.10, p. 270</span></p>
+</div>
+
+<p>That last sentence is the working tool. Two of Aluffi's illustrations: an action of C<sub>35</sub> on a four-element set must fix every point, since the possible orbit sizes are 1, 5, 7, 35 and there is no room for anything but 1. <span class="cite">— Aluffi Underground §12.2, Example 12.12, p. 271</span> And every action of D<sub>8</sub> on a set of odd size has a fixed point, since the nontrivial orbits all have even size. <span class="cite">— Aluffi Underground §12.2, Example 12.13, p. 271</span></p>
+
+<div class="definition">
+<p><strong>Definition 12.14.</strong> For a positive prime p, a <strong>p-group</strong> is a group with |G| = p<sup>r</sup> for some r ≥ 0. <span class="cite">— Aluffi Underground §12.2, Definition 12.14, p. 271</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 12.15.</strong> If a p-group G acts on a finite set A with fixed-point set F, then |F| ≡ |A| mod p. In particular, if p does not divide |A| then the action has fixed points. <span class="cite">— Aluffi Underground §12.2, Corollary 12.15, p. 271</span></p>
+<p><em>Proof.</em> A minus F is a union of nontrivial orbits, each of size a power of p by Theorem 12.10, so |A \ F| is a multiple of p. <span class="cite">— Aluffi Underground §12.2, p. 271</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does A<sub>4</sub> have no subgroup of order 6?</p>
+<button onclick="check(this,false)">Because 6 does not divide 12</button>
+<button data-ok onclick="check(this,true)">Because such a subgroup would have index 2, hence be normal, hence be a union of conjugacy classes — and 1, 3, 4, 4 has no sub-sum equal to 6</button>
+<button onclick="check(this,false)">Because A<sub>4</sub> is simple</button>
+<div class="explain">6 divides 12 perfectly well; that is exactly why the example is interesting — Lagrange permits the subgroup and it still does not exist, so the converse of Lagrange is false. And A<sub>4</sub> is not simple: it contains the normal Klein four-group V of aa-26's Example 11.63. The argument chains index two to normality to Proposition 11.57 and finishes with arithmetic. <span class="cite">— Aluffi Underground, Example 12.6, p. 269</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Orbit–stabilizer says |O<sub>a</sub>| = [G : Stab<sub>G</sub>(a)]. What does that immediately give you about orbit sizes?</p>
+<button data-ok onclick="check(this,true)">Every orbit size divides |G|</button>
+<button onclick="check(this,false)">Every orbit has the same size</button>
+<button onclick="check(this,false)">The number of orbits divides |G|</button>
+<div class="explain">An index divides the order by Lagrange, so orbit sizes are constrained before you know anything about the action. Orbits need not have equal size — the C₂-flip on a triangle in aa-24 has orbits of sizes 1 and 2 — and the number of orbits is not constrained at all, as the trivial action on a large set shows. <span class="cite">— Aluffi Underground §12.2, Theorem 12.10, p. 270</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Then: a group counted against itself.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 3 — The class equation</h2>
+
+<p>Aluffi's second reason Theorem 12.10 is powerful: some objects <em>inside</em> G are themselves orbits of an action of G. Conjugation is the example. Apply orbit–stabilizer to it and a group starts counting itself.</p>
+
+<div class="theorem">
+<p><strong>Corollary 12.17.</strong> For a finite group G and a in G, the number of distinct conjugates gag⁻¹ of a divides |G|. <span class="cite">— Aluffi Underground §12.2, Corollary 12.17, p. 272</span></p>
+<p><em>Proof.</em> The conjugates of a form its orbit under the conjugation action of aa-24's Definition 11.31. <span class="cite">— Aluffi Underground §12.2, p. 272</span></p>
+</div>
+
+<p><strong>Example 12.18.</strong> The conjugacy classes of A<sub>4</sub> have sizes 1, 3, 4, 4 — all divisors of 12, as Corollary 12.17 mandates. Aluffi notes that knowing in advance that 8 is impossible, since 8 does not divide 12, would have streamlined the exercise that produced those numbers. <span class="cite">— Aluffi Underground §12.2, Example 12.18, p. 272</span></p>
+
+<div class="definition">
+<p><strong>Definition 12.19.</strong> The <strong>centralizer</strong> of a is Z<sub>G</sub>(a) = {g : gag⁻¹ = a}, its stabilizer under conjugation — that is, the elements commuting with a. <span class="cite">— Aluffi Underground §12.2, Definition 12.19, p. 272</span></p>
+<p><strong>Definition 12.20.</strong> The <strong>centre</strong> Z(G) = {g : ag = ga for all a} is the intersection of all the centralizers. <span class="cite">— Aluffi Underground §12.2, Definition 12.20, p. 272</span></p>
+</div>
+
+<p>Aluffi gives the slogan to memorise: <em>the number of conjugates of a equals the index of its centralizer</em>. And G is commutative exactly when G = Z(G); in general Z(G) is the union of the trivial orbits of conjugation. <span class="cite">— Aluffi Underground §12.2, p. 272</span> Those two sentences are the class equation in prose.</p>
+
+<div class="theorem">
+<p><strong>Theorem 12.21 (Class equation).</strong> For a finite group G,</p>
+<p style="text-align:center">|G| = |Z(G)| + Σ [G : Z<sub>G</sub>(a)],</p>
+<p>the sum running over a set of distinct representatives for the <em>nontrivial</em> conjugacy classes. <span class="cite">— Aluffi Underground §12.2, Theorem 12.21, p. 272</span></p>
+<p><em>Proof.</em> G is the union of its conjugation orbits. The trivial ones are collected in Z(G); the nontrivial ones are the nontrivial conjugacy classes, and each has size the index of its centralizer. <span class="cite">— Aluffi Underground §12.2, p. 273</span></p>
+</div>
+
+<p>Below, the equation drawn. Each conjugacy class is a coloured block; the centre is the run of singletons at the left. Every class size and the total are counted from the group.</p>
+
+<canvas id="cls" width="620" height="300" aria-label="A finite group partitioned into conjugacy classes, with the class equation totalled"></canvas>
+<div class="controls">
+<button onclick="setCls(0)">S₃</button>
+<button onclick="setCls(1)">D₈</button>
+<button onclick="setCls(2)">A₄</button>
+<button onclick="setCls(3)">S₄</button>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Read each group's class equation off the picture, then say what it tells you about the centre. One of the four has a nontrivial centre; predict which before looking.
+<details><summary>The four equations</summary>
+<ul>
+<li>S₃: 6 = 1 + 2 + 3. Trivial centre, and the class sizes 2 and 3 both divide 6.</li>
+<li>D₈: 8 = 2 + 2 + 2 + 2. Centre of order 2 — the half-turn — which is exactly what Corollary 12.22 predicts for a 2-group.</li>
+<li>A₄: 12 = 1 + 3 + 4 + 4. Trivial centre; this is the arithmetic that killed the order-6 subgroup in Example 12.6.</li>
+<li>S₄: 24 = 1 + 3 + 6 + 6 + 8. Trivial centre, and every summand divides 24 as Corollary 12.17 requires.</li>
+</ul>
+D₈ is the one with a nontrivial centre, and it is the only p-group among the four. That is not a coincidence — it is the next corollary.</details>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 12.22.</strong> A nontrivial p-group has nontrivial centre. <span class="cite">— Aluffi Underground §12.2, Corollary 12.22, p. 273</span></p>
+<p><em>Proof.</em> Every term [G : Z<sub>G</sub>(a)] in the class equation is a multiple of p, so p<sup>r</sup> = |Z(G)| + a multiple of p with r ≥ 1. Since e is in Z(G), the centre is nonempty, so |Z(G)| is a nonzero multiple of p and in particular exceeds 1. <span class="cite">— Aluffi Underground §12.2, p. 273</span></p>
+</div>
+
+<p>Aluffi supplies a second route: G acts on itself by conjugation, Z(G) is the fixed-point set, and Corollary 12.15 gives the congruence directly. <span class="cite">— Aluffi Underground §12.2, p. 273</span> Same fact, reached from the fixed-point corollary instead of the class equation.</p>
+
+<div class="you-try">
+<strong>Guided proof.</strong> Prove <strong>Corollary 12.23</strong>: a group of order p² is commutative. The skeleton is fixed; you supply the elimination.
+<p>By Corollary 12.22 the centre is nontrivial, so by Lagrange |Z(G)| is p or p². If it is p², then Z(G) = G and G is commutative, done. The work is ruling out |Z(G)| = p. Suppose it were, pick a not in Z(G), and consider Z<sub>G</sub>(a).</p>
+<textarea placeholder="Z_G(a) contains every element of Z(G), because those commute with everything, and it also contains a itself, because a commutes with a. Since a is not in Z(G), this means Z_G(a) properly contains Z(G), so |Z_G(a)| > p. By Lagrange |Z_G(a)| divides p squared, so |Z_G(a)| = ... But then every element of G commutes with a, which means ... contradicting ..."></textarea>
+<details><summary>Model answer</summary>
+<p>Z<sub>G</sub>(a) contains Z(G), since elements of the centre commute with everything including a; and it contains a, since a commutes with itself. Because a is not in Z(G), the containment Z(G) ⊆ Z<sub>G</sub>(a) is proper, so |Z<sub>G</sub>(a)| &gt; p.</p>
+<p>By Lagrange, |Z<sub>G</sub>(a)| divides p², and the divisors are 1, p, p². Being greater than p leaves only p², so Z<sub>G</sub>(a) = G. But that says every element of G commutes with a, which is precisely the statement that a is in Z(G) — contradicting the choice of a. So |Z(G)| = p is impossible, and |Z(G)| = p², giving G commutative. <span class="cite">— Aluffi Underground §12.2, Corollary 12.23, p. 273</span></p>
+<p>Aluffi adds that the bound is <em>sharp</em>: D<sub>8</sub> is a noncommutative group of order 8 = 2³, so the same conclusion fails one power higher. And since a group of order p² is now known to be abelian, aa-22's classification theorem applies to it: Theorem 10.18 expresses every finite abelian group as a product of cyclic groups Z/d₁Z × ⋯ × Z/d<sub>s</sub>Z with each d<sub>i</sub> dividing the next. <span class="cite">— Aluffi Underground §10.3, Theorem 10.18, p. 212</span> For order p² the only such lists are (p²) and (p, p), so G is C<sub>p²</sub> or C<sub>p</sub> × C<sub>p</sub> — the whole classification of groups of that order, obtained by counting. <span class="cite">— Aluffi Underground §12.2, p. 273</span></p></details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In the class equation, why is the centre written as a separate term instead of appearing in the sum?</p>
+<button onclick="check(this,false)">Because the centre is normal and the other classes are not</button>
+<button data-ok onclick="check(this,true)">Because its elements are exactly the fixed points of conjugation, each forming a class of size 1, and the sum runs over the nontrivial classes</button>
+<button onclick="check(this,false)">Because the centre is not a union of conjugacy classes</button>
+<div class="explain">z lies in Z(G) exactly when gzg⁻¹ = z for every g, that is, exactly when its conjugacy class is {z}. Collecting all those singletons gives |Z(G)|, and what remains are the classes of size greater than 1. The centre certainly <em>is</em> a union of conjugacy classes — that is why it is normal, by Proposition 11.57 — and every conjugacy class is stable under conjugation, so the first option distinguishes nothing. <span class="cite">— Aluffi Underground §12.2, Theorem 12.21, p. 272</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Corollary 12.22 says a nontrivial p-group has nontrivial centre. Which step of the class equation forces it?</p>
+<button data-ok onclick="check(this,true)">Every [G : Z<sub>G</sub>(a)] in the sum is a multiple of p, so |Z(G)| must be too — and it is at least 1</button>
+<button onclick="check(this,false)">There are no nontrivial conjugacy classes in a p-group</button>
+<button onclick="check(this,false)">p-groups are commutative</button>
+<div class="explain">Each nontrivial class has size an index dividing p<sup>r</sup> and greater than 1, hence a positive power of p. Reducing the class equation mod p leaves |Z(G)| ≡ 0, and since the identity is always central, |Z(G)| is a positive multiple of p. p-groups certainly have nontrivial classes — D₈ has three of size 2 — and they are not generally commutative, D₈ again. Order p² is the largest case where commutativity is forced, by Corollary 12.23. <span class="cite">— Aluffi Underground §12.2, Corollary 12.22, p. 273</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Reconstruct the chain from one cancellation to the classification of groups of order p²:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>One bijection.</strong> h ↦ gh is a bijection H → gH (Lemma 12.2), so all cosets have |H| elements and |G| = [G : H]·|H| (Theorem 12.3), where the index is the number of cosets (Definition 12.1). Consequences: element orders divide |G| (Proposition 12.4), so Fermat's little theorem is a special case; groups of prime order are cyclic (Proposition 12.5); indices multiply along chains (Proposition 12.7).</li>
+<li><strong>The converse fails.</strong> A<sub>4</sub> has order 12 but no subgroup of order 6, because such a subgroup would be normal of index 2, hence a union of conjugacy classes, and 1, 3, 4, 4 has no sub-sum of 6 (Example 12.6).</li>
+<li><strong>Orbits are indices.</strong> The stabilizer is a subgroup (Definition 12.8); cosets of the stabilizer biject with the orbit (Lemma 12.9); so orbit size equals index and divides |G| (Theorem 12.10). Hence C<sub>35</sub> acting on four points fixes all of them (Example 12.12), D<sub>8</sub> acting on an odd set has a fixed point (Example 12.13), and for a p-group (Definition 12.14) the fixed points satisfy |F| ≡ |A| mod p (Corollary 12.15).</li>
+<li><strong>The group counts itself.</strong> Conjugacy classes are orbits, so their sizes divide |G| (Corollary 12.17, checked against A<sub>4</sub>'s 1, 3, 4, 4 in Example 12.18) and equal indices of centralizers (Definition 12.19). Collecting the singleton classes into the centre (Definition 12.20) gives the class equation (Theorem 12.21). Hence p-groups have nontrivial centre (Corollary 12.22) and groups of order p² are commutative (Corollary 12.23) — sharp, since D₈ has order 2³ and is not.</li>
+</ol>
+The mission strip is item 3 in topological dress. For a covering space, the number of sheets over a point is the index of a subgroup of π₁ — the same [G : H] counted here, with the fibre in the role of the orbit and the deck group acting. Orbit–stabilizer is what makes "degree" a well-defined number, and the class equation's habit of turning a partition into an arithmetic identity is the same habit that turns a cell decomposition into an Euler characteristic.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi Underground, <em>Algebra: Notes from the Underground</em> — §12.1 "The Index of a Subgroup, and Lagrange's Theorem" (Definition 12.1, the remark that the index counts right cosets too, Lemma 12.2 with proof and Theorem 12.3 p. 267; the proof of Lagrange's theorem, the index-two picture, the dihedral and alternating applications, Proposition 12.4 and Fermat's little theorem p. 268), pp. 267–268. Aluffi Underground continues with Proposition 12.5 p. 269, the failure of the converse of Lagrange's theorem, Example 12.6 p. 269 and Proposition 12.7 p. 269. Aluffi Underground §12.2 "Stabilizers and the Class Equation" (Definition 12.8, Lemma 12.9 with proof and Theorem 12.10 p. 270; Example 12.11, Example 12.12, Example 12.13, Definition 12.14, Corollary 12.15 with proof and Example 12.16 p. 271; Corollary 12.17, Example 12.18, Definition 12.19, Definition 12.20 and Theorem 12.21 p. 272; the proof of the class equation, Corollary 12.22, Corollary 12.23 and the sharpness footnote p. 273), pp. 270–273.
+In Aluffi Underground: Definition 11.50 and the set of left cosets, Example 11.59, Example 11.61 and Proposition 11.57 come from aa-26 (§11.4, pp. 253–259); Example 11.69 and the index of the alternating group from aa-27 (§11.5, pp. 260–263); Definition 11.19, Definition 11.24 and the conjugation action of Definition 11.31 from aa-24 (§11.2, pp. 235–241); Proposition 11.35 and the dihedral generators from aa-25 (§11.3, pp. 241–252); the subgroup criterion from aa-23 (§11.1, pp. 229–232); Fermat's little theorem and the Euler function from aa-04; and Theorem 10.18, the classification of finite abelian groups, from aa-22 (§10.3, p. 212).
+The canvas partitions each group into conjugacy classes by direct conjugation and totals the sizes; its four class equations were re-derived independently before publication: 6 = 1 + 2 + 3 for S₃, 8 = 2 + 2 + 2 + 2 for D₈, 12 = 1 + 3 + 4 + 4 for A₄, and 24 = 1 + 3 + 6 + 6 + 8 for S₄.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// The class equation, computed. Conjugacy classes are formed by conjugating each
+// element by every element of the group; the centre is the union of the classes
+// of size one; the totals are summed, never tabulated.
+var kc=document.getElementById('cls'),kx=kc.getContext('2d');
+function pmul(f,g){var a=[];for(var i=0;i<g.length;i++)a.push(f[g[i]]);return a;}
+function pinv(p){var a=[];for(var i=0;i<p.length;i++)a[p[i]]=i;return a;}
+function pid(n){var a=[];for(var i=0;i<n;i++)a.push(i);return a;}
+function pk(p){return p.join(',');}
+function pcyc(n,cs){var p=pid(n);
+ for(var i=0;i<cs.length;i++){var c=cs[i];
+  for(var j=0;j<c.length;j++)p[c[j]-1]=c[(j+1)%c.length]-1;}
+ return p;}
+function pgen(n,gs){var seen={},out=[],q=[pid(n)];seen[pk(pid(n))]=1;
+ while(q.length){var p=q.pop();out.push(p);
+  for(var i=0;i<gs.length;i++){var r=pmul(gs[i],p);
+   if(!seen[pk(r)]){seen[pk(r)]=1;q.push(r);}}}
+ out.sort(function(a,b){return pk(a)<pk(b)?-1:1;});return out;}
+function pname(p){var n=p.length,seen=[],o='';
+ for(var i=0;i<n;i++)seen.push(false);
+ for(var i=0;i<n;i++){
+  if(seen[i]||p[i]===i)continue;
+  var c=[],j=i;
+  while(!seen[j]){seen[j]=true;c.push(j+1);j=p[j];}
+  if(c.length>1)o+='('+c.join('')+')';}
+ return o||'e';}
+function conjClasses(G){var done={},out=[];
+ for(var i=0;i<G.length;i++){
+  if(pk(G[i]) in done)continue;
+  var cl={},arr=[];
+  for(var j=0;j<G.length;j++){
+   var c=pmul(G[j],pmul(G[i],pinv(G[j])));
+   if(!(pk(c) in cl)){cl[pk(c)]=1;arr.push(c);}}
+  for(var j=0;j<arr.length;j++)done[pk(arr[j])]=1;
+  out.push(arr);}
+ out.sort(function(a,b){return a.length-b.length;});return out;}
+
+var GRPS=[
+ {t:'S₃',n:3,g:[pcyc(3,[[1,2]]),pcyc(3,[[1,2,3]])]},
+ {t:'D₈ (the square)',n:4,g:[pcyc(4,[[1,2,3,4]]),pcyc(4,[[2,4]])]},
+ {t:'A₄',n:4,g:[pcyc(4,[[1,2,3]]),pcyc(4,[[2,3,4]])]},
+ {t:'S₄',n:4,g:[pcyc(4,[[1,2]]),pcyc(4,[[1,2,3,4]])]}];
+var GI=0;
+function setCls(i){GI=i;drawCls();}
+
+var CPAL=['#4caf82','#8ab4f8','#d8a657','#b48ead','#88c0d0','#e06c75'];
+function drawCls(){
+ var C=GRPS[GI],G=pgen(C.n,C.g),cl=conjClasses(G);
+ var centre=0,terms=[],total=0;
+ for(var i=0;i<cl.length;i++){
+  total+=cl[i].length;
+  if(cl[i].length===1)centre++;else terms.push(cl[i].length);}
+ kx.clearRect(0,0,kc.width,kc.height);
+ kx.font='13px Segoe UI';kx.textAlign='left';kx.textBaseline='middle';
+ kx.fillStyle='#e8e8e8';kx.fillText('G = '+C.t+',   |G| = '+G.length,14,20);
+ kx.fillStyle='#9aa5b1';
+ kx.fillText(cl.length+' conjugacy classes; each size is the index of a centralizer',14,40);
+ // one chip per element, grouped by class
+ var flat=[],owner=[];
+ for(var i=0;i<cl.length;i++)for(var j=0;j<cl[i].length;j++){flat.push(cl[i][j]);owner.push(i);}
+ var perRow=Math.min(flat.length,12),w=(kc.width-28)/perRow;
+ kx.font='11px Segoe UI';kx.textAlign='center';
+ for(var i=0;i<flat.length;i++){
+  var col=i%perRow,row=Math.floor(i/perRow);
+  var px=14+col*w,py=70+row*28;
+  kx.fillStyle=(cl[owner[i]].length===1)?'#4caf82':CPAL[(owner[i]+1)%CPAL.length];
+  kx.fillRect(px+1,py,w-2,24);
+  kx.fillStyle='#0c1013';kx.fillText(pname(flat[i]),px+w/2,py+12);}
+ var rows=Math.ceil(flat.length/perRow);
+ kx.textAlign='left';kx.font='13px Segoe UI';
+ kx.fillStyle='#4caf82';
+ kx.fillText('green = the centre, the classes of size one',14,70+rows*28+18);
+ kx.fillStyle='#e8e8e8';
+ kx.fillText('class equation:   '+total+' = '+centre+
+   (terms.length?' + '+terms.join(' + '):''),14,kc.height-16);}
+drawCls();
+</script></body></html>
