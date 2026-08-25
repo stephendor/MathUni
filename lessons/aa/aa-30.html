@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-30 — Simplicity of Aₙ and solvable groups</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Simplicity of Aₙ and solvable groups <span class="cite">(aa-30)</span></h1>
+
+<div class="hook">
+Why you cannot solve the quintic by radicals — a group-theoretic murder mystery, solved.
+<p>aa-29 left one order open. Every n below 60 was either prime or ruled out, and Aluffi's parenthetical warned that no amount of Sylow would dispose of 60. The reason is that A₅ is simple, and |A₅| = 5!/2 = 60. This unit proves that — and then converts it into the fact that there is no formula for the roots of the general quintic. That is the last thing the group chapters of the Underground do, and it is the last unit of this module.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> aa-26's Proposition 11.57 says a normal subgroup is a union of conjugacy classes. What does that let you conclude about the <em>order</em> of any normal subgroup?</p>
+<button data-ok onclick="check(this,true)">It is a sum of conjugacy-class sizes including the identity's class of size 1 — and by Lagrange it must also divide |G|</button>
+<button onclick="check(this,false)">It equals the number of conjugacy classes</button>
+<button onclick="check(this,false)">It is a power of a prime</button>
+<div class="explain">Two constraints on one number, from two different units. In A₅ the class sizes turn out to be 1, 12, 12, 15, 20, and the only sub-sums containing the 1 that also divide 60 are 1 and 60 itself. That already proves A₅ is simple — you will see the computation run below. The test is one-directional: it eliminates candidate orders, and cannot confirm that a surviving order is realised. <span class="cite">— Aluffi Underground §11.4, Proposition 11.57, p. 256</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Capstone of the algebra arc; solvable and simple groups close the Underground's group story.</p>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 1 — Conjugation in Sₙ is relabelling</h2>
+
+<p>A₂ is trivial and A₃ ≅ C₃ is simple; A₄ is not, because aa-26's Example 11.63 exhibited the Klein four-group V as a proper nontrivial normal subgroup. From n = 5 onwards the answer changes, and two structural lemmas are needed first. <span class="cite">— Aluffi Underground §12.6, p. 282</span></p>
+
+<div class="theorem">
+<p><strong>Lemma 12.45.</strong> For all n ≥ 2, A<sub>n</sub> is generated by 3-cycles. <span class="cite">— Aluffi Underground §12.6, Lemma 12.45, p. 282</span></p>
+</div>
+
+<p>The proof starts from aa-25's Proposition 11.47: S<sub>n</sub> is generated by transpositions, and since transpositions are odd, A<sub>n</sub> consists of the products of an <em>even</em> number of them. Pair them off and it suffices to write each product (i j)(k ℓ) using 3-cycles. Three cases: if the two transpositions are equal the product is the identity; if they share exactly one element, say j = ℓ, then (i j)(k j) = (i j k) is already a 3-cycle; and if they are disjoint, (i j)(k ℓ) = (i j k)(j k ℓ). <span class="cite">— Aluffi Underground §12.6, p. 282</span> <span class="cite">— Aluffi Underground §12.6, p. 283</span></p>
+
+<div class="theorem">
+<p><strong>Lemma 12.46.</strong> If σ = (a₁ … a<sub>r</sub>)(b₁ … b<sub>s</sub>)⋯(c₁ … c<sub>t</sub>), then</p>
+<p style="text-align:center">τστ⁻¹ = (τ(a₁) … τ(a<sub>r</sub>))(τ(b₁) … τ(b<sub>s</sub>))⋯(τ(c₁) … τ(c<sub>t</sub>)). <span class="cite">— Aluffi Underground §12.6, Lemma 12.46, p. 283</span></p>
+</div>
+
+<p>Conjugation in S<sub>n</sub> is nothing but <em>relabelling the entries of the cycles</em>. The proof is one sentence — the conjugate of a product is the product of the conjugates, so it suffices to check one cycle — and Aluffi notes the lemma does not care whether the cycles are disjoint. <span class="cite">— Aluffi Underground §12.6, p. 283</span> When they are, it yields a complete description of the conjugacy classes.</p>
+
+<div class="definition">
+<p><strong>Definition 12.47.</strong> The <strong>type</strong> of σ in S<sub>n</sub> is the partition of n given by the lengths of its cycles, including the omitted 1-cycles. For instance (1 4)(2 3 5 7 6) in S₇ has type 2 + 5. <span class="cite">— Aluffi Underground §12.6, Definition 12.47, p. 283</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Corollary 12.48.</strong> Two permutations are conjugate in S<sub>n</sub> if and only if they have the same type. <span class="cite">— Aluffi Underground §12.6, Corollary 12.48, p. 283</span></p>
+</div>
+
+<p>Forwards, Lemma 12.46 preserves cycle lengths. Backwards, if σ and σ′ have the same type, write both decompositions in the same shape and let τ be <em>any</em> permutation sending each entry of σ's cycles to the corresponding entry of σ′'s; Lemma 12.46 then gives σ′ = τστ⁻¹. <span class="cite">— Aluffi Underground §12.6, p. 283</span></p>
+
+<div class="worked fade">
+<strong>Worked, then faded — Example 12.49.</strong> Take Aluffi's running permutation from aa-25, σ = (1 4)(2 3 5 7 6) in S₇, of type 2 + 5, and the target σ′ = (6 5)(7 2 1 3 4), also of type 2 + 5. Read the two decompositions off in order and define τ by matching positions: 1 ↦ 6, 4 ↦ 5, then 2 ↦ 7, 3 ↦ 2, 5 ↦ 1, 7 ↦ 3, 6 ↦ 4. That is
+<p style="text-align:center">τ : 1↦6, 2↦7, 3↦2, 4↦5, 5↦1, 6↦4, 7↦3,</p>
+<p>and indeed (τ(1) τ(4))(τ(2) τ(3) τ(5) τ(7) τ(6)) = (6 5)(7 2 1 3 4) = σ′, so σ′ = τστ⁻¹ by Lemma 12.46. <span class="cite">— Aluffi Underground §12.6, Example 12.49, p. 283</span> <span class="cite">— Aluffi Underground §12.6, p. 284</span></p>
+<p>Now fade it. Conjugate the same σ = (1 4)(2 3 5 7 6) to σ″ = (2 7)(1 4 6 3 5) instead. Matching positions gives τ′ : 1 ↦ ⟨?⟩, 4 ↦ ⟨?⟩, 2 ↦ ⟨?⟩, 3 ↦ ⟨?⟩, 5 ↦ ⟨?⟩, 7 ↦ ⟨?⟩, 6 ↦ ⟨?⟩. Write τ′ in cycle notation and say why the answer is not unique.</p>
+<details><summary>Check</summary>Matching the 2-cycle first and then the 5-cycle entry by entry: 1 ↦ 2, 4 ↦ 7, 2 ↦ 1, 3 ↦ 4, 5 ↦ 6, 7 ↦ 3, 6 ↦ 5. In cycle notation τ′ = (1 2)(3 4 7)(5 6). Check one entry: τ′ carries the pair {1, 4} to {2, 7} and the 5-cycle (2 3 5 7 6) to (1 4 6 3 5), which is σ″.
+<p>The answer is not unique for two reasons, both from aa-25's Remark 11.42. A cycle can be written starting from any of its entries, so (1 4 6 3 5) = (4 6 3 5 1) and matching against that rotation gives a different τ′ that works equally well; and the 2-cycle (2 7) can be written (7 2). Every valid τ′ conjugates σ to σ″, and they differ by elements of σ's centralizer — which is exactly why the number of conjugates is the index of the centralizer, aa-28's slogan.</p></details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Corollary 12.48 make conjugacy classes in S<sub>n</sub> easy to count?</p>
+<button data-ok onclick="check(this,true)">The classes are in bijection with the partitions of n, one class per cycle type</button>
+<button onclick="check(this,false)">Because all elements of S<sub>n</sub> are conjugate</button>
+<button onclick="check(this,false)">Because S<sub>n</sub> is abelian for every n</button>
+<div class="explain">Same type means conjugate and conversely, so the classes are exactly the types, and the types are the partitions of n. For n = 4 the partitions 1+1+1+1, 2+1+1, 2+2, 3+1, 4 give five classes, matching the 1 + 3 + 6 + 8 + 6 = 24 of aa-28's class equation. S<sub>n</sub> is non-abelian for n ≥ 3, and certainly not all its elements are conjugate — different types cannot be. <span class="cite">— Aluffi Underground §12.6, Corollary 12.48, p. 283</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Next: why n ≥ 5 changes everything.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 2 — A<sub>n</sub> is simple for n ≥ 5</h2>
+
+<p>Corollary 12.48 makes all 3-cycles conjugate <em>in S<sub>n</sub></em>. But A<sub>n</sub> is a smaller group with fewer conjugators available, and whether they remain conjugate there is exactly where n = 4 and n = 5 part company.</p>
+
+<div class="theorem">
+<p><strong>Lemma 12.50.</strong> If n ≥ 5, all 3-cycles are conjugate in A<sub>n</sub>. <span class="cite">— Aluffi Underground §12.6, Lemma 12.50, p. 284</span></p>
+<p><em>Proof.</em> It suffices to conjugate any (i j k) to (1 2 3). Pick τ with τ(i) = 1, τ(j) = 2, τ(k) = 3; then τ(i j k)τ⁻¹ = (1 2 3). If τ is even, done. If τ is odd, replace it by (4 5)τ, which is even, and note (4 5)(1 2 3)(4 5) = (1 2 3) since the cycles are disjoint. This requires n ≥ 5. <span class="cite">— Aluffi Underground §12.6, p. 284</span></p>
+</div>
+
+<p>The hypothesis is not decorative. In A₃ ≅ C₃ the group is commutative, so every conjugacy class is a singleton and the two 3-cycles are not conjugate. In A₄ there are eight 3-cycles, and 8 does not divide 12, so by aa-28's Corollary 12.17 they cannot form a single class — in fact they split into two classes of four. <span class="cite">— Aluffi Underground §12.6, p. 284</span> The spare labels 4 and 5 are precisely what buys the parity correction.</p>
+
+<p>The remaining ingredient is the one Aluffi apologises for: a lemma that "seems hard to motivate independently and whose proof is a somewhat uninspiring case-by-case analysis". <span class="cite">— Aluffi Underground §12.6, p. 285</span></p>
+
+<div class="theorem">
+<p><strong>Lemma 12.51.</strong> Let n ≥ 5 and let σ in A<sub>n</sub> be a non-identity permutation that is not a 3-cycle. Then there is an even τ such that τστ⁻¹σ⁻¹ is not the identity and has <em>more fixed points</em> than σ. <span class="cite">— Aluffi Underground §12.6, Lemma 12.51, p. 285</span></p>
+</div>
+
+<p>Both cases take the same τ = (3 4 5). If σ is a product of disjoint 2-cycles there are at least two of them (σ is even), so after relabelling σ = (1 2)(3 4)ρ; the computation shows 1 and 2 become fixed while 3 is sent to 5, so the commutator gains fixed points and is not the identity. If some cycle of σ has length at least 3, relabel to σ = (1 2 3 ⋯)ρ; σ cannot be (1 2 3) by hypothesis, and cannot be a 4-cycle since 4-cycles are odd, so σ moves at least two further elements and every fixed point is at least 6. The same τ makes 2 a new fixed point and sends 3 to 4. <span class="cite">— Aluffi Underground §12.6, p. 285</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 12.52.</strong> A<sub>n</sub> is simple for n ≥ 5. <span class="cite">— Aluffi Underground, Theorem 12.52, p. 286</span></p>
+</div>
+
+<div class="you-try">
+<strong>Guided proof.</strong> The three lemmas are now in place and they assemble in half a page. The first half is done for you.
+<p><em>Reduction.</em> It is enough to show every nontrivial normal subgroup N of A<sub>n</sub> contains a 3-cycle. For if it does, then by Lemma 12.50 all 3-cycles are conjugate in A<sub>n</sub>, and a normal subgroup containing one element of a conjugacy class contains the whole class — so N contains every 3-cycle. By Lemma 12.45 those generate A<sub>n</sub>, so N = A<sub>n</sub>.</p>
+<p>Now the second half. Among the non-identity elements of N, choose σ with the <em>maximum</em> number of fixed points, and derive a contradiction from the assumption that σ is not a 3-cycle.</p>
+<textarea placeholder="Suppose sigma is not a 3-cycle. Lemma 12.51 supplies an even tau with tau sigma tau-inverse sigma-inverse not the identity and having more fixed points than sigma. Why is that element in N? Because sigma is in N so sigma-inverse is (N is a subgroup), and tau sigma tau-inverse is in N (because ...). So N contains a non-identity element with more fixed points than sigma, contradicting ... Therefore sigma is ..."></textarea>
+<details><summary>Model answer</summary>
+<p>Suppose σ is not a 3-cycle. Lemma 12.51 gives an even τ with τστ⁻¹σ⁻¹ not the identity and with more fixed points than σ. That element lies in N: σ is in N, so σ⁻¹ is too since N is a subgroup, and τστ⁻¹ is in N because N is <em>normal</em> in A<sub>n</sub> and τ is in A<sub>n</sub>. A product of two elements of N is in N.</p>
+<p>So N contains a non-identity element with strictly more fixed points than σ — contradicting the choice of σ as having the maximum. Hence σ must be a 3-cycle, N contains a 3-cycle, and the reduction finishes the proof. <span class="cite">— Aluffi Underground, Theorem 12.52, p. 286</span></p>
+<p>Notice how little of the group theory is heavy: normality is used once, to keep τστ⁻¹ inside N, and everything else is the arithmetic of fixed points. Aluffi's own summary: "Lemma 12.51 makes the proof of the simplicity of A<sub>n</sub> for n ≥ 5 quite straightforward." The technicality was moved into the lemma on purpose.</p></details>
+</div>
+
+<p>Below, an independent check on the case that matters. For each group the canvas computes the conjugacy classes and then enumerates every sub-sum that contains the identity's class and divides the order — the two constraints of the prediction gate. Those are the only orders a normal subgroup could possibly have.</p>
+
+<canvas id="nm" width="620" height="300" aria-label="Conjugacy class sizes of a group and the orders its normal subgroups could have"></canvas>
+<div class="controls">
+<button onclick="setNm(0)">S₃</button>
+<button onclick="setNm(1)">A₄</button>
+<button onclick="setNm(2)">S₄</button>
+<button onclick="setNm(3)">A₅</button>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> For each of the four, name an actual normal subgroup realising each surviving order before you look.
+<details><summary>What the four give</summary>
+<ul>
+<li>S₃: classes 1, 2, 3; surviving orders 1, 3, 6 — realised by {e}, A₃ and S₃. Not simple.</li>
+<li>A₄: classes 1, 3, 4, 4; surviving orders 1, 4, 12 — realised by {e}, the Klein four-group V of Example 11.63, and A₄. Not simple, exactly as aa-28's Example 12.6 needed.</li>
+<li>S₄: classes 1, 3, 6, 6, 8; surviving orders 1, 4, 12, 24 — realised by {e}, V, A₄ and S₄. This is the chain of Example 12.56 below.</li>
+<li>A₅: classes 1, 12, 12, 15, 20; surviving orders <strong>1 and 60 only</strong>. There is nothing for a proper nontrivial normal subgroup to be, so A₅ is simple — Theorem 12.52 at n = 5, obtained from Proposition 11.57 and Lagrange alone.</li>
+</ul>
+Read the test the right way round: a surviving order is a <em>candidate</em>, not a subgroup. The test proves simplicity when nothing survives, and proves nothing when something does — the order-6 candidate in aa-28's Example 12.6 was eliminated precisely because it did <em>not</em> survive.</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Where does the hypothesis n ≥ 5 actually get used?</p>
+<button onclick="check(this,false)">In Lemma 12.45, since A<sub>n</sub> is generated by 3-cycles only for large n</button>
+<button data-ok onclick="check(this,true)">In Lemma 12.50, where the transposition (4 5) must exist to fix the parity of τ, and in Lemma 12.51, where τ = (3 4 5) is needed</button>
+<button onclick="check(this,false)">Nowhere — the theorem holds for all n</button>
+<div class="explain">Lemma 12.45 holds for all n ≥ 2. The hypothesis bites in Lemma 12.50, where an odd τ must be repaired by multiplying by a transposition disjoint from (1 2 3) — impossible in A₄ — and again in Lemma 12.51, which needs the 3-cycle (3 4 5). The theorem genuinely fails at n = 4: A₄ contains V. <span class="cite">— Aluffi Underground §12.6, Lemma 12.50, p. 284</span> <span class="cite">— Aluffi Underground §12.6, Lemma 12.51, p. 285</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Then: from simplicity to the quintic.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 3 — Solvable groups</h2>
+
+<p>aa-29's classification programme said: if G is not simple, break it at a normal subgroup H into H and G/H, and repeat. For a finite group the process stops and the blocks are simple. Formalised, a <strong>normal series</strong> is a chain G = G₀ ⊇ G₁ ⊇ ⋯ ⊇ G<sub>r</sub> = {e} with each G<sub>i+1</sub> normal in G<sub>i</sub>; it is a <em>composition series</em> when all the quotients are simple. <span class="cite">— Aluffi Underground §12.7, p. 287</span> Weakening "simple" to "abelian" gives the class this section is about.</p>
+
+<div class="definition">
+<p><strong>Definition 12.53.</strong> G is <strong>solvable</strong> if it admits a normal series G = G₀ ⊇ G₁ ⊇ ⋯ ⊇ G<sub>r</sub> = {e} whose quotients G<sub>i</sub>/G<sub>i+1</sub> are all abelian. <span class="cite">— Aluffi Underground §12.7, Definition 12.53, p. 287</span></p>
+</div>
+
+<p><strong>Example 12.54.</strong> Abelian groups are solvable: A ⊇ {0} already works. <span class="cite">— Aluffi Underground §12.7, Example 12.54, p. 287</span></p>
+
+<p><strong>Example 12.55.</strong> Dihedral groups are solvable, via D<sub>2n</sub> ⊇ C<sub>n</sub> ⊇ {e}: the rotation subgroup is normal by aa-26's Example 11.61, C<sub>n</sub>/{e} ≅ C<sub>n</sub> is abelian, and D<sub>2n</sub>/C<sub>n</sub> ≅ C₂ is abelian. <span class="cite">— Aluffi Underground §12.7, Example 12.55, p. 287</span></p>
+
+<p><strong>Example 12.56.</strong> Hence S₃ ≅ D₆ is solvable. So is S₄, via</p>
+
+<p style="text-align:center">S₄ ⊇ A₄ ⊇ V ⊇ {e},</p>
+
+<p>where V is the Vierergruppe: V is abelian and normal in A₄ by Example 11.63, A₄/V has order 3 and is therefore cyclic by aa-28's Proposition 12.5, and S₄/A₄ ≅ C₂. <span class="cite">— Aluffi Underground §12.7, Example 12.56, p. 287</span> That is precisely the chain of surviving orders 24, 12, 4, 1 the canvas printed for S₄.</p>
+
+<p><strong>Example 12.57.</strong> p-groups are solvable for every prime p, which Aluffi leaves as Exercise 12.33. <span class="cite">— Aluffi Underground §12.7, Example 12.57, p. 287</span> He adds, for scale, that groups of odd order are also solvable — the Feit–Thompson theorem, whose 1963 proof runs to about 250 pages and won Thompson a Fields Medal. <span class="cite">— Aluffi Underground §12.7, Example 12.58, p. 287</span></p>
+
+<p>And now the other side of the ledger.</p>
+
+<div class="theorem">
+<p><strong>Example 12.59.</strong> A simple noncommutative group is not solvable: its only normal series is G ⊇ {e}, and the single quotient G/{e} ≅ G is not abelian. In particular A<sub>n</sub> is not solvable for n ≥ 5, by Theorem 12.52. <span class="cite">— Aluffi Underground §12.7, Example 12.59, p. 288</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 12.60.</strong> Subgroups and homomorphic images of solvable groups are solvable. <span class="cite">— Aluffi Underground §12.7, Proposition 12.60, p. 288</span></p>
+</div>
+
+<p>Both halves are aa-27 put to work. For a subgroup H, set H<sub>i</sub> = G<sub>i</sub> ∩ H; then H<sub>i+1</sub> is the kernel of H<sub>i</sub> → G<sub>i</sub> → G<sub>i</sub>/G<sub>i+1</sub>, so the First Isomorphism Theorem embeds H<sub>i</sub>/H<sub>i+1</sub> into G<sub>i</sub>/G<sub>i+1</sub> — a subgroup of an abelian group, hence abelian. <span class="cite">— Aluffi Underground §12.7, p. 288</span> For an image, the First Isomorphism Theorem reduces the claim to G/K for K normal, and then G<sub>i</sub>K is a subgroup by aa-27's Proposition 11.73, the Third Isomorphism Theorem identifies (G<sub>i</sub>K/K)/(G<sub>i+1</sub>K/K) with (G<sub>i</sub>K)/(G<sub>i+1</sub>K), and a surjection from the abelian G<sub>i</sub>/G<sub>i+1</sub> onto it makes it abelian. <span class="cite">— Aluffi Underground §12.7, p. 288</span> <span class="cite">— Aluffi Underground, the induced surjection, p. 289</span></p>
+
+<p>Two lines from the end. <strong>Theorem 12.62:</strong> for n ≥ 5, S<sub>n</sub> is not solvable. If it were, its subgroup A<sub>n</sub> would be solvable by Proposition 12.60; but A<sub>n</sub> is noncommutative and simple, hence not solvable by Example 12.59. <span class="cite">— Aluffi Underground, Theorem 12.62, p. 289</span> So S₅, of order 120, is not solvable — and Aluffi records that A₅ and S₅ are the two smallest nonsolvable groups.</p>
+
+<div class="worked">
+<strong>Why the word "solvable".</strong> Aluffi's preview: solvable groups are so called because they are intimately related to the solvability of polynomial equations. The non-solvability of S₅ is the reason there is no formula, in the ordinary operations and extraction of roots, for the roots of a general degree-5 equation. That there <em>are</em> such formulas in degrees 2, 3 and 4 reflects the fact that S₂, S₃ and S₄ are all solvable. <span class="cite">— Aluffi Underground, p. 289</span>
+<p>Look back at what you proved to get here. S₄ is solvable because A₄ has the Klein four-group inside it — the same V that made A₄ fail to be simple. S₅ is not, because A₅ has nothing inside it at all. The quadratic formula and the absence of a quintic formula are the same fact about two chains of subgroups, four terms long and two terms long. The Galois theory that converts one into the other is Chapter 15 of the Underground and is not in this module; everything on the group side of the argument is now behind you.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why is a simple noncommutative group not solvable?</p>
+<button data-ok onclick="check(this,true)">Its only normal series is G ⊇ {e}, whose single quotient is G itself — which is not abelian</button>
+<button onclick="check(this,false)">Because simple groups have no subgroups at all</button>
+<button onclick="check(this,false)">Because solvable groups must be abelian</button>
+<div class="explain">Simplicity leaves no room to refine: there are no intermediate normal subgroups, so the only chain available is the two-term one, and its quotient is G. Simple groups certainly have subgroups — A₅ contains copies of A₄, of C₅ and of S₃ — they just have no proper nontrivial <em>normal</em> ones. And solvable is much weaker than abelian: S₄ is solvable and non-abelian. <span class="cite">— Aluffi Underground §12.7, Example 12.59, p. 288</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Proposition 12.60 says subgroups of solvable groups are solvable. How is that used?</p>
+<button data-ok onclick="check(this,true)">Contrapositively: A<sub>n</sub> is not solvable and sits inside S<sub>n</sub>, so S<sub>n</sub> is not solvable either</button>
+<button onclick="check(this,false)">To show A<sub>n</sub> is simple</button>
+<button onclick="check(this,false)">To show every subgroup of S<sub>n</sub> is abelian</button>
+<div class="explain">The proposition is stated positively and used negatively — that is the whole content of Theorem 12.62. Simplicity of A<sub>n</sub> comes earlier and independently, from Theorem 12.52; solvability plays no part in proving it. And subgroups of S<sub>n</sub> are very far from all abelian: A<sub>n</sub> is one of them. <span class="cite">— Aluffi Underground §12.7, Proposition 12.60, p. 288</span> <span class="cite">— Aluffi Underground, Theorem 12.62, p. 289</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> S₄ is solvable but A₅ is not. What is the structural difference?</p>
+<button onclick="check(this,false)">S₄ is abelian and A₅ is not</button>
+<button data-ok onclick="check(this,true)">S₄ has a chain of normal subgroups with abelian quotients; A₅ is simple, so no chain longer than two terms exists</button>
+<button onclick="check(this,false)">|S₄| is smaller, and all small groups are solvable</button>
+<div class="explain">S₄ ⊇ A₄ ⊇ V ⊇ {e} has quotients C₂, C₃ and V, all abelian — Example 12.56. A₅ admits only A₅ ⊇ {e}, whose quotient is A₅ itself. S₄ is not abelian, and size is not the criterion in principle, though A₅ and S₅ do happen to be the two smallest nonsolvable groups. <span class="cite">— Aluffi Underground §12.7, Example 12.56, p. 287</span> <span class="cite">— Aluffi Underground §12.7, Example 12.59, p. 288</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen — this is the last one. Reconstruct the whole route from cycle notation to the quintic:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Conjugation is relabelling.</strong> τστ⁻¹ is σ with every entry replaced by its image under τ (Lemma 12.46), so conjugacy in S<sub>n</sub> is exactly equality of cycle type (Definition 12.47, Corollary 12.48), as Example 12.49 exhibits for type 2 + 5. Separately, A<sub>n</sub> is generated by 3-cycles for all n ≥ 2 (Lemma 12.45).</li>
+<li><strong>Five is the threshold.</strong> With two spare labels available, an odd conjugator can be repaired, so all 3-cycles are conjugate <em>within</em> A<sub>n</sub> for n ≥ 5 (Lemma 12.50) — false in A₄, where the eight 3-cycles cannot form one class since 8 does not divide 12. Lemma 12.51 then produces, from any non-identity non-3-cycle, a commutator with more fixed points. Taking σ in a normal subgroup N with maximal fixed points forces σ to be a 3-cycle, hence N contains all 3-cycles, hence N = A<sub>n</sub>: <strong>A<sub>n</sub> is simple for n ≥ 5</strong> (Theorem 12.52). A₅ has order 60, which is why aa-29's sieve could never close that case.</li>
+<li><strong>Solvability.</strong> A normal series with abelian quotients (Definition 12.53) exists for abelian groups (Example 12.54), dihedral groups (Example 12.55), S₃ and S₄ (Example 12.56) and p-groups (Example 12.57), but not for a simple noncommutative group (Example 12.59). Subgroups and images inherit solvability (Proposition 12.60), so A<sub>n</sub> non-solvable forces S<sub>n</sub> non-solvable for n ≥ 5 (Theorem 12.62).</li>
+</ol>
+The mission strip closes the arc. Two semesters of algebra have been one repeated move — quotient by a distinguished subobject and read the answer off the quotient — run through rings, modules, abelian groups and finally general groups, where it needed normality to work at all. The payoff here is that a question about formulas for roots becomes a question about whether a chain of subgroups exists, and the answer is a fact about A₅ that fits on one page. That translation of a hard concrete question into a computable structural one is what the third semester's homology will do for holes in a space.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi Underground, <em>Algebra: Notes from the Underground</em> — §12.6 "Simplicity of Aₙ" (the status of A₂, A₃ and A₄ and Lemma 12.45 p. 282; the disjoint case of that proof, Lemma 12.46, Definition 12.47, Corollary 12.48 with proof and Example 12.49 p. 283; the explicit conjugator, Lemma 12.50 with proof and the discussion of n = 3 and n = 4 p. 284; Lemma 12.51 with its case-by-case proof p. 285), pp. 282–285. Aluffi Underground states and proves Theorem 12.52 on p. 286.
+Aluffi Underground §12.7 "Solvable Groups" (normal series, composition series, Definition 12.53, Example 12.54, Example 12.55, Example 12.56, Example 12.57 and Example 12.58 p. 287; Example 12.59, Proposition 12.60 and the subgroup half of its proof p. 288), pp. 287–288. Aluffi Underground finishes that proof on p. 289, where Remark 12.61 and Theorem 12.62 also appear together with the preview of the quintic.
+In Aluffi Underground: Proposition 11.47 and Remark 11.42 come from aa-25 (§11.3, pp. 241–252); Proposition 11.57, Example 11.61 and Example 11.63 from aa-26 (§11.4, pp. 253–259); Proposition 11.73 and the isomorphism theorems from aa-27 (§11.5, pp. 260–263); Corollary 12.17 and the centralizer slogan from aa-28 (§12.2, p. 272), together with Lagrange's theorem and the failure of its converse from the same unit; and the sieve that left order 60 open from aa-29 (§12.4, pp. 276–279).
+The canvas computes each group's conjugacy classes by direct conjugation and then enumerates the sub-sums containing the identity class that divide the order — a necessary condition on normal-subgroup orders, from Proposition 11.57 and Lagrange's theorem. Its four results were re-derived independently before publication: 1, 3, 6 for S₃; 1, 4, 12 for A₄; 1, 4, 12, 24 for S₄; and 1 and 60 alone for A₅, which is Theorem 12.52 at n = 5.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Conjugacy classes, and the orders a normal subgroup could have. A normal
+// subgroup is a union of conjugacy classes (Proposition 11.57) and its order
+// divides |G| (Lagrange), so only such sub-sums survive. Necessary, not
+// sufficient: a surviving order is a candidate, not a subgroup.
+var nc=document.getElementById('nm'),nx=nc.getContext('2d');
+function qmul(f,g){var a=[];for(var i=0;i<g.length;i++)a.push(f[g[i]]);return a;}
+function qinv(p){var a=[];for(var i=0;i<p.length;i++)a[p[i]]=i;return a;}
+function qk(p){return p.join(',');}
+function perms(n){var out=[];
+ (function rec(cur,left){
+   if(!left.length){out.push(cur.slice());return;}
+   for(var i=0;i<left.length;i++){
+    var r=left.slice();r.splice(i,1);
+    rec(cur.concat([left[i]]),r);}})([],(function(){var a=[];for(var i=0;i<n;i++)a.push(i);return a;})());
+ return out;}
+function qsign(p){var s=1;
+ for(var i=0;i<p.length;i++)for(var j=i+1;j<p.length;j++)if(p[i]>p[j])s=-s;
+ return s;}
+function qclasses(G){var done={},out=[];
+ for(var i=0;i<G.length;i++){
+  if(qk(G[i]) in done)continue;
+  var seen={},arr=[];
+  for(var j=0;j<G.length;j++){
+   var c=qmul(G[j],qmul(G[i],qinv(G[j])));
+   if(!(qk(c) in seen)){seen[qk(c)]=1;arr.push(c);}}
+  for(var j=0;j<arr.length;j++)done[qk(arr[j])]=1;
+  out.push(arr.length);}
+ out.sort(function(a,b){return a-b;});return out;}
+function candidates(sizes,N){
+ // sizes[0] is the identity class, of size 1; every union must contain it
+ var rest=sizes.slice(1),got={},tot=1<<rest.length;
+ for(var m=0;m<tot;m++){var t=1;
+  for(var i=0;i<rest.length;i++)if(m&(1<<i))t+=rest[i];
+  if(N%t===0)got[t]=1;}
+ var out=[];for(var k in got)out.push(+k);
+ out.sort(function(a,b){return a-b;});return out;}
+
+var NGRPS=[{t:'S₃',n:3,even:false},{t:'A₄',n:4,even:true},
+           {t:'S₄',n:4,even:false},{t:'A₅',n:5,even:true}];
+var NI=0;
+function setNm(i){NI=i;drawNm();}
+
+function drawNm(){
+ var C=NGRPS[NI],all=perms(C.n),G=[];
+ for(var i=0;i<all.length;i++)if(!C.even||qsign(all[i])===1)G.push(all[i]);
+ var sizes=qclasses(G),cand=candidates(sizes,G.length);
+ nx.clearRect(0,0,nc.width,nc.height);
+ nx.font='13px Segoe UI';nx.textAlign='left';nx.textBaseline='middle';
+ nx.fillStyle='#e8e8e8';
+ nx.fillText('G = '+C.t+',   |G| = '+G.length+',   '+sizes.length+' conjugacy classes',14,22);
+ nx.fillStyle='#9aa5b1';
+ nx.fillText('class sizes:   '+sizes.join('  +  ')+'   =   '+G.length,14,48);
+ nx.fillText('a normal subgroup is a union of classes containing e, of order dividing '+G.length,14,74);
+ // the surviving orders, as chips
+ var w=Math.min(96,(nc.width-28)/Math.max(cand.length,1));
+ nx.textAlign='center';nx.font='14px Segoe UI';
+ for(var i=0;i<cand.length;i++){
+  var px=14+i*(w+8),trivial=(cand[i]===1||cand[i]===G.length);
+  nx.fillStyle=trivial?'#4caf82':'#d8a657';
+  nx.fillRect(px,110,w,34);
+  nx.fillStyle='#0c1013';nx.fillText('order '+cand[i],px+w/2,127);}
+ nx.textAlign='left';nx.font='13px Segoe UI';
+ nx.fillStyle='#9aa5b1';
+ nx.fillText('green: the trivial subgroup and G itself    amber: a proper nontrivial candidate',14,168);
+ var simple=(cand.length===2);
+ nx.fillStyle=simple?'#4caf82':'#e06c75';
+ nx.fillText(simple
+   ? 'nothing survives except 1 and '+G.length+' - so '+C.t+' is simple'
+   : cand.length-2+' proper nontrivial candidate'+(cand.length===3?' survives':'s survive')+
+     ', so this test cannot prove '+C.t+' simple',14,196);
+ nx.fillStyle='#9aa5b1';
+ nx.fillText('the test only eliminates orders; a surviving order still has to be realised',14,224);}
+drawNm();
+</script></body></html>
