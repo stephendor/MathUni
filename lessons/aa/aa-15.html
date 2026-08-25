@@ -55,7 +55,9 @@ An ideal is a vector space whose scalars happen to be a ring.
 
 <p>Those look like ring axioms — identity, associativity, two distributivities — but they are not, because scalar multiplication is <em>not</em> an operation inside V: it combines an element of V with an element of something else. The name for that is an <strong>action</strong> of k on V, and actions return in force in aa-24. <span class="cite">— Aluffi §8.1, pp. 153–154</span></p>
 
-<p>Now the observation. If I is an ideal of a ring R, then I satisfies exactly these requirements with scalars taken from R: the absorption property of aa-09's Definition 5.8 says precisely that multiplication gives a map R × I → I, and the four axioms hold because associativity and distributivity hold in R. <em>An ideal is a vector space over R.</em> <span class="cite">— Aluffi §8.1, p. 154</span></p>
+<p>Now the observation. If I is an ideal of a ring R, then I satisfies exactly these requirements with scalars taken from R: the absorption property of aa-09's Definition 5.8 says precisely that multiplication gives a map R × I → I, and the four axioms hold because associativity and distributivity hold in R. <em>An ideal satisfies every one of the vector-space requirements, with scalars taken from R.</em> <span class="cite">— Aluffi §8.1, p. 154</span></p>
+
+<p>And yet it is not a vector space, because R is not a field. Take I = 2ℤ inside R = ℤ: the axioms above all hold, but the scalar 2 has no inverse, so there is no dividing by scalars and none of the arguments that make linear algebra easy are available. What has just been described is a structure the existing vocabulary has no name for — which is the entire reason for the next definition.</p>
 
 <div class="definition">
 <strong>Definition 8.1 (module).</strong> Let R be a ring. An <strong>R-module</strong> (M, +, ·) is a set M with operations + : M × M → M and · : R × M → M satisfying
