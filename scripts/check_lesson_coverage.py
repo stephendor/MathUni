@@ -93,11 +93,17 @@ def find_missing_refs(problem_set_text, lesson_html_text):
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--min-refs", type=int, default=0)
+    parser.add_argument("--expect-zero-refs", metavar="REASON",
+                        help="explicitly accept a zero-reference set and record why")
     parser.add_argument("problem_set_path")
     parser.add_argument("lesson_html_path")
     args = parser.parse_args(argv)
     if args.min_refs < 0:
         parser.error("--min-refs must be non-negative")
+    if args.expect_zero_refs is not None and not args.expect_zero_refs.strip():
+        parser.error("--expect-zero-refs requires a non-empty reason")
+    if args.expect_zero_refs is not None and args.min_refs:
+        parser.error("--expect-zero-refs and a positive --min-refs conflict")
     with open(args.problem_set_path, encoding="utf-8") as f:
         problem_set_text = f.read()
     with open(args.lesson_html_path, encoding="utf-8") as f:
@@ -107,8 +113,16 @@ def main(argv=None):
     if len(refs) < args.min_refs:
         print("FAIL checked %d refs; minimum required is %d" % (len(refs), args.min_refs))
         return 1
+    if args.expect_zero_refs is not None and refs:
+        print("FAIL expected zero refs (%s), but found %d"
+              % (args.expect_zero_refs, len(refs)))
+        return 1
     if not refs:
-        print("UNCHECKED checked 0 refs - nothing to verify")
+        if args.expect_zero_refs is None:
+            print("FAIL checked 0 refs; supply --expect-zero-refs REASON or "
+                  "--min-refs N")
+            return 1
+        print("PASS checked 0 refs - expected: %s" % args.expect_zero_refs)
         return 0
     print("%s checked %d refs, %d missing" % (
         "FAIL" if missing else "PASS", len(refs), len(missing)))

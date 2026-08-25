@@ -19,7 +19,7 @@ Model-agnostic, free, run before a human looks. Any FAIL ⇒ reject, do not scor
 
 | # | Check | Command / method | Pass? |
 |---|-------|------------------|:---:|
-| 0.1 | Coverage: every theorem/def id the problem set names appears in the lesson; the checked-ref denominator must be reported | `python scripts/check_lesson_coverage.py problems/sets/<u>.md lessons/<m>/<u>.html` → `PASS checked N refs, 0 missing`; `UNCHECKED checked 0 refs` requires an explicit source-gap disposition, while `--min-refs N` enforces a non-zero expectation | ☐ |
+| 0.1 | Coverage: every theorem/def id the problem set names appears in the lesson; the checked-ref denominator must be reported | `python scripts/check_lesson_coverage.py problems/sets/<u>.md lessons/<m>/<u>.html` → `PASS checked N refs, 0 missing`; zero refs fail unless explicitly dispositioned with `--expect-zero-refs "<reason>"`, while `--min-refs N` enforces a non-zero expectation | ☐ |
 | 0.2 | HTML tokenises without an exception; this is not a tag-balance guarantee | `python -c "from html.parser import HTMLParser; HTMLParser().feed(open(PATH,encoding='utf-8').read())"` | ☐ |
 | 0.3 | Self-contained: zero external requests | grep the file for `http://`, `https://`, `src=`, `cdn`, `<link`, external `<script src>` → none | ☐ |
 | 0.4 | Zero browser console errors on load | open in browser pane, read console | ☐ |
