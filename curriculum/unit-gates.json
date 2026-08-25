@@ -8,6 +8,7 @@
     {"id": "hypothesis-parity", "ci": true, "argv": ["scripts/check_hypothesis_parity.py", "--unit", "{unit}", "{problem}", "{lesson}"]},
     {"id": "cross-unit-refs", "ci": true, "argv": ["scripts/check_unit_references.py", "{problem}", "{lesson}"]},
     {"id": "visual-claims", "ci": true, "argv": ["scripts/check_visual_claims.py", "{lesson}"]},
+    {"id": "source-heading", "ci": true, "argv": ["scripts/check_unit_headings.py", "--unit", "{unit}"]},
     {"id": "sections", "ci": true, "modules": ["aa", "an", "la"], "argv": ["scripts/check_sections.py", "{problem}", "{lesson}"]},
     {"id": "lab-outputs", "ci": true, "modules": ["lab"], "argv": ["scripts/check_lab_outputs.py", "{problem}", "--parse-only"]}
   ]
