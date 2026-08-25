@@ -1,8 +1,12 @@
-"""Cross-check that a lesson covers every numbered result its problem set cites.
+"""Cross-check that a lesson mentions every numbered result its problem set cites.
 
 The command always reports its denominator. A zero-reference source is
 ``UNCHECKED`` rather than a vacuous ``PASS``; ``--min-refs`` turns an expected
 non-zero denominator into an enforcing authoring gate.
+
+This is deliberately mention coverage. It cannot distinguish a citation used
+as support from prose discussing the source or gate itself, and does not claim
+to establish mathematical use or truth.
 """
 import argparse
 import re

@@ -49,6 +49,7 @@ jobs:
       - run: python scripts/validate_syllabus.py --selftest
       - run: python scripts/check_id_consistency.py
       - run: python scripts/check_resources.py --selftest
+      - run: python scripts/check_source_modality.py
       - name: Every unit's resources name something that can be read
         # --shallow because the runner has no page trees. Check 1 (does the
         # resource resolve to a book in bookmap.json, or to a non-book class

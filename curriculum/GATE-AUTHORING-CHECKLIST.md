@@ -169,4 +169,10 @@ maps to exactly one owning checklist row:
 | 18 | G6 | 38 | G35 |
 | 19 | G7 | 39 | G29 |
 | 20 | G19 | 40 | G23 |
+## Closing observations
+
+When a backlog observation is actioned, update it in the same change window:
+remove it from the active observation log, append it to the dated archive with
+`Status: ACTIONED`, and record the exact implementation and validation evidence.
+Do not leave the tracker update as an unwritten after-session convention.
 
