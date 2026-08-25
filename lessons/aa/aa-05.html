@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-05 — Rings: definition, examples, basic properties</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+ol.ax{margin:.4rem 0 .4rem 1.2rem}ol.ax li{margin:.25rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Rings: definition, examples, basic properties <span class="cite">(aa-05)</span></h1>
+
+<div class="hook">
+Aluffi opens this chapter by saying that <em>this</em> is where the text really begins — and then defines a structure you have already been carrying around for four units without a name.
+<p>The integers are one. So is every ℤ/nℤ. So are ℚ, ℝ, ℂ, the 2 × 2 matrices, the polynomials, the real-valued functions of a real variable, and the linear maps of a vector space to itself. Seven axioms, and all of those at once. The gain is that anything you prove from the axioms alone is true in every one of them, forever. The cost — and this is the part to take seriously — is that you must stop reading 0, 1, + and · as facts about numbers. They are names for whatever plays those roles.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Is the set 2ℤ of even integers, with ordinary + and ·, a ring in Aluffi's sense?</p>
+<button onclick="check(this,false)">Yes — it is closed under both operations</button>
+<button data-ok onclick="check(this,true)">No — it has no multiplicative identity</button>
+<button onclick="check(this,false)">No — it has no additive inverses</button>
+<div class="explain">It is closed, associative, commutative, distributive, has 0, and has additive inverses. What it lacks is 1: the only candidate is the number 1, which is not even. Under this book's Definition 3.1 that disqualifies it. Aluffi is explicit that this is a convention — other authors call this a ring and call his a "ring with identity", and the half-joking term for the weaker notion is <strong>rng</strong>. Every ring in this text has a 1. <span class="cite">— Aluffi §3.1, Example 3.5, pp. 42–43</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Coefficients for homology come from a ring; everything downstream lives here.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Seven axioms, and what fails when one is dropped</h2>
+
+<p>First the vocabulary. A <strong>binary operation</strong> on a set R is a function R × R → R. If a ∗ b lands back in R for all a, b ∈ R we say R is <strong>closed</strong> under ∗; in the definition below closure is built in, because the operations are declared to be operations on R. <span class="cite">— Aluffi §3.1, p. 41</span></p>
+
+<div class="definition">
+<strong>Definition 3.1 (ring).</strong> A <strong>ring</strong> (R, +, ·) is a set R with two binary operations, satisfying:
+<ol class="ax">
+<li>(i) <em>associativity of +</em>: (a + b) + c = a + (b + c) for all a, b, c;</li>
+<li>(ii) <em>additive identity</em>: there is 0<sub>R</sub> ∈ R with a + 0<sub>R</sub> = 0<sub>R</sub> + a = a for all a;</li>
+<li>(iii) <em>additive inverses</em>: for every a there is z ∈ R with a + z = z + a = 0<sub>R</sub>;</li>
+<li>(iv) <em>commutativity of +</em>: a + b = b + a for all a, b;</li>
+<li>(v) <em>associativity of ·</em>: (a·b)·c = a·(b·c) for all a, b, c;</li>
+<li>(vi) <em>multiplicative identity</em>: there is 1<sub>R</sub> ∈ R with a·1<sub>R</sub> = 1<sub>R</sub>·a = a for all a;</li>
+<li>(vii) <em>distributivity</em>: a·(b + c) = a·b + a·c and (a + b)·c = a·c + b·c for all a, b, c.</li>
+</ol>
+<span class="cite">— Aluffi §3.1, Definition 3.1, pp. 41–42</span>
+</div>
+
+<p>Three things to notice immediately. Addition is required to be commutative; <strong>multiplication is not</strong>. Uniqueness of 0<sub>R</sub> and 1<sub>R</sub> is <em>not</em> an axiom — Segment 3 has to prove it before the names are even legitimate. And this list is character-for-character the list (2.3) from §2.4, so aa-04 already proved: <span class="cite">— Aluffi §3.1, p. 42</span></p>
+
+<p><strong>Example 3.2.</strong> ℤ is a ring. &nbsp; <strong>Example 3.3.</strong> ℚ, ℝ, ℂ are rings. &nbsp; <strong>Example 3.4.</strong> For every n ≥ 0, ℤ/nℤ is a ring. <span class="cite">— Aluffi §3.1, Examples 3.2–3.4, p. 42</span></p>
+
+<p>The non-examples are more instructive, because each one fails exactly one clause and shows you what that clause is buying.</p>
+
+<div class="worked">
+<strong>Three failures, each of a different kind.</strong>
+<p><strong>Example 3.5 — 5ℤ fails (vi).</strong> The multiples of 5 are closed under + and ·, have 0, have negatives, and inherit every associativity and distributivity law from ℤ. But the only possible multiplicative identity is 1, and 1 ∉ 5ℤ. A rng, not a ring — and the same for nℤ whenever n ≠ ±1. <span class="cite">— Aluffi §3.1, Example 3.5, pp. 42–43</span></p>
+<p><strong>Example 3.6 — ℕ fails (iii).</strong> The natural numbers ℤ<sup>≥0</sup> satisfy every axiom except additive inverses: nothing in ℕ can be added to 1 to give 0. Aluffi's comment is that axiom (iii) is so fundamental that "nobody on this planet" calls ℕ a ring — unlike (vi), this failure is not a matter of convention. <span class="cite">— Aluffi §3.1, Example 3.6, p. 43</span></p>
+<p><strong>Example 3.7 — ℤ<sup>≤0</sup> fails before you get that far.</strong> The nonpositive integers are not <em>closed</em> under multiplication: (−1)·(−1) = 1 escapes. With no multiplication on the set at all, axioms (v), (vi), (vii) cannot even be stated. Failing closure is worse than failing an axiom; it means the structure was never a candidate. <span class="cite">— Aluffi §3.1, Example 3.7, p. 43</span></p>
+</div>
+
+<div class="worked">
+<strong>Example 3.8 — how small can a ring be?</strong> Not empty: axioms (ii) and (vi) both demand an element. So the smallest possible ring has one element r, with r + r := r and r·r := r. Every axiom holds trivially. In it 0<sub>R</sub> = 1<sub>R</sub> = r — there is no room for anything else — so <strong>0 = 1</strong> in the trivial ring.
+<p>We have met it already: ℤ/1ℤ has the single class [0]₁ = [1]₁. And the converse holds too: if 0 = 1 in a ring R then R is trivial. That is Aluffi's Exercise 3.5, and it is your guided proof at the end of this lesson. <span class="cite">— Aluffi §3.1, Example 3.8, pp. 43–44</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which clause of Definition 3.1 does ℕ = ℤ<sup>≥0</sup> fail?</p>
+<button onclick="check(this,false)">(vi), the multiplicative identity</button>
+<button data-ok onclick="check(this,true)">(iii), the existence of additive inverses</button>
+<button onclick="check(this,false)">(vii), distributivity</button>
+<div class="explain">ℕ has 1, and distributivity is inherited from ℤ. What it does not have is negatives: no natural number solves 1 + z = 0. Contrast 5ℤ, which has all the inverses and lacks the 1 — the two non-examples are deliberately chosen to fail different clauses, so that neither can be mistaken for the general reason a set fails to be a ring. <span class="cite">— Aluffi §3.1, Examples 3.5 and 3.6, pp. 42–43</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the point of the abstraction: the examples where the elements are not numbers at all.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Rings whose elements are not numbers</h2>
+
+<p>Aluffi is blunt about the shift required: dissociate the symbols 0, 1, +, · from their meaning as numbers. In ℤ/nℤ the element 0 is really the infinite set [0]<sub>n</sub>. In the examples below it is a matrix, a polynomial, or a function. The symbols are recycled to avoid a proliferation of notation and because these things behave similarly — not because they are numbers. <span class="cite">— Aluffi §3.1, p. 43</span></p>
+
+<div class="worked">
+<strong>Example 3.9 — matrices.</strong> M<sub>2,2</sub>(ℝ), the 2 × 2 real matrices, with the usual entrywise addition and the usual row-times-column multiplication, is a ring, with
+<p style="text-align:center">0 = the all-zero matrix, &nbsp;&nbsp; 1 = the identity matrix,</p>
+<p>and the additive inverse of a matrix obtained by negating each entry. Associativity of multiplication is a genuine computation; Aluffi works one entry of it, and the punchline is that it reduces to associativity of · and commutativity of + <em>among the entries</em> — both true in any ring. So the same argument gives a ring M<sub>n,n</sub>(R) for every n ≥ 1 and <em>every ring R</em>, including strange ones like M<sub>2,2</sub>(ℤ/2ℤ) or M<sub>2,2</sub>(M<sub>2,2</sub>(ℤ)). <span class="cite">— Aluffi §3.1, Example 3.9, pp. 44–45</span></p>
+<p><strong>And this is the first non-commutative ring in the book.</strong> Nothing in Definition 3.1 demands ab = ba, and matrices are where that omission stops being theoretical.</p>
+</div>
+
+<p>Below, the unit square is pushed through two matrices in both orders. A is a horizontal shear, B a quarter-turn. Same two matrices; the outputs are not the same shape.</p>
+
+<canvas id="nc" width="620" height="270" aria-label="A unit square transformed by AB and by BA, showing matrix multiplication is not commutative"></canvas>
+<div class="controls">
+<button onclick="setPair(0)">shear then turn</button>
+<button onclick="setPair(1)">scale then shear</button>
+<button onclick="toggleOrder()">swap the order</button>
+</div>
+
+<div class="worked">
+<strong>Example 3.10 — polynomials.</strong> A polynomial in one indeterminate x over ℝ is a formal expression a₀ + a₁x + ⋯ + a<sub>n</sub>x<sup>n</sup> with real coefficients, only finitely many nonzero. Addition is coefficient by coefficient, and multiplication collects like powers:
+<p style="text-align:center">(α + β)<sub>i</sub> = a<sub>i</sub> + b<sub>i</sub>, &nbsp;&nbsp;&nbsp; (α·β)<sub>k</sub> = a₀b<sub>k</sub> + a₁b<sub>k−1</sub> + ⋯ + a<sub>k</sub>b₀.</p>
+<p>Then ℝ[x] is a ring; so is R[x] for any ring R, and so is R[x₁, …, x<sub>n</sub>] in any number of indeterminates. Polynomial rings will carry a large share of the rest of the module. <span class="cite">— Aluffi §3.1, Example 3.10, pp. 45–46</span></p>
+<p><strong>Remark 3.12 — a polynomial is not a function.</strong> A polynomial does <em>determine</em> a function R → R by substitution (Example 3.11), but different polynomials can determine the same function: over ℤ/2ℤ the polynomial x(x − 1) evaluates to 0 at both elements, yet it is not the zero polynomial. Keep the two ideas apart; aa-13 will need them apart. <span class="cite">— Aluffi §3.1, Example 3.11 and Remark 3.12, p. 46</span></p>
+</div>
+
+<div class="worked">
+<strong>Functions into a ring, pointwise.</strong> Let S be any set and R any ring, and let R<sup>S</sup> be the set of <em>all</em> functions S → R, with
+<p style="text-align:center">(f + g)(s) := f(s) + g(s), &nbsp;&nbsp;&nbsp; (f·g)(s) := f(s)·g(s).</p>
+<p>This is a ring. Its 0 is the function sending every s to 0<sub>R</sub>; its 1 is the function sending every s to 1<sub>R</sub>. Every axiom holds <em>because it holds at each point separately</em>: to check f(g + h) = fg + fh, evaluate both sides at an arbitrary s and apply distributivity in R. <span class="cite">— Aluffi §3.1, pp. 46–47</span></p>
+<p><strong>This "check it pointwise" argument is a technique, not just an example.</strong> Any construction that defines operations coordinate by coordinate inherits every axiom that is a universally quantified identity — which is all seven. That is exactly how the product ring R × S is verified in Problem 5(a), and it is why aa-07 can treat products so quickly.</p>
+</div>
+
+<div class="worked">
+<strong>Example 3.13 — linear transformations.</strong> For a vector space V, the linear maps V → V form a ring under (α + β)(v) := α(v) + β(v) and (αβ)(v) := α(β(v)) — note that the multiplication is <em>composition</em>, not a pointwise product. It generalises the matrix ring, and Aluffi flags it as more representative of what a general ring looks like than ℤ or ℤ/nℤ, which are unusually well behaved. <span class="cite">— Aluffi §3.1, Example 3.13, p. 47</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Over ℤ/2ℤ, the polynomial x(x − 1) evaluates to 0 at every element. Is it the zero polynomial?</p>
+<button onclick="check(this,false)">Yes — a polynomial is the function it computes</button>
+<button data-ok onclick="check(this,true)">No — it has nonzero coefficients; polynomial and function are different objects</button>
+<button onclick="check(this,false)">Only in ℤ/2ℤ is it not zero</button>
+<div class="explain">x(x − 1) = x² − x has coefficients 0, −1, 1, so it is not the zero polynomial. That it computes the zero <em>function</em> on ℤ/2ℤ (both 0 and 1 are roots) is a fact about a two-element domain, not about the polynomial. Aluffi's Remark 3.12 warns against the identification precisely here; the ring ℝ[x] and the ring of real functions are different rings, and the map between them is the subject of Example 4.22. <span class="cite">— Aluffi §3.1, Remark 3.12, p. 46</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Last segment: what the seven axioms give you for free, and what they refuse to give.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Consequences of the axioms — and one non-consequence</h2>
+
+<p>Aluffi issues a warning before starting: "obvious" is a forbidden word. Ring notation was chosen to evoke familiar facts, and many of them do turn out true — but each one needs a derivation from the seven axioms, and some familiar ones are simply false. <span class="cite">— Aluffi §3.2, pp. 47–48</span></p>
+
+<div class="theorem">
+<strong>Proposition 3.14.</strong> In a ring R, the additive identity is unique, and so is the multiplicative identity: if 0′ and 0″ both satisfy (ii) then 0′ = 0″, and if 1′ and 1″ both satisfy (vi) then 1′ = 1″. <span class="cite">— Aluffi §3.2, Proposition 3.14, p. 48</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Prove the general fact once. Call e an <strong>identity</strong> for an operation ∗ if a ∗ e = e ∗ a = a for all a. Suppose e′ and e″ are both identities. Then
+<p style="text-align:center">e′ = e′ ∗ e″ &nbsp;(because e″ is an identity) &nbsp;&nbsp;and&nbsp;&nbsp; e′ ∗ e″ = e″ &nbsp;(because e′ is an identity),</p>
+<p>so e′ = e″. Apply this to + and to ·. ∎</p>
+<p>Two things worth extracting. First, the proof needs only that e′ is an identity <em>on the left</em> and e″ <em>on the right</em>; the two-sided hypothesis is more than required. Second, note why this had to be proved at all: until it is, writing "0<sub>R</sub>" names an element that might not be determined, and giving one name to several elements is not an option. <span class="cite">— Aluffi §3.1, p. 42; §3.2, p. 48</span></p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 3.15.</strong> Let R be a ring and a ∈ R. The additive inverse of a is unique: if z′ and z″ both satisfy a + z = z + a = 0, then z′ = z″. <span class="cite">— Aluffi §3.2, Proposition 3.15, p. 48</span>
+</div>
+
+<div class="worked">
+<strong>Proof — one line, five justifications.</strong>
+<p style="text-align:center">z′ = z′ + 0 = z′ + (a + z″) = (z′ + a) + z″ = 0 + z″ = z″,</p>
+<p>using in order: axiom (ii); the hypothesis on z″; axiom (i), associativity; the hypothesis on z′; axiom (ii) again. ∎ <span class="cite">— Aluffi §3.2, p. 49</span></p>
+<p><em>Only now</em> is it legitimate to write −a, and axiom (iii) becomes a + (−a) = (−a) + a = 0. And a first dividend: what is −(−a)? Call it b, so (−a) + b = b + (−a) = 0. But a satisfies exactly that requirement, so by uniqueness b = a: <strong>−(−a) = a</strong>. Expected, yes; obvious, no. It is a consequence of Proposition 3.15 and of nothing else. We write b − a for b + (−a).</p>
+</div>
+
+<p><strong>Remark 3.16 — the multiple notation is a trap.</strong> In any ring, 2a means a + a. It does <em>not</em> mean "the element 2 times a" — in a general ring there may be no element called 2 at all. Similarly 18a is a added to itself eighteen times, 0a = 0, and (−5)a = −(a + a + a + a + a). <span class="cite">— Aluffi §3.2, Remark 3.16, p. 50</span></p>
+
+<div class="theorem">
+<strong>Proposition 3.17 (additive cancellation).</strong> Let R be a ring and a, b, c ∈ R. If a + b = a + c then b = c. <span class="cite">— Aluffi §3.2, Proposition 3.17, p. 50</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong>
+<p style="text-align:center">b = 0 + b = ((−a) + a) + b = (−a) + (a + b) = (−a) + (a + c) = ((−a) + a) + c = 0 + c = c,</p>
+<p>by (ii), then (iii), then (i), then the hypothesis, then (i) again, then (iii), then (ii). ∎ <span class="cite">— Aluffi §3.2, p. 50</span></p>
+</div>
+
+<div class="theorem">
+<strong>Corollary 3.18.</strong> Let R be a ring and a ∈ R. Then 0·a = a·0 = 0. <span class="cite">— Aluffi §3.2, Corollary 3.18, p. 51</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> By distributivity and axiom (ii),
+<p style="text-align:center">a·0 + a·0 = a·(0 + 0) = a·0 = a·0 + 0,</p>
+<p>and additive cancellation (Proposition 3.17) strips the a·0 from the front of both sides, leaving a·0 = 0. The identity 0·a = 0 is the mirror image, using the other distributive law. ∎ <span class="cite">— Aluffi §3.2, p. 51</span></p>
+<p>Note that this is <em>not</em> an axiom, and could not be: nothing in Definition 3.1 mentions how · interacts with 0 except through distributivity. That single link is enough.</p>
+</div>
+
+<div class="worked">
+<strong>Two more that the problem set uses: (−a)b = −(ab) and (−a)(−b) = ab.</strong>
+<p>For the first, it is enough to show ab + (−a)b = 0, since then (−a)b satisfies the defining property of −(ab), and Proposition 3.15 says nothing else does. Indeed</p>
+<p style="text-align:center">ab + (−a)b = (a + (−a))·b = 0·b = 0,</p>
+<p>by distributivity and Corollary 3.18. For the second, apply the first twice: (−a)(−b) = −(a(−b)) = −(−(ab)) = ab, the last step being −(−x) = x. ∎</p>
+<p>Notice the shape of both arguments, because it recurs: to prove something <em>equals</em> −x, do not compute it — show it has the property that defines −x, and let uniqueness do the rest.</p>
+</div>
+
+<p><strong>And the non-consequence.</strong> Multiplicative cancellation — "ab = ac and a ≠ 0 imply b = c" — is <em>not</em> a theorem about rings, however obvious it looks. We already have the counterexample: in ℤ/6ℤ, [2]·[2] = [4] = [2]·[5] while [2] ≠ [5] (Remark 2.17). Aluffi's phrasing is worth keeping: no matter how clever you are, you will not prove it from the axioms. It becomes true under an extra hypothesis, which is exactly what aa-06 is about. <span class="cite">— Aluffi §3.2, p. 51</span></p>
+
+<div class="worked fade">
+<strong>Faded example — verifying an axiom pointwise.</strong> Let S be a set, R a ring, and R<sup>S</sup> the functions S → R with pointwise operations. Check axiom (iii), the existence of additive inverses.
+<p>Given f ∈ R<sup>S</sup>, the candidate is the function g defined by g(s) := ⟨your step: what should g(s) be, in terms of f(s)?⟩. This is a legitimate element of R<sup>S</sup> because f(s) ∈ R and R has additive inverses by ⟨your step: which axiom, in R?⟩.</p>
+<p>Then for every s ∈ S, (f + g)(s) = f(s) + g(s) = ⟨your step⟩, which is the value at s of the zero function. Since two functions agreeing at every point are equal, f + g = 0<sub>R<sup>S</sup></sub>, and the other order is the same computation.</p>
+<p>Now use the same template on axiom (vi): the candidate for 1 is the function sending every s to ⟨your step⟩, and the verification is one line.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Prove that a multiplicative <em>inverse</em>, when it exists, is unique: if ab = ba = 1 and ac = ca = 1 then b = c. Write it in the one-line style of Proposition 3.15 and justify every step by an axiom. Then answer this: your proof, the proof of Proposition 3.14, and the proof of Proposition 3.15 all have the same shape — what is it? (This is Problem 2(c), and the answer is worth having before you write the answer down.)</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi asserts that the trivial ring is the <em>only</em> ring in which 0 = 1, and defers it to Exercise 3.5. Prove it. <strong>Let R be a ring with 0<sub>R</sub> = 1<sub>R</sub>. Show that R has exactly one element.</strong> Name every axiom or result you use — in particular, be sure you know why you are entitled to the step that makes a·1 collapse.</p>
+<textarea placeholder="Let a be any element of R. Then a = a * 1_R = ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>Let a ∈ R be arbitrary. By axiom (vi), a = a·1<sub>R</sub>. By hypothesis 1<sub>R</sub> = 0<sub>R</sub>, so a = a·0<sub>R</sub>. By <strong>Corollary 3.18</strong>, a·0<sub>R</sub> = 0<sub>R</sub>. Hence a = 0<sub>R</sub>.</p>
+<p>Since a was arbitrary, every element of R equals 0<sub>R</sub>, so R = {0<sub>R</sub>}. And R is nonempty, because axiom (ii) requires 0<sub>R</sub> to exist. So R has exactly one element. ∎</p>
+<p>The converse is Example 3.8: in a one-element ring the single element must be both the additive and the multiplicative identity, so 0 = 1 there. Together: <em>R is trivial if and only if 0<sub>R</sub> = 1<sub>R</sub>.</em></p>
+<p>Grade yourself on the middle step. If you wrote "a·0 = 0 because anything times zero is zero", that is the forbidden word — a·0 = 0 is Corollary 3.18, proved from distributivity and additive cancellation, and it is the only reason available.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Aluffi prove Proposition 3.14 before allowing himself to write "0<sub>R</sub>"?</p>
+<button onclick="check(this,false)">Because 0<sub>R</sub> might not exist</button>
+<button data-ok onclick="check(this,true)">Because a name must denote one element, and the axiom only says an identity exists</button>
+<button onclick="check(this,false)">Because 0<sub>R</sub> must be different from 1<sub>R</sub></button>
+<div class="explain">Axiom (ii) asserts existence, not uniqueness. Until uniqueness is proved, "0<sub>R</sub>" might be a name shared by several elements, which is not a viable notation. Existence is not in question — it is an axiom — and 0 = 1 is perfectly allowed, as the trivial ring shows. <span class="cite">— Aluffi §3.1, p. 42; §3.2, p. 48</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Can "ab = ac with a ≠ 0 implies b = c" be proved from the ring axioms?</p>
+<button onclick="check(this,false)">Yes — multiply both sides by the inverse of a</button>
+<button data-ok onclick="check(this,true)">No — ℤ/6ℤ is a ring where it fails</button>
+<button onclick="check(this,false)">Yes, but only in commutative rings</button>
+<div class="explain">A single counterexample settles it: in ℤ/6ℤ, [2][2] = [4] = [2][5] with [2] ≠ [0] and [2] ≠ [5]. The first option assumes a has an inverse, which the axioms do not provide — that is precisely the property (2.4) that ℤ itself lacks. And commutativity is irrelevant: ℤ/6ℤ is commutative. <span class="cite">— Aluffi §3.2, p. 51; §2.4, Remark 2.17, p. 34</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In an arbitrary ring, what does the expression 3a mean?</p>
+<button data-ok onclick="check(this,true)">a + a + a</button>
+<button onclick="check(this,false)">The product of the ring element 3 with a</button>
+<button onclick="check(this,false)">a·a·a</button>
+<div class="explain">Multiple notation abbreviates repeated <em>addition</em>. There need not be any element called 3 in R — in ℤ/2ℤ there is not — so reading 3a as a product is meaningless in general. And a·a·a is a³, the power notation, which is a different abbreviation. Aluffi flags this in Remark 3.16 exactly because the notation invites the wrong reading. <span class="cite">— Aluffi §3.2, Remark 3.16, p. 50</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three load-bearing claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Definition 3.1 is seven axioms</strong>, and it is the list (2.3) that ℤ and every ℤ/nℤ were already shown to satisfy. Addition is commutative by fiat; multiplication is not. The non-examples separate the clauses: 5ℤ fails only (vi), ℕ fails only (iii), ℤ<sup>≤0</sup> fails closure and so cannot even be asked.</li>
+<li><strong>The elements need not be numbers</strong>: matrices (non-commutative), polynomials (not the same objects as the functions they compute), and all functions S → R with pointwise operations — where every axiom holds because it holds at each point, a template that also delivers product rings.</li>
+<li><strong>What the axioms yield, and what they do not.</strong> Yield: uniqueness of 0 and 1 (Proposition 3.14), uniqueness of −a (Proposition 3.15) and hence −(−a) = a, additive cancellation (Proposition 3.17), 0·a = a·0 = 0 (Corollary 3.18), and (−a)b = −(ab). Do not yield: multiplicative cancellation — false in ℤ/6ℤ, and no cleverness will derive it.</li>
+</ol>
+The habit to carry forward: every identity you believe about a ring is either derived from these seven lines or is false somewhere. The gap between those two cases is where aa-06 lives.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §3.1 "Definition and Examples" (binary operations and closure p. 41; Definition 3.1 pp. 41–42; Examples 3.2, 3.3, 3.4 and Example 3.5 p. 42; Examples 3.6 and 3.7 and the caution about numbers p. 43; Example 3.8 pp. 43–44; Example 3.9 pp. 44–45; Example 3.10 pp. 45–46; Example 3.11 and Remark 3.12 p. 46; the pointwise function ring pp. 46–47; Example 3.13 p. 47), pp. 41–47; §3.2 "Basic Properties" (the caution against "obvious" and Proposition 3.14 p. 48; its proof and −(−a) = a p. 49; Remark 3.16 and Proposition 3.17 p. 50; Corollary 3.18 and the failure of multiplicative cancellation p. 51), pp. 47–51. Remark 2.17 and the list (2.3) are carried over from aa-04 (§2.4, pp. 30–34). The identities (−a)b = −(ab) and (−a)(−b) = ab are derived here from Corollary 3.18 and Proposition 3.15 for Problem 3(c); the pointwise verification template is the one Problem 5 uses for R × S and R<sup>A</sup>.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Non-commutativity of M_2,2(R), shown on the unit square: A then B is not B then A.
+var ncc=document.getElementById('nc'),nx=ncc.getContext('2d');
+var PAIRS=[[[1,1,0,1],'A = shear',[0,-1,1,0],'B = quarter turn'],
+           [[2,0,0,1],'A = stretch x',[1,1,0,1],'B = shear']];
+var pi=0,swapped=false;
+function setPair(i){pi=i;drawNC();}
+function toggleOrder(){swapped=!swapped;drawNC();}
+function mul(m,n){return [m[0]*n[0]+m[1]*n[2],m[0]*n[1]+m[1]*n[3],
+                          m[2]*n[0]+m[3]*n[2],m[2]*n[1]+m[3]*n[3]];}
+function poly(m){var p=[[0,0],[1,0],[1,1],[0,1]],o=[];
+ for(var i=0;i<4;i++)o.push([m[0]*p[i][0]+m[1]*p[i][1],m[2]*p[i][0]+m[3]*p[i][1]]);return o;}
+function shape(cx,cy,s,m,col,lab){var p=poly(m);
+ nx.beginPath();for(var i=0;i<4;i++){var x=cx+s*p[i][0],y=cy-s*p[i][1];
+  if(i===0)nx.moveTo(x,y);else nx.lineTo(x,y);}nx.closePath();
+ nx.fillStyle=col;nx.globalAlpha=0.35;nx.fill();nx.globalAlpha=1;
+ nx.strokeStyle=col;nx.lineWidth=2;nx.stroke();
+ nx.fillStyle='#e8e8e8';nx.font='13px Segoe UI';nx.fillText(lab,cx-30,cy+26);}
+function axes(cx,cy,s){nx.strokeStyle='#2a333d';nx.lineWidth=1;
+ nx.beginPath();nx.moveTo(cx-1.4*s,cy);nx.lineTo(cx+2.4*s,cy);
+ nx.moveTo(cx,cy+1.4*s);nx.lineTo(cx,cy-2.4*s);nx.stroke();}
+function drawNC(){nx.clearRect(0,0,ncc.width,ncc.height);
+ var P=PAIRS[pi],A=P[0],B=P[2],s=42;
+ var first=swapped?B:A,second=swapped?A:B;
+ var fn=swapped?P[3]:P[1],sn=swapped?P[1]:P[3];
+ axes(150,170,s);axes(430,170,s);
+ shape(150,170,s,[1,0,0,1],'#9aa5b1','unit square');
+ shape(150,170,s,first,'#d8a657',fn.split(' ')[0]+' applied');
+ shape(430,170,s,mul(second,first),'#8ab4f8',sn.split(' ')[0]+' then applied');
+ nx.fillStyle='#e8e8e8';nx.font='13px Segoe UI';
+ nx.fillText(P[1]+',   '+P[3],14,18);
+ nx.fillStyle='#8ab4f8';
+ nx.fillText('showing  '+sn.split(' ')[0]+'·'+fn.split(' ')[0]+
+   '  (apply '+fn.split(' ')[0]+' first)',14,38);
+ nx.fillStyle='#9aa5b1';
+ nx.fillText('press swap: the other order gives a different shape, so AB is not BA',14,ncc.height-12);}
+drawNC();
+</script></body></html>
