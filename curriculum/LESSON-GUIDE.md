@@ -51,6 +51,11 @@ from the text — never from recollection. If the source available to the writer
 does not contain something the lesson needs, say so in place rather than
 supplying it from memory or quietly routing around it:
 
+When a sentence's main claim belongs to a numbered result, cite that result in
+that sentence. A supporting result used in its proof gets its own sentence and
+citation; do not put two result numbers on one folio and leave review to infer
+which one supports the claim.
+
 ```html
 <p class="gap">NOT IN SOURCE: the proof that the cover is good</p>
 ```

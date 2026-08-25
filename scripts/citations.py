@@ -48,6 +48,7 @@ reading is exactly what this gate exists to make impossible.)
 Exit 0 all citations check out, 1 if any fails, 2 if it could not run.
 """
 import argparse
+from collections import Counter
 import os
 import re
 import sys
@@ -451,8 +452,10 @@ class Book:
         if not os.path.isdir(self.dir):
             raise RuntimeError("pages tree for %r is not on this machine: %s"
                                % (name, self.dir))
+        self.pdf_pages = all_pages(self.dir)
+        self._result_cache = {}
         pages = [(n, folio_candidates(page_text(self.dir, n) or ""))
-                 for n in all_pages(self.dir)]
+                 for n in self.pdf_pages]
         rows, plateaus = fit_offsets(pages)
         # A lone disagreeing page is usually a chapter number or an index
         # reference — but "usually" is the whole difficulty, and dropping EVERY
@@ -498,6 +501,18 @@ class Book:
 
     def text_of(self, pdf_page):
         return page_text(self.dir, pdf_page) or ""
+
+    def find_result(self, result):
+        """Whether a result identifier occurs anywhere in this book."""
+        if result in self._result_cache:
+            return self._result_cache[result]
+        for n in self.pdf_pages:
+            raw = self.text_of(n)
+            if found_on_page(result, normalise_for_search(raw), raw):
+                self._result_cache[result] = True
+                return True
+        self._result_cache[result] = False
+        return False
 
 
 def normalise_for_search(text):
@@ -694,6 +709,61 @@ def attribute(text, primary, names, titles=None):
     return out
 
 
+def pageless_results(text, primary, names, titles=None):
+    """Pageless references as ``(result, line, attributed_book)`` tuples.
+
+    These are not citation verdicts: without a folio there is no location to
+    compare.  They still need a name check, because silently dropping the
+    incomplete pair is how a plausible but nonexistent result number survives.
+    """
+    plain = strip_tags(text)
+    out, current, cursor = [], primary, 0
+    for assertion in _split_assertions(plain):
+        start = plain.find(assertion, cursor)
+        if start < 0:
+            start = cursor
+        cursor = start + len(assertion)
+        current = book_named_in(assertion, names, titles) or current
+        if printed_pages_in(assertion):
+            continue
+        line = plain[:start].count("\n") + 1
+        out.extend((result, line, current) for result in results_in(assertion))
+    return out
+
+
+def unspanned_citations(text, attributed, primary, names, titles=None):
+    """Page-bearing prose references not already captured as citation spans."""
+    covered = Counter()
+    for span, pages, _line, _name in attributed:
+        for result in results_in(span):
+            covered[(result, tuple(sorted(pages)))] += 1
+
+    plain = strip_tags(text)
+    out, current, cursor = [], primary, 0
+    for assertion in _split_assertions(plain):
+        start = plain.find(assertion, cursor)
+        if start < 0:
+            start = cursor
+        cursor = start + len(assertion)
+        current = book_named_in(assertion, names, titles) or current
+        pages = printed_pages_in(assertion)
+        if not pages:
+            continue
+        results = results_in(assertion)
+        # More than one result or more than one page phrase needs explicit
+        # citation markup: proximity alone cannot bind the pairs honestly.
+        if len(results) != 1 or len(list(PAGES.finditer(assertion))) != 1:
+            continue
+        line = plain[:start].count("\n") + 1
+        for result in results:
+            key = (result, tuple(sorted(pages)))
+            if covered[key]:
+                covered[key] -= 1
+            else:
+                out.append((result, pages, line, current))
+    return out
+
+
 def check_file(path, book, verbose=False, books=None, all_names=None,
                titles=None):
     """Returns (failures, checked, unavailable). Prints a row per failure.
@@ -712,7 +782,7 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
         # reserved for "a citation was compared and was wrong".
         # (Codex review of PR #21.)
         raise Unreadable("%s: %s" % (path, e)) from e
-    failures, warnings, checked = [], [], 0
+    failures, warnings, checked, ambiguous = [], [], 0, 0
     # `book` may be a Book or just a book NAME. Only its name is used here —
     # as the default attribution for a clause that names no book — and every
     # clause is resolved against `books` below, so a primary whose page tree is
@@ -726,9 +796,11 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
     # stayed attributed to the primary and its citations were reported wrong,
     # which is the one verdict the docstring promises never to give for a check
     # that could not run. (Codex review of PR #21.)
-    for span, pages, line, name in attribute(text, primary,
-                                             all_names or sorted(books),
-                                             titles):
+    names = all_names or sorted(books)
+    attributed = attribute(text, primary, names, titles)
+    attributed.extend(unspanned_citations(text, attributed, primary, names,
+                                          titles))
+    for span, pages, line, name in attributed:
         results = results_in(span)
         if not pages or not results:
             continue
@@ -736,7 +808,10 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
             unavailable.add(name)
             continue
         book = books[name]
-        pdf_pages = sorted({n for p in pages for n in book.pdf_pages_for(p)})
+        candidates = {p: book.pdf_pages_for(p) for p in pages}
+        if any(len(ns) > 1 for ns in candidates.values()):
+            ambiguous += len(results)
+        pdf_pages = sorted({n for ns in candidates.values() for n in ns})
         if not pdf_pages:
             # One failure PER RESULT, and each one counted. Recording a single
             # failure and skipping the increment produced output that
@@ -791,6 +866,16 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
             elif verbose:
                 print("  ok  %s on %s printed p. %s"
                       % (r, book.name, ",".join(str(p) for p in sorted(pages))))
+    # A result mention without a page is neither checked nor wrong.  Search the
+    # primary book's own stated results so a nonexistent remembered number is
+    # visible, while a correct cross-reference stays quiet.
+    pageless = pageless_results(text, primary, names, titles)
+    for r, line, name in pageless:
+        named_book = books.get(name)
+        if named_book is not None and hasattr(named_book, "find_result") \
+                and not named_book.find_result(r):
+            warnings.append("line %d: pageless %s was not found anywhere in %s"
+                            % (line, r, named_book.name))
     for w in warnings:
         print("WARN %s" % w)
     for f_ in failures:
@@ -798,6 +883,12 @@ def check_file(path, book, verbose=False, books=None, all_names=None,
     for name in sorted(unavailable):
         print("NOVERDICT citations attributed to %s were not checked: its page"
               " tree is not on this machine" % name)
+    if pageless:
+        print("NOTE %d pageless result reference(s) were name-checked, not "
+              "counted as citation verdicts" % len(pageless))
+    if ambiguous:
+        print("NOTE %d citation(s) resolved to more than one candidate PDF page"
+              % ambiguous)
     return failures, checked, unavailable
 
 

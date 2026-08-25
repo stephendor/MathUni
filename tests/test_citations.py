@@ -476,6 +476,79 @@ def test_a_sentence_ends_an_assertion_but_an_abbreviation_does_not():
         == [[46], [18]]
 
 
+def test_pageless_result_is_a_named_third_outcome(tmp_path, capsys):
+    """A missing page cannot silently enter the checked denominator."""
+    import scripts.citations as C
+
+    class FakeBook:
+        name = "Fake"
+
+        def find_result(self, result):
+            return result == "Theorem 5.52"
+
+    src = tmp_path / "unit.md"
+    src.write_text("Theorem 5.52 is correct. Theorem 5.20 is not.\n",
+                   encoding="utf-8")
+    failures, checked, unavailable = C.check_file(str(src), FakeBook())
+    output = capsys.readouterr().out
+    assert failures == [] and checked == 0 and unavailable == set()
+    assert "pageless Theorem 5.20 was not found" in output
+    assert "pageless Theorem 5.52 was not found" not in output
+    assert "2 pageless result reference(s)" in output
+
+
+def test_running_prose_page_reference_is_checked_once(tmp_path):
+    """A bare result-and-page sentence is a citation, without span markup."""
+    import scripts.citations as C
+
+    class FakeBook:
+        name = "Fake"
+
+        def pdf_pages_for(self, printed):
+            return [10] if printed == 7 else []
+
+        def text_of(self, pdf_page):
+            return "Theorem 2.3"
+
+        def find_result(self, result):
+            return True
+
+    src = tmp_path / "unit.md"
+    src.write_text("That is Fake Theorem 2.3, p. 7.\n", encoding="utf-8")
+    failures, checked, unavailable = C.check_file(str(src), FakeBook())
+    assert failures == [] and checked == 1 and unavailable == set()
+
+    # The same assertion inside a recognised span must not enter twice.
+    src.write_text("**Sources:** Fake, Theorem 2.3, p. 7\n\n", encoding="utf-8")
+    failures, checked, unavailable = C.check_file(str(src), FakeBook())
+    assert failures == [] and checked == 1 and unavailable == set()
+
+
+def test_ambiguous_folio_resolution_is_counted(tmp_path, capsys):
+    """Accept-any-candidate remains valid, but its weaker proof is visible."""
+    import scripts.citations as C
+
+    class FakeBook:
+        name = "Fake"
+
+        def pdf_pages_for(self, printed):
+            return [10, 110]
+
+        def text_of(self, pdf_page):
+            return "Theorem 2.3" if pdf_page == 10 else ""
+
+        def find_result(self, result):
+            return True
+
+    src = tmp_path / "unit.md"
+    src.write_text("**Sources:** Fake, Theorem 2.3, p. 7\n\n",
+                   encoding="utf-8")
+    failures, checked, unavailable = C.check_file(str(src), FakeBook())
+    output = capsys.readouterr().out
+    assert failures == [] and checked == 1 and unavailable == set()
+    assert "1 citation(s) resolved to more than one candidate PDF page" in output
+
+
 def test_a_range_expands_but_a_list_does_not():
     """`Exercises 1.3.1-1.3.9` cites all nine — taking only the ends left seven
     out of the denominator. `Definitions 8.3, 8.5` cites exactly two, and
