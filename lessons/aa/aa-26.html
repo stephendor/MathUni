@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-26 — Normality and quotient groups</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Normality and quotient groups <span class="cite">(aa-26)</span></h1>
+
+<div class="hook">
+Which subgroups can you divide by? The quotient move in its non-abelian final form. (Compare aa-09, aa-16.)
+<p>Three times now you have built a quotient. aa-09 divided a ring by an ideal, aa-16 divided a module by a submodule, and both times the recipe was the same and the answer was "any submodule will do, any ideal will do". Run the recipe on a group and it breaks. Not for every group — for every group that fails to be commutative. This unit is about exactly what breaks, exactly which subgroups escape, and why the escaping ones are precisely the kernels.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> In aa-16 you could form M/N for <em>any</em> submodule N. For a group G and any subgroup K, can you always make the set of cosets into a group?</p>
+<button onclick="check(this,false)">Yes — the construction is identical, just written multiplicatively</button>
+<button data-ok onclick="check(this,true)">No — only for subgroups satisfying an extra condition, which is automatic when G is abelian</button>
+<button onclick="check(this,false)">No — only when K is finite</button>
+<div class="explain">The obstruction is that a group has two ways of forming cosets, aK and Ka, and they need not agree. When they disagree, the coset multiplication (aK)(bK) = (ab)K is not even well defined, so there is nothing to check associativity of. Finiteness has nothing to do with it: the smallest counterexample has six elements, and every abelian group of every size is fine. <span class="cite">— Aluffi Underground §11.4, p. 255</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Hn is a quotient group; the third and deepest rehearsal of homology's defining construction.</p>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 1 — Two relations where there used to be one</h2>
+
+<p>Aluffi sets up the canonical decomposition of a group homomorphism exactly as §5.1 did for rings and §8.4 for modules — a surjection, then an isomorphism, then an injection — and then warns that the discussion "will be quite a bit more involved than the analogous discussion for modules". <span class="cite">— Aluffi Underground §11.4, p. 254</span> Here is where the extra involvement comes from.</p>
+
+<p>Given φ : G → H, the relation to quotient by is a ∼ b when φ(a) = φ(b). Rewrite it. Since φ(a) = φ(b) exactly when φ(a⁻¹b) = e, and that happens exactly when a⁻¹b lies in the kernel:</p>
+
+<div class="definition">
+<p><strong>Definition 11.49.</strong> The <strong>kernel</strong> of a group homomorphism φ : G → H is ker φ = {g in G : φ(g) = e<sub>H</sub>}. <span class="cite">— Aluffi Underground §11.4, Definition 11.49, p. 254</span></p>
+</div>
+
+<p>aa-23 already showed ker φ is a subgroup, and φ is injective exactly when the kernel is trivial. So far this is aa-16 word for word. Now generalise: for <em>any</em> subgroup K, define a ∼′<sub>K</sub> b to mean a⁻¹b lies in K. It is an equivalence relation, and its classes are easy to identify — the class of a is aK = {ak : k in K}, the <strong>left coset</strong>. <span class="cite">— Aluffi Underground §11.4, p. 254</span></p>
+
+<div class="definition">
+<p><strong>Definition 11.50.</strong> For a subgroup K of G, the notation G/K denotes the <em>set</em> of left cosets of K in G. <span class="cite">— Aluffi Underground §11.4, Definition 11.50, p. 254</span></p>
+</div>
+
+<p>Note what that definition carefully does not say: it makes G/K a set, not a group. And now rewind. The very same relation ∼ can be rewritten a second way, because φ(a) = φ(b) also happens exactly when φ(ba⁻¹) = e, that is when ba⁻¹ lies in the kernel. Generalise <em>that</em> to an arbitrary subgroup and you get a different relation, a ∼″<sub>K</sub> b meaning ba⁻¹ is in K, whose classes are the <strong>right cosets</strong> Ka. <span class="cite">— Aluffi Underground §11.4, p. 255</span></p>
+
+<p>In a ring or a module the operation was written +, and a + I is a + I whichever side you write it on. The two rewritings collapse into one, and the whole difficulty of this unit disappears — which is why aa-09 and aa-16 never mentioned it. For a group they do not collapse.</p>
+
+<div class="worked">
+<strong>Example 11.51 — the obstruction, in six elements.</strong> Take G = D<sub>6</sub>, the symmetries of the equilateral triangle, in the notation of aa-25: x the flip, y the rotation, with xy = y⁻¹x. Let K = ⟨x⟩ = {e, x} and a = y. Then
+<p style="text-align:center">aK = {y, yx},   Ka = {y, xy}.</p>
+<p>By Proposition 11.35, xy = y⁻¹x, which is not yx. So aK ≠ Ka. <span class="cite">— Aluffi Underground §11.4, Example 11.51, p. 255</span></p>
+<p>In cycle notation on the three vertices this is concrete: with x = (2 3) and y = (1 2 3), the products are yx = (1 2) and xy = (1 3), genuinely different transpositions. The left cosets partition D<sub>6</sub> as {e, (2 3)}, {(1 2), (1 2 3)}, {(1 3 2), (1 3)}; the right cosets partition it as {e, (2 3)}, {(1 2), (1 3 2)}, {(1 2 3), (1 3)}. Two partitions of the same six elements, agreeing on one block and disagreeing on the other two.</p>
+</div>
+
+<p>Now the argument that turns this from a curiosity into a prohibition. Suppose we did manage to make G/K a group in such a way that the projection π : G → G/K is a homomorphism. Then K would be ker π. But for a kernel the two rewritings above are both descriptions of the same relation ∼, so left and right cosets of a kernel <em>must</em> coincide. Since they do not coincide for ⟨x⟩ in D<sub>6</sub>, no such group structure exists. <span class="cite">— Aluffi Underground §11.4, p. 255</span></p>
+
+<p>So the conclusion is not that the construction is harder for groups. It is that for general groups it is <em>impossible</em> for some subgroups, and the subgroups it works for need a name.</p>
+
+<div class="definition">
+<p><strong>Definition 11.52.</strong> A subgroup K of G is <strong>normal</strong> if gK = Kg for all g in G, or equivalently gKg⁻¹ = K for all g in G. <span class="cite">— Aluffi Underground §11.4, Definition 11.52, p. 255</span></p>
+</div>
+
+<p>Two immediate riders, both of which people get wrong.</p>
+
+<p><strong>Remark 11.53.</strong> To verify normality it suffices to show gKg⁻¹ is <em>contained in</em> K for every g. If that holds for all g it holds for g⁻¹ too, and g⁻¹Kg ⊆ K is equivalent to K ⊆ gKg⁻¹; both inclusions give equality. <span class="cite">— Aluffi Underground §11.4, Remark 11.53, p. 255</span></p>
+
+<p><strong>Remark 11.54 — the caveat.</strong> gK = Kg does <em>not</em> mean gk = kg for every k in K. It means that for every k there is <em>some</em> k′ in K with gk = k′g. Normality is the statement that for all k in K and all g in G there exists k′ in K with gkg⁻¹ = k′, and in general k′ ≠ k. <span class="cite">— Aluffi Underground §11.4, Remark 11.54, p. 255</span> Normality is a condition on the subgroup as a <em>set</em>, not on its elements one at a time. <span class="cite">— Aluffi Underground §11.4, p. 256</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does this difficulty not arise for modules in aa-16?</p>
+<button onclick="check(this,false)">Because submodules are always finite</button>
+<button data-ok onclick="check(this,true)">Because the operation is commutative, so a + N and N + a are the same set</button>
+<button onclick="check(this,false)">Because modules have scalars and groups do not</button>
+<div class="explain">The underlying abelian group of a module is commutative, so a + N = N + a automatically and the two rewritings of the relation coincide. Aluffi makes the same point about groups directly: if G is commutative then gkg⁻¹ = gg⁻¹k = k, so every subgroup of a commutative group is normal, "and this is why we did not have to face this issue when we dealt with abelian groups". <span class="cite">— Aluffi Underground §11.4, p. 256</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Next: how to recognise a normal subgroup on sight.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 2 — Recognising normality</h2>
+
+<p>Definition 11.52 is a condition to be checked for every g, which is impractical. Two better tests follow, one conceptual and one that is almost always the fastest in practice.</p>
+
+<div class="theorem">
+<p><strong>Proposition 11.57.</strong> A subgroup K of G is normal if and only if it is a union of conjugacy classes. <span class="cite">— Aluffi Underground §11.4, Proposition 11.57, p. 256</span></p>
+</div>
+
+<p>Conjugacy classes are aa-24's Definition 11.31: the orbits of G acting on itself by conjugation. Aluffi's proof sets K̂ to be the union of the conjugacy classes of the elements of K, notes K ⊆ K̂ because every element is conjugate to itself, and shows K is normal exactly when K̂ ⊆ K — the forward direction because h = gkg⁻¹ lies in gKg⁻¹ ⊆ K, the reverse because gKg⁻¹ ⊆ K̂ ⊆ K for every g, which suffices by Remark 11.53. <span class="cite">— Aluffi Underground §11.4, p. 256</span></p>
+
+<p>This is a genuinely useful constraint rather than a restatement. Conjugacy classes partition G, so a normal subgroup's <em>size</em> must be a sum of conjugacy-class sizes, one of which is 1 for the identity. Knowing the class sizes of a group therefore restricts which orders a normal subgroup can have before you look at a single subgroup.</p>
+
+<div class="theorem">
+<p><strong>Proposition 11.58.</strong> If φ : G → H is a group homomorphism then ker φ is a normal subgroup of G. <span class="cite">— Aluffi Underground §11.4, Proposition 11.58, p. 256</span></p>
+<p><em>Proof.</em> For g in G and k in ker φ, φ(gkg⁻¹) = φ(g)φ(k)φ(g)⁻¹ = φ(g)e<sub>H</sub>φ(g)⁻¹ = e<sub>H</sub>, so gkg⁻¹ is in ker φ. That gives g(ker φ)g⁻¹ ⊆ ker φ for all g, which suffices by Remark 11.53. <span class="cite">— Aluffi Underground §11.4, p. 257</span></p>
+</div>
+
+<p>Aluffi states the practical consequence plainly: often the simplest way to verify that K is normal is to realise it as the kernel of a homomorphism out of G. <span class="cite">— Aluffi Underground §11.4, p. 257</span> Three of the examples below do exactly that.</p>
+
+<p><strong>Example 11.59 — index two.</strong> Suppose there are exactly two left cosets, G/K = {K, aK}. Then K is automatically normal. The proof uses Remark 11.56, which says that whether or not K is normal, G <em>acts</em> on the set of left cosets by g·aK := (ga)K — an action defined for any subgroup, and one that will reappear in the proof of the Sylow theorems. <span class="cite">— Aluffi Underground §11.4, Remark 11.56, p. 256</span> With only two cosets that action is a homomorphism φ : G → S<sub>2</sub>, and Aluffi checks both inclusions to show ker φ = K exactly, so K is a kernel and hence normal. <span class="cite">— Aluffi Underground §11.4, Example 11.59, p. 257</span></p>
+
+<p><strong>Example 11.60 — the centre.</strong> Z(G) is the set of elements commuting with everything. It is a subgroup, and it is normal for a one-line reason: gzg⁻¹ = zgg⁻¹ = z for every z in Z(G), so gZ(G)g⁻¹ ⊆ Z(G). <span class="cite">— Aluffi Underground §11.4, Example 11.60, p. 257</span> Notice this is the rare case where the naive reading of Remark 11.54 <em>is</em> correct — but only because the elements of Z(G) were chosen to commute.</p>
+
+<p><strong>Example 11.61 — inside the dihedral group.</strong> D<sub>2n</sub> for n ≥ 3 contains one subgroup isomorphic to C<sub>n</sub> — the rotations — and n subgroups isomorphic to C<sub>2</sub>, generated by the individual flips. The flips are not normal: with F = {e, x}, the computation yxy⁻¹ = xy⁻¹y⁻¹ = xy⁻² lands outside F. The rotation subgroup K = {e, y, …, y<sup>n−1</sup>} <em>is</em> normal. <span class="cite">— Aluffi Underground §11.4, Example 11.61, p. 257</span></p>
+
+<p>Aluffi checks the rotations directly. Write g = xⁱyʲ by Proposition 11.35. If i = 0 then g is in K and gKg⁻¹ = K. If i = 1 then gy<sup>k</sup>g⁻¹ = xyʲy<sup>k</sup>y<sup>n−j</sup>x = xy<sup>k</sup>x = y⁻<sup>k</sup>xx = y⁻<sup>k</sup>, which is in K. He then gives the shortcut: define φ : D<sub>2n</sub> → C<sub>2</sub> by sending g to e if it does not flip the n-gon and to f if it does; the rotations are the kernel, so they are normal by Proposition 11.58. <span class="cite">— Aluffi Underground §11.4, p. 258</span></p>
+
+<p><strong>Example 11.62 — the alternating group.</strong> A<sub>n</sub> is normal in S<sub>n</sub>, by definition the kernel of the sign homomorphism of aa-25's Definition 11.39. For n = 3 it is the copy of C<sub>3</sub> inside D<sub>6</sub> ≅ S<sub>3</sub>; A<sub>4</sub> is the rotation group of the regular tetrahedron and A<sub>5</sub> the rotation group of the icosahedron. <span class="cite">— Aluffi Underground §11.4, Example 11.62, p. 258</span></p>
+
+<p><strong>Example 11.63 — the Klein four-group.</strong> Inside A<sub>4</sub> sits V = {e, (1 2)(3 4), (1 3)(2 4), (1 4)(2 3)}, isomorphic to C<sub>2</sub> × C<sub>2</sub>. It is normal in A<sub>4</sub>; Aluffi's sample conjugation is (1 2 3)(1 2)(3 4)(3 2 1) = (1 4)(2 3), which is back in V. <span class="cite">— Aluffi Underground §11.4, Example 11.63, p. 258</span> Proposition 11.57 explains why: V is exactly the identity together with the whole conjugacy class of double transpositions, so it is a union of conjugacy classes on the nose.</p>
+
+<p>Below, the failure and its repair, drawn. The upper strip colours G by its left cosets, the lower by its right cosets; when the two colourings agree as partitions, the subgroup is normal. The verdict is computed from the group table, not asserted.</p>
+
+<canvas id="cos" width="620" height="300" aria-label="A group partitioned into left cosets and into right cosets, with a computed normality verdict"></canvas>
+<div class="controls">
+<button onclick="setCase(0)">D₆, K = ⟨x⟩ (a flip)</button>
+<button onclick="setCase(1)">D₆, K = ⟨y⟩ (the rotations)</button>
+<button onclick="setCase(2)">S₄, K = A₄</button>
+<button onclick="setCase(3)">A₄, K = V</button>
+<button onclick="setCase(4)">S₄, K = ⟨(1 2)⟩</button>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Step through the five cases and predict the verdict before reading it. Then explain each one by naming the relevant test rather than by inspecting the picture.
+<details><summary>The five reasons</summary>
+<ol>
+<li>⟨x⟩ in D<sub>6</sub>: <em>not</em> normal — this is Example 11.51 itself, and yxy⁻¹ = xy⁻² escapes, as in Example 11.61.</li>
+<li>⟨y⟩ in D<sub>6</sub>: normal — the rotations are the kernel of the flip-or-not homomorphism to C<sub>2</sub>, Example 11.61. Two cosets, so Example 11.59 also settles it.</li>
+<li>A<sub>4</sub> in S<sub>4</sub>: normal — the kernel of the sign homomorphism, Example 11.62. Again exactly two cosets, even and odd.</li>
+<li>V in A<sub>4</sub>: normal — a union of conjugacy classes by Proposition 11.57, namely the identity's class and the class of double transpositions. Not an index-two subgroup: 4 into 12 is index 3, so Example 11.59 does <em>not</em> apply and Proposition 11.57 is doing real work.</li>
+<li>⟨(1 2)⟩ in S<sub>4</sub>: not normal — a single transposition is not a whole conjugacy class, since (1 3)(1 2)(1 3) = (2 3) is a conjugate lying outside. Proposition 11.57 rules it out immediately.</li>
+</ol></details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which statement does normality of K actually assert?</p>
+<button onclick="check(this,false)">Every element of K commutes with every element of G</button>
+<button data-ok onclick="check(this,true)">For each k in K and g in G there is <em>some</em> k′ in K with gkg⁻¹ = k′ — usually a different element</button>
+<button onclick="check(this,false)">K contains the centre of G</button>
+<div class="explain">This is Remark 11.54, the caveat Aluffi writes out precisely because the first option is the standard misreading. The rotation subgroup of D<sub>2n</sub> is normal, yet x does not commute with y: conjugating y by x gives y⁻¹, a different element of K. Normality says the <em>set</em> K is preserved by conjugation, not that its elements are fixed. Subgroups whose elements are individually fixed are subgroups of the centre — Example 11.60 — which is a far stronger condition. <span class="cite">— Aluffi Underground §11.4, Remark 11.54, p. 255</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> What is the quickest way to prove a given subgroup is normal, in practice?</p>
+<button onclick="check(this,false)">Check gKg⁻¹ = K for every g in G, one at a time</button>
+<button data-ok onclick="check(this,true)">Exhibit it as the kernel of some homomorphism out of G</button>
+<button onclick="check(this,false)">Check that it is abelian</button>
+<div class="explain">Aluffi says so outright: often the simplest way to verify K is normal is to realise it as the kernel of a homomorphism from G to some other group, which forces normality by Proposition 11.58. The rotations in D<sub>2n</sub> and A<sub>n</sub> in S<sub>n</sub> are both settled this way in a line. Being abelian is irrelevant — ⟨x⟩ in D<sub>6</sub> is abelian and not normal. <span class="cite">— Aluffi Underground §11.4, p. 257</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Then the payoff: normality is enough.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 3 — Normality is the only obstruction</h2>
+
+<p>Everything so far has been the bad news. Proposition 11.58 said that if a quotient exists then K is normal. The theorem says the converse: normality is not merely necessary, it is sufficient, and nothing else is required.</p>
+
+<div class="theorem">
+<p><strong>Theorem 11.64.</strong> Let K be a normal subgroup of G. Then aK = Ka for all a; the relations ∼′<sub>K</sub> and ∼″<sub>K</sub> coincide; and the set G/K of left cosets is a group under (aK)·(bK) := (ab)K. <span class="cite">— Aluffi Underground §11.4, Theorem 11.64, p. 258</span></p>
+</div>
+
+<p>The first point restates normality. The second follows, because left cosets are the classes of ∼′<sub>K</sub> and right cosets the classes of ∼″<sub>K</sub>, and an equivalence relation is determined by its classes — aa-03's fact, used here to identify two relations rather than to build one. The third is the only point with content, and it is entirely about <em>well-definedness</em>. <span class="cite">— Aluffi Underground §11.4, p. 259</span></p>
+
+<div class="worked fade">
+<strong>Worked, then faded — the well-definedness computation.</strong> The rule (aK)(bK) := (ab)K names the product using representatives a and b. To be a definition at all, it must not depend on which representatives you picked. So suppose aK = a′K and bK = b′K, which means a⁻¹a′ is in K and b⁻¹b′ is in K, and we must show (ab)K = (a′b′)K, that is, (ab)⁻¹(a′b′) is in K.
+<p>Aluffi's manipulation, in full: (ab)⁻¹(a′b′) = b⁻¹a⁻¹a′b′ = b⁻¹a⁻¹a′(bb⁻¹)b′ = (b⁻¹a⁻¹a′b)(b⁻¹b′). <span class="cite">— Aluffi Underground §11.4, p. 259</span></p>
+<p>Now fade it. The second factor b⁻¹b′ lies in K by assumption. The first factor is b⁻¹ times ⟨?⟩ times b, where the middle element lies in K — so the first factor lies in the set ⟨?⟩, which equals K precisely because ⟨?⟩. Hence the product lies in K.</p>
+<details><summary>Check</summary>The middle element is a⁻¹a′, which lies in K by assumption. So the first factor lies in b⁻¹Kb, and b⁻¹Kb = K precisely because K is normal — this is Definition 11.52 applied with g = b⁻¹. Both factors are in K, K is closed under multiplication, so the product is in K and (ab)K = (a′b′)K.
+<p>That single step is where the whole unit lands. Every other line of the proof would go through for an arbitrary subgroup; normality is used exactly once, and exactly there.</p></details>
+</div>
+
+<p>The rest is routine: associativity is inherited from G, eK = K is the identity, and (aK)(a⁻¹K) = (aa⁻¹)K = K gives inverses. <span class="cite">— Aluffi Underground §11.4, p. 259</span></p>
+
+<div class="definition">
+<p><strong>Definition 11.65.</strong> For K normal in G, the <strong>quotient</strong> G/K is the group of cosets of K with the operation (aK)(bK) := (ab)K. <span class="cite">— Aluffi Underground §11.4, Definition 11.65, p. 259</span></p>
+</div>
+
+<p>The projection π : G → G/K is then a surjective homomorphism straight from the definition of the product, since π(ab) = (ab)K = (aK)(bK) = π(a)π(b), and its kernel is {a : aK = K} = K. <span class="cite">— Aluffi Underground §11.4, p. 259</span> Which closes the circle:</p>
+
+<p><strong>Remark 11.66.</strong> The notions of kernel and of normal subgroup coincide. Kernels are normal by Proposition 11.58, and every normal subgroup is the kernel of its own projection. <span class="cite">— Aluffi Underground §11.4, Remark 11.66, p. 259</span></p>
+
+<p>That is the third instance of a pattern you have now seen three times. In rings, kernels and ideals coincide; in modules, kernels and submodules coincide; in groups, kernels and normal subgroups coincide. Each time, "the subobjects you can quotient by" and "the subobjects that arise as kernels" turn out to be the same class, and each time the quotient construction is what proves it. <span class="cite">— Aluffi Underground §11.4, p. 259</span></p>
+
+<div class="you-try">
+<strong>Guided proof.</strong> Prove that a subgroup K of index 2 in G is normal — Example 11.59 — but without using the action on cosets. Argue directly from the partition instead. Two hints: the two left cosets are K and G minus K, and the same is true of the two right cosets.
+<textarea placeholder="Let g be in G. Case 1: g is in K. Then gK = ... and Kg = ... Case 2: g is not in K. There are exactly two left cosets and they partition G, and one of them is K, so the other must be ... The same argument on the right gives Kg = ... Therefore gK = Kg for every g, which is Definition 11.52."></textarea>
+<details><summary>Model answer</summary>
+<p><em>Case 1: g in K.</em> Then gK = K, since gK ⊆ K by closure and k = g(g⁻¹k) shows K ⊆ gK. Symmetrically Kg = K. So gK = Kg.</p>
+<p><em>Case 2: g not in K.</em> The left cosets partition G — that is what makes them the classes of an equivalence relation — and there are exactly two of them, one of which is K. So the other is G \ K, and since g is not in K its coset gK must be that one: gK = G \ K. Now run the identical argument for right cosets: they also partition G, there are also exactly two, one is K, so the other is G \ K, and Kg = G \ K. Hence gK = Kg.</p>
+<p>Both cases give gK = Kg, so K is normal by Definition 11.52. Note what the argument used: only that a partition into two blocks with one block known determines the other. It never touched the group operation beyond closure, which is why the result feels almost too cheap — and why Aluffi says Lagrange's theorem will make it simpler still, since index two is a statement about orders.</p></details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Where exactly is normality used in the proof of Theorem 11.64?</p>
+<button onclick="check(this,false)">In proving associativity of the coset product</button>
+<button data-ok onclick="check(this,true)">In one step of well-definedness: b⁻¹Kb = K, which makes the product independent of representatives</button>
+<button onclick="check(this,false)">In proving that eK is the identity coset</button>
+<div class="explain">Associativity is inherited from G, the identity and inverses are immediate, and all three would work for any subgroup. The entire weight falls on showing (ab)K depends only on aK and bK, and there the factorisation (ab)⁻¹(a′b′) = (b⁻¹a⁻¹a′b)(b⁻¹b′) produces a conjugate of an element of K, which is required to land back in K. That is Definition 11.52 and nothing else. <span class="cite">— Aluffi Underground §11.4, Theorem 11.64, p. 258</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Aluffi's Remark 11.66 concludes something about kernels. What?</p>
+<button onclick="check(this,false)">Every kernel is a subgroup, which was already known</button>
+<button data-ok onclick="check(this,true)">Kernel and normal subgroup are the same notion — each is exactly the other</button>
+<button onclick="check(this,false)">Every normal subgroup is the kernel of a unique homomorphism</button>
+<div class="explain">Both directions are now available: Proposition 11.58 makes every kernel normal, and Definition 11.65 with its projection makes every normal subgroup a kernel. Uniqueness is not claimed and is false — K is the kernel of its projection and also of anything obtained by composing that projection with an injective homomorphism. The point is the coincidence of the two <em>classes</em> of subgroup, matching ideals in rings and submodules in modules. <span class="cite">— Aluffi Underground §11.4, Remark 11.66, p. 259</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen and reconstruct the argument as a single narrative — the obstruction, the definition, the tests, the theorem:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>The obstruction.</strong> φ(a) = φ(b) can be rewritten with a⁻¹b or with ba⁻¹ in the kernel (Definition 11.49). Generalised to an arbitrary subgroup these give different relations, whose classes are left cosets aK (Definition 11.50) and right cosets Ka. In D<sub>6</sub> with K = ⟨x⟩ and a = y they genuinely differ, since xy = y⁻¹x ≠ yx — Example 11.51. A quotient group would make K a kernel, and for a kernel the two agree, so no quotient by ⟨x⟩ exists.</li>
+<li><strong>The definition.</strong> K is normal when gK = Kg for all g, equivalently gKg⁻¹ = K (Definition 11.52). One inclusion suffices (Remark 11.53), and it does <em>not</em> mean elements of K commute with elements of G (Remark 11.54).</li>
+<li><strong>The tests.</strong> Normal exactly when K is a union of conjugacy classes (Proposition 11.57), which constrains its possible size; and every kernel is normal (Proposition 11.58), which is usually the fast route. Worked cases: index two via the action on cosets (Remark 11.56 and Example 11.59), the centre (Example 11.60), the rotations but not the flips in D<sub>2n</sub> (Example 11.61), A<sub>n</sub> in S<sub>n</sub> (Example 11.62), the Klein four-group in A<sub>4</sub> (Example 11.63).</li>
+<li><strong>The theorem.</strong> Normality is sufficient: G/K is a group under (aK)(bK) = (ab)K (Theorem 11.64, Definition 11.65), with normality used at exactly one step, b⁻¹Kb = K. The projection is surjective with kernel K, so kernels and normal subgroups are the same thing (Remark 11.66).</li>
+</ol>
+The mission strip is item 4 read topologically. A homology group H<sub>n</sub> is ker ∂<sub>n</sub> modulo im ∂<sub>n+1</sub> — a quotient, and the third and deepest rehearsal of the move you have now made for rings, for modules, and for groups. The reason that quotient is always legal is that chain groups are abelian, so Self-check 1 applies and every subgroup is normal; the non-abelian difficulty of this unit is precisely what does <em>not</em> arise there. But it arises immediately in homotopy, where π₁ is not abelian, normal subgroups are exactly what covering spaces classify, and aa-25's free groups are the objects being quotiented.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi Underground, <em>Algebra: Notes from the Underground</em> — §11.4 "Canonical Decomposition, Normality, and Quotients" (the canonical decomposition and the warning about the extra difficulty p. 253; the two rewritings, Definition 11.49 and Definition 11.50 p. 254; right cosets, Example 11.51, the impossibility argument, Definition 11.52, Remark 11.53 and Remark 11.54 p. 255; Remark 11.55, Remark 11.56, Proposition 11.57 with proof, the abelian case and Proposition 11.58 p. 256; the proof of Proposition 11.58, Example 11.59, Example 11.60 and Example 11.61 p. 257; the direct check for the rotations, Example 11.62 and Example 11.63 p. 258; Theorem 11.64 p. 258; its proof, Definition 11.65, the projection and Remark 11.66 p. 259), pp. 253–259.
+In Aluffi Underground: the quotient constructions being compared come from aa-09 (§5.1) and aa-16 (§8.4); conjugacy classes are Definition 11.31 from aa-24; the dihedral notation, Proposition 11.35, the sign homomorphism of Definition 11.39 and the alternating group of Definition 11.40 are all from aa-25 (§11.3, pp. 241–252); the fact that a kernel is a subgroup is from aa-23 (§11.1, pp. 229–232); and the partition-from-equivalence-relation machinery is aa-03's.
+The canvas computes each group from its generators, forms both families of cosets, and compares the two partitions; the reported verdicts were re-derived independently before publication, and agree with Example 11.51, Example 11.61, Example 11.62 and Example 11.63.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Left and right cosets of K in G, both computed from generators. The normality
+// verdict compares the two partitions; nothing here is tabulated in advance.
+var cc=document.getElementById('cos'),cx2=cc.getContext('2d');
+function cmp(f,g){var a=[];for(var i=0;i<g.length;i++)a.push(f[g[i]]);return a;}
+function key(p){return p.join(',');}
+function ident(n){var a=[];for(var i=0;i<n;i++)a.push(i);return a;}
+function fromCycles(n,cs){var p=ident(n);
+ for(var i=0;i<cs.length;i++){var c=cs[i];
+  for(var j=0;j<c.length;j++)p[c[j]-1]=c[(j+1)%c.length]-1;}
+ return p;}
+function closure(n,gens){var seen={},out=[],q=[ident(n)];seen[key(ident(n))]=1;
+ while(q.length){var p=q.pop();out.push(p);
+  for(var i=0;i<gens.length;i++){var r=cmp(gens[i],p);
+   if(!seen[key(r)]){seen[key(r)]=1;q.push(r);}}}
+ return out;}
+function label(p){var n=p.length,seen=[],out='';
+ for(var i=0;i<n;i++)seen.push(false);
+ for(var i=0;i<n;i++){
+  if(seen[i]||p[i]===i)continue;
+  var c=[],j=i;
+  while(!seen[j]){seen[j]=true;c.push(j+1);j=p[j];}
+  if(c.length>1)out+='('+c.join('')+')';}
+ return out||'e';}
+
+var CASES=[
+ {t:'D₆ (the triangle), K = ⟨x⟩ = {e, (23)}',n:3,
+  g:[fromCycles(3,[[2,3]]),fromCycles(3,[[1,2,3]])],k:[fromCycles(3,[[2,3]])]},
+ {t:'D₆ (the triangle), K = ⟨y⟩ = the rotations',n:3,
+  g:[fromCycles(3,[[2,3]]),fromCycles(3,[[1,2,3]])],k:[fromCycles(3,[[1,2,3]])]},
+ {t:'S₄, K = A₄ (the even permutations)',n:4,
+  g:[fromCycles(4,[[1,2]]),fromCycles(4,[[1,2,3,4]])],
+  k:[fromCycles(4,[[1,2,3]]),fromCycles(4,[[2,3,4]])]},
+ {t:'A₄, K = V (the Klein four-group)',n:4,
+  g:[fromCycles(4,[[1,2,3]]),fromCycles(4,[[2,3,4]])],
+  k:[fromCycles(4,[[1,2],[3,4]]),fromCycles(4,[[1,3],[2,4]])]},
+ {t:'S₄, K = ⟨(12)⟩',n:4,
+  g:[fromCycles(4,[[1,2]]),fromCycles(4,[[1,2,3,4]])],k:[fromCycles(4,[[1,2]])]}];
+var CUR=0;
+function setCase(i){CUR=i;drawCos();}
+
+function partition(G,K,side){
+ var blocks=[],of={};
+ for(var i=0;i<G.length;i++){
+  if(key(G[i]) in of)continue;
+  var b=[];
+  for(var j=0;j<K.length;j++){
+   var p=(side==='L')?cmp(G[i],K[j]):cmp(K[j],G[i]);
+   b.push(key(p));}
+  b.sort();
+  for(var j=0;j<b.length;j++)of[b[j]]=blocks.length;
+  blocks.push(b);}
+ return {of:of,blocks:blocks};}
+
+var PAL=['#8ab4f8','#4caf82','#d8a657','#e06c75','#b48ead','#88c0d0'];
+function drawCos(){
+ var C=CASES[CUR];
+ var G=closure(C.n,C.g),K=closure(C.n,C.k);
+ G.sort(function(a,b){return key(a)<key(b)?-1:1;});
+ var L=partition(G,K,'L'),R=partition(G,K,'R');
+ // the two partitions agree iff every element shares its left block with
+ // exactly the same elements it shares its right block with
+ var normal=true;
+ for(var i=0;i<G.length;i++)for(var j=0;j<G.length;j++){
+  var sameL=(L.of[key(G[i])]===L.of[key(G[j])]);
+  var sameR=(R.of[key(G[i])]===R.of[key(G[j])]);
+  if(sameL!==sameR)normal=false;}
+ cx2.clearRect(0,0,cc.width,cc.height);
+ cx2.font='13px Segoe UI';cx2.textAlign='left';cx2.textBaseline='middle';
+ cx2.fillStyle='#e8e8e8';cx2.fillText(C.t,14,20);
+ cx2.fillStyle='#9aa5b1';
+ cx2.fillText('|G| = '+G.length+',  |K| = '+K.length+',  '+(G.length/K.length)+' cosets each side',14,40);
+ var perRow=Math.min(G.length,12),w=(cc.width-28)/perRow;
+ function strip(part,y,cap){
+  cx2.fillStyle='#9aa5b1';cx2.font='13px Segoe UI';cx2.textAlign='left';
+  cx2.fillText(cap,14,y-20);
+  cx2.textAlign='center';cx2.font='11px Segoe UI';
+  for(var i=0;i<G.length;i++){
+   var col=i%perRow,row=Math.floor(i/perRow);
+   var px=14+col*w,py=y+row*26;
+   cx2.fillStyle=PAL[part.of[key(G[i])]%PAL.length];
+   cx2.fillRect(px+1,py,w-2,22);
+   cx2.fillStyle='#0c1013';
+   cx2.fillText(label(G[i]),px+w/2,py+11);}}
+ var rows=Math.ceil(G.length/perRow);
+ strip(L,80,'left cosets  gK');
+ strip(R,80+rows*26+42,'right cosets  Kg');
+ cx2.textAlign='left';cx2.font='13px Segoe UI';
+ cx2.fillStyle=normal?'#4caf82':'#e06c75';
+ cx2.fillText(normal?'the two partitions coincide  -  K is normal in G'
+                    :'the two partitions differ  -  K is not normal in G',14,cc.height-16);}
+drawCos();
+</script></body></html>
