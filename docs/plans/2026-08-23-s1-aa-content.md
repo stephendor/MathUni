@@ -17,35 +17,35 @@ the three gate defects in §3.
 |---|---|---|---|---|
 | aa-00 | Symmetry: groups before the definition | Carter ch. 1–2 | **✓** | pre-existing; 5 repairs, F-1 |
 | aa-01 | Integers: well-ordering, induction, division | Aluffi §1.1–1.2 | **✓** | pre-existing; mission strip, F-1 |
-| aa-02 | GCD, Bézout, FTA | Aluffi §1.3–1.4 | **set** | lesson outstanding |
-| aa-03 | Equivalence relations, quotients, ℤ/nℤ | Aluffi §2.1–2.2 | **set** | lesson outstanding |
-| aa-04 | Arithmetic in ℤ/nℤ; Fermat, RSA | Aluffi §2.3–2.5 | **set** | lesson outstanding |
-| aa-05 | Rings: definition, examples | Aluffi §3.1–3.2 | **set** | lesson outstanding |
-| aa-06 | Domains, fields, zero-divisors | Aluffi §3.3 | **set** | lesson outstanding |
-| aa-07 | Category of rings I: products, subrings | Aluffi §4.1–4.2 | **set** | lesson outstanding |
-| aa-08 | Ring homomorphisms and isomorphisms | Aluffi §4.3–4.4 | **set** | lesson outstanding |
-| aa-09 | Kernels, ideals, quotient rings | Aluffi §5.1–5.3 | **set** | lesson outstanding |
-| aa-10 | Isomorphism theorems; CRT | Aluffi §5.4–5.7 | **set** | lesson outstanding |
-| aa-11 | Prime and maximal ideals | Aluffi §6.1–6.2 | **set** | lesson outstanding |
-| aa-12 | Euclidean domains, PIDs, UFDs | Aluffi §6.3–6.5 | **set** | lesson outstanding |
-| aa-13 | Polynomial rings over a field | Aluffi §7.1–7.2 | **set** | lesson outstanding |
-| aa-14 | Irreducibility in ℚ[x], ℤ[x] | Aluffi §7.3–7.5 | **set** | lesson outstanding |
-| aa-15 | Modules and the category of R-modules | Aluffi §8.1–8.2 | **set** | lesson outstanding |
-| aa-16 | Submodules, direct sums, quotients | Aluffi §8.3–8.4 | **set** | lesson outstanding |
-| aa-17 | Isomorphism theorems for modules | Aluffi §8.5 | **set** | lesson outstanding |
-| aa-18 | Free modules; modules from matrices | Aluffi §9.1–9.2 | **set** | lesson outstanding |
-| aa-19 | Finitely generated vs presented | Aluffi §9.3–9.4 | **set** | lesson outstanding |
-| aa-20 | Structure theorem over a PID | Aluffi §9.5–9.6 | **set** | lesson outstanding |
-| aa-21 | Abelian groups as ℤ-modules | Aluffi §10.1–10.2 | **set** | lesson outstanding |
-| aa-22 | Classification of f.g. abelian groups | Aluffi §10.3–10.4 | **set** | lesson outstanding |
-| aa-23 | Groups: subgroups and homomorphisms | Aluffi §11.1; Carter ch. 6, 8 | **set** | two books, lesson outstanding |
-| aa-24 | Group actions | Aluffi §11.2; Carter ch. 9 | **set** | two books, lesson outstanding |
-| aa-25 | Cyclic, dihedral, symmetric, free groups | Aluffi §11.3; Carter ch. 5 | **set** | two books, lesson outstanding |
-| aa-26 | Normality and quotient groups | Aluffi §11.4 | **set** | lesson outstanding |
-| aa-27 | Isomorphism theorems for groups | Aluffi §11.5 | **set** | lesson outstanding |
-| aa-28 | Lagrange and the class equation | Aluffi §12.1–12.2 | **set** | lesson outstanding |
-| aa-29 | Classification, simplicity, Sylow | Aluffi §12.3–12.5 | **set** | lesson outstanding |
-| aa-30 | Simplicity of Aₙ; solvable groups | Aluffi §12.6–12.7 | **set** | lesson outstanding |
+| aa-02 | GCD, Bézout, FTA | Aluffi §1.3–1.4 | **✓** | set and lesson, both gated clean |
+| aa-03 | Equivalence relations, quotients, ℤ/nℤ | Aluffi §2.1–2.2 | **✓** | set and lesson, both gated clean |
+| aa-04 | Arithmetic in ℤ/nℤ; Fermat, RSA | Aluffi §2.3–2.5 | **✓** | set and lesson, both gated clean |
+| aa-05 | Rings: definition, examples | Aluffi §3.1–3.2 | **✓** | set and lesson, both gated clean |
+| aa-06 | Domains, fields, zero-divisors | Aluffi §3.3 | **✓** | set and lesson, both gated clean |
+| aa-07 | Category of rings I: products, subrings | Aluffi §4.1–4.2 | **✓** | set and lesson, both gated clean |
+| aa-08 | Ring homomorphisms and isomorphisms | Aluffi §4.3–4.4 | **✓** | set and lesson, both gated clean |
+| aa-09 | Kernels, ideals, quotient rings | Aluffi §5.1–5.3 | **✓** | set and lesson, both gated clean |
+| aa-10 | Isomorphism theorems; CRT | Aluffi §5.4–5.7 | **✓** | set and lesson, both gated clean |
+| aa-11 | Prime and maximal ideals | Aluffi §6.1–6.2 | **✓** | set and lesson, both gated clean |
+| aa-12 | Euclidean domains, PIDs, UFDs | Aluffi §6.3–6.5 | **✓** | set and lesson, both gated clean |
+| aa-13 | Polynomial rings over a field | Aluffi §7.1–7.2 | **✓** | set and lesson, both gated clean |
+| aa-14 | Irreducibility in ℚ[x], ℤ[x] | Aluffi §7.3–7.5 | **✓** | set and lesson, both gated clean |
+| aa-15 | Modules and the category of R-modules | Aluffi §8.1–8.2 | **✓** | set and lesson, both gated clean |
+| aa-16 | Submodules, direct sums, quotients | Aluffi §8.3–8.4 | **✓** | set and lesson, both gated clean |
+| aa-17 | Isomorphism theorems for modules | Aluffi §8.5 | **✓** | set and lesson, both gated clean |
+| aa-18 | Free modules; modules from matrices | Aluffi §9.1–9.2 | **✓** | set and lesson, both gated clean |
+| aa-19 | Finitely generated vs presented | Aluffi §9.3–9.4 | **✓** | set and lesson, both gated clean |
+| aa-20 | Structure theorem over a PID | Aluffi §9.5–9.6 | **✓** | set and lesson, both gated clean |
+| aa-21 | Abelian groups as ℤ-modules | Aluffi §10.1–10.2 | **✓** | set and lesson, both gated clean |
+| aa-22 | Classification of f.g. abelian groups | Aluffi §10.3–10.4 | **✓** | set and lesson, both gated clean |
+| aa-23 | Groups: subgroups and homomorphisms | Aluffi §11.1; Carter ch. 6, 8 | **✓** | set and lesson, both gated clean; two books |
+| aa-24 | Group actions | Aluffi §11.2; Carter ch. 9 | **✓** | set and lesson, both gated clean; two books |
+| aa-25 | Cyclic, dihedral, symmetric, free groups | Aluffi §11.3; Carter ch. 5 | **✓** | set and lesson, both gated clean; two books |
+| aa-26 | Normality and quotient groups | Aluffi §11.4 | **✓** | set and lesson, both gated clean |
+| aa-27 | Isomorphism theorems for groups | Aluffi §11.5 | **✓** | set and lesson, both gated clean |
+| aa-28 | Lagrange and the class equation | Aluffi §12.1–12.2 | **✓** | set and lesson, both gated clean |
+| aa-29 | Classification, simplicity, Sylow | Aluffi §12.3–12.5 | **✓** | set and lesson, both gated clean |
+| aa-30 | Simplicity of Aₙ; solvable groups | Aluffi §12.6–12.7 | **✓** | set and lesson, both gated clean |
 
 `curriculum/syllabus.yaml` is not modified on this branch.
 
@@ -368,13 +368,16 @@ phi; and the D_6 coset computation behind aa-26 Problem 5(b).
 
 ## 5b. Sets ahead of lessons
 
-All twenty-nine new problem sets (aa-02 … aa-30) are written and their lessons are not. That
-ordering is deliberate for this pass and has one consequence worth stating:
+All twenty-nine new problem sets (aa-02 … aa-30) were written first, and all
+twenty-nine lessons have since been written against them. The ordering was
+deliberate and had one consequence worth stating:
 `check_lesson_coverage.py` asks that every result a set cites be named in its
-lesson, so it cannot pass for a unit whose lesson does not exist. That gate is
-a **local** run and is not wired into CI, so the branch stays green; each
-lesson must be checked against its set as it lands, and the tracker's "lesson
-outstanding" is the queue.
+lesson, so it could not pass for a unit whose lesson did not yet exist. That
+gate is a **local** run and is not wired into CI, so the branch stayed green
+throughout; each lesson was checked against its set as it landed, and the
+tracker's "lesson outstanding" was the queue. That queue is now empty — every
+row is ✓, and every unit passes citations, section labels, `lesson_lint`,
+coverage and the mission-strip gate.
 
 The order has a benefit as well as a cost. A set written first fixes what the
 lesson must cover, rather than the lesson fixing what the set may ask — and
