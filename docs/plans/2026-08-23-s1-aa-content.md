@@ -23,29 +23,29 @@ the three gate defects in §3.
 | aa-05 | Rings: definition, examples | Aluffi §3.1–3.2 | **set** | lesson outstanding |
 | aa-06 | Domains, fields, zero-divisors | Aluffi §3.3 | **set** | lesson outstanding |
 | aa-07 | Category of rings I: products, subrings | Aluffi §4.1–4.2 | **set** | lesson outstanding |
-| aa-08 | Ring homomorphisms and isomorphisms | Aluffi §4.3–4.4 | | |
-| aa-09 | Kernels, ideals, quotient rings | Aluffi §5.1–5.3 | | |
-| aa-10 | Isomorphism theorems; CRT | Aluffi §5.4–5.7 | | |
-| aa-11 | Prime and maximal ideals | Aluffi §6.1–6.2 | | |
-| aa-12 | Euclidean domains, PIDs, UFDs | Aluffi §6.3–6.5 | | |
-| aa-13 | Polynomial rings over a field | Aluffi §7.1–7.2 | | |
-| aa-14 | Irreducibility in ℚ[x], ℤ[x] | Aluffi §7.3–7.5 | | |
-| aa-15 | Modules and the category of R-modules | Aluffi §8.1–8.2 | | |
-| aa-16 | Submodules, direct sums, quotients | Aluffi §8.3–8.4 | | |
-| aa-17 | Isomorphism theorems for modules | Aluffi §8.5 | | |
-| aa-18 | Free modules; modules from matrices | Aluffi §9.1–9.2 | | |
-| aa-19 | Finitely generated vs presented | Aluffi §9.3–9.4 | | |
-| aa-20 | Structure theorem over a PID | Aluffi §9.5–9.6 | | |
-| aa-21 | Abelian groups as ℤ-modules | Aluffi §10.1–10.2 | | |
-| aa-22 | Classification of f.g. abelian groups | Aluffi §10.3–10.4 | | |
-| aa-23 | Groups: subgroups and homomorphisms | Aluffi §11.1; Carter ch. 6, 8 | | two books |
-| aa-24 | Group actions | Aluffi §11.2; Carter ch. 9 | | two books |
-| aa-25 | Cyclic, dihedral, symmetric, free groups | Aluffi §11.3; Carter ch. 5 | | two books |
-| aa-26 | Normality and quotient groups | Aluffi §11.4 | | |
-| aa-27 | Isomorphism theorems for groups | Aluffi §11.5 | | |
-| aa-28 | Lagrange and the class equation | Aluffi §12.1–12.2 | | |
-| aa-29 | Classification, simplicity, Sylow | Aluffi §12.3–12.5 | | |
-| aa-30 | Simplicity of Aₙ; solvable groups | Aluffi §12.6–12.7 | | |
+| aa-08 | Ring homomorphisms and isomorphisms | Aluffi §4.3–4.4 | **set** | lesson outstanding |
+| aa-09 | Kernels, ideals, quotient rings | Aluffi §5.1–5.3 | **set** | lesson outstanding |
+| aa-10 | Isomorphism theorems; CRT | Aluffi §5.4–5.7 | **set** | lesson outstanding |
+| aa-11 | Prime and maximal ideals | Aluffi §6.1–6.2 | **set** | lesson outstanding |
+| aa-12 | Euclidean domains, PIDs, UFDs | Aluffi §6.3–6.5 | **set** | lesson outstanding |
+| aa-13 | Polynomial rings over a field | Aluffi §7.1–7.2 | **set** | lesson outstanding |
+| aa-14 | Irreducibility in ℚ[x], ℤ[x] | Aluffi §7.3–7.5 | **set** | lesson outstanding |
+| aa-15 | Modules and the category of R-modules | Aluffi §8.1–8.2 | **set** | lesson outstanding |
+| aa-16 | Submodules, direct sums, quotients | Aluffi §8.3–8.4 | **set** | lesson outstanding |
+| aa-17 | Isomorphism theorems for modules | Aluffi §8.5 | **set** | lesson outstanding |
+| aa-18 | Free modules; modules from matrices | Aluffi §9.1–9.2 | **set** | lesson outstanding |
+| aa-19 | Finitely generated vs presented | Aluffi §9.3–9.4 | **set** | lesson outstanding |
+| aa-20 | Structure theorem over a PID | Aluffi §9.5–9.6 | **set** | lesson outstanding |
+| aa-21 | Abelian groups as ℤ-modules | Aluffi §10.1–10.2 | **set** | lesson outstanding |
+| aa-22 | Classification of f.g. abelian groups | Aluffi §10.3–10.4 | **set** | lesson outstanding |
+| aa-23 | Groups: subgroups and homomorphisms | Aluffi §11.1; Carter ch. 6, 8 | **set** | two books, lesson outstanding |
+| aa-24 | Group actions | Aluffi §11.2; Carter ch. 9 | **set** | two books, lesson outstanding |
+| aa-25 | Cyclic, dihedral, symmetric, free groups | Aluffi §11.3; Carter ch. 5 | **set** | two books, lesson outstanding |
+| aa-26 | Normality and quotient groups | Aluffi §11.4 | **set** | lesson outstanding |
+| aa-27 | Isomorphism theorems for groups | Aluffi §11.5 | **set** | lesson outstanding |
+| aa-28 | Lagrange and the class equation | Aluffi §12.1–12.2 | **set** | lesson outstanding |
+| aa-29 | Classification, simplicity, Sylow | Aluffi §12.3–12.5 | **set** | lesson outstanding |
+| aa-30 | Simplicity of Aₙ; solvable groups | Aluffi §12.6–12.7 | **set** | lesson outstanding |
 
 `curriculum/syllabus.yaml` is not modified on this branch.
 
@@ -329,9 +329,46 @@ One rule is new here:
 
 ---
 
+## 5c. What authoring twenty-nine sets found
+
+**F-8 — the section gate caught a Carter folio the first time two books met.**
+aa-23 is the first set citing both Aluffi and Carter. It gave Carter §6.3 as
+pp. 101–102; printed 102 is where §6.4 begins. Three FAILs, one error,
+corrected against the page. The per-path attribution of §3.2 and the Carter
+index of §2.4 both had to be in place for that to be reachable at all.
+
+**F-9 — a notational clash between the two books, resolved once and stated.**
+Aluffi's Definition 11.32 (printed 242) writes D_{2n} for the symmetries of a
+regular n-gon, so his name for the square's group is D_8. Carter and most
+other texts write D_4. aa-23 and aa-24 were drafted with D_4 and corrected to
+D_8 before aa-25 defines it, with the clash noted at first use in each set
+rather than silently resolved. No gate reports this: both names are
+internally consistent, and the mismatch shows only when a reader moves
+between the two books, which is exactly what this unit range asks them to do.
+
+**F-10 — two authoring slips no gate can see.** aa-29 was committed only
+after a scan caught a stray markup tag and a Cyrillic "a" (U+0430) inside a
+commutator. Both render invisibly, both survive every gate — citations,
+sections, lint — and the second would have made a copied formula fail
+silently for a reader. Scanning each set for non-Latin letters and stray tags
+before commit is now part of the routine, and is the cheapest available
+countermeasure to the class of defect logged as
+2026-08-23-nothing-checks-that-a-figure-shows-what-its-caption-claims.
+
+**Verified by computation, not by recollection.** Every numerical claim that
+could be checked was: subgroup counts for S_3 (6) and D_8 (10); conjugacy
+class sizes for S_3, D_8, A_4 (1,3,4,4) and S_4 (1,3,6,6,8); that A_4 has no
+subgroup of order 6; the Z[sqrt(-5)] norm claims and the non-existence of a
+gcd for 6 and 2+2sqrt(-5); a genuine transitivity failure of the fraction
+relation over Z/6Z; the factorisations of x^4+1 mod 3 and 7; phi(360) = 96;
+the invariant factors of Z/6 + Z/10; the order distribution of C_12 against
+phi; and the D_6 coset computation behind aa-26 Problem 5(b).
+
+---
+
 ## 5b. Sets ahead of lessons
 
-Six problem sets (aa-02 … aa-07) are written and their lessons are not. That
+All twenty-nine new problem sets (aa-02 … aa-30) are written and their lessons are not. That
 ordering is deliberate for this pass and has one consequence worth stating:
 `check_lesson_coverage.py` asks that every result a set cites be named in its
 lesson, so it cannot pass for a unit whose lesson does not exist. That gate is
@@ -351,14 +388,14 @@ aa-06, Proposition 4.14 in aa-07.
 
 | gate | result |
 |---|---|
-| `citations.py` on the aa units | 10 files, 190 citations, 0 wrong |
-| `check_sections.py` on the corpus | 82 files, 0 wrong labels |
+| `citations.py` on the aa units | 33 files, 1041 citations, 0 wrong, no warnings |
+| `check_sections.py` on the corpus | 105 files, 0 wrong labels |
 | `check_lesson_coverage.py` | 0 missing on aa-00, aa-01 (see §5b) |
 | `mission.py` | verbatim on both lessons, exit 0 |
 | `lesson_lint.py` | 15/15 on each of 2 |
-| `check_sections.py --selftest` | 52/52 |
+| `check_sections.py --selftest` | 54/54 |
 | `gate.py --selftest` | 73/73 |
-| `pytest` | 357 passed |
+| `pytest` | 361 passed |
 | `check_resources.py --shallow` | 145 units, 217 refs, 0 wrong |
 | `ruff` | one pre-existing E702 in `tests/test_scheduler.py` |
 | `resources/sections.json` | Abbott and Axler regenerate byte-identical |
