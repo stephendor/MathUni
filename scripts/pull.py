@@ -50,6 +50,34 @@ BOOKMAP = os.path.join(REPO, "resources", "bookmap.json")
 FOLIO_LINE = re.compile(r"^\**\s*(\d{1,4})\s*\**$")
 EDGE_LINES = 2  # how far from each edge a folio may sit
 
+_LIST_FAMILIES = (
+    ("roman", re.compile(r"^\s*\((i{1,3}|iv|v|vi{0,3}|ix|x)\)\s+", re.I | re.M), "i"),
+    ("lettered", re.compile(r"^\s*\(([a-z])\)\s+", re.I | re.M), "a"),
+    ("numbered", re.compile(r"^\s*(\d+)\.\s+", re.M), "1"),
+)
+_EQUIVALENT = re.compile(r"the following are equivalent\s*:", re.I)
+
+
+def extract_integrity_errors(text):
+    """Structural signs that a page extraction silently dropped list items."""
+    errors = []
+    roman_positions = {m.start() for m in _LIST_FAMILIES[0][1].finditer(text)}
+    for name, pattern, first in _LIST_FAMILIES:
+        matches = list(pattern.finditer(text))
+        if name == "lettered" and matches and matches[0].start() in roman_positions:
+            continue  # `(i)` is a Roman marker unless context proves otherwise
+        if matches and matches[0].group(1).lower() != first:
+            errors.append("%s list begins at %s, not %s"
+                          % (name, matches[0].group(1), first))
+    for match in _EQUIVALENT.finditer(text):
+        tail = text[match.end():match.end() + 2000]
+        labelled = max((len(pattern.findall(tail))
+                        for _name, pattern, _first in _LIST_FAMILIES), default=0)
+        if labelled < 2:
+            errors.append("'the following are equivalent' is followed by fewer "
+                          "than two labelled clauses")
+    return errors
+
 
 def load_bookmap(path=BOOKMAP):
     with open(path, encoding="utf-8") as f:
@@ -220,13 +248,17 @@ def cmd_pages(d, spec, out):
         chunks.append("\n=== p.%d (NO SUCH PAGE) ===\n" % n if t is None
                       else "\n=== p.%d ===\n" % n + t)
     blob = "".join(chunks)
+    integrity = extract_integrity_errors(blob)
     if out:
         with open(out, "w", encoding="utf-8") as f:
             f.write(blob)
         print("wrote %s (%d chars, pp. %d-%d)" % (out, len(blob), lo, hi))
     else:
         print(blob)
-    return 0
+    for error in integrity:
+        print("EXTRACT INTEGRITY FAIL: %s — inspect the PDF page directly" % error,
+              file=sys.stderr)
+    return 1 if integrity else 0
 
 
 def cmd_folio(d, book, spec):

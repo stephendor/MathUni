@@ -1,7 +1,8 @@
 """The folio fitter. Synthetic pages throughout — CI has no access to the
 book drive, and a check that silently does nothing when its input is missing
 is the silent-absence failure mode this project keeps paying for."""
-from scripts.pull import fit_offsets, folio_candidates, folio_of, parse_range
+from scripts.pull import (extract_integrity_errors, fit_offsets,
+                          folio_candidates, folio_of, parse_range)
 
 
 def page(head="", tail=""):
@@ -228,3 +229,25 @@ def test_two_agreeing_folios_do_reach_a_verdict(tmp_path):
     from scripts.pull import cmd_folio
     d = _corpus(tmp_path, {10: "84\nprose\n", 11: "85\nprose\n"})
     assert cmd_folio(d, "book", "10-11") == 0
+
+
+def test_extract_integrity_rejects_a_list_starting_at_its_second_item():
+    broken = ("Assume K is a subset of X. The following are equivalent:\n\n"
+              "(ii) Every family of closed sets has the property.\n")
+    errors = extract_integrity_errors(broken)
+    assert any("roman list begins at ii, not i" in error for error in errors)
+    assert any("fewer than two labelled clauses" in error for error in errors)
+
+
+def test_extract_integrity_accepts_complete_enumerations():
+    complete = ("The following are equivalent:\n\n(i) K is compact.\n\n"
+                "(ii) Every family has the property.\n")
+    assert extract_integrity_errors(complete) == []
+
+
+def test_pages_command_fails_loudly_on_a_lossy_extract(tmp_path, capsys):
+    from scripts.pull import cmd_pages
+
+    d = _corpus(tmp_path, {83: "(ii) the surviving clause\n"})
+    assert cmd_pages(d, "83", None) == 1
+    assert "EXTRACT INTEGRITY FAIL" in capsys.readouterr().err
