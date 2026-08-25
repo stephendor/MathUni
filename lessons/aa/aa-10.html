@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-10 — Isomorphism theorems for rings; the Chinese Remainder Theorem</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+.diagram{font-family:Segoe UI,system-ui,sans-serif;text-align:center;color:var(--acc);margin:1rem 0;font-size:1.05rem}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Isomorphism theorems for rings; the Chinese Remainder Theorem <span class="cite">(aa-10)</span></h1>
+
+<div class="hook">
+Every ring homomorphism, no matter how complicated, is the same three steps in a row: throw away what it kills, rename what is left, and drop the result into the target.
+<p>That sentence is Theorem 5.37, and everything else today falls out of it. aa-09 discovered that "kernel" and "ideal" — two definitions that look nothing alike — describe exactly the same objects. Now we cash that in. The First Isomorphism Theorem lets you identify a quotient <em>without computing anything</em>: find a surjection, compute its kernel, done. And the Chinese Remainder Theorem, which you last met as an unexplained coincidence between ℤ/6ℤ and ℤ/2ℤ × ℤ/3ℤ, turns out to be one application of that recipe.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> aa-09 showed every kernel is an ideal. Is every ideal a kernel?</p>
+<button data-ok onclick="check(this,true)">Yes — I is the kernel of the projection R → R/I</button>
+<button onclick="check(this,false)">No — only the principal ones are</button>
+<button onclick="check(this,false)">Only in commutative rings</button>
+<div class="explain">The projection π : R → R/I, π(r) = r + I, is a surjective homomorphism, and π(a) = 0 + I exactly when a ∈ I. So ker π = I, for <em>every</em> ideal of <em>every</em> ring. Aluffi asks you to find this striking, and it is: Definition 5.3 (things sent to zero by some map) and Definition 5.8 (closed under +, absorbs multiplication) do not look alike at all, and they turn out to be the same concept. <span class="cite">— Aluffi §5.4, Proposition 5.35 and Remark 5.36, p. 89</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: First pass at the isomorphism theorems, the engine of every homology computation.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Canonical decomposition and the First Isomorphism Theorem</h2>
+
+<div class="theorem">
+<strong>Proposition 5.35.</strong> Let I be an ideal of R. The natural projection π : R → R/I, π(r) = r + I, is a surjective ring homomorphism, and ker π = I. <span class="cite">— Aluffi §5.4, Proposition 5.35, p. 89</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> π is a homomorphism because that is precisely what Definition 5.24 says: π(a) + π(b) = (a + I) + (b + I) = (a + b) + I = π(a + b), the same for ·, and π(1) = 1 + I is the identity of R/I by Theorem 5.26 — so all three clauses of Definition 4.15 hold. It is surjective because every coset is a + I = π(a) for some a. And
+<p style="text-align:center">π(a) = 0 + I ⟺ a + I = 0 + I ⟺ a − 0 = a ∈ I,</p>
+<p>so ker π = I. ∎ <span class="cite">— Aluffi §5.4, p. 89</span></p>
+<p><strong>Remark 5.36.</strong> Combined with aa-09's Proposition 5.7, this closes the loop: <em>the kernels are exactly the ideals.</em> Nothing more, nothing less. <span class="cite">— Aluffi §5.4, Remark 5.36, p. 89</span></p>
+</div>
+
+<p>Now the missing piece of aa-09's programme. Given f : R → S we wanted a factorisation through a surjection, an isomorphism, and an injection. We already had im f for the third stage. The first stage is π : R → R/ker f. The middle map is defined by the only formula available: <span class="cite">— Aluffi §5.4, p. 90</span></p>
+<p style="text-align:center">f̃(a + ker f) := f(a). &nbsp;&nbsp;(5.7)</p>
+
+<div class="worked">
+<strong>Why (5.7) is well defined.</strong> Suppose a′ + ker f = a + ker f, i.e. a′ − a ∈ ker f. Since f is a homomorphism,
+<p style="text-align:center">f(a′) − f(a) = f(a′ − a) = 0,</p>
+<p>so f(a′) = f(a) and the value does not depend on the representative. That f̃ is then a homomorphism is a one-line check in each clause. <span class="cite">— Aluffi §5.4, p. 90</span></p>
+<p>Note how little this costs, and why. The kernel is <em>by construction</em> the set of differences f cannot see, so quotienting by it is exactly the right amount of forgetting — no more, no less.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 5.37 (Canonical decomposition).</strong> For every ring homomorphism f : R → S there is a commutative diagram
+<p class="diagram">R &nbsp;<span style="font-size:.85em">—π→</span>&nbsp; R/ker f &nbsp;<span style="font-size:.85em">—f̃→</span>&nbsp; im f &nbsp;<span style="font-size:.85em">—ι→</span>&nbsp; S,</p>
+with ι ∘ f̃ ∘ π = f, where π is surjective, ι is injective, and <strong>f̃ is an isomorphism</strong>. <span class="cite">— Aluffi §5.4, Theorem 5.37, p. 90</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> π is surjective and ι injective, already known. Commutativity: for a ∈ R,
+<p style="text-align:center">(ι ∘ f̃ ∘ π)(a) = ι(f̃(a + ker f)) = ι(f(a)) = f(a).</p>
+<p><em>f̃ is surjective onto im f:</em> any s ∈ im f is f(a) for some a, and f̃(a + ker f) = s. <em>f̃ is injective:</em> if f̃(a + ker f) = f̃(b + ker f) then f(a) = f(b), so f(b − a) = 0, so b − a ∈ ker f, so a + ker f = b + ker f. ∎ <span class="cite">— Aluffi §5.4, p. 90</span></p>
+<p><strong>Read the injectivity argument backwards.</strong> It says the quotient by the kernel has <em>precisely</em> the right number of elements — one for each value f actually takes. That is why an isomorphism appears rather than merely a homomorphism.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 5.38 (First Isomorphism Theorem).</strong> If f : R → S is a <em>surjective</em> ring homomorphism, then S ≅ R/ker f, via f̃(a + ker f) = f(a). <span class="cite">— Aluffi §5.5, Theorem 5.38, p. 91</span>
+</div>
+
+<p>Proof: Theorem 5.37 gives R/ker f ≅ im f, and surjectivity says im f = S. <span class="cite">— Aluffi §5.5, p. 91</span></p>
+
+<div class="theorem">
+<strong>Proposition 5.39 (universal property of quotients).</strong> Let f : R → S be a ring homomorphism and let I be an ideal with I ⊆ ker f. Then f induces a <em>unique</em> ring homomorphism f̃ : R/I → S with f̃ ∘ π = f. <span class="cite">— Aluffi §5.5, Proposition 5.39, p. 91</span>
+</div>
+
+<p>Uniqueness needs no proof at all: since a + I = π(a), the requirement f̃ ∘ π = f <em>forces</em> f̃(a + I) = f(a), and there is no choice. The content is that this forced prescription is well defined — which is where I ⊆ ker f is spent. The induced map is injective exactly when I = ker f, and surjective exactly when f was. <span class="cite">— Aluffi §5.5, pp. 91–92</span></p>
+
+<p><strong>What the theorem is for.</strong> Two things. It <em>recognises a quotient</em> — given R/I, find a surjection out of R whose kernel is I, and the target names the quotient. And it <em>identifies an image</em> — given f, restrict to f : R → im f, which is surjective, and read off im f ≅ R/ker f. Either way, the only real work is computing a kernel. <span class="cite">— Aluffi §5.5, p. 92</span></p>
+
+<div class="worked">
+<strong>Three recognitions, no computation.</strong>
+<p><strong>Example 5.40.</strong> Identify ℤ[x]/(x). Take f : ℤ[x] → ℤ, f(α) = α(0), which is surjective (constants hit everything). Its kernel is the polynomials with zero constant term, which is (x). So <strong>ℤ[x]/(x) ≅ ℤ</strong> — the whole of aa-09's faded example, in three lines. <span class="cite">— Aluffi §5.5, Example 5.40, p. 92</span></p>
+<p><strong>Example 5.41.</strong> More generally, for commutative R and r ∈ R take the evaluation e<sub>r</sub> : R[x] → R. Since f(x) = (x − r)q(x) + f(r) for every f, we get f(r) = 0 ⟺ f ∈ (x − r), so ker e<sub>r</sub> = (x − r) and <strong>R[x]/(x − r) ≅ R</strong>. That was aa-09's guided proof; here it costs one kernel computation. <span class="cite">— Aluffi §5.5, Example 5.41, p. 92</span></p>
+<p><strong>Example 5.42.</strong> Identify ℝ[x]/(x² + 1). Take f : ℝ[x] → ℂ, f(α) = α(i), which is surjective. By long division every α is β(x)(x² + 1) + a + bx, so α(i) = a + bi, which is 0 exactly when a = b = 0, i.e. exactly when α ∈ (x² + 1). Hence <strong>ℝ[x]/(x² + 1) ≅ ℂ</strong>. The identical argument gives <strong>ℤ[x]/(x² + 1) ≅ ℤ[i]</strong>, the Gaussian integers of aa-07. <span class="cite">— Aluffi §5.5, Example 5.42, p. 93</span></p>
+<p>Compare with aa-09, where ℝ[x]/(x² + 1) ≅ ℂ took an explicit multiplication of cosets. The theorem has replaced a computation with a choice of map.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> To identify a quotient R/I by the First Isomorphism Theorem, what must you produce?</p>
+<button onclick="check(this,false)">An injective homomorphism R/I → S</button>
+<button data-ok onclick="check(this,true)">A surjective homomorphism f : R → S with ker f = I</button>
+<button onclick="check(this,false)">A bijection between R and S</button>
+<div class="explain">Surjectivity gives im f = S, and ker f = I then gives R/I ≅ S. Both halves are needed: if f is not surjective you learn only that R/I ≅ im f, and if the kernel is bigger or smaller than I you are identifying a different quotient. Note that no map out of R/I is ever constructed by hand — the theorem builds it. <span class="cite">— Aluffi §5.5, Theorem 5.38, p. 91</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the second kind of application: identify an <em>image</em>.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The Chinese Remainder Theorem</h2>
+
+<p>Let I and J be ideals of a ring R and consider the natural map <span class="cite">— Aluffi §5.6, p. 94</span></p>
+<p style="text-align:center">ρ : R → (R/I) × (R/J), &nbsp;&nbsp; ρ(r) = (r + I, r + J).</p>
+
+<p>It is a ring homomorphism (check it — one line per clause). It need <em>not</em> be surjective: with R = ℤ and I = J = 2ℤ, every ρ(r) has equal coordinates, so the image is the diagonal subring of aa-07's Example 4.9 and misses (1, 0). But with I = 2ℤ, J = 3ℤ it <em>is</em> surjective. <span class="cite">— Aluffi §5.6, p. 94</span></p>
+
+<div class="worked">
+<strong>The image, computed once and for all.</strong> ρ restricts to a surjection R → ρ(R), so the First Isomorphism Theorem gives ρ(R) ≅ R/ker ρ, and
+<p style="text-align:center">ker ρ = { r : r + I = 0 + I and r + J = 0 + J } = { r : r ∈ I and r ∈ J } = I ∩ J.</p>
+<p>Hence <strong>ρ(R) ≅ R/(I ∩ J)</strong>, whether or not ρ is surjective. <span class="cite">— Aluffi §5.6, p. 94</span></p>
+<p>A free corollary, worth noticing: kernels are ideals, so this shows <em>I ∩ J is an ideal</em> without any direct verification.</p>
+</div>
+
+<p>To go further we need arithmetic on ideals.</p>
+
+<div class="definition">
+<strong>Definition 5.43 (sum).</strong> I + J = { a + b : a ∈ I, b ∈ J } — an ideal, and the <em>smallest</em> ideal containing both I and J. <span class="cite">— Aluffi §5.6, Definition 5.43, p. 94</span>
+<p><strong>Definition 5.44 (product).</strong> IJ = { Σ<sub>i</sub> a<sub>i</sub>b<sub>i</sub> : a<sub>i</sub> ∈ I, b<sub>i</sub> ∈ J } — an ideal. <span class="cite">— Aluffi §5.6, Definition 5.44, p. 95</span></p>
+</div>
+
+<p><strong>Watch out</strong>, in Aluffi's own words: IJ is <em>not</em> the set of products ab; it is the set of finite <em>sums</em> of such products. The set of bare products need not be closed under addition, so it need not be an ideal at all. And since each a<sub>i</sub>b<sub>i</sub> lies in I by absorption and also in J by absorption, we always have IJ ⊆ I ∩ J. The inclusion is often strict: in ℤ[x] with I = J = (x), IJ = (x²) while I ∩ J = (x). <span class="cite">— Aluffi §5.6, p. 95</span></p>
+
+<div class="worked">
+<strong>What all three mean in ℤ.</strong> With I = (a) and J = (b):
+<p><strong>Example 5.45.</strong> (a) + (b) = (gcd(a, b)). One inclusion: d = gcd(a, b) divides both, so (a) ⊆ (d) and (b) ⊆ (d), and (a) + (b) is the smallest ideal containing both. The other: d is an integer <em>linear combination</em> of a and b by <strong>Theorem 1.8</strong> — Bézout, from aa-02 — so d ∈ (a) + (b). <span class="cite">— Aluffi §5.6, Example 5.45, p. 95; §1.3, Theorem 1.8, p. 8</span></p>
+<p><strong>Example 5.46.</strong> (a) ∩ (b) = (lcm(a, b)): the common multiples of a and b are exactly the multiples of their least common multiple. <span class="cite">— Aluffi §5.6, Example 5.46, p. 95</span></p>
+<p><strong>Example 5.47.</strong> (a)·(b) = (ab). <span class="cite">— Aluffi §5.6, Example 5.47, p. 95</span></p>
+<p>So in ℤ the gap between IJ and I ∩ J is exactly the gap between ab and lcm(a, b) — and those agree precisely when a and b are relatively prime. Everything below is that observation, generalised.</p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 5.48.</strong> If I + J = (1), then ρ is surjective. <span class="cite">— Aluffi §5.6, Proposition 5.48, p. 96</span>
+</div>
+
+<p>The hypothesis I + J = (1) says the smallest ideal containing both is the whole ring. In ℤ with I = (a), J = (b) it says gcd(a, b) = 1 by Example 5.45 — so <strong>I + J = (1) is the general form of "relatively prime"</strong>. <span class="cite">— Aluffi §5.6, p. 96</span></p>
+
+<div class="worked">
+<strong>Proof.</strong> Given a target (a + I, b + J), we need r with r − a ∈ I and r − b ∈ J. By hypothesis there are i ∈ I, j ∈ J with i + j = 1. Set
+<p style="text-align:center">r = bi + aj.</p>
+<p>Then r − a = r − a(i + j) = (bi + aj) − (ai + aj) = (b − a)i ∈ I by absorption, and r − b = r − b(i + j) = (bi + aj) − (bi + bj) = (a − b)j ∈ J likewise. ∎ <span class="cite">— Aluffi §5.6, p. 96</span></p>
+<p><strong>Remark 5.49 — where r = bi + aj comes from.</strong> It is not a rabbit. Since i = 1 − j, ρ(i) = (i + I, (1 − j) + J) = (0, 1), and symmetrically ρ(j) = (1, 0). So i and j are the two "indicator" elements, and the target (a, b) is assembled as b·(0,1) + a·(1,0) = ρ(bi) + ρ(aj) = ρ(bi + aj). <span class="cite">— Aluffi §5.6, Remark 5.49, pp. 96–97</span></p>
+</div>
+
+<div class="theorem">
+<strong>Corollary 5.50.</strong> If I + J = (1) then R/(I ∩ J) ≅ (R/I) × (R/J). <span class="cite">— Aluffi §5.6, Corollary 5.50, p. 97</span>
+<p><strong>Lemma 5.51.</strong> If R is <em>commutative</em> and I + J = (1), then I ∩ J = IJ. <span class="cite">— Aluffi §5.6, Lemma 5.51, p. 97</span></p>
+<p><strong>Theorem 5.52 (Chinese Remainder Theorem).</strong> Let R be a commutative ring and I, J ideals with I + J = (1). Then R/IJ ≅ (R/I) × (R/J). <span class="cite">— Aluffi §5.6, Theorem 5.52, p. 97</span></p>
+</div>
+
+<div class="worked">
+<strong>Proof of Lemma 5.51.</strong> IJ ⊆ I ∩ J always. For the reverse, take i ∈ I, j ∈ J with i + j = 1, and let r ∈ I ∩ J. Then
+<p style="text-align:center">r = r·1 = r(i + j) = ri + rj = ir + rj.</p>
+<p>Now ir ∈ IJ because i ∈ I and r ∈ J; and rj ∈ IJ because r ∈ I and j ∈ J. ∎ <span class="cite">— Aluffi §5.6, p. 97</span></p>
+<p><strong>Commutativity is used exactly once</strong>, in the step ri = ir — and it is needed, because IJ is built from products with the I-factor on the <em>left</em>. Aluffi flags this explicitly; it is why Theorem 5.52 assumes commutativity while Corollary 5.50 does not.</p>
+<p>Theorem 5.52 is then Corollary 5.50 with I ∩ J rewritten as IJ. ∎</p>
+</div>
+
+<div class="worked">
+<strong>Specialising to ℤ.</strong> Take R = ℤ, I = (m), J = (n) with gcd(m, n) = 1. Then IJ = (mn) and the theorem reads
+<p style="text-align:center">ℤ/mnℤ ≅ ℤ/mℤ × ℤ/nℤ.</p>
+<p>The case m = 2, n = 3 has been unexplained since aa-07's Example 4.3. Coprimality is not only sufficient but necessary. <span class="cite">— Aluffi §5.6, p. 98</span></p>
+<p><strong>Corollary 5.53.</strong> For pairwise relatively prime n₁, …, n<sub>r</sub> with N = n₁⋯n<sub>r</sub>, &nbsp; ℤ/Nℤ ≅ (ℤ/n₁ℤ) × ⋯ × (ℤ/n<sub>r</sub>ℤ); in particular ℤ/Nℤ splits along the prime factorisation of N. <span class="cite">— Aluffi §5.6, Corollary 5.53, p. 98</span></p>
+</div>
+
+<p>Below, each integer a is plotted at (a mod m, a mod n). When m and n are coprime the grid fills completely — that is surjectivity, Proposition 5.48 — and when they are not, whole rows and columns stay empty. The number of filled cells is always lcm(m, n), which is the size of ℤ/(I ∩ J).</p>
+
+<canvas id="crt" width="620" height="300" aria-label="Integers plotted by their residues mod m and mod n, filling the grid exactly when m and n are coprime"></canvas>
+<div class="controls">
+<button onclick="setMN(3,5)">m=3, n=5</button>
+<button onclick="setMN(2,3)">m=2, n=3</button>
+<button onclick="setMN(2,4)">m=2, n=4</button>
+<button onclick="setMN(4,6)">m=4, n=6</button>
+<button onclick="stepCRT()">plot next ▸</button>
+<button onclick="fillCRT()">plot all</button>
+</div>
+
+<div class="worked">
+<strong>Application — Euler's totient is multiplicative.</strong> Write φ(n) for the number of k in 1 ≤ k ≤ n with gcd(k, n) = 1.
+<p><strong>Proposition 5.56.</strong> If a and b are relatively prime then φ(ab) = φ(a)φ(b). <span class="cite">— Aluffi §5.6, Proposition 5.56, p. 100</span></p>
+<p><em>Proof.</em> First, φ(n) counts the <strong>units</strong> of ℤ/nℤ, since [ℓ]<sub>n</sub> is a unit exactly when gcd(n, ℓ) = 1 — aa-04's Proposition 2.16. By the Chinese Remainder Theorem ℤ/abℤ ≅ ℤ/aℤ × ℤ/bℤ, and (r, s) is a unit in a product exactly when r and s are units in the factors, so</p>
+<p style="text-align:center">(ℤ/abℤ)<sup>∗</sup> ≅ (ℤ/aℤ)<sup>∗</sup> × (ℤ/bℤ)<sup>∗</sup>.</p>
+<p>Counting both sides gives φ(ab) = φ(a)φ(b). ∎ For instance φ(105) = φ(3)φ(5)φ(7) = 2·4·6 = 48. <span class="cite">— Aluffi §5.6, p. 100</span></p>
+<p>Notice what happened: a statement about counting coprime integers was proved by an isomorphism of rings. No integer was examined.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Aluffi leaves Corollary 5.53 with "Prove it yourself (by induction)". Do it: from Theorem 5.52 for two factors, derive the r-factor version for pairwise coprime n₁, …, n<sub>r</sub>. The step that needs care is the inductive one — you must check that n₁ and n₂⋯n<sub>r</sub> are relatively prime, which is <em>not</em> immediate from "pairwise" and needs aa-02's Corollary 1.11 or Proposition 1.25. Then use it to compute φ(360) and check your answer by a second route.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> For ideals I, J of a ring, which inclusion always holds?</p>
+<button data-ok onclick="check(this,true)">IJ ⊆ I ∩ J</button>
+<button onclick="check(this,false)">I ∩ J ⊆ IJ</button>
+<button onclick="check(this,false)">Neither — they are unrelated</button>
+<div class="explain">Every generator a<sub>i</sub>b<sub>i</sub> of IJ lies in I by absorption (a<sub>i</sub> ∈ I) and in J by absorption (b<sub>i</sub> ∈ J), and both I and J are closed under sums — so IJ ⊆ I ∩ J always. The reverse can fail badly: with I = J = (x) in ℤ[x], IJ = (x²) is strictly inside I ∩ J = (x). Lemma 5.51 says the two coincide when I + J = (1) and R is commutative — which in ℤ is the statement that lcm(a, b) = ab exactly for coprime a, b. <span class="cite">— Aluffi §5.6, Definition 5.44, p. 95</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In ℤ, what does the hypothesis I + J = (1) say for I = (a), J = (b)?</p>
+<button onclick="check(this,false)">That a and b are both prime</button>
+<button data-ok onclick="check(this,true)">That gcd(a, b) = 1</button>
+<button onclick="check(this,false)">That a = b = 1</button>
+<div class="explain">By Example 5.45, (a) + (b) = (gcd(a, b)), and that equals (1) = ℤ exactly when the gcd is 1. So I + J = (1) is the ideal-theoretic form of "relatively prime" — and by Bézout it is also the statement that 1 = ma + nb is solvable, which is exactly the ingredient Proposition 5.48's proof consumes when it writes i + j = 1. Both a and b prime is neither necessary (4 and 9) nor sufficient (2 and 2). <span class="cite">— Aluffi §5.6, p. 96</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. One theorem left, and it is about the ideals of a quotient.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The Third Isomorphism Theorem, and the dictionary</h2>
+
+<p>Write A/I for π(A) = { r + I : r ∈ A } whenever I ⊆ A ⊆ R. The question is: what are the ideals of R/I? <span class="cite">— Aluffi §5.7, p. 100</span></p>
+
+<div class="theorem">
+<strong>Theorem 5.57 (Third Isomorphism Theorem).</strong> Let I be an ideal of R and let J be an ideal of R containing I. Then J/I is an ideal of R/I, every ideal of R/I arises this way, and
+<p style="text-align:center">(R/I)/(J/I) ≅ R/J.</p>
+<span class="cite">— Aluffi §5.7, Theorem 5.57, p. 100</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> <em>J/I is an ideal:</em> it is closed under +, and for any coset r + I and any a + I ∈ J/I, (r + I)(a + I) = ra + I ∈ J/I because ra ∈ J — absorption in R becoming absorption in R/I. <em>All ideals arise this way:</em> given an ideal J̄ of R/I, put J = π<sup>−1</sup>(J̄); this is an ideal of R containing I = π<sup>−1</sup>(0), and π(J) = J̄.
+<p><em>The isomorphism:</em> let ρ = π′ ∘ π be the composite R → R/I → (R/I)/(J/I). Both projections are surjective, so ρ is. By the First Isomorphism Theorem, (R/I)/(J/I) ≅ R/ker ρ, and</p>
+<p style="text-align:center">ker ρ = ρ<sup>−1</sup>(0) = π<sup>−1</sup>(π′<sup>−1</sup>(0)) = π<sup>−1</sup>(J/I) = J. ∎</p>
+<span class="cite">— Aluffi §5.7, pp. 100–101</span>
+<p>The whole proof is the First Isomorphism Theorem plus one kernel computation. That is the pattern of the entire chapter.</p>
+</div>
+
+<p><strong>The dictionary.</strong> Theorem 5.57 says the ideals of R/I correspond one-to-one with the ideals of R <em>containing</em> I. So quotienting by I is a way of discarding exactly the ideals that do not contain I. <span class="cite">— Aluffi §5.7, p. 102</span></p>
+
+<div class="worked">
+<strong>Example 5.59 — the ideals of ℤ/12ℤ, counted without working.</strong> Every ideal of ℤ is nℤ (aa-09's worked example). Which contain 12ℤ? Exactly those with 12 ∈ nℤ, i.e. n ∣ 12, i.e. n = ±1, ±2, ±3, ±4, ±6, ±12. So ℤ/12ℤ has exactly <strong>six</strong> ideals:
+<p style="text-align:center">(1̄), (2̄), (3̄), (4̄), (6̄), (0̄),</p>
+<p>the last being the ideal generated by the class of 12, which is 0̄. (Write that last generator as 0̄ rather than stacking bars over the digits of 12: read as a product, 1̄·2̄ is just 2̄, whose ideal has six elements and is not the zero ideal at all.)</p>
+<p>and inclusions mirror divisibility: 3 ∣ 6 corresponds to (6̄) = {0̄, 6̄} ⊆ (3̄) = {0̄, 3̄, 6̄, 9̄}. <span class="cite">— Aluffi §5.7, Example 5.59, p. 102</span></p>
+<p><strong>And a theorem you already paid for, refunded.</strong> A commutative ring is a field exactly when its only ideals are (1) and (0). By the same argument, ℤ/pℤ has only those two ideals exactly when the only divisors of p are ±1 and ±p — that is, exactly when p is <em>irreducible</em>. That is aa-04's Theorem 2.15, which cost real work there and now costs none. Aluffi's comment is worth keeping: the point of abstraction is to move the difficulty out of the proofs and into the language. <span class="cite">— Aluffi §5.7, p. 102</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Example 5.58: identify ℤ[x]/(2, x).</strong> Recall (2, x) is the ideal of linear combinations of 2 and x — concretely, the polynomials with <em>even constant term</em>.
+<p>Apply Theorem 5.57 with I = (x) and J = (2, x). First check I ⊆ J: every multiple of x is a combination of 2 and x, with coefficient ⟨your step⟩ on 2. So</p>
+<p style="text-align:center">ℤ[x]/(2, x) ≅ (ℤ[x]/(x)) / ((2, x)/(x)).</p>
+<p>Now Example 5.40 gives ℤ[x]/(x) ≅ ⟨your step: which ring?⟩. Under that isomorphism the coset 2 + (x) corresponds to the integer ⟨your step⟩, and since (2, x) = (2) + (x), the ideal (2, x)/(x) is generated by that coset.</p>
+<p>So the outer quotient is ℤ modulo the ideal generated by 2, namely ⟨your step⟩. Conclusion: <strong>ℤ[x]/(2, x) ≅ ℤ/2ℤ</strong>. <span class="cite">— Aluffi §5.7, Example 5.58, p. 101</span></p>
+<p>Sanity check by a second route: the map ℤ[x] → ℤ/2ℤ sending α(x) to [α(0)]₂ is a surjective homomorphism whose kernel is the polynomials with even constant term — and the First Isomorphism Theorem gives the same answer.</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi states Proposition 5.39 and then declines to prove it: "You should now grab a piece of paper and just do it yourself." <strong>Let f : R → S be a ring homomorphism and let I be an ideal of R with I ⊆ ker f. Prove that f̃(a + I) := f(a) is well defined, is a ring homomorphism, and is the only function making f̃ ∘ π = f.</strong> Then answer: at which single step is the hypothesis I ⊆ ker f used, and what goes wrong without it?</p>
+<textarea placeholder="Uniqueness first: since a + I = pi(a), the equation f-tilde(pi(a)) = f(a) leaves no choice ... Well defined: suppose a + I = b + I ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><em>Uniqueness.</em> Any f̃ with f̃ ∘ π = f must satisfy f̃(a + I) = f̃(π(a)) = f(a). Every coset of R/I is of the form a + I = π(a), so this determines f̃ completely. No hypothesis is needed for this half — it is forced by the equation.</p>
+<p><em>Well defined.</em> Suppose a + I = b + I, i.e. b − a ∈ I. Since <strong>I ⊆ ker f</strong>, we get b − a ∈ ker f, so f(b − a) = 0, so f(b) = f(a). Hence the prescribed value does not depend on the representative.</p>
+<p><em>Homomorphism.</em> f̃((a + I) + (b + I)) = f̃((a + b) + I) = f(a + b) = f(a) + f(b) = f̃(a + I) + f̃(b + I), using Definition 5.24 then that f is a homomorphism; multiplication is the same line; and f̃(1 + I) = f(1) = 1<sub>S</sub>.</p>
+<p><em>Where the hypothesis is used, and what breaks.</em> Exactly once, in well-definedness. Without it there is some i ∈ I with f(i) ≠ 0, and then 0 + I = i + I are the same coset while the recipe assigns them the different values f(0) = 0 and f(i). The "function" would not be a function at all. ∎</p>
+<p>Grade yourself on separating the three claims. Uniqueness is free, the homomorphism clauses are mechanical, and <em>all</em> of the mathematical content is in one line of well-definedness — which is the same line, in the same place, as in aa-04's Claim 2.12 and aa-09's Lemma 5.25.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> How many ideals does ℤ/12ℤ have?</p>
+<button onclick="check(this,false)">Two — (0̄) and (1̄)</button>
+<button data-ok onclick="check(this,true)">Six, one for each positive divisor of 12</button>
+<button onclick="check(this,false)">Twelve, one for each element</button>
+<div class="explain">By Theorem 5.57 they correspond to the ideals nℤ of ℤ containing 12ℤ, and nℤ ⊇ 12ℤ exactly when n ∣ 12. The positive divisors 1, 2, 3, 4, 6, 12 give six ideals. Only two would mean ℤ/12ℤ is a field, which it is not; and the elements are not in bijection with the ideals — (2̄) already contains six elements. <span class="cite">— Aluffi §5.7, Example 5.59, p. 102</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> ρ : ℤ → ℤ/4ℤ × ℤ/6ℤ, ρ(r) = ([r]₄, [r]₆). How large is its image?</p>
+<button onclick="check(this,false)">24 — it is surjective</button>
+<button data-ok onclick="check(this,true)">12 — the image is ℤ/(4ℤ ∩ 6ℤ) = ℤ/12ℤ</button>
+<button onclick="check(this,false)">2 — the image is the diagonal</button>
+<div class="explain">ker ρ = 4ℤ ∩ 6ℤ = (lcm(4, 6)) = 12ℤ by Example 5.46, so the image is ℤ/12ℤ with 12 elements — half of the 24 available. It is not surjective because gcd(4, 6) = 2 ≠ 1, so (4) + (6) = (2) ≠ (1) and Proposition 5.48 does not apply. And it is not the diagonal either: that would need I = J. This is the general statement ρ(R) ≅ R/(I ∩ J), which holds whether or not ρ is onto. <span class="cite">— Aluffi §5.6, p. 94</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three load-bearing claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Kernels are exactly the ideals</strong> (Proposition 5.35, Remark 5.36), and every homomorphism factors canonically as surjection, isomorphism, injection (Theorem 5.37) — the isomorphism being f̃(a + ker f) = f(a). The <strong>First Isomorphism Theorem</strong> is the surjective case: S ≅ R/ker f. To identify a quotient, find a surjection with that kernel; to identify an image, compute the kernel. Either way the work is one kernel.</li>
+<li><strong>The Chinese Remainder Theorem is an image computation.</strong> For ρ : R → R/I × R/J, ker ρ = I ∩ J, so ρ(R) ≅ R/(I ∩ J) always. If I + J = (1) — the general form of "relatively prime" — then ρ is onto (Proposition 5.48), and in a commutative ring I ∩ J = IJ (Lemma 5.51), giving R/IJ ≅ R/I × R/J. In ℤ this is ℤ/mnℤ ≅ ℤ/mℤ × ℤ/nℤ for coprime m, n, and it makes φ multiplicative.</li>
+<li><strong>The Third Isomorphism Theorem</strong> (R/I)/(J/I) ≅ R/J puts the ideals of R/I in bijection with the ideals of R containing I. So ℤ/12ℤ has six ideals, one per divisor of 12, and "ℤ/pℤ is a field iff p is irreducible" becomes a remark rather than a theorem.</li>
+</ol>
+The habit: stop computing inside quotients. Find a map, compute its kernel, and let the theorem name the answer. This is the pattern that will compute homology.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §5.4 "Rings: Canonical Decomposition, II" (Proposition 5.35 and Remark 5.36 p. 89; the induced homomorphism (5.7) and Theorem 5.37 p. 90), pp. 89–90; §5.5 "The First Isomorphism Theorem" (Theorem 5.38 and Proposition 5.39 p. 91; the two types of application, Example 5.40 and Example 5.41 p. 92; Example 5.42 p. 93), pp. 91–93; §5.6 "The Chinese Remainder Theorem" (the map ρ, its kernel, and Definition 5.43 p. 94; Definition 5.44 and Examples 5.45, 5.46, 5.47 p. 95; Proposition 5.48 and Remark 5.49 p. 96; Corollary 5.50, Lemma 5.51, Theorem 5.52 p. 97; Corollary 5.53 p. 98; Example 5.55 p. 99; Proposition 5.56 p. 100), pp. 93–100; §5.7 "The Third Isomorphism Theorem" (Theorem 5.57 p. 100, proof and Example 5.58 p. 101; the dictionary and Example 5.59 p. 102), pp. 100–102. Definition 4.15 comes from aa-08 (§4.3, p. 64), Definition 5.8, Definition 5.24 and Theorem 5.26 from aa-09 (§5.2–5.3, pp. 80–85), Proposition 2.16 from aa-04 (§2.4, p. 34), and Theorem 1.8 from aa-02 (§1.3, p. 8). The residue-grid picture and the counts it reports (15 of 15 for m = 3, n = 5; 4 of 8 for m = 2, n = 4; 12 of 24 for m = 4, n = 6) were computed directly before being drawn.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Each integer a is plotted at (a mod m, a mod n). Coprime m, n fill the grid
+// (Proposition 5.48); otherwise the image has lcm(m,n) cells and the rest stay dark.
+var kc=document.getElementById('crt'),kx=kc.getContext('2d');
+var M=3,N=5,shown=0;
+function gcd(a,b){while(b){var t=a%b;a=b;b=t;}return a;}
+function setMN(m,n){M=m;N=n;shown=0;drawCRT();}
+function stepCRT(){if(shown<M*N)shown++;drawCRT();}
+function fillCRT(){shown=M*N;drawCRT();}
+function drawCRT(){kx.clearRect(0,0,kc.width,kc.height);
+ var pad=44,cw=Math.min((kc.width-2*pad)/N,(kc.height-2*pad-20)/M),ox=pad,oy=44;
+ var hit={},last=null;
+ for(var a=0;a<shown;a++){var k=(a%M)+','+(a%N);if(!(k in hit))hit[k]=a;last=a;}
+ kx.font='12px Segoe UI';kx.textAlign='center';kx.textBaseline='middle';
+ for(var i=0;i<M;i++)for(var j=0;j<N;j++){
+  var x=ox+j*cw,y=oy+i*cw,k=i+','+j,on=(k in hit);
+  kx.fillStyle=on?'rgba(76,175,130,0.35)':'#151b21';
+  kx.fillRect(x+1,y+1,cw-2,cw-2);
+  kx.strokeStyle='#2a333d';kx.strokeRect(x+1,y+1,cw-2,cw-2);
+  if(on){kx.fillStyle='#d6f5e6';kx.fillText(''+hit[k],x+cw/2,y+cw/2);}}
+ kx.fillStyle='#8ab4f8';kx.font='11px Segoe UI';
+ for(var j=0;j<N;j++)kx.fillText(''+j,ox+j*cw+cw/2,oy-11);
+ kx.textAlign='right';
+ for(var i=0;i<M;i++)kx.fillText(''+i,ox-8,oy+i*cw+cw/2);
+ kx.textAlign='left';kx.font='13px Segoe UI';
+ kx.fillStyle='#e8e8e8';
+ kx.fillText('a  ↦  (a mod '+M+',  a mod '+N+')      gcd = '+gcd(M,N),14,18);
+ var filled=Object.keys(hit).length;
+ kx.fillStyle=(filled===M*N)?'#4caf82':'#d8a657';
+ kx.fillText(filled+' of '+(M*N)+' cells reached'+
+   (shown<M*N?('  (plotted a = 0 .. '+(last===null?'-':last)+')'):
+    (filled===M*N?'  - surjective, so Z/'+(M*N)+'Z is the product'
+                 :'  - not surjective; the image has lcm = '+(M*N/gcd(M,N))+' elements')),
+   14,kc.height-12);}
+drawCRT();
+</script></body></html>

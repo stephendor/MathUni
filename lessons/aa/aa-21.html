@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-21 — Abelian groups as ℤ-modules; cyclic groups and orders</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Abelian groups as ℤ-modules; cyclic groups and orders <span class="cite">(aa-21)</span></h1>
+
+<div class="hook">
+This unit has almost nothing new to prove. Abelian groups <em>are</em> ℤ-modules, so every theorem of the last six units already applies to them — subgroups, quotients, direct sums, all three isomorphism theorems, and the structure theorem.
+<p>What is left is to look closely at the bricks. Every finitely generated abelian group is a direct sum of cyclic groups by aa-20's Theorem 9.40, so understanding cyclic groups is understanding everything. We will count their generators, list their subgroups, define the <em>order</em> of an element, and find out exactly when a product of two cyclic groups is cyclic. Along the way, one genuinely new idea: the endomorphisms of an abelian group form a <em>ring</em>, and that observation explains where the ring axioms came from in the first place.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> How many elements of ℤ/12ℤ generate the whole group?</p>
+<button onclick="check(this,false)">1 — only the class of 1</button>
+<button onclick="check(this,false)">2 — the classes of 1 and −1</button>
+<button data-ok onclick="check(this,true)">4 — the classes of 1, 5, 7 and 11</button>
+<div class="explain">[a]₁₂ generates exactly when gcd(a, 12) = 1, and there are φ(12) = 4 such classes: 1, 5, 7, 11. The "only 1" answer confuses the group generator with the ring identity — and Aluffi's remark is that from the group's point of view 1 is not special at all: in ℤ itself both +1 and −1 generate, and n ↦ −n is a group isomorphism that is not even a ring homomorphism. <span class="cite">— Aluffi §10.2, Proposition 10.9, pp. 207–208</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: H0 and torsion in homology are finitely generated abelian groups; this is how you read them.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Everything transfers — and two simplifications</h2>
+
+<p>Abelian groups face two ways. They generalise rings and modules, being defined by a <em>subset</em> of those axioms; and they are a special case of R-modules, namely R = ℤ. The second fact means the work is already done: the category of abelian groups, subgroups, direct sums, quotients, kernels, cokernels, the canonical decomposition and all three isomorphism theorems are aa-15 to aa-17 with R = ℤ. In particular <strong>kernel ⟺ subgroup</strong>, and you may quotient by any subgroup. And since ℤ is a Euclidean domain, aa-20's Theorem 9.40 already says every finitely generated abelian group is a direct sum of cyclic groups. <span class="cite">— Aluffi §10.1, p. 202</span></p>
+
+<div class="definition">
+<strong>Definition 10.1.</strong> The <strong>order</strong> of an abelian group A, written |A|, is the cardinality of its underlying set. <span class="cite">— Aluffi §10.1, Definition 10.1, p. 202</span>
+</div>
+
+<p><strong>A notational caveat that will bite in aa-23.</strong> With only one operation in play, it may be written + or · indifferently. In additive notation repeated application gives <em>multiples</em>, a + a + a + a + a = 5a; in multiplicative notation the same thing is a <em>power</em>, ggggg = g⁵, and the identity is written e (or 1). This text keeps + for now, and the choice carries information: + conventionally signals that the operation is commutative, while · does not. <span class="cite">— Aluffi §10.1, p. 203</span></p>
+
+<div class="worked">
+<strong>Example 10.2 — the multiplicative examples.</strong> For a commutative ring R, the units (R<sup>∗</sup>, ·) form an abelian group: multiplication is associative and commutative, 1 is the identity, and units have inverses by definition. So ℚ<sup>≠0</sup> is an abelian group under multiplication, and for a prime p, ((ℤ/pℤ)<sup>∗</sup>, ·) is an abelian group of order p − 1. <span class="cite">— Aluffi §10.1, Example 10.2, p. 203</span>
+<p>Note what has been forgotten deliberately: (ℤ/5ℤ)<sup>∗</sup> has four elements and a multiplication table, and no addition at all. The same set carried two operations as a ring; as a group it carries one.</p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 10.3.</strong> A function f : A → B between abelian groups is a homomorphism if and only if f(a + a′) = f(a) + f(a′) for all a, a′. The condition f(n·a) = n·f(a) is <em>implied</em>. <span class="cite">— Aluffi §10.1, Proposition 10.3, p. 204</span>
+<p><strong>Proposition 10.4.</strong> A subset S ⊆ A is a subgroup if and only if it is <em>nonempty</em> and closed under subtraction. <span class="cite">— Aluffi §10.1, Proposition 10.4, p. 204</span></p>
+</div>
+
+<div class="worked">
+<strong>Why both simplify.</strong> For 10.3, the ℤ-action is by multiples, so preserving addition already preserves them: f(3a) = f(a + a + a) = f(a) + f(a) + f(a) = 3f(a), and the general case is an induction — Aluffi's Exercise 10.1, and your guided proof.
+<p>For 10.4: S nonempty gives some b, then 0 = b − b ∈ S, then −b = 0 − b ∈ S, then a + b = a − (−b) ∈ S. So S is closed under addition and negation, hence under all integer multiples, hence a submodule by aa-16's Proposition 8.23. ∎ <span class="cite">— Aluffi §10.1, p. 204</span></p>
+<p><strong>Count the shrinking checklists.</strong> Subrings needed four conditions (aa-07's Proposition 4.14); submodules needed three (Proposition 8.23); subgroups need <em>two</em>. Each time, a stronger ambient structure does more of the work — and here a single closure condition, subtraction, generates everything else.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which is the correct subgroup test for an abelian group?</p>
+<button onclick="check(this,false)">Contains 0, contains 1, closed under + and ·</button>
+<button data-ok onclick="check(this,true)">Nonempty and closed under subtraction</button>
+<button onclick="check(this,false)">Closed under addition alone</button>
+<div class="explain">Nonemptiness plus closure under subtraction produces 0, produces negatives, and then produces sums — so the two conditions generate the rest (Proposition 10.4). There is no 1 and no multiplication in an abelian group, so the first option is not even statable. And closure under addition alone is not enough: the positive integers are closed under + inside ℤ and are not a subgroup. <span class="cite">— Aluffi §10.1, Proposition 10.4, p. 204</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the one genuinely new idea in the section.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>End(A) is a ring — and why the ring axioms are not arbitrary</h2>
+
+<div class="definition">
+<strong>Definition 10.5.</strong> For abelian groups A, B, Hom(A, B) is the set of homomorphisms A → B. <span class="cite">— Aluffi §10.1, Definition 10.5, p. 205</span>
+</div>
+
+<p>The point is that <strong>Hom(A, B) is itself an abelian group</strong>, under (f + g)(a) := f(a) + g(a). That the sum of two homomorphisms is a homomorphism needs one line, and it uses commutativity of B:</p>
+<p style="text-align:center">(f + g)(a + a′) = f(a) + f(a′) + g(a) + g(a′) = f(a) + g(a) + f(a′) + g(a′),</p>
+<p>where the middle step reorders the four terms. So the Hom-sets of this category are themselves objects of the category — a property Aluffi notes not every category has. <span class="cite">— Aluffi §10.1, p. 205</span></p>
+
+<p>Now take End(A) := Hom(A, A). It carries a <em>second</em> operation, composition, and (End(A), +, ∘) is a <strong>ring</strong>: its 0 is the trivial homomorphism and its 1 is id<sub>A</sub>. <span class="cite">— Aluffi §10.1, p. 205</span></p>
+
+<div class="theorem">
+<strong>Proposition 10.6.</strong> Let M be an abelian group and R a ring. Ring homomorphisms f : R → End(M) correspond exactly to R-module structures on M, by
+<p style="text-align:center">r·a := f(r)(a),</p>
+and the two correspondences are mutually inverse. <span class="cite">— Aluffi §10.1, Proposition 10.6, pp. 205–206</span>
+</div>
+
+<div class="worked">
+<strong>Proof — each module axiom is one property of f.</strong> Axioms (i)–(iv) hold because (M, +) is an abelian group. Then:
+<p>(v) 1<sub>R</sub>·a = f(1<sub>R</sub>)(a) = id<sub>M</sub>(a) = a, <em>because ring homomorphisms send 1 to 1</em>;</p>
+<p>(vi) (rs)·a = f(rs)(a) = (f(r) ∘ f(s))(a) = r·(s·a), <em>because f preserves multiplication</em>;</p>
+<p>(vii) (r + s)·a = f(r + s)(a) = f(r)(a) + f(s)(a), <em>because f preserves addition</em>;</p>
+<p>(viii) r·(a + b) = f(r)(a + b) = f(r)(a) + f(r)(b), <em>because f(r) is itself a homomorphism</em>.</p>
+<p>The converse runs the same formula backwards. ∎ <span class="cite">— Aluffi §10.1, p. 206</span></p>
+<p>Line the four up: the module axioms are not a list someone chose. They are exactly the statement that scalar multiplication is a <em>ring homomorphism into End(M)</em>, clause by clause.</p>
+</div>
+
+<div class="worked">
+<strong>Remark 10.7 — three things this explains.</strong>
+<p><strong>What an action is.</strong> If the endomorphisms of an object form a ring, then "R acts on X" means "there is a ring homomorphism R → End(X)". An R-module is an abelian group with a ring acting on it. aa-24 will do the same with groups in place of rings, and this is the template. <span class="cite">— Aluffi §10.1, Remark 10.7, p. 206</span></p>
+<p><strong>Why abelian group and ℤ-module are the same thing.</strong> There is exactly one ring homomorphism ℤ → End(M), because ℤ is initial among rings. So there is exactly one way to make an abelian group a ℤ-module — viewing it as one adds nothing. aa-15's Proposition 8.10 said this; here is the reason. <span class="cite">— Aluffi §10.1, pp. 206–207</span></p>
+<p><strong>Where the ring axioms come from.</strong> End(A) is a ring for <em>every</em> abelian group A. So the ring axioms are the abstraction of what End(A) always satisfies — not an arbitrary invention, but something you stumble on while studying a simpler structure. Aluffi adds a corollary of the observation: End(A) has a multiplicative identity, id<sub>A</sub>, which is another reason the "right" definition of ring should demand one. <span class="cite">— Aluffi §10.1, p. 207</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why is there only one way to regard an abelian group as a ℤ-module?</p>
+<button onclick="check(this,false)">Because ℤ is a Euclidean domain</button>
+<button data-ok onclick="check(this,true)">Because there is exactly one ring homomorphism ℤ → End(M), ℤ being initial among rings</button>
+<button onclick="check(this,false)">Because End(M) is commutative</button>
+<div class="explain">By Proposition 10.6, module structures on M correspond to ring homomorphisms R → End(M). For R = ℤ there is exactly one such homomorphism — a ring homomorphism out of ℤ is forced by 1 ↦ 1 — so exactly one module structure. Being Euclidean is what gives ℤ the <em>classification</em> theorem, a different service; and End(M) is generally not commutative. <span class="cite">— Aluffi §10.1, Remark 10.7, pp. 206–207</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the bricks themselves.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Cyclic groups, generators, subgroups, orders</h2>
+
+<div class="definition">
+<strong>Definition 10.8.</strong> An abelian group G is <strong>cyclic</strong> if G = ⟨g⟩ for some g ∈ G. <span class="cite">— Aluffi §10.2, Definition 10.8, p. 207</span>
+</div>
+
+<p>By aa-17's Example 8.45 every cyclic R-module is R/I, and ℤ is a PID, so <strong>every cyclic group is ℤ/nℤ for some n ≥ 0</strong>: one infinite cyclic group, ℤ, and exactly one of each finite order n, written C<sub>n</sub>. In multiplicative notation C<sub>n</sub> = ⟨g⟩ and every element is g<sup>k</sup>. <span class="cite">— Aluffi §10.2, p. 207</span></p>
+
+<div class="theorem">
+<strong>Proposition 10.9.</strong> ℤ has exactly two generators, +1 and −1. And ℤ/nℤ has φ(n) generators: [a]<sub>n</sub> generates if and only if gcd(a, n) = 1, if and only if [a]<sub>n</sub> is a <em>unit</em> of the ring ℤ/nℤ. <span class="cite">— Aluffi §10.2, Proposition 10.9, p. 207</span>
+</div>
+
+<p>Proof: if [a]<sub>n</sub> generates then k[a]<sub>n</sub> = [1]<sub>n</sub> for some k, i.e. [k][a] = [1], so [a] is a unit; conversely a unit generates, since [b] = b[1] = bk[a]. Then apply aa-06's Proposition 3.28. <span class="cite">— Aluffi §10.2, p. 208</span></p>
+
+<div class="theorem">
+<strong>Proposition 10.10.</strong> (i) Every subgroup of a cyclic group is cyclic; C<sub>n</sub> = ⟨g⟩ has <em>exactly one</em> subgroup of order m for each positive m ∣ n, generated by g<sup>n/m</sup>. (ii) Every homomorphic image of a cyclic group is cyclic, and there is a surjection C<sub>n</sub> → C<sub>m</sub> if and only if m ∣ n. <span class="cite">— Aluffi §10.2, Proposition 10.10, p. 208</span>
+</div>
+
+<div class="worked">
+<strong>Proof of (i), and where you have seen it before.</strong> Work in ℤ/nℤ. By the <strong>Third Isomorphism Theorem</strong> the subgroups of ℤ/nℤ correspond to the subgroups of ℤ containing nℤ; every subgroup of ℤ is dℤ, and nℤ ⊆ dℤ forces d ∣ n. So the subgroups are dℤ/nℤ, one per positive divisor. And dℤ/nℤ ≅ ℤ/(n/d)ℤ by the First Isomorphism Theorem applied to ℤ → dℤ → dℤ/nℤ, whose kernel is (n/d)ℤ. ∎
+<p>Aluffi's own note: this is Example 5.59 again — the ideals of the ring ℤ/12ℤ — arrived at from the group side. The lattice of subgroups of C<sub>n</sub> is the divisibility lattice of n. <span class="cite">— Aluffi §10.2, pp. 208–209; Example 10.11, p. 209</span></p>
+<p>For prime powers the lattice is a single chain: C₁ ⊆ C<sub>p</sub> ⊆ C<sub>p²</sub> ⊆ ⋯. So g ∈ C<sub>p<sup>k</sup></sub> is a generator exactly when it is not in the unique largest proper subgroup C<sub>p<sup>k−1</sup></sub> — from which φ(p<sup>k</sup>) = p<sup>k</sup> − p<sup>k−1</sup>. <span class="cite">— Aluffi §10.2, p. 210</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 10.12.</strong> For g in an abelian group G, the <strong>order</strong> |g| is the order of the cyclic subgroup ⟨g⟩. <span class="cite">— Aluffi §10.2, Definition 10.12, p. 210</span>
+</div>
+
+<p>Equivalently — and this is the working definition — |g| is the <em>smallest positive n with ng = 0</em>, or ∞ if there is none. <span class="cite">— Aluffi §10.2, p. 210</span> That ∞ is the convention used throughout this module, in the problem sets as well as here. It makes Proposition 10.16 below read correctly in the infinite case too, provided "|g| divides N" is understood as "N = 0" when |g| = ∞ — which is the only N that annihilates an element of infinite order.</p>
+
+<p>Below: the elements of C<sub>n</sub> around a circle, coloured by order. Choose an element and the subgroup it generates lights up. Generators are the elements whose subgroup is everything — and there are φ(n) of them.</p>
+
+<canvas id="cyc" width="620" height="330" aria-label="Elements of a cyclic group arranged on a circle, coloured by order, with the subgroup generated by a chosen element highlighted"></canvas>
+<div class="controls">
+<button onclick="setN(12)">C₁₂</button>
+<button onclick="setN(16)">C₁₆</button>
+<button onclick="setN(20)">C₂₀</button>
+<button onclick="pickNext()">next element ▸</button>
+</div>
+
+<div class="theorem">
+<strong>Proposition 10.13.</strong> For m, n &gt; 0: &nbsp; C<sub>m</sub> × C<sub>n</sub> ≅ C<sub>mn</sub> if and only if gcd(m, n) = 1. <span class="cite">— Aluffi §10.2, Proposition 10.13, p. 210</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> If gcd(m, n) = 1 this is the Chinese Remainder Theorem, in the form aa-20 used it. If gcd(m, n) = d ≠ 1, then for <em>every</em> (a, b),
+<p style="text-align:center">(mn/d)(a, b) = ((n/d)·ma, (m/d)·nb) = (0, 0),</p>
+<p>so every element has order at most mn/d &lt; mn. A cyclic group of order mn needs an element of order mn, and there is none. ∎ <span class="cite">— Aluffi §10.2, pp. 210–211</span></p>
+<p>Concretely, C₄ × C₆ has 24 elements and its largest element order is 12, so it is not C₂₄ — the largest orders present are 12, and indeed C₄ × C₆ ≅ C₂ × C₁₂. This is aa-07's Example 4.2 and Example 4.3, finally with a criterion attached.</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — counting elements by order in C₁₂.</strong> Use |[a]₁₂| = 12/gcd(a, 12).
+<p>Order 12: the generators, gcd(a, 12) = 1, so there are φ(12) = ⟨your step⟩ of them.</p>
+<p>Order 1: only a = 0. Order 2: need gcd(a, 12) = 6, so a = 6 — one element.</p>
+<p>Order 3: need gcd(a, 12) = 4, so a ∈ {4, 8} — that is φ(3) = ⟨your step⟩ elements, the generators of the unique subgroup of order 3.</p>
+<p>Order 4: gcd = 3, a ∈ {3, 9}, that is φ(4) = 2. Order 6: gcd = 2, a ∈ {2, 10}, that is φ(6) = 2.</p>
+<p>Total: 1 + 1 + 2 + 2 + 2 + 4 = ⟨your step⟩, which must equal 12 — and does, since each element has exactly one order and lies in exactly one subgroup as a generator. The general pattern is Example 10.14: <strong>C<sub>n</sub> has φ(m) elements of order m for each m ∣ n, and none of any other order.</strong> <span class="cite">— Aluffi §10.2, Example 10.14, p. 211</span></p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 10.16.</strong> For a ∈ A and N ∈ ℤ: &nbsp; Na = 0 if and only if |a| divides N. <span class="cite">— Aluffi §10.2, Proposition 10.16, p. 211</span>
+<p><strong>Proposition 10.17.</strong> Let C<sub>n</sub> = ⟨g⟩ and let A be an abelian group. If f : C<sub>n</sub> → A is a homomorphism then |f(g)| divides n; and conversely, for every a ∈ A whose order divides n there is a <em>unique</em> homomorphism f : C<sub>n</sub> → A with f(g) = a. <span class="cite">— Aluffi §10.2, Proposition 10.17, pp. 211–212</span></p>
+</div>
+
+<div class="worked">
+<strong>Proof of 10.17, second part.</strong> ℤ is free, so aa-18's Proposition 9.8 gives f̄ : ℤ → A with f̄(1) = a. Then f̄(n) = n·a = 0, because |a| ∣ n and Proposition 10.16. So nℤ ⊆ ker f̄, and the <em>universal property of quotients</em> — aa-10's Proposition 5.39, transplanted — induces a unique f : ℤ/nℤ → A with f([1]<sub>n</sub>) = a. ∎ <span class="cite">— Aluffi §10.2, p. 212</span>
+<p><strong>Read it as a count.</strong> Homomorphisms C<sub>n</sub> → A correspond exactly to elements of A of order dividing n. Compare aa-15's Example 8.18 (homomorphisms out of R are elements of M, no condition) and aa-18's Example 9.10 (out of ℤ/2ℤ, elements killed by 2). This is the general statement those two were instances of.</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi states Proposition 10.3 and says "You should try to give a formal proof (by induction)". Do it. <strong>Let A, B be abelian groups and f : A → B a function with f(a + a′) = f(a) + f(a′) for all a, a′. Prove that f(n·a) = n·f(a) for every n ∈ ℤ.</strong> Handle n &gt; 0 by induction, then n = 0, then n &lt; 0 — and say which earlier result you need for the n = 0 case.</p>
+<textarea placeholder="Base case n = 1: f(1.a) = f(a) = 1.f(a). Inductive step: assume f(n.a) = n.f(a) and consider f((n+1).a) = f(n.a + a) ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><em>n &gt; 0, by induction.</em> Base n = 1: f(1·a) = f(a) = 1·f(a). Step: assume f(n·a) = n·f(a). Then</p>
+<p style="text-align:center">f((n+1)·a) = f(n·a + a) = f(n·a) + f(a) = n·f(a) + f(a) = (n+1)·f(a),</p>
+<p>using the hypothesis on f for the second equality and the induction hypothesis for the third.</p>
+<p><em>n = 0.</em> f(0·a) = f(0<sub>A</sub>), and a map preserving addition sends 0 to 0: f(0) = f(0 + 0) = f(0) + f(0), so f(0) = 0 by additive cancellation — aa-05's Proposition 3.17, valid in any abelian group since its proof used only axioms (i)–(iii). Hence f(0·a) = 0 = 0·f(a).</p>
+<p><em>n &lt; 0.</em> Write n = −k with k &gt; 0. From f(k·a) + f((−k)·a) = f(k·a + (−k)·a) = f(0) = 0 we get f((−k)·a) = −f(k·a) = −(k·f(a)) = (−k)·f(a).</p>
+<p>So f(n·a) = n·f(a) for all n ∈ ℤ, and f is a homomorphism of ℤ-modules. ∎</p>
+<p>Grade yourself on the n = 0 case. It is the one people skip, and it is not free from the inductive step — it needs f(0) = 0, which needs cancellation. Note also what the proposition depends on: that the ℤ-action is by <em>repeated addition</em>. Over any other ring the second condition is genuinely independent, which is why Definition 8.14 states it.</p>
+</details>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (a) Count the elements of each order in C₂₀, and check the counts sum to 20. (b) Use Proposition 10.10 to list all subgroups of C₂₀ and say which is contained in which. (c) Decide whether C₄ × C₅ ≅ C₂₀ and whether C₂ × C₁₀ ≅ C₂₀, giving the criterion in each case; for the one that fails, name the largest order actually attained. (d) Finally, count the homomorphisms C₆ → C₄ using Proposition 10.17 — that is, count the elements of C₄ whose order divides 6.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> How many subgroups does C₂₀ have, and of what orders?</p>
+<button data-ok onclick="check(this,true)">Six — one of each order dividing 20: 1, 2, 4, 5, 10, 20</button>
+<button onclick="check(this,false)">Twenty — one generated by each element</button>
+<button onclick="check(this,false)">Two — the trivial one and the whole group</button>
+<div class="explain">Proposition 10.10(i): exactly one subgroup of order m for each positive m ∣ n. The divisors of 20 are 1, 2, 4, 5, 10, 20 — six subgroups. Distinct elements often generate the <em>same</em> subgroup: the four elements of order 5 all generate the single subgroup of order 5. Only groups of prime order have just the two trivial subgroups. <span class="cite">— Aluffi §10.2, Proposition 10.10, p. 208</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Is C₄ × C₆ isomorphic to C₂₄?</p>
+<button onclick="check(this,false)">Yes — both have 24 elements</button>
+<button data-ok onclick="check(this,true)">No — gcd(4, 6) = 2, and no element has order 24</button>
+<button onclick="check(this,false)">No — they have different orders</button>
+<div class="explain">Both have 24 elements, so cardinality decides nothing. Proposition 10.13 requires gcd(m, n) = 1, and here it is 2; the proof shows every element is killed by mn/d = 12, so the largest order present is 12 and no generator exists. Compare the coprime case: C₄ × C₅ ≅ C₂₀, because 4 and 5 share nothing. This is aa-07's Examples 4.2 and 4.3 with the criterion supplied. <span class="cite">— Aluffi §10.2, Proposition 10.13, pp. 210–211</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> How many homomorphisms are there from C<sub>n</sub> to an abelian group A?</p>
+<button onclick="check(this,false)">Exactly n</button>
+<button data-ok onclick="check(this,true)">As many as there are elements of A whose order divides n</button>
+<button onclick="check(this,false)">Exactly one, the trivial homomorphism</button>
+<div class="explain">Proposition 10.17: f is determined by f(g), that element must have order dividing n, and every such element occurs. So Hom(C<sub>n</sub>, A) is in bijection with { a ∈ A : |a| ∣ n }. For instance Hom(C₆, C₄) has 2 elements, since the elements of C₄ of order dividing 6 are those of order 1 or 2. There is always at least one — the trivial homomorphism, corresponding to a = 0 — matching aa-15's observation that Hom is never empty for modules. <span class="cite">— Aluffi §10.2, Proposition 10.17, pp. 211–212</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Nothing needs reproving.</strong> Abelian groups are ℤ-modules, so subgroups, quotients, direct sums, the three isomorphism theorems and the structure theorem all transfer. Two things simplify: preserving addition already forces preserving multiples (Proposition 10.3), and a subgroup test needs only "nonempty and closed under subtraction" (Proposition 10.4) — two conditions, where subrings needed four.</li>
+<li><strong>End(A) is a ring</strong>, and an R-module structure on M is exactly a ring homomorphism R → End(M) (Proposition 10.6), clause for clause. Three consequences: an <em>action</em> is a homomorphism into an endomorphism ring; there is exactly one ℤ-module structure on an abelian group, since ℤ is initial; and the ring axioms are the abstraction of what End(A) always satisfies, so they were never arbitrary.</li>
+<li><strong>Cyclic groups are ℤ or C<sub>n</sub>.</strong> C<sub>n</sub> has φ(n) generators, namely the units of the ring ℤ/nℤ (Proposition 10.9); exactly one subgroup of each order dividing n, so its subgroup lattice is the divisor lattice of n (Proposition 10.10); and φ(m) elements of order m for each m ∣ n. C<sub>m</sub> × C<sub>n</sub> ≅ C<sub>mn</sub> exactly when gcd(m, n) = 1 (Proposition 10.13). Homomorphisms out of C<sub>n</sub> are the elements of order dividing n (Proposition 10.17).</li>
+</ol>
+Everything needed to read a homology group is now in place: aa-22 assembles these bricks into the classification, and then a finitely generated abelian group is a Betti number plus a list of torsion coefficients.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §10.1 "The Category of Abelian Groups" (the transfer from ℤ-modules and Definition 10.1 p. 202; the notational caveat and Example 10.2 p. 203; Proposition 10.3 and Proposition 10.4 p. 204; Definition 10.5, the group structure on Hom, the ring End(A) and Proposition 10.6 p. 205; the proof of Proposition 10.6 and Remark 10.7 p. 206, that remark concluding overleaf), pp. 202–207; §10.2 "Cyclic Groups, and Orders of Elements" (Definition 10.8 and Proposition 10.9 p. 207; its proof and Proposition 10.10 p. 208; Example 10.11 p. 209; the prime-power chain, Definition 10.12 and Proposition 10.13 p. 210; Example 10.14, Example 10.15, Proposition 10.16 and Proposition 10.17 p. 211, the last proved overleaf), pp. 207–212. Proposition 3.17 comes from aa-05 (§3.2, p. 50), Proposition 3.28 from aa-06 (§3.3, p. 55), Proposition 5.39 from aa-10 (§5.5, p. 91), Corollary 5.53 from aa-10 (§5.6, p. 98), Proposition 8.10 and Example 8.18 from aa-15 (§8.1–8.2, pp. 156–159), Proposition 8.23 from aa-16 (§8.3, p. 161), Example 8.45 and Theorem 8.47 from aa-17 (§8.5, pp. 168–169), Proposition 9.8 and Example 9.10 from aa-18 (§9.1, p. 176), and Theorem 9.40 from aa-20 (§9.5, p. 196). The order counts in C₁₂, C₁₆ and C₂₀ and the element orders of C₄ × C₆ were computed before being written.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Elements of C_n on a circle. |a| = n/gcd(a,n); the subgroup <a> is the set of
+// multiples of a. Selecting an element lights up the subgroup it generates.
+var cc=document.getElementById('cyc'),cx=cc.getContext('2d');
+var CN=12,sel=1;
+function gcd(a,b){while(b){var t=a%b;a=b;b=t;}return a;}
+function setN(n){CN=n;sel=1;drawCyc();}
+function pickNext(){sel=(sel+1)%CN;drawCyc();}
+function drawCyc(){cx.clearRect(0,0,cc.width,cc.height);
+ var ox=cc.width/2,oy=cc.height/2+4,R=112;
+ cx.strokeStyle='#26313c';cx.lineWidth=1;
+ cx.beginPath();cx.arc(ox,oy,R,0,7);cx.stroke();
+ var d=gcd(sel,CN),ord=CN/d,sub={};
+ for(var k=0;k<CN;k++)sub[(k*sel)%CN]=true;
+ cx.font='12px Segoe UI';cx.textAlign='center';cx.textBaseline='middle';
+ for(var a=0;a<CN;a++){
+  var th=-Math.PI/2+2*Math.PI*a/CN,x=ox+R*Math.cos(th),y=oy+R*Math.sin(th);
+  var inSub=!!sub[a],isSel=(a===sel);
+  cx.fillStyle=isSel?'#d8a657':(inSub?'#4caf82':'#26313c');
+  cx.beginPath();cx.arc(x,y,isSel?13:11,0,7);cx.fill();
+  cx.fillStyle=(inSub||isSel)?'#0c1013':'#9aa5b1';
+  cx.fillText(''+a,x,y);
+  var lx=ox+(R+24)*Math.cos(th),ly=oy+(R+24)*Math.sin(th);
+  cx.fillStyle='#4d5a66';cx.font='10px Segoe UI';
+  cx.fillText('|'+(CN/gcd(a,CN))+'|',lx,ly);cx.font='12px Segoe UI';}
+ cx.textAlign='left';cx.font='13px Segoe UI';cx.fillStyle='#e8e8e8';
+ cx.fillText('C'+CN+':  each element labelled outside by its order',14,20);
+ cx.fillStyle='#d8a657';
+ cx.fillText('selected  a = '+sel+',  gcd(a, '+CN+') = '+d+',  order '+ord,14,40);
+ var gens=0;for(var a=0;a<CN;a++)if(gcd(a,CN)===1)gens++;
+ cx.fillStyle=(ord===CN)?'#4caf82':'#9aa5b1';
+ cx.fillText((ord===CN?'a generates the whole group  -  ':'⟨a⟩ has '+ord+' elements  -  ')+
+   'there are φ('+CN+') = '+gens+' generators in all',14,cc.height-12);}
+drawCyc();
+</script></body></html>

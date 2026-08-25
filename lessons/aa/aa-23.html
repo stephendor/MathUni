@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-23 — Groups and their category: subgroups and homomorphisms</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+ol.ax{margin:.4rem 0 .4rem 1.2rem}ol.ax li{margin:.25rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Groups and their category: subgroups and homomorphisms <span class="cite">(aa-23)</span></h1>
+
+<div class="hook">
+There are 42 abelian groups of order 1024. There are 49,487,365,402 groups of order 1024 — or, by the count usually cited today, 49,487,365,422.
+<p>One axiom separates those two numbers. Drop commutativity from Definition 8.11 and what remains — associativity, an identity, inverses — is a <strong>group</strong>, and the theory becomes incomparably wilder. Aluffi's comparison is blunt: the classification of finite abelian groups took us one lesson; the classification of finite simple groups fills many thousands of pages by hundreds of authors over fifty years, and "is not stuff for mere mortals". Today we set up the category of groups and watch, at four separate points, exactly what stops working when gh ≠ hg.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> A ring homomorphism has three conditions and a module homomorphism has two. How many does a <em>group</em> homomorphism have?</p>
+<button onclick="check(this,false)">Three — preserve the operation, the identity, and inverses</button>
+<button data-ok onclick="check(this,true)">One — preserve the operation; the rest follows</button>
+<button onclick="check(this,false)">Two — preserve the operation and the identity</button>
+<div class="explain">Definition 11.2 asks only that φ(g₁g₂) = φ(g₁)φ(g₂). That φ(e) = e and φ(g<sup>−1</sup>) = φ(g)<sup>−1</sup> then follow — the guided proof at the end. Contrast rings, where f(1) = 1 had to be <em>imposed</em> because aa-08 could not cancel f(1) from f(1) = f(1)f(1). In a group every element is invertible, so that cancellation is always available, and the condition comes free. <span class="cite">— Aluffi Underground §11.1, Definition 11.2, p. 230</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Fundamental groups and covering-space deck transformations are non-abelian; this is their grammar.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Three axioms, and what order now costs</h2>
+
+<div class="definition">
+<strong>Definition 11.1 (group).</strong> A <strong>group</strong> (G, ·) is a set with a binary operation such that
+<ol class="ax">
+<li>(i) (gh)k = g(hk) for all g, h, k;</li>
+<li>(ii) there is e<sub>G</sub> ∈ G with ge<sub>G</sub> = e<sub>G</sub>g = g for all g;</li>
+<li>(iii) for every g there is h with gh = hg = e<sub>G</sub>.</li>
+</ol>
+The <strong>order</strong> |G| is its cardinality. <span class="cite">— Aluffi Underground §11.1, Definition 11.1, p. 229</span>
+</div>
+
+<p>This is aa-15's Definition 8.11 with axiom (iv), commutativity, deleted — and Definition 8.11 was itself axioms (i)–(iv) of aa-05's <strong>Definition 3.1</strong>, the list that opened the module. The tower now reads ring, module, abelian group, group, each step discarding requirements — and written multiplicatively, as aa-21 warned it would be. Two elements <em>commute</em> if gh = hg; a group in which all do is <strong>commutative</strong>, which is precisely an abelian group. <span class="cite">— Aluffi Underground §11.1, p. 230</span></p>
+
+<div class="worked">
+<strong>What survives unchanged.</strong> The identity is unique, each inverse is unique (so g<sup>−1</sup> is well defined), and (g<sup>−1</sup>)<sup>−1</sup> = g — by the proofs of aa-05's Propositions 3.14 and 3.15 verbatim, since those used only associativity, an identity, and inverses. And <strong>cancellation holds</strong>:
+<p style="text-align:center">g₁h = g₂h ⟹ g₁ = g₁(hh<sup>−1</sup>) = (g₁h)h<sup>−1</sup> = (g₂h)h<sup>−1</sup> = g₂,</p>
+<p>and likewise on the left. In particular, if g ≠ e then gh ≠ h for every h. <span class="cite">— Aluffi Underground §11.1, pp. 229–230</span></p>
+<p><strong>Note how cheap cancellation has become.</strong> In a ring it needed a non-zero-divisor (aa-06's Proposition 3.26) and often failed. In a group <em>every</em> element is invertible, so it always holds — and that single fact is why several later proofs are shorter here than their ring counterparts.</p>
+</div>
+
+<div class="worked">
+<strong>What order costs.</strong> Powers behave as expected: g⁵ = ggggg, g<sup>−3</sup> = g<sup>−1</sup>g<sup>−1</sup>g<sup>−1</sup>, and g<sup>m+n</sup> = g<sup>m</sup>g<sup>n</sup>. But
+<p style="text-align:center">(gh)² = ghgh &nbsp;<em>cannot be simplified</em>, &nbsp;&nbsp;and&nbsp;&nbsp; (gh)<sup>−1</sup> = h<sup>−1</sup>g<sup>−1</sup>,</p>
+<p>where the switch is <em>necessary</em>: check (gh)(h<sup>−1</sup>g<sup>−1</sup>) = g(hh<sup>−1</sup>)g<sup>−1</sup> = e, whereas (gh)(g<sup>−1</sup>h<sup>−1</sup>) does not collapse. <span class="cite">— Aluffi Underground §11.1, p. 230</span></p>
+<p><strong>And the size of the change.</strong> Aluffi's figures: 42 abelian groups of order 1024, all writable from aa-22's classification; 49,487,365,402 groups of order 1024. One axiom. <span class="cite">— Aluffi Underground §11.1, p. 230</span></p>
+<p>A note on that second figure, since it is quoted here verbatim and Aluffi himself hedges it with "I am told". The number produced by the Besche–Eick–O'Brien enumeration of groups of order 1024, and the one usually quoted, is <strong>49,487,365,422</strong> — twenty more than the printed figure. Nothing in the argument turns on the last two digits; the gap between 42 and roughly 4.9 × 10¹⁰ is the point. But if you meet the number elsewhere and it disagrees with this page, the other source is probably the right one.</p>
+</div>
+
+<div class="worked">
+<strong>A notation warning you will meet in aa-25 and in Carter.</strong> Aluffi's Definition 11.32 writes <strong>D<sub>2n</sub></strong> for the symmetry group of the regular n-gon — so the symmetries of the square are D₈, a group of order 8. Carter, and many other books, write <strong>D₄</strong> for the same group, indexing by the number of sides. Both conventions are standard and they conflict; this module follows Aluffi, so <em>D₈ here is the square</em>. When you read Carter, halve the subscript. <span class="cite">— Aluffi Underground §11.3, Definition 11.32, p. 242</span>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In a group, what is (gh)<sup>−1</sup>?</p>
+<button onclick="check(this,false)">g<sup>−1</sup>h<sup>−1</sup></button>
+<button data-ok onclick="check(this,true)">h<sup>−1</sup>g<sup>−1</sup></button>
+<button onclick="check(this,false)">(hg)<sup>−1</sup></button>
+<div class="explain">(gh)(h<sup>−1</sup>g<sup>−1</sup>) = g(hh<sup>−1</sup>)g<sup>−1</sup> = gg<sup>−1</sup> = e, and similarly on the other side; so h<sup>−1</sup>g<sup>−1</sup> is <em>the</em> inverse, by uniqueness. The order reversal is not a convention — g<sup>−1</sup>h<sup>−1</sup> genuinely fails when g and h do not commute. In an abelian group all three answers coincide, which is exactly why the reversal is easy to forget. <span class="cite">— Aluffi Underground §11.1, p. 230</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the maps, and the first thing that breaks.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Homomorphisms, and the failure of Hom(G, H)</h2>
+
+<div class="definition">
+<strong>Definition 11.2.</strong> A function φ : G → H between groups is a <strong>group homomorphism</strong> if φ(g₁g₂) = φ(g₁)φ(g₂) for all g₁, g₂. <span class="cite">— Aluffi Underground §11.1, Definition 11.2, p. 230</span>
+<p><strong>Proposition 11.3.</strong> Identities are homomorphisms, composites of homomorphisms are homomorphisms, and composition is associative — so groups and group homomorphisms form a category. <span class="cite">— Aluffi Underground §11.1, Proposition 11.3, p. 230</span></p>
+</div>
+
+<p>One family is already classified: by aa-19's <strong>Theorem 9.35</strong> a finitely generated vector space is free, so its additive group is a direct sum of copies of (k, +) — an abelian group, hence a group, and every linear map is in particular a group homomorphism. Other examples arrive free: the map sending everything to e<sub>H</sub> is the <em>trivial</em> homomorphism, and every homomorphism of abelian groups is a group homomorphism — indeed for abelian A, B the set Hom(A, B) of aa-21 is exactly the set of group homomorphisms, which makes abelian groups a <em>full subcategory</em> of groups. <span class="cite">— Aluffi Underground §11.1, p. 231</span></p>
+
+<div class="worked">
+<strong>Remark 11.4 — the first casualty of non-commutativity.</strong> aa-21 found that Hom(A, B) is <em>itself an abelian group</em>, under (f + g)(a) = f(a) + g(a). Try the same for groups: define (φψ)(g) := φ(g)ψ(g). Is it a homomorphism? Compute both sides:
+<p style="text-align:center">(φψ)(g₁g₂) = φ(g₁)<strong>φ(g₂)ψ(g₁)</strong>ψ(g₂),</p>
+<p style="text-align:center">(φψ)(g₁)(φψ)(g₂) = φ(g₁)<strong>ψ(g₁)φ(g₂)</strong>ψ(g₂).</p>
+<p>The two differ in the middle: they agree exactly when φ(g₂)ψ(g₁) = ψ(g₁)φ(g₂), and nothing supplies that. In the abelian case, axiom (iv) did. So <strong>Hom(G, H) is in general not a group</strong> — it is "nothing more than a set" (with one distinguished element, the trivial homomorphism, making it a pointed set). <span class="cite">— Aluffi Underground §11.1, Remark 11.4, p. 231</span></p>
+<p>This is a real loss. aa-21's Proposition 10.6 built the whole notion of a module out of End(A) being a <em>ring</em>; that construction has no group-theoretic analogue here.</p>
+</div>
+
+<div class="definition">
+<strong>Definition 11.5.</strong> φ : G → H is an <strong>isomorphism</strong> if there is a group homomorphism ψ : H → G with ψ ∘ φ = id<sub>G</sub> and φ ∘ ψ = id<sub>H</sub> — equivalently, if φ is a bijection. G ≅ H if such a φ exists, and ≅ is an equivalence relation. <span class="cite">— Aluffi Underground §11.1, Definition 11.5, p. 231</span>
+</div>
+
+<p>The equivalence of the two clauses is the same argument as aa-08's Proposition 4.30 and aa-15's guided proof — Aluffi sets it as a review exercise, and the point is that you have now proved it three times in three categories from the same template. <span class="cite">— Aluffi Underground §11.1, p. 231</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Is Hom(G, H) a group under (φψ)(g) = φ(g)ψ(g)?</p>
+<button onclick="check(this,false)">Yes — the same construction as for abelian groups</button>
+<button data-ok onclick="check(this,true)">No — φψ is not even a homomorphism in general</button>
+<button onclick="check(this,false)">Only if G is finite</button>
+<div class="explain">Expanding (φψ)(g₁g₂) and (φψ)(g₁)(φψ)(g₂) gives two products differing by the swap of φ(g₂) and ψ(g₁), and nothing forces them to commute. For abelian targets axiom (iv) did, which is why Hom(A, B) <em>is</em> an abelian group. Finiteness is irrelevant — the obstruction is one transposition inside a product of four terms. <span class="cite">— Aluffi Underground §11.1, Remark 11.4, p. 231</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Subgroups, and how to see one.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Subgroups, generation, and products</h2>
+
+<div class="definition">
+<strong>Definition 11.6.</strong> A subset H ⊆ G that is itself a group is a <strong>subgroup</strong> if the inclusion H → G is a group homomorphism — i.e. if H's operation is the restriction of G's. <span class="cite">— Aluffi Underground §11.1, Definition 11.6, p. 232</span>
+</div>
+
+<div class="theorem">
+<strong>Proposition 11.7.</strong> A <em>nonempty</em> subset H ⊆ G is a subgroup if and only if gh<sup>−1</sup> ∈ H for all g, h ∈ H. <span class="cite">— Aluffi Underground §11.1, Proposition 11.7, p. 232</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Take h ∈ H. Setting g = h gives e = hh<sup>−1</sup> ∈ H. Setting g = e gives h<sup>−1</sup> = eh<sup>−1</sup> ∈ H. Then for g, h ∈ H we have h<sup>−1</sup> ∈ H, so gh = g(h<sup>−1</sup>)<sup>−1</sup> ∈ H. So H contains e, is closed under inverses and under the operation — hence a group under the restricted operation, associativity being inherited. ∎ <span class="cite">— Aluffi Underground §11.1, p. 232</span>
+<p><strong>One condition.</strong> Subrings needed four checks, submodules three, subgroups of abelian groups two (aa-21's Proposition 10.4: nonempty, closed under subtraction), and here one — gh<sup>−1</sup> ∈ H, which is the multiplicative spelling of the same thing. The checklist has been shrinking all module long, and this is the floor.</p>
+</div>
+
+<div class="worked">
+<strong>The standard constructions, all by Proposition 11.7.</strong>
+<p><strong>11.8.</strong> Any intersection of subgroups — finite or not — is a subgroup. <span class="cite">— Aluffi Underground §11.1, Example 11.8, p. 232</span></p>
+<p><strong>11.9.</strong> Images of subgroups are subgroups; in particular im φ ≤ G′. <span class="cite">— Aluffi Underground §11.1, Example 11.9, p. 232</span></p>
+<p><strong>11.10.</strong> Preimages of subgroups are subgroups; in particular <strong>ker φ = φ<sup>−1</sup>(e)</strong> is a subgroup of G. Kernels return in aa-26. <span class="cite">— Aluffi Underground §11.1, Example 11.10, p. 232</span></p>
+<p><strong>Definition 11.11.</strong> For S ⊆ G, ⟨S⟩ is the smallest subgroup containing S — which exists, being the intersection of all subgroups that contain S. <span class="cite">— Aluffi Underground §11.1, Definition 11.11, p. 232</span></p>
+</div>
+
+<div class="worked">
+<strong>Remark 11.12 — the second casualty, and it is severe.</strong> For an abelian group, ⟨a₁, …, a<sub>n</sub>⟩ is the set of combinations m₁a₁ + ⋯ + m<sub>n</sub>a<sub>n</sub> — a clean normal form, which is what made aa-18's matrices possible. The multiplicative analogue would be the products g₁<sup>m₁</sup>⋯g<sub>n</sub><sup>m<sub>n</sub></sup>, and <em>these do not form a group</em>: unless g₁ and g₂ commute there is no reason g₁g₂g₁g₂ should equal g₁<sup>m₁</sup>g₂<sup>m₂</sup> for any exponents.
+<p>What ⟨g₁, …, g<sub>n</sub>⟩ actually is: all products of the generators and their inverses, <em>in any order</em> — <strong>words</strong> such as</p>
+<p style="text-align:center">g₃g₂<sup>−1</sup>g₁g₂²g₃<sup>−1</sup>g₁<sup>−3</sup>,</p>
+<p>with in general no way to simplify further. <span class="cite">— Aluffi Underground §11.1, Remark 11.12, p. 233</span></p>
+<p>Only the single-generator case escapes: ⟨g⟩ is the set of powers g<sup>i</sup>, exactly as in aa-21's Definition 10.8. That is why <em>cyclic</em> groups remain easy and everything else does not — and why aa-25's free groups, which are all words and no relations, are the wild end of the subject.</p>
+</div>
+
+<div class="worked">
+<strong>Definition 11.13 — products, and the third casualty.</strong> G × H with componentwise operation is a group, and the projections π<sub>G</sub>, π<sub>H</sub> make it satisfy the universal property of <em>products</em>, exactly as for modules. But <strong>it is not a coproduct</strong>: aa-16's injections and their universal property fail, and if you trace the attempted verification you find, again, a step needing commutativity. A coproduct of groups does exist — the free product G ∗ H — and is much harder to handle. Aluffi's notation records the difference: ⊕ for modules, × for groups. <span class="cite">— Aluffi Underground §11.1, Definition 11.13, p. 233</span>
+<p><strong>Example 11.16 — the example to hold on to.</strong> The invertible elements of a possibly noncommutative ring form a group. For 2 × 2 real matrices this is the <strong>general linear group</strong></p>
+<p style="text-align:center">GL₂(ℝ) = { (a b / c d) : ad − bc ≠ 0 },</p>
+<p>and GL<sub>n</sub>(ℝ) in general. Every ring, ideal and module you have met is a group, but they are all <em>abelian</em> and so unrepresentative; GL<sub>n</sub> is what a group actually looks like. <span class="cite">— Aluffi Underground §11.1, Examples 11.15 and 11.16, p. 234</span></p>
+</div>
+
+<div class="worked">
+<strong>Carter's way of seeing the same thing.</strong> Carter draws a group as a <strong>Cayley diagram</strong> — one node per element, one coloured arrow per generator — and defines a subgroup as one group "completely contained in another", written H &lt; G, with the orbit of an element as the basic example: in S₃ the orbit {e, r, r²} is a copy of C₃. <span class="cite">— Carter §6.2, Definition 6.2, p. 99</span>
+<p>Some subgroups are visually obvious and some are not, so Carter's §6.3 gives a method: <em>any</em> subgroup can be revealed by regenerating the diagram using generators that include the subgroup's generators, then relaying out the nodes. His worked case is C₆ = ⟨2, 3⟩, where neither 2 nor 3 generates alone; drawing the diagram with those two arrow colours makes the subgroups ⟨2⟩ and ⟨3⟩ visible at once. <span class="cite">— Carter §6.3, p. 101; §6.2, pp. 99–100</span></p>
+<p>And in §8.1 he identifies what that containment <em>is</em>: none of the elements 0, 1, 2 of C₃ are literally in S₃, so "C₃ &lt; S₃" means a structure-preserving correspondence 0 ↦ e, 1 ↦ r, 2 ↦ r² — an injective <strong>homomorphism</strong>, or embedding. Aluffi Underground's Definition 11.6 and Carter's picture are the same statement. <span class="cite">— Carter §8.1, p. 157</span></p>
+</div>
+
+<p>Below is the Cayley diagram of S₃: an outer triangle for the rotations, an inner one for the reflections, red arrows for r and grey edges for f. Highlight a subgroup and watch it appear as a sub-diagram.</p>
+
+<canvas id="cay" width="620" height="330" aria-label="Cayley diagram of the symmetric group on three letters with a chosen subgroup highlighted"></canvas>
+<div class="controls">
+<button onclick="setSub(0)">⟨r⟩ ≅ C₃</button>
+<button onclick="setSub(1)">⟨f⟩ ≅ C₂</button>
+<button onclick="setSub(2)">⟨rf⟩ ≅ C₂</button>
+<button onclick="setSub(3)">the whole group</button>
+<button onclick="setSub(4)">the trivial subgroup</button>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — using Proposition 11.7 in S₃.</strong> Let G = S₃ = {e, r, r², f, rf, r²f} with r³ = e, f² = e. Is H = {e, r, r²} a subgroup?
+<p>H is nonempty, so by Proposition 11.7 it is enough that gh<sup>−1</sup> ∈ H for all g, h ∈ H. The inverses inside H are e<sup>−1</sup> = e, r<sup>−1</sup> = ⟨your step: which power of r?⟩, and (r²)<sup>−1</sup> = r.</p>
+<p>So every product gh<sup>−1</sup> is a product of powers of r, hence a power of r, hence in H — because r³ = ⟨your step⟩ makes the powers close up after three steps. So H ≤ G. ✓</p>
+<p>Now try K = {e, f, r}. Take g = f and h = r: then gh<sup>−1</sup> = fr², and fr² is ⟨your step: in K or not?⟩ — the six elements of S₃ are e, r, r², f, rf, r²f, and fr² is a reflection different from f. So K is <em>not</em> a subgroup.</p>
+<p>The moral matches Carter's: subgroups are not arbitrary subsets of the right size. {e, f, r} has three elements, and 3 divides 6, and it is still not a subgroup — a point aa-28's Lagrange theorem will sharpen from the other direction.</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi asserts that a group homomorphism sends the identity to the identity and inverses to inverses, and defers it to Exercise 11.2. Prove it. <strong>Let φ : G → H satisfy φ(g₁g₂) = φ(g₁)φ(g₂) for all g₁, g₂. Show that (a) φ(e<sub>G</sub>) = e<sub>H</sub> and (b) φ(g<sup>−1</sup>) = φ(g)<sup>−1</sup> for every g.</strong> Then answer the question that makes this worth doing: <em>why</em> did the analogous condition have to be an axiom for rings?</p>
+<textarea placeholder="(a) phi(e) = phi(e e) = phi(e)phi(e). Now cancel ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>(a) φ(e<sub>G</sub>) = φ(e<sub>G</sub>e<sub>G</sub>) = φ(e<sub>G</sub>)φ(e<sub>G</sub>). Now cancel φ(e<sub>G</sub>) — legal because <em>every element of H is invertible</em>, so cancellation holds in H — leaving e<sub>H</sub> = φ(e<sub>G</sub>).</p>
+<p>(b) φ(g)φ(g<sup>−1</sup>) = φ(gg<sup>−1</sup>) = φ(e<sub>G</sub>) = e<sub>H</sub>, and symmetrically φ(g<sup>−1</sup>)φ(g) = e<sub>H</sub>. So φ(g<sup>−1</sup>) satisfies the defining property of the inverse of φ(g), and inverses are unique, so φ(g<sup>−1</sup>) = φ(g)<sup>−1</sup>. ∎</p>
+<p><em>Why rings were different.</em> For a ring homomorphism the same first move gives f(1) = f(1)f(1) — but cancelling f(1) requires it to be a non-zero-divisor, and in a general ring it need not be. aa-08 flagged exactly this, with ι(a) = (a, 0) as the witness: a map respecting both operations that sends 1 to a non-identity. So f(1) = 1 must be imposed. In a group, invertibility is universal, cancellation is free, and the condition is a theorem.</p>
+<p>Grade yourself on naming cancellation as the step. If your proof of (a) said "clearly φ(e) = e", it has not identified what makes groups different from rings — which is the whole content of the exercise.</p>
+</details>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (a) Prove Proposition 11.3: identities and composites of group homomorphisms are group homomorphisms. It is one line each, and the contrast worth noticing is how much shorter it is than aa-08's Proposition 4.27 for rings. (b) Show that the six elements of S₃ have orders 1, 3, 3, 2, 2, 2, and use Proposition 11.7 to list <em>all</em> subgroups of S₃. (There are six.) (c) Which of them are images ⟨g⟩ of a single element, and which is not? (d) Finally, check by hand that S₃ is not abelian by exhibiting two elements with rf ≠ fr, and confirm your answer is consistent with the Cayley diagram above.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> What is the subgroup of G generated by two non-commuting elements g₁, g₂?</p>
+<button onclick="check(this,false)">The set of products g₁<sup>m</sup>g₂<sup>n</sup></button>
+<button data-ok onclick="check(this,true)">The set of all words in g₁, g₂ and their inverses, in any order</button>
+<button onclick="check(this,false)">The set {e, g₁, g₂, g₁g₂}</button>
+<div class="explain">The products g₁<sup>m</sup>g₂<sup>n</sup> are not closed under multiplication when the generators fail to commute — g₁g₂g₁g₂ generally cannot be rewritten in that shape. So ⟨g₁, g₂⟩ is all words in the generators and their inverses, usually with no simplification available (Remark 11.12). This is precisely the normal form that abelian groups had and groups do not, and it is why the matrix methods of aa-18 stop here. <span class="cite">— Aluffi Underground §11.1, Remark 11.12, p. 233</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Carter says "C₃ &lt; S₃". What does that mean precisely?</p>
+<button onclick="check(this,false)">That the elements 0, 1, 2 of C₃ belong to S₃</button>
+<button data-ok onclick="check(this,true)">That there is an injective homomorphism C₃ → S₃, matching 0 ↦ e, 1 ↦ r, 2 ↦ r²</button>
+<button onclick="check(this,false)">That C₃ and S₃ have the same order</button>
+<div class="explain">Carter is explicit that none of the elements 0, 1, 2 are literally in S₃ — the structure of C₃ shows up even though the elements are different. The precise content is a structure-preserving correspondence, an embedding, which is what §8.1 introduces homomorphisms in order to say. The orders are 3 and 6, not equal. This is the same statement as Definition 11.6.
+<span class="cite">— Aluffi Underground §11.1, Definition 11.6, p. 232</span>
+<span class="cite">— Carter §8.1, p. 157</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> How many conditions does the subgroup test of Proposition 11.7 require?</p>
+<button data-ok onclick="check(this,true)">Two: nonempty, and gh<sup>−1</sup> ∈ H</button>
+<button onclick="check(this,false)">Four, as for subrings</button>
+<button onclick="check(this,false)">None — every subset closed under the operation is a subgroup</button>
+<div class="explain">Nonemptiness gives some h; then gh<sup>−1</sup> with g = h gives e, with g = e gives h<sup>−1</sup>, and then gh = g(h<sup>−1</sup>)<sup>−1</sup> gives closure. Subrings needed 0, 1, closure and negatives (Proposition 4.14); this needs one closure condition. And closure under the operation alone is not enough for infinite groups — the positive integers under addition inside ℤ are the standard witness. <span class="cite">— Aluffi Underground §11.1, Proposition 11.7, p. 232</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims and the four failures:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>A group is Definition 8.11 minus commutativity</strong> (Definition 11.1). Uniqueness of e and of inverses, and cancellation, survive verbatim — cancellation now being <em>free</em>, since every element is invertible. What changes is order: (gh)<sup>−1</sup> = h<sup>−1</sup>g<sup>−1</sup>, and (gh)² does not simplify. The scale of the change: 42 abelian groups of order 1024 against about 4.9 × 10¹⁰ groups — 49,487,365,402 as Aluffi prints it, 49,487,365,422 by the standard enumeration.</li>
+<li><strong>A group homomorphism has one condition</strong> (Definition 11.2); φ(e) = e and φ(g<sup>−1</sup>) = φ(g)<sup>−1</sup> follow by cancellation, where the ring analogue had to be imposed. Groups and homomorphisms form a category (Proposition 11.3), and isomorphism is defined and behaves as in every previous chapter.</li>
+<li><strong>Four things break.</strong> Hom(G, H) is no longer a group (Remark 11.4) — the abelian construction needs one transposition it cannot make. ⟨g₁, …, g<sub>n</sub>⟩ has no normal form, only words (Remark 11.12). G × H is a product but <em>not</em> a coproduct (Definition 11.13). And, most bluntly, the classification is out of reach. What survives: the subgroup test, now down to one condition (Proposition 11.7), images and preimages of subgroups, and kernels.</li>
+</ol>
+Carter's picture and Aluffi's definition are the same object: a subgroup is a sub-diagram of a Cayley diagram, and "C₃ &lt; S₃" means an injective homomorphism, not a containment of elements. That reading — structure, not elements — is exactly what the fundamental group of a space will require.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi Underground, <em>Algebra: Notes from the Underground</em> — §11.1 "Groups and their Category" (Definition 11.1, the uniqueness of the identity and of inverses, and cancellation p. 229; powers, the reversal in (gh)<sup>−1</sup>, the comparison of counts at order 1024, Definition 11.2 and Proposition 11.3 p. 230; the trivial homomorphism, abelian groups as a full subcategory, Remark 11.4 and Definition 11.5 p. 231; Definition 11.6, Proposition 11.7, Examples 11.8, 11.9, 11.10 and Definition 11.11 p. 232; Remark 11.12 and Definition 11.13 p. 233; Examples 11.14, 11.15, 11.16 p. 234), pp. 229–234; §11.3 (Definition 11.32, p. 242, for the dihedral notation).
+Second source: Carter, <em>Visual Group Theory</em>. Carter §6.2 "Seeing subgroups" gives Definition 6.2 and the orbit examples in S₃ and C₂ × C₂ × C₂, pp. 99–100. Carter §6.3 "Revealing subgroups" regenerates a Cayley diagram to expose a subgroup, with C₆ = ⟨2, 3⟩, p. 101. Carter §8.1 "Embeddings and quotient maps" says what C₃ &lt; S₃ means precisely, p. 157.
+In Aluffi Underground, Definition 8.11 comes from aa-15 (§8.1, p. 157), Propositions 3.14 and 3.15 from aa-05 (§3.2, p. 48), Proposition 3.26 from aa-06 (§3.3, p. 54), Proposition 4.14 and Proposition 4.27 from aa-07 and aa-08 (§4.2–4.3, pp. 63–68), Proposition 4.30 from aa-08 (§4.4, p. 71), Definition 8.28 and the coproduct property from aa-16 (§8.3, pp. 162–164), Proposition 10.4, Definition 10.8 and Proposition 10.6 from aa-21 (§10.1–10.2, pp. 204–207), and Theorem 10.18 from aa-22 (§10.3, p. 212). Aluffi Underground indexes the dihedral groups by twice the number of sides and Carter by the number of sides; this lesson follows Aluffi, and says so at first use.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Cayley diagram of S_3 in Carter's style: outer triangle e, r, r^2 joined by red
+// r-arrows; inner triangle f, rf, r^2f likewise; grey edges for the involution f.
+// A subgroup is highlighted as a sub-diagram, which is Carter's point in 6.3.
+var yc=document.getElementById('cay'),yx=yc.getContext('2d');
+var NAMES=['e','r','r²','f','rf','r²f'];
+var SUBS=[[0,1,2],[0,3],[0,4],[0,1,2,3,4,5],[0]];
+var SUBN=['⟨r⟩ ≅ C₃','⟨f⟩ ≅ C₂','⟨rf⟩ ≅ C₂','S₃ itself','{e} ≅ C₁'];
+var si2=0;
+function setSub(i){si2=i;drawCay();}
+function pos(i){var cx=yc.width/2,cy=yc.height/2+8;
+ var outer=(i<3),R=outer?116:60,k=outer?i:(i-3);
+ var th=-Math.PI/2+2*Math.PI*k/3;
+ return [cx+R*Math.cos(th),cy+R*Math.sin(th)];}
+function drawCay(){yx.clearRect(0,0,yc.width,yc.height);
+ var sub=SUBS[si2],inSub=function(i){return sub.indexOf(i)>=0;};
+ // f-edges: 0-3, 1-4, 2-5
+ var fe=[[0,3],[1,4],[2,5]];
+ for(var i=0;i<fe.length;i++){var a=pos(fe[i][0]),b=pos(fe[i][1]);
+  var on=inSub(fe[i][0])&&inSub(fe[i][1]);
+  yx.strokeStyle=on?'#d8a657':'#2a333d';yx.lineWidth=on?3:1.5;
+  yx.beginPath();yx.moveTo(a[0],a[1]);yx.lineTo(b[0],b[1]);yx.stroke();}
+ // r-arrows: 0->1->2->0 and 3->4->5->3
+ function arrow(i,j){var a=pos(i),b=pos(j);
+  var on=inSub(i)&&inSub(j);
+  yx.strokeStyle=on?'#4caf82':'#2a333d';yx.lineWidth=on?3:1.5;
+  var mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
+  yx.beginPath();yx.moveTo(a[0],a[1]);yx.lineTo(b[0],b[1]);yx.stroke();
+  var ang=Math.atan2(b[1]-a[1],b[0]-a[0]);
+  yx.fillStyle=on?'#4caf82':'#2a333d';
+  yx.beginPath();yx.moveTo(mx+9*Math.cos(ang),my+9*Math.sin(ang));
+  yx.lineTo(mx-5*Math.cos(ang)+5*Math.sin(ang),my-5*Math.sin(ang)-5*Math.cos(ang));
+  yx.lineTo(mx-5*Math.cos(ang)-5*Math.sin(ang),my-5*Math.sin(ang)+5*Math.cos(ang));
+  yx.closePath();yx.fill();}
+ arrow(0,1);arrow(1,2);arrow(2,0);arrow(3,4);arrow(4,5);arrow(5,3);
+ yx.font='13px Segoe UI';yx.textAlign='center';yx.textBaseline='middle';
+ for(var i=0;i<6;i++){var p=pos(i),on=inSub(i);
+  yx.fillStyle=on?'#4caf82':'#26313c';
+  yx.beginPath();yx.arc(p[0],p[1],16,0,7);yx.fill();
+  yx.fillStyle=on?'#08130d':'#9aa5b1';yx.fillText(NAMES[i],p[0],p[1]);}
+ yx.textAlign='left';yx.fillStyle='#e8e8e8';
+ yx.fillText('S₃ as a Cayley diagram:  green arrows are r,  amber edges are f',14,20);
+ yx.fillStyle='#4caf82';
+ yx.fillText('highlighted: '+SUBN[si2]+'  -  '+sub.length+' of 6 elements',14,42);
+ yx.fillStyle='#9aa5b1';
+ yx.fillText('a subgroup shows up as a sub-diagram closed under the arrows it uses',14,yc.height-12);}
+drawCay();
+</script></body></html>

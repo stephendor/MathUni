@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-27 — Isomorphism theorems for groups</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Isomorphism theorems for groups <span class="cite">(aa-27)</span></h1>
+
+<div class="hook">
+Third pass, three categories deep — rings, modules, groups — one lattice that always folds the same way.
+<p>You have proved these theorems twice already, in aa-10 for rings and aa-17 for modules. This is the third and last time, and the point of doing it again is not that the proofs are new. It is that the <em>hypotheses</em> are: "submodule" has become "normal subgroup", and every statement below has to earn its quotients by checking normality where the earlier versions had nothing to check. Aluffi's own summary of the section is that the other isomorphism theorems are applications of the first one.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Given a surjective group homomorphism φ : G → H, what should H be isomorphic to?</p>
+<button onclick="check(this,false)">The image of φ, which is a proper subgroup of H</button>
+<button data-ok onclick="check(this,true)">G modulo ker φ</button>
+<button onclick="check(this,false)">G × ker φ</button>
+<div class="explain">Exactly as for rings and modules: collapse everything φ cannot distinguish, and what remains is H. The reason this is now a theorem with content rather than a triviality is that G/ker φ has to <em>be</em> a group first, which needed all of aa-26 — and it is available precisely because kernels are normal, by Proposition 11.58. <span class="cite">— Aluffi Underground §11.5, Theorem 11.68, p. 260</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: The version used silently in every homology and fundamental-group computation you will read.</p>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 1 — The first theorem, and what it is good for</h2>
+
+<p>aa-26 built G/K for normal K and showed the projection π is surjective with kernel K. That was the last missing piece of the canonical decomposition begun at the start of §11.4, because the set G/∼ appearing there is exactly G/ker φ.</p>
+
+<div class="theorem">
+<p><strong>Theorem 11.67 (Canonical decomposition).</strong> Every group homomorphism φ : G → H factors as a surjective projection π, followed by an isomorphism φ̃, followed by an inclusion ι — and φ̃ is an isomorphism. <span class="cite">— Aluffi Underground, Theorem 11.67, p. 260</span></p>
+</div>
+
+<p>The only thing left to check was that φ̃(a ker φ) := φ(a) is a homomorphism, and it is, in one line: φ̃((a ker φ)(b ker φ)) = φ̃((ab) ker φ) = φ(ab) = φ(a)φ(b). <span class="cite">— Aluffi Underground, p. 260</span> Note that the coset product is being used exactly as aa-26 defined it, which is why that well-definedness argument had to come first.</p>
+
+<div class="theorem">
+<p><strong>Theorem 11.68 (First Isomorphism Theorem).</strong> If φ : G → H is a <em>surjective</em> group homomorphism then H ≅ G/ker φ, via the isomorphism φ̃(gK) = φ(g). <span class="cite">— Aluffi Underground §11.5, Theorem 11.68, p. 260</span></p>
+<p><em>Proof.</em> Since φ is surjective, the image in Theorem 11.67 is all of H. <span class="cite">— Aluffi Underground §11.5, p. 260</span></p>
+</div>
+
+<p>A two-word proof, and the entire remaining machinery of the section rests on it. Aluffi's first applications are the two quotients aa-25 and aa-26 have already made you compute.</p>
+
+<p><strong>Example 11.69.</strong> S<sub>n</sub>/A<sub>n</sub> ≅ C₂ for n ≥ 2, because A<sub>n</sub> is the kernel of the sign homomorphism onto {+1, −1} ≅ C₂ and that map is surjective for n ≥ 2. Likewise D<sub>2n</sub>/C<sub>n</sub> ≅ C₂ for n ≥ 3, with C<sub>n</sub> the rotation subgroup — the flip-or-not homomorphism of aa-26's Example 11.61. <span class="cite">— Aluffi Underground §11.5, Example 11.69, p. 260</span> Aluffi adds a third: the map C<sub>2n</sub> → C₂ given by multiplication by [n]<sub>2n</sub> has kernel {[0], [2], …, [2n−2]} ≅ C<sub>n</sub>, so C<sub>2n</sub>/C<sub>n</sub> ≅ C₂ as well. <span class="cite">— Aluffi Underground §11.5, p. 261</span></p>
+
+<div class="worked fade">
+<strong>Worked, then faded — Example 11.70.</strong> Claim: if K₁ is normal in G₁ and K₂ is normal in G₂, then K₁ × K₂ is normal in G₁ × G₂ and
+<p style="text-align:center">(G₁ × G₂)/(K₁ × K₂) ≅ (G₁/K₁) × (G₂/K₂).</p>
+<p>The strategy is the one you will use for every application of Theorem 11.68: do not construct the isomorphism, construct a <em>surjection</em> onto the right-hand side and identify its kernel.</p>
+<p>Worked: the map G₁ × G₂ → (G₁/K₁) × (G₂/K₂) sending (g₁, g₂) to (g₁K₁, g₂K₂) is a homomorphism because the operation in a product is componentwise, and it is surjective because each projection is. Its kernel is {(g₁, g₂) : g₁K₁ = K₁ and g₂K₂ = K₂} = {(g₁, g₂) : g₁ ∈ K₁, g₂ ∈ K₂} = K₁ × K₂. Apply Theorem 11.68. <span class="cite">— Aluffi Underground §11.5, Example 11.70, p. 261</span></p>
+<p>Now fade it and run the same three steps for a claim Aluffi does not spell out: show that G₁ × G₂ modulo the subgroup G₁ × {e} is isomorphic to G₂. The surjection is ⟨?⟩; it is a homomorphism because ⟨?⟩; its kernel is ⟨?⟩; conclude by ⟨?⟩.</p>
+<details><summary>Check</summary>The surjection is the second projection (g₁, g₂) ↦ g₂. It is a homomorphism because the product operation is componentwise, and it is surjective because every g₂ is hit by (e, g₂). Its kernel is {(g₁, g₂) : g₂ = e} = G₁ × {e}. Theorem 11.68 then gives (G₁ × G₂)/(G₁ × {e}) ≅ G₂. Notice that normality of G₁ × {e} never had to be checked separately — being a kernel delivers it free, by Proposition 11.58. That is the labour-saving move, and it is why "find a surjection" is almost always faster than "verify normality, build the quotient, construct a map both ways".</details>
+</div>
+
+<p><strong>Example 11.71 — presentations.</strong> aa-25 ended with the free group F(A) and the observation that if A generates G there is a natural surjection φ : F(A) → G. Feed that surjection to Theorem 11.68 and you get G ≅ F(A)/ker φ: <em>every</em> group is isomorphic to a quotient of a free group. <span class="cite">— Aluffi Underground §11.5, Example 11.71, p. 261</span> Aluffi asks you to compare this with Cayley's theorem from aa-24, which says every group is isomorphic to a <em>subgroup</em> of a symmetric group. <span class="cite">— Aluffi Underground §11.2, Theorem 11.29, p. 240</span> Two universal embeddings of every group whatsoever, one from below and one from above.</p>
+
+<p>Concretely, D<sub>2n</sub> is generated by x and y subject to x² = e, yⁿ = e, xy = y⁻¹x, so D<sub>2n</sub> ≅ F({x, y})/K where K is the smallest normal subgroup containing x², yⁿ and xyxy. In general a <strong>presentation</strong> of G is a pair (R | A) with A a set and R a set of words, such that G ≅ F(A)/K for K the smallest normal subgroup containing R; a presentation of D<sub>2n</sub> is (x², yⁿ, xyxy | x, y). <span class="cite">— Aluffi Underground §11.5, p. 261</span> Aluffi flags the cost: deciding whether two words represent the same element of G — the <em>word problem</em> — is undecidable in general, a result of Pyotr Novikov, though solvable for many classes of groups. <span class="cite">— Aluffi Underground §11.5, p. 261</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why must the third relation in the presentation of D<sub>2n</sub> be written xyxy rather than xy = y⁻¹x?</p>
+<button onclick="check(this,false)">Because y⁻¹ is not an element of the free group</button>
+<button data-ok onclick="check(this,true)">Because a presentation lists <em>words</em> that must become the identity, and xy = y⁻¹x rearranges to xyxy = e</button>
+<button onclick="check(this,false)">Because xyxy is shorter</button>
+<div class="explain">R is a set of words in the alphabet, and K is the smallest normal subgroup containing them — so each relation must be phrased as "this word dies". Multiply xy = y⁻¹x on the left by x and on the right by y: x·xy·y = x·y⁻¹x·y gives... more directly, from xy = y⁻¹x we get xyxy = (y⁻¹x)(xy) = y⁻¹x²y = y⁻¹y = e. Inverses do exist in F({x, y}) — every reduced word has one — but a relation still has to be stated as an element of the kernel. <span class="cite">— Aluffi Underground §11.5, Example 11.71, p. 261</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Next: a product of two subgroups that is not a subgroup.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 2 — The second theorem, and the hypothesis it needs</h2>
+
+<p>The Second Isomorphism Theorem is about HK = {hk : h in H, k in K}, the set of products. For modules the analogous H + K was automatically a submodule and nobody remarked on it. For groups it is not automatic, and Aluffi stops to say so: if H and K are subgroups, HK is <em>not</em> necessarily a subgroup. <span class="cite">— Aluffi Underground §11.5, p. 262</span></p>
+
+<div class="worked">
+<strong>Example 11.72 — the counterexample, again in six elements.</strong> In D<sub>6</sub>, take H = {e, x} and K = {e, xy}. Both are subgroups of order 2, since x² = e and (xy)² = xyxy = e. Their product set is
+<p style="text-align:center">HK = {e, x, xy, y},</p>
+<p>because x·xy = x²y = y. This is not a subgroup: it contains xy and y but not their product xy·y = xy². <span class="cite">— Aluffi Underground §11.5, Example 11.72, p. 262</span></p>
+<p>Count as a second check: a subgroup of a six-element group cannot have four elements, since 4 does not divide 6 — but that is Lagrange's theorem, which arrives in aa-28. Aluffi's argument does not need it, and deliberately exhibits the missing product instead.</p>
+</div>
+
+<p>The repair is exactly the hypothesis this whole chapter has been building.</p>
+
+<div class="theorem">
+<p><strong>Proposition 11.73.</strong> Let H, K be subgroups of G with K <em>normal</em> in G. Then HK is a subgroup of G, K is normal in HK, and H ∩ K is a normal subgroup of H. <span class="cite">— Aluffi Underground §11.5, Proposition 11.73, p. 262</span></p>
+</div>
+
+<p>Aluffi's proof of the first claim is the one computation worth memorising. Take a = h₁k₁ and b = h₂k₂ in HK; then</p>
+
+<p style="text-align:center">ab⁻¹ = h₁k₁k₂⁻¹h₂⁻¹ = (h₁h₂⁻¹)(h₂k₁k₂⁻¹h₂⁻¹),</p>
+
+<p>and the first bracket is in H because H is a subgroup, while the second is in K because it is a conjugate of an element of K and K is normal. So ab⁻¹ is in HK, which by the subgroup criterion of aa-23 is enough. <span class="cite">— Aluffi Underground §11.5, p. 262</span> The inserted h₂⁻¹h₂ in the middle is the whole trick: it converts "k on the wrong side of h" into "a conjugate of k", and conjugates are only guaranteed to stay put when K is normal.</p>
+
+<p>The remaining two claims are quick. K = eK is a subgroup of HK, normal there because aKa⁻¹ = K holds for all a in G and in particular for all a in HK. And H ∩ K is normal in H because for k in H ∩ K and a in H, the element aka⁻¹ is in H (a product of elements of H) and in K (K is normal), hence in both. <span class="cite">— Aluffi Underground §11.5, p. 262</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 11.74 (Second Isomorphism Theorem).</strong> Let H, K be subgroups of G with K normal in G. Then H/(H ∩ K) ≅ HK/K, and the isomorphism is h(H ∩ K) ↦ hK. <span class="cite">— Aluffi Underground §11.5, Theorem 11.74, p. 262</span></p>
+</div>
+
+<p>Both quotients in that statement are legal <em>because</em> of Proposition 11.73 — H ∩ K is normal in H, and K is normal in HK. Aluffi is explicit that this is why the preliminary proposition had to come first, and that the argument itself is the same as the module version of aa-17, mutatis mutandis. <span class="cite">— Aluffi Underground §11.5, p. 263</span></p>
+
+<div class="you-try">
+<strong>Guided proof.</strong> Aluffi leaves one step to the reader: "Verify that φ is surjective, by adapting the proof of Theorem 8.48." Do that, then finish the theorem. The map is φ : H → HK/K with φ(h) = hK.
+<p>Three things to establish: φ is a homomorphism, φ is surjective, and ker φ = H ∩ K. Then quote Theorem 11.68.</p>
+<textarea placeholder="Homomorphism: phi(h1 h2) = (h1 h2)K = (h1 K)(h2 K) by the coset product of Definition 11.65. Surjective: a general element of HK/K is (hk)K for some h in H, k in K; show that (hk)K = hK, so it is phi(h). Kernel: h is in ker phi exactly when hK = K, which happens exactly when ..."></textarea>
+<details><summary>Model answer</summary>
+<p><em>Homomorphism.</em> φ(h₁h₂) = (h₁h₂)K = (h₁K)(h₂K) = φ(h₁)φ(h₂), directly from the coset product of Definition 11.65 — which is well defined because K is normal in HK.</p>
+<p><em>Surjective.</em> A general element of HK/K is the coset of some hk with h in H and k in K. But hkK = hK, since kK = K for k in K. So that coset is φ(h), and every element of HK/K is in the image.</p>
+<p><em>Kernel.</em> ker φ = {h in H : hK = K} = {h in H : h in K} = H ∩ K, which is exactly Aluffi's computation.</p>
+<p><em>Conclude.</em> Theorem 11.68 applied to the surjection φ gives H/ker φ ≅ HK/K, that is H/(H ∩ K) ≅ HK/K, with the induced map sending the coset of h to hK — the formula in the statement.</p>
+<p>Every isomorphism theorem in this section has this shape: build one surjection, compute one kernel, quote Theorem 11.68. The creativity is entirely in choosing the surjection.</p></details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Where does normality of K get used in Proposition 11.73's proof that HK is a subgroup?</p>
+<button onclick="check(this,false)">In showing HK contains the identity</button>
+<button data-ok onclick="check(this,true)">In showing h₂k₁k₂⁻¹h₂⁻¹ lies in K — it is a conjugate of an element of K</button>
+<button onclick="check(this,false)">In showing H is a subgroup</button>
+<div class="explain">HK contains e for any subgroups at all, and H being a subgroup is a hypothesis. The single place the hypothesis bites is the second bracket of ab⁻¹ = (h₁h₂⁻¹)(h₂k₁k₂⁻¹h₂⁻¹): without normality, conjugating an element of K by h₂ can land anywhere. Example 11.72 is what that failure looks like — neither {e, x} nor {e, xy} is normal in D<sub>6</sub>, and their product set has four elements and no closure. <span class="cite">— Aluffi Underground §11.5, Proposition 11.73, p. 262</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Then the theorem about the whole lattice at once.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 3 — The third theorem: one lattice, folded</h2>
+
+<div class="theorem">
+<p><strong>Theorem 11.75 (Third Isomorphism Theorem).</strong> Let K be normal in G and let H be a subgroup of G containing K. Then H/K is a subgroup of G/K, and <em>every</em> subgroup of G/K arises this way. Further, H/K is normal in G/K if and only if H is normal in G, and in that case</p>
+<p style="text-align:center">(G/K)/(H/K) ≅ G/H. <span class="cite">— Aluffi Underground §11.5, Theorem 11.75, p. 263</span></p>
+</div>
+
+<p>Three separate statements, and the first is the one people forget. It says the subgroups of the quotient are in bijection with the subgroups of G <em>lying above K</em> — nothing is lost and nothing is invented. Aluffi's proof is the projection π : G → G/K in both directions: H/K = π(H) is a subgroup, and conversely for a subgroup H̄ of G/K the preimage H = π⁻¹(H̄) is a subgroup containing K with π(H) = H̄. <span class="cite">— Aluffi Underground §11.5, p. 263</span> Images and preimages of subgroups are subgroups — aa-23's Example 11.9 and Example 11.10, quoted rather than reproved.</p>
+
+<p>The second and third statements are the First Isomorphism Theorem again. If H is normal and contains K, the projection G → G/H induces a surjection ρ : G/K → G/H whose kernel is H/K, so H/K is normal and Theorem 11.68 gives the displayed isomorphism. Conversely if H/K is normal, the surjection G → (G/K)/(H/K) sending g to the class of gK has kernel H, so H is normal and the same theorem applies. <span class="cite">— Aluffi Underground §11.5, p. 263</span></p>
+
+<p>Below, the bijection drawn. The left column lists the subgroups of G that contain K, the right column the subgroups of G/K, joined by the correspondence H ↦ H/K; the orders on the right are the orders on the left divided by |K|. Everything is enumerated from the group itself.</p>
+
+<canvas id="lat" width="620" height="330" aria-label="Subgroups of G containing K matched with subgroups of the quotient G modulo K"></canvas>
+<div class="controls">
+<button onclick="setLat(0)">D₈, K = its centre</button>
+<button onclick="setLat(1)">S₄, K = V</button>
+<button onclick="setLat(2)">A₄, K = V</button>
+<button onclick="setLat(3)">S₄, K = A₄</button>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Before pressing anything, predict the two column heights for D<sub>8</sub> with K its centre {e, (1 3)(2 4)}. You know |G/K| = 4, and a group of order 4 is commutative — Aluffi sets that as Exercise 11.10 — so which group of order 4 is it, and how many subgroups does that have?
+<details><summary>What you should see</summary>Five and five. D<sub>8</sub> modulo its centre has order 4, and every one of its elements squares to the identity: the square of a rotation is either e or the central half-turn, and the square of a flip is e, so gZ times gZ is Z in every case. A group of order 4 with no element of order 4 is not cyclic, so it is C₂ × C₂, the Klein four-group of aa-26's Example 11.63 — which has five subgroups: the trivial one, the whole thing, and three of order 2. Correspondingly D<sub>8</sub> has exactly five subgroups containing its centre, of orders 2, 4, 4, 4, 8. Dividing each by |K| = 2 gives 1, 2, 2, 2, 4 — the orders on the right. The two lattices are the same shape; that is the sense in which the hook's "one lattice folds the same way" is literal.
+<p>Contrast S<sub>4</sub> with K = A<sub>4</sub>: only two subgroups above A<sub>4</sub>, matching the two subgroups of C₂. A large K collapses more, and the correspondence tracks the collapse exactly.</p></details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which subgroups of G correspond to the subgroups of G/K?</p>
+<button onclick="check(this,false)">All subgroups of G</button>
+<button data-ok onclick="check(this,true)">Exactly those containing K</button>
+<button onclick="check(this,false)">Exactly the normal ones</button>
+<div class="explain">A subgroup not containing K cannot be a union of cosets of K, so it has no image-and-preimage round trip: π⁻¹(π(H)) is HK, not H. The correspondence is with the interval above K in the subgroup lattice. Normality is a separate matter handled by the theorem's second clause — H/K is normal in G/K exactly when H is normal in G — so both normal and non-normal subgroups above K appear in the bijection. <span class="cite">— Aluffi Underground §11.5, Theorem 11.75, p. 263</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Aluffi proves the second and third isomorphism theorems by which route?</p>
+<button data-ok onclick="check(this,true)">Building a surjection, computing its kernel, and quoting the First Isomorphism Theorem</button>
+<button onclick="check(this,false)">Constructing explicit inverse maps in both directions</button>
+<button onclick="check(this,false)">Induction on the order of the group</button>
+<div class="explain">He says it outright at the start of the section: the other isomorphism theorems are examples of applications of the first one. Theorem 11.74 uses φ : H → HK/K with kernel H ∩ K; Theorem 11.75 uses ρ : G/K → G/H with kernel H/K in one direction and G → (G/K)/(H/K) with kernel H in the other. Three theorems, one technique, and it works identically for rings in aa-10 and modules in aa-17. <span class="cite">— Aluffi Underground §11.5, p. 262</span> <span class="cite">— Aluffi Underground §11.5, p. 263</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Example 11.71 says every group is a quotient of a free group. What was the earlier companion statement?</p>
+<button onclick="check(this,false)">Every group is a product of cyclic groups</button>
+<button data-ok onclick="check(this,true)">Cayley's theorem: every group is isomorphic to a subgroup of a symmetric group</button>
+<button onclick="check(this,false)">Every group has a normal subgroup of index 2</button>
+<div class="explain">Aluffi asks for exactly that comparison. Cayley's theorem embeds G <em>into</em> something universal; Example 11.71 presents G <em>as a quotient of</em> something universal. Neither is practical — Cayley's target is astronomically large, and free groups are unwieldy with two or more generators — but between them they say that symmetric groups and free groups are each rich enough to reach everything. The third option is false: a group of odd order has no subgroup of index 2 at all. <span class="cite">— Aluffi Underground §11.5, Example 11.71, p. 261</span> <span class="cite">— Aluffi Underground §11.2, Theorem 11.29, p. 240</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Reconstruct the three theorems and, for each, the surjection that proves it:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>First (Theorem 11.68), from Theorem 11.67.</strong> A surjective φ : G → H gives H ≅ G/ker φ by φ̃(gK) = φ(g). Applications: S<sub>n</sub>/A<sub>n</sub> ≅ C₂ and D<sub>2n</sub>/C<sub>n</sub> ≅ C₂ (Example 11.69); quotients of products split componentwise (Example 11.70); every group is F(A)/ker φ, which is what a presentation records, with (x², yⁿ, xyxy | x, y) for D<sub>2n</sub> (Example 11.71).</li>
+<li><strong>Second (Theorem 11.74).</strong> H/(H ∩ K) ≅ HK/K for K normal in G. The preliminary work is Proposition 11.73 — HK need not be a subgroup at all, as Example 11.72 shows in D<sub>6</sub> with {e, x} and {e, xy} — and normality is used exactly at the conjugate h₂k₁k₂⁻¹h₂⁻¹. The surjection is h ↦ hK from H to HK/K, with kernel H ∩ K.</li>
+<li><strong>Third (Theorem 11.75).</strong> Subgroups of G/K correspond exactly to subgroups of G containing K, via H ↦ H/K = π(H) and H̄ ↦ π⁻¹(H̄). Normality matches on both sides, and then (G/K)/(H/K) ≅ G/H. The surjection is ρ : G/K → G/H with kernel H/K.</li>
+</ol>
+The mission strip is the reason to have done this three times. Every computation of a homology group runs the First Isomorphism Theorem without announcing it — H<sub>n</sub> is ker ∂<sub>n</sub> modulo im ∂<sub>n+1</sub>, and identifying that quotient with a known group means exhibiting a surjection and computing its kernel, which is the only technique this section contains. The Third does the same work for fundamental groups: a covering space corresponds to a subgroup of π₁, subgroups of a quotient correspond to subgroups above the kernel, and the lattice you just watched fold is the lattice of covering spaces.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi Underground, <em>Algebra: Notes from the Underground</em> — Theorem 11.67 with the verification that the induced map is a homomorphism, p. 260. Aluffi Underground §11.5 "Isomorphism Theorems" (Theorem 11.68 with proof and the start of Example 11.69 p. 260; the continuation of that example, Example 11.70, Example 11.71, presentations and the word problem p. 261; the definition of HK, Example 11.72, Proposition 11.73 with proof and Theorem 11.74 p. 262; the proof of the Second Isomorphism Theorem and Theorem 11.75 with proof p. 263), pp. 260–263.
+In Aluffi Underground: Theorem 11.29 is Cayley's theorem from aa-24 (§11.2, p. 240); the quotient group G/K, the coset product of Definition 11.65, Proposition 11.58 and Example 11.61 come from aa-26 (§11.4, pp. 253–259); free groups, presentations' raw material, the sign homomorphism and the dihedral relations come from aa-25 (§11.3, pp. 241–252); the subgroup criterion and the facts that images and preimages of subgroups are subgroups come from aa-23 (§11.1, pp. 229–232). The ring and module versions being compared are aa-10's and aa-17's.
+The canvas enumerates every subgroup of each group as the closure of a pair of its elements, filters those containing K, builds the quotient as a permutation group on cosets, and enumerates its subgroups the same way; the two column heights are counted, not asserted. Its four cases were re-derived independently before publication: five and five for D₈ above its centre, six and six for S₄ above V, two and two for A₄ above V, and two and two for S₄ above A₄.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// The Third Isomorphism Theorem's bijection, enumerated. Subgroups are found as
+// closures of pairs of elements - enough for every subgroup of these groups,
+// each of which is 2-generated. The quotient is built as a permutation group on
+// the cosets of K, and its subgroups are enumerated the same way.
+var lc=document.getElementById('lat'),lx=lc.getContext('2d');
+function mul(f,g){var a=[];for(var i=0;i<g.length;i++)a.push(f[g[i]]);return a;}
+function id(n){var a=[];for(var i=0;i<n;i++)a.push(i);return a;}
+function K2(p){return p.join(',');}
+function cyc(n,cs){var p=id(n);
+ for(var i=0;i<cs.length;i++){var c=cs[i];
+  for(var j=0;j<c.length;j++)p[c[j]-1]=c[(j+1)%c.length]-1;}
+ return p;}
+function gen(n,gs){var seen={},out=[],q=[id(n)];seen[K2(id(n))]=1;
+ while(q.length){var p=q.pop();out.push(p);
+  for(var i=0;i<gs.length;i++){var r=mul(gs[i],p);
+   if(!seen[K2(r)]){seen[K2(r)]=1;q.push(r);}}}
+ out.sort(function(a,b){return K2(a)<K2(b)?-1:1;});return out;}
+function sig(H){return H.map(K2).sort().join('|');}
+function allSubs(G,n){var seen={},out=[];
+ for(var i=0;i<G.length;i++)for(var j=0;j<G.length;j++){
+  var H=gen(n,[G[i],G[j]]),s=sig(H);
+  if(!(s in seen)){seen[s]=1;out.push(H);}}
+ out.sort(function(a,b){return a.length-b.length;});return out;}
+function contains(H,K){var s={};
+ for(var i=0;i<H.length;i++)s[K2(H[i])]=1;
+ for(var i=0;i<K.length;i++)if(!(K2(K[i]) in s))return false;
+ return true;}
+
+var LATS=[
+ {t:'G = D₈ (the square), K = Z(D₈) = {e, (13)(24)}',n:4,
+  g:[cyc(4,[[1,2,3,4]]),cyc(4,[[2,4]])],k:[cyc(4,[[1,3],[2,4]])]},
+ {t:'G = S₄, K = V (the Klein four-group)',n:4,
+  g:[cyc(4,[[1,2]]),cyc(4,[[1,2,3,4]])],
+  k:[cyc(4,[[1,2],[3,4]]),cyc(4,[[1,3],[2,4]])]},
+ {t:'G = A₄, K = V',n:4,
+  g:[cyc(4,[[1,2,3]]),cyc(4,[[2,3,4]])],
+  k:[cyc(4,[[1,2],[3,4]]),cyc(4,[[1,3],[2,4]])]},
+ {t:'G = S₄, K = A₄',n:4,
+  g:[cyc(4,[[1,2]]),cyc(4,[[1,2,3,4]])],
+  k:[cyc(4,[[1,2,3]]),cyc(4,[[2,3,4]])]}];
+var LI=0;
+function setLat(i){LI=i;drawLat();}
+
+function drawLat(){
+ var C=LATS[LI],n=C.n;
+ var G=gen(n,C.g),K=gen(n,C.k);
+ var above=allSubs(G,n).filter(function(H){return contains(H,K);});
+ // the quotient, as permutations of the cosets of K
+ var cos=[],seen={};
+ for(var i=0;i<G.length;i++){
+  var b=[];for(var j=0;j<K.length;j++)b.push(K2(mul(G[i],K[j])));
+  b.sort();var s=b.join('|');
+  if(!(s in seen)){seen[s]=cos.length;cos.push(b);}}
+ function cosOf(p){var b=[];for(var j=0;j<K.length;j++)b.push(K2(mul(p,K[j])));
+  b.sort();return seen[b.join('|')];}
+ var reps=[];
+ for(var i=0;i<G.length;i++){var c=cosOf(G[i]);if(reps[c]===undefined)reps[c]=G[i];}
+ var m=cos.length;
+ var qgens=[];
+ for(var i=0;i<G.length;i++){var q=[];
+  for(var c=0;c<m;c++)q.push(cosOf(mul(G[i],reps[c])));
+  qgens.push(q);}
+ var Q=gen(m,qgens);
+ var qsubs=allSubs(Q,m);
+
+ lx.clearRect(0,0,lc.width,lc.height);
+ lx.font='13px Segoe UI';lx.textAlign='left';lx.textBaseline='middle';
+ lx.fillStyle='#e8e8e8';lx.fillText(C.t,14,20);
+ lx.fillStyle='#9aa5b1';
+ lx.fillText('|G| = '+G.length+',  |K| = '+K.length+',  |G/K| = '+Q.length,14,40);
+ lx.fillText('subgroups of G containing K',14,68);
+ lx.textAlign='right';lx.fillText('subgroups of G/K',lc.width-14,68);
+ var top=88,h=Math.min(34,(lc.height-top-46)/Math.max(above.length,1));
+ lx.font='12px Segoe UI';
+ for(var i=0;i<above.length;i++){
+  var y=top+i*h+h/2;
+  lx.fillStyle='#8ab4f8';lx.fillRect(14,y-h/2+3,180,h-6);
+  lx.fillStyle='#0c1013';lx.textAlign='center';
+  lx.fillText('order '+above[i].length,104,y);
+  var qy=top+i*h+h/2;
+  lx.fillStyle='#4caf82';lx.fillRect(lc.width-194,qy-h/2+3,180,h-6);
+  lx.fillStyle='#0c1013';
+  lx.fillText('order '+(i<qsubs.length?qsubs[i].length:'?'),lc.width-104,qy);
+  lx.strokeStyle='#2a333d';lx.lineWidth=1;
+  lx.beginPath();lx.moveTo(196,y);lx.lineTo(lc.width-196,qy);lx.stroke();}
+ lx.textAlign='left';lx.font='13px Segoe UI';
+ var ok=(above.length===qsubs.length);
+ lx.fillStyle=ok?'#4caf82':'#e06c75';
+ lx.fillText(above.length+' subgroups above K   and   '+qsubs.length+
+  ' subgroups of G/K'+(ok?'   -   a bijection, as Theorem 11.75 says':'   -   mismatch'),
+  14,lc.height-16);}
+drawLat();
+</script></body></html>

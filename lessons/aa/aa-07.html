@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-07 — The category of rings I: products and subrings</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>The category of rings I: products and subrings <span class="cite">(aa-07)</span></h1>
+
+<div class="hook">
+Two rings with four elements each: ℤ/4ℤ, and ℤ/2ℤ × ℤ/2ℤ. Same size. Are they the same ring?
+<p>No — and the way you tell is worth more than the answer. In the product, every element added to itself gives 0; in ℤ/4ℤ, [1] + [1] = [2] ≠ [0]. That is a <em>structural</em> difference, one that survives any relabelling of elements. Today we stop studying rings one at a time and start building new ones out of old (products, subrings), and in doing so we discover — twice, from two unrelated constructions — the same short list of properties that the "right" kind of map between rings should have. aa-08 will make that list a definition.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> In R × R for a nontrivial ring R, is the subset S = {(a, 0) : a ∈ R} a subring?</p>
+<button onclick="check(this,false)">Yes — it is a faithful copy of R</button>
+<button data-ok onclick="check(this,true)">No — it does not contain the multiplicative identity (1, 1)</button>
+<button onclick="check(this,false)">No — it is not closed under multiplication</button>
+<div class="explain">S is closed under both operations, contains (0, 0), and has all its negatives — it is a ring in its own right, with identity (1, 0). But a subring must share the <em>ambient</em> ring's 1, and 1<sub>R×R</sub> = (1, 1) ∉ S. So S is not a subring of R × R under Definition 4.5, and the diagonal Δ = {(a, a)} is — that one does contain (1, 1). This is Aluffi's Example 4.10, and it is the sharpest illustration that "looks like a copy of R" and "is a subring" are different claims. <span class="cite">— Aluffi §4.2, Example 4.10, p. 62</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: The categorical habit — objects plus structure-preserving maps — that persistence lives inside.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Cartesian products, and the map they come with</h2>
+
+<p>Aluffi frames the whole chapter by analogy. Once you had the notion of <em>set</em>, you built new sets from old — unions, products, quotients — and you studied <em>functions</em> between them. Doing both at once is what it means to study the category of sets. We now run the same programme for rings: first some constructions, then let the constructions tell us what the right notion of "function between rings" is. <span class="cite">— Aluffi §4.1, p. 59</span></p>
+
+<div class="definition">
+<strong>Definition 4.1 (Cartesian product).</strong> Let R, S be rings. Their <strong>Cartesian product</strong> is the ring R × S = {(r, s) : r ∈ R, s ∈ S} with componentwise operations:
+<p style="text-align:center">(r₁, s₁) + (r₂, s₂) := (r₁ + r₂, s₁ + s₂), &nbsp;&nbsp; (r₁, s₁)·(r₂, s₂) := (r₁·r₂, s₁·s₂).</p>
+<span class="cite">— Aluffi §4.1, Definition 4.1, p. 59</span>
+</div>
+
+<p>Watch the symbols: + has three meanings in that display — addition in R, addition in S, and the new addition being defined. Verifying Definition 3.1 for R × S is, in Aluffi's word, uninspiring: it is the pointwise argument from aa-05, run coordinate by coordinate. The identities are 0<sub>R×S</sub> = (0<sub>R</sub>, 0<sub>S</sub>) and 1<sub>R×S</sub> = (1<sub>R</sub>, 1<sub>S</sub>). <span class="cite">— Aluffi §4.1, p. 60</span></p>
+
+<div class="worked">
+<strong>Example 4.2 — two rings of size four.</strong> In ℤ/2ℤ × ℤ/2ℤ,
+<p style="text-align:center">([1]₂, [1]₂) + ([1]₂, [1]₂) = ([0]₂, [0]₂),</p>
+<p>and the same happens for every element: x + x = 0 throughout. In ℤ/4ℤ that is false, since [1]₄ + [1]₄ = [2]₄ ≠ [0]₄. So the two rings are not the same ring wearing different labels — in the vocabulary of aa-08, they are not <em>isomorphic</em>. <span class="cite">— Aluffi §4.1, Example 4.2, p. 60</span></p>
+<p><strong>Example 4.3 — and two rings of size six.</strong> Compare ℤ/2ℤ × ℤ/3ℤ with ℤ/6ℤ, and look for a distinguishing feature. Aluffi's hint is one word: <em>No.</em> There is none; these two really are the same ring in different clothes. The reason is the Chinese Remainder Theorem, which aa-10 will meet as Theorem 5.52. <span class="cite">— Aluffi §4.1, Example 4.3, p. 60; §5.6, Theorem 5.52, p. 97</span></p>
+<p>Put Examples 4.2 and 4.3 side by side: ℤ/2ℤ × ℤ/2ℤ ≇ ℤ/4ℤ but ℤ/2ℤ × ℤ/3ℤ ≅ ℤ/6ℤ. The difference between the two situations is gcd(2, 2) = 2 against gcd(2, 3) = 1 — exactly the coprimality condition that has been doing this work since aa-02.</p>
+</div>
+
+<div class="worked">
+<strong>Example 4.4 — ℂ is not ℝ × ℝ.</strong> Both are "the plane" as a set. But in ℝ × ℝ,
+<p style="text-align:center">(1, 0)·(0, 1) = (0, 0)</p>
+<p>with neither factor zero: there are nonzero zero-divisors. ℂ is a field, hence an integral domain by Proposition 3.31, so it has none. The two rings cannot be isomorphic. <span class="cite">— Aluffi §4.1, Example 4.4, p. 60</span></p>
+<p><strong>Generalise it.</strong> That computation used nothing about ℝ: in any product of two nonzero rings, (1, 0) and (0, 1) are nonzero and multiply to (0, 0). So <em>a product of two nonzero rings is never an integral domain</em> — Definition 3.23 fails no matter how well behaved the factors are. Products are a machine for manufacturing zero-divisors.</p>
+</div>
+
+<p>Now the map. Among all functions R × S → R (with two-element factors there are 2⁴ = 16 of them) one is writeable without knowing anything about R or S: the <strong>projection</strong> <span class="cite">— Aluffi §4.1, p. 60</span></p>
+<p style="text-align:center">π : R × S → R, &nbsp;&nbsp; π(r, s) := r. &nbsp;&nbsp;(4.1)</p>
+
+<div class="worked">
+<strong>Why π is special from the ring point of view.</strong> Add first, then project:
+<p style="text-align:center">(r₁, s₁) + (r₂, s₂) = (r₁ + r₂, s₁ + s₂) ↦ r₁ + r₂.</p>
+<p>Project first, then add: (r₁, s₁), (r₂, s₂) ↦ r₁, r₂ ↦ r₁ + r₂. Same answer. In symbols,</p>
+<p style="text-align:center">π(x + y) = π(x) + π(y), &nbsp;&nbsp; π(x·y) = π(x)·π(y), &nbsp;&nbsp; π(1<sub>R×S</sub>) = 1<sub>R</sub>.</p>
+<p>Three properties. Hold on to them — the whole of Segment 3 is the observation that a completely different construction produces the very same three. <span class="cite">— Aluffi §4.1, p. 61</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> What structural feature separates ℤ/4ℤ from ℤ/2ℤ × ℤ/2ℤ?</p>
+<button onclick="check(this,false)">One is commutative and the other is not</button>
+<button data-ok onclick="check(this,true)">In the product every element satisfies x + x = 0; in ℤ/4ℤ, [1] + [1] ≠ 0</button>
+<button onclick="check(this,false)">They have different numbers of elements</button>
+<div class="explain">Both have four elements and both are commutative. What differs is a statement quantified over all elements — x + x = 0 holds throughout the product and fails at [1]₄ — and such a statement cannot be changed by renaming elements. That is what makes it a legitimate way to tell two rings apart. Compare Example 4.3, where no such feature exists and the two rings <em>are</em> the same. <span class="cite">— Aluffi §4.1, Example 4.2, p. 60</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Products build up. Next, the construction that cuts down.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Subrings, and how little you actually have to check</h2>
+
+<div class="definition">
+<strong>Definition 4.5 (subring).</strong> Let R be a ring and S ⊆ R a subset with 0<sub>R</sub> ∈ S, 1<sub>R</sub> ∈ S, and S closed under both operations of R. Then S is a <strong>subring</strong> of R if all the axioms of Definition 3.1 hold for S, with 0<sub>S</sub> = 0<sub>R</sub> and 1<sub>S</sub> = 1<sub>R</sub>. <span class="cite">— Aluffi §4.2, Definition 4.5, p. 61</span>
+</div>
+
+<p>In short: S is a ring in its own right, under R's operations, <em>with R's own 0 and 1</em>. That last clause is where the interesting failures live.</p>
+
+<div class="worked">
+<strong>The examples, and what each one tests.</strong>
+<p><strong>4.6 — the familiar tower.</strong> ℤ is a subring of ℚ, which is a subring of ℝ, which is a subring of ℂ. <span class="cite">— Aluffi §4.2, Example 4.6, p. 61</span></p>
+<p><strong>4.7 — ℤ/2ℤ is NOT a subring of ℤ.</strong> Tempting: read [0]₂ as 0 and [1]₂ as 1. But a subring must use <em>R's</em> operations, and in ℤ, 1 + 1 = 2, whereas [1]₂ + [1]₂ = [0]₂. The two demands are inconsistent. The same holds for every ℤ/nℤ with n &gt; 0 — this is aa-03's warning, now with teeth. <span class="cite">— Aluffi §4.2, Example 4.7, pp. 61–62</span></p>
+<p><strong>4.9 — the diagonal.</strong> For any ring R, Δ = {(a, a) : a ∈ R} ⊆ R × R is a subring: it contains (0, 0) and (1, 1), and (a, a) + (b, b) = (a+b, a+b), (a, a)(b, b) = (ab, ab) stay diagonal. Δ is a doppelgänger of R. <span class="cite">— Aluffi §4.2, Examples 4.8 and 4.9, p. 62</span></p>
+<p><strong>4.10 — the axis is not.</strong> S = {(a, 0)} is closed and has negatives but misses (1, 1). Not a subring. The prediction gate. <span class="cite">— Aluffi §4.2, Example 4.10, p. 62</span></p>
+<p><strong>4.11 — constants in R[x].</strong> R sits inside R[x] as the constant polynomials. <span class="cite">— Aluffi §4.2, Example 4.11, p. 62</span></p>
+</div>
+
+<div class="worked">
+<strong>Example 4.12 — the Gaussian integers.</strong> Inside ℂ, put
+<p style="text-align:center">ℤ[i] := { a + bi : a, b ∈ ℤ }.</p>
+<p>Closure under + is immediate. Closure under · is the content:</p>
+<p style="text-align:center">(a₁ + b₁i)(a₂ + b₂i) = (a₁a₂ − b₁b₂) + (a₁b₂ + a₂b₁)i,</p>
+<p>and both of those coefficients are integers when all four inputs are. With 0 and 1 present and negatives available, ℤ[i] is a subring of ℂ — the ring of <strong>Gaussian integers</strong>, important in number theory, and used again in §10.4. <span class="cite">— Aluffi §4.2, Example 4.12, p. 62</span></p>
+<p>Aluffi asks you to compare ℤ[i] with ℤ × ℤ. They have the same underlying set of pairs; but ℤ × ℤ has the zero-divisors (1, 0) and (0, 1), and ℤ[i] sits inside a field, so it has none. Same set, different multiplication, genuinely different rings.</p>
+</div>
+
+<p>Below is ℤ[i] as a lattice in the plane. Multiplying every point by a fixed Gaussian integer rotates and scales the whole lattice — and the image lands <em>back inside</em> the lattice, which is closure under · made visible.</p>
+
+<canvas id="gi" width="620" height="320" aria-label="The Gaussian integer lattice, and its image under multiplication by a fixed Gaussian integer"></canvas>
+<div class="controls">
+<button onclick="setMul(1,1)">× (1 + i)</button>
+<button onclick="setMul(2,1)">× (2 + i)</button>
+<button onclick="setMul(0,1)">× i</button>
+<button onclick="setMul(1,0)">× 1</button>
+</div>
+
+<p>Verifying Definition 4.5 as written means checking every ring axiom for S, which is tedious. Almost all of it is unnecessary.</p>
+
+<div class="theorem">
+<strong>Proposition 4.14.</strong> Let R be a ring and S ⊆ R a subset containing 0<sub>R</sub> and 1<sub>R</sub>. Then S is a subring of R if and only if (i) S is closed under + and ·, and (ii) S contains the additive inverse of each of its elements. <span class="cite">— Aluffi §4.2, Proposition 4.14, p. 63</span>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — ℤ[i] by the short route.</strong> Redo Example 4.12 using Proposition 4.14 rather than Definition 4.5.
+<p>Membership of 0 and 1: take a = ⟨your step⟩, b = ⟨your step⟩ for 0, and a = 1, b = 0 for 1.</p>
+<p>Closure under +: (a₁ + b₁i) + (a₂ + b₂i) = (a₁ + a₂) + (b₁ + b₂)i, and sums of integers are ⟨your step⟩.</p>
+<p>Closure under ·: the display above, whose two coefficients are built from integers by ⟨your step: which two operations?⟩ only.</p>
+<p>Additive inverses: −(a + bi) = ⟨your step⟩, again with integer coefficients.</p>
+<p>Four checks, none of them an axiom. Associativity, commutativity and distributivity were never mentioned — and the guided proof explains why they never need to be.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Aluffi's Example 4.13: let R be the set of real matrices of the form (a −b / b a), i.e. rows (a, −b) and (b, a). Use Proposition 4.14 to show R is a subring of M<sub>2,2</sub>(ℝ). The one real computation is the product,</p>
+<p style="text-align:center">(a₁ −b₁ / b₁ a₁)·(a₂ −b₂ / b₂ a₂) = (a₁a₂ − b₁b₂ &nbsp; −(a₁b₂ + b₁a₂) / a₁b₂ + b₁a₂ &nbsp; a₁a₂ − b₁b₂).</p>
+<p>Then answer the question the shape is asking: where have you seen those two coefficients before, today? <span class="cite">— Aluffi §4.2, Example 4.13, p. 63</span></p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Prove Proposition 4.14. The forward direction is immediate from the definitions; the substance is the converse. <strong>Assume 0<sub>R</sub>, 1<sub>R</sub> ∈ S, that S is closed under + and ·, and that S contains additive inverses. Show every axiom of Definition 3.1 holds in S.</strong> The whole proof turns on one observation about the <em>logical form</em> of the axioms — find it and say it explicitly, then go through the list.</p>
+<textarea placeholder="Look at the seven axioms and sort them by their logical shape. Axioms (i), (iv), (v), (vii) are ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><em>The observation.</em> Sort the axioms by quantifier. Axioms (i) associativity of +, (iv) commutativity of +, (v) associativity of ·, and (vii) distributivity are <strong>purely universally quantified identities</strong>: each says "for all a, b, c, some equation holds." Axioms (ii), (iii), (vi) are <em>existential</em>: they assert that certain elements exist.</p>
+<p><em>The universal axioms are free.</em> If an identity holds for all elements of R, it holds in particular whenever the elements happen to lie in S. Closure guarantees that both sides of each identity are computed inside S, so nothing escapes. That disposes of (i), (iv), (v), (vii) with no work at all.</p>
+<p><em>The existential axioms are exactly what we assumed.</em> (ii) holds because 0<sub>R</sub> ∈ S by hypothesis and it is an additive identity for all of R, hence for S. (iii) holds because S was assumed to contain the additive inverse of each of its elements. (vi) holds because 1<sub>R</sub> ∈ S and it is a multiplicative identity throughout R.</p>
+<p>So all seven axioms hold for S with 0<sub>S</sub> = 0<sub>R</sub> and 1<sub>S</sub> = 1<sub>R</sub>, which is Definition 4.5. ∎</p>
+<p>Grade yourself on whether you stated the universal/existential split as the <em>reason</em>, rather than checking four identities by hand. It is the reason, and it is reusable: any substructure defined by "closed, contains the distinguished elements" inherits every universally quantified law of the parent for free. Aluffi notes the check can be trimmed further still — 1 ∈ S plus closure under subtraction and multiplication suffices (Exercise 4.5).</p>
+</details>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Two constructions down. Now the thing they have in common.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The pattern: what both constructions hand you</h2>
+
+<p>A subring, like a product, comes with a distinguished map. If S ⊆ R there are in general many functions S → R — sixteen of them when |S| = 2 and |R| = 4 — and one is writeable knowing nothing: the <strong>inclusion</strong> <span class="cite">— Aluffi §4.2, p. 64</span></p>
+<p style="text-align:center">i : S → R, &nbsp;&nbsp; i(s) = s.</p>
+
+<div class="worked">
+<strong>The inclusion satisfies the same three properties as the projection.</strong> For all s₁, s₂ ∈ S,
+<p style="text-align:center">i(s₁ + s₂) = s₁ + s₂ = i(s₁) + i(s₂), &nbsp;&nbsp; i(s₁·s₂) = s₁·s₂ = i(s₁)·i(s₂),</p>
+<p>and i(1<sub>S</sub>) = 1<sub>R</sub> — this last one <em>only</em> because Definition 4.5 insisted that S share R's identity. <span class="cite">— Aluffi §4.2, p. 64</span></p>
+<p>Aluffi's comment is the point of the whole chapter: all of this may seem too obvious to be worth pointing out, and "in mathematics that is often how important notions manifest themselves." Two constructions with nothing in common — one builds up, one cuts down — and both hand you a map that <em>respects +, respects ·, and preserves 1</em>. That triple is about to be promoted to a definition in §4.3: the <strong>ring homomorphism</strong>, which is aa-08.</p>
+</div>
+
+<div class="worked">
+<strong>Why the third condition is not redundant.</strong> Compare π with the other obvious map between R and R × S, namely ι : R → R × S, ι(a) = (a, 0<sub>S</sub>). It respects + and · perfectly well:
+<p style="text-align:center">ι(a + b) = (a + b, 0) = ι(a) + ι(b), &nbsp;&nbsp; ι(ab) = (ab, 0) = ι(a)ι(b).</p>
+<p>But ι(1<sub>R</sub>) = (1<sub>R</sub>, 0<sub>S</sub>), which is <em>not</em> 1<sub>R×S</sub> = (1<sub>R</sub>, 1<sub>S</sub>) when S is nonzero. Its image is Example 4.10's non-subring. So "respects both operations" is strictly weaker than the triple, and this is precisely why Definition 4.5 was written with the 1 clause in it. Problem 5 makes you separate these two maps carefully; the honest summary is that π deserves to be called structure-preserving and ι does not.</p>
+</div>
+
+<div class="worked">
+<strong>Application — the subring every ring contains.</strong> Fix a ring R. Using aa-05's multiple notation (Remark 3.16), write n·1<sub>R</sub> for 1<sub>R</sub> + ⋯ + 1<sub>R</sub> with n summands when n &gt; 0, 0<sub>R</sub> when n = 0, and −((−n)·1<sub>R</sub>) when n &lt; 0. Then
+<p style="text-align:center">R₀ = { n·1<sub>R</sub> : n ∈ ℤ }</p>
+<p>is a subring of R, by Proposition 4.14: it contains 0<sub>R</sub> = 0·1<sub>R</sub> and 1<sub>R</sub> = 1·1<sub>R</sub>, it is closed because (m·1)(n·1) = (mn)·1 and (m·1) + (n·1) = (m+n)·1, and −(n·1) = (−n)·1. And R₀ is contained in <em>every</em> subring of R, since any subring holds 1<sub>R</sub> and is closed under addition and negation.</p>
+<p>Now let N = { n ∈ ℤ : n·1<sub>R</sub> = 0<sub>R</sub> }. It contains 0 and is closed under addition and negation. If N = {0} set c = 0; otherwise let c be its least positive element, which exists by well-ordering. For any n ∈ N divide with remainder — aa-01's <strong>Theorem 1.3</strong> — as n = cq + r with 0 ≤ r &lt; c; then r·1<sub>R</sub> = n·1<sub>R</sub> − q(c·1<sub>R</sub>) = 0, so r ∈ N, and minimality forces r = 0. Hence N = cℤ. That c is the <strong>characteristic</strong> of R. <span class="cite">— Aluffi §1.2, Theorem 1.3, p. 6</span></p>
+<p>ℤ has characteristic 0; ℤ/12ℤ has characteristic 12; ℤ/2ℤ × ℤ/3ℤ has characteristic 6, since n(1,1) = (0,0) needs 2 ∣ n and 3 ∣ n — the same 6 as ℤ/6ℤ, exactly as Example 4.3 predicts. This is Problem 6, and it is the first place where products, subrings, and division with remainder are all doing work in one argument.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Is ℤ/2ℤ a subring of ℤ?</p>
+<button onclick="check(this,false)">Yes — take [0]₂ = 0 and [1]₂ = 1</button>
+<button data-ok onclick="check(this,true)">No — a subring must use ℤ's operations, and 1 + 1 = 2, not 0</button>
+<button onclick="check(this,false)">No — ℤ/2ℤ is not a ring</button>
+<div class="explain">Definition 4.5 requires S to be closed under <em>R's</em> operations and to be a ring under them. Reading [1]₂ as the integer 1 forces [1]₂ + [1]₂ to be the integer 2, but in ℤ/2ℤ that sum is [0]₂. No identification can satisfy both. This is aa-03's "ℤ/nℤ is not a subset of ℤ" restated in the language of subrings — and it now has a precise reason attached rather than an exhortation. <span class="cite">— Aluffi §4.2, Example 4.7, pp. 61–62</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Proposition 4.14 lets you skip checking associativity and distributivity in S. Why?</p>
+<button onclick="check(this,false)">Because they follow from closure</button>
+<button data-ok onclick="check(this,true)">Because they are identities quantified over all of R, so they hold for the elements of S automatically</button>
+<button onclick="check(this,false)">Because they are consequences of the existence of 0 and 1</button>
+<div class="explain">Axioms (i), (iv), (v), (vii) each read "for all a, b, c ∈ R, [equation]". A statement true of all elements of R is true of the ones that lie in S; closure only guarantees the computation stays inside S. What cannot be inherited that way are the <em>existential</em> axioms (ii), (iii), (vi) — which is exactly the list Proposition 4.14 makes you check by hand. <span class="cite">— Aluffi §4.2, Proposition 4.14, p. 63</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Let S be a <em>nontrivial</em> ring. Of π : R × S → R, π(a, b) = a, and ι : R → R × S, ι(a) = (a, 0), which preserves the multiplicative identity?</p>
+<button data-ok onclick="check(this,true)">π only</button>
+<button onclick="check(this,false)">ι only</button>
+<button onclick="check(this,false)">Both</button>
+<div class="explain">π(1, 1) = 1<sub>R</sub> ✓. But ι(1<sub>R</sub>) = (1<sub>R</sub>, 0<sub>S</sub>), and that is not (1<sub>R</sub>, 1<sub>S</sub>) — which is exactly why the question assumes S nontrivial. Drop that hypothesis and the answer changes: in the trivial ring 0<sub>S</sub> = 1<sub>S</sub>, so ι preserves the identity too and "both" becomes correct. Both maps respect + and ·, so the identity condition is the one doing the separating — which is the reason it is on the list at all. <span class="cite">— Aluffi §4.1, p. 61; §4.2, Example 4.10, p. 62</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Can a product R × S of two nonzero rings be an integral domain?</p>
+<button onclick="check(this,false)">Yes, if both R and S are integral domains</button>
+<button data-ok onclick="check(this,true)">Never — (1, 0)·(0, 1) = (0, 0) with neither factor zero</button>
+<button onclick="check(this,false)">Only if R and S are fields</button>
+<div class="explain">The computation uses nothing about R and S beyond being nonzero, so it applies even to ℝ × ℝ or ℚ × ℚ — a product of two fields. Definition 3.23 fails immediately. Aluffi makes the point at ℂ versus ℝ × ℝ; the general statement is that products manufacture zero-divisors, which is one reason aa-20's structure theorem, which decomposes modules into products, will have to be careful about what it preserves. <span class="cite">— Aluffi §4.1, Example 4.4, p. 60; §3.3, Definition 3.23, p. 53</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims and the pattern that links them:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Products (Definition 4.1)</strong> are componentwise, with 0 = (0, 0) and 1 = (1, 1). They always create zero-divisors: (1, 0)(0, 1) = (0, 0), so a product of nonzero rings is never a domain. Size does not determine a ring — ℤ/4ℤ ≇ ℤ/2ℤ × ℤ/2ℤ (x + x = 0 holds in one, not the other) while ℤ/6ℤ ≅ ℤ/2ℤ × ℤ/3ℤ, the difference being coprimality.</li>
+<li><strong>Subrings (Definition 4.5)</strong> must carry the ambient 0 <em>and</em> 1. The diagonal Δ ⊆ R × R qualifies; the axis {(a, 0)} does not; ℤ/2ℤ is not a subring of ℤ. Checking is cheap: <strong>Proposition 4.14</strong> — contains 0 and 1, closed under + and ·, closed under negation — because the four purely universal axioms are inherited automatically and only the three existential ones need checking.</li>
+<li><strong>Both constructions hand you the same kind of map.</strong> The projection π and the inclusion i each respect +, respect ·, and send 1 to 1. The third condition is not free: ι(a) = (a, 0) respects both operations and fails it. That triple becomes the definition of a ring homomorphism in aa-08.</li>
+</ol>
+The habit being trained here is the categorical one: an object is only half the data, and the maps are the other half. Everything from functoriality of homology to persistence modules is this habit, applied to something larger.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §4.1 "Cartesian Products" (the programme and Definition 4.1 p. 59; the ring axioms for R × S, Examples 4.2, 4.3 and 4.4, and the projection (4.1) p. 60; the three properties of π p. 61), pp. 59–61; §4.2 "Subrings" (Definition 4.5 and Examples 4.6, 4.7 p. 61; Examples 4.8, 4.9, 4.10, 4.11, 4.12 p. 62; Example 4.13 and Proposition 4.14 p. 63; the inclusion map p. 64), pp. 61–64. Definition 3.1 is carried over from aa-05 (§3.1, pp. 41–42), Definition 3.23 and Proposition 3.31 from aa-06 (§3.3, pp. 53–55), and Theorem 1.3 from aa-01 (§1.2, p. 6). The Chinese Remainder Theorem, invoked in Segment 1 without proof, is stated in aa-10 as Theorem 5.52 (§5.6, p. 97). The characteristic argument in Segment 3 is Problem 6 of this unit's set, assembled here from Proposition 4.14, the multiple notation of aa-05 and division with remainder.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Z[i] as a lattice in the plane; multiplying by a fixed Gaussian integer maps
+// the lattice into itself - closure under multiplication, drawn.
+var gc=document.getElementById('gi'),gx=gc.getContext('2d');
+var MA=1,MB=1;
+function setMul(a,b){MA=a;MB=b;drawGI();}
+function drawGI(){gx.clearRect(0,0,gc.width,gc.height);
+ var cx=gc.width/2,cy=gc.height/2-8,u=26,N=9;
+ gx.strokeStyle='#2a333d';gx.lineWidth=1;
+ gx.beginPath();gx.moveTo(10,cy);gx.lineTo(gc.width-10,cy);
+ gx.moveTo(cx,14);gx.lineTo(cx,gc.height-30);gx.stroke();
+ for(var a=-N;a<=N;a++)for(var b=-N;b<=N;b++){
+  var x=cx+a*u,y=cy-b*u;
+  if(x<8||x>gc.width-8||y<12||y>gc.height-28)continue;
+  gx.fillStyle='#2f3d4a';gx.beginPath();gx.arc(x,y,2.2,0,7);gx.fill();}
+ for(var a=-N;a<=N;a++)for(var b=-N;b<=N;b++){
+  var pa=a*MA-b*MB,pb=a*MB+b*MA;
+  var x=cx+pa*u,y=cy-pb*u;
+  if(x<8||x>gc.width-8||y<12||y>gc.height-28)continue;
+  gx.fillStyle='#8ab4f8';gx.beginPath();gx.arc(x,y,3.4,0,7);gx.fill();}
+ var hx=cx+MA*u,hy=cy-MB*u;
+ gx.strokeStyle='#4caf82';gx.lineWidth=2;
+ gx.beginPath();gx.moveTo(cx,cy);gx.lineTo(hx,hy);gx.stroke();
+ gx.fillStyle='#4caf82';gx.beginPath();gx.arc(hx,hy,4.5,0,7);gx.fill();
+ gx.font='13px Segoe UI';gx.fillStyle='#e8e8e8';
+ gx.fillText('grey: Z[i]   blue: (a+bi)·Z[i]   green: the multiplier',12,18);
+ gx.fillStyle='#9aa5b1';
+ gx.fillText('multiplier '+MA+(MB<0?' - ':' + ')+Math.abs(MB)+'i  -  every blue point is also grey, so Z[i] is closed under ·',12,gc.height-10);}
+drawGI();
+</script></body></html>

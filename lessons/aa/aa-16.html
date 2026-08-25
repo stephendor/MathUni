@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-16 — Submodules, direct sums, and quotient modules</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Submodules, direct sums, and quotient modules <span class="cite">(aa-16)</span></h1>
+
+<div class="hook">
+In ring theory you cannot divide a ring by a ring. You had to invent ideals first. In module theory that whole detour disappears: <em>every</em> submodule can be quotiented out.
+<p>That is the sentence to hold on to, because the quotient it licenses is the one homology is made of. A chain group C carries a submodule of cycles Z and, inside that, a submodule of boundaries B — and the homology group is Z/B, a quotient of a module by a submodule, with no ideal in sight. Today builds that construction in full, together with the two things it needs: what a submodule is, and how modules combine. Along the way the category of modules keeps turning out to be better behaved than the category of rings, and each improvement is worth naming.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> The kernel of a nontrivial ring homomorphism is not a subring. Is the kernel of a module homomorphism a submodule?</p>
+<button data-ok onclick="check(this,true)">Yes — it is the preimage of the submodule {0}</button>
+<button onclick="check(this,false)">No — for the same reason as rings, it misses an identity</button>
+<button onclick="check(this,false)">Only when the modules are free</button>
+<div class="explain">There is no identity element for a module to miss: Definition 8.14 has two clauses, not three. So ker f = f<sup>−1</sup>(0<sub>N</sub>) is a submodule, immediately, by Proposition 8.32(ii). Aluffi calls this "a point of departure with ring theory" — there the kernel was a rng and needed a whole new notion, the ideal, to be quotiented by. Here it is simply a submodule, and submodules are what you already quotient by. <span class="cite">— Aluffi §8.4, Definition 8.36, p. 165</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Z/B is a quotient module. This unit is homology, one abstraction early.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Submodules, and what generates them</h2>
+
+<div class="definition">
+<strong>Definition 8.22 (submodule).</strong> Let M be an R-module and N ⊆ M a subset that is itself an R-module. Then N is a <strong>submodule</strong> of M if the inclusion i : N → M is an R-module homomorphism — equivalently, if N's addition and R-action are the restrictions of M's. <span class="cite">— Aluffi §8.3, Definition 8.22, p. 161</span>
+</div>
+
+<div class="theorem">
+<strong>Proposition 8.23.</strong> A subset M′ ⊆ M is a submodule if and only if it is <em>nonempty</em> and closed under addition and under multiplication by scalars. <span class="cite">— Aluffi §8.3, Proposition 8.23, p. 161</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Axioms (i) and (iv)–(viii) are universally quantified identities holding throughout M, so they hold for elements of M′ automatically — the argument of aa-07's Proposition 4.14. That leaves (ii) and (iii). Since M′ ≠ ∅ there is some m ∈ M′, and then
+<p style="text-align:center">0 = 0<sub>R</sub>·m ∈ M′ &nbsp;&nbsp;and&nbsp;&nbsp; −m = (−1)·m ∈ M′,</p>
+<p>both by closure under scalars, using aa-15's Proposition 8.9. ∎ <span class="cite">— Aluffi §8.3, p. 161</span></p>
+<p><strong>Two clauses, not four.</strong> Compare Proposition 4.14 for subrings, which needed 0 ∈ S, 1 ∈ S, closure, <em>and</em> negatives. Here scalar multiplication produces 0 and −m for free. Compare also aa-09's Proposition 5.9 for ideals, where absorption did the same job — and note that this is not a coincidence: Example 8.24 says an ideal <em>is</em> a submodule of R.</p>
+</div>
+
+<div class="worked">
+<strong>The standard submodules.</strong>
+<p><strong>8.24.</strong> An ideal I ⊆ R is a submodule of R viewed as an R-module. Aluffi suggests adopting this as the definition of left-ideal: the left-ideals of R are exactly its submodules. For commutative R, the ideals of R are precisely its submodules. <span class="cite">— Aluffi §8.3, Example 8.24, pp. 161–162</span></p>
+<p><strong>8.25.</strong> For m₁, …, m<sub>n</sub> ∈ M, the set of linear combinations r₁m₁ + ⋯ + r<sub>n</sub>m<sub>n</sub> is a submodule — the smallest one containing them all. <span class="cite">— Aluffi §8.3, Example 8.25, p. 162</span></p>
+<p><strong>8.26 and 8.27.</strong> For submodules N₁, N₂ ⊆ M, the sum N₁ + N₂ = { n₁ + n₂ } is the smallest submodule containing both, and N₁ ∩ N₂ is a submodule — as is any intersection of a family of submodules. <span class="cite">— Aluffi §8.3, Examples 8.26 and 8.27, p. 162</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 8.28.</strong> The submodule of linear combinations of m₁, …, m<sub>n</sub> is written ⟨m₁, …, m<sub>n</sub>⟩, the submodule <strong>generated by</strong> them. <span class="cite">— Aluffi §8.3, Definition 8.28, p. 162</span>
+<p><strong>Definition 8.29.</strong> M is <strong>finitely generated</strong> if M = ⟨m₁, …, m<sub>n</sub>⟩ for some finite list, and <strong>cyclic</strong> if M = ⟨m⟩ for a single m. <span class="cite">— Aluffi §8.3, Definition 8.29, p. 162</span></p>
+</div>
+
+<div class="worked">
+<strong>Examples 8.30 and 8.31 — the dictionary.</strong> R/I is a cyclic R-module, generated by the coset 1 + I (aa-15's Example 8.7); Aluffi promises the converse, that <em>every</em> cyclic module is of this form. And for commutative R, an ideal is cyclic as a module exactly when it is principal as an ideal (Definition 5.17). <span class="cite">— Aluffi §8.3, Examples 8.30 and 8.31, p. 162</span>
+<p>So "principal ideal" and "cyclic module" are the same word twice, and aa-12's whole theory of PIDs is a statement about which submodules of R are cyclic.</p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 8.32.</strong> Let f : M → N be an R-module homomorphism. (i) If M′ ⊆ M is a submodule then f(M′) is a submodule of N. (ii) If N′ ⊆ N is a submodule then f<sup>−1</sup>(N′) is a submodule of M. <span class="cite">— Aluffi §8.3, Proposition 8.32, pp. 162–163</span>
+</div>
+
+<div class="worked">
+<strong>Proof of (i).</strong> By Proposition 8.23 only closure needs checking. If n₁ = f(m₁) and n₂ = f(m₂) with m<sub>i</sub> ∈ M′, then n₁ + n₂ = f(m₁ + m₂) ∈ f(M′); and r·n = r·f(m) = f(r·m) ∈ f(M′). ∎ Part (ii) is Aluffi's Exercise 8.12 and is your you-try. <span class="cite">— Aluffi §8.3, p. 163</span>
+<p>In particular <strong>im f = f(M) is a submodule of N</strong> — which is the first ingredient of the canonical decomposition, exactly as aa-09's Proposition 5.1 was for rings.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Proposition 8.23 asks for nonempty, closed under +, closed under scalars. Why is "contains 0" not on the list?</p>
+<button onclick="check(this,false)">Because 0 is not part of the module structure</button>
+<button data-ok onclick="check(this,true)">Because 0 = 0<sub>R</sub>·m follows from nonemptiness and closure under scalars</button>
+<button onclick="check(this,false)">Because every subset of a module contains 0</button>
+<div class="explain">Nonemptiness gives some m ∈ M′, and closure under scalars then puts 0<sub>R</sub>·m = 0 into M′ by Proposition 8.9 — and likewise (−1)·m = −m. The scalar action is strong enough to generate both existential axioms, so the criterion is two clauses shorter than the subring criterion of Proposition 4.14. And the empty set is certainly a subset containing no 0, which is why nonemptiness must be stated. <span class="cite">— Aluffi §8.3, Proposition 8.23, p. 161</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Submodules go in. Next: how modules go together.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Direct sums, and why the notation is ⊕ rather than ×</h2>
+
+<div class="definition">
+<strong>Definition 8.33 (direct sum).</strong> For R-modules M, N, the <strong>direct sum</strong> M ⊕ N is the set M × N with componentwise operations:
+<p style="text-align:center">(m₁, n₁) + (m₂, n₂) := (m₁ + m₂, n₁ + n₂), &nbsp;&nbsp; r·(m, n) := (rm, rn).</p>
+It extends in the obvious way to M₁ ⊕ ⋯ ⊕ M<sub>n</sub>. <span class="cite">— Aluffi §8.3, Definition 8.33, p. 163</span>
+</div>
+
+<div class="worked">
+<strong>Example 8.34 — this is n-dimensional space.</strong> Over a field k, the vector space of n-tuples with componentwise operations is k ⊕ ⋯ ⊕ k, written k<sup>⊕n</sup> or k<sup>n</sup>. So ℝ² is the plane and ℝ³ is space, in this notation.
+<p>For a general ring R, the module R<sup>⊕n</sup> is the <strong>free</strong> R-module of <strong>rank</strong> n — aa-18's Definition 9.1. And here is the fork that the rest of the chapter turns on: <em>every</em> module over a field is free, but this fails over other rings, even friendly ones. <strong>ℤ/2ℤ is not free as a ℤ-module.</strong> <span class="cite">— Aluffi §8.3, Example 8.34, p. 163</span></p>
+</div>
+
+<p><strong>The projections, and — new — the injections.</strong> As with products of rings there are surjective homomorphisms π<sub>M</sub>(m, n) = m and π<sub>N</sub>(m, n) = n. But there are <em>also</em> injective homomorphisms <span class="cite">— Aluffi §8.3, p. 164</span></p>
+<p style="text-align:center">ι<sub>M</sub> : M → M ⊕ N, ι<sub>M</sub>(m) = (m, 0), &nbsp;&nbsp; ι<sub>N</sub>(n) = (0, n).</p>
+
+<div class="worked">
+<strong>Why that is a real difference.</strong> For rings, the analogous maps fail: aa-07's ι(a) = (a, 0) does not send 1 to 1, and its image is Example 4.10's non-subring. Here there is no 1 to preserve, so ι<sub>M</sub> is a perfectly good injective module homomorphism and <strong>M is a submodule of M ⊕ N</strong> — an identification simply unavailable at the level of rings.
+<p>Taken with these injections, M ⊕ N is a <em>coproduct</em> as well as a product, which is why Aluffi writes ⊕ rather than ×. Filed for later, with the summary he gives: the category of R-modules is considerably friendlier than the category of rings, and the properties being noticed are those of an <em>abelian category</em>. <span class="cite">— Aluffi §8.3, p. 164</span></p>
+<p><strong>Example 8.35.</strong> Given ring homomorphisms f : R → S and g : R → T, the map h(r) = (f(r), g(r)) is a ring homomorphism R → S × T, and the R-module structure this induces on S × T agrees with S ⊕ T. <span class="cite">— Aluffi §8.4, Example 8.35, p. 164</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which maps exist for modules but not for rings?</p>
+<button onclick="check(this,false)">The projections M ⊕ N → M</button>
+<button data-ok onclick="check(this,true)">The injections M → M ⊕ N, m ↦ (m, 0)</button>
+<button onclick="check(this,false)">Neither — rings have both</button>
+<div class="explain">Projections are homomorphisms in both settings — aa-07 proved it for rings. The injections are not: a ↦ (a, 0) sends 1<sub>R</sub> to (1, 0) ≠ (1, 1), so it fails the third clause of Definition 4.15. Modules have no third clause, so the injections survive, and M genuinely sits inside M ⊕ N as a submodule. That is what the symbol ⊕ is recording. <span class="cite">— Aluffi §8.3, p. 164; §4.2, Example 4.10, p. 62</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Is ℤ/2ℤ a free ℤ-module — that is, isomorphic to some ℤ<sup>⊕n</sup>?</p>
+<button onclick="check(this,false)">Yes, with n = 1</button>
+<button data-ok onclick="check(this,true)">No — and that failure is what makes modules over ℤ harder than vector spaces</button>
+<button onclick="check(this,false)">Yes, with n = 0</button>
+<div class="explain">ℤ<sup>⊕n</sup> is infinite for n ≥ 1 and trivial for n = 0, while ℤ/2ℤ has two elements — so it matches none of them. Over a <em>field</em> every module is free, which is why linear algebra is comparatively easy; over ℤ it is not, and among <em>finitely generated</em> ℤ-modules the ones that are not free are exactly where torsion lives. The finite-generation hypothesis is doing real work: ℚ is torsion-free as a ℤ-module and still not free, since ℚ is divisible and no nonzero free abelian group is. Finitely generated is the setting of aa-20's structure theorem, and the equivalence is a theorem about that setting, not about ℤ-modules at large. aa-20's structure theorem is the statement of how much of a finitely generated module is free and what the rest looks like. <span class="cite">— Aluffi §8.3, Example 8.34, p. 163</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the construction the whole lesson is for.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Quotient modules, and the canonical decomposition</h2>
+
+<div class="definition">
+<strong>Definition 8.36 (kernel).</strong> For an R-module homomorphism f : M → N,
+<p style="text-align:center">ker f = f<sup>−1</sup>(0<sub>N</sub>) = { m ∈ M : f(m) = 0 },</p>
+which is a <strong>submodule</strong> of M — since {0<sub>N</sub>} is a submodule of N and Proposition 8.32(ii) applies. <span class="cite">— Aluffi §8.4, Definition 8.36, p. 165</span>
+</div>
+
+<p>Aluffi flags this inside the definition, because it is the departure point from ring theory: the kernel of a ring homomorphism is <em>not</em> a ring, and rescuing the situation required inventing ideals. Here the kernel is a module of the same kind as everything else. <span class="cite">— Aluffi §8.4, p. 165</span></p>
+
+<p>As for rings, f(m₁) = f(m₂) ⟺ f(m₁ − m₂) = 0 ⟺ m₂ − m₁ ∈ ker f. So for <em>any</em> submodule K ⊆ M define <span class="cite">— Aluffi §8.4, pp. 165–166</span></p>
+<p style="text-align:center">m₁ ∼<sub>K</sub> m₂ ⟺ m₂ − m₁ ∈ K,</p>
+<p>an equivalence relation (the proof is aa-09's Proposition 5.20 verbatim, using only that K is closed under + and negatives).</p>
+
+<div class="definition">
+<strong>Definition 8.37.</strong> The class of m is the <strong>coset</strong> m + K; the set of cosets is M/K, the <strong>quotient of M modulo K</strong>. Thus m + K = m′ + K ⟺ m′ − m ∈ K. <span class="cite">— Aluffi §8.4, Definition 8.37, p. 166</span>
+<p>Operations: &nbsp; (m₁ + K) + (m₂ + K) := (m₁ + m₂) + K &nbsp; and &nbsp; r·(m + K) := (r·m) + K. <span class="cite">— Aluffi §8.4, p. 166</span></p>
+</div>
+
+<div class="theorem">
+<strong>Claim 8.38.</strong> These operations are well defined. <span class="cite">— Aluffi §8.4, Claim 8.38, p. 166</span>
+<p><strong>Lemma 8.39.</strong> If m′₁ − m₁ ∈ K and m′₂ − m₂ ∈ K then (m′₁ + m′₂) − (m₁ + m₂) ∈ K; and if r ∈ R and m′ − m ∈ K then r·m′ − r·m ∈ K. <span class="cite">— Aluffi §8.4, Lemma 8.39, p. 166</span></p>
+</div>
+
+<div class="worked">
+<strong>Proof of Lemma 8.39 — and the comparison that matters.</strong> Both statements are immediate: K is closed under addition, giving the first, and closed under multiplication by scalars, giving r·m′ − r·m = r·(m′ − m) ∈ K.
+<p>∎ Now set this beside aa-09's Lemma 5.25, the corresponding step for rings. <em>There</em>, the product a′b′ − ab expanded into aj + ib + ij, with a and b arbitrary elements of R, and only the <strong>absorption property</strong> could return those terms to the ideal. That is why a ring cannot be quotiented by a subring, and why ideals had to be defined.</p>
+<p><em>Here</em>, the scalar r and the element m′ − m already live on opposite sides of the module structure, and closure under scalars — which every submodule has by definition — is exactly the right strength. Nothing extra is needed. <strong>That single difference is why "quotient by any submodule" is legal and "quotient by any subring" is not.</strong> <span class="cite">— Aluffi §8.4, p. 166; §5.3, Lemma 5.25, p. 85</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 8.40.</strong> For a submodule K of an R-module M, (M/K, +, ·) is an R-module with 0<sub>M/K</sub> = 0 + K = K. <span class="cite">— Aluffi §8.4, Theorem 8.40, p. 167</span>
+<p><strong>Proposition 8.41.</strong> The natural projection π : M → M/K, π(m) = m + K, is a surjective R-module homomorphism with ker π = K. <span class="cite">— Aluffi §8.4, Proposition 8.41, p. 167</span></p>
+<p><strong>Remark 8.42.</strong> Hence <em>every submodule is the kernel of some homomorphism</em> — the module version of aa-10's Remark 5.36. <span class="cite">— Aluffi §8.4, Remark 8.42, p. 167</span></p>
+</div>
+
+<p>Aluffi's own comment on Theorem 8.40 is the one to remember: in ring theory there is no such thing as the quotient of a ring by a ring, so quotients had to be taken by a different species of object. With modules there is "no such silliness" — you may quotient a module by any submodule, inventing nothing. <span class="cite">— Aluffi §8.4, p. 167</span></p>
+
+<p>Below is the construction in the smallest interesting case: M = ℤ ⊕ ℤ, and K the submodule generated by one or two elements. The lattice is M; the highlighted sublattice is K; the colours are the cosets, and the number of colours is the size of M/K.</p>
+
+<canvas id="quo" width="620" height="330" aria-label="The lattice Z + Z coloured by coset of a submodule generated by one or two elements"></canvas>
+<div class="controls">
+<button onclick="setGen(0)">K = ⟨(2,0), (0,2)⟩</button>
+<button onclick="setGen(1)">K = ⟨(2,0), (0,3)⟩</button>
+<button onclick="setGen(2)">K = ⟨(1,1), (1,−1)⟩</button>
+<button onclick="setGen(3)">K = ⟨(1,1)⟩</button>
+</div>
+
+<div class="theorem">
+<strong>Theorem 8.43 (Canonical decomposition).</strong> For every R-module homomorphism f : M → N there is a commutative diagram
+<p style="text-align:center">M &nbsp;—π→&nbsp; M/ker f &nbsp;—f̃→&nbsp; im f &nbsp;—ι→&nbsp; N,</p>
+with π surjective, ι injective, and f̃ an isomorphism. <span class="cite">— Aluffi §8.4, Theorem 8.43, p. 167</span>
+</div>
+
+<p>Every piece is now in place: im f is a submodule by Proposition 8.32, ker f is a submodule by Definition 8.36, M/ker f is a module by Theorem 8.40, and the relation "f cannot distinguish them" is exactly ∼<sub>ker f</sub>. The <strong>First Isomorphism Theorem for modules</strong> follows as it did for rings: for surjective f, N ≅ M/ker f. <span class="cite">— Aluffi §8.5, Theorem 8.44, p. 168</span></p>
+
+<div class="worked fade">
+<strong>Faded example — every cyclic module is an R/I.</strong> Let M = ⟨m⟩ be cyclic.
+<p>By aa-15's Example 8.18, the rule f(r) = r·m defines an R-module homomorphism f : R → M, and no other data is needed because a homomorphism out of R is determined by ⟨your step: what?⟩.</p>
+<p>f is surjective, because M being generated by m means every element of M has the form ⟨your step⟩ for some r ∈ R.</p>
+<p>So by the First Isomorphism Theorem, M ≅ R/ker f. And ker f is a submodule of R viewed as an R-module — which, by Example 8.24, is the same thing as ⟨your step: what kind of subset of R?⟩.</p>
+<p>Conclusion: <strong>every cyclic R-module is isomorphic to R/I for some ideal I</strong>, the converse Aluffi promised at Example 8.30. In the case R = ℤ this says every cyclic abelian group is ℤ/nℤ for some n ≥ 0 — with n = 0 giving ℤ itself.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Two things Aluffi leaves to you. (a) Prove Proposition 8.32(ii): the preimage f<sup>−1</sup>(N′) of a submodule is a submodule. Use Proposition 8.23, and note where you need f(0) = 0 to see that the preimage is nonempty. (b) Prove Theorem 8.40 — that M/K satisfies axioms (i)–(viii). Every one is a transfer: pick representatives, use the axiom in M, push back down. Do at least (iii) and (vi) in full, and then say in one sentence why none of the eight could fail.</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>The heart of Theorem 8.43 is the middle map. <strong>Let f : M → N be an R-module homomorphism and define f̃ : M/ker f → im f by f̃(m + ker f) := f(m). Prove that f̃ is well defined, is an R-module homomorphism, and is bijective.</strong> Then say which step would break if ker f were replaced by an arbitrary submodule K ⊆ M.</p>
+<textarea placeholder="Well defined: suppose m + ker f = m' + ker f, so m' - m is in ker f. Then f(m') - f(m) = ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><em>Well defined.</em> If m + ker f = m′ + ker f then m′ − m ∈ ker f, so f(m′) − f(m) = f(m′ − m) = 0, i.e. f(m′) = f(m). The value does not depend on the representative.</p>
+<p><em>Homomorphism.</em> f̃((m₁ + K) + (m₂ + K)) = f̃((m₁ + m₂) + K) = f(m₁ + m₂) = f(m₁) + f(m₂) = f̃(m₁ + K) + f̃(m₂ + K), writing K = ker f; and f̃(r·(m + K)) = f̃(r·m + K) = f(r·m) = r·f(m) = r·f̃(m + K). Both use Definition 8.37 for the operations on the quotient, then Definition 8.14 for f.</p>
+<p><em>Surjective onto im f.</em> Any element of im f is f(m) = f̃(m + ker f).</p>
+<p><em>Injective.</em> If f̃(m + ker f) = f̃(m′ + ker f) then f(m) = f(m′), so f(m′ − m) = 0, so m′ − m ∈ ker f, so m + ker f = m′ + ker f. ∎</p>
+<p><em>What breaks for a general K.</em> Only well-definedness — and only if K ⊄ ker f. If K ⊆ ker f the same computation still gives a well-defined homomorphism M/K → N (the universal property of quotients, aa-10's Proposition 5.39 transplanted), but it need no longer be injective: injectivity used <em>both</em> inclusions, and it holds exactly when K = ker f.</p>
+<p>Grade yourself on that last point. Injectivity is the only step that consumes ker f ⊆ K rather than K ⊆ ker f, and it is what turns a homomorphism into an isomorphism.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why can a module be quotiented by any submodule, when a ring cannot be quotiented by any subring?</p>
+<button onclick="check(this,false)">Because modules have no multiplication</button>
+<button data-ok onclick="check(this,true)">Because r·(m′ − m) ∈ K needs only closure under scalars, while a′b′ − ab needed absorption</button>
+<button onclick="check(this,false)">Because every submodule contains 0</button>
+<div class="explain">Lemma 8.39's scalar clause is r·m′ − r·m = r·(m′ − m), and closure under scalars — part of being a submodule — settles it. In aa-09's Lemma 5.25 the corresponding expansion produced aj and ib with a, b arbitrary in R, and only absorption could return them to the ideal. Modules do have a multiplication of sorts, the scalar action; the point is that <em>every</em> submodule is already closed under it, whereas not every subring absorbs. <span class="cite">— Aluffi §8.4, Lemma 8.39, p. 166</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In M/K, what is the zero element, and what is ker(π : M → M/K)?</p>
+<button data-ok onclick="check(this,true)">0 + K, which as a subset of M is K; and ker π = K</button>
+<button onclick="check(this,false)">0<sub>M</sub>, and ker π = {0}</button>
+<button onclick="check(this,false)">The empty coset, and ker π = M</button>
+<div class="explain">0<sub>M/K</sub> = 0 + K, and as a subset of M that coset is K itself (Theorem 8.40). Then π(m) = 0 + K exactly when m ∈ K, so ker π = K (Proposition 8.41). Together with Remark 8.42 this says every submodule is a kernel — the module twin of aa-10's Remark 5.36, where the same statement about ideals was called striking because kernel and ideal looked nothing alike. Here it is barely a surprise, because both sides were submodules to begin with. <span class="cite">— Aluffi §8.4, Proposition 8.41 and Remark 8.42, p. 167</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Submodules are cheap to recognise</strong> (Proposition 8.23): nonempty, closed under + and under scalars — two clauses, because 0 = 0·m and −m = (−1)·m come free. Ideals of R are exactly the submodules of R (Example 8.24), so "principal ideal" and "cyclic module" are the same condition, and images and preimages of submodules are submodules (Proposition 8.32).</li>
+<li><strong>M ⊕ N has projections <em>and</em> injections</strong> (Definition 8.33). The injections m ↦ (m, 0) are homomorphisms here and are not for rings, because there is no 1 to preserve — so M is a submodule of M ⊕ N. R<sup>⊕n</sup> is the free module of rank n; every module over a field is free, and ℤ/2ℤ shows that this fails over ℤ.</li>
+<li><strong>M/K is a module for every submodule K</strong> (Theorem 8.40), the projection is surjective with kernel K (Proposition 8.41), and every homomorphism factors as surjection–isomorphism–injection (Theorem 8.43). The reason no ideal-like notion is needed is one line of Lemma 8.39: r·(m′ − m) stays in K by closure under scalars, where the ring version needed absorption.</li>
+</ol>
+And the sentence the mission strip is pointing at: a homology group is Z/B, a quotient of a module of cycles by a submodule of boundaries. Everything the construction requires was assembled today — and the fact that it requires <em>no</em> extra hypothesis on B is the content of Theorem 8.40.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §8.3 "Submodules, Direct Sums" (Definition 8.22, Proposition 8.23 and Example 8.24 p. 161; Examples 8.25, 8.26, 8.27, Definitions 8.28 and 8.29, Examples 8.30 and 8.31, Proposition 8.32 p. 162; its proof concluding overleaf, with Definition 8.33 and Example 8.34 p. 163; the projections, the injections and the coproduct remark p. 164), pp. 161–164; §8.4 "Canonical Decomposition and Quotients" (Example 8.35 p. 164; the decomposition programme and Definition 8.36 p. 165; the relation defined by a submodule, Definition 8.37, Claim 8.38 and Lemma 8.39 p. 166; Theorem 8.40, Proposition 8.41, Remark 8.42 and Theorem 8.43 p. 167), pp. 164–167; §8.5 "Isomorphism Theorems" (Theorem 8.44, p. 168). Definition 8.1, Definition 8.14, Proposition 8.9, Example 8.7 and Example 8.18 come from aa-15 (§8.1–8.2, pp. 154–159); Proposition 4.14 and Example 4.10 from aa-07 (§4.2, pp. 62–63); Definition 4.15 from aa-08 (§4.3, p. 64); Proposition 5.1, Proposition 5.9, Proposition 5.20, Lemma 5.25 and Definition 5.17 from aa-09 (§5.1–5.3, pp. 78–85); and Remark 5.36 and Proposition 5.39 from aa-10 (§5.4–5.5, pp. 89–91).</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// M = Z (+) Z drawn as a lattice; K is the submodule generated by the chosen
+// elements, and each colour is one coset of K, i.e. one element of M/K.
+// Membership of K is decided by integer solvability, not by rounding.
+var qc=document.getElementById('quo'),qx=qc.getContext('2d');
+var GENS=[[[2,0],[0,2]],[[2,0],[0,3]],[[1,1],[1,-1]],[[1,1]]];
+var gi=0;
+var PAL=['#4caf82','#8ab4f8','#d8a657','#e06c75','#b48ead','#88c0d0','#a3be8c','#d08770','#ebcb8b','#5e81ac','#bf616a','#81a1c1'];
+function setGen(i){gi=i;drawQuo();}
+function inK(a,b){ // is (a,b) an integer combination of the generators?
+ var g=GENS[gi];
+ if(g.length===1){var v=g[0];
+  // solve t*v = (a,b) over Z
+  for(var t=-20;t<=20;t++)if(t*v[0]===a&&t*v[1]===b)return true;
+  return false;}
+ var v=g[0],w=g[1];
+ for(var s=-14;s<=14;s++)for(var t=-14;t<=14;t++)
+  if(s*v[0]+t*w[0]===a&&s*v[1]+t*w[1]===b)return true;
+ return false;}
+function drawQuo(){qx.clearRect(0,0,qc.width,qc.height);
+ var cx=qc.width/2,cy=qc.height/2-6,u=26,N=6;
+ qx.strokeStyle='#2a333d';qx.lineWidth=1;
+ qx.beginPath();qx.moveTo(10,cy);qx.lineTo(qc.width-10,cy);
+ qx.moveTo(cx,16);qx.lineTo(cx,qc.height-30);qx.stroke();
+ var reps=[],lab={};
+ function label(a,b){var k=a+','+b;if(k in lab)return lab[k];
+  for(var i=0;i<reps.length;i++)if(inK(a-reps[i][0],b-reps[i][1])){lab[k]=i;return i;}
+  reps.push([a,b]);lab[k]=reps.length-1;return reps.length-1;}
+ for(var a=-N;a<=N;a++)for(var b=-N;b<=N;b++)label(a,b);
+ for(var a=-N;a<=N;a++)for(var b=-N;b<=N;b++){
+  var x=cx+a*u,y=cy-b*u;
+  if(x<8||x>qc.width-8||y<18||y>qc.height-30)continue;
+  var idx=label(a,b),isK=inK(a,b);
+  qx.fillStyle=PAL[idx%PAL.length];
+  qx.beginPath();qx.arc(x,y,isK?5.5:3,0,7);qx.fill();}
+ var g=GENS[gi];
+ qx.strokeStyle='#e8e8e8';qx.lineWidth=1.5;
+ for(var i=0;i<g.length;i++){qx.beginPath();qx.moveTo(cx,cy);
+  qx.lineTo(cx+g[i][0]*u,cy-g[i][1]*u);qx.stroke();}
+ qx.font='13px Segoe UI';qx.fillStyle='#e8e8e8';
+ var nm=g.map(function(v){return '('+v[0]+','+v[1]+')';}).join(', ');
+ qx.fillText('M = Z ⊕ Z,   K = ⟨'+nm+'⟩   (big dots: K itself)',12,18);
+ qx.fillStyle='#9aa5b1';
+ var many=(gi===3);
+ qx.fillText(many?'K has infinite index here - the cosets shown are a window on an infinite M/K'
+  :(reps.length+' cosets in view - each colour is one element of M/K'),12,qc.height-10);}
+drawQuo();
+</script></body></html>

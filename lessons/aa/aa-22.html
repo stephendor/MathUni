@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-22 — Classification of finitely generated abelian groups</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+table.inv{border-collapse:collapse;margin:.8rem auto;font-family:Segoe UI,sans-serif;font-size:.95rem}
+table.inv td,table.inv th{border:1px solid #2a333d;padding:.28rem .7rem;text-align:center}
+table.inv th{color:var(--acc)}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Classification of finitely generated abelian groups <span class="cite">(aa-22)</span></h1>
+
+<div class="hook">
+There are exactly six abelian groups of order 360. Not "at least six", not "six that anyone has found" — six, and here they are.
+<p>A classification theorem is a rare and expensive thing, and this is the one this module has been building towards since aa-15. It turns every question about an arbitrary finite abelian group into a question about direct sums of cyclic groups, which you can simply write down. Today we complete the uniqueness half that aa-20 left open, list all groups of a given order, and spend the results: Cauchy's theorem, the fact that the nonzero classes mod p form a <em>cyclic</em> group, and — as a detour that would be very hard without any of this — Fermat's theorem on which primes are sums of two squares.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> How many abelian groups of order 360 are there, up to isomorphism?</p>
+<button onclick="check(this,false)">One — the cyclic group C₃₆₀</button>
+<button data-ok onclick="check(this,true)">Six</button>
+<button onclick="check(this,false)">Infinitely many</button>
+<div class="explain">Six. They are C₃₆₀, C₂ ⊕ C₁₈₀, C₂ ⊕ C₂ ⊕ C₉₀, C₃ ⊕ C₁₂₀, C₆ ⊕ C₆₀ and C₂ ⊕ C₆ ⊕ C₃₀ — one for each chain 1 &lt; d₁ ∣ d₂ ∣ ⋯ with product 360. C₃₆₀ is one of them, not all of them; and the count is finite because the exponents of 2, 3 and 5 can only be split in finitely many ways. Aluffi's line: every abelian group of order 360 you will ever run across is isomorphic to one and only one on that list. <span class="cite">— Aluffi §10.3, Example 10.20, p. 214</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Free rank (Betti numbers) plus torsion coefficients — the full content of an integral homology group.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The theorem, its uniqueness, and how to list</h2>
+
+<div class="theorem">
+<strong>Theorem 10.18 (Classification of finite abelian groups).</strong> Every finite abelian group A satisfies
+<p style="text-align:center">A ≅ C<sub>d₁</sub> ⊕ ⋯ ⊕ C<sub>d<sub>s</sub></sub> &nbsp; with 1 &lt; d₁ ∣ d₂ ∣ ⋯ ∣ d<sub>s</sub>,</p>
+uniquely; equivalently, A ≅ ⊕<sub>i,j</sub> ℤ/p<sub>i</sub><sup>α<sub>ij</sub></sup>ℤ for primes p<sub>i</sub> and exponents α<sub>ij</sub> &gt; 0 uniquely determined by A. <span class="cite">— Aluffi §10.3, Theorem 10.18, p. 212</span>
+</div>
+
+<p>The two forms are equivalent by the Chinese Remainder Theorem, in the shape of aa-21's Proposition 10.13. The d<sub>i</sub> are the <strong>invariant factors</strong>; the p<sub>i</sub><sup>α<sub>ij</sub></sup> are the <strong>elementary divisors</strong>. Existence was proved in aa-20 (Theorem 9.40 with R = ℤ); uniqueness was only sketched there, and finishing it is the first order of business. <span class="cite">— Aluffi §10.3, p. 213</span></p>
+
+<div class="theorem">
+<strong>Proposition 10.19.</strong> The elementary divisors are unique: if ⊕<sub>i,j</sub> ℤ/p<sub>i</sub><sup>α<sub>ij</sub></sup>ℤ ≅ ⊕<sub>k,ℓ</sub> ℤ/q<sub>k</sub><sup>β<sub>kℓ</sub></sup>ℤ, then the primes and exponents agree up to reordering. <span class="cite">— Aluffi §10.3, Proposition 10.19, p. 213</span>
+</div>
+
+<div class="worked">
+<strong>Proof — by counting, one prime at a time.</strong> Fix a prime p and extract from each side the summands whose prime is p; the two resulting groups are isomorphic, both being the subgroup of A of elements of p-power order. So it suffices to show that
+<p style="text-align:center">ℤ/p<sup>α₁</sup>ℤ ⊕ ⋯ ⊕ ℤ/p<sup>α<sub>m</sub></sup>ℤ ≅ ℤ/p<sup>β₁</sup>ℤ ⊕ ⋯ ⊕ ℤ/p<sup>β<sub>n</sub></sup>ℤ</p>
+<p>forces m = n and matching exponents. Count, for each d, the elements of order at most p<sup>d</sup>: a tuple has order ≤ p<sup>d</sup> exactly when every coordinate does, and by aa-21's Example 10.15 the ith coordinate contributes p<sup>min(α<sub>i</sub>, d)</sup> choices. So</p>
+<p style="text-align:center">∏<sub>i</sub> p<sup>min(α<sub>i</sub>, d)</sup> = ∏<sub>k</sub> p<sup>min(β<sub>k</sub>, d)</sup> &nbsp; for every d ≥ 0,</p>
+<p>and the lists must agree — which is your guided proof. ∎ <span class="cite">— Aluffi §10.3, p. 213</span></p>
+<p><strong>Notice the strategy.</strong> Two groups are compared not by constructing a map but by counting something both must have the same amount of: elements of order at most p<sup>d</sup>. That is the same move as aa-08's "find a ring-theoretic property that separates them", used constructively.</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Example 10.20: listing the abelian groups of order 360.</strong> Factor: 360 = 2³·3²·5. An invariant-factor list is a chain 1 &lt; d₁ ∣ d₂ ∣ ⋯ with product 360, and Aluffi's method builds one from a table.
+<p>Write columns for the primes 2, 3, 5, each column a decreasing list of powers whose product is the full prime power — 2³ = 8, 3² = 9, 5¹ = 5. The rows of the table, multiplied out, are the d<sub>i</sub>.</p>
+<p>For instance the table with rows (4, 3, 5) and (2, 3, —) gives d₂ = 4·3·5 = ⟨your step⟩ and d₁ = 2·3 = ⟨your step⟩, i.e. the group C₆ ⊕ C₆₀ — and indeed 6 ∣ 60 and 6·60 = 360. ✓</p>
+<p>Running through every table gives six lists, hence six groups:</p>
+<table class="inv">
+<tr><th>invariant factors</th><th>group</th></tr>
+<tr><td>360</td><td>C₃₆₀</td></tr>
+<tr><td>2 ∣ 180</td><td>C₂ ⊕ C₁₈₀</td></tr>
+<tr><td>2 ∣ 2 ∣ 90</td><td>C₂ ⊕ C₂ ⊕ C₉₀</td></tr>
+<tr><td>3 ∣ 120</td><td>C₃ ⊕ C₁₂₀</td></tr>
+<tr><td>6 ∣ 60</td><td>C₆ ⊕ C₆₀</td></tr>
+<tr><td>2 ∣ 6 ∣ 30</td><td>C₂ ⊕ C₆ ⊕ C₃₀</td></tr>
+</table>
+<p>Check one: the third row has product 2·2·90 = ⟨your step⟩ ✓ and 2 ∣ 2 ∣ 90 ✓. <span class="cite">— Aluffi §10.3, Example 10.20, p. 214</span></p>
+<p>The count depends only on how the exponent of each prime can be split: 3 splits in three ways, 2 in two ways, 1 in one — and 3 × 2 × 1 = 6.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> The uniqueness proof compares two decompositions by counting what?</p>
+<button onclick="check(this,false)">The total number of elements</button>
+<button data-ok onclick="check(this,true)">The elements of order at most p<sup>d</sup>, for every d</button>
+<button onclick="check(this,false)">The number of summands</button>
+<div class="explain">Both sides have the same total size by hypothesis, so that settles nothing; and the number of summands is what is being proved equal, so it cannot be assumed. The quantity that does the work is the count of elements killed by p<sup>d</sup>, which is ∏ p<sup>min(α<sub>i</sub>, d)</sup> and depends on the exponents in a way that recovers them. <span class="cite">— Aluffi §10.3, Proposition 10.19, p. 213</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now spend the theorem.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Three consequences, each one paragraph</h2>
+
+<p>Aluffi's remark is that it is hard to overemphasise how useful a classification is: questions about arbitrary finite abelian groups reduce to questions about direct sums of cyclic groups, disposing of them "without the need for clever constructions, induction arguments, and whatnot". Three examples. <span class="cite">— Aluffi §10.3, p. 214</span></p>
+
+<div class="theorem">
+<strong>Proposition 10.21.</strong> For a finite abelian group A and a ∈ A, the order |a| divides |A|. <span class="cite">— Aluffi §10.3, Proposition 10.21, p. 214</span>
+</div>
+
+<p>Proof: write A ≅ ℤ/d₁ℤ ⊕ ⋯ ⊕ ℤ/d<sub>s</sub>ℤ with d₁ ∣ ⋯ ∣ d<sub>s</sub>. Then d<sub>s</sub>·a = 0 for every a, since each d<sub>i</sub> divides d<sub>s</sub>; and |A| = d₁⋯d<sub>s</sub> is a multiple of d<sub>s</sub>, so |A|·a = 0, so |a| ∣ |A| by aa-21's Proposition 10.16. ∎ (aa-28 recovers this from Lagrange's theorem, which is much cheaper — but it applies to all groups, not only abelian ones.) <span class="cite">— Aluffi §10.3, p. 215</span></p>
+
+<div class="theorem">
+<strong>Theorem 10.22 (Cauchy's theorem, abelian version).</strong> If a prime p divides |A| then A contains an element of order p. <span class="cite">— Aluffi §10.3, Theorem 10.22, p. 215</span>
+</div>
+
+<p>Proof: A ≅ C<sub>d₁</sub> ⊕ ⋯ ⊕ C<sub>d<sub>s</sub></sub>. Since p ∣ d₁⋯d<sub>s</sub> and d₁ ∣ ⋯ ∣ d<sub>s</sub>, p divides d<sub>s</sub>; by aa-21's Proposition 10.10(i), C<sub>d<sub>s</sub></sub> has a subgroup of order p, and C<sub>d<sub>s</sub></sub> sits inside A. A generator of that subgroup has order p. ∎ Aluffi notes an induction proof exists and invites you to compare; the classification makes it three lines. This becomes an ingredient of the first Sylow theorem in aa-29. <span class="cite">— Aluffi §10.3, p. 215</span></p>
+
+<div class="theorem">
+<strong>Lemma 10.23.</strong> If a finite abelian group A has, for every n &gt; 0, at most n elements with na = 0, then A is cyclic. <span class="cite">— Aluffi §10.3, Lemma 10.23, p. 215</span>
+<p><strong>Theorem 10.24.</strong> Every finite subgroup of the multiplicative group (k<sup>∗</sup>, ·) of a field is cyclic. <span class="cite">— Aluffi §10.3, Theorem 10.24, p. 216</span></p>
+</div>
+
+<div class="worked">
+<strong>Proofs.</strong> For Lemma 10.23: with A ≅ ℤ/d₁ℤ ⊕ ⋯ ⊕ ℤ/d<sub>s</sub>ℤ, every a satisfies d<sub>s</sub>a = 0, so the number of elements killed by d<sub>s</sub> is |A|. The hypothesis forces |A| ≤ d<sub>s</sub>. But |A| = d₁⋯d<sub>s</sub> ≥ d<sub>s</sub>, so |A| = d<sub>s</sub> and s = 1: A is cyclic. ∎
+<p>For Theorem 10.24: in k[x] the polynomial x<sup>n</sup> − 1 has at most n roots, because unique factorisation holds in k[x] (aa-13's Corollary 7.8). So at most n elements g of G satisfy g<sup>n</sup> = 1, and Lemma 10.23 applies. ∎ <span class="cite">— Aluffi §10.3, pp. 215–216</span></p>
+<p><strong>Two facts, from two different chapters, meeting.</strong> The bound "at most n roots" is polynomial algebra; the conclusion "therefore cyclic" is group classification. Neither alone gives the theorem.</p>
+</div>
+
+<div class="worked">
+<strong>What Theorem 10.24 buys, at no cost.</strong>
+<p><strong>Example 10.26.</strong> ((ℤ/pℤ)<sup>∗</sup>, ·) is cyclic of order p − 1 for every prime p. Aluffi's example: 87178291199 is prime, so that multiplicative group is cyclic of order 87178291198 — meaning some integer a in that range has every other one congruent to a power of it. We know this "without any further work whatsoever", while producing such an a is real labour. <span class="cite">— Aluffi §10.3, Example 10.26, p. 216</span></p>
+<p><strong>Example 10.27.</strong> x³ + x + 1 is irreducible over ℤ/5ℤ (no root — aa-14's Proposition 7.15), so (ℤ/5ℤ)[x]/(x³ + x + 1) is a field with 5³ = 125 elements (irreducibles generate maximal ideals in a PID, aa-12's Proposition 6.33). Its multiplicative group is therefore cyclic of order 124 — known without any acquaintance with the field at all. <span class="cite">— Aluffi §10.3, Example 10.27, p. 216</span></p>
+<p><strong>Example 10.25.</strong> And aa-04's Exercise 2.9, which asked for a class [a]₇ whose powers give every nonzero class, was simply asking for a generator of a group we now know to be cyclic.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why is ((ℤ/pℤ)<sup>∗</sup>, ·) cyclic?</p>
+<button onclick="check(this,false)">Because it has prime order</button>
+<button data-ok onclick="check(this,true)">Because it is a finite subgroup of the multiplicative group of a field (Theorem 10.24)</button>
+<button onclick="check(this,false)">Because ℤ/pℤ is cyclic under addition</button>
+<div class="explain">Its order is p − 1, which is usually <em>not</em> prime — for p = 7 it is 6. Being cyclic under addition is a different statement about a different operation. What applies is Theorem 10.24: ℤ/pℤ is a field (aa-04's Theorem 2.15), its nonzero elements form a finite multiplicative group, and every such group is cyclic — because x<sup>n</sup> − 1 has at most n roots and Lemma 10.23 then bites. <span class="cite">— Aluffi §10.3, Theorem 10.24, p. 216</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now a detour that would be hard without any of this.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Fermat's theorem on sums of two squares</h2>
+
+<div class="theorem">
+<strong>Theorem 10.28.</strong> Let p &gt; 2 be prime. Then p is a sum of two squares if and only if p ≡ 1 mod 4. <span class="cite">— Aluffi §10.4, Theorem 10.28, p. 217</span>
+</div>
+
+<p>Fermat stated it around 1640 without proof. It is a statement about integers with no visible algebra in it; the proof runs entirely through the Gaussian integers ℤ[i] of aa-07. <span class="cite">— Aluffi §10.4, p. 217</span></p>
+
+<div class="worked">
+<strong>The chain of results.</strong>
+<p><strong>Lemma 10.29.</strong> The units of ℤ[i] are ±1 and ±i. <span class="cite">— Aluffi §10.4, Lemma 10.29, p. 219</span></p>
+<p><strong>Proposition 10.30.</strong> ℤ[i] is a <em>Euclidean domain</em> — so by aa-12 it is a PID and a UFD, with the valuation given by the norm N(a + bi) = a² + b². <span class="cite">— Aluffi §10.4, Proposition 10.30, p. 219</span></p>
+<p><strong>Corollary 10.32.</strong> If a positive prime p is <em>not</em> prime in ℤ[i], then p is a sum of two perfect squares. The reason is short: a factorisation p = zw with neither factor a unit gives N(z)N(w) = N(p) = p², and neither norm is 1, so N(z) = p — that is, p = a² + b² where z = a + bi. <span class="cite">— Aluffi §10.4, Corollary 10.32, p. 220</span></p>
+<p><strong>Lemma 10.34.</strong> p is prime in ℤ[i] if and only if x² + 1 is irreducible in (ℤ/pℤ)[x]. <span class="cite">— Aluffi §10.4, Lemma 10.34, p. 222</span></p>
+<p><strong>Lemma 10.33.</strong> For p &gt; 2, x² + 1 is <em>reducible</em> over ℤ/pℤ if and only if p ≡ 1 mod 4. <span class="cite">— Aluffi §10.4, Lemma 10.33, p. 221</span></p>
+</div>
+
+<p><strong>Assembling.</strong> For p &gt; 2: &nbsp; p ≡ 1 mod 4 ⟺ x² + 1 reducible mod p (10.33) ⟺ p not prime in ℤ[i] (10.34) ⟹ p is a sum of two squares (10.32). The converse direction is the easy one — a square is 0 or 1 mod 4, so a sum of two squares is 0, 1 or 2 mod 4 and an odd such number must be ≡ 1.</p>
+
+<p><strong>And where the abelian-group theory enters.</strong> Lemma 10.33 is a statement about whether −1 is a square mod p — that is, about the structure of the group ((ℤ/pℤ)<sup>∗</sup>, ·), which Theorem 10.24 has just told us is <em>cyclic of order p − 1</em>. In a cyclic group of order p − 1 there is an element of order 4 exactly when 4 ∣ p − 1, i.e. exactly when p ≡ 1 mod 4 — and an element of order 4 squares to the unique element of order 2, which is −1. The classification theorem is doing the work.</p>
+
+<p>The picture: a prime p is a sum of two squares exactly when some Gaussian integer has norm p — that is, when a lattice point lies on the circle of radius √p. Try the primes below.</p>
+
+<canvas id="sq" width="620" height="330" aria-label="The circle of radius root p in the Gaussian integer lattice, showing whether any lattice point has norm p"></canvas>
+<div class="controls">
+<button onclick="setP(5)">p = 5</button>
+<button onclick="setP(13)">p = 13</button>
+<button onclick="setP(17)">p = 17</button>
+<button onclick="setP(3)">p = 3</button>
+<button onclick="setP(7)">p = 7</button>
+<button onclick="setP(11)">p = 11</button>
+</div>
+
+<div class="worked">
+<strong>Aluffi's headline example.</strong> The 10,000th positive prime is 104729. It is ≡ 1 mod 4, so Theorem 10.28 guarantees it is a sum of two squares — before any search is performed. And indeed
+<p style="text-align:center">104729 = 20² + 323² = 400 + 104329.</p>
+<p>The theorem does not find the representation; it certifies that one exists. That distinction — an existence theorem is not an algorithm — has recurred all through this module, from Bézout in aa-02 to the barcode in aa-20. <span class="cite">— Aluffi §10.4, p. 217</span></p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Proposition 10.19 reduces to a combinatorial step that Aluffi leaves as Exercise 10.15. Supply it. <strong>Let α₁ ≤ ⋯ ≤ α<sub>m</sub> and β₁ ≤ ⋯ ≤ β<sub>n</sub> be positive integers with</strong>
+<p style="text-align:center">Σ<sub>i</sub> min(α<sub>i</sub>, d) = Σ<sub>k</sub> min(β<sub>k</sub>, d) &nbsp; for every d ≥ 0.</p>
+<p><strong>Prove that m = n and α<sub>i</sub> = β<sub>i</sub> for all i.</strong> (The exponent equation ∏ p<sup>min(α<sub>i</sub>,d)</sup> = ∏ p<sup>min(β<sub>k</sub>,d)</sup> becomes this by comparing exponents.) The whole proof is one difference.</p>
+<textarea placeholder="Let f(d) = sum of min(alpha_i, d). Consider f(d) - f(d-1) and ask which terms increased ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>Write f(d) = Σ<sub>i</sub> min(α<sub>i</sub>, d) and g(d) = Σ<sub>k</sub> min(β<sub>k</sub>, d), so f = g by hypothesis.</p>
+<p><em>The key difference.</em> For d ≥ 1, min(α, d) − min(α, d−1) equals 1 if α ≥ d, and 0 otherwise. Summing,</p>
+<p style="text-align:center">f(d) − f(d−1) = #{ i : α<sub>i</sub> ≥ d }.</p>
+<p>Since f = g, we get #{i : α<sub>i</sub> ≥ d} = #{k : β<sub>k</sub> ≥ d} for every d ≥ 1.</p>
+<p><em>Conclusion.</em> Taking d = 1 and using that all exponents are ≥ 1 gives m = n. And the function d ↦ #{i : α<sub>i</sub> ≥ d} determines the multiset {α<sub>i</sub>} completely: the largest exponent is the largest d for which the count is nonzero, the number of α<sub>i</sub> equal to a given value v is (count at v) − (count at v+1), and so on. Since the two counting functions agree for every d, the multisets agree; and both lists being sorted, α<sub>i</sub> = β<sub>i</sub> for every i. ∎</p>
+<p>Grade yourself on taking the difference. Working with f(d) directly is hard because min is not additive in α; the first difference converts it into a plain count, and after that the argument is bookkeeping. This is the same device as reading a partition off its conjugate — and it is why the elementary divisors, rather than the invariant factors, are the convenient form for the uniqueness proof.</p>
+</details>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (a) List all abelian groups of order 200 = 2³·5² in invariant-factor form, and check your count against the rule "multiply the number of ways to split each prime exponent". (b) Do the same for order 72, and observe you get the same count as for 360 and 200 — explain why, in terms of the exponents rather than the numbers. (c) Convert one of your order-200 groups into elementary-divisor form and back, checking that both give the same total order. (d) Finally: is C₄ ⊕ C₅₀ on your list? If not, find which group on the list it is isomorphic to.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Cauchy's theorem for abelian groups says what?</p>
+<button onclick="check(this,false)">That |A| is prime whenever A is cyclic</button>
+<button data-ok onclick="check(this,true)">That if a prime p divides |A| then A has an element of order exactly p</button>
+<button onclick="check(this,false)">That every element's order is prime</button>
+<div class="explain">Theorem 10.22 is a converse in spirit to Proposition 10.21: the latter says every element order divides |A|, the former says every <em>prime</em> divisor of |A| is realised as an element order. It does not claim that every divisor is realised — that is true for cyclic groups but not in general — and certainly not that all element orders are prime. It becomes an ingredient of Sylow's first theorem in aa-29. <span class="cite">— Aluffi §10.3, Theorem 10.22, p. 215</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why is 7 not a sum of two squares, while 13 is?</p>
+<button data-ok onclick="check(this,true)">7 ≡ 3 mod 4 and 13 ≡ 1 mod 4</button>
+<button onclick="check(this,false)">7 is prime and 13 is not</button>
+<button onclick="check(this,false)">Because 13 is larger</button>
+<div class="explain">Theorem 10.28: an odd prime is a sum of two squares exactly when it is ≡ 1 mod 4. Here 13 = 4 + 9 = 2² + 3², while no pair of squares sums to 7 — as the easy direction shows, since squares are 0 or 1 mod 4 and so a sum of two is never ≡ 3. Both numbers are prime, and size is irrelevant: 104729 is ≡ 1 mod 4 and is 20² + 323². <span class="cite">— Aluffi §10.4, Theorem 10.28, p. 217</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Which property of ℤ[i] makes the two-squares proof work?</p>
+<button onclick="check(this,false)">That it is a field</button>
+<button data-ok onclick="check(this,true)">That it is a Euclidean domain, hence a UFD, with norm N(a + bi) = a² + b²</button>
+<button onclick="check(this,false)">That it is finite</button>
+<div class="explain">Proposition 10.30 makes ℤ[i] Euclidean, so aa-12's chain gives PID and UFD, and the multiplicative norm turns the factorisation p = zw into the numerical statement N(z)N(w) = p², from which N(z) = p, i.e. p = a² + b². It is not a field — 2 has no inverse — and it is infinite. The comparison with aa-11's ℤ[√−5], which is <em>not</em> a UFD, is the point: which quadratic ring you land in decides everything. <span class="cite">— Aluffi §10.4, Proposition 10.30 and Corollary 10.32, pp. 219–220</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Theorem 10.18</strong> classifies finite abelian groups two equivalent ways — invariant factors 1 &lt; d₁ ∣ ⋯ ∣ d<sub>s</sub>, or elementary divisors p<sup>α</sup> — with the Chinese Remainder Theorem converting between them. Existence came from aa-20; uniqueness (Proposition 10.19) is proved by counting elements of order at most p<sup>d</sup> and reading the exponents off the first difference of that count. Listing all groups of a given order is then combinatorics on the prime exponents: six of order 360.</li>
+<li><strong>The theorem is spent immediately.</strong> Every element order divides the group order (Proposition 10.21); every prime divisor of the order is realised as an element order (Cauchy, Theorem 10.22); and a finite abelian group with at most n solutions of na = 0 is cyclic (Lemma 10.23) — hence <strong>every finite subgroup of a field's multiplicative group is cyclic</strong> (Theorem 10.24), because x<sup>n</sup> − 1 has at most n roots. So (ℤ/pℤ)<sup>∗</sup> is cyclic, for every prime, known without exhibiting a generator.</li>
+<li><strong>Fermat's two-squares theorem</strong> — an odd prime is a sum of two squares exactly when p ≡ 1 mod 4 — is proved by moving into ℤ[i], which is Euclidean (Proposition 10.30) hence a UFD, where the multiplicative norm converts a factorisation of p into p = a² + b². The mod-4 condition enters through whether −1 is a square mod p, which is a question about the cyclic group (ℤ/pℤ)<sup>∗</sup>.</li>
+</ol>
+The mission strip, unpacked: an integral homology group is a finitely generated abelian group, so by Theorem 10.18 it is ℤ<sup>b</sup> ⊕ (torsion). The b is the Betti number; the invariant factors are the torsion coefficients; and by uniqueness, those numbers are the group. Nothing else about it is left to know.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §10.3 "The Classification Theorem" (Theorem 10.18 p. 212; the equivalence of the two forms and Proposition 10.19 with its proof p. 213; Example 10.20 and Proposition 10.21 p. 214; that proof concluding overleaf, with Theorem 10.22 and Lemma 10.23 p. 215; Theorem 10.24, Example 10.25, Example 10.26 and Example 10.27 p. 216), pp. 212–216; §10.4 "Fermat's Theorem on Sums of Squares" (Theorem 10.28 and the 10,000th prime p. 217; Lemma 10.29 and Proposition 10.30 p. 219; Corollary 10.31 and Corollary 10.32 p. 220; Lemma 10.33 p. 221; Lemma 10.34 p. 222), pp. 217–222. Proposition 10.10, Proposition 10.13, Proposition 10.16 and Example 10.15 come from aa-21 (§10.2, pp. 208–211), Theorem 9.40 and Corollary 9.44 from aa-20 (§9.5–9.6, pp. 196–197), Corollary 7.8 and Proposition 7.15 from aa-13 and aa-14 (§7.2–7.3, pp. 134–137), Proposition 6.33, Theorem 6.26, Theorem 6.35 and Definition 6.24 from aa-12 (§6.3–6.4, pp. 112–119), Theorem 2.15 and Theorem 2.18 from aa-04 (§2.4–2.5, pp. 32–35), and the ring ℤ[i] from aa-07 (§4.2, Example 4.12, p. 62). The six invariant-factor lists for order 360, the counts for orders 72 and 200, and the representations 5 = 1 + 4, 13 = 4 + 9, 17 = 1 + 16 and 104729 = 400 + 104329 were each computed before being written.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// p is a sum of two squares exactly when some Gaussian integer has norm p, i.e.
+// when a lattice point lies on the circle of radius sqrt(p). Hits are found by
+// search, not asserted.
+var sc2=document.getElementById('sq'),sx=sc2.getContext('2d');
+var PP=5;
+function setP(p){PP=p;drawSq();}
+function drawSq(){sx.clearRect(0,0,sc2.width,sc2.height);
+ var cx=sc2.width/2,cy=sc2.height/2+6,R=Math.sqrt(PP),u=Math.min(46,120/R),N=Math.ceil(R)+2;
+ sx.strokeStyle='#2a333d';sx.lineWidth=1;
+ sx.beginPath();sx.moveTo(cx-N*u-10,cy);sx.lineTo(cx+N*u+10,cy);
+ sx.moveTo(cx,cy-N*u-10);sx.lineTo(cx,cy+N*u+10);sx.stroke();
+ sx.strokeStyle=(PP%4===1)?'#4caf82':'#e06c75';sx.lineWidth=2;
+ sx.beginPath();sx.arc(cx,cy,R*u,0,7);sx.stroke();
+ var hits=[];
+ for(var a=-N;a<=N;a++)for(var b=-N;b<=N;b++){
+  var on=(a*a+b*b===PP),x=cx+a*u,y=cy-b*u;
+  if(on)hits.push([a,b]);
+  sx.fillStyle=on?'#d8a657':'#2f3d4a';
+  sx.beginPath();sx.arc(x,y,on?5.5:2.5,0,7);sx.fill();}
+ sx.font='13px Segoe UI';sx.textAlign='left';sx.fillStyle='#e8e8e8';
+ sx.fillText('p = '+PP+',   p mod 4 = '+(PP%4)+',   circle of radius √p in Z[i]',14,20);
+ sx.fillStyle=hits.length?'#4caf82':'#e06c75';
+ if(hits.length){
+  var h=hits.filter(function(q){return q[0]>=0&&q[1]>=q[0];})[0]||hits[0];
+  sx.fillText(hits.length+' lattice points on the circle  -  '+PP+' = '+
+    (h[0]*h[0])+' + '+(h[1]*h[1])+' = '+Math.abs(h[0])+'² + '+Math.abs(h[1])+'²',14,40);}
+ else sx.fillText('no lattice point on the circle  -  '+PP+' is not a sum of two squares',14,40);
+ sx.fillStyle='#9aa5b1';
+ sx.fillText('a lattice point of norm p is a Gaussian integer z with N(z) = p, i.e. a factorisation of p in Z[i]',14,sc2.height-12);}
+drawSq();
+</script></body></html>

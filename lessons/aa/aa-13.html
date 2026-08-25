@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-13 — Polynomial rings over a field</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Polynomial rings over a field <span class="cite">(aa-13)</span></h1>
+
+<div class="hook">
+Fermat's Last Theorem took 358 years. The same statement for <em>polynomials</em> takes about a page, and Aluffi sets it as homework.
+<p>The reason is one theorem: if k is a field then k[x] admits long division, so it is Euclidean, so it is a principal ideal domain, so unique factorisation holds in it. Everything aa-12 built for PIDs lands on k[x] at once — gcds, Bézout, irreducible ⟺ prime, a Fundamental Theorem of Arithmetic for polynomials. Aluffi puts the Fermat application <em>before</em> the proof, on purpose, to show what the abstraction buys. We will prove the machinery first and cash the cheque at the end.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> k is a field. Is k[x] a field?</p>
+<button onclick="check(this,false)">Yes — the coefficients are invertible, so the polynomials are</button>
+<button data-ok onclick="check(this,true)">No — x is nonzero and has no inverse</button>
+<button onclick="check(this,false)">Only when k is infinite</button>
+<div class="explain">A polynomial ring R[x] is <em>never</em> a field: x ≠ 0, and xα(x) = 1 is impossible because multiplying by x can never produce a nonzero constant term. Over a domain the units of k[x] are exactly the nonzero constants — the units of k, viewed as constant polynomials. So k[x] is a PID that is not a field, which by aa-12's Remark 6.31 makes it a "curve" of Krull dimension 1, the ring algebraic geometry attaches to a line. <span class="cite">— Aluffi §7.2, p. 132</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: A persistence module is formally a graded module over k[x] — this is that ring.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Degree, long division, and roots</h2>
+
+<div class="definition">
+<strong>Definition 7.1.</strong> For a nonzero f(x) = a₀ + a₁x + ⋯ + a<sub>d</sub>x<sup>d</sup> ∈ R[x] with a<sub>d</sub> ≠ 0: d is the <strong>degree</strong> deg f, a<sub>d</sub> is the <strong>leading coefficient</strong>, a₀ the <strong>constant term</strong>. f is <strong>constant</strong> if it equals its constant term, and <strong>monic</strong> if its leading coefficient is 1. The polynomial 0 has no degree and no leading coefficient; it counts as constant. <span class="cite">— Aluffi §7.2, Definition 7.1, p. 131</span>
+</div>
+
+<p>The constant polynomials form a subring of R[x] isomorphic to R — aa-07's Example 4.11. Degree behaves well when R is an integral domain, and then the units of R[x] are exactly the units of R sitting as constants; over a field k that means <em>every nonzero constant</em>. Both facts are your guided proof. <span class="cite">— Aluffi §7.2, pp. 131–132</span></p>
+
+<div class="theorem">
+<strong>Proposition 7.3 (long division).</strong> Let R be a ring and f(x), g(x) ∈ R[x] with f ≠ 0 and the <em>leading coefficient of f a unit</em>. Then there are q(x), r(x) ∈ R[x] with
+<p style="text-align:center">g(x) = q(x)f(x) + r(x), &nbsp;&nbsp; r(x) = 0 or deg r(x) &lt; deg f(x).</p>
+<span class="cite">— Aluffi §7.2, Proposition 7.3, p. 132</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> If g = 0 or deg g &lt; deg f, take q = 0 and r = g. Otherwise suppose the statement fails for some g with n = deg g ≥ m = deg f, and by <strong>well-ordering</strong> choose such a g with n least. Write f = a₀ + ⋯ + a<sub>m</sub>x<sup>m</sup> and g = b₀ + ⋯ + b<sub>n</sub>x<sup>n</sup>, and let u = a<sub>m</sub><sup>−1</sup>, which exists by hypothesis. Put
+<p style="text-align:center">g₁(x) := g(x) − b<sub>n</sub>u f(x) x<sup>n−m</sup>.</p>
+<p>Its x<sup>n</sup> coefficient is b<sub>n</sub> − b<sub>n</sub>ua<sub>m</sub> = 0, so g₁ = 0 or deg g₁ &lt; n. By minimality the statement holds for g₁: g₁ = q₁f + r₁ with r₁ = 0 or deg r₁ &lt; deg f. Then</p>
+<p style="text-align:center">g(x) = (q₁(x) + b<sub>n</sub>u x<sup>n−m</sup>)·f(x) + r₁(x),</p>
+<p>so the statement holds for g after all — contradiction. ∎ <span class="cite">— Aluffi §7.2, p. 133</span></p>
+<p><strong>Read the hypothesis.</strong> Nothing is assumed about R except that <em>f</em>'s leading coefficient is invertible — that is exactly the coefficient you must divide by at each step of the schoolbook algorithm. This is why long division works in ℤ[x] when you divide by a monic polynomial and fails when you divide by 2x + 1.</p>
+</div>
+
+<div class="worked">
+<strong>Two consequences worth naming.</strong>
+<p><strong>Example 7.4.</strong> For any ring R and any α(x) ∈ R[x] there are β(x) ∈ R[x] and a, b ∈ R with α(x) = β(x)(x² + 1) + a + bx — because x² + 1 is monic and every polynomial of degree &lt; 2 has that shape. This is the fact aa-10's Example 5.42 used to compute ker(α ↦ α(i)) and conclude ℝ[x]/(x² + 1) ≅ ℂ. <span class="cite">— Aluffi §7.2, Example 7.4, p. 133</span></p>
+<p><strong>Example 7.5 — the remainder on dividing by x − a is g(a).</strong> Since x − a is monic, g(x) = q(x)(x − a) + r with r constant; evaluating at a gives g(a) = q(a)·0 + r = r. Hence</p>
+<p style="text-align:center"><strong>x − a is a factor of g(x) if and only if g(a) = 0.</strong></p>
+<span class="cite">— Aluffi §7.2, Example 7.5, p. 133</span>
+<p><strong>Definition 7.6.</strong> a ∈ R is a <strong>root</strong> of g(x) if g(a) = 0. So: the roots of g are exactly the a for which x − a divides g. <span class="cite">— Aluffi §7.2, Definition 7.6, p. 134</span></p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 7.9 (uniqueness).</strong> If R is an integral domain and f ≠ 0 has unit leading coefficient, then the q and r of Proposition 7.3 are uniquely determined by f and g. <span class="cite">— Aluffi §7.2, Proposition 7.9, p. 134</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Suppose g = q₁f + r₁ = q₂f + r₂ with both remainders 0 or of degree &lt; deg f. Subtracting, (q₁ − q₂)f = r₂ − r₁. If r₂ − r₁ ≠ 0 then, R being a domain, the left side has degree at least deg f while the right side has degree less than deg f — impossible. So r₁ = r₂, and then (q₁ − q₂)f = 0 with f ≠ 0 forces q₁ = q₂. ∎ <span class="cite">— Aluffi §7.2, p. 135</span>
+<p>The domain hypothesis is used twice, and both times through the degree formula deg(αβ) = deg α + deg β — which is the first half of your guided proof.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In ℤ[x], can you always divide g(x) by f(x) = 2x + 1 with remainder of smaller degree?</p>
+<button onclick="check(this,false)">Yes — long division works in any polynomial ring</button>
+<button data-ok onclick="check(this,true)">No — the leading coefficient 2 is not a unit in ℤ</button>
+<button onclick="check(this,false)">No — 2x + 1 has no root in ℤ</button>
+<div class="explain">Proposition 7.3 requires the leading coefficient of the divisor to be a unit, because the algorithm multiplies by its inverse at every step. In ℤ[x] that rules out 2x + 1: dividing x² by it would need a coefficient of ½. Over a <em>field</em> every nonzero constant is a unit, which is precisely why k[x] is Euclidean and ℤ[x] is not. Having no root is irrelevant — x² + 1 has no real root and divides fine in ℝ[x]. <span class="cite">— Aluffi §7.2, Proposition 7.3, p. 132</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. One hypothesis on the coefficients, and the whole of Chapter 6 lands.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>k[x] is Euclidean — and everything that follows</h2>
+
+<div class="theorem">
+<strong>Theorem 7.2.</strong> If k is a field then k[x] is a Euclidean domain. <span class="cite">— Aluffi §7.2, Theorem 7.2, p. 132</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> k is a field, hence a domain, hence k[x] is a domain. Take the valuation v(f) = deg f. Every nonzero element of k is a unit, so <em>every</em> nonzero f ∈ k[x] has unit leading coefficient, and Proposition 7.3 applies to every divisor: for all f ≠ 0 and all g there are q, r with g = qf + r and r = 0 or deg r &lt; deg f. That is Definition 6.24. ∎ <span class="cite">— Aluffi §7.2, p. 134</span>
+<p><strong>Corollary 7.7.</strong> k[x] is a PID — Euclidean domains are PIDs (aa-12's Theorem 6.26). <span class="cite">— Aluffi §7.2, Corollary 7.7, p. 134</span></p>
+<p><strong>Corollary 7.8.</strong> Unique factorisation holds in k[x] — PIDs are UFDs (Theorem 6.35). <span class="cite">— Aluffi §7.2, Corollary 7.8, p. 134</span></p>
+</div>
+
+<p>Two corollaries, each one line, and between them they transfer the entire content of aa-12. Concretely, in k[x] you now have: every ideal is (f) for a single f; gcds exist and are Bézout combinations; an irreducible polynomial is prime, and (q) is a <em>maximal</em> ideal for q irreducible — that is aa-12's Proposition 6.33 with aa-11's Lemma 6.22 and Definition 6.2; and every nonconstant polynomial factors into irreducibles uniquely up to units and order. Aluffi's summary: for gcds and irreducibility, k[x] behaves just like ℤ. <span class="cite">— Aluffi §7.2, p. 134; §6.1, Definition 6.2, p. 106; §6.2, Lemma 6.22, p. 112</span></p>
+
+<div class="theorem">
+<strong>Corollary 7.10.</strong> Let R be an integral domain and f ≠ 0 with unit leading coefficient. Then every coset in R[x]/(f(x)) has a <em>unique</em> representative r(x) + (f(x)) with r = 0 or deg r &lt; deg f. <span class="cite">— Aluffi §7.2, Corollary 7.10, p. 135</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Given g(x) + (f(x)), Propositions 7.3 and 7.9 supply unique q, r with g = qf + r and r = 0 or deg r &lt; deg f. Then g − r = qf ∈ (f), so g + (f) = r + (f), and r is determined by g. ∎ <span class="cite">— Aluffi §7.2, p. 135</span>
+<p>This is the exact analogue of aa-03's Theorem 2.7, where every class of ℤ/nℤ had a unique representative in {0, …, n − 1}. There the window was "remainder smaller than n"; here it is "degree smaller than deg f". Same theorem, same proof shape, different valuation.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 7.11.</strong> Let k be a field and f ∈ k[x] nonzero of degree d. Then k[x]/(f(x)) is a d-dimensional k-vector space — its elements correspond to d-tuples (a₀, …, a<sub>d−1</sub>), compatibly with addition and scalar multiplication. <span class="cite">— Aluffi §7.2, Theorem 7.11, p. 135</span>
+</div>
+
+<p>Because over a field every nonzero polynomial has unit leading coefficient, Corollary 7.10 applies to every f, and the unique representative a₀ + a₁x + ⋯ + a<sub>d−1</sub>x<sup>d−1</sup> <em>is</em> the tuple. So the quotient is finite-dimensional and you can compute in it by reducing mod f after every multiplication. <span class="cite">— Aluffi §7.2, p. 135</span></p>
+
+<div class="worked fade">
+<strong>Faded example — computing in ℝ[x]/(x² + 1).</strong>
+<p>deg(x² + 1) = 2, so by Theorem 7.11 the quotient is a ⟨your step: how many⟩-dimensional real vector space, with cosets uniquely written a + bx + (x² + 1).</p>
+<p>Multiply two of them: (a₁ + b₁x)(a₂ + b₂x) = a₁a₂ + (a₁b₂ + a₂b₁)x + b₁b₂x². The last term is not in reduced form, so divide by x² + 1: since x² = 1·(x² + 1) − 1, we may replace x² by ⟨your step⟩.</p>
+<p>The product is therefore ⟨your step: collect the constant⟩ + (a₁b₂ + a₂b₁)x, which is the multiplication rule for ⟨your step: which famous ring?⟩ — recovering aa-09's Example 5.34 and aa-10's Example 5.42 by pure long division.</p>
+<p>Now change the modulus: in ℝ[x]/(x² − 1), the same computation replaces x² by ⟨your step⟩ instead, and the resulting ring is <em>not</em> a field. Ask yourself which property of x² + 1 the other polynomial lacks.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Work in 𝔽 = ℤ/2ℤ, a field. (a) Divide x⁴ + x + 1 by x² + x + 1 in 𝔽[x], giving q and r explicitly; remember that in 𝔽 we have −1 = 1, so subtraction is addition. (b) By Theorem 7.11, how many elements does 𝔽[x]/(x² + x + 1) have? List them. (c) Check whether x² + x + 1 has a root in 𝔽, and use Example 7.5 to decide whether it is irreducible there. (d) If it is, aa-12's Proposition 6.33 says (x² + x + 1) is a maximal ideal — so the quotient is a field. You have just built a field with four elements, which is not ℤ/4ℤ.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why is k[x] a PID when k is a field, while ℤ[x] is not?</p>
+<button data-ok onclick="check(this,true)">Because every nonzero element of k is a unit, so long division works for every divisor</button>
+<button onclick="check(this,false)">Because k is infinite and ℤ is not</button>
+<button onclick="check(this,false)">Because ℤ is not a PID</button>
+<div class="explain">Proposition 7.3 needs the divisor's leading coefficient to be invertible. Over a field that is automatic for every nonzero divisor, so the degree is a Euclidean valuation (Theorem 7.2) and Theorem 6.26 gives a PID. Over ℤ it fails for divisors like 2x + 1, and indeed (2, x) is not principal. ℤ <em>is</em> a PID, which is exactly what makes the contrast instructive: the PID property does not pass to polynomial rings. <span class="cite">— Aluffi §7.2, Theorem 7.2 and Corollary 7.7, pp. 132–134</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> How many elements does the ring k[x]/(f) have when k = ℤ/3ℤ and deg f = 2?</p>
+<button onclick="check(this,false)">3</button>
+<button data-ok onclick="check(this,true)">9</button>
+<button onclick="check(this,false)">Infinitely many</button>
+<div class="explain">By Theorem 7.11 the quotient is a 2-dimensional vector space over ℤ/3ℤ, so its elements are the pairs (a₀, a₁) — that is, the cosets a₀ + a₁x with a₀, a₁ ∈ ℤ/3ℤ. There are 3² = 9 of them. Note what this construction does: it manufactures finite rings, and finite <em>fields</em> whenever f is irreducible, of sizes that are prime powers rather than primes. <span class="cite">— Aluffi §7.2, Theorem 7.11, p. 135</span></div>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Two facts were used above and left to the exercises. <strong>Let R be an integral domain. (a) Prove that deg(fg) = deg f + deg g for all nonzero f, g ∈ R[x]. (b) Deduce that the units of R[x] are exactly the units of R, as constant polynomials — and hence that k[x] is never a field.</strong> Say where the domain hypothesis is used, and give a ring where (a) is false.</p>
+<textarea placeholder="Write f with leading coefficient a_d and g with leading coefficient b_e. The coefficient of x^{d+e} in fg is ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>(a) Let f have degree d with leading coefficient a<sub>d</sub> ≠ 0, and g degree e with leading coefficient b<sub>e</sub> ≠ 0. In the product, the coefficient of x<sup>d+e</sup> is a<sub>d</sub>b<sub>e</sub>, and no higher power occurs. Since R is an <strong>integral domain</strong> and both a<sub>d</sub>, b<sub>e</sub> are nonzero, a<sub>d</sub>b<sub>e</sub> ≠ 0. So fg ≠ 0 and deg(fg) = d + e.</p>
+<p>(b) Suppose fg = 1 in R[x]. Both are nonzero, so by (a) deg f + deg g = deg 1 = 0, and since degrees are nonnegative, deg f = deg g = 0. So f and g are constants, say f = a and g = b with ab = 1 — that is, a is a unit of R. Conversely a unit of R is clearly a unit of R[x]. Hence R[x]<sup>∗</sup> = R<sup>∗</sup>.</p>
+<p>In particular, for a field k the units of k[x] are the nonzero constants, so x — which is nonzero and non-constant — is not a unit, and <strong>k[x] is not a field</strong>.</p>
+<p><em>Where the hypothesis is needed.</em> Only at a<sub>d</sub>b<sub>e</sub> ≠ 0. Without it (a) is false: in (ℤ/4ℤ)[x], both 2x + 1 and 2x + 1 have degree 1, yet (2x + 1)² = 4x² + 4x + 1 = 1, of degree 0. That same ring also breaks (b) — 2x + 1 is a non-constant unit. ∎</p>
+<p>Grade yourself on producing a counterexample for (a). If you only proved the positive statement, you have not established that the hypothesis is doing work, and every claim in this lesson about degrees — including the uniqueness in Proposition 7.9 — rests on it.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the payoff Aluffi opened the chapter with.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Fermat's Last Theorem, for polynomials</h2>
+
+<p>Fermat's Last Theorem says a<sup>n</sup> + b<sup>n</sup> = c<sup>n</sup> has no solution in positive integers for n ≥ 3. Fermat wrote it in a margin in 1637; Wiles proved it in 1995, 358 years later. We are not going to prove that. But <em>the same question over a different ring</em> is tractable: are there f(t), g(t), h(t) ∈ ℂ[t], not all constant, with <span class="cite">— Aluffi §7.1, p. 129</span></p>
+<p style="text-align:center">f(t)<sup>n</sup> + g(t)<sup>n</sup> = h(t)<sup>n</sup>, &nbsp;&nbsp; n ≥ 3? &nbsp;&nbsp;(7.1)</p>
+
+<p>Three tools: ℂ[t] is a UFD (Corollary 7.8), every complex number has n-th roots, and 1 − t<sup>n</sup> factors completely: <span class="cite">— Aluffi §7.1, pp. 129–130</span></p>
+<p style="text-align:center">1 − t<sup>n</sup> = (1 − t)(1 − ζt)(1 − ζ²t)⋯(1 − ζ<sup>n−1</sup>t), &nbsp;&nbsp; ζ = e<sup>2πi/n</sup>. &nbsp;&nbsp;(7.2)</p>
+
+<p>For n = 4, ζ = i and the identity reads 1 − t⁴ = (1 − t)(1 − it)(1 + t)(1 + it), which you can check in seconds. In general the powers ζ<sup>j</sup> are the vertices of a regular n-gon in the complex plane. <span class="cite">— Aluffi §7.1, p. 130</span></p>
+
+<canvas id="roots" width="620" height="300" aria-label="The n-th roots of unity as vertices of a regular n-gon on the unit circle"></canvas>
+<div class="controls">
+<button onclick="setRN(3)">n = 3</button>
+<button onclick="setRN(4)">n = 4</button>
+<button onclick="setRN(5)">n = 5</button>
+<button onclick="setRN(7)">n = 7</button>
+<button onclick="setRN(12)">n = 12</button>
+</div>
+
+<div class="worked">
+<strong>The argument.</strong> Suppose (7.1) has a solution with f, g, h not all constant. Clearing common factors we may assume g and h are relatively prime, and by <strong>well-ordering</strong> we may choose the solution with deg f + deg g + deg h as small as possible.
+<p><em>Step 1 — factor.</em> Substitute t ↦ g(t)/h(t) in (7.2) and clear denominators:</p>
+<p style="text-align:center">h<sup>n</sup> − g<sup>n</sup> = (h − g)(h − ζg)(h − ζ²g)⋯(h − ζ<sup>n−1</sup>g). &nbsp;&nbsp;(7.3)</p>
+<p>By (7.1) the left side is f<sup>n</sup>.</p>
+<p><em>Step 2 — the factors are pairwise coprime.</em> Take two distinct factors α = h − ζ<sup>i</sup>g and β = h − ζ<sup>j</sup>g. Then</p>
+<p style="text-align:center">(α − β)/(ζ<sup>j</sup> − ζ<sup>i</sup>) = g &nbsp;&nbsp;and&nbsp;&nbsp; (ζ<sup>j</sup>α − ζ<sup>i</sup>β)/(ζ<sup>j</sup> − ζ<sup>i</sup>) = h,</p>
+<p>so a common irreducible factor of α and β would be a common irreducible factor of g and h — which we excluded. <span class="cite">— Aluffi §7.1, p. 130</span></p>
+<p><em>Step 3 — unique factorisation.</em> f<sup>n</sup> is an n-th power and the factors on the right of (7.3) are pairwise coprime, so <em>each factor is itself an n-th power up to a unit</em> — and units in ℂ[t] are nonzero complex numbers, which are themselves n-th powers because ℂ is algebraically closed. Since n ≥ 3 there are at least three factors, so there exist a(t), b(t), c(t) with</p>
+<p style="text-align:center">h − g = a<sup>n</sup>, &nbsp; h − ζg = b<sup>n</sup>, &nbsp; h − ζ²g = c<sup>n</sup>.</p>
+<p><em>Step 4 — descend.</em> A short computation gives (−ζ)(h − g) + (1 + ζ)(h − ζg) = h − ζ²g, that is (−ζ)a<sup>n</sup> + (1 + ζ)b<sup>n</sup> = c<sup>n</sup>. Choosing λ, μ ∈ ℂ with λ<sup>n</sup> = −ζ and μ<sup>n</sup> = 1 + ζ,</p>
+<p style="text-align:center">(λa)<sup>n</sup> + (μb)<sup>n</sup> = c<sup>n</sup>,</p>
+<p>another solution of the same shape — with strictly smaller total degree, since f, g, h were not all constant. That contradicts minimality. So no solution exists. ∎ <span class="cite">— Aluffi §7.1, pp. 130–131</span></p>
+</div>
+
+<div class="worked">
+<strong>Why this does not settle the integer case.</strong> ℤ is also a PID, so the temptation is obvious. But the argument does not run in ℤ — it runs in a ring containing ℤ <em>and</em> ζ, and possibly n-th roots of other elements. The relevant ring ℤ[ζ], the smallest subring of ℂ containing ℤ and ζ = e<sup>2πi/n</sup>, is <strong>not a UFD for most n</strong>. Step 3 is exactly where it collapses. <span class="cite">— Aluffi §7.1, p. 131</span>
+<p>This is worth sitting with. The proof above is not clever; it is three routine moves standing on unique factorisation. The 358 years were spent because that one hypothesis is false in the ring where the integer argument would have to live. aa-11's ℤ[√−5] was the small version of the same disaster.</p>
+</div>
+
+<div class="worked">
+<strong>One more use of the machinery — interpolation is the Chinese Remainder Theorem.</strong> Let k be a field and a₁, …, a<sub>n</sub> distinct elements. The ideals (x − a<sub>i</sub>) are pairwise comaximal: for i ≠ j,
+<p style="text-align:center">1 = ((x − a<sub>j</sub>) − (x − a<sub>i</sub>))/(a<sub>i</sub> − a<sub>j</sub>) ∈ (x − a<sub>i</sub>) + (x − a<sub>j</sub>),</p>
+<p>using that a<sub>i</sub> − a<sub>j</sub> ≠ 0 is invertible in k. So aa-10's <strong>Theorem 5.52</strong> applies and</p>
+<p style="text-align:center">k[x]/((x − a₁)⋯(x − a<sub>n</sub>)) ≅ k[x]/(x − a₁) × ⋯ × k[x]/(x − a<sub>n</sub>) ≅ k × ⋯ × k,</p>
+<p>each factor by aa-09's Example 5.33. Read the isomorphism from left to right and it says: a polynomial of degree &lt; n is determined by, and may be prescribed arbitrarily at, n distinct points. That is Lagrange interpolation, and it is the Chinese Remainder Theorem wearing polynomial clothes. This is Problem 6 of your set. <span class="cite">— Aluffi §5.6, Theorem 5.52, p. 97</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In Step 3 of the Fermat argument, which property of ℂ[t] is used?</p>
+<button onclick="check(this,false)">That it is a field</button>
+<button data-ok onclick="check(this,true)">That it is a UFD, so coprime factors of an n-th power are n-th powers up to units</button>
+<button onclick="check(this,false)">That it is finite-dimensional over ℂ</button>
+<div class="explain">Unique factorisation is the load-bearing hypothesis: if a product of pairwise coprime elements is an n-th power, then comparing exponents in the factorisations forces each factor to be an n-th power up to a unit. ℂ[t] is a UFD by Corollary 7.8, via Euclidean ⟹ PID ⟹ UFD. It is not a field (the prediction gate), and it is infinite-dimensional over ℂ. And this is exactly the step that fails over ℤ[ζ]. <span class="cite">— Aluffi §7.1, p. 130</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why does the polynomial argument not prove Fermat's Last Theorem over ℤ?</p>
+<button onclick="check(this,false)">Because ℤ is not a PID</button>
+<button data-ok onclick="check(this,true)">Because the argument needs ζ, and ℤ[ζ] is not a UFD for most n</button>
+<button onclick="check(this,false)">Because integers have no degree to induct on</button>
+<div class="explain">ℤ <em>is</em> a PID, and a size function to descend on is available. What is missing is the ring: the factorisation (7.3) requires ζ = e<sup>2πi/n</sup>, so the argument lives in ℤ[ζ], and unique factorisation fails there for most n. Aluffi says so plainly, and it is the historically decisive point — several nineteenth-century "proofs" of Fermat's Last Theorem assumed exactly this and were wrong. <span class="cite">— Aluffi §7.1, p. 131</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Long division needs one thing</strong> (Proposition 7.3): the divisor's leading coefficient must be a unit. Over any ring that gives division by monic polynomials; over a field it gives division by everything. Uniqueness of q and r needs a domain (Proposition 7.9), through deg(fg) = deg f + deg g. Dividing by x − a leaves the constant g(a), so x − a ∣ g ⟺ a is a root.</li>
+<li><strong>k a field ⟹ k[x] Euclidean</strong> with v = deg (Theorem 7.2), hence a PID (Corollary 7.7), hence a UFD (Corollary 7.8). Every ideal is (f); gcds and Bézout return; irreducible ⟺ prime, and (q) is maximal for q irreducible. Cosets have unique representatives of degree &lt; deg f (Corollary 7.10), so k[x]/(f) is a d-dimensional k-vector space (Theorem 7.11) — the exact analogue of ℤ/nℤ having n elements.</li>
+<li><strong>Fermat for polynomials is a page.</strong> Factor h<sup>n</sup> − g<sup>n</sup> using the n-th roots of unity, note the factors are pairwise coprime, use unique factorisation to make each an n-th power, and produce a smaller solution — contradiction with a minimal choice. It does not transfer to ℤ because the argument needs ℤ[ζ], which is usually not a UFD.</li>
+</ol>
+The one line to keep: <em>k[x] is the ring that behaves like ℤ</em>, and it does so because the degree is a Euclidean valuation. Persistence modules live over k[x] for exactly this reason — aa-20 needs a PID, and this is the PID that graded intervals come from.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §7.1 "Fermat's Last Theorem for Polynomials" (the statement and identity (7.1) p. 129; the factorisation (7.2), the n-gon of roots of unity, identities (7.3) and (7.4), and the coprimality of the factors p. 130; the descent and the remark on ℤ[ζ] p. 131), pp. 129–131; §7.2 "The Polynomial Ring with Coefficients in a Field" (Definition 7.1 p. 131; the units of R[x] and Theorem 7.2 with Proposition 7.3 p. 132; its proof concluding overleaf, with Example 7.4 and Example 7.5 p. 133; Definition 7.6, the proof of Theorem 7.2, Corollary 7.7, Corollary 7.8 and Proposition 7.9 p. 134; Corollary 7.10 and Theorem 7.11 p. 135, where the previous proof also concludes), pp. 131–135. Definition 6.24, Theorem 6.26, Theorem 6.35, Proposition 6.33 and Remark 6.31 come from aa-12 (§6.3–6.4, pp. 112–119), Lemma 6.22 and Definition 6.2 from aa-11 (§6.1–6.2, pp. 106–112), Theorem 5.52 and Example 5.42 from aa-10 (§5.5–5.6, pp. 93–97), Example 5.33 from aa-09 (§5.3, p. 87), Example 4.11 from aa-07 (§4.2, p. 62), and Theorem 2.7 from aa-03 (§2.2, p. 26). The comaximality computation for Lagrange interpolation and the (ℤ/4ℤ)[x] counterexample in the guided proof are assembled here from those results.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// The n-th roots of unity: zeta^j = e^{2 pi i j / n}, the vertices of a regular
+// n-gon on the unit circle. These are the roots of t^n - 1, and the factors of
+// 1 - t^n in identity (7.2).
+var uc=document.getElementById('roots'),ux=uc.getContext('2d');
+var RN=7;
+function setRN(n){RN=n;drawRoots();}
+function drawRoots(){ux.clearRect(0,0,uc.width,uc.height);
+ var cx=uc.width/2,cy=uc.height/2+6,r=104;
+ ux.strokeStyle='#2a333d';ux.lineWidth=1;
+ ux.beginPath();ux.moveTo(cx-r-34,cy);ux.lineTo(cx+r+34,cy);
+ ux.moveTo(cx,cy-r-30);ux.lineTo(cx,cy+r+30);ux.stroke();
+ ux.strokeStyle='#26313c';ux.beginPath();ux.arc(cx,cy,r,0,7);ux.stroke();
+ var pts=[];
+ for(var j=0;j<RN;j++){var th=2*Math.PI*j/RN;pts.push([cx+r*Math.cos(th),cy-r*Math.sin(th)]);}
+ ux.strokeStyle='#8ab4f8';ux.lineWidth=1.5;ux.beginPath();
+ for(var j=0;j<RN;j++){if(j===0)ux.moveTo(pts[0][0],pts[0][1]);else ux.lineTo(pts[j][0],pts[j][1]);}
+ ux.closePath();ux.stroke();
+ ux.font='12px Segoe UI';ux.textAlign='center';ux.textBaseline='middle';
+ for(var j=0;j<RN;j++){var p=pts[j];
+  ux.fillStyle=(j===0)?'#d8a657':'#4caf82';
+  ux.beginPath();ux.arc(p[0],p[1],5,0,7);ux.fill();
+  if(RN<=12){var th=2*Math.PI*j/RN,lx=cx+(r+20)*Math.cos(th),ly=cy-(r+20)*Math.sin(th);
+   ux.fillStyle='#9aa5b1';ux.fillText(j===0?'1':(j===1?'ζ':'ζ'+j),lx,ly);}}
+ ux.textAlign='left';ux.font='13px Segoe UI';ux.fillStyle='#e8e8e8';
+ ux.fillText('n = '+RN+':  the n-th roots of unity, vertices of a regular '+RN+'-gon',14,18);
+ ux.fillStyle='#9aa5b1';
+ ux.fillText('1 - t^'+RN+' = (1 - t)(1 - ζt)···(1 - ζ^'+(RN-1)+'t)   -   '+RN+' pairwise distinct factors',14,uc.height-12);}
+drawRoots();
+</script></body></html>

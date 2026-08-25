@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-08 — Ring homomorphisms and isomorphisms</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Ring homomorphisms and isomorphisms <span class="cite">(aa-08)</span></h1>
+
+<div class="hook">
+There are 720 bijections between ℤ/6ℤ and ℤ/2ℤ × ℤ/3ℤ. Exactly one of them makes the addition and multiplication tables match on the nose.
+<p>aa-07 met the same three conditions twice, from two unrelated constructions. Today they become the definition: a <strong>ring homomorphism</strong> is a function that respects +, respects ·, and sends 1 to 1. The payoff is a way to say that two rings are <em>the same ring with different labels</em> — and, just as important, a way to prove that two rings are <em>not</em>, without inspecting a single bijection.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Is f : ℤ → ℤ, f(a) = 2a, a ring homomorphism?</p>
+<button onclick="check(this,false)">Yes — it respects addition, which is what matters</button>
+<button data-ok onclick="check(this,true)">No — it fails on multiplication and on the identity</button>
+<button onclick="check(this,false)">No — it is not injective</button>
+<div class="explain">It fails twice. f(1) = 2 ≠ 1, and Definition 4.15 requires 1 ↦ 1. And it does not respect multiplication: f(a)f(b) = 4ab while f(ab) = 2ab, which differ whenever ab ≠ 0. It <em>does</em> respect addition, and it is injective — neither is enough. Aluffi notes that this map will turn out to be a perfectly good <em>module</em> homomorphism (aa-15), which is a different structure with a different list of things to preserve. <span class="cite">— Aluffi §4.3, Example 4.24, p. 67</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Induced maps on homology are homomorphisms; functoriality is born here.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The definition, and how many you already know</h2>
+
+<div class="definition">
+<strong>Definition 4.15 (ring homomorphism).</strong> Let R and S be rings. A function f : R → S is a <strong>homomorphism of rings</strong> if for all a, b ∈ R
+<p style="text-align:center">f(a + b) = f(a) + f(b), &nbsp;&nbsp; f(a·b) = f(a)·f(b),</p>
+and further f(1<sub>R</sub>) = 1<sub>S</sub>. <span class="cite">— Aluffi §4.3, Definition 4.15, p. 64</span>
+</div>
+
+<p>We say f <strong>preserves</strong> addition and multiplication. Every structure in this text will get its own notion of homomorphism — module homomorphisms in aa-15, group homomorphisms in aa-23 — and in each case it is a function preserving that structure's operations. When only rings are in play, "homomorphism" alone will do. <span class="cite">— Aluffi §4.3, p. 64</span></p>
+
+<p>Notice what is <em>not</em> required: nothing about 0. It comes free.</p>
+
+<div class="theorem">
+<strong>Proposition 4.16.</strong> If f : R → S is a ring homomorphism then f(0<sub>R</sub>) = 0<sub>S</sub>. <span class="cite">— Aluffi §4.3, Proposition 4.16, p. 65</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> f(0<sub>R</sub>) = f(0<sub>R</sub> + 0<sub>R</sub>) = f(0<sub>R</sub>) + f(0<sub>R</sub>), and additive cancellation (aa-05's Proposition 3.17) removes one copy from each side, leaving 0<sub>S</sub> = f(0<sub>R</sub>). ∎
+<p>Ask why 1 does not come free the same way. Running the same trick multiplicatively gives f(1) = f(1)f(1), and cancelling f(1) needs it to be a non-zero-divisor — which is exactly what is not available in general. So the 1 condition has to be imposed; aa-07's map ι(a) = (a, 0) is the standing witness that it does not follow.</p>
+</div>
+
+<div class="worked">
+<strong>The examples you already had.</strong>
+<p><strong>4.17 — the trivial homomorphism.</strong> If T is a trivial ring, the constant map R → T is a homomorphism. But if S is <em>non</em>trivial, the constant map R → S with value 0<sub>S</sub> is <em>not</em>: it sends 1<sub>R</sub> to 0<sub>S</sub> ≠ 1<sub>S</sub>. "The zero map" is not a ring homomorphism except into the trivial ring. <span class="cite">— Aluffi §4.3, Example 4.17, p. 65</span></p>
+<p><strong>4.18 — aa-07's two maps.</strong> The projection π : R × S → R and the inclusion i : S → R of a subring are ring homomorphisms. That was the whole point of the previous lesson. <span class="cite">— Aluffi §4.3, Example 4.18, p. 65</span></p>
+<p><strong>4.19 — the quotient map.</strong> For n ≥ 0, φ : ℤ → ℤ/nℤ, φ(a) = [a]<sub>n</sub>, is a ring homomorphism: φ(1) = [1]<sub>n</sub>, and φ(a + b) = [a + b]<sub>n</sub> = [a]<sub>n</sub> + [b]<sub>n</sub>, φ(ab) = [ab]<sub>n</sub> = [a]<sub>n</sub>[b]<sub>n</sub> — <em>by the very definition</em> of the operations in ℤ/nℤ (Definition 2.10). Read that backwards: aa-04 spent a whole segment making these two lines true, and their content is precisely that φ is a homomorphism. <span class="cite">— Aluffi §4.3, Example 4.19, p. 65</span></p>
+<p><strong>4.20 — and its generalisation.</strong> For any ring R, σ : ℤ → R with σ(n) = n·1<sub>R</sub> is a ring homomorphism. Its image is aa-07's subring R₀, the smallest subring of R. <span class="cite">— Aluffi §4.3, Example 4.20, pp. 65–66</span></p>
+<p><strong>4.23 — complex conjugation.</strong> The map ℂ → ℂ, a + bi ↦ a − bi, fixes 1, and a direct computation shows it preserves + and ·. Aluffi flags this one as having "a different flavor": it is a homomorphism from a ring to <em>itself</em> that is not the identity. <span class="cite">— Aluffi §4.3, Example 4.23, p. 66</span></p>
+</div>
+
+<p><strong>The clarification Aluffi has been saving since §2.2.</strong> The warning "do not think of ℤ/nℤ as a set of numbers" now has an exact meaning: for n &gt; 0 there is <em>no injective ring homomorphism</em> ℤ/nℤ → ℤ. And the promised "close kinship" is the surjective homomorphism running the other way, φ : ℤ → ℤ/nℤ. The relationship between the two rings is a map, and it has a direction. <span class="cite">— Aluffi §4.3, Example 4.19, p. 65</span></p>
+
+<div class="worked fade">
+<strong>Faded example — Aluffi says "Check it now."</strong> Define ψ : ℤ/12ℤ → ℤ/4ℤ by ψ([a]₁₂) = [a]₄.
+<p><em>Well defined?</em> The recipe names a representative, so this must be checked. Suppose [a]₁₂ = [b]₁₂. By aa-03's (2.1) that means 12 ∣ (b − a). Since 4 ∣ 12, it follows that ⟨your step: what divides b − a?⟩, which says [a]₄ = [b]₄. So the value does not depend on the representative.</p>
+<p><em>Homomorphism?</em> ψ([1]₁₂) = ⟨your step⟩. For addition, ψ([a]₁₂ + [b]₁₂) = ψ([a + b]₁₂) = [a + b]₄ = ⟨your step: split it⟩ = ψ([a]₁₂) + ψ([b]₁₂), and multiplication is the same line with · in place of +.</p>
+<p><em>Now break it.</em> Try instead ρ : ℤ/4ℤ → ℤ/12ℤ, ρ([a]₄) = [a]₁₂. Take a = 0 and b = 4: same class mod 4, but [0]₁₂ ≠ [4]₁₂ because ⟨your step⟩. So ρ is not even a function. The rule survives exactly when the target modulus divides the source modulus — aa-03's Problem 5, now recognisable as a statement about homomorphisms. <span class="cite">— Aluffi §4.3, Example 4.21, p. 66</span></p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Example 4.22, which Aluffi leaves with "Verify this!": define e₂ : ℤ[x] → ℤ by e₂(α(x)) = α(2). Show it is a ring homomorphism — all three conditions. The multiplicative one is the only one with content, and the right way to see it is that the coefficient formula for a product of polynomials becomes, after substituting 2, the ordinary product of two integers. Then state the general version, with the hypothesis it needs: for any <em>commutative</em> ring R and any r ∈ R, evaluation e<sub>r</sub> : R[x] → R is a ring homomorphism. (More precisely, commutativity of R can be weakened to "r is central in R", but not dropped. The indeterminate x is central in R[x], so Ax = xA there for every coefficient A; multiplicativity of e<sub>r</sub> would therefore force Ar = rA. In M₂(ℝ) take A = (0 1 / 0 0) and r = (1 0 / 0 0): then Ar is the zero matrix while rA = A, so no evaluation at that r can be multiplicative.) Keep this map; aa-14 is largely about its kernel — and ℤ, the ring in the example, is commutative, so nothing there is affected. <span class="cite">— Aluffi §4.3, Example 4.22, p. 66</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Definition 4.15 does not mention 0. Why not?</p>
+<button data-ok onclick="check(this,true)">Because f(0) = 0 follows, by additive cancellation</button>
+<button onclick="check(this,false)">Because homomorphisms need not send 0 to 0</button>
+<button onclick="check(this,false)">Because 0 is not part of the ring structure</button>
+<div class="explain">f(0) = f(0 + 0) = f(0) + f(0), and additive cancellation gives f(0) = 0. The multiplicative analogue does not work: f(1) = f(1)f(1) cannot be cancelled without knowing f(1) is a non-zero-divisor, so f(1) = 1 must be imposed as an axiom. That asymmetry is not a quirk — it is aa-06's tower showing up in the definition of a map. <span class="cite">— Aluffi §4.3, Proposition 4.16, p. 65</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the non-examples, which are where the definition earns its three clauses.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Three failures, and the category of rings</h2>
+
+<div class="worked">
+<strong>Example 4.24 — doubling.</strong> f : ℤ → ℤ, f(a) = 2a. Fails f(1) = 1, and fails multiplication: f(a)f(b) = 4ab versus f(ab) = 2ab. Respecting addition is not enough. <span class="cite">— Aluffi §4.3, Example 4.24, p. 67</span>
+</div>
+
+<div class="worked">
+<strong>Example 4.25 — a homomorphism that cannot exist.</strong> There is <em>no</em> ring homomorphism ℤ/2ℤ → ℤ. Suppose f were one. Then f([1]₂) = 1 by Definition 4.15 and f([0]₂) = 0 by Proposition 4.16, so
+<p style="text-align:center">2 = 1 + 1 = f([1]₂) + f([1]₂) = f([1]₂ + [1]₂) = f([0]₂) = 0,</p>
+<p>which is nonsense. The same argument kills every ℤ/nℤ → ℤ with n &gt; 0. <span class="cite">— Aluffi §4.3, Example 4.25, p. 67</span></p>
+<p>This is a different kind of result from the other two. It is not "here is a map that fails"; it is "<em>no</em> map can succeed", proved by deriving a contradiction from the mere existence of one. That style — assume a homomorphism, follow where the identities are forced to go — is the standard way to prove two rings are unrelated.</p>
+</div>
+
+<div class="worked">
+<strong>Example 4.26 — the determinant, which fails on the clause you would not guess.</strong> On M<sub>2,2</sub>(ℝ), det(a b / c d) = ad − bc. Then det(I) = 1 ✓, and det(AB) = det(A)det(B) ✓ — a genuine identity, which Aluffi verifies by expanding both sides. But
+<p style="text-align:center">(1 0 / 0 0) + (0 0 / 0 1) = (1 0 / 0 1),</p>
+<p>and the two determinants on the left are both 0 while the determinant on the right is 1. Since 0 + 0 ≠ 1, det does not preserve addition. Not a ring homomorphism. (Restricted to units on both sides it <em>is</em> a group homomorphism, det : GL<sub>2</sub>(ℝ) → ℝ*, which is aa-23's Example 11.16. The restriction is needed, not cosmetic: M<sub>2,2</sub>(ℝ) is not a group under multiplication because singular matrices have no inverse, and ℝ is not one either because 0 has none. Multiplicativity alone does not make a map of monoids a map of groups.) <span class="cite">— Aluffi §4.3, Example 4.26, pp. 67–68</span></p>
+<p>Line the three failures up: 4.24 fails · and 1, 4.26 fails + while satisfying · and 1, and 4.25 fails by existing at all. Between them they show that none of the three conditions implies the others.</p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 4.27.</strong> Let R, S, T, U be rings. The identity id<sub>R</sub> : R → R is a ring homomorphism; if f : R → S and g : S → T are ring homomorphisms then so is g ∘ f : R → T; and composition is associative, h ∘ (g ∘ f) = (h ∘ g) ∘ f. <span class="cite">— Aluffi §4.3, Proposition 4.27, p. 68</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> The identity is the inclusion of R as a subring of itself, so Example 4.18 covers it. For the composite,
+<p style="text-align:center">(g∘f)(a + b) = g(f(a + b)) = g(f(a) + f(b)) = g(f(a)) + g(f(b)) = (g∘f)(a) + (g∘f)(b),</p>
+<p>using first that f preserves +, then that g does; the multiplicative line is identical with · in place of +. And (g∘f)(1<sub>R</sub>) = g(f(1<sub>R</sub>)) = g(1<sub>S</sub>) = 1<sub>T</sub>. Associativity is inherited from composition of set-functions: both sides send r to h(g(f(r))). ∎ <span class="cite">— Aluffi §4.3, p. 68</span></p>
+<p><strong>What this proposition is.</strong> Rings as <em>objects</em>, ring homomorphisms as <em>morphisms</em>, with identities and associative composition: that is the <strong>category of rings</strong>. Sets and functions form the category of sets in the same way. The proposition proves itself, which is precisely the sign that the definition of homomorphism was the right one.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which condition of Definition 4.15 does the determinant fail?</p>
+<button onclick="check(this,false)">It fails to preserve multiplication</button>
+<button data-ok onclick="check(this,true)">It fails to preserve addition</button>
+<button onclick="check(this,false)">It fails to send 1 to 1</button>
+<div class="explain">det(AB) = det(A)det(B) is true, and det(I) = 1, so two of the three hold. Addition is the casualty: two rank-one matrices with determinant 0 can sum to the identity, whose determinant is 1. This is the example that stops you reading "preserves structure" as vague — it means <em>all three</em> clauses, and a map can satisfy any two. <span class="cite">— Aluffi §4.3, Example 4.26, pp. 67–68</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> How does one prove there is no ring homomorphism ℤ/2ℤ → ℤ?</p>
+<button onclick="check(this,false)">By checking all functions ℤ/2ℤ → ℤ one at a time</button>
+<button data-ok onclick="check(this,true)">By assuming one exists and deriving 2 = 0 in ℤ</button>
+<button onclick="check(this,false)">By noting that ℤ/2ℤ is smaller than ℤ</button>
+<div class="explain">There are infinitely many functions, so enumeration is not available. Instead the two axioms pin the values down — f([1]₂) = 1 and f([0]₂) = 0 — and then [1]₂ + [1]₂ = [0]₂ forces 1 + 1 = 0 in ℤ. Size proves nothing on its own: there are plenty of homomorphisms from an infinite ring to a finite one, φ : ℤ → ℤ/2ℤ among them. <span class="cite">— Aluffi §4.3, Example 4.25, p. 67</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Last segment: when are two rings the same ring?</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Isomorphism: sameness up to relabelling</h2>
+
+<p>Two trivial rings built from different one-element sets are obviously "the same". So are {a, b, c} and {0, 1, 2} as sets — the difference is a choice of labels, and the technical word for a relabelling is <em>bijection</em>. For rings we need a relabelling that also respects the operations. <span class="cite">— Aluffi §4.4, p. 69</span></p>
+
+<div class="definition">
+<strong>Definition 4.29 (isomorphism).</strong> A ring homomorphism f : R → S is an <strong>isomorphism</strong> if it is a bijection. <span class="cite">— Aluffi §4.4, Definition 4.29, p. 70</span>
+</div>
+
+<p>Aluffi motivates it by laying the + and · tables of ℤ/6ℤ beside those of ℤ/2ℤ × ℤ/3ℤ, with the elements of the second listed in the deliberately odd order 0 ↦ (0,0), 1 ↦ (1,1), 2 ↦ (0,2), 3 ↦ (1,0), 4 ↦ (0,1), 5 ↦ (1,2). Under that matching the tables agree entry by entry. There are 720 = 6! bijections available and almost none of them do this — which is the whole content of the word "isomorphism". <span class="cite">— Aluffi §4.4, p. 70</span></p>
+
+<div class="theorem">
+<strong>Proposition 4.30.</strong> If f : R → S is a ring isomorphism, then f<sup>−1</sup> : S → R is also an isomorphism. <span class="cite">— Aluffi §4.4, Proposition 4.30, p. 71</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> The inverse of a bijection is a bijection, so only the homomorphism conditions need work. From f(1<sub>R</sub>) = 1<sub>S</sub> we get f<sup>−1</sup>(1<sub>S</sub>) = 1<sub>R</sub>. For addition, take b₁, b₂ ∈ S and set a₁ = f<sup>−1</sup>(b₁), a₂ = f<sup>−1</sup>(b₂), so b<sub>k</sub> = f(a<sub>k</sub>). Then
+<p style="text-align:center">f<sup>−1</sup>(b₁ + b₂) = f<sup>−1</sup>(f(a₁) + f(a₂)) = f<sup>−1</sup>(f(a₁ + a₂)) = a₁ + a₂ = f<sup>−1</sup>(b₁) + f<sup>−1</sup>(b₂),</p>
+<p>the middle step because f is a homomorphism. Multiplication is the same argument. ∎ <span class="cite">— Aluffi §4.4, p. 71</span></p>
+<p>This is not automatic for every kind of structure — a bijective structure-preserving map can have a badly behaved inverse in other settings — so it is worth noticing that here it is a theorem, not a definition.</p>
+</div>
+
+<div class="theorem">
+<strong>Corollary 4.31.</strong> A ring homomorphism f : R → S is an isomorphism if and only if there is a ring homomorphism g : S → R with g ∘ f = id<sub>R</sub> and f ∘ g = id<sub>S</sub>. <span class="cite">— Aluffi §4.4, Corollary 4.31, p. 71</span>
+<p><strong>Definition 4.32.</strong> R and S are <strong>isomorphic</strong>, written R ≅ S, if some ring isomorphism R → S exists. <span class="cite">— Aluffi §4.4, Definition 4.32, p. 71</span></p>
+<p><strong>Corollary 4.33.</strong> The relation ≅ is reflexive, symmetric and transitive. <span class="cite">— Aluffi §4.4, Corollary 4.33, p. 71</span></p>
+</div>
+
+<div class="worked">
+<strong>Proof of Corollary 4.33 — one line per axiom, and each cites a different result.</strong> <em>Reflexive:</em> id<sub>R</sub> is an isomorphism (Proposition 4.27), so R ≅ R. <em>Symmetric:</em> if f : R → S is an isomorphism then so is f<sup>−1</sup> (Proposition 4.30), so S ≅ R. <em>Transitive:</em> if f : R → S and g : S → T are isomorphisms then g ∘ f is a homomorphism (Proposition 4.27) and a bijection (composites of bijections are bijections), hence an isomorphism, so R ≅ T. ∎ <span class="cite">— Aluffi §4.4, p. 71</span>
+<p><strong>Remark 4.34.</strong> Corollary 4.31 means isomorphisms could have been <em>defined</em> as the homomorphisms possessing a two-sided inverse homomorphism — and that is the definition used in any category. In the category of sets the isomorphisms are the bijections, so two sets are isomorphic exactly when they have the same size. Two rings can be isomorphic as sets and not as rings; ℤ/4ℤ and ℤ/2ℤ × ℤ/2ℤ are about to be the example. <span class="cite">— Aluffi §4.4, Remark 4.34, p. 72</span></p>
+</div>
+
+<p><strong>The principle that makes all this usable:</strong> isomorphisms preserve every <em>ring-theoretic</em> property — every property definable purely in terms of the ring operations. Being commutative is one (Example 4.35). Being a set of numbers is not. <span class="cite">— Aluffi §4.4, Example 4.35 and footnote, p. 72</span></p>
+
+<div class="theorem">
+<strong>Proposition 4.36.</strong> Let f : R → S be a ring isomorphism and a ∈ R. Then a is a zero-divisor if and only if f(a) is, and a is a unit if and only if f(a) is. <span class="cite">— Aluffi §4.4, Proposition 4.36, p. 72</span>
+<p><strong>Corollary 4.37.</strong> Isomorphic rings are integral domains together, and fields together. <span class="cite">— Aluffi §4.4, Corollary 4.37, p. 72</span></p>
+</div>
+
+<div class="worked">
+<strong>Proof of Proposition 4.36.</strong> Let a be a zero-divisor: there is a nonzero b with ab = 0 (the case ba = 0 is the same argument on the other side, per Definition 3.22). Then f(a)f(b) = f(ab) = f(0) = 0 by Proposition 4.16, and f(b) ≠ 0 because f is injective and f(0) = 0. So f(a) is a zero-divisor. The converse comes from running the same argument on f<sup>−1</sup>, which is a homomorphism by Proposition 4.30.
+<p>For units: if ab = ba = 1 then f(a)f(b) = f(ab) = f(1) = 1 and likewise the other way, so f(a) is a unit; and again f<sup>−1</sup> gives the converse. ∎ <span class="cite">— Aluffi §4.4, p. 72</span></p>
+<p><strong>Where Proposition 4.30 earns its place.</strong> Both converses are obtained by applying the forward argument to f<sup>−1</sup> — which is legitimate only because f<sup>−1</sup> is itself a homomorphism. Without Proposition 4.30 each of these statements would have to be proved twice from scratch.</p>
+</div>
+
+<div class="worked">
+<strong>Example 4.38 — 24 bijections, dismissed at once.</strong> There are 4! = 24 bijections ℤ/4ℤ → ℤ/2ℤ × ℤ/2ℤ, and none is an isomorphism. No case analysis is needed: x + x = 0 holds for every x in the product, and fails at [1]₄ in ℤ/4ℤ, and an isomorphism would have to preserve that property. <span class="cite">— Aluffi §4.4, Example 4.38, p. 73</span>
+<p>This is the technique to take away. To prove R ≇ S, find one ring-theoretic property that separates them; you never have to look at a single map.</p>
+<p><strong>Example 4.40.</strong> Complex conjugation is an isomorphism ℂ → ℂ — it is a homomorphism (Example 4.23) and it is its own inverse, since conjugating twice returns a + bi. An isomorphism of a ring with itself is an <strong>automorphism</strong>; Galois theory is the study of the automorphisms of a field, and conjugation is the one attached to x² + 1. <span class="cite">— Aluffi §4.4, Example 4.40, p. 73</span></p>
+<p><strong>Example 4.42.</strong> The diagonal Δ ⊆ R × R really is a copy of R: δ(a) = (a, a) is a homomorphism with inverse (a, a) ↦ a, so R ≅ Δ — the claim aa-07 left hanging. <span class="cite">— Aluffi §4.4, Example 4.42, p. 74</span></p>
+</div>
+
+<div class="worked">
+<strong>Example 4.41 — ℂ lives inside the 2 × 2 matrices.</strong> Let R ⊆ M<sub>2,2</sub>(ℝ) be the subring of matrices (a −b / b a) from aa-07's you-try, and define
+<p style="text-align:center">f(a + bi) = (a −b / b a).</p>
+<p>Then f(1) is the identity matrix, f visibly preserves addition, and — the surprising part — it preserves multiplication, because the product of two such matrices has entries a₁a₂ − b₁b₂ and a₁b₂ + b₁a₂, which are exactly the real and imaginary parts of (a₁ + b₁i)(a₂ + b₂i). It is a bijection, so ℂ ≅ R. <span class="cite">— Aluffi §4.4, Example 4.41, pp. 73–74</span></p>
+<p><strong>Why it is not a coincidence.</strong> Identify ℂ with ℝ², and f(z) is precisely the matrix of the linear map "multiply by z". Multiplication by i is a counterclockwise quarter turn, with matrix (0 −1 / 1 0) — which is f(i). The isomorphism is the statement that complex multiplication <em>is</em> a rotation-and-scaling of the plane. Drive it below. <span class="cite">— Aluffi §4.4, p. 74</span></p>
+</div>
+
+<canvas id="cx" width="620" height="300" aria-label="Multiplication by a complex number shown as the linear map of the plane given by its matrix"></canvas>
+<div class="controls">
+<button onclick="setZ(0,1)">× i</button>
+<button onclick="setZ(1,1)">× (1 + i)</button>
+<button onclick="setZ(0.5,-0.9)">× (0.5 − 0.9i)</button>
+<button onclick="setZ(-1,0)">× (−1)</button>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi states Corollary 4.31 and adds: "make sure you could write a proof if you had to!" Do it. <strong>Prove that a ring homomorphism f : R → S is an isomorphism if and only if there is a ring homomorphism g : S → R with g ∘ f = id<sub>R</sub> and f ∘ g = id<sub>S</sub>.</strong> Both directions. Say which of the two directions uses Proposition 4.30, and which uses only set theory.</p>
+<textarea placeholder="(=>) Suppose f is an isomorphism. Then f is a bijection, so it has a set-theoretic inverse ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>(⟹) Suppose f is an isomorphism, i.e. a bijective homomorphism. Being a bijection, f has a set-theoretic inverse f<sup>−1</sup> : S → R with f<sup>−1</sup> ∘ f = id<sub>R</sub> and f ∘ f<sup>−1</sup> = id<sub>S</sub>. By <strong>Proposition 4.30</strong>, f<sup>−1</sup> is a ring homomorphism. Take g = f<sup>−1</sup>.</p>
+<p>(⟸) Suppose g is a ring homomorphism with g ∘ f = id<sub>R</sub> and f ∘ g = id<sub>S</sub>. A function with a two-sided inverse is a bijection: g ∘ f = id<sub>R</sub> makes f injective (if f(a) = f(a′) then a = g(f(a)) = g(f(a′)) = a′), and f ∘ g = id<sub>S</sub> makes f surjective (any s ∈ S equals f(g(s))). So f is a bijective homomorphism, i.e. an isomorphism.</p>
+<p>∎ The forward direction is where Proposition 4.30 is indispensable — without it, g would only be known to be a function. The reverse direction is pure set theory and does not use the ring structure at all; that g is a homomorphism is not needed to conclude f is bijective.</p>
+<p>Grade yourself on that last observation. It is why Remark 4.34 can promote this to the <em>definition</em> of isomorphism in any category: the characterisation "has a two-sided inverse morphism" makes sense with no notion of bijection available.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> To show ℤ/4ℤ ≇ ℤ/2ℤ × ℤ/2ℤ, how many bijections must you examine?</p>
+<button onclick="check(this,false)">All 24</button>
+<button data-ok onclick="check(this,true)">None — one ring-theoretic property separates them</button>
+<button onclick="check(this,false)">Just one, chosen well</button>
+<div class="explain">x + x = 0 holds throughout the product and fails at [1]₄. Any isomorphism would carry the property from one ring to the other, so no isomorphism exists — and the argument never mentions a specific map. Examining maps one at a time is the method that does not scale; finding a preserved property is the method that does. <span class="cite">— Aluffi §4.4, Example 4.38, p. 73</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why does Proposition 4.36 need f to be an isomorphism rather than just a homomorphism?</p>
+<button onclick="check(this,false)">Because homomorphisms need not send 0 to 0</button>
+<button data-ok onclick="check(this,true)">Injectivity is needed for f(b) ≠ 0, and the converses run the argument on f<sup>−1</sup></button>
+<button onclick="check(this,false)">Because only isomorphisms preserve multiplication</button>
+<div class="explain">The forward half needs f(b) ≠ 0, which follows from injectivity plus f(0) = 0; a non-injective homomorphism can collapse a nonzero b to 0, and then f(a) need not be a zero-divisor. Both converse halves are the forward argument applied to f<sup>−1</sup>, which is a homomorphism only by Proposition 4.30 — and only exists at all if f is bijective. Homomorphisms preserve products perfectly well; that is not the issue. <span class="cite">— Aluffi §4.4, Proposition 4.36, p. 72</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Definition 4.15:</strong> a ring homomorphism preserves +, preserves ·, and sends 1 to 1. f(0) = 0 comes free by additive cancellation (Proposition 4.16); f(1) = 1 does not come free, and must be assumed. The three conditions are independent — doubling fails · and 1 while keeping +, the determinant keeps · and 1 while failing +, and no map ℤ/nℤ → ℤ exists at all for n &gt; 0.</li>
+<li><strong>Rings and their homomorphisms form a category</strong> (Proposition 4.27): identities are homomorphisms, composites are homomorphisms, composition is associative. Everything you already met — the projection, the inclusion, ℤ → ℤ/nℤ, evaluation, conjugation — was a morphism in it.</li>
+<li><strong>Isomorphism (Definition 4.29) is a bijective homomorphism</strong>, its inverse is automatically a homomorphism (Proposition 4.30), so ≅ is an equivalence relation (Corollary 4.33) and isomorphic rings share every ring-theoretic property: zero-divisors, units, being a domain, being a field (Proposition 4.36, Corollary 4.37). To prove two rings are <em>not</em> isomorphic, exhibit one such property that separates them — never enumerate maps.</li>
+</ol>
+The habit: a structure is studied through its maps. Aluffi's evaluation homomorphism will become aa-14's factorisation theory; the quotient map ℤ → ℤ/nℤ becomes aa-09's kernels and ideals; and "induced map on homology" is this same word, three semesters ahead.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §4.3 "Ring Homomorphisms" (Definition 4.15 p. 64; Proposition 4.16 and Examples 4.17, 4.18, 4.19 p. 65; Example 4.20 pp. 65–66; Examples 4.21, 4.22, 4.23 p. 66; Examples 4.24, 4.25 p. 67; Example 4.26 pp. 67–68; Proposition 4.27 and the category of rings p. 68), pp. 64–68; §4.4 "Isomorphisms of Rings" (relabelling and bijections p. 69; the matching tables and Definition 4.29 p. 70; Proposition 4.30, Corollary 4.31, Definition 4.32, Corollary 4.33 p. 71; Remark 4.34, Example 4.35, Proposition 4.36, Corollary 4.37 p. 72; Example 4.38 and Example 4.40 p. 73; Example 4.41 pp. 73–74; Example 4.42 p. 74), pp. 69–74. Proposition 3.17 is carried over from aa-05 (§3.2, p. 50), Definition 3.22 from aa-06 (§3.3, p. 53), Definition 2.10 from aa-04 (§2.3, p. 27), and the identity (2.1) from aa-03 (§2.2, p. 24). The subring of matrices (a −b / b a) is aa-07's you-try, and Example 4.41 is the reason it was set.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Multiplication by z = a+bi as the linear map with matrix (a -b / b a):
+// the unit square and the basis 1, i are carried to their images.
+var cc=document.getElementById('cx'),cv=cc.getContext('2d');
+var ZA=0,ZB=1;
+function setZ(a,b){ZA=a;ZB=b;drawCX();}
+function drawCX(){cv.clearRect(0,0,cc.width,cc.height);
+ var ox=cc.width/2,oy=cc.height/2-6,u=62;
+ cv.strokeStyle='#2a333d';cv.lineWidth=1;
+ cv.beginPath();cv.moveTo(12,oy);cv.lineTo(cc.width-12,oy);
+ cv.moveTo(ox,16);cv.lineTo(ox,cc.height-26);cv.stroke();
+ function P(x,y){return [ox+x*u,oy-y*u];}
+ function quad(m,col,al){var pts=[[0,0],[1,0],[1,1],[0,1]];
+  cv.beginPath();
+  for(var i=0;i<4;i++){var p=pts[i],x=m[0]*p[0]+m[1]*p[1],y=m[2]*p[0]+m[3]*p[1],q=P(x,y);
+   if(i===0)cv.moveTo(q[0],q[1]);else cv.lineTo(q[0],q[1]);}
+  cv.closePath();cv.globalAlpha=al;cv.fillStyle=col;cv.fill();cv.globalAlpha=1;
+  cv.strokeStyle=col;cv.lineWidth=2;cv.stroke();}
+ function arrow(x,y,col,lab){var q=P(x,y),o=P(0,0);
+  cv.strokeStyle=col;cv.lineWidth=2.5;cv.beginPath();cv.moveTo(o[0],o[1]);cv.lineTo(q[0],q[1]);cv.stroke();
+  cv.fillStyle=col;cv.beginPath();cv.arc(q[0],q[1],4,0,7);cv.fill();
+  cv.font='12px Segoe UI';cv.fillText(lab,q[0]+6,q[1]-6);}
+ quad([1,0,0,1],'#9aa5b1',0.18);
+ quad([ZA,-ZB,ZB,ZA],'#8ab4f8',0.30);
+ arrow(1,0,'#9aa5b1','1');arrow(0,1,'#9aa5b1','i');
+ arrow(ZA,ZB,'#4caf82','z·1');arrow(-ZB,ZA,'#d8a657','z·i');
+ cv.fillStyle='#e8e8e8';cv.font='13px Segoe UI';
+ cv.fillText('z = '+ZA+(ZB<0?' - ':' + ')+Math.abs(ZB)+'i   matrix ( '+ZA+'  '+(-ZB)+' / '+ZB+'  '+ZA+' )',14,18);
+ cv.fillStyle='#9aa5b1';
+ cv.fillText('grey: 1 and i   green/amber: their images   the square is carried by the matrix f(z)',14,cc.height-10);}
+drawCX();
+</script></body></html>

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-11 — Prime and maximal ideals; primes vs irreducibles</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Prime and maximal ideals; primes vs irreducibles <span class="cite">(aa-11)</span></h1>
+
+<div class="hook">
+When you drew a parabola in a calculus class, you were drawing a set of maximal ideals of a polynomial ring. You just did not know it.
+<p>aa-10 ended on a dictionary: properties of the quotient R/I are properties of the ideal I. Today we name the two entries that matter. An ideal is <strong>prime</strong> when the quotient is an integral domain and <strong>maximal</strong> when the quotient is a field — and then everything ℤ taught you gets re-read. "Prime integer" becomes "prime ideal". "Irreducible" and "prime" stop being the same word, and the ring where they come apart turns out to be the coordinate ring of a curve with a cusp at the origin.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Every maximal ideal is prime. Is every prime ideal maximal?</p>
+<button onclick="check(this,false)">Yes — in any commutative ring</button>
+<button data-ok onclick="check(this,true)">No — (0) in ℤ, and (x) in ℤ[x]</button>
+<button onclick="check(this,false)">Only when the ring is finite</button>
+<div class="explain">ℤ/(0) ≅ ℤ is an integral domain but not a field, so (0) is prime and not maximal. In ℤ[x], the quotient by (x) is ℤ — same verdict — and here the failure is visible as room to grow: (x) ⊊ (2, x) ⊊ ℤ[x]. Aluffi's point in §6.2 is that ℤ is unusually well behaved: there, and not in general, maximal and nonzero prime coincide. <span class="cite">— Aluffi §6.1, Example 6.12, p. 109</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Primes and maximals are the points of the spectrum — algebra's first bridge back to space.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Two definitions, and what they say about elements</h2>
+
+<p>The motivating observations are already on the table. ℤ/nℤ is a field exactly when n is irreducible. And ℝ[x]/(x² − 1) ≅ ℝ × ℝ has zero-divisors precisely because x² − 1 = (x − 1)(x + 1) <em>factors</em> — that is what let the Chinese Remainder Theorem apply. In both cases a feature of the quotient reflects a feature of the ideal. <span class="cite">— Aluffi §6.1, p. 106</span></p>
+
+<div class="definition">
+<strong>Definition 6.1 (prime ideal).</strong> Let R be a commutative ring and I an ideal. Then I is <strong>prime</strong> if R/I is an integral domain. <span class="cite">— Aluffi §6.1, Definition 6.1, p. 106</span>
+<p><strong>Definition 6.2 (maximal ideal).</strong> I is <strong>maximal</strong> if R/I is a field. <span class="cite">— Aluffi §6.1, Definition 6.2, p. 106</span></p>
+</div>
+
+<p>Both are stated only for commutative rings, because that is where they are used — commutative algebra, number theory, algebraic geometry. <span class="cite">— Aluffi §6.1, p. 106</span></p>
+
+<div class="theorem">
+<strong>Proposition 6.3.</strong> Maximal ideals are prime. <span class="cite">— Aluffi §6.1, Proposition 6.3, p. 106</span>
+</div>
+
+<p>Proof: fields are integral domains, which is aa-06's Proposition 3.31. One line, and it inherits everything — including the fact that the converse fails, since ℤ is a domain and not a field.</p>
+
+<div class="theorem">
+<strong>Theorem 6.4.</strong> An ideal I of a commutative ring R is prime if and only if I ≠ (1) and
+<p style="text-align:center">for all a, b ∈ R: &nbsp; ab ∈ I ⟹ a ∈ I or b ∈ I. &nbsp;&nbsp;(6.1)</p>
+<span class="cite">— Aluffi §6.1, Theorem 6.4, p. 107</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> (⟹) If R/I is a domain then 0 ≠ 1 there, so R/I is nontrivial and I ≠ (1). If ab ∈ I then (a + I)(b + I) = ab + I = 0 in R/I, so by Definition 3.23 one factor is 0, i.e. a ∈ I or b ∈ I.
+<p>(⟸) R/I is commutative because R is, and nontrivial because I ≠ (1). If (a + I)(b + I) = 0 then ab ∈ I, so a ∈ I or b ∈ I by (6.1), so a + I = 0 or b + I = 0. That is Definition 3.23. ∎ <span class="cite">— Aluffi §6.1, p. 107</span></p>
+<p><strong>The clause I ≠ (1) is not decoration.</strong> Take I = R: then ab ∈ I always, and a ∈ I always, so condition (6.1) holds vacuously — yet R/R is the trivial ring, which is not a domain. Without the clause the whole ring would count as prime. This is aa-06's "0 ≠ 1" in Definition 3.23, appearing in its ideal-theoretic costume.</p>
+</div>
+
+<div class="worked">
+<strong>What the definition recovers.</strong>
+<p><strong>Example 6.5.</strong> A commutative ring R is an integral domain if and only if (0) is prime — because R/(0) ≅ R. <span class="cite">— Aluffi §6.1, Example 6.5, p. 107</span></p>
+<p><strong>Example 6.6 — the point of the whole definition.</strong> In ℤ, Theorem 6.4 says (p) is prime exactly when p ≠ ±1 and</p>
+<p style="text-align:center">for all b, c ∈ ℤ: &nbsp; p ∣ bc ⟹ p ∣ b or p ∣ c.</p>
+<p>That is aa-02's <strong>Definition 1.19</strong>, word for word. So "prime ideal" is a direct generalisation of "prime integer", and aa-04's Theorem 2.15 — proved by hand, at some cost — is now a very particular case of Theorem 6.4. <span class="cite">— Aluffi §6.1, Example 6.6, p. 107; §1.4, Definition 1.19, p. 14</span></p>
+<p>Aluffi also settles the convention question here: everyone agrees (0) is a prime ideal of ℤ, so declining to call 0 a prime <em>integer</em> would clash. That is why Definition 1.19 was written the way it was, three chapters ago.</p>
+<p><strong>Example 6.7.</strong> (x) is prime in ℤ[x] because ℤ[x]/(x) ≅ ℤ is a domain; and in ℤ[x, y] both (y) and (x, y) are prime, since the quotients are ℤ[x] and ℤ. <span class="cite">— Aluffi §6.1, Example 6.7, p. 107</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does Theorem 6.4 need the clause I ≠ (1)?</p>
+<button onclick="check(this,false)">Because (1) is not an ideal</button>
+<button data-ok onclick="check(this,true)">Because I = R satisfies the element condition vacuously, yet R/R is trivial</button>
+<button onclick="check(this,false)">Because (1) contains no products</button>
+<div class="explain">If I = R, then ab ∈ I for all a, b, and a ∈ I for all a — so "ab ∈ I ⟹ a ∈ I or b ∈ I" holds trivially. But R/R is the one-element ring, where 0 = 1, and Definition 3.23 excludes it from being a domain. The clause is the ideal-side spelling of the nontriviality requirement, exactly as aa-06 needed 0 ≠ 1. <span class="cite">— Aluffi §6.1, Theorem 6.4, p. 107; §3.3, Definition 3.23, p. 53</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the other definition, and why "maximal" is the right word.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Maximal means no room in between — and Spec</h2>
+
+<div class="theorem">
+<strong>Theorem 6.9.</strong> An ideal I of a commutative ring R is maximal if and only if I ≠ (1) and there is <em>no</em> ideal J with I ⊊ J ⊊ R. <span class="cite">— Aluffi §6.1, Theorem 6.9, p. 108</span>
+</div>
+
+<div class="worked">
+<strong>Proof — an application of the Third Isomorphism Theorem.</strong> Recall a commutative ring is a field exactly when its only ideals are (0) and (1).
+<p>(⟹, contrapositive) Suppose some J has I ⊊ J ⊊ R. By aa-10's Theorem 5.57, J/I is an ideal of R/I with (0) ⊊ J/I ⊊ (1). So R/I has an ideal other than (0) and (1) and is not a field: I is not maximal.</p>
+<p>(⟸, contrapositive) If R/I is not a field it has an ideal J̄ with (0) ⊊ J̄ ⊊ (1). By Theorem 5.57 that J̄ is J/I for an ideal J containing I, and I ⊊ J ⊊ R. So the stated condition fails. ∎ <span class="cite">— Aluffi §6.1, p. 108</span></p>
+<p>So the name is honest: maximal ideals are exactly the ideals that cannot be enlarged without becoming the whole ring. And note the proof is <em>entirely</em> the ideal correspondence — no element is ever chosen.</p>
+</div>
+
+<div class="worked">
+<strong>The verdicts.</strong>
+<p><strong>Example 6.10.</strong> R is a field ⟺ (0) is maximal ⟺ R has exactly two ideals. <span class="cite">— Aluffi §6.1, Example 6.10, p. 108</span></p>
+<p><strong>Example 6.11 — in ℤ, maximal ⟺ nonzero prime.</strong> If I is maximal it is nonzero, since ℤ/(0) ≅ ℤ is not a field, and prime by Proposition 6.3. Conversely if I is a nonzero prime, then I = nℤ with n ≠ 0, so ℤ/I is <em>finite</em> and is a domain; and a finite integral domain is a field by aa-06's Proposition 3.33. So I is maximal. <span class="cite">— Aluffi §6.1, Example 6.11, p. 108</span></p>
+<p><strong>Where the specialness of ℤ enters:</strong> at finiteness. Proposition 3.33 is doing the work, and it is exactly the step that has no analogue in ℤ[x], where ℤ[x]/(x) ≅ ℤ is an infinite domain. Combined with Example 6.6, this recovers "ℤ/pℤ is a field ⟺ p is irreducible", i.e. Theorem 2.15 again. <span class="cite">— Aluffi §6.1, p. 109</span></p>
+<p><strong>Example 6.13.</strong> If k is a field, (x) is maximal in k[x] but <em>not</em> in k[x, y]; there (x, y) is maximal, and (x) ⊊ (x, y) ⊊ k[x, y]. Adding an indeterminate adds room. <span class="cite">— Aluffi §6.1, Example 6.13, p. 109</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Example 6.12: (2, x) is maximal in ℤ[x].</strong>
+<p>By Definition 6.2 we must show the quotient is a field. aa-10's Example 5.58 computed ℤ[x]/(2, x) ≅ ⟨your step: which ring?⟩, and that ring is a field because ⟨your step: which theorem, about ℤ/nℤ?⟩. So (2, x) is maximal.</p>
+<p>By contrast (x) is prime but not maximal: ℤ[x]/(x) ≅ ℤ, an integral domain that is ⟨your step: what is it not?⟩. Theorem 6.9 makes the failure visible — there <em>is</em> an ideal in between, namely ⟨your step⟩, and</p>
+<p style="text-align:center">(x) ⊊ (2, x) ⊊ ℤ[x].</p>
+<p>Both inclusions are strict: 2 ∈ (2, x) has no factor of x, and 1 ∉ (2, x) because every element of (2, x) has even constant term. <span class="cite">— Aluffi §6.1, Example 6.12, p. 109</span></p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Verify Example 6.13 in full for k a field. (a) Show k[x]/(x) ≅ k, so (x) is maximal in k[x]. (b) Show k[x, y]/(x) ≅ k[y], which is a domain but not a field — so (x) is prime and not maximal there. (c) Show k[x, y]/(x, y) ≅ k, so (x, y) is maximal, and exhibit the chain (x) ⊊ (x, y) ⊊ k[x, y] with both inclusions strict. Every quotient here is an application of aa-10's First Isomorphism Theorem to an evaluation map; you should not need to manipulate a single coset.</p>
+</div>
+
+<p><strong>The bridge back to space.</strong> For a commutative ring R, the <strong>spectrum</strong> Spec(R) is the set of prime ideals of R, and it is regarded as a space whose ordinary points are the <em>maximal</em> ideals. In algebraic geometry the parabola y = x² in ℂ² corresponds to the prime ideal (y − x²) of ℂ[x, y] — prime because ℂ[x, y]/(y − x²) ≅ ℂ[x] is a domain — and points of the parabola correspond to maximal ideals containing it. The origin lies on the parabola, and correspondingly (y − x²) ⊊ (x, y). Taking V(I) to be the primes containing I gives the closed sets of a topology on Spec(R), the Zariski topology. <span class="cite">— Aluffi §6.1, Examples 6.8 and 6.14 and the discussion of Spec, pp. 108–109</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> In ℤ, why is every nonzero prime ideal maximal?</p>
+<button onclick="check(this,false)">Because ℤ is a field</button>
+<button data-ok onclick="check(this,true)">Because ℤ/nℤ is finite, and a finite integral domain is a field</button>
+<button onclick="check(this,false)">Because every ideal of ℤ is principal</button>
+<div class="explain">A nonzero prime ideal is nℤ with n ≠ 0, so the quotient has n elements and is a domain; Proposition 3.33 upgrades that to a field. Finiteness is the whole of it. Being principal is true but irrelevant — ℤ[x]'s ideal (x) is principal, prime, and not maximal, because ℤ[x]/(x) ≅ ℤ is infinite. <span class="cite">— Aluffi §6.1, Example 6.11, p. 108; §3.3, Proposition 3.33, p. 56</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Last segment: the two words that ℤ made you think were one.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Prime elements, irreducible elements, and where they part</h2>
+
+<p>ℤ is privileged, and Aluffi's aim for the chapter is to measure how far its good behaviour extends. First, generalise the vocabulary of Chapter 1 to any commutative ring. <span class="cite">— Aluffi §6.2, p. 110</span></p>
+
+<div class="definition">
+<strong>Definition 6.15 (divides).</strong> For a, b in a commutative ring R, <strong>b ∣ a</strong> means a ∈ (b), i.e. a = bc for some c ∈ R. <span class="cite">— Aluffi §6.2, Definition 6.15, p. 110</span>
+<p><strong>Definition 6.16 (gcd).</strong> For a, b in an integral domain R, d is <strong>a</strong> greatest common divisor of a and b if (d) is the smallest principal ideal containing both a and b. <span class="cite">— Aluffi §6.2, Definition 6.16, p. 110</span></p>
+</div>
+
+<p>Unwound, that is exactly aa-02's Definition 1.5: (d) ∋ a, b says d is a common divisor, and minimality says every common divisor divides d. Note the article: if d is a gcd then so is du for any unit u, so there is no "the" gcd. <span class="cite">— Aluffi §6.2, p. 110</span></p>
+
+<div class="worked">
+<strong>Remark 6.17 — two things that fail.</strong> Aluffi raises two questions about Definition 6.16 and answers both in the negative.
+<p><em>Does a gcd exist?</em> Not necessarily.</p>
+<p><em>If 1 is a gcd of a and b, is 1 a linear combination of a and b?</em> Not necessarily. In ℤ[x], 1 <em>is</em> a gcd of 2 and x — the only principal ideal containing both is (1), since a common divisor must divide 2 in ℤ and divide x — and yet <strong>1 is not of the form 2α(x) + xβ(x)</strong>: every such combination has even constant term. <span class="cite">— Aluffi §6.2, Remark 6.17, p. 110</span></p>
+<p>So Bézout is not a consequence of the definition of gcd. It was a theorem about ℤ (Theorem 1.8), proved from well-ordering, and it does not travel. A useful corollary drops out: (2, x) is not principal, so ℤ[x] is not a principal ideal domain — which is Problem 6(c), and aa-12's subject.</p>
+</div>
+
+<div class="definition">
+<strong>Definition 6.18 (prime element).</strong> Let R be an integral domain. An element p ∈ R is <strong>prime</strong> if the principal ideal (p) is a prime ideal. <span class="cite">— Aluffi §6.2, Definition 6.18, p. 111</span>
+<p>By Theorem 6.4 this says exactly: p is not a unit, and whenever p ∣ ab we have p ∣ a or p ∣ b — Definition 1.19, generalised word for word. <em>Remark 6.19:</em> under this definition 0 is a prime element, consistently with §6.1. <span class="cite">— Aluffi §6.2, Remark 6.19, p. 111</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 6.20 (irreducible element).</strong> Let R be an integral domain. An element q ∈ R is <strong>irreducible</strong> if q is not a unit and
+<p style="text-align:center">for all a, b ∈ R: &nbsp; q = ab ⟹ a is a unit or b is a unit. &nbsp;&nbsp;(6.2)</p>
+<span class="cite">— Aluffi §6.2, Definition 6.20, p. 111</span>
+</div>
+
+<p>This forces q ≠ 0, and it specialises to aa-02's Definition 1.17 in ℤ, where the units are ±1. Note the shift in phrasing: in a general ring "the only divisors are ±1 and ±q" must become "any factorisation has a unit factor", because ±1 is not a meaningful phrase. <span class="cite">— Aluffi §6.2, p. 111</span></p>
+
+<div class="theorem">
+<strong>Lemma 6.22.</strong> Let R be an integral domain and q ≠ 0 a non-unit. Then q is irreducible if and only if (q) is maximal among proper <em>principal</em> ideals: if (q) ⊆ (a) then (a) = (1) or (a) = (q). <span class="cite">— Aluffi §6.2, Lemma 6.22, p. 112</span>
+<p><strong>Theorem 6.23.</strong> In any integral domain, a nonzero prime element is irreducible. <span class="cite">— Aluffi §6.2, Theorem 6.23, p. 112</span></p>
+</div>
+
+<div class="worked">
+<strong>Proof of Lemma 6.22.</strong> (⟹) Suppose q is irreducible and (q) ⊆ (a). Then q = ab for some b. Irreducibility makes a or b a unit: if a is a unit, (a) = (1); if b is a unit, (a) = (ab) = (q).
+<p>(⟸) Suppose the maximality condition holds and q = ab. Then (q) ⊆ (a), so (a) = (1) — making a a unit — or (a) = (q), in which case a = qu for a unit u, whence q = qub, and cancelling q (legal: R is a domain and q ≠ 0) gives ub = 1, so b is a unit. ∎ <span class="cite">— Aluffi §6.2, p. 112</span></p>
+<p>Cancellation is aa-06's Proposition 3.26, and it is the only place the domain hypothesis is spent.</p>
+</div>
+
+<div class="worked">
+<strong>Why the other direction cannot follow.</strong> It is worth tracing aa-02's proof that an irreducible integer is prime, because every step of it is now visibly local to ℤ. Given irreducible p with p ∤ b, that argument ran:
+<p style="text-align:center"><strong>Lemma 1.18</strong>: gcd(p, b) = 1 &nbsp;⟶&nbsp; <strong>Corollary 1.11</strong>: p ∣ bc and gcd(p, b) = 1 give p ∣ c.</p>
+<p>Both steps break in a general integral domain. Lemma 1.18 concludes that a certain gcd <em>equals 1</em>, but Definition 6.16 only determines a gcd up to units, and Remark 6.17 warns that one need not exist at all. And Corollary 1.11 was proved by writing 1 = mp + nb and multiplying by c — that is Bézout, Theorem 1.8, which Remark 6.17 has just shown does not survive: 1 is a gcd of 2 and x in ℤ[x] and is not a combination of them. <span class="cite">— Aluffi §1.3, Corollary 1.11, p. 10; §1.4, Lemma 1.18, p. 13</span></p>
+<p>So the failure of "irreducible ⟹ prime" is not a surprise to be absorbed; it is the predictable consequence of removing the one theorem the old proof rested on. aa-12 puts Bézout back, under a hypothesis, and gets the implication back with it.</p>
+</div>
+
+<div class="worked">
+<strong>Example 6.21 — irreducible but not prime.</strong> Let R = ℂ[x, y]/(y² − x³), writing x̲, y̲ for the cosets of x, y. This R is an integral domain, x̲ is irreducible, and y̲ ∉ (x̲). But in R
+<p style="text-align:center">y̲² = x̲³,</p>
+<p>because y² − x³ is 0 in the quotient. So y̲·y̲ ∈ (x̲) while y̲ ∉ (x̲): by Theorem 6.4, (x̲) is not a prime ideal, i.e. x̲ is <em>not</em> a prime element. It is irreducible and not prime. <span class="cite">— Aluffi §6.2, Example 6.21, p. 111</span></p>
+<p><strong>And there is a geometric reason.</strong> The real curve y² = x³ is <em>singular</em> — it has a cusp at the origin — whereas the parabola y = x² of Example 6.8 is smooth, and in its coordinate ring ℂ[x, y]/(y − x²) ≅ ℂ[t] every irreducible <em>is</em> prime. Draw both and the difference is visible. <span class="cite">— Aluffi §6.2, p. 111</span></p>
+</div>
+
+<canvas id="cur" width="620" height="300" aria-label="The smooth parabola y = x squared beside the cuspidal cubic y squared = x cubed"></canvas>
+<div class="controls">
+<button onclick="setCur(0)">parabola y = x²</button>
+<button onclick="setCur(1)">cubic y² = x³</button>
+<button onclick="setCur(2)">both</button>
+</div>
+
+<div class="worked">
+<strong>A second witness, built by hand — ℤ[√−5].</strong> Inside ℂ, in the manner of aa-07's Example 4.12, take
+<p style="text-align:center">ℤ[√−5] = { a + b√−5 : a, b ∈ ℤ }.</p>
+<p>It is a subring of ℂ (closed under + visibly, and under · because (a₁ + b₁√−5)(a₂ + b₂√−5) = (a₁a₂ − 5b₁b₂) + (a₁b₂ + a₂b₁)√−5), hence an integral domain — it sits inside a field. Define N(a + b√−5) = a² + 5b², which is just the squared modulus of the complex number, so <strong>N(αβ) = N(α)N(β)</strong>.</p>
+<p><em>The units are ±1.</em> If αβ = 1 then N(α)N(β) = 1 with both factors positive integers, so N(α) = 1, i.e. a² + 5b² = 1, forcing b = 0 and a = ±1.</p>
+<p><em>2 is irreducible.</em> N(2) = 4. If 2 = αβ then N(α)N(β) = 4. Neither factor may have norm 1 (that would make it a unit), so both would have norm 2 — but a² + 5b² = 2 has no integer solution (b = 0 needs a² = 2; b ≠ 0 makes the value at least 5). So one factor is a unit.</p>
+<p><em>2 is not prime.</em> Observe 6 = 2·3 and also</p>
+<p style="text-align:center">6 = (1 + √−5)(1 − √−5),</p>
+<p>since (1)² − (√−5)² = 1 + 5 = 6. So 2 ∣ (1 + √−5)(1 − √−5). But 2 divides neither factor: if 2 ∣ (1 ± √−5) then N(2) = 4 would divide N(1 ± √−5) = 6, and it does not.</p>
+<p>So 2 is irreducible and not prime — a second, purely arithmetic instance of the failure that Example 6.21 exhibits geometrically. This is Problem 5(c), and the same ring reappears in aa-12 as the standard example of a domain without unique factorisation.</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>One direction of "prime ⟺ irreducible" survives into every integral domain. <strong>Prove Theorem 6.23: if p is a nonzero prime element of an integral domain R, then p is irreducible.</strong> Use Lemma 6.22 — that is, assume (p) ⊆ (a) and show (a) = (p) or (a) = (1). Say explicitly where you use that R is a domain, and where you use that p ≠ 0.</p>
+<textarea placeholder="Suppose (p) is contained in (a). Then p = ab for some b in R. Since p is prime, p divides ab, so ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>Assume (p) ⊆ (a). Then p ∈ (a), so p = ab for some b ∈ R. Since p is a prime element, (p) is a prime ideal, and ab = p ∈ (p), so by Theorem 6.4 either a ∈ (p) or b ∈ (p).</p>
+<p><em>Case a ∈ (p).</em> Then (a) ⊆ (p), and combined with the assumption (p) ⊆ (a) we get (a) = (p).</p>
+<p><em>Case b ∈ (p).</em> Write b = cp. Then p = ab = a(cp) = (ac)p, so p·1 = p·(ac). Since R is an <strong>integral domain</strong> and <strong>p ≠ 0</strong>, cancellation (Proposition 3.26) gives 1 = ac, so a is a unit and (a) = (1).</p>
+<p>In both cases (a) = (p) or (a) = (1), so by Lemma 6.22 p is irreducible. ∎</p>
+<p>Grade yourself on the second case. Both hypotheses are consumed there and nowhere else: without a domain you cannot cancel, and without p ≠ 0 there is nothing to cancel. Notice also what the proof does <em>not</em> do — it never tries the converse, and the converse is exactly what fails in ℂ[x, y]/(y² − x³) and in ℤ[√−5].</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In ℤ[x], 1 is a gcd of 2 and x. Is 1 a linear combination 2α(x) + xβ(x)?</p>
+<button onclick="check(this,false)">Yes — that is what "gcd 1" means</button>
+<button data-ok onclick="check(this,true)">No — every such combination has even constant term</button>
+<button onclick="check(this,false)">Only if we allow rational coefficients</button>
+<div class="explain">The constant term of 2α(x) + xβ(x) is 2α(0), which is even, so it is never 1. Bézout's theorem is a fact about ℤ proved from well-ordering (Theorem 1.8), not a consequence of the definition of gcd — and Aluffi raises this in Remark 6.17 precisely to stop the transfer. The consequence is that (2, x) is not principal, so ℤ[x] is not a PID. <span class="cite">— Aluffi §6.2, Remark 6.17, p. 110</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which implication holds in <em>every</em> integral domain?</p>
+<button data-ok onclick="check(this,true)">nonzero prime ⟹ irreducible</button>
+<button onclick="check(this,false)">irreducible ⟹ prime</button>
+<button onclick="check(this,false)">Both, by Theorem 1.21</button>
+<div class="explain">Theorem 6.23 gives prime ⟹ irreducible everywhere, by cancellation. The converse is exactly what fails: x̲ in ℂ[x, y]/(y² − x³) and 2 in ℤ[√−5] are both irreducible and not prime. Theorem 1.21 proved the equivalence <em>in ℤ</em>, and aa-02 already flagged that its second half ran through Bézout — which Remark 6.17 has just shown does not generalise. <span class="cite">— Aluffi §6.2, Theorem 6.23 and Example 6.21, pp. 111–112</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why is 2 not a prime element of ℤ[√−5]?</p>
+<button onclick="check(this,false)">Because 2 factors as a product of two non-units there</button>
+<button data-ok onclick="check(this,true)">Because 2 divides (1 + √−5)(1 − √−5) = 6 but divides neither factor</button>
+<button onclick="check(this,false)">Because 2 is a unit there</button>
+<div class="explain">Primality is about products, not factorisations — Definition 6.18 via Theorem 6.4. And 2 does <em>not</em> factor into non-units: the norm argument shows it is irreducible, which is the whole point. The units are ±1, so 2 is not one. What fails is that the product (1 + √−5)(1 − √−5) = 6 is divisible by 2 while neither factor is, since N(2) = 4 does not divide N(1 ± √−5) = 6. <span class="cite">— Aluffi §6.2, Definition 6.18 and Definition 6.20, p. 111</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>I is prime when R/I is a domain, maximal when R/I is a field</strong> (Definitions 6.1, 6.2), so maximal ⟹ prime (Proposition 6.3) and the converse fails at (0) ⊆ ℤ and (x) ⊆ ℤ[x]. In elements: I ≠ (1) and ab ∈ I ⟹ a ∈ I or b ∈ I (Theorem 6.4) — which in ℤ <em>is</em> Definition 1.19, so "prime ideal" generalises "prime integer".</li>
+<li><strong>Maximal means no room in between</strong> (Theorem 6.9), proved purely from the Third Isomorphism Theorem's ideal correspondence. In ℤ, maximal ⟺ nonzero prime — and the step that makes this work is finiteness of ℤ/nℤ plus "a finite domain is a field", which is exactly what ℤ[x] lacks.</li>
+<li><strong>Prime and irreducible are different conditions.</strong> Nonzero prime ⟹ irreducible in every domain (Theorem 6.23, via Lemma 6.22 and cancellation); the converse fails, in ℂ[x, y]/(y² − x³) where the curve is cuspidal, and in ℤ[√−5] where 2 is irreducible by a norm count yet divides 6 = (1+√−5)(1−√−5) without dividing either factor. And Bézout does not generalise: 1 is a gcd of 2 and x in ℤ[x] without being a combination of them (Remark 6.17).</li>
+</ol>
+Everything ℤ made look like one idea is at least two. aa-12 asks which extra hypothesis puts them back together.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §6.1 "Prime and Maximal Ideals" (the motivating observations, Definition 6.1, Definition 6.2 and Proposition 6.3 p. 106; Theorem 6.4 and Examples 6.5, 6.6, 6.7 p. 107; Example 6.8, Theorem 6.9, Examples 6.10 and 6.11 p. 108; Examples 6.12, 6.13, 6.14 and the discussion of Spec and the Zariski topology p. 109), pp. 106–109; §6.2 "Primes and Irreducibles" (Definition 6.15, Definition 6.16, Remark 6.17 p. 110; Definition 6.18, Remark 6.19, Definition 6.20, Example 6.21 p. 111; Lemma 6.22 and Theorem 6.23 p. 112), pp. 110–112. Proposition 3.26, Proposition 3.31, Proposition 3.33 and Definition 3.23 come from aa-06 (§3.3, pp. 53–56), Theorem 5.57 and Example 5.58 from aa-10 (§5.7, pp. 100–101), Definition 1.19 and Theorem 1.8 from aa-02 (§1.3–1.4, pp. 8–14), and the construction of a subring of ℂ from aa-07 (§4.2, Example 4.12, p. 62). The ring ℤ[√−5] and its norm are assembled here in that manner for Problem 5(c); the claims that its units are ±1, that a² + 5b² never equals 2 or 3, and that N(1 ± √−5) = 6 were each checked by direct computation.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Real graphs of the smooth parabola y = x^2 and the cuspidal cubic y^2 = x^3.
+// The cusp at the origin is the geometric reason x is irreducible but not prime
+// in C[x,y]/(y^2 - x^3).
+var rc=document.getElementById('cur'),rx=rc.getContext('2d');
+var mode=2;
+function setCur(m){mode=m;drawCur();}
+function drawCur(){rx.clearRect(0,0,rc.width,rc.height);
+ var ox=rc.width/2,oy=rc.height/2+40,u=64;
+ rx.strokeStyle='#2a333d';rx.lineWidth=1;
+ rx.beginPath();rx.moveTo(12,oy);rx.lineTo(rc.width-12,oy);
+ rx.moveTo(ox,14);rx.lineTo(ox,rc.height-14);rx.stroke();
+ if(mode===0||mode===2){rx.strokeStyle='#4caf82';rx.lineWidth=2.5;rx.beginPath();
+  for(var i=0;i<=400;i++){var t=-2.2+4.4*i/400,X=ox+t*u,Y=oy-t*t*u;
+   if(i===0)rx.moveTo(X,Y);else rx.lineTo(X,Y);}
+  rx.stroke();}
+ if(mode===1||mode===2){rx.strokeStyle='#e06c75';rx.lineWidth=2.5;
+  for(var s=0;s<2;s++){rx.beginPath();
+   for(var i=0;i<=400;i++){var t=2.0*i/400,X=ox+t*u,Y=oy-(s?1:-1)*Math.pow(t,1.5)*u;
+    if(i===0)rx.moveTo(X,Y);else rx.lineTo(X,Y);}
+   rx.stroke();}}
+ rx.fillStyle='#d8a657';rx.beginPath();rx.arc(ox,oy,4.5,0,7);rx.fill();
+ rx.font='13px Segoe UI';rx.fillStyle='#e8e8e8';
+ rx.fillText('origin',ox+9,oy+16);
+ if(mode!==1){rx.fillStyle='#4caf82';rx.fillText('y = x²  - smooth; every irreducible in its ring is prime',14,20);}
+ if(mode!==0){rx.fillStyle='#e06c75';rx.fillText('y² = x³  - cusp at the origin; x is irreducible and not prime',14,mode===2?38:20);}
+ rx.fillStyle='#9aa5b1';
+ rx.fillText('both curves pass through the origin; only one of them is smooth there',14,rc.height-12);}
+drawCur();
+</script></body></html>

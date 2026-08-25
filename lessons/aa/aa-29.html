@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-29 — Classification, simplicity, and Sylow's theorems</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Classification, simplicity, and Sylow's theorems <span class="cite">(aa-29)</span></h1>
+
+<div class="hook">
+Prime factorisation for groups: Sylow's theorems pull p-subgroups out of thin air.
+<p>Lagrange's theorem says a subgroup's order divides the group's order. aa-28 showed the converse fails — A₄ has order 12 and no subgroup of order 6. So which divisors <em>are</em> realised? Sylow's answer is startling in its precision: every prime power dividing |G| is realised, the maximal ones are all conjugate to each other, and their number is pinned down modulo p. Three theorems, and most of the classification problem for small orders collapses.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> aa-28 showed A₄ has order 12 but no subgroup of order 6. Does it have a subgroup of order 4?</p>
+<button data-ok onclick="check(this,true)">Yes — 4 is a prime power dividing 12, and those are always realised</button>
+<button onclick="check(this,false)">No — the converse of Lagrange fails, so no divisor is guaranteed</button>
+<button onclick="check(this,false)">Only if A₄ is abelian</button>
+<div class="explain">Yes: the Klein four-group V of aa-26's Example 11.63 is exactly it. And that is not luck. Sylow's first theorem guarantees a subgroup of order p<sup>k</sup> for every prime power p<sup>k</sup> dividing |G|. The failure at 6 is precisely because 6 is not a prime power — the converse of Lagrange fails only away from prime powers. <span class="cite">— Aluffi Underground §12.4, Theorem 12.29, p. 277</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: The deep structural payoff — how a finite symmetry group is actually taken apart.</p>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 1 — What a classification would mean</h2>
+
+<p>One more piece of vocabulary first, and it is orbit–stabilizer applied to subgroups rather than elements.</p>
+
+<div class="definition">
+<p><strong>Definition 12.24.</strong> The <strong>normalizer</strong> of a subgroup H is N<sub>G</sub>(H) = {g in G : gHg⁻¹ = H}, its stabilizer under the conjugation action on subsets. It is the largest subgroup of G containing H as a normal subgroup. <span class="cite">— Aluffi Underground, Definition 12.24, p. 274</span></p>
+</div>
+
+<p>The slogan Aluffi says to remember: <em>the number of conjugates of H equals the index of its normalizer</em> — Theorem 12.10 with the conjugation action on subsets in place of elements. <span class="cite">— Aluffi Underground, p. 274</span> Compare aa-28's centralizer slogan; it is the same theorem twice.</p>
+
+<p>Now the goal. A <em>classification</em> is a complete list of the objects up to isomorphism. aa-22 achieved one for finite abelian groups, and Aluffi notes what that bought: any question about them can in principle be settled by testing it against the list. For general groups, here is how far aa-28's tools reach.</p>
+
+<div class="worked">
+<strong>The list so far.</strong> Aluffi tabulates what is already known for small orders:
+<ul>
+<li>|G| = 1, 2, 3, 5, 7, 11, 13: G is cyclic, since a group of prime order is C<sub>p</sub> and the trivial group is C₁.</li>
+<li>|G| = 4 or 9: G ≅ C<sub>p²</sub> or C<sub>p</sub> × C<sub>p</sub>, since order p² forces commutativity and aa-22 classifies from there.</li>
+<li>|G| = 6: C₆ or S₃ — or something else?</li>
+<li>|G| = 8: C₈, C₄ × C₂, C₂ × C₂ × C₂, D₈ — or something else?</li>
+<li>|G| = 10: C₁₀ or D₁₀ — or something else?</li>
+<li>|G| = 12: C₁₂, C₂ × C₆, D₁₂, A₄ — or something else?</li>
+</ul>
+<p>The tools used are exactly aa-28's Proposition 12.5 and Corollary 12.23 together with aa-22's Theorem 10.18, plus the fact that C<sub>m</sub> × C<sub>n</sub> ≅ C<sub>mn</sub> exactly when m and n are coprime. <span class="cite">— Aluffi Underground, the tools listed on p. 274</span> <span class="cite">— Aluffi Underground §12.3, p. 275</span> D₆ is omitted from the list because it is isomorphic to S₃; both D₁₂ and A₄ appear because they are non-isomorphic noncommutative groups of order 12. <span class="cite">— Aluffi Underground §12.3, p. 275</span></p>
+</div>
+
+<p>The question marks are the point. Aluffi's strategy for organising them borrows aa-18's exact sequences: a normal subgroup H of G gives</p>
+
+<p style="text-align:center">1 → H → G → G/H → 1,</p>
+
+<p>and the <em>extension problem</em> asks to reconstruct the middle from the two ends. It is hard, and not uniquely solvable — but if it could be solved, classifying all finite groups would reduce to classifying those with no proper nontrivial normal subgroup. <span class="cite">— Aluffi Underground §12.3, p. 275</span></p>
+
+<div class="definition">
+<p><strong>Definition 12.25.</strong> A nontrivial group G is <strong>simple</strong> if it has no nontrivial proper normal subgroups. The trivial group is <em>not</em> simple. <span class="cite">— Aluffi Underground §12.3, Definition 12.25, p. 275</span></p>
+</div>
+
+<p><strong>Example 12.26.</strong> A nontrivial abelian group is simple if and only if it is C<sub>p</sub> for a positive prime p. If |G| is not prime, take a prime factor p; Cauchy's theorem for abelian groups gives an element g of order p, so ⟨g⟩ is a proper nontrivial subgroup, and in an abelian group every subgroup is normal. <span class="cite">— Aluffi Underground §12.3, Example 12.26, p. 275</span></p>
+
+<p>Aluffi is candid about the scale of the reduced problem: classifying finite simple groups <em>has</em> been achieved, and "it should be counted among the most complex single achievements in the whole of mathematics". <span class="cite">— Aluffi Underground §12.3, p. 275</span> The realistic question, and the one this unit answers, is narrower: <em>given n, can we decide whether a simple group of order n exists?</em></p>
+
+<p><strong>Example 12.27.</strong> A group of order p<sup>r</sup> with r &gt; 1 is not simple: its centre is nontrivial by aa-28's Corollary 12.22, and the centre is normal. <span class="cite">— Aluffi Underground §12.4, Example 12.27, p. 276</span></p>
+
+<p>Written that compactly the argument has a gap worth closing yourself, because simplicity asks for a normal subgroup that is <em>proper</em> as well as nontrivial. If Z(G) ≠ G, the centre is exactly such a subgroup and the argument is complete. If Z(G) = G, then G is abelian — and an abelian group of order p<sup>r</sup> with r &gt; 1 is not simple by Example 12.26, since its order is not prime; concretely, Cauchy's theorem supplies an element of order p, and the subgroup it generates is proper, nontrivial and automatically normal. Either way G is not simple, and the case split costs one sentence.</p>
+
+<p>That settles 4, 8, 9 at once, while 2, 3, 5, 7, 11, 13 are simple by Example 12.26. Orders 6, 10, 12 need work.</p>
+
+<div class="worked">
+<strong>Example 12.28 — the ad hoc argument, kept deliberately.</strong> Let |G| = 2p with p &gt; 2 prime. Element orders are 2, p or 2p. Could all non-identity elements have order 2? If x, y and xy all have order at most 2 then xy = (xy)⁻¹ = y⁻¹x⁻¹ = yx, so G would be commutative — and then by the classification of finite abelian groups it would be cyclic, so not every element would have order 2. Contradiction.
+<p>So G has an element of order p or 2p. Order 2p gives G ≅ C<sub>2p</sub>, not simple. Order p gives a subgroup ⟨g⟩ of index 2, normal by aa-26's Example 11.59, again not simple. Hence there are no simple groups of order 2p, and in particular none of order 6 or 10. <span class="cite">— Aluffi Underground §12.4, Example 12.28, p. 276</span></p>
+<p>Aluffi's own verdict on this: it "should strike you as rather ad hoc, and require a certain amount of cleverness". The tools of Segment 2 "remove the need for any cleverness whatsoever". Keep this argument in view — you will watch it be replaced by two lines. <span class="cite">— Aluffi Underground §12.4, p. 276</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why is the trivial group excluded from the definition of simple?</p>
+<button onclick="check(this,false)">Because it has a nontrivial proper normal subgroup</button>
+<button data-ok onclick="check(this,true)">By convention — it vacuously satisfies the condition, and including it would break statements like "abelian simple groups are exactly the C<sub>p</sub>"</button>
+<button onclick="check(this,false)">Because it is not a group</button>
+<div class="explain">The trivial group has no proper nontrivial normal subgroups for the empty reason that it has no proper nontrivial subgroups at all, so the condition holds vacuously. Aluffi excludes it explicitly, exactly as 1 is excluded from the primes and for the same reason: it would be a degenerate member that has to be exempted from every subsequent theorem. <span class="cite">— Aluffi Underground §12.3, Definition 12.25, p. 275</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Next: the three theorems.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 2 — Sylow I, II, III</h2>
+
+<p>Aluffi's preview of what the three say: G must contain p-groups of the largest size Lagrange allows; any two such maximal subgroups are conjugate; and their number divides |G| and is congruent to 1 mod p. <span class="cite">— Aluffi Underground §12.4, p. 276</span></p>
+
+<div class="theorem">
+<p><strong>Theorem 12.29 (Sylow I).</strong> If p is prime and p<sup>k</sup> divides |G| for a finite group G, then G contains a subgroup of order p<sup>k</sup>. In particular if |G| = p<sup>r</sup>m with p not dividing m, then G contains subgroups of order p<sup>r</sup>. <span class="cite">— Aluffi Underground §12.4, Theorem 12.29, p. 277</span></p>
+</div>
+
+<p>This is the partial converse to Lagrange that aa-28's Example 12.6 seemed to rule out — and it is consistent, because 6 is not a prime power. For abelian groups it follows from the classification theorem; lacking one for general groups, Aluffi notes a standalone argument is needed. <span class="cite">— Aluffi Underground §12.4, Remark 12.30, p. 277</span></p>
+
+<div class="definition">
+<p><strong>Definition 12.31.</strong> A <strong>p-Sylow subgroup</strong> of a finite group G is a subgroup of order p<sup>r</sup>, where p<sup>r</sup> is the maximum power of p dividing |G|. <span class="cite">— Aluffi Underground §12.4, Definition 12.31, p. 277</span></p>
+</div>
+
+<div class="theorem">
+<p><strong>Theorem 12.32 (Sylow II).</strong> If P is a p-Sylow subgroup of G and H is any p-group inside G, then H is contained in some conjugate gPg⁻¹. In particular any two p-Sylow subgroups are conjugate. <span class="cite">— Aluffi Underground §12.4, Theorem 12.32, p. 277</span></p>
+<p><strong>Theorem 12.33 (Sylow III).</strong> If |G| = p<sup>r</sup>m with p not dividing m, then the number of p-Sylow subgroups divides m and is ≡ 1 mod p. <span class="cite">— Aluffi Underground §12.4, Theorem 12.33, p. 277</span></p>
+</div>
+
+<p>Two immediate dividends. <strong>Theorem 12.34 (Cauchy's theorem):</strong> if a prime p divides |G| then G has an element of order p — by Sylow I take a subgroup H of order p, which is cyclic by aa-28's Proposition 12.5, and its generator has order p. <span class="cite">— Aluffi Underground §12.4, Theorem 12.34, p. 277</span> This upgrades the abelian version of aa-22 to arbitrary groups, and note the direction of dependence: Sylow I's own proof will use the abelian version, not this one.</p>
+
+<p><strong>Corollary 12.35:</strong> a finite abelian group A with |A| = p₁<sup>r₁</sup>⋯p<sub>s</sub><sup>r<sub>s</sub></sup> contains a <em>unique</em> subgroup of order p<sub>i</sub><sup>r<sub>i</sub></sup> for each i — because by Sylow II the p<sub>i</sub>-Sylow subgroups are conjugate, and in a commutative group P = gPg⁻¹ always, so there is only one. <span class="cite">— Aluffi Underground §12.4, Corollary 12.35, p. 277</span></p>
+
+<p>That last argument is the pattern for everything in Segment 3, so isolate it: <strong>Sylow II plus "there is only one of them" equals normality.</strong> A unique p-Sylow subgroup must be its own conjugate, and a subgroup equal to all its conjugates is normal.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> What makes a subgroup a <em>p</em>-Sylow subgroup rather than merely a p-subgroup?</p>
+<button onclick="check(this,false)">It is normal</button>
+<button data-ok onclick="check(this,true)">Its order is the <em>largest</em> power of p dividing |G|</button>
+<button onclick="check(this,false)">It is cyclic</button>
+<div class="explain">Maximality of the p-power, nothing else. In a group of order 24 = 2³·3, a subgroup of order 4 is a 2-group but not a 2-Sylow subgroup; order 8 is required. Sylow I guarantees they exist, Sylow II says all of them are conjugate, and normality is the special case where there is only one — which is exactly what Sylow III is used to force. <span class="cite">— Aluffi Underground §12.4, Definition 12.31, p. 277</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does a <em>unique</em> p-Sylow subgroup have to be normal?</p>
+<button data-ok onclick="check(this,true)">Because gPg⁻¹ is also a p-Sylow subgroup, so uniqueness forces gPg⁻¹ = P for every g</button>
+<button onclick="check(this,false)">Because p-groups are always normal</button>
+<button onclick="check(this,false)">Because it has index p</button>
+<div class="explain">Conjugation is an automorphism, so it carries a subgroup of order p<sup>r</sup> to another of order p<sup>r</sup> — still a p-Sylow subgroup. If there is only one, conjugation cannot move it, which is Definition 11.52 exactly. p-subgroups are certainly not always normal: aa-26's Example 11.61 showed the flip subgroups of D<sub>2n</sub> are not. <span class="cite">— Aluffi Underground §12.4, Corollary 12.36, p. 278</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Then watch the cleverness get automated.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 3 — The sieve</h2>
+
+<div class="theorem">
+<p><strong>Corollary 12.36.</strong> Let |G| = p<sup>r</sup>m with r ≥ 1, m &gt; 1, p not dividing m. If the only divisor of m congruent to 1 mod p is 1, then G is not simple — it has a unique, hence normal, p-Sylow subgroup. <span class="cite">— Aluffi Underground §12.4, Corollary 12.36, p. 278</span></p>
+<p><em>Proof.</em> By Sylow III the number of p-Sylow subgroups divides m and is ≡ 1 mod p, so under the hypothesis it is 1. That subgroup P is nontrivial since r ≥ 1 and proper since m &gt; 1, and it is normal by the uniqueness argument above. <span class="cite">— Aluffi Underground §12.4, p. 278</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Worked, then faded — Example 12.37 replaces Example 12.28.</strong> Let |G| = 2p with p an odd prime, and apply Corollary 12.36 with the prime p: here r = 1 and m = 2. The divisors of 2 are 1 and 2, and 2 ≡ 1 mod p would need p to divide 1, which is false for p &gt; 1. So the only divisor of m congruent to 1 mod p is 1, and G is not simple — indeed G has a unique normal subgroup of order p. <span class="cite">— Aluffi Underground §12.4, Example 12.37, p. 278</span>
+<p>Two lines, where Example 12.28 needed a page. Aluffi: "Hopefully this impresses you a little."</p>
+<p>Now fade it. Aluffi later asserts that Corollary 12.36 "implies right away that there are no simple groups of order 40 or 45", and asks "Do you agree?" <span class="cite">— Aluffi Underground §12.4, p. 279</span> Check both. For 40 = 2³·5 take p = ⟨?⟩, so r = ⟨?⟩ and m = ⟨?⟩; the divisors of m greater than 1 are ⟨?⟩, and none is ≡ 1 mod p because ⟨?⟩. For 45 = 3²·5 take p = ⟨?⟩ and run the same check.</p>
+<details><summary>Check</summary>
+<p><em>40 = 2³·5.</em> Take p = 5, so r = 1 and m = 8. The divisors of 8 greater than 1 are 2, 4, 8, with residues 2, 4, 3 mod 5 — none equal to 1. So the number of 5-Sylow subgroups is 1, that subgroup has order 5, and it is normal. Not simple.</p>
+<p><em>45 = 3²·5.</em> Take p = 3, so r = 2 and m = 5. The only divisor of 5 greater than 1 is 5, and 5 ≡ 2 mod 3. So the 3-Sylow subgroup of order 9 is unique and normal. Not simple.</p>
+<p>Note that the prime you choose matters. For 40 with p = 2 you would get m = 5, whose divisor 5 <em>is</em> ≡ 1 mod 2, and the corollary would say nothing. The corollary is an existence claim over primes: it suffices that <em>some</em> prime works.</p></details>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 12.38.</strong> If |G| = p<sup>r</sup>m with p prime, r ≥ 1 and 1 &lt; m ≤ p, then G is not simple. <span class="cite">— Aluffi Underground §12.4, Proposition 12.38, p. 278</span></p>
+<p><em>Proof.</em> If m = p then |G| is a p-group of order at least p², not simple by Example 12.27. If 1 &lt; m &lt; p then no divisor of m exceeding 1 can be ≡ 1 mod p, since it is smaller than p; Corollary 12.36 applies. <span class="cite">— Aluffi Underground §12.4, p. 278</span></p>
+</div>
+
+<p>Aluffi then runs this over every order up to 60, and the result is the striking part of the unit. Below is the same sieve, recomputed: green marks orders where a simple group is known to exist (the primes, by Example 12.26), red marks orders ruled out, and amber marks the survivors.</p>
+
+<canvas id="sv" width="620" height="330" aria-label="Orders 1 to 60 sieved for the possible existence of a simple group"></canvas>
+<div class="controls">
+<button onclick="setRule(0)">primes only</button>
+<button onclick="setRule(1)">+ Example 12.27 and Proposition 12.38</button>
+<button onclick="setRule(2)">+ Corollary 12.36 in full</button>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Step through the three rules and watch the amber shrink. With rule 2 you should be left with exactly nine holdouts. Name them, and say which Aluffi disposes of by hand.
+<details><summary>What you should see</summary>Rule 2 — Example 12.27 for prime powers plus Proposition 12.38 — leaves exactly Aluffi's printed list: 12, 24, 30, 36, 40, 45, 48, 56, 60. <span class="cite">— Aluffi Underground §12.4, p. 279</span>
+<p>Rule 3, sharpening to the full Corollary 12.36, additionally removes 40 and 45 — the faded exercise above. Aluffi then handles the rest individually: <strong>12</strong>, where four 3-Sylow subgroups would use 8 elements of order 3, leaving exactly enough room for a single 2-Sylow subgroup, which must then be normal (Example 12.39); <strong>24</strong>, where three 2-Sylow subgroups give a nontrivial homomorphism to S₃ whose kernel is proper and normal (Example 12.40); and <strong>30</strong>, where ten 3-Sylow and six 5-Sylow subgroups would require 20 elements of order 3 and 24 of order 5, and there is not enough room (Example 12.41). Orders 36, 40, 45, 48, 56 are left to Exercise 12.23. <span class="cite">— Aluffi Underground §12.4, Example 12.39, p. 279</span> <span class="cite">— Aluffi Underground §12.4, Example 12.40, p. 279</span> <span class="cite">— Aluffi Underground §12.4, Example 12.41, p. 279</span></p>
+<p>The counting in those arguments rests on one observation Aluffi isolates: two distinct subgroups of order p meet only at the identity, since each is C<sub>p</sub> and is generated by any of its non-identity elements. <span class="cite">— Aluffi Underground §12.4, p. 279</span></p>
+<p>Which leaves 60 — and no amount of Sylow will remove it, because A₅ is a simple group of order 60.</p></details>
+</div>
+
+<div class="theorem">
+<p><strong>Proposition 12.42.</strong> There are no noncommutative simple groups of order less than 60. <span class="cite">— Aluffi Underground §12.5, Proposition 12.42, p. 280</span></p>
+</div>
+
+<p>Aluffi appends a pointed parenthesis: hard as you may try, you will not be able to use Sylow's theorems to rule out order 60 — and asks why you think that may be. <span class="cite">— Aluffi Underground §12.5, p. 280</span> The answer is that no argument can rule it out, because A₅ exists; Sylow's theorems are not failing, the statement is false at 60.</p>
+
+<div class="you-try">
+<strong>Guided proof.</strong> Prove <strong>Proposition 12.43</strong>: if p &lt; q are positive primes with q not ≡ 1 mod p, then every group of order pq is cyclic. The Sylow bookkeeping is done for you; you supply the count.
+<p>Let N<sub>p</sub> and N<sub>q</sub> be the numbers of p-Sylow and q-Sylow subgroups. Sylow III gives N<sub>q</sub> | p with N<sub>q</sub> ≡ 1 mod q; since p is prime and p &lt; q this forces N<sub>q</sub> = 1. Similarly N<sub>p</sub> is 1 or q, and q ≢ 1 mod p rules out q, so N<sub>p</sub> = 1. So G has a unique subgroup H of order p and a unique K of order q. Now count.</p>
+<textarea placeholder="By Lagrange the order of an element divides pq, so it is 1, p, q or pq. Exactly one element has order 1. Every element of order p lies in H by Sylow II, so there are at most ... of them; likewise for q. Subtract: pq - (p-1) - (q-1) - 1 = ... Since that number is positive, G has an element of order pq, and therefore ..."></textarea>
+<details><summary>Model answer</summary>
+<p>By aa-28's Proposition 12.4 an element's order divides pq, so it is 1, p, q or pq. The identity is the only element of order 1. An element of order p generates a subgroup of order p, which by Sylow II must be H — so all elements of order p lie in H, and there are exactly p − 1 of them. Likewise q − 1 elements of order q, all in K.</p>
+<p>That accounts for 1 + (p − 1) + (q − 1) elements, leaving pq − (p − 1) − (q − 1) − 1 = pq − p − q + 1 = (p − 1)(q − 1) elements unaccounted for. Since p and q are primes greater than 1, (p − 1)(q − 1) &gt; 0, so at least one element remains — and its order can only be pq. A group with an element of order equal to its own order is cyclic, so G ≅ C<sub>pq</sub>. <span class="cite">— Aluffi Underground §12.5, Proposition 12.43, p. 280</span></p>
+<p>Example: 15 = 3·5 with 5 ≢ 1 mod 3, so there is exactly one group of order 15. Under 60 the orders this settles are 15, 33, 35 and 51. Aluffi adds that when q ≡ 1 mod p there are exactly two groups of order pq — the cyclic one and a noncommutative one — and that for order 2q with q odd prime the two are C<sub>2q</sub> and D<sub>2q</sub>. <span class="cite">— Aluffi Underground §12.5, p. 280</span></p></details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Aluffi says the proofs of Sylow's theorems are examples of the power of judicious use of group actions. Which action proves Sylow II?</p>
+<button data-ok onclick="check(this,true)">H acting on the cosets G/P by left multiplication, which must have a fixed point because [G : P] is coprime to p</button>
+<button onclick="check(this,false)">G acting on itself by conjugation, via the class equation</button>
+<button onclick="check(this,false)">P acting on the set of all subgroups of G</button>
+<div class="explain">Sylow II acts with the p-group H on G/P by left multiplication. Since |G/P| = [G : P] is coprime to p, aa-28's Corollary 12.15 forces a fixed point gP, and hgP = gP for all h unwinds to g⁻¹Hg ⊆ P, that is H ⊆ gPg⁻¹. The class equation is what Sylow I uses, to show p divides |Z(G)| in the minimal counterexample. <span class="cite">— Aluffi Underground §12.5, p. 281</span> <span class="cite">— Aluffi Underground §12.5, p. 280</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why does Sylow's third theorem let you prove non-simplicity so often?</p>
+<button onclick="check(this,false)">Because it produces a subgroup of every order dividing |G|</button>
+<button data-ok onclick="check(this,true)">Because "divides m" and "≡ 1 mod p" together frequently force the count to be exactly 1, and a unique Sylow subgroup is normal</button>
+<button onclick="check(this,false)">Because it shows every finite group has a nontrivial centre</button>
+<div class="explain">Two constraints on one integer, one multiplicative and one additive, and they collide constantly — for m &lt; p no divisor above 1 can be ≡ 1 mod p at all, which is Proposition 12.38. A count of 1 gives normality, hence non-simplicity. The first option is Sylow I misremembered and is false for non-prime-powers; nontrivial centres belong to p-groups only, by aa-28's Corollary 12.22. <span class="cite">— Aluffi Underground §12.4, Theorem 12.33, p. 277</span> <span class="cite">— Aluffi Underground §12.4, Corollary 12.36, p. 278</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Reconstruct the arc from "what is a classification" to "nothing under 60 except the primes":
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>The programme.</strong> Classification means a list up to isomorphism. Normal subgroups split a group as 1 → H → G → G/H → 1, and if the extension problem could be solved, classification would reduce to the groups with no such splitting — the <em>simple</em> ones (Definition 12.25). Abelian simple groups are exactly the C<sub>p</sub> (Example 12.26). The normalizer (Definition 12.24) is the stabilizer of a subgroup under conjugation, and the number of conjugates of H is [G : N<sub>G</sub>(H)].</li>
+<li><strong>The three theorems.</strong> Sylow I: every prime power dividing |G| is the order of a subgroup (Theorem 12.29), so the maximal ones — the p-Sylow subgroups (Definition 12.31) — exist. Sylow II: all p-subgroups sit inside conjugates of a p-Sylow subgroup, so any two are conjugate (Theorem 12.32). Sylow III: their number divides m and is ≡ 1 mod p (Theorem 12.33). Dividends: Cauchy's theorem in full generality (Theorem 12.34) and uniqueness of Sylow subgroups in abelian groups (Corollary 12.35).</li>
+<li><strong>The sieve.</strong> A unique p-Sylow subgroup is normal, so when Sylow III forces the count to 1 the group is not simple (Corollary 12.36) — which replaces the page-long Example 12.28 with the two lines of Example 12.37, and generalises to Proposition 12.38 whenever 1 &lt; m ≤ p. Over the orders up to 60 that leaves nine holdouts, of which 40 and 45 fall to the full corollary and 12, 24, 30 to individual Sylow counts. The conclusion is Proposition 12.42: no noncommutative simple group of order under 60. And Proposition 12.43 turns the same bookkeeping into a classification: for p &lt; q with q ≢ 1 mod p, the only group of order pq is C<sub>pq</sub>.</li>
+</ol>
+The mission strip is the sentence "how a finite symmetry group is actually taken apart". A finite group is assembled from simple pieces along normal subgroups, and Sylow's theorems are the tool that locates those normal subgroups from the prime factorisation of the order alone. The same instinct — read a global object off local prime-by-prime data — is what a spectral sequence does to a homology group in the third semester, and what localisation does to a module.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi Underground, <em>Algebra: Notes from the Underground</em> — Definition 12.24 and the normalizer slogan, p. 274. Aluffi Underground §12.3 "Classification and Simplicity" (the list of known small orders and the tools used p. 274; the coprime-product remark, the omission of D₆, the extension problem, Definition 12.25, Example 12.26 and the remark on the classification of finite simple groups p. 275), pp. 274–275. Aluffi Underground §12.4 "Sylow's Theorems: Statements, Applications" (Example 12.27, Example 12.28 and the preview of the three theorems p. 276; Theorem 12.29, Remark 12.30, Definition 12.31, Theorem 12.32, Theorem 12.33, Theorem 12.34 with proof and Corollary 12.35 with proof p. 277; Corollary 12.36 with proof, Example 12.37, Proposition 12.38 with proof and the table of orders up to 60 p. 278; the list of holdouts, the disjointness observation, Example 12.39, Example 12.40 and Example 12.41 p. 279), pp. 276–279. Aluffi Underground §12.5 "Sylow's Theorems: Proofs" (Proposition 12.42, Proposition 12.43 with proof, the remark on groups of order pq and the start of the proof of Sylow I p. 280; the rest of that proof, the proof of Sylow II, the proof of Sylow III and Claim 12.44 p. 281), pp. 280–281.
+In Aluffi Underground: Corollary 12.22, Corollary 12.23, Proposition 12.4, Proposition 12.5, Example 12.6, Theorem 12.10 and Corollary 12.15 come from aa-28 (Chapter 12, pp. 267–273); Example 11.59, Example 11.61, Example 11.63 and Definition 11.52 from aa-26 (§11.4, pp. 253–259); Theorem 10.18 (§10.3, p. 212) and Theorem 10.22 (p. 215) from aa-22; and the exact-sequence notation from aa-18 (§9.2).
+The canvas re-runs the sieve of p. 278 from the prime factorisation of each order; its holdouts under Example 12.27 together with Proposition 12.38 reproduce Aluffi's printed list exactly — 12, 24, 30, 36, 40, 45, 48, 56, 60 — and the full Corollary 12.36 removes 40 and 45, as the text there claims.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// The simplicity sieve for orders 1..60, recomputed from prime factorisations.
+// Rule 0: primes only. Rule 1: adds Example 12.27 (prime powers p^r, r>1) and
+// Proposition 12.38 (1 < m <= p). Rule 2: adds the full Corollary 12.36.
+var sc2=document.getElementById('sv'),sx=sc2.getContext('2d');
+function factor(n){var f=[],d=2;
+ while(d*d<=n){var e=0;while(n%d===0){n/=d;e++;}
+  if(e)f.push([d,e]);d++;}
+ if(n>1)f.push([n,1]);return f;}
+function isPrime(n){if(n<2)return false;
+ for(var d=2;d*d<=n;d++)if(n%d===0)return false;return true;}
+function divisors(m){var d=[];for(var i=1;i<=m;i++)if(m%i===0)d.push(i);return d;}
+function primePower(n){var f=factor(n);return f.length===1&&f[0][1]>1;}
+function prop1238(n){
+ if(primePower(n))return true;                       // Example 12.27
+ var f=factor(n);
+ for(var i=0;i<f.length;i++){var p=f[i][0],r=f[i][1],m=n/Math.pow(p,r);
+  if(r>=1&&m>1&&m<=p)return true;}
+ return false;}
+function cor1236(n){
+ if(primePower(n))return true;
+ var f=factor(n);
+ for(var i=0;i<f.length;i++){var p=f[i][0],r=f[i][1],m=n/Math.pow(p,r);
+  if(r<1||m<=1)continue;
+  var d=divisors(m),bad=false;
+  for(var j=0;j<d.length;j++)if(d[j]>1&&d[j]%p===1)bad=true;
+  if(!bad)return true;}
+ return false;}
+
+var RULE=1;
+function setRule(r){RULE=r;drawSieve();}
+function verdict(n){
+ if(n===1)return 'no';                 // the trivial group is not simple
+ if(isPrime(n))return 'yes';
+ if(RULE>=1&&prop1238(n))return 'no';
+ if(RULE>=2&&cor1236(n))return 'no';
+ return 'open';}
+
+function drawSieve(){
+ sx.clearRect(0,0,sc2.width,sc2.height);
+ sx.font='13px Segoe UI';sx.textAlign='left';sx.textBaseline='middle';
+ sx.fillStyle='#e8e8e8';
+ sx.fillText('Is there a simple group of order n?   n = 1 to 60',14,20);
+ var names=['primes only (Example 12.26)',
+            'plus Example 12.27 and Proposition 12.38',
+            'plus the full Corollary 12.36'];
+ sx.fillStyle='#9aa5b1';sx.fillText('rule: '+names[RULE],14,40);
+ var perRow=10,w=(sc2.width-28)/perRow,open=[];
+ sx.font='13px Segoe UI';sx.textAlign='center';
+ for(var n=1;n<=60;n++){
+  var i=n-1,col=i%perRow,row=Math.floor(i/perRow);
+  var px=14+col*w,py=64+row*32,v=verdict(n);
+  sx.fillStyle=(v==='yes')?'#4caf82':(v==='no')?'#e06c75':'#d8a657';
+  sx.fillRect(px+2,py,w-4,28);
+  sx.fillStyle='#0c1013';sx.fillText(''+n,px+w/2,py+14);
+  if(v==='open')open.push(n);}
+ sx.textAlign='left';sx.font='13px Segoe UI';
+ sx.fillStyle='#9aa5b1';
+ sx.fillText('green: a simple group exists    red: ruled out    amber: still open',14,sc2.height-38);
+ sx.fillStyle='#d8a657';
+ sx.fillText(open.length+' order'+(open.length===1?'':'s')+' still open: '+
+   (open.length?open.join(', '):'none'),14,sc2.height-16);}
+drawSieve();
+</script></body></html>

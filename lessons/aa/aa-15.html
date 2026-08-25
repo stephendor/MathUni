@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-15 — Modules and the category of R-modules</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+ol.ax{margin:.4rem 0 .4rem 1.2rem}ol.ax li{margin:.22rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Modules and the category of R-modules <span class="cite">(aa-15)</span></h1>
+
+<div class="hook">
+An ideal is a vector space whose scalars happen to be a ring.
+<p>That is Aluffi's opening observation, and it is the whole of today. A vector space is a set you can add and scale, where the scalars form a field. Loosen "field" to "ring" and you get a <strong>module</strong> — and suddenly ideals, abelian groups, vector spaces, and quotient rings are four instances of one definition. Almost nothing changes in the axioms. Everything changes in what is true, because you can no longer divide by a scalar. That single loss is the difference between a homology group with field coefficients, which is a vector space, and one with integer coefficients, which carries torsion.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> How many ring homomorphisms ℤ → ℤ are there, and how many homomorphisms of abelian groups?</p>
+<button onclick="check(this,false)">Infinitely many of each</button>
+<button data-ok onclick="check(this,true)">Exactly one ring homomorphism, infinitely many module homomorphisms</button>
+<button onclick="check(this,false)">One of each — they are the same notion</button>
+<div class="explain">A ring homomorphism must send 1 to 1, and then n to n for every n — so the identity is the only one. But a ℤ-module homomorphism need only respect + and scaling, and f<sub>n</sub>(a) = na works for <em>every</em> integer n: f<sub>n</sub>(a + b) = na + nb and f<sub>n</sub>(ra) = n(ra) = r(na). Only f₁ is a ring homomorphism. Being a ring homomorphism is a much stronger demand than being a module homomorphism, and that gap is a recurring theme today. <span class="cite">— Aluffi §8.2, Example 8.15, pp. 158–159</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Homology's true home: chain groups are modules, not merely vector spaces.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>One definition, four familiar objects</h2>
+
+<p>Recall the axioms for a vector space V over a field k: addition satisfies (i)–(iv) of Definition 3.1, and scalar multiplication satisfies <span class="cite">— Aluffi §8.1, p. 153</span></p>
+<p style="text-align:center">1<sub>k</sub>v = v, &nbsp; (ab)v = a(bv), &nbsp; (a + b)v = av + bv, &nbsp; a(v + w) = av + aw.</p>
+
+<p>Those look like ring axioms — identity, associativity, two distributivities — but they are not, because scalar multiplication is <em>not</em> an operation inside V: it combines an element of V with an element of something else. The name for that is an <strong>action</strong> of k on V, and actions return in force in aa-24. <span class="cite">— Aluffi §8.1, pp. 153–154</span></p>
+
+<p>Now the observation. If I is an ideal of a ring R, then I satisfies exactly these requirements with scalars taken from R: the absorption property of aa-09's Definition 5.8 says precisely that multiplication gives a map R × I → I, and the four axioms hold because associativity and distributivity hold in R. <em>An ideal satisfies every one of the vector-space requirements, with scalars taken from R.</em> <span class="cite">— Aluffi §8.1, p. 154</span></p>
+
+<p>And yet it is not a vector space, because R is not a field. Take I = 2ℤ inside R = ℤ: the axioms above all hold, but the scalar 2 has no inverse, so there is no dividing by scalars and none of the arguments that make linear algebra easy are available. What has just been described is a structure the existing vocabulary has no name for — which is the entire reason for the next definition.</p>
+
+<div class="definition">
+<strong>Definition 8.1 (module).</strong> Let R be a ring. An <strong>R-module</strong> (M, +, ·) is a set M with operations + : M × M → M and · : R × M → M satisfying
+<ol class="ax">
+<li>(i)–(iv): + is associative, has an identity 0<sub>M</sub>, has inverses, and is commutative;</li>
+<li>(v) 1<sub>R</sub>·a = a for all a ∈ M;</li>
+<li>(vi) (rs)·a = r·(s·a) for all r, s ∈ R, a ∈ M;</li>
+<li>(vii) (r + s)·a = r·a + s·a;</li>
+<li>(viii) r·(a + b) = r·a + r·b.</li>
+</ol>
+<span class="cite">— Aluffi §8.1, Definition 8.1, p. 154</span>
+</div>
+
+<p>Strictly this defines a <em>left</em>-module; a left-ideal is already one, since only left absorption appears in the axioms. <span class="cite">— Aluffi §8.1, p. 154</span></p>
+
+<div class="worked">
+<strong>The examples, which are almost everything you know.</strong>
+<p><strong>8.2.</strong> A one-element set is an R-module for every R — the <em>trivial</em> module, written 0. <span class="cite">— Aluffi §8.1, Example 8.2, p. 154</span></p>
+<p><strong>8.3.</strong> A k-vector space is exactly an R-module in which R = k is a field. <span class="cite">— Aluffi §8.1, Example 8.3, p. 155</span></p>
+<p><strong>8.4.</strong> R is a module over itself, with scalar multiplication = ring multiplication. <span class="cite">— Aluffi §8.1, Example 8.4, p. 155</span></p>
+<p><strong>8.5.</strong> A left-ideal I ⊆ R is an R-module, with R's own operations. <span class="cite">— Aluffi §8.1, Example 8.5, p. 155</span></p>
+<p><strong>8.6 — the construction to remember.</strong> A ring homomorphism f : R → S makes S an R-module by r·s := f(r)s. (Two different products in that formula: the left one is being defined, the right one is multiplication in S.) <span class="cite">— Aluffi §8.1, Example 8.6, p. 155</span></p>
+<p><strong>8.8 — the ground ring is part of the data.</strong> ℤ is a module over itself; it is <em>also</em> a ℤ[x]-module, via the homomorphism ℤ[x] → ℤ sending x to 0 and Example 8.6. These are different modules. Likewise ℂ is a ℂ-vector space of dimension 1, an ℝ-vector space of dimension 2, and a ℚ-vector space of uncountable dimension — same set, three answers. <span class="cite">— Aluffi §8.1, Example 8.8, p. 155</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Example 8.7: R/I is a cyclic R-module.</strong>
+<p>Let I be an ideal of R. There is a ring homomorphism R → R/I, namely the natural projection of aa-10's ⟨your step: which proposition?⟩. So Example 8.6 makes R/I into an ⟨your step: a module over which ring?⟩, with scalar multiplication r·(s + I) = rs + I.</p>
+<p>Now notice something about generation: every element of R/I is a coset r + I, and</p>
+<p style="text-align:center">r + I = r·(⟨your step: which single coset?⟩).</p>
+<p>So one element, together with scalar multiplication, produces the entire module. We say that element <strong>generates</strong> R/I, and a module generated by a single element is called <strong>cyclic</strong>. <span class="cite">— Aluffi §8.1, Example 8.7, p. 155</span></p>
+<p>Keep this: ℤ/nℤ as a ℤ-module is cyclic, generated by 1 + nℤ, and aa-22's classification of finitely generated abelian groups is a statement that everything is built from cyclic pieces.</p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 8.9.</strong> For every R-module M and every m ∈ M, &nbsp; 0<sub>R</sub>·m = 0<sub>M</sub>. <span class="cite">— Aluffi §8.1, Proposition 8.9, p. 156</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> 0<sub>R</sub>·m = (0<sub>R</sub> + 0<sub>R</sub>)·m = 0<sub>R</sub>·m + 0<sub>R</sub>·m by axiom (vii), and additive cancellation gives 0<sub>R</sub>·m = 0<sub>M</sub>. ∎ Then 1·a + (−1)·a = (1 − 1)·a = 0, so (−1)·a = −a. <span class="cite">— Aluffi §8.1, p. 156</span>
+<p><strong>Notice what was reused rather than reproved.</strong> Additive cancellation is aa-05's Proposition 3.17, whose proof used only ring axioms (i)–(iii) — and those are module axioms (i)–(iii) verbatim. For the same reason 0<sub>M</sub> is unique, additive inverses are unique, and −a is well defined. Aluffi declines to rewrite any of these proofs, and the reason is worth stating: <em>they were never about rings</em>. They were about the additive structure, which modules share.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which of these is <em>not</em> automatically an R-module?</p>
+<button onclick="check(this,false)">An ideal I of R</button>
+<button onclick="check(this,false)">The quotient R/I</button>
+<button data-ok onclick="check(this,true)">A subring S of R, with R acting by multiplication</button>
+<button onclick="check(this,false)">R itself</button>
+<div class="explain">Ideals are modules by absorption (Example 8.5), R/I by Example 8.7, R by Example 8.4. But a subring need not absorb multiplication by R — that is precisely aa-09's distinction, with ℤ ⊆ ℚ the witness: ½·3 ∉ ℤ, so ℚ does not act on ℤ. Ideals are modules for exactly the property that stops them being subrings. <span class="cite">— Aluffi §8.1, Example 8.5, p. 155; §5.2, Definition 5.8, p. 80</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now fix the ring to be ℤ, and a familiar object appears.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>ℤ-modules are abelian groups</h2>
+
+<p>Suppose R = ℤ. Axiom (v) forces 1·a = a, and then there is <em>no choice</em> about n·a: for n &gt; 0, axioms (vii) and (v) give <span class="cite">— Aluffi §8.1, p. 156</span></p>
+<p style="text-align:center">n·a = (1 + ⋯ + 1)·a = 1·a + ⋯ + 1·a = a + ⋯ + a &nbsp; (n summands),</p>
+<p>and (−n)·a is the corresponding sum of −a. That is aa-05's <em>multiple</em> notation from Remark 3.16, arriving here as a theorem rather than a convention.</p>
+
+<div class="theorem">
+<strong>Proposition 8.10.</strong> If (M, +) satisfies axioms (i)–(iv), then the ℤ-action just described satisfies (v)–(viii) automatically. So M is a ℤ-module in a natural way. <span class="cite">— Aluffi §8.1, Proposition 8.10, p. 156</span>
+</div>
+
+<p>Axiom (v) is the definition of 1·a; (vi), (vii), (viii) amount to regrouping and reordering finite sums, which is legal by associativity and commutativity of +. For instance (viii) at r = 3 says (a + b) + (a + b) + (a + b) = (a + a + a) + (b + b + b). <span class="cite">— Aluffi §8.1, p. 156</span></p>
+
+<div class="definition">
+<strong>Definition 8.11 (abelian group).</strong> An <strong>abelian group</strong> (A, +) is a set with a binary operation + that is associative, has an identity 0<sub>A</sub>, has inverses, and is commutative — axioms (i)–(iv). <span class="cite">— Aluffi §8.1, Definition 8.11, p. 157</span>
+</div>
+
+<p>By Proposition 8.10, <strong>an abelian group is exactly a ℤ-module</strong>: axioms (v)–(viii) come free. There is a pleasant paradox here — abelian groups are a <em>special case</em> of modules (R = ℤ), and simultaneously <em>more general</em>, since every module is an abelian group once you forget the action. <span class="cite">— Aluffi §8.1, p. 157</span></p>
+
+<div class="worked">
+<strong>So you already know hundreds of abelian groups.</strong>
+<p><strong>Example 8.12.</strong> If (R, +, ·) is a ring, then (R, +) is an abelian group — ring axioms (i)–(iv) <em>are</em> Definition 8.11. Forget the multiplication and an abelian group is what remains. <span class="cite">— Aluffi §8.1, Example 8.12, p. 157</span></p>
+<p><strong>Example 8.13.</strong> Every R-module is an abelian group, by forgetting R. So every vector space is one, and every ideal in every ring is one. <span class="cite">— Aluffi §8.1, Example 8.13, p. 157</span></p>
+<p>Aluffi notes that the material is often built in the opposite order: define abelian groups first, then rings as abelian groups with a second operation, then modules as abelian groups whose natural ℤ-action is replaced by an action of a larger ring. Which comes first is a chicken-and-egg question.</p>
+</div>
+
+<p><strong>The summary, and a warning.</strong> R-modules over a general ring; k-modules are k-vector spaces; ℤ-modules are abelian groups. The basic theory is the same in all cases. But — Aluffi is emphatic — ℤ is a very special ring, so <em>abelian groups are a very special case</em>. To name the paramount example: every finitely generated ℤ-module is a product of cyclic modules, and that is simply false over an arbitrary ring. Do not let intuition about abelian groups set your expectations for modules. <span class="cite">— Aluffi §8.1, p. 158</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why do axioms (v)–(viii) come free for a ℤ-module?</p>
+<button onclick="check(this,false)">Because ℤ is an integral domain</button>
+<button data-ok onclick="check(this,true)">Because n·a is forced to be a sum of n copies of a, and the axioms then just regroup finite sums</button>
+<button onclick="check(this,false)">Because ℤ is a PID</button>
+<div class="explain">Axiom (v) pins 1·a = a, and (vii) then forces n·a = a + ⋯ + a with no freedom left. Once the action is that, (vi), (vii), (viii) are statements about moving parentheses and reordering summands, which axioms (i) and (iv) already supply. Being a domain or a PID is irrelevant here — what matters is that ℤ is generated by 1 under addition. <span class="cite">— Aluffi §8.1, Proposition 8.10, p. 156</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Objects done; now the arrows.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The category of R-modules</h2>
+
+<div class="definition">
+<strong>Definition 8.14 (R-module homomorphism).</strong> For R-modules M, N, a function f : M → N is an <strong>R-module homomorphism</strong>, or an <strong>R-linear map</strong>, if for all r ∈ R and a, b ∈ M
+<p style="text-align:center">f(a + b) = f(a) + f(b) &nbsp;&nbsp;and&nbsp;&nbsp; f(r·a) = r·f(a).</p>
+<span class="cite">— Aluffi §8.2, Definition 8.14, p. 158</span>
+</div>
+
+<p>Two conditions, not three — there is no identity element to preserve. Over a field this is the definition of a linear map from linear algebra, unchanged. <span class="cite">— Aluffi §8.2, p. 158</span></p>
+
+<div class="worked">
+<strong>How module homomorphisms differ from ring homomorphisms.</strong>
+<p><strong>Example 8.15.</strong> A ring homomorphism f : R → S is also an R-module homomorphism, when S carries the action of Example 8.6: f(r·a) = f(ra) = f(r)f(a) = r·f(a). But the converse gap is enormous — the prediction gate's f<sub>n</sub>(a) = na are infinitely many ℤ-module homomorphisms ℤ → ℤ, of which only f₁ is a ring homomorphism. <span class="cite">— Aluffi §8.2, Example 8.15, pp. 158–159</span></p>
+<p><strong>Example 8.16.</strong> More generally, for commutative R and any r ∈ R, multiplication by r is an R-module homomorphism M → M. (It suffices that r be central.) Note that this map is <em>not</em> a ring homomorphism when M = R and r ≠ 1, since it sends 1 to r — and aa-08's Example 4.24 flagged exactly this: a ↦ 2a fails to be a ring homomorphism and is "a fine module homomorphism". Here is the promised meaning of that remark. <span class="cite">— Aluffi §8.2, Example 8.16, p. 159; §4.3, Example 4.24, p. 67</span></p>
+<p><strong>Example 8.17 — every pair of modules is connected.</strong> The map sending everything to 0<sub>N</sub> is an R-module homomorphism M → N, the <em>trivial</em> one. Contrast rings: for two random rings there may be <em>no</em> homomorphism at all — aa-08's Example 4.25 showed there is none from ℤ/nℤ to ℤ — because the zero map is disqualified by the requirement 1 ↦ 1. In the category of modules, Hom(M, N) is never empty. <span class="cite">— Aluffi §8.2, Example 8.17, p. 159; §4.3, Example 4.25, p. 67</span></p>
+<p><strong>Example 8.18 — a homomorphism out of R is one element.</strong> To define an R-module homomorphism f : R → M it is enough to name f(1) = m: then f(r) = f(r·1) = r·f(1) = rm for every r, with no choice. Conversely f(r) = rm is a homomorphism for any fixed m, by axioms (viii) and (vi). So <strong>Hom<sub>R</sub>(R, M) corresponds to the elements of M</strong>. <span class="cite">— Aluffi §8.2, Example 8.18, p. 159</span></p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 8.19.</strong> For R-modules L, M, N, P: the identity id<sub>M</sub> is an R-module homomorphism; a composite of R-module homomorphisms is one; and composition is associative. <span class="cite">— Aluffi §8.2, Proposition 8.19, p. 160</span>
+</div>
+
+<p>So R-modules and R-linear maps form a <strong>category</strong>, one for each ring R. Note there is no notion of homomorphism between an R-module and an S-module for different rings; each ring gets its own category. And f(0<sub>M</sub>) = 0<sub>N</sub> for every homomorphism, by the ring-theoretic proof of aa-08's Proposition 4.16, unchanged. <span class="cite">— Aluffi §8.2, pp. 159–160</span></p>
+
+<div class="definition">
+<strong>Definition 8.20 (isomorphism).</strong> An R-module homomorphism f : M → N is an <strong>isomorphism</strong> if it is a bijection — equivalently, if there is an R-module homomorphism g : N → M with g ∘ f = id<sub>M</sub> and f ∘ g = id<sub>N</sub>. <span class="cite">— Aluffi §8.2, Definition 8.20, p. 160</span>
+<p><strong>Definition 8.21.</strong> M and N are <strong>isomorphic</strong>, M ≅ N, if such an f exists; and ≅ is an equivalence relation. <span class="cite">— Aluffi §8.2, Definition 8.21, p. 160</span></p>
+</div>
+
+<p>Aluffi points out that Definition 8.20 conceals a small proposition — the equivalence of its two clauses requires knowing the set-theoretic inverse of a bijective homomorphism is itself a homomorphism. That is your guided proof. <span class="cite">— Aluffi §8.2, p. 160</span></p>
+
+<div class="worked">
+<strong>The payoff: 2ℤ ≅ ℤ as modules, though not as rings.</strong> In ring theory 2ℤ and ℤ are very different: 2ℤ is a rng, not even a ring, since it has no 1 (aa-05's Example 3.5). But the map
+<p style="text-align:center">ℤ → 2ℤ, &nbsp; a ↦ 2a</p>
+<p>is surjective by definition of 2ℤ, injective, and a ℤ-module homomorphism by Example 8.16. So <strong>2ℤ ≅ ℤ as ℤ-modules</strong> — as abelian groups — and the same holds for every nℤ with n ≠ 0, and for every PID in place of ℤ. <span class="cite">— Aluffi §8.2, pp. 160–161</span></p>
+<p>Two objects, indistinguishable in one category and sharply different in another. The picture below is that map: watch which structure survives and which does not.</p>
+</div>
+
+<canvas id="mul" width="620" height="260" aria-label="The map a maps to na from Z to nZ, drawn as arcs between two copies of the integers"></canvas>
+<div class="controls">
+<button onclick="setMulN(2)">a ↦ 2a</button>
+<button onclick="setMulN(3)">a ↦ 3a</button>
+<button onclick="setMulN(-2)">a ↦ −2a</button>
+<button onclick="setMulN(1)">a ↦ a</button>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Aluffi leaves Proposition 8.19 to you, pointing at aa-08's Proposition 4.27 for the ring version. Do it: show (a) id<sub>M</sub> is R-linear, (b) if f : L → M and g : M → N are R-linear then so is g ∘ f, and (c) composition is associative. Then answer the question the exercise is really posing: the ring proof had <em>three</em> clauses to check per map and this one has two — which clause disappeared, and why is there nothing to replace it?</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Definition 8.20 asserts that two conditions are equivalent, and Aluffi says the proof "would be entirely similar" to Proposition 4.30 and adds "Make sure you agree with me!". Check it. <strong>Let f : M → N be a bijective R-module homomorphism, and let g : N → M be its set-theoretic inverse. Prove that g is an R-module homomorphism</strong>, and then deduce the equivalence of the two clauses of Definition 8.20 in both directions.</p>
+<textarea placeholder="Take b1, b2 in N and set a1 = g(b1), a2 = g(b2), so that b1 = f(a1) and b2 = f(a2). Then g(b1 + b2) = ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><em>g respects addition.</em> Let b₁, b₂ ∈ N and put a₁ = g(b₁), a₂ = g(b₂), so b<sub>k</sub> = f(a<sub>k</sub>). Then</p>
+<p style="text-align:center">g(b₁ + b₂) = g(f(a₁) + f(a₂)) = g(f(a₁ + a₂)) = a₁ + a₂ = g(b₁) + g(b₂),</p>
+<p>the middle step because f respects addition and g ∘ f = id<sub>M</sub>.</p>
+<p><em>g respects scalars.</em> For r ∈ R and b ∈ N with a = g(b),</p>
+<p style="text-align:center">g(r·b) = g(r·f(a)) = g(f(r·a)) = r·a = r·g(b),</p>
+<p>using that f respects scalars.</p>
+<p><em>The equivalence.</em> (⟹) If f is a bijective homomorphism, its set-theoretic inverse g exists and, by the above, is a homomorphism, with g ∘ f = id<sub>M</sub> and f ∘ g = id<sub>N</sub>. (⟸) If such a homomorphism g exists, then f is injective (f(a) = f(a′) gives a = g(f(a)) = g(f(a′)) = a′) and surjective (b = f(g(b))), so f is a bijective homomorphism. ∎</p>
+<p>Grade yourself on noticing that the reverse direction never uses that g is a homomorphism — only that it is a two-sided inverse function. That is the same observation as aa-12's guided proof, and it is why Definition 8.20 can offer the second clause as an <em>alternative definition</em>: it makes sense in any category, with no notion of bijection available.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Given two R-modules M and N, is there always an R-module homomorphism M → N?</p>
+<button data-ok onclick="check(this,true)">Yes — the trivial one, sending everything to 0<sub>N</sub></button>
+<button onclick="check(this,false)">No — as with rings, there may be none</button>
+<button onclick="check(this,false)">Only if M and N are modules over a field</button>
+<div class="explain">The zero map respects addition (0 + 0 = 0) and scalars (r·0 = 0 by Proposition 8.9), so it is always available. For rings it is not: a ring homomorphism must send 1 to 1, which the zero map fails unless the target is trivial — and Example 4.25 exhibited two rings with <em>no</em> homomorphism between them. The missing third clause is exactly what makes the module category better connected. <span class="cite">— Aluffi §8.2, Example 8.17, p. 159</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> How much data determines an R-module homomorphism f : R → M?</p>
+<button onclick="check(this,false)">Its values on all of R</button>
+<button data-ok onclick="check(this,true)">The single element f(1) ∈ M</button>
+<button onclick="check(this,false)">Nothing — there is only the trivial one</button>
+<div class="explain">f(r) = f(r·1) = r·f(1), so naming f(1) = m determines f completely; and conversely f(r) = rm is R-linear for any m. So homomorphisms R → M correspond exactly to elements of M. This is the first appearance of a pattern that runs through aa-18: a homomorphism out of a free module is determined by where the basis goes, and R is the free module on one generator. <span class="cite">— Aluffi §8.2, Example 8.18, p. 159</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Is 2ℤ isomorphic to ℤ?</p>
+<button data-ok onclick="check(this,true)">As ℤ-modules yes, via a ↦ 2a; as rings the question does not even arise, since 2ℤ has no 1</button>
+<button onclick="check(this,false)">Yes in both senses</button>
+<button onclick="check(this,false)">No in either sense — 2ℤ is a proper subset</button>
+<div class="explain">a ↦ 2a is a bijective ℤ-module homomorphism onto 2ℤ, so they are isomorphic as modules — as abelian groups. As rings they cannot be compared under this book's Definition 3.1, because 2ℤ has no multiplicative identity and is a rng. Being a proper subset is no obstacle to isomorphism for infinite objects. The moral: "isomorphic" is always relative to a category. <span class="cite">— Aluffi §8.2, pp. 160–161; §3.1, Example 3.5, p. 42</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Definition 8.1 is the vector-space axioms with "field" weakened to "ring"</strong>: an abelian group under +, plus an action of R satisfying 1·a = a, (rs)a = r(sa), and two distributivities. Instances: vector spaces (R a field), ideals (by absorption), R itself, R/I, and S for any ring homomorphism R → S. The ground ring is part of the data — ℂ has dimension 1, 2 or uncountable depending on it.</li>
+<li><strong>ℤ-modules are abelian groups</strong> (Proposition 8.10, Definition 8.11): the action is forced to be repeated addition, and axioms (v)–(viii) then hold automatically. Every ring, every vector space, every ideal is an abelian group by forgetting structure. But ℤ is special, so abelian groups are a special case and should not calibrate your intuition.</li>
+<li><strong>R-linear maps have two clauses, not three</strong> (Definition 8.14) — nothing plays the role of 1 ↦ 1. Consequences: multiplication by r is always a homomorphism <em>of abelian groups</em>, and is R-linear exactly when r is central — over a commutative R that is every r, but on the regular module f(sa) = rsa while sf(a) = sra, which differ for noncentral r, as Example 8.16 records; the zero map is always available, so Hom(M, N) is never empty; a map out of R is determined by the image of 1. Isomorphism is bijective homomorphism (Definition 8.20), and 2ℤ ≅ ℤ as modules while being a rng, not a ring.</li>
+</ol>
+The line to carry: <em>chain groups are modules, not vector spaces.</em> Over a field you may divide by a scalar and everything decomposes; over ℤ you may not, and what survives that failure is torsion. aa-20 is the theorem that says exactly how much survives.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §8.1 "Vector Spaces and Ideals, Revisited" (the vector-space axioms and the arrow picture p. 153; actions, the ideal observation and Definition 8.1 p. 154; Example 8.2 p. 154; Examples 8.3, 8.4, 8.5, 8.6, 8.7 and 8.8 p. 155; Proposition 8.9 and Proposition 8.10 p. 156; Definition 8.11, Examples 8.12 and 8.13 p. 157; the summary and the warning about ℤ p. 158), pp. 153–158; §8.2 "The Category of R-Modules" (Definition 8.14 and Example 8.15 p. 158; Examples 8.16, 8.17, 8.18 p. 159; Proposition 8.19, Definition 8.20 and Definition 8.21 p. 160; the 2ℤ discussion pp. 160–161), pp. 158–161. Definition 3.1 and Proposition 3.17 come from aa-05 (§3.1–3.2, pp. 41–50), Definition 5.8 from aa-09 (§5.2, p. 80), Definition 4.15, Proposition 4.16, Example 4.24, Example 4.25, Proposition 4.27 and Proposition 4.30 from aa-08 (§4.3–4.4, pp. 64–71), Proposition 5.35 from aa-10 (§5.4, p. 89), and Example 3.5 from aa-05 (§3.1, p. 42).</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// The map a -> na from Z to Z. It is a bijection onto nZ and a Z-module
+// homomorphism for every n, but a ring homomorphism only when n = 1, because
+// only then does 1 land on 1.
+var mc=document.getElementById('mul'),mx=mc.getContext('2d');
+var MN=2;
+function setMulN(n){MN=n;drawMul();}
+function drawMul(){mx.clearRect(0,0,mc.width,mc.height);
+ var pad=30,W=mc.width-2*pad,top=64,bot=196,LO=-9,HI=9,u=W/(HI-LO);
+ function X(a){return pad+(a-LO)*u;}
+ mx.strokeStyle='#2a333d';mx.lineWidth=1;
+ mx.beginPath();mx.moveTo(pad-8,top);mx.lineTo(mc.width-pad+8,top);
+ mx.moveTo(pad-8,bot);mx.lineTo(mc.width-pad+8,bot);mx.stroke();
+ mx.font='10px Segoe UI';mx.textAlign='center';mx.textBaseline='middle';
+ for(var a=LO;a<=HI;a++){
+  mx.fillStyle='#2f3d4a';mx.beginPath();mx.arc(X(a),top,3,0,7);mx.fill();
+  mx.fillStyle='#9aa5b1';mx.fillText(''+a,X(a),top-14);
+  var img=(a>=LO&&a<=HI);
+  mx.fillStyle='#2f3d4a';mx.beginPath();mx.arc(X(a),bot,3,0,7);mx.fill();
+  mx.fillStyle='#9aa5b1';mx.fillText(''+a,X(a),bot+16);}
+ for(var a=LO;a<=HI;a++){var b=MN*a;if(b<LO||b>HI)continue;
+  var hot=(a===1);
+  mx.strokeStyle=hot?'#d8a657':'#8ab4f8';mx.lineWidth=hot?2.2:1;
+  mx.globalAlpha=hot?1:0.55;
+  mx.beginPath();mx.moveTo(X(a),top+6);
+  mx.bezierCurveTo(X(a),top+52,X(b),bot-52,X(b),bot-6);mx.stroke();
+  mx.globalAlpha=1;
+  mx.fillStyle=hot?'#d8a657':'#4caf82';
+  mx.beginPath();mx.arc(X(b),bot,4,0,7);mx.fill();}
+ mx.textAlign='left';mx.font='13px Segoe UI';mx.fillStyle='#e8e8e8';
+ mx.fillText('a  ↦  '+MN+'a      (top: Z,   bottom: image inside Z)',14,20);
+ mx.fillStyle=(MN===1)?'#4caf82':'#d8a657';
+ mx.fillText((MN===1)?'n = 1: bijective onto Z, and the unique ring homomorphism Z → Z'
+   :('image is '+MN+'Z: a Z-module isomorphism onto '+MN+'Z, but 1 ↦ '+MN+', so not a ring homomorphism'),14,42);}
+drawMul();
+</script></body></html>

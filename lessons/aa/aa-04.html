@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-04 — Arithmetic in ℤ/nℤ; Fermat's little theorem and RSA</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+table.op{border-collapse:collapse;margin:1rem auto;font-family:Segoe UI,sans-serif;font-size:.95rem}
+table.op td,table.op th{border:1px solid #2a333d;padding:.3rem .6rem;text-align:center}
+table.op th{color:var(--acc)}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Arithmetic in ℤ/nℤ; Fermat's little theorem and RSA <span class="cite">(aa-04)</span></h1>
+
+<div class="hook">
+In ℤ/12ℤ, 7 + 7 = 2. Not approximately, not by convention — the two classes really do add to that class, and the clock on your wall has been doing this arithmetic your whole life.
+<p>aa-03 built the <em>set</em> ℤ/nℤ. Today we give it + and ·, and the first thing that happens is that the properties of ℤ start behaving selectively: some survive intact, one fails spectacularly in ℤ/4ℤ, and one that ℤ never had at all appears out of nowhere in ℤ/5ℤ. By the end of the lesson a single theorem will explain all three, and the same arithmetic will be encrypting a message.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Let n &gt; 1. In ℤ/nℤ, ask that every nonzero class have a multiplicative inverse. For which n does that hold?</p>
+<button onclick="check(this,false)">All n — you can always solve ax = 1</button>
+<button onclick="check(this,false)">All odd n</button>
+<button data-ok onclick="check(this,true)">Exactly the n that are prime</button>
+<div class="explain">Exactly the primes, and it is Theorem 2.15 — one of three equivalent statements, the other two being "n is prime" and "ℤ/nℤ has no product of nonzero classes equal to zero". The restriction n &gt; 1 in the question is not idle: ℤ/1ℤ has no nonzero classes at all, so the condition holds there vacuously while 1 is not prime. Self-check 2 below returns to that boundary. In ℤ/4ℤ the class [2]₄ has no inverse: no row of the multiplication table headed by 2 contains a 1. In ℤ/5ℤ every nonzero row does. Note this property fails in ℤ itself — 2 has no integer inverse — so it is something the quotient <em>gains</em>. <span class="cite">— Aluffi §2.4, Theorem 2.15, p. 32</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Finite rings are the coefficient worlds Z/2, Z/p that TDA computes homology over.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Giving ℤ/nℤ its operations — and earning the right to</h2>
+
+<p>We want [a]<sub>n</sub> + [b]<sub>n</sub> to be [a + b]<sub>n</sub>. That is written in terms of <em>representatives</em>, and aa-03 ended on the warning that a class has infinitely many names. So the definition has to be paid for first.</p>
+
+<div class="theorem">
+<strong>Lemma 2.9.</strong> Let n ≥ 0 and let a, a′, b, b′ be integers. If a ≡ a′ mod n and b ≡ b′ mod n, then
+<p>(i) a + b ≡ a′ + b′ mod n, &nbsp;&nbsp; (ii) a·b ≡ a′·b′ mod n.</p>
+<span class="cite">— Aluffi §2.3, Lemma 2.9, p. 26</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Write a′ − a = nk and b′ − b = nℓ. For (i),
+<p style="text-align:center">(a′ + b′) − (a + b) = (a′ − a) + (b′ − b) = nk + nℓ = n(k + ℓ),</p>
+<p>so n ∣ (a′ + b′) − (a + b). For (ii), substitute a′ = a + nk and b′ = b + nℓ:</p>
+<p style="text-align:center">a′b′ − ab = (a + nk)(b + nℓ) − ab = naℓ + nbk + n²kℓ = n(aℓ + bk + nkℓ),</p>
+<p>so n ∣ a′b′ − ab. ∎ <span class="cite">— Aluffi §2.3, p. 27</span></p>
+<p>Notice that (ii) is where all the content is: addition of remainders is obvious, and it is multiplication that could plausibly have leaked. The reason it does not is that the error terms are all multiples of n by construction.</p>
+</div>
+
+<div class="definition">
+<strong>Definition 2.10 (the operations).</strong> For n ≥ 0 and classes [a]<sub>n</sub>, [b]<sub>n</sub> in ℤ/nℤ, define
+<p style="text-align:center">[a]<sub>n</sub> + [b]<sub>n</sub> := [a + b]<sub>n</sub>, &nbsp;&nbsp;&nbsp; [a]<sub>n</sub> · [b]<sub>n</sub> := [a · b]<sub>n</sub>.</p>
+The + and · on the <em>right</em> are the familiar operations in ℤ; the ones on the left are new. <span class="cite">— Aluffi §2.3, Definition 2.10, p. 27</span>
+</div>
+
+<p>Aluffi asks you to ponder this carefully at least once, and the way he makes the subtlety visible is by trying the same trick on a partition where it fails.</p>
+
+<div class="worked">
+<strong>Example 2.11 — the same recipe, on a different partition, producing nonsense.</strong> Split ℤ into two classes by sign:
+<p style="text-align:center">A = {…, −3, −2, −1, 0} &nbsp;&nbsp; and &nbsp;&nbsp; B = {1, 2, 3, 4, …}.</p>
+<p>This is a partition, so it comes from a perfectly good equivalence relation. Now try the analogue of Definition 2.10. Using the names 0 for A and 1 for B,</p>
+<p style="text-align:center">A + B = [0] + [1] = [0 + 1] = [1] = B.</p>
+<p>But A is also named by −4 and B is also named by 2, so with those names</p>
+<p style="text-align:center">A + B = [−4] + [2] = [−4 + 2] = [−2] = A.</p>
+<p>So A + B is both B and A, and A ≠ B. The recipe is <strong>not well defined</strong>: its answer depends on which names you happened to pick. We throw it away. <span class="cite">— Aluffi §2.3, Example 2.11, pp. 27–28</span></p>
+<p>Aluffi's phrasing is worth keeping: the operation should depend on the class itself, "not on your mood of the moment on how you decide to call the class."</p>
+</div>
+
+<div class="theorem">
+<strong>Claim 2.12.</strong> The operations of Definition 2.10 do not depend on the choice of representatives: if [a]<sub>n</sub> = [a′]<sub>n</sub> and [b]<sub>n</sub> = [b′]<sub>n</sub>, then [a + b]<sub>n</sub> = [a′ + b′]<sub>n</sub> and [a·b]<sub>n</sub> = [a′·b′]<sub>n</sub>. <span class="cite">— Aluffi §2.3, Claim 2.12, p. 28</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> This is Lemma 2.9 restated in the language of classes, using aa-03's identity (2.1) to move between "≡" and "same class" in both directions. ∎
+<p>That is the whole architecture of the section: Lemma 2.9 is the work, Claim 2.12 is the payoff, and Example 2.11 is the control showing the payoff was not free. Congruence mod n is special precisely because it is <em>compatible</em> with + and · in ℤ; an arbitrary equivalence relation is not.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why exactly does the sign partition of Example 2.11 fail to inherit an addition?</p>
+<button onclick="check(this,false)">Because it has only two classes</button>
+<button data-ok onclick="check(this,true)">Because two names for the same class give different answers</button>
+<button onclick="check(this,false)">Because negative numbers cannot be added</button>
+<div class="explain">A = [0] = [−4] and B = [1] = [2], yet 0 + 1 lands in B while −4 + 2 lands in A. One input, two outputs — so the recipe is not a function on classes. The class count is irrelevant (ℤ/2ℤ also has two classes and works fine); what matters is whether the relation is compatible with the operation, which is exactly what Lemma 2.9 establishes for congruence and nothing establishes here. <span class="cite">— Aluffi §2.3, p. 28</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. The operations exist. Next: which of ℤ's habits they keep.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>What survives, what breaks, what appears — and one theorem for all three</h2>
+
+<p>Here are the tables for ℤ/4ℤ, writing a for [a]₄ as Aluffi does: <span class="cite">— Aluffi §2.4, p. 29</span></p>
+
+<table class="op">
+<tr><th>+</th><th>0</th><th>1</th><th>2</th><th>3</th><th>&nbsp;</th><th>·</th><th>0</th><th>1</th><th>2</th><th>3</th></tr>
+<tr><th>0</th><td>0</td><td>1</td><td>2</td><td>3</td><td>&nbsp;</td><th>0</th><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+<tr><th>1</th><td>1</td><td>2</td><td>3</td><td>0</td><td>&nbsp;</td><th>1</th><td>0</td><td>1</td><td>2</td><td>3</td></tr>
+<tr><th>2</th><td>2</td><td>3</td><td>0</td><td>1</td><td>&nbsp;</td><th>2</th><td>0</td><td>2</td><td>0</td><td>2</td></tr>
+<tr><th>3</th><td>3</td><td>0</td><td>1</td><td>2</td><td>&nbsp;</td><th>3</th><td>0</td><td>3</td><td>2</td><td>1</td></tr>
+</table>
+
+<p>Read the entry "3·3 = 1" as [3]₄·[3]₄ = [9]₄ = [1]₄, which is Definition 2.10 doing its job.</p>
+
+<p><strong>What breaks.</strong> In ℤ we have the implication Aluffi numbers (2.2):</p>
+<p style="text-align:center">ab = 0 ⟹ a = 0 or b = 0.</p>
+<p>It holds in ℤ/3ℤ — list the four products of nonzero classes and no zero appears. It fails in ℤ/4ℤ: [2]₄·[2]₄ = [4]₄ = [0]₄ with [2]₄ ≠ [0]₄. In the table, that is the 0 sitting in the middle of the multiplication grid, away from row 0 and column 0. It is not rare: [2]₆·[3]₆ = [0]₆, [3]₁₂·[4]₁₂ = [0]₁₂, [2]₁₀·[5]₁₀ = [0]₁₀. <span class="cite">— Aluffi §2.4, pp. 29–31</span></p>
+
+<p><strong>What survives.</strong> The long list Aluffi labels (2.3) — closure, associativity of +, an additive identity 0, additive inverses, commutativity of +, associativity of ·, a multiplicative identity 1, and both distributive laws, plus the separately-listed commutativity of · — all hold in ℤ. And: <span class="cite">— Aluffi §2.4, p. 30</span></p>
+
+<div class="theorem">
+<strong>Theorem 2.13.</strong> For every positive integer n, all of those properties hold for ℤ/nℤ with 0 = [0]<sub>n</sub> and 1 = [1]<sub>n</sub>. <span class="cite">— Aluffi §2.4, Theorem 2.13, p. 30</span>
+</div>
+
+<div class="worked">
+<strong>Proof — and why Aluffi says it "proves itself".</strong> Closure is immediate from Definition 2.10. Every other item reduces to the same property in ℤ. Distributivity, in full: given classes a, b, c pick representatives a = [k]<sub>n</sub>, b = [ℓ]<sub>n</sub>, c = [m]<sub>n</sub>. Then
+<p style="text-align:center">a·(b + c) = [k]<sub>n</sub>·[ℓ + m]<sub>n</sub> = [k(ℓ + m)]<sub>n</sub> = [kℓ + km]<sub>n</sub> = [kℓ]<sub>n</sub> + [km]<sub>n</sub> = a·b + a·c,</p>
+<p>where the middle equality is distributivity <em>in ℤ</em> and every other equality is Definition 2.10. Each remaining property goes the same way. ∎ <span class="cite">— Aluffi §2.4, p. 31</span></p>
+<p><strong>Remark 2.14.</strong> From here on we write 0 and 1 for [0]<sub>n</sub> and [1]<sub>n</sub>. In "0 = [0]<sub>n</sub>" the two zeros mean different things — the left one is an element we <em>choose</em> to call 0 in ℤ/nℤ, the right one is the integer. Spend a moment on that; the abuse is universal and permanent. <span class="cite">— Aluffi §2.4, Remark 2.14, p. 30</span></p>
+<p>The list in (2.3), minus the lone commutativity item, is the definition of a <strong>ring</strong> (§3.1); with it, a <em>commutative</em> ring. ℤ, every ℤ/nℤ, and ℚ, ℝ, ℂ are all commutative rings — which is aa-05's business.</p>
+</div>
+
+<p><strong>What appears.</strong> Nothing in (2.3) asks for <em>multiplicative</em> inverses. Aluffi numbers that missing property (2.4):</p>
+<p style="text-align:center">for all a ≠ 0 there is a′ with a·a′ = a′·a = 1.</p>
+<p>It is false in ℤ (2n = 1 has no integer solution) and true in ℚ. In a multiplication table it says: every row except row 0 contains a 1. Row 2 of ℤ/4ℤ above contains no 1. But every nonzero row of ℤ/5ℤ does, so ℤ/5ℤ satisfies a property ℤ does not — it is a <strong>field</strong>. <span class="cite">— Aluffi §2.4, p. 32</span></p>
+
+<p>Drive the tables yourself. Red marks a product of two nonzero classes that is 0; green marks the 1s that witness an inverse. The pattern is the theorem.</p>
+
+<canvas id="tab" width="620" height="300" aria-label="Multiplication table of Z mod n, with zero divisors and units marked"></canvas>
+<div class="controls">
+<button onclick="setTab(4)">n = 4</button>
+<button onclick="setTab(5)">n = 5</button>
+<button onclick="setTab(6)">n = 6</button>
+<button onclick="setTab(7)">n = 7</button>
+<button onclick="setTab(10)">n = 10</button>
+<button onclick="setTab(11)">n = 11</button>
+</div>
+
+<div class="theorem">
+<strong>Theorem 2.15.</strong> Let n &gt; 1. The following are equivalent:
+<p>(i) n is prime; &nbsp; (ii) in ℤ/nℤ, ab = 0 ⟹ a = 0 or b = 0; &nbsp; (iii) in ℤ/nℤ, every a ≠ 0 has a multiplicative inverse.</p>
+<span class="cite">— Aluffi §2.4, Theorem 2.15, p. 32</span>
+</div>
+
+<div class="worked">
+<strong>Proof (the cycle (i) ⟹ (iii) ⟹ (ii) ⟹ (i)).</strong>
+<p><em>(i) ⟹ (iii).</em> Let n = p be prime, hence irreducible (aa-02's Theorem 1.21), and let a = [ℓ]<sub>p</sub> ≠ 0, i.e. p ∤ ℓ. By Lemma 1.18, gcd(p, ℓ) = 1, so by Bézout (Theorem 1.8) there are integers q, k with 1 = qp + kℓ. Read that modulo p: since [qp]<sub>p</sub> = [0]<sub>p</sub>,</p>
+<p style="text-align:center">[1]<sub>p</sub> = [qp]<sub>p</sub> + [kℓ]<sub>p</sub> = [k]<sub>p</sub>·[ℓ]<sub>p</sub>,</p>
+<p>so [k]<sub>p</sub> is the inverse of a.</p>
+<p><em>(iii) ⟹ (ii).</em> If ab = 0 and a ≠ 0, let a′ be an inverse of a; then b = 1·b = (a′a)b = a′(ab) = a′·0 = 0. (The last step, that a·0 = 0 in ℤ/nℤ, is Aluffi's Exercise 2.11 — it does not come free from the list, it is deduced from distributivity.)</p>
+<p><em>(ii) ⟹ (i).</em> Suppose n ∣ km; we must show n ∣ k or n ∣ m, which is Definition 1.19. Put a = [k]<sub>n</sub>, b = [m]<sub>n</sub>. Then ab = [km]<sub>n</sub> = [0]<sub>n</sub> = 0, so by (ii) a = 0 or b = 0 — that is, n ∣ k or n ∣ m. ∎ <span class="cite">— Aluffi §2.4, p. 33</span></p>
+<p><strong>What each arrow used.</strong> (i) ⟹ (iii) is the only one that touched ℤ: it ran on Bézout. (iii) ⟹ (ii) never mentioned modular arithmetic at all — it is a formal manipulation using only the properties in (2.3), which is why the same argument reappears verbatim for arbitrary rings in aa-06. (ii) ⟹ (i) is Definition 1.19 read through the projection.</p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 2.16.</strong> Let n &gt; 1. A class [ℓ]<sub>n</sub> has a multiplicative inverse in ℤ/nℤ if and only if gcd(n, ℓ) = 1. <span class="cite">— Aluffi §2.4, Proposition 2.16, p. 34</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> (⟸) If gcd(n, ℓ) = 1 then Bézout gives qn + kℓ = 1, so [k]<sub>n</sub>[ℓ]<sub>n</sub> = [kℓ]<sub>n</sub> = [1 − qn]<sub>n</sub> = [1]<sub>n</sub>, and commutativity gives the other side. (⟹) If [k]<sub>n</sub>[ℓ]<sub>n</sub> = [1]<sub>n</sub> then n ∣ (1 − kℓ), say 1 − kℓ = qn, so 1 = qn + kℓ is a linear combination of n and ℓ; Corollary 1.9 then gives gcd(n, ℓ) = 1. ∎
+<p>This is the (i) ⟹ (iii) argument with the primality stripped out, and it is strictly more informative: it tells you <em>which</em> classes are invertible for every n, not just that all of them are when n is prime. In ℤ/26ℤ, [7] is invertible (gcd = 1) and [13] is not (gcd = 13).</p>
+<p><strong>Remark 2.17 (cancellation).</strong> When p is prime, ab = ac with a ≠ 0 forces b = c: from a(b − c) = 0 and (ii). It genuinely fails otherwise — [2]₆·[2]₆ = [4]₆ = [2]₆·[5]₆ while [2]₆ ≠ [5]₆. <span class="cite">— Aluffi §2.4, Remark 2.17, p. 34</span></p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — inverting a class by hand.</strong> Find the inverse of [7]₂₆ in ℤ/26ℤ.
+<p>First check it exists: gcd(26, 7) = ⟨your step⟩, and Proposition 2.16 says an inverse exists exactly when that is 1.</p>
+<p>Now run the Euclidean algorithm backwards, as in aa-02: 26 = 7·3 + 5; 7 = 5·1 + 2; 5 = 2·2 + 1. So 1 = 5 − 2·2, and 2 = 7 − 5, giving 1 = 5 − 2(7 − 5) = ⟨your step: collect the 5s⟩·5 − 2·7. Then 5 = 26 − 3·7, so 1 = 3(26 − 3·7) − 2·7 = 3·26 − ⟨your step⟩·7.</p>
+<p>Read that mod 26: [1]₂₆ = [−11]₂₆·[7]₂₆, and [−11]₂₆ = [⟨your step⟩]₂₆. Check your answer by multiplying it by 7 and reducing.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Theorem 2.15 assumes n &gt; 1. Which case is excluded by that, and why?</p>
+<button data-ok onclick="check(this,true)">n = 0 and n = 1 — for n = 0, ℤ/0ℤ is ℤ, where (ii) holds but (iii) fails</button>
+<button onclick="check(this,false)">n = 1 only — ℤ/0ℤ is covered by the theorem</button>
+<button onclick="check(this,false)">Nothing is excluded; n &gt; 1 is just for convenience</button>
+<div class="explain">Both are excluded and for different reasons. ℤ/0ℤ is a copy of ℤ, where ab = 0 does force a factor to vanish but 2 has no inverse — so (ii) and (iii) come apart. Aluffi points at the cause: 0 is prime under Definition 1.19 but is not irreducible, and the (i) ⟹ (iii) arrow ran on irreducibility. For n = 1, ℤ/1ℤ has one element, so 0 = 1 there and (ii) and (iii) are vacuously true; that trivial ring is deliberately excluded from being a domain or a field in §3.3. <span class="cite">— Aluffi §2.4, p. 34</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. One theorem left, and then it goes to work encrypting something.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Fermat's little theorem, and why RSA works</h2>
+
+<div class="theorem">
+<strong>Theorem 2.18 (Fermat's little theorem).</strong> Let a, p be integers with p positive and prime. Then [a]<sub>p</sub><sup>p</sup> = [a]<sub>p</sub> — that is, a<sup>p</sup> ≡ a mod p. <span class="cite">— Aluffi §2.5, Theorem 2.18, p. 35</span>
+</div>
+
+<p>Primality is essential: 2⁴ = 16 is not congruent to 2 modulo 4. And the theorem saves real work — with a = 100 and p = 13 it tells you at once, with no computation, that 100¹³ ≡ 100 mod 13. <span class="cite">— Aluffi §2.5, p. 35</span></p>
+
+<div class="worked">
+<strong>Proof of Theorem 2.18.</strong> If p ∣ a then [a]<sub>p</sub> = [0]<sub>p</sub> and the claim reads [0]<sub>p</sub><sup>p</sup> = [0]<sub>p</sub>, which is true. So assume p ∤ a; it suffices to prove [a]<sub>p</sub><sup>p−1</sup> = [1]<sub>p</sub>, since multiplying both sides by [a]<sub>p</sub> then gives the statement.
+<p><em>The clever step.</em> Consider the p − 1 classes</p>
+<p style="text-align:center">[a]<sub>p</sub>, [2a]<sub>p</sub>, …, [(p−1)a]<sub>p</sub>.</p>
+<p><em>They are distinct.</em> By cancellation (Remark 2.17, available because p is prime and [a]<sub>p</sub> ≠ 0), [ℓa]<sub>p</sub> = [ka]<sub>p</sub> implies [ℓ]<sub>p</sub> = [k]<sub>p</sub>; contrapositively, distinct [ℓ]<sub>p</sub>, [k]<sub>p</sub> give distinct [ℓa]<sub>p</sub>, [ka]<sub>p</sub>. And [1]<sub>p</sub>, …, [p−1]<sub>p</sub> are distinct by aa-03's Lemma 2.6.</p>
+<p><em>The cleverest step.</em> All p − 1 of them are nonzero, and there are only p − 1 nonzero classes in ℤ/pℤ. So the list [a]<sub>p</sub>, …, [(p−1)a]<sub>p</sub> is the list [1]<sub>p</sub>, …, [p−1]<sub>p</sub> <em>in some order</em>. Multiply each list out; the products must agree:</p>
+<p style="text-align:center">[(p−1)!]<sub>p</sub> · [a]<sub>p</sub><sup>p−1</sup> = [(p−1)!]<sub>p</sub>.</p>
+<p>Finally [(p−1)!]<sub>p</sub> ≠ [0]<sub>p</sub>, because p is prime and divides none of 1, …, p−1. Cancel it (Remark 2.17 again) to get [a]<sub>p</sub><sup>p−1</sup> = [1]<sub>p</sub>. ∎ <span class="cite">— Aluffi §2.5, pp. 35–36</span></p>
+<p>Both uses of cancellation are uses of primality, funnelled through Theorem 2.15(ii). Take primality away and the reordering step collapses — in ℤ/4ℤ, multiplying by [2]₄ sends {1, 2, 3} to {2, 0, 2}, which is neither a permutation nor even inside the nonzero classes.</p>
+</div>
+
+<div class="worked">
+<strong>Aside — testing primality without factoring.</strong> If 1 &lt; a &lt; n and [a]<sub>n</sub><sup>n−1</sup> ≠ [1]<sub>n</sub>, then Theorem 2.18 says n is <em>not</em> prime; such an a is called a <strong>witness</strong>. Example: 2 witnesses that 4 is composite, since 2³ = 8 ≢ 1 mod 4. This matters because computing a power mod n is fast while factoring n is not — so a large n can be shown composite quickly, with no factorisation.
+<p>Aluffi's estimate is that <em>most</em> composite n have roughly n/2 witnesses, so ten random trials give confidence about 1 − 1/2¹⁰. Read the word "most" carefully: it is a statement about the bulk of composites, not about all of them, and the argument gives a high-confidence verdict rather than a proof. That is why the method is used to <em>generate</em> candidate primes and not to certify them. <span class="cite">— Aluffi §2.5, p. 36</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 2.19 (RSA algorithm).</strong> Let p ≠ q be positive primes and let n = pq, k = (p−1)(q−1), let e be relatively prime to k, let d satisfy de ≡ 1 mod k, let a be any integer, and let b be a representative of [a]<sub>n</sub><sup>e</sup>. Then a ≡ b<sup>d</sup> mod n. <span class="cite">— Aluffi §2.5, Theorem 2.19, p. 38</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Since b ≡ a<sup>e</sup>, we have b<sup>d</sup> ≡ a<sup>de</sup> mod n, so it is enough to show a<sup>de</sup> ≡ a mod n.
+<p>It suffices to show a<sup>de</sup> ≡ a mod p <em>and</em> mod q: for then p and q both divide a<sup>de</sup> − a, and since p, q are distinct primes their product n divides it too. That last step deserves its name — write a<sup>de</sup> − a = py; then q ∣ py, and gcd(q, p) = 1 because p, q are distinct primes, so <strong>Corollary 1.11</strong> gives q ∣ y and hence pq ∣ a<sup>de</sup> − a. It fails without coprimality: 4 and 6 both divide 12, while 24 does not. <span class="cite">— Aluffi §1.3, Corollary 1.11, p. 10</span></p>
+<p>Take p. If p ∣ a then both sides are 0 mod p. Otherwise, since de ≡ 1 mod k there is an integer ℓ with de = 1 + kℓ, and</p>
+<p style="text-align:center">a<sup>de</sup> = a<sup>1+kℓ</sup> = a·(a<sup>p−1</sup>)<sup>(q−1)ℓ</sup> ≡ a·1<sup>(q−1)ℓ</sup> = a mod p,</p>
+<p>using Fermat's little theorem in the form a<sup>p−1</sup> ≡ 1 mod p, valid because p is prime and p ∤ a. The argument for q is identical with the roles swapped. ∎ <span class="cite">— Aluffi §2.5, pp. 38–39</span></p>
+<p><strong>Where the security sits.</strong> The eavesdropper may know n, e and the encrypted b and still be stuck. But k = (p−1)(q−1) requires p and q, and once k is known, d is just the inverse of e mod k — one run of the Euclidean algorithm. So <em>factoring n breaks the scheme completely</em>, and no efficient classical factoring method is known. <span class="cite">— Aluffi §2.5, p. 39</span></p>
+
+<p><strong>Two things that sentence does not say.</strong> First, factoring is <em>sufficient</em> to recover the private key; it is not known to be <em>necessary</em>. Whether inverting RSA is as hard as factoring is an open problem, so "the security rests on factoring and nothing else" is a stronger claim than anyone can currently make — the correct statement is that breaking the scheme is no harder than factoring.</p>
+
+<p>Second, what is described here is <em>textbook</em> RSA: the bare modular exponentiation, and a correctness construction rather than a deployable one. Because it is deterministic, the same message always encrypts to the same ciphertext, which leaks repetition; and because it is multiplicative, an attacker who cannot read a message can still manipulate it — the ciphertext of m·m′ is the product of their ciphertexts. Real deployments therefore never encrypt a raw message: they use a randomised padding scheme built around this arithmetic. The number theory of this lesson is the whole of the correctness argument and none of the security argument.</p>
+</div>
+
+<div class="worked">
+<strong>Worked example — RSA on numbers you can check.</strong> Take p = 3, q = 11. Then n = 33 and k = (3−1)(11−1) = 20. Choose e = 3; gcd(3, 20) = 1, so e is admissible. For d we need 3d ≡ 1 mod 20, and d = 7 works since 21 = 20 + 1.
+<p><em>Encrypt</em> the message a = 5: b ≡ 5³ = 125 = 3·33 + 26, so b = 26.</p>
+<p><em>Decrypt</em>: 26⁷ mod 33. Do it in stages — 26² = 676 = 20·33 + 16, so 26² ≡ 16; 26⁴ ≡ 16² = 256 = 7·33 + 25, so 26⁴ ≡ 25; then 26⁷ = 26⁴·26²·26 ≡ 25·16·26. Now 25·16 = 400 = 12·33 + 4, so that is 4·26 = 104 = 3·33 + 5, giving <strong>5</strong>. The message is recovered. ✓</p>
+<p>Watch what the theorem did and did not promise: it says a ≡ b<sup>d</sup> mod n, so you recover a's <em>class</em>. Recovering a itself needs a to have been in the range 0 ≤ a &lt; n to begin with — which is why the scheme insists messages be broken into blocks smaller than n.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Run the same machine with p = 5, q = 11, so n = 55 and k = 40. Choose e = 3 and find d. Then encrypt a = 7 and decrypt it back. Two checks along the way: your d must satisfy 3d ≡ 1 mod 40, and your intermediate powers should always be reduced mod 55 before the next multiplication — the whole point is that you never handle a large number.</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi states Fermat's little theorem twice — as a<sup>p</sup> ≡ a mod p for all a (Theorem 2.18), and in Fermat's own 1640 form, a<sup>p−1</sup> ≡ 1 mod p when p ∤ a — and defers the equivalence to Exercise 2.18. <strong>Prove the two forms are equivalent</strong>, and say exactly which part of Theorem 2.15 you need, and in which direction.</p>
+<textarea placeholder="Suppose a^{p-1} = 1 in Z/pZ whenever p does not divide a. Given any a, split into the cases p | a and p does not divide a ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><em>Second form ⟹ first.</em> Let a be any integer. If p ∣ a then a<sup>p</sup> ≡ 0 ≡ a mod p and we are done. If p ∤ a, multiply a<sup>p−1</sup> ≡ 1 through by a to get a<sup>p</sup> ≡ a. No hypothesis beyond the second form is used here.</p>
+<p><em>First ⟹ second.</em> Suppose a<sup>p</sup> ≡ a mod p and p ∤ a. In ℤ/pℤ this reads [a]<sub>p</sub>·[a]<sub>p</sub><sup>p−1</sup> = [a]<sub>p</sub>·1, with [a]<sub>p</sub> ≠ 0. To strike out the [a]<sub>p</sub> we need <strong>cancellation</strong>, which is Remark 2.17, resting on part (ii) of Theorem 2.15 — the implication ab = 0 ⟹ a = 0 or b = 0, available because p is prime. Cancelling gives [a]<sub>p</sub><sup>p−1</sup> = [1]<sub>p</sub>. ∎</p>
+<p>Grade yourself on the direction, not the algebra. The first implication is free; the second is the one that consumes primality, and if your proof cancelled a factor without saying why cancellation is legal, it is not finished. In ℤ/4ℤ you may not cancel a [2]₄, and that is not a technicality — it is the same failure as [2]₄·[2]₄ = 0.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In the proof of Fermat's little theorem, why must [a]<sub>p</sub>, [2a]<sub>p</sub>, …, [(p−1)a]<sub>p</sub> be a rearrangement of [1]<sub>p</sub>, …, [p−1]<sub>p</sub>?</p>
+<button onclick="check(this,false)">Because multiplication by a is its own inverse</button>
+<button data-ok onclick="check(this,true)">They are p − 1 distinct nonzero classes, and there are only p − 1 of those</button>
+<button onclick="check(this,false)">Because a is a generator of ℤ/pℤ under multiplication</button>
+<div class="explain">Distinctness comes from cancellation, non-vanishing from Theorem 2.15(ii) (a product of nonzero classes is nonzero when p is prime), and then counting closes the argument — p − 1 distinct items inside a set of size p − 1 exhaust it. Nothing is claimed about a generating anything; that would be a much stronger statement, and it is not needed. <span class="cite">— Aluffi §2.5, p. 36</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> An eavesdropper intercepts n, e and the encrypted b. What single ability would let them read the message?</p>
+<button onclick="check(this,false)">Computing b<sup>e</sup> mod n</button>
+<button data-ok onclick="check(this,true)">Factoring n as pq</button>
+<button onclick="check(this,false)">Knowing that a &lt; n</button>
+<div class="explain">Factor n and you have p and q, hence k = (p−1)(q−1), hence d as the inverse of e mod k by one Euclidean-algorithm run — and then Theorem 2.19 decrypts for you as easily as for the intended recipient. That is the whole of RSA's security: not a proof that the scheme is unbreakable, but the absence of a known fast classical factoring algorithm. Aluffi notes that Shor-style factoring on a quantum machine is the reason the qualifier "classical" is there. <span class="cite">— Aluffi §2.5, p. 39</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why does the RSA proof split into "mod p" and "mod q" instead of working mod n directly?</p>
+<button data-ok onclick="check(this,true)">Fermat needs a prime modulus, and n = pq is not prime</button>
+<button onclick="check(this,false)">Because a might be larger than n</button>
+<button onclick="check(this,false)">Because d is only defined modulo k</button>
+<div class="explain">Fermat's little theorem is a statement about prime moduli, and n = pq is composite by construction — so it cannot be applied to n. Aluffi applies it separately to each prime factor, gets p ∣ (a<sup>de</sup> − a) and q ∣ (a<sup>de</sup> − a), and then reassembles: since p and q are distinct primes, their product divides the difference too. The reassembly step is the one worth flagging — it is the Chinese Remainder Theorem in embryo, and aa-10 will name it. <span class="cite">— Aluffi §2.5, pp. 38–39</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Reconstruct the three load-bearing claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>The operations exist because congruence is compatible with them</strong> (Lemma 2.9 ⟹ Claim 2.12). Example 2.11 is the control: the same recipe on the sign partition gives A + B = A and A + B = B. "Well defined" means <em>independent of the representative</em>, and it must be checked, not assumed.</li>
+<li><strong>Theorem 2.15:</strong> for n &gt; 1, n prime ⟺ no zero divisors in ℤ/nℤ ⟺ every nonzero class is invertible. The prime-to-invertible arrow is Bézout; the invertible-to-no-zero-divisors arrow uses only the ring properties and will be reused verbatim for general rings. Proposition 2.16 refines it: [ℓ]<sub>n</sub> is invertible exactly when gcd(n, ℓ) = 1, for every n.</li>
+<li><strong>Fermat (Theorem 2.18):</strong> a<sup>p</sup> ≡ a mod p for prime p, proved by showing multiplication by a permutes the nonzero classes and cancelling (p−1)!. RSA (Theorem 2.19) is this applied twice, once at p and once at q, with de ≡ 1 mod (p−1)(q−1) supplying the exponent that undoes e.</li>
+</ol>
+Everything on this page is aa-02 in a new costume: Bézout supplies inverses, primality supplies cancellation, and unique factorisation is what makes n = pq hard to undo.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §2.3 "Algebra in ℤ/nℤ" (Lemma 2.9 p. 26 with proof p. 27; Definition 2.10 and Example 2.11 p. 27; Claim 2.12 p. 28), pp. 26–28; §2.4 "Properties of the Operations +, · on ℤ/nℤ" (the ℤ/4ℤ tables and property (2.2) p. 29; the list (2.3), Theorem 2.13 and Remark 2.14 p. 30; the distributivity computation p. 31; property (2.4), the ℤ/5ℤ tables and Theorem 2.15 p. 32, proof p. 33; Proposition 2.16 and Remark 2.17 p. 34), pp. 29–34; §2.5 "Fermat's Little Theorem, and the RSA Encryption System" (Theorem 2.18 p. 35, proof pp. 35–36; witnesses p. 36; Theorem 2.19 p. 38, proof pp. 38–39), pp. 34–40. Theorem 1.8, Corollary 1.9, Lemma 1.18, Definition 1.19 and Theorem 1.21 are carried over from aa-02 (Aluffi §1.3–1.4, pp. 8–14); Lemma 2.6 and identity (2.1) from aa-03 (§2.2, pp. 24–25). The p = 3, q = 11 worked example and the [7]₂₆ inversion are computed here from those results; every intermediate value was checked by direct arithmetic.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Multiplication table of Z/nZ. Red cell: product of two NONZERO classes is 0
+// (a zero divisor). Green cell: a 1 away from row/col 1, witnessing an inverse.
+var tc=document.getElementById('tab'),tx=tc.getContext('2d');
+var TN=4;
+function setTab(n){TN=n;drawTab();}
+function drawTab(){tx.clearRect(0,0,tc.width,tc.height);
+ var m=TN+1,pad=16,avail=Math.min(tc.width-2*pad,tc.height-56),c=avail/m;
+ var ox=(tc.width-m*c)/2,oy=30;
+ tx.font=(c>26?13:10)+'px Segoe UI';tx.textAlign='center';tx.textBaseline='middle';
+ var zd=0,inv=0;
+ for(var i=0;i<TN;i++)for(var j=0;j<TN;j++){
+  var v=(i*j)%TN,x=ox+(j+1)*c,y=oy+(i+1)*c,bad=(v===0&&i!==0&&j!==0),good=(v===1);
+  if(bad){tx.fillStyle='rgba(224,108,117,0.45)';zd++;}
+  else if(good){tx.fillStyle='rgba(76,175,130,0.40)';inv++;}
+  else tx.fillStyle='#151b21';
+  tx.fillRect(x,y,c-1,c-1);
+  tx.fillStyle=bad?'#ffd7da':(good?'#d6f5e6':'#9aa5b1');
+  tx.fillText(''+v,x+c/2,y+c/2);}
+ tx.fillStyle='#8ab4f8';
+ tx.fillText('x',ox+c/2,oy+c/2);
+ for(var k=0;k<TN;k++){tx.fillText(''+k,ox+(k+1)*c+c/2,oy+c/2);
+  tx.fillText(''+k,ox+c/2,oy+(k+1)*c+c/2);}
+ tx.textAlign='left';tx.font='13px Segoe UI';
+ tx.fillStyle='#e8e8e8';tx.fillText('multiplication in Z/'+TN+'Z',pad,16);
+ tx.fillStyle=zd?'#e06c75':'#4caf82';
+ tx.fillText(zd?(zd+' zero divisor cells - not a domain, so '+TN+' is composite')
+   :('no zero divisors, every nonzero row has a 1 - '+TN+' is prime'),pad,tc.height-12);
+}
+drawTab();
+</script></body></html>

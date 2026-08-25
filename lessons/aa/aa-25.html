@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-25 — Cyclic, dihedral, symmetric, and free groups</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Cyclic, dihedral, symmetric, and free groups <span class="cite">(aa-25)</span></h1>
+
+<div class="hook">
+The zoo: clocks, mirror symmetries, shuffles — and the wildest of all, the free group.
+<p>aa-24 ended with Cayley's theorem: every group is a group of permutations. That is a statement about <em>all</em> groups at once, and like most such statements it tells you nothing about any particular one. This unit does the opposite. It walks through four named families, each with a concrete picture attached, and each of which you will meet again by name in the third semester.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> A regular square admits rotations and flips. How many symmetries does it have in total?</p>
+<button onclick="check(this,false)">4 — one rotation for each vertex</button>
+<button data-ok onclick="check(this,true)">8 — four rotations and four flips</button>
+<button onclick="check(this,false)">24 — every permutation of the four vertices</button>
+<div class="explain">Eight. The four rotations by 0, 90, 180 and 270 degrees, and four reflections: two through opposite vertices, two through opposite edge-midpoints. This is the group Aluffi calls D<sub>8</sub> — his subscript is the <em>order</em>, so the symmetry group of the n-gon is D<sub>2n</sub>. Not all 24 permutations of the vertices arise, because a symmetry must preserve which vertices are adjacent; you will see exactly which 8 of the 24 survive, drawn, further down. <span class="cite">— Aluffi Underground §11.3, Definition 11.32, p. 242</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Free groups are literally the fundamental groups of graphs; symmetric-group signs orient simplices.</p>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 1 — Things that spin, and things that flip</h2>
+
+<p>Carter organises this material by <em>what the group is the symmetry group of</em>, and it is worth taking his ordering first because it makes the definitions inevitable rather than arbitrary. The cyclic groups, he says, describe objects that have only rotational symmetry: a propeller, a pinwheel, the three-armed molecule of boric acid. There is exactly one thing you can do to such an object, and everything else is that one thing repeated. <span class="cite">— Carter §5.1 "Cyclic groups", p. 64</span></p>
+
+<p>So C<sub>n</sub> has n elements, named 0, 1, …, n − 1, where each number counts repetitions of the single fundamental rotation; there is no element n because n rotations return the propeller to where it started. Carter notes the common alternative name Z<sub>n</sub> for the same group, drawn from the integers. <span class="cite">— Carter §5.1, p. 65</span> That is aa-05's Z/nZ, arrived at from the opposite direction: aa-05 built it by quotienting, Carter builds it by turning a pinwheel, and the two constructions agree.</p>
+
+<p>Now allow flipping as well. Objects that look the same when turned over have <em>bilateral</em> symmetry as well as rotational, and the regular polygons are the easiest examples. Carter writes D<sub>n</sub> for the symmetries of a regular n-gon and observes that it contains twice as many actions as C<sub>n</sub>, namely 2n. <span class="cite">— Carter §5.3 "Dihedral groups", p. 74</span></p>
+
+<div class="definition">
+<p><strong>Definition 11.32.</strong> Let n &gt; 2 be an integer. The <strong>dihedral group</strong> D<sub>2n</sub> is the group of symmetries of a regular n-gon. <span class="cite">— Aluffi Underground §11.3, Definition 11.32, p. 242</span></p>
+</div>
+
+<p><strong>Read the subscripts carefully — the two books disagree.</strong> Aluffi's subscript is the order of the group; Carter's is the number of sides. Aluffi's D<sub>2n</sub> and Carter's D<sub>n</sub> are the same group. Aluffi's D<sub>6</sub> is the symmetry group of the equilateral triangle — six elements — which Carter calls D<sub>3</sub>. <span class="cite">— Aluffi Underground §11.3, Example 11.33, p. 242</span> <span class="cite">— Carter §5.3, p. 74</span> Both conventions are in print and neither is going away; the only defence is to check, every time, whether a stated D<sub>8</sub> has eight elements or eight sides. From here on this lesson uses Aluffi's convention, as aa-23 and aa-24 already did.</p>
+
+<p>The next case is the square. Aluffi's D<sub>8</sub> consists of eight symmetries of the square: the identity, three rotations, and four flips. Because every symmetry permutes the four vertices, and a symmetry is determined by what it does to them, D<sub>8</sub> sits inside S<sub>4</sub> — as exactly 8 of the 24 permutations. <span class="cite">— Aluffi Underground §11.3, Example 11.34, p. 243</span></p>
+
+<p>Aluffi calls the vertex-chasing needed to multiply two such symmetries "mental gymnastics", and then supplies the escape route.</p>
+
+<div class="theorem">
+<p><strong>Proposition 11.35.</strong> For n &gt; 2, let x be the flip about the axis through the centre and vertex 1, and y the clockwise rotation by 360/n degrees. Then D<sub>2n</sub> = ⟨x, y⟩, the relations</p>
+<p style="text-align:center">x² = e,   yⁿ = e,   xy = y⁻¹x</p>
+<p>hold, and every element of D<sub>2n</sub> is written uniquely as xⁱyʲ with 0 ≤ i &lt; 2 and 0 ≤ j &lt; n. <span class="cite">— Aluffi Underground §11.3, Proposition 11.35, p. 245</span></p>
+</div>
+
+<p>Count them: two choices of i times n choices of j gives 2n elements, recovering Carter's doubling. Aluffi's proof of uniqueness is the cancellation you would expect — if xⁱyʲ = x<sup>k</sup>y<sup>ℓ</sup> then x<sup>i−k</sup> = y<sup>ℓ−j</sup>, and since x is not a rotation both sides must be e, forcing i ≡ k mod 2 and j ≡ ℓ mod n. <span class="cite">— Aluffi Underground §11.3, p. 245</span></p>
+
+<p>The relation xy = y⁻¹x is the whole content of non-commutativity here. Carter reaches the identical relation by a physical argument: hold the polygon up between yourself and a friend facing you; performing f swaps your viewpoint with theirs, and a clockwise turn from their side looks counterclockwise from yours. Algebraically, <em>frf</em> = r⁻¹. <span class="cite">— Carter §5.3, p. 75</span> Multiply Carter's relation on the right by f and use f² = e and you have Aluffi's, with f for x and r for y. One relation, two derivations: one by cancelling exponents, one by imagining a friend holding a triangle.</p>
+
+<div class="worked fade">
+<strong>Worked, then faded — Example 11.36.</strong> Multiply xy³ and xy⁵ in D<sub>14</sub>, so n = 7 and y⁷ = e. The rule to apply repeatedly is yx = xy⁻¹, which walks each y leftwards past each x, flipping its sign.
+<p>Aluffi's computation: (xy³)(xy⁵) = xyy·xy·y⁵ = xyy·xy⁻¹·y⁵ = xy·xy⁻¹·y⁻¹y⁵ = x²·y⁻¹y⁻¹y⁻¹·y⁵ = y². <span class="cite">— Aluffi Underground §11.3, Example 11.36, p. 245</span></p>
+<p>Now fade it and do the same product in D<sub>10</sub>, where n = 5. Compute (xy³)(xy⁵) again. First reduce y⁵: in D<sub>10</sub>, y⁵ = ⟨?⟩. So the product is (xy³)·x·⟨?⟩, and one application of the walking rule gives ⟨?⟩.</p>
+<details><summary>Check</summary>y⁵ = e in D<sub>10</sub>, so xy⁵ = x and the product is (xy³)x. Walking three y's past the x: (xy³)x = x·y³x = x·xy⁻³ = x²y⁻³ = y⁻³ = y², because y⁻³ = y⁵⁻³ = y². The answer is y² again, and it is not a coincidence. The general rule that falls out of Proposition 11.35 is (xy<sup>a</sup>)(xy<sup>b</sup>) = y<sup>b−a</sup>, since xy<sup>a</sup>xy<sup>b</sup> = x·xy<sup>−a</sup>·y<sup>b</sup> = y<sup>b−a</sup>. In D<sub>14</sub> that is y⁵⁻³ = y². In D<sub>10</sub> the exponent 5 is already 0, so it is y⁰⁻³ = y⁻³ = y². Different reductions, one rule.</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> What does the relation xy = y⁻¹x tell you?</p>
+<button onclick="check(this,false)">That D<sub>2n</sub> is abelian</button>
+<button data-ok onclick="check(this,true)">That conjugating the rotation by the flip reverses it — so every x can be pushed to the left of every y</button>
+<button onclick="check(this,false)">That x and y commute provided n is even</button>
+<div class="explain">Rearranged, it says xyx⁻¹ = y⁻¹ (using x⁻¹ = x): flipping, rotating, and flipping back is rotating the other way. That is Carter's friend-holding-the-triangle picture verbatim. Its algebraic use is normalisation: any word in x and y collapses to the form xⁱyʲ, which is why Proposition 11.35 can list the group. <span class="cite">— Aluffi Underground §11.3, Proposition 11.35, p. 245</span> <span class="cite">— Carter §5.3, p. 75</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Next: the group that contains all the others.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 2 — Permutations, matrices, and the sign</h2>
+
+<p>Drop the requirement that the polygon keep its shape and you are left with all rearrangements of the vertices. Carter defines a permutation as an action that rearranges a collection of things and checks it against his four rules for a group: the list of rearrangements is predefined, each is unambiguous, two done in succession are again one, and each is reversible. The group of all permutations of n things is S<sub>n</sub>, the <strong>symmetric group</strong>, and its order is n factorial — so S<sub>4</sub> has 24 elements and S<sub>5</sub> has 120. <span class="cite">— Carter §5.4 "Symmetric and alternating groups", pp. 78–79</span> <span class="cite">— Carter §5.4, p. 80</span></p>
+
+<p>Aluffi gives S<sub>n</sub> a second face. Let S<sub>n</sub> act on an n-dimensional real vector space by permuting the standard basis vectors. The action is faithful — aa-24's word — so it gives an injective homomorphism S<sub>n</sub> → GL<sub>n</sub>(R) identifying S<sub>n</sub> with the <strong>permutation matrices</strong>: the matrices with only 0 and 1 entries, exactly one 1 in each row and exactly one 1 in each column. Composition of permutations becomes ordinary matrix multiplication. <span class="cite">— Aluffi Underground §11.3, p. 247</span></p>
+
+<p>This buys something immediately, because matrices have determinants.</p>
+
+<div class="theorem">
+<p><strong>Lemma 11.37.</strong> The determinant of a permutation matrix is ±1. <span class="cite">— Aluffi Underground §11.3, Lemma 11.37, p. 248</span></p>
+<p><em>Proof.</em> Induct on n. For n = 1 the only permutation matrix is (1). For larger n, expand the determinant along the first row: that row has a single nonzero entry, equal to 1, so det A equals ± the determinant of an (n − 1) × (n − 1) permutation matrix, which is ±1 by induction. <span class="cite">— Aluffi Underground §11.3, p. 248</span></p>
+</div>
+
+<div class="definition">
+<p><strong>Definition 11.39.</strong> The <strong>sign</strong> of σ in S<sub>n</sub>, written (−1)<sup>σ</sup>, is the determinant of its permutation matrix. σ is <strong>even</strong> if the sign is 1, <strong>odd</strong> if it is −1. <span class="cite">— Aluffi Underground §11.3, Definition 11.39, p. 248</span></p>
+</div>
+
+<p>Because the determinant is a group homomorphism, so is the sign: (−1)<sup>στ</sup> = (−1)<sup>σ</sup>(−1)<sup>τ</sup>. That single sentence is what makes the sign useful, and it is the reason the next definition produces a subgroup rather than merely a subset. <span class="cite">— Aluffi Underground §11.3, p. 248</span></p>
+
+<div class="definition">
+<p><strong>Definition 11.40.</strong> The <strong>alternating group</strong> A<sub>n</sub> is the subgroup of S<sub>n</sub> consisting of the even permutations. <span class="cite">— Aluffi Underground §11.3, Definition 11.40, p. 249</span></p>
+</div>
+
+<p>It is a subgroup precisely because the sign is a homomorphism: A<sub>n</sub> is its kernel, and kernels are subgroups by aa-23's Example 11.9. Carter arrives at the same group without ever computing a determinant — he squares every element of S<sub>3</sub> and observes that four of the six square to the identity, so the right-hand column of his table contains only three distinct permutations, and those three are A<sub>3</sub>. He also notes that A<sub>3</sub> therefore has the same structure as C<sub>3</sub>. <span class="cite">— Carter §5.4, p. 80</span> <span class="cite">— Carter §5.4, p. 81</span> Aluffi records the same coincidence: A<sub>3</sub> is the cyclic copy inside S<sub>3</sub>. <span class="cite">— Aluffi Underground §11.3, Definition 11.40, p. 249</span></p>
+
+<p>Below, the dihedral group of Segment 1 is drawn <em>inside</em> the symmetric group of this one. Build an element by pressing the generators; the panel reports the normal form xⁱyʲ, the induced permutation of the vertices, and the sign — each computed from the drawn positions, not looked up.</p>
+
+<canvas id="dih" width="620" height="360" aria-label="A regular polygon acted on by the dihedral generators, with the induced vertex permutation and its sign"></canvas>
+<div class="controls">
+<button onclick="setN(3)">triangle (D₆)</button>
+<button onclick="setN(4)">square (D₈)</button>
+<button onclick="setN(5)">pentagon (D₁₀)</button>
+<button onclick="setN(6)">hexagon (D₁₂)</button>
+<button onclick="apply('y')">apply y (rotate) ▸</button>
+<button onclick="apply('x')">apply x (flip) ▸</button>
+<button onclick="reset()">reset to e</button>
+</div>
+
+<div class="you-try">
+<strong>You try.</strong> Set the picture to the square and press <em>apply y</em> then <em>apply x</em>, reading off the permutation each time. Then reset and press them in the other order. Aluffi labels the square's vertices 1, 2, 3, 4 clockwise, with x the flip fixing vertex 1 and y the clockwise rotation, so pressing y first and x second builds the element xy.
+<details><summary>What you should see</summary>The two orders give different permutations, which is the whole point of D<sub>8</sub> being non-abelian. With x fixing vertex 1 and swapping 2 with 4, and y sending 1↦2↦3↦4↦1, the composite xy sends 1↦4, 2↦3, 3↦2, 4↦1 — the product of transpositions (1 4)(2 3), hence even. The other order gives yx, which sends 1↦2, 2↦1, 3↦4, 4↦3, that is (1 2)(3 4): also even, also an involution, and not the same element. Both squaring to the identity is Proposition 11.35 in disguise, since xyxy = x(yx)y = x(xy⁻¹)y = x²y⁻¹y = e. The panel should also report xy in normal form as xy and yx as xy³, since yx = xy⁻¹ and y⁴ = e.</details>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why is A<sub>n</sub> a subgroup of S<sub>n</sub>, rather than just a subset?</p>
+<button onclick="check(this,false)">Because it contains exactly half the elements</button>
+<button data-ok onclick="check(this,true)">Because the sign is a group homomorphism, and A<sub>n</sub> is its kernel</button>
+<button onclick="check(this,false)">Because determinants of permutation matrices are ±1</button>
+<div class="explain">Having half the elements is a consequence, not a reason — plenty of half-sized subsets are not subgroups, as Carter warns when he says random choosing will rarely give one. The reason is structural: the determinant is a homomorphism, so the sign is a homomorphism S<sub>n</sub> → {1, −1}, and A<sub>n</sub> is the set where it takes the value 1. Lemma 11.37 is what makes the target group {1, −1} in the first place. <span class="cite">— Aluffi Underground §11.3, Definition 11.40, p. 249</span> <span class="cite">— Carter §5.4, p. 80</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Then: a notation that makes signs computable, and the group with no relations at all.</div>
+
+<div class="segment">
+<h2><span class="timebox">25 min</span> Segment 3 — Cycles, transpositions, and the free group</h2>
+
+<p>Writing a permutation as a two-row array is unbearable past n = 5. The standard compression:</p>
+
+<div class="definition">
+<p><strong>Definition 11.41.</strong> An <strong>r-cycle</strong> (a₁ … a<sub>r</sub>) is the permutation cyclically permuting r elements, sending a<sub>i</sub> to a<sub>i+1</sub> and a<sub>r</sub> back to a₁, and fixing everything else. A <strong>transposition</strong> is a 2-cycle. <span class="cite">— Aluffi Underground §11.3, Definition 11.41, p. 249</span></p>
+</div>
+
+<p>Aluffi immediately flags the notation's two quirks. It does not record what n is — (25) could live in S<sub>5</sub> or in S<sub>1000</sub> — and since a cycle has no beginning, the same cycle has r different names depending where you start. <span class="cite">— Aluffi Underground §11.3, Remark 11.42, p. 250</span> The second remark is the one that does work:</p>
+
+<p><strong>Remark 11.43.</strong> Two cycles are <em>disjoint</em> if their nontrivial orbits are disjoint, and disjoint cycles commute — each acts as the identity on the elements the other moves. <span class="cite">— Aluffi Underground §11.3, Remark 11.43, p. 250</span></p>
+
+<div class="theorem">
+<p><strong>Proposition 11.44.</strong> Every permutation other than the identity may be written as a product of disjoint nontrivial cycles. <span class="cite">— Aluffi Underground §11.3, Proposition 11.44, p. 250</span></p>
+</div>
+
+<p>This is aa-24's orbit decomposition wearing different clothes: the cyclic subgroup generated by σ acts on {1, …, n}, its orbits partition the set, and σ restricted to each orbit is a cycle. Disjointness is automatic because orbits are disjoint, and by Remark 11.43 the order of the factors does not matter. Aluffi's running example is (14)(23576) in S<sub>7</sub>, which has order 10 — the two-cycle returns after 2 steps, the five-cycle after 5, and they commute, so the whole permutation returns after 10. <span class="cite">— Aluffi Underground §11.3, p. 250</span></p>
+
+<p>Cycles then decompose further, into the smallest pieces there are.</p>
+
+<div class="theorem">
+<p><strong>Lemma 11.45.</strong> (a₁ … a<sub>r</sub>) = (a₁a<sub>r</sub>) ⋯ (a₁a₃)(a₁a₂). <span class="cite">— Aluffi Underground §11.3, Lemma 11.45, p. 251</span></p>
+<p><strong>Lemma 11.46.</strong> An r-cycle is even or odd according to whether r is odd or even: if σ is an r-cycle then (−1)<sup>σ</sup> = (−1)<sup>r−1</sup>. <span class="cite">— Aluffi Underground §11.3, Lemma 11.46, p. 251</span></p>
+<p><strong>Proposition 11.47.</strong> S<sub>n</sub> is generated by transpositions. <span class="cite">— Aluffi Underground §11.3, Proposition 11.47, p. 251</span></p>
+</div>
+
+<p>The three stack: Proposition 11.44 breaks any permutation into cycles, Lemma 11.45 breaks any cycle into transpositions, and Proposition 11.47 is the two of them read together. Lemma 11.46 then makes the sign computable without ever writing down a matrix — a transposition is odd, and an r-cycle costs r − 1 of them. Aluffi's example (14)(23576) is a 2-cycle times a 5-cycle, so its sign is (−1)¹ · (−1)⁴ = −1: odd, and therefore outside A<sub>7</sub>.</p>
+
+<div class="you-try">
+<strong>Guided proof.</strong> Aluffi says the verification of Lemma 11.45 "suffices to show that the image of a<sub>i</sub> under the right-hand side" is correct, and does not write out every case. Do it, then deduce Lemma 11.46 from it. Remember that the right-hand side is applied right to left, so (a₁a₂) acts first.
+<p>Case 1: what does the right-hand side do to a₁? Only the rightmost factor (a₁a₂) moves it, to a₂ — and then no later factor mentions a₂, so a₁ ↦ a₂. Now finish:</p>
+<textarea placeholder="Case 2: take a_i with 1 < i < r. Which factors mention a_i? The factor (a_1 a_i) sends a_i to ..., and then the next factor (a_1 a_{i+1}) sends that to ... Case 3: a_r. Case 4: anything not among the a's. Then Lemma 11.46: how many transpositions appear on the right-hand side, and what does the sign homomorphism do to a product of that many odd elements?"></textarea>
+<details><summary>Model answer</summary>
+<p><em>Case 2, 1 &lt; i &lt; r.</em> Reading right to left, the first factor mentioning a<sub>i</sub> is (a₁a<sub>i</sub>), which sends a<sub>i</sub> to a₁. The very next factor is (a₁a<sub>i+1</sub>), which sends a₁ to a<sub>i+1</sub>. No later factor mentions a<sub>i+1</sub>, so the total effect is a<sub>i</sub> ↦ a<sub>i+1</sub>, as required.</p>
+<p><em>Case 3, a<sub>r</sub>.</em> The only factor mentioning a<sub>r</sub> is the leftmost, (a₁a<sub>r</sub>), and it is applied last. Everything to its right fixes a<sub>r</sub>, so a<sub>r</sub> arrives untouched and is sent to a₁. Correct.</p>
+<p><em>Case 4.</em> An element outside {a₁, …, a<sub>r</sub>} is mentioned by no factor, so it is fixed — as it must be, since the cycle fixes it too.</p>
+<p><em>Lemma 11.46.</em> The right-hand side lists the transpositions (a₁a₂), (a₁a₃), …, (a₁a<sub>r</sub>): one for each index from 2 to r, so r − 1 of them. A transposition is odd — its permutation matrix is the identity with two rows swapped, and swapping two rows negates a determinant, so the sign is −1. The sign is a homomorphism (Definition 11.39 and the remark following it), so the sign of a product of r − 1 transpositions is (−1)<sup>r−1</sup>. Hence an r-cycle is even exactly when r is odd.</p>
+<p>Proposition 11.47 is now immediate: every permutation is a product of cycles by Proposition 11.44, and every cycle is a product of transpositions by Lemma 11.45.</p></details>
+</div>
+
+<p><strong>The free group.</strong> One family remains, and it is built from nothing at all. Take a set A of letters. A <em>word</em> is a string of letters and their inverses; it is <em>reduced</em> when no letter stands next to its own inverse. Multiply two words by juxtaposing them and reducing: b⁻³a⁵b⁵ times b⁻⁵a²b⁻¹ becomes b⁻³a⁵a²b⁻¹, then b⁻³a⁷b⁻¹. The set F(A) of reduced words under this operation is a group; the identity is the empty word, and inverses come from reversing the word and negating each exponent, so the inverse of b⁻³a⁷b⁻¹ is ba⁻⁷b³. <span class="cite">— Aluffi Underground §11.3, p. 252</span></p>
+
+<p>Aluffi calls this the purest way to make a group out of a set: the letters are strung together and no extra information is added. He also warns that F(A) is a rather unwieldy group as soon as A has two or more elements. <span class="cite">— Aluffi Underground §11.3, p. 252</span></p>
+
+<p>The payoff is a universal property, and it is aa-19's free-module story repeated for groups. To define a homomorphism F(A) → G it suffices to choose an image in G for each letter of A; the homomorphism property then determines the value on every word, and because the letters satisfy no relation in F(A) the choices are completely unconstrained. <span class="cite">— Aluffi Underground, the universal property of free groups, p. 253</span></p>
+
+<p>That last clause is the definition of "free" doing its work, and it turns the presentations of Segment 1 into something precise. If A generates G there is a surjective homomorphism F(A) → G, and the relations satisfied by the generators describe its <em>kernel</em>. Read Proposition 11.35 that way: for every n &gt; 2 there is a surjection F({x, y}) → D<sub>2n</sub>, and x² = e, yⁿ = e, xy = y⁻¹x are a description of what it kills. <span class="cite">— Aluffi Underground, Example 11.48, p. 253</span></p>
+
+<p>And the mission strip is not a metaphor. Aluffi records it himself: the fundamental group of the figure 8 — two circles joined at a point — is isomorphic to the free group F({a, b}) on a two-element set. <span class="cite">— Aluffi Underground, Example 11.48 and the paragraph following, p. 253</span> A loop in a wedge of two circles <em>is</em> a reduced word in a and b, with cancellation of aa⁻¹ corresponding to a homotopy that retracts a doubled-back path. When at1-04 computes fundamental groups of graphs and at1-05 glues spaces with free products, this is the algebra those units will be running.</p>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> What determines a group homomorphism out of a free group F(A)?</p>
+<button data-ok onclick="check(this,true)">An arbitrary choice of image in G for each letter of A, with no constraints</button>
+<button onclick="check(this,false)">A choice of images satisfying the relations of G</button>
+<button onclick="check(this,false)">Nothing — F(A) admits only the trivial homomorphism</button>
+<div class="explain">Freedom means the absence of relations, so there is nothing for the chosen images to satisfy. Contrast a presented group: a homomorphism out of D<sub>2n</sub> must send x and y to elements that actually satisfy x² = e, yⁿ = e and xy = y⁻¹x, or it is not well defined. That difference is precisely the kernel of the surjection F({x, y}) → D<sub>2n</sub>. <span class="cite">— Aluffi Underground, the universal property of free groups and Example 11.48, p. 253</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Aluffi's permutation (14)(23576) in S<sub>7</sub> — what is its order, and its sign?</p>
+<button onclick="check(this,false)">Order 7, sign +1</button>
+<button data-ok onclick="check(this,true)">Order 10, sign −1</button>
+<button onclick="check(this,false)">Order 10, sign +1</button>
+<div class="explain">The two cycles are disjoint, hence commute (Remark 11.43), so the composite returns to the identity exactly when both do: after a multiple of 2 and a multiple of 5, so after 10. For the sign, Lemma 11.46 gives (−1)<sup>2−1</sup> = −1 for the transposition and (−1)<sup>5−1</sup> = +1 for the 5-cycle, and the sign is a homomorphism, so the product is −1. The permutation is odd and lies outside A<sub>7</sub>. <span class="cite">— Aluffi Underground §11.3, Lemma 11.46, p. 251</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Aluffi writes D<sub>8</sub>; Carter writes D<sub>4</sub>. What is the relationship?</p>
+<button onclick="check(this,false)">They are different groups — one has 8 elements, the other 4</button>
+<button data-ok onclick="check(this,true)">The same group: Aluffi's subscript counts elements, Carter's counts sides of the polygon</button>
+<button onclick="check(this,false)">Carter's D<sub>4</sub> is a subgroup of Aluffi's D<sub>8</sub> of index 2</button>
+<div class="explain">Both are the eight symmetries of the square. Aluffi defines D<sub>2n</sub> as the symmetries of the n-gon, so the subscript is the order; Carter defines D<sub>n</sub> the same way, so his subscript is n. Carter's cycle graphs for D<sub>4</sub> and D<sub>5</sub> — a ring of size n with two-element orbits hanging off the identity — are, in Aluffi's labelling, D<sub>8</sub> and D<sub>10</sub>. <span class="cite">— Aluffi Underground §11.3, Definition 11.32, p. 242</span> <span class="cite">— Carter §5.4, p. 78</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Reconstruct the four families from nothing but their pictures:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Cyclic.</strong> Things that only spin — Carter's propeller and pinwheel. C<sub>n</sub> has n elements, all powers of one rotation, and is aa-05's Z/nZ arrived at geometrically.</li>
+<li><strong>Dihedral.</strong> Things that spin and flip. D<sub>2n</sub> is the symmetry group of the regular n-gon (Definition 11.32), with 2n elements; Example 11.33 is the triangle and Example 11.34 the square, the latter sitting inside S<sub>4</sub> as 8 of the 24 permutations. Proposition 11.35 replaces vertex-chasing by x² = e, yⁿ = e, xy = y⁻¹x with unique normal form xⁱyʲ, and Example 11.36 shows the arithmetic in action. Carter's frf = r⁻¹ is the same relation, argued by handing a triangle to a friend. <em>Watch the subscript convention.</em></li>
+<li><strong>Symmetric and alternating.</strong> All rearrangements. Permutation matrices embed S<sub>n</sub> in GL<sub>n</sub>(R); Lemma 11.37 says their determinants are ±1, Definition 11.39 calls that the sign, and Definition 11.40 defines A<sub>n</sub> as its kernel. Cycle notation (Definition 11.41) with its quirks (Remark 11.42) and its commuting property (Remark 11.43) makes computation possible: Proposition 11.44 decomposes into disjoint cycles, Lemma 11.45 decomposes cycles into transpositions, Lemma 11.46 reads the sign off the cycle lengths, and Proposition 11.47 concludes that transpositions generate.</li>
+<li><strong>Free.</strong> Reduced words in an alphabet, multiplied by juxtaposition and cancellation. No relations at all, which is exactly the universal property: a homomorphism out of F(A) is an unconstrained choice of image per letter. Every generated group is a quotient of a free group, and the relations are the kernel — Example 11.48 reads Proposition 11.35 that way.</li>
+</ol>
+The mission strip is the fourth and third items in order. The fundamental group of a figure 8 is F({a, b}) on the nose, so the free groups of this unit are the fundamental groups of graphs in Semester 3; and the sign homomorphism of Definition 11.39, which assigns ±1 to a rearrangement of n labels, is what will orient an n-simplex and give simplicial homology its boundary map its signs.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi Underground, <em>Algebra: Notes from the Underground</em> — §11.3 "Cyclic, Dihedral, Symmetric, Free Groups" (Definition 11.32 and Example 11.33 p. 242; Example 11.34 p. 243; Proposition 11.35 with its uniqueness argument and Example 11.36 p. 245; the permutation-matrix representation p. 247; Lemma 11.37 with proof, Definition 11.39 and the sign homomorphism p. 248; Definition 11.40 and Definition 11.41 p. 249; Remark 11.42, Remark 11.43, Proposition 11.44 and the example of order 10 p. 250; Lemma 11.45, Lemma 11.46 and Proposition 11.47 p. 251; reduced words and the group F(A) p. 252), pp. 241–252. Aluffi Underground continues the free-group discussion with the universal property and Example 11.48 on p. 253.
+Second source: Carter, <em>Visual Group Theory</em>. Carter §5.1 "Cyclic groups" introduces C<sub>n</sub> as the symmetries of objects that only rotate, p. 64. Carter §5.1 gives the naming convention and the alternative name Z<sub>n</sub>, p. 65. Carter §5.3 "Dihedral groups" defines D<sub>n</sub> for the regular n-gon and counts its 2n elements, p. 74. Carter §5.3 derives frf = r⁻¹ from the two-viewpoint argument, p. 75. Carter §5.4 "Symmetric and alternating groups" shows the cycle graphs of the dihedral family, p. 78. Carter §5.4 checks permutations against the group rules, p. 79. Carter §5.4 gives the order of S<sub>n</sub> as n! and builds A<sub>n</sub> by squaring, p. 80. Carter §5.4 displays the squares of the elements of S<sub>3</sub>, p. 81.
+In Aluffi Underground: the faithfulness vocabulary and Cayley's theorem come from aa-24 (§11.2, pp. 235–240), the kernel-is-a-subgroup fact from aa-23 (§11.1, pp. 229–232), and the free-module universal property that F(A) mirrors from aa-19. The canvas below computes its permutations and signs from the drawn vertex positions.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// The dihedral group D_2n drawn inside S_n. cur[i] is the vertex label currently
+// occupying position i. Every reported quantity - the normal form x^i y^j, the
+// cycle decomposition, the sign - is computed from cur, never tabulated.
+var dc=document.getElementById('dih'),dx=dc.getContext('2d');
+var N=4,el=[0,1,2,3];
+function idp(n){var a=[];for(var i=0;i<n;i++)a.push(i);return a;}
+function rot(n){var a=[];for(var i=0;i<n;i++)a.push((i+1)%n);return a;}   // 1->2->...->n->1
+function flp(n){var a=[];for(var i=0;i<n;i++)a.push((n-i)%n);return a;}   // fixes vertex 1
+function comp(f,g){var a=[];for(var i=0;i<g.length;i++)a.push(f[g[i]]);return a;} // f after g
+function inv(p){var a=[];for(var i=0;i<p.length;i++)a[p[i]]=i;return a;}
+function eq(a,b){for(var i=0;i<a.length;i++)if(a[i]!==b[i])return false;return true;}
+function setN(n){N=n;el=idp(n);draw();}
+function reset(){el=idp(N);draw();}
+// el is the group element performed so far, as a permutation of vertices.
+// The label drawn at position i is the vertex sent there, i.e. el inverse of i.
+function apply(g){el=comp(g==='y'?rot(N):flp(N),el);draw();}
+
+// normal form: search i in {0,1}, j in 0..N-1 for x^i y^j equal to cur
+function normalForm(p){
+ var n=p.length,x=flp(n),y=rot(n);
+ for(var i=0;i<2;i++)for(var j=0;j<n;j++){
+  var w=idp(n);
+  for(var k=0;k<j;k++)w=comp(y,w);
+  if(i===1)w=comp(x,w);
+  if(eq(w,p))return (i?'x':'')+(j?('y'+(j>1?sup(j):'')):'')||'e';}
+ return '?';}
+function sup(k){var S='⁰¹²³⁴⁵⁶⁷⁸⁹',o='';
+ (''+k).split('').forEach(function(d){o+=S[+d];});return o;}
+
+function cycles(p){var n=p.length,seen=[],out=[];
+ for(var i=0;i<n;i++)seen.push(false);
+ for(var i=0;i<n;i++){
+  if(seen[i]||p[i]===i)continue;
+  var c=[],j=i;
+  while(!seen[j]){seen[j]=true;c.push(j+1);j=p[j];}
+  if(c.length>1)out.push('('+c.join(' ')+')');}
+ return out.length?out.join(''):'e (identity)';}
+function sign(p){var n=p.length,s=1;
+ for(var i=0;i<n;i++)for(var j=i+1;j<n;j++)if(p[i]>p[j])s=-s;
+ return s;}
+
+function draw(){
+ dx.clearRect(0,0,dc.width,dc.height);
+ var cx=dc.width/2,cy=170,R=105;
+ function pos(i){var a=-Math.PI/2+2*Math.PI*i/N;return [cx+R*Math.cos(a),cy+R*Math.sin(a)];}
+ // the polygon
+ dx.strokeStyle='#2a333d';dx.lineWidth=2;dx.beginPath();
+ for(var i=0;i<N;i++){var q=pos(i);if(i)dx.lineTo(q[0],q[1]);else dx.moveTo(q[0],q[1]);}
+ dx.closePath();dx.stroke();
+ // the axis of the flip x, through the centre and position 1
+ var t=pos(0);
+ dx.strokeStyle='#d8a657';dx.setLineDash([5,5]);dx.lineWidth=1;
+ dx.beginPath();dx.moveTo(t[0],t[1]);
+ dx.lineTo(2*cx-t[0],2*cy-t[1]);dx.stroke();dx.setLineDash([]);
+ // vertices, labelled by which original vertex now sits there
+ dx.font='15px Segoe UI';dx.textAlign='center';dx.textBaseline='middle';
+ var cur=inv(el);
+ for(var i=0;i<N;i++){var q=pos(i);
+  dx.fillStyle=(cur[i]===i)?'#4caf82':'#8ab4f8';
+  dx.beginPath();dx.arc(q[0],q[1],17,0,7);dx.fill();
+  dx.fillStyle='#0c1013';dx.fillText(''+(cur[i]+1),q[0],q[1]);}
+ var s=sign(el);
+ dx.textAlign='left';dx.font='13px Segoe UI';
+ dx.fillStyle='#e8e8e8';
+ dx.fillText('D'+sub(2*N)+'  acting on the '+N+'-gon   -   labels show which vertex sits where',14,20);
+ dx.fillStyle='#9aa5b1';
+ dx.fillText('normal form:  '+normalForm(el),14,42);
+ dx.fillText('as a permutation:  '+cycles(el),14,62);
+ dx.fillStyle=(s===1)?'#4caf82':'#e06c75';
+ dx.fillText('sign:  '+(s===1?'+1  (even, so it lies in A'+sub(N)+')':'-1  (odd)'),14,dc.height-16);
+ dx.fillStyle='#d8a657';dx.textAlign='right';
+ dx.fillText('dashed line: the axis of the flip x',dc.width-14,dc.height-16);}
+function sub(k){var S='₀₁₂₃₄₅₆₇₈₉',o='';
+ (''+k).split('').forEach(function(d){o+=S[+d];});return o;}
+draw();
+</script></body></html>

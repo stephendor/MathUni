@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-14 — Irreducibility and factorization in ℚ[x], ℤ[x]</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Irreducibility and factorization in ℚ[x], ℤ[x] <span class="cite">(aa-14)</span></h1>
+
+<div class="hook">
+Over ℂ the irreducible polynomials all have degree 1. Over ℝ they have degree 1 or 2. Over ℚ they have arbitrarily large degree, and there is no efficient test to recognise them.
+<p>Three fields, three completely different answers to one question. aa-13 proved that k[x] is a UFD whenever k is a field — so factorisations exist and are unique — but said nothing about <em>which</em> polynomials are the atoms. Today we find out, and the answer degrades sharply as the field gets smaller. The surprise in the middle is Gauss's Lemma: factoring over ℚ turns out to be the same problem as factoring over ℤ, which is not obvious and is what makes the integer tests legitimate.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> A polynomial in ℚ[x] has no rational roots. Must it be irreducible?</p>
+<button onclick="check(this,false)">Yes — no roots means no linear factors, hence no factors</button>
+<button data-ok onclick="check(this,true)">No — x⁴ − 3x² + 1 has none, yet it factors</button>
+<button onclick="check(this,false)">Only if the degree is even</button>
+<div class="explain">x⁴ − 3x² + 1 = (x² + x − 1)(x² − x − 1), and neither factor has a rational root, so the product has none either. "No roots" only rules out factors of degree 1. It settles irreducibility exactly for degrees 2 and 3, where any proper factorisation must contain a linear factor — Proposition 7.15 — and for degree 4 or more it settles nothing. <span class="cite">— Aluffi §7.5, Example 7.32, p. 144</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Rigour and technique; the factorisation habits carry straight into module decomposition.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Irreducibility over ℂ and ℝ — where it is easy</h2>
+
+<p>Why care? Because aa-13 showed k[x] is a PID, so by aa-12's Proposition 6.33 the ideal (f) is maximal exactly when f is irreducible — and therefore <strong>k[x]/(f) is a field precisely when f is irreducible in k[x]</strong>. Irreducibility is the test for whether a quotient is a field. <span class="cite">— Aluffi §7.3, p. 136</span></p>
+
+<p><strong>Example 7.13.</strong> Over a field, every degree-1 polynomial is irreducible. Over a general domain this fails: 2x ∈ ℤ[x] has degree 1 and equals 2·x, a product of two non-units. <span class="cite">— Aluffi §7.3, Example 7.13, p. 136</span></p>
+
+<div class="theorem">
+<strong>Proposition 7.14.</strong> Let k be a field and f ∈ k[x] with deg f ≥ 2. If f has a root, f is not irreducible. <span class="cite">— Aluffi §7.3, Proposition 7.14, p. 136</span>
+<p><strong>Proposition 7.15.</strong> Let k be a field and f ∈ k[x] nonzero of degree 2 or 3. Then f is irreducible if and only if f has no roots in k. <span class="cite">— Aluffi §7.3, Proposition 7.15, p. 137</span></p>
+</div>
+
+<div class="worked">
+<strong>Proofs.</strong> For 7.14: a root a gives f = (x − a)g with deg g = deg f − 1 ≥ 1, so g is not a unit (aa-13's guided proof: units of k[x] are the nonzero constants). ∎
+<p>For 7.15, the forward direction is 7.14 contrapositively. Conversely, if f = q₁q₂ with neither a unit, then neither is constant, and since deg f is 2 or 3 one of them has degree 1, say ax + b with a ≠ 0. Then −ba<sup>−1</sup> is a root of f. ∎ <span class="cite">— Aluffi §7.3, p. 137</span></p>
+<p><strong>Remark 7.16 — both hypotheses are needed.</strong> <em>k must be a field:</em> the proof inverted a. In ℤ[x], (2x − 1)² is reducible and has no root in ℤ — its root ½ lives in ℚ. <em>The degree bound is real:</em> x⁴ − 4 = (x² − 2)(x² + 2) is reducible in ℚ[x] with roots ±√2, ±i√2, none rational. <span class="cite">— Aluffi §7.3, Remark 7.16, p. 137</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 7.17 (Fundamental Theorem of Algebra).</strong> Every nonconstant f ∈ ℂ[x] has a root in ℂ. <span class="cite">— Aluffi §7.3, Theorem 7.17, p. 137</span>
+</div>
+
+<p>That is, ℂ is <strong>algebraically closed</strong>. Aluffi does not prove it here and neither will we: the standard proof belongs to complex analysis — if f had no root then 1/f would be analytic on all of ℂ, and the maximum modulus principle produces a contradiction — and even the algebraic proof in §15.6 uses real analysis. It is quoted, not derived. <span class="cite">— Aluffi §7.3, p. 137</span></p>
+
+<div class="worked">
+<strong>The two corollaries over ℂ.</strong>
+<p><strong>Corollary 7.18.</strong> f ∈ ℂ[x] is irreducible ⟺ deg f = 1. Degree 0 is a unit; degree ≥ 2 has a root by Theorem 7.17, so is reducible by 7.14. <span class="cite">— Aluffi §7.3, Corollary 7.18, pp. 137–138</span></p>
+<p><strong>Corollary 7.19.</strong> Every f ∈ ℂ[x] of degree d factors into d linear factors, uniquely up to units:</p>
+<p style="text-align:center">f(x) = u(x − a₁)⋯(x − a<sub>d</sub>),</p>
+<p>with a₁, …, a<sub>d</sub> the roots. This is Corollary 7.8 (unique factorisation in ℂ[x]) plus the identification of the irreducibles. <span class="cite">— Aluffi §7.3, Corollary 7.19, p. 138</span></p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 7.20.</strong> f ∈ ℝ[x] is irreducible if and only if either deg f = 1, or deg f = 2 with f = ax² + bx + c and b² − 4ac &lt; 0. <span class="cite">— Aluffi §7.3, Proposition 7.20, p. 138</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> (⟸) Degree 1 is irreducible; a negative discriminant means no real root, so Proposition 7.15 applies. (⟹) Degree 0 is a unit. Degree 2 with b² − 4ac ≥ 0 has a real root. For deg f ≥ 3, view f in ℂ[x]: by Theorem 7.17 it has a root α ∈ ℂ. If α is real we have a linear factor. If not, then since f has <em>real</em> coefficients, f(ᾱ) = f(α)‾ = 0, so ᾱ ≠ α is also a root, both x − α and x − ᾱ occur in the ℂ[x]-factorisation (ℂ[x] is a UFD), and
+<p style="text-align:center">(x − α)(x − ᾱ) = x² − (α + ᾱ)x + αᾱ</p>
+<p>has <em>real</em> coefficients and divides f. Either way f has a proper factor. ∎ <span class="cite">— Aluffi §7.3, pp. 138–139</span></p>
+<p>There is also a cheap calculus argument for part of this: a real polynomial of odd degree tends to +∞ at one end and −∞ at the other, so by the Intermediate Value Theorem its graph crosses the axis and it has a real root. Odd degree ≥ 3 is therefore always reducible. Watch it happen below. <span class="cite">— Aluffi §7.3, p. 138</span></p>
+</div>
+
+<canvas id="odd" width="620" height="300" aria-label="Graphs of real polynomials of odd and even degree, showing that odd degree forces a crossing of the axis"></canvas>
+<div class="controls">
+<button onclick="setPoly(0)">x³ − 2x + 1 (odd)</button>
+<button onclick="setPoly(1)">x⁵ − 3x + 1 (odd)</button>
+<button onclick="setPoly(2)">x² + 1 (even)</button>
+<button onclick="setPoly(3)">x⁴ + 4 (even)</button>
+</div>
+
+<div class="worked">
+<strong>Example 7.21 — x⁴ + 4 over ℝ.</strong> By Proposition 7.20 it must be reducible, since its degree exceeds 2 — no computation needed. But run the proof and see the gears turn. Over ℂ, x⁴ = −4 gives the four roots ±1 ± i, in conjugate pairs. The pair 1 ± i contributes
+<p style="text-align:center">(x − (1 + i))(x − (1 − i)) = (x − 1)² − i² = x² − 2x + 2,</p>
+<p>a real quadratic factor; the other pair gives x² + 2x + 2, and indeed x⁴ + 4 = (x² − 2x + 2)(x² + 2x + 2). Note that x⁴ + 4 has <em>no real roots at all</em>, and is reducible anyway. <span class="cite">— Aluffi §7.3, Example 7.21, p. 139</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> What are the irreducible polynomials of ℝ[x]?</p>
+<button onclick="check(this,false)">Only those of degree 1</button>
+<button data-ok onclick="check(this,true)">Degree 1, and degree 2 with negative discriminant</button>
+<button onclick="check(this,false)">All polynomials with no real roots</button>
+<div class="explain">Degree 1 always, and ax² + bx + c exactly when b² − 4ac &lt; 0. Nothing of degree 3 or more survives, because a non-real root drags its conjugate along and the pair contributes a real quadratic factor. "No real roots" is not enough — x⁴ + 4 has none and factors into two real quadratics. Degree 1 only is the answer for ℂ, by Corollary 7.18. <span class="cite">— Aluffi §7.3, Proposition 7.20, p. 138</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now ℚ, where Aluffi's word for the subject is "deep and profound".</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Gauss's Lemma: factoring over ℚ is factoring over ℤ</h2>
+
+<p>First, a real difference between the two rings. Over a field k, f is reducible exactly when it is a product of two polynomials of <em>lower degree</em>. Over ℤ that is false: 2x + 2 = 2·(x + 1) is reducible in ℤ[x], because 2 is not a unit there — while in ℚ[x] the same polynomial is irreducible, since 2 <em>is</em> a unit. <span class="cite">— Aluffi §7.4, pp. 139–140</span></p>
+
+<p>Remarkably, that constant-factor nuisance is the <em>only</em> difference. Proving it takes some cleverness.</p>
+
+<div class="theorem">
+<strong>Theorem 7.22 (Gauss's Lemma).</strong> Let f ∈ ℤ[x] and suppose f = gh with g, h ∈ ℚ[x]. Then there are rationals a, b with ag ∈ ℤ[x], bh ∈ ℤ[x] and f = (ag)(bh). <span class="cite">— Aluffi §7.4, Theorem 7.22, p. 140</span>
+</div>
+
+<p>In words: every factorisation of an integer polynomial over ℚ can be converted into one over ℤ. The converse is trivial. So factoring in ℚ[x] and factoring in ℤ[x] are the same problem. <span class="cite">— Aluffi §7.4, p. 140</span></p>
+
+<div class="theorem">
+<strong>Lemma 7.23.</strong> Let α, β ∈ ℤ[x] and let q be an irreducible integer dividing every coefficient of αβ. Then q divides every coefficient of α, or every coefficient of β. <span class="cite">— Aluffi §7.4, Lemma 7.23, p. 140</span>
+</div>
+
+<div class="worked">
+<strong>Proof of Lemma 7.23 — an ideal argument, not a computation.</strong> Let I = qℤ and let I[x] be the ideal generated by q in ℤ[x]. There is an isomorphism
+<p style="text-align:center">(ℤ/I)[x] ≅ ℤ[x]/I[x],</p>
+<p>a standard application of the First Isomorphism Theorem. Now chase the properties: q is irreducible, so I = (q) is prime in ℤ, so ℤ/I is an integral domain, so (ℤ/I)[x] is an integral domain, so ℤ[x]/I[x] is an integral domain, so <strong>I[x] is a prime ideal</strong>. And I[x] is exactly the set of polynomials all of whose coefficients are divisible by q. Primality of I[x] says</p>
+<p style="text-align:center">αβ ∈ I[x] ⟹ α ∈ I[x] or β ∈ I[x],</p>
+<p>which is the statement of the lemma. ∎ <span class="cite">— Aluffi §7.4, p. 140</span></p>
+<p>Worth pausing on. The lemma is a concrete claim about integer coefficients, and the proof never touches a coefficient: it translates the claim into "this ideal is prime" and reads the answer off aa-11's Definition 6.1. That is the payoff of the language.</p>
+</div>
+
+<div class="worked">
+<strong>Proof of Gauss's Lemma.</strong> Choose any rationals a, b with ag, bh ∈ ℤ[x]. Then (ag)(bh) = ab·f, and we must arrange ab = 1. Consider
+<p style="text-align:center">S = { c = ab &gt; 0 : ag ∈ ℤ[x], bh ∈ ℤ[x], ab ∈ ℤ },</p>
+<p>which is nonempty (scale a or b by a large integer, flipping a sign if needed). By <strong>well-ordering</strong> take the least c ∈ S, and suppose c ≠ 1. Then c has an irreducible factor q, by the Fundamental Theorem of Arithmetic. Now q divides every coefficient of ab·f = (ag)(bh), so by Lemma 7.23 it divides every coefficient of ag, say. Then q<sup>−1</sup>ag ∈ ℤ[x], so c/q = (q<sup>−1</sup>a)b ∈ S — and c/q &lt; c, contradicting minimality. Hence c = 1. ∎ <span class="cite">— Aluffi §7.4, p. 141</span></p>
+<p><strong>Remark 7.24.</strong> The contradiction turned on the <em>size</em> of the least element of S. Aluffi notes that a different measure works just as well — the number of irreducible factors of ab counted with repetition — and that recasting the proof that way is what generalises to an arbitrary UFD. <span class="cite">— Aluffi §7.4, Remark 7.24, p. 141</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 7.25.</strong> The <strong>content</strong> of a nonzero f ∈ ℤ[x] is the gcd of its coefficients; f is <strong>primitive</strong> if its content is 1. <span class="cite">— Aluffi §7.4, Definition 7.25, p. 141</span>
+</div>
+
+<p>Every f ∈ ℤ[x] splits as f = d·f₁ with d the content and f₁ primitive. <span class="cite">— Aluffi §7.4, p. 141</span></p>
+
+<div class="theorem">
+<strong>Corollary 7.26.</strong> Let f ∈ ℤ[x] be primitive. Then f is irreducible in ℤ[x] if and only if f is irreducible in ℚ[x]. <span class="cite">— Aluffi §7.4, Corollary 7.26, p. 141</span>
+<p><strong>Corollary 7.27.</strong> ℤ[x] is a UFD. <span class="cite">— Aluffi §7.4, Corollary 7.27, p. 142</span></p>
+</div>
+
+<div class="worked">
+<strong>Proof of Corollary 7.26.</strong> If f = gh in ℤ[x] with neither a unit, then neither can be a constant — a constant factor would divide every coefficient, contradicting content 1 — so both have positive degree and neither is a unit in ℚ[x]: f is reducible in ℚ[x]. Conversely if f = gh in ℚ[x] with both of positive degree, Gauss's Lemma converts this into a factorisation in ℤ[x]. ∎ <span class="cite">— Aluffi §7.4, p. 142</span>
+<p><strong>The classification.</strong> The irreducible elements of ℤ[x] are exactly: the irreducible integers, and the primitive polynomials that are irreducible in ℚ[x]. Corollary 7.27 follows, and gives aa-12's Remark 6.38 its promised example — <strong>ℤ[x] is a UFD that is not a PID</strong>. By the same route k[x₁, …, x<sub>n</sub>] and ℤ[x₁, …, x<sub>n</sub>] are UFDs. <span class="cite">— Aluffi §7.4, pp. 142–143</span></p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi calls two steps "clear" and moves on. Make them explicit. <strong>(a) Prove that if q is an irreducible integer then q is irreducible as an element of ℤ[x]. (b) Deduce the classification: the irreducible elements of ℤ[x] are precisely the irreducible integers together with the primitive polynomials that are irreducible in ℚ[x].</strong> For (a) you will need the units of ℤ[x] and the degree formula from aa-13.</p>
+<textarea placeholder="(a) The units of Z[x] are the units of Z, namely +-1. Suppose q = g(x)h(x) in Z[x]. Compare degrees ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>(a) By aa-13's guided proof, ℤ[x]<sup>∗</sup> = ℤ<sup>∗</sup> = {±1}, so q is not a unit in ℤ[x]. Suppose q = g(x)h(x) with g, h ∈ ℤ[x]. Since ℤ is a domain, deg g + deg h = deg q = 0, so g and h are constants, say integers b and c with q = bc. As q is irreducible <em>in ℤ</em>, one of b, c is ±1, i.e. a unit of ℤ[x]. Hence q is irreducible in ℤ[x].</p>
+<p>(b) Let f ∈ ℤ[x] be irreducible. Write f = d·f₁ with d the content and f₁ primitive. Since f is irreducible, one of d, f₁ is a unit.</p>
+<p><em>Case f₁ a unit.</em> Then f₁ = ±1 and f = ±d is a constant, an irreducible element of ℤ — by (a) read backwards, since a reducible integer would factor in ℤ[x] too.</p>
+<p><em>Case d a unit.</em> Then d = ±1 and f is primitive, and by Corollary 7.26 f is irreducible in ℤ[x] if and only if it is irreducible in ℚ[x].</p>
+<p>Conversely both kinds of element are irreducible in ℤ[x]: irreducible integers by (a), and primitive ℚ[x]-irreducibles by Corollary 7.26. ∎</p>
+<p>Grade yourself on the content split in (b). If your argument did not use f = d·f₁, it almost certainly missed that a constant can be an irreducible element of ℤ[x] — which is exactly the phenomenon 2x + 2 exhibits, and exactly what makes ℤ[x] and ℚ[x] behave differently.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Is 2x + 2 irreducible in ℤ[x]? In ℚ[x]?</p>
+<button data-ok onclick="check(this,true)">Reducible in ℤ[x], irreducible in ℚ[x]</button>
+<button onclick="check(this,false)">Irreducible in both</button>
+<button onclick="check(this,false)">Reducible in both</button>
+<div class="explain">2x + 2 = 2·(x + 1). In ℤ[x] neither factor is a unit, so it is reducible; in ℚ[x] the constant 2 <em>is</em> a unit, so this is not a proper factorisation and the polynomial is irreducible (degree 1 over a field). The content is 2, so the polynomial is not primitive — and Corollary 7.26 is stated only for primitive polynomials for exactly this reason. <span class="cite">— Aluffi §7.4, p. 140</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Gauss's Lemma legitimises integer tests. Here they are.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Three tests, and their limits</h2>
+
+<div class="theorem">
+<strong>Proposition 7.29 (rational root test).</strong> Let f = a₀ + a₁x + ⋯ + a<sub>d</sub>x<sup>d</sup> ∈ ℤ[x] and let c = p/q ∈ ℚ be a root, with p, q relatively prime. Then p ∣ a₀ and q ∣ a<sub>d</sub>. <span class="cite">— Aluffi §7.5, Proposition 7.29, p. 143</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Substitute and clear denominators:
+<p style="text-align:center">a₀q<sup>d</sup> + a₁pq<sup>d−1</sup> + ⋯ + a<sub>d</sub>p<sup>d</sup> = 0.</p>
+<p>Isolating gives a₀q<sup>d</sup> = −(⋯)p and a<sub>d</sub>p<sup>d</sup> = −(⋯)q, so p ∣ a₀q<sup>d</sup> and q ∣ a<sub>d</sub>p<sup>d</sup>. Since gcd(p, q) = 1, aa-02's Corollary 1.11 strips the powers and leaves p ∣ a₀, q ∣ a<sub>d</sub>. ∎ <span class="cite">— Aluffi §7.5, p. 143</span></p>
+<p>So finding rational roots is a <em>finite</em> search: list the divisors of a₀ and a<sub>d</sub> and test each p/q. If a root turns up and deg f ≥ 2, f is reducible. If none turns up and deg f ≤ 3, f is irreducible (Proposition 7.15). Outside that degree window the test is silent.</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Example 7.30: is f(x) = 4x³ + 2x² − 5x + 3 irreducible in ℚ[x]?</strong>
+<p>Degree 3, so by Proposition 7.15 it is enough to check for ⟨your step: what?⟩.</p>
+<p>By Proposition 7.29 a root p/q needs p ∣ 3 and q ∣ ⟨your step⟩, so the candidates are ±1, ±3, ±1/2, ±3/2, ±1/4, ±3/4 — ⟨your step: how many?⟩ of them.</p>
+<p>Substituting each gives no zero, so f has no rational root, so f is irreducible in ℚ[x]. And since the content of f is gcd(4, 2, 5, 3) = ⟨your step⟩, f is primitive, so by Corollary 7.26 it is irreducible in ℤ[x] too. <span class="cite">— Aluffi §7.5, Example 7.30, p. 144</span></p>
+<p><em>Now change one digit.</em> Example 7.31 takes g(x) = 4x³ + 2x² − 4x + 3, with the same constant term and leading coefficient and hence the same candidate list. This time g(−3/2) = 0, so g is reducible in ℚ[x] — and by Corollary 7.26 also in ℤ[x], with 2x + 3 as a factor, even though g has no root in ℤ. <span class="cite">— Aluffi §7.5, Example 7.31, p. 144</span></p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 7.33 (reduction mod p).</strong> Let f ∈ ℤ[x] and let p be an irreducible integer. If p does not divide the leading coefficient of f, and the reduction of f is irreducible in (ℤ/pℤ)[x], then f cannot be written as a product of positive-degree polynomials; hence f is irreducible in ℚ[x]. <span class="cite">— Aluffi §7.5, Proposition 7.33, p. 144</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Contrapositively, suppose f = gh with deg g, deg h &gt; 0. The leading coefficient of f is the product of those of g and h; since p does not divide it and p is prime, p divides neither. (That ℤ/pℤ is a domain at all — indeed a field — is aa-04’s <strong>Theorem 2.15</strong>, and both this proof and Eisenstein’s below rest on it. <span class="cite">— Aluffi §2.4, Theorem 2.15, p. 32</span>) So reduction mod p preserves both degrees, and the reduced f is the product of two positive-degree polynomials — reducible. ∎ Primitivity plus Corollary 7.26 then upgrades ℚ[x]-irreducibility to ℤ[x]. <span class="cite">— Aluffi §7.5, p. 145</span>
+<p><strong>Example 7.34.</strong> f(x) = 675x³ − 23129x + 1573. The rational root test would be impractical here. But the leading coefficient is odd, and mod 2 the polynomial becomes x³ + x + 1, which has no root in ℤ/2ℤ (check 0 and 1) and so — being of degree 3 — is irreducible there. Hence f is irreducible. <span class="cite">— Aluffi §7.5, Example 7.34, p. 145</span></p>
+<p><strong>And the limit of the test.</strong> There are polynomials reducible mod <em>every</em> prime that are nonetheless irreducible in ℤ[x]. Aluffi's example is <strong>x⁴ + 1</strong>. Mod 2 it is (x + 1)⁴; and it is reducible modulo every positive prime, though Aluffi notes that verifying <em>that</em> "requires more sophisticated considerations" than are available here. So the test can never certify x⁴ + 1, whichever prime you try. <span class="cite">— Aluffi §7.5, p. 145</span></p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 7.35 (Eisenstein's criterion).</strong> Let f = a₀ + a₁x + ⋯ + a<sub>d</sub>x<sup>d</sup> ∈ ℤ[x] and let p be an irreducible integer with
+<p>• p ∤ a<sub>d</sub>; &nbsp; • p ∣ a<sub>i</sub> for all i &lt; d; &nbsp; • p² ∤ a₀.</p>
+Then f is not a product of two positive-degree polynomials, hence is irreducible in ℚ[x]. <span class="cite">— Aluffi §7.5, Theorem 7.35, pp. 145–146</span>
+</div>
+
+<div class="worked">
+<strong>Lemma 7.36.</strong> If R is an integral domain and g, h ∈ R[x] with gh a monomial, then g and h are both monomials.
+<p><em>Proof.</em> Let r and s be the least exponents with nonzero coefficients in g and h, and m, n the degrees. Then gh = b<sub>r</sub>c<sub>s</sub>x<sup>r+s</sup> + ⋯ + b<sub>m</sub>c<sub>n</sub>x<sup>m+n</sup>, and both end coefficients are nonzero because R is a domain. If g is not a monomial then r &lt; m, so r + s &lt; m + n and gh has two distinct nonzero coefficients — not a monomial. ∎ <span class="cite">— Aluffi §7.5, Lemma 7.36, p. 146</span></p>
+<p><strong>Proof of Eisenstein.</strong> Suppose f = gh with deg g = m &gt; 0, deg h = n &gt; 0. Reduce mod p. By the first two hypotheses the reduction of f is the monomial a<sub>d</sub>x<sup>d</sup> with a<sub>d</sub> ≠ 0. Since ℤ/pℤ is a domain, Lemma 7.36 forces the reductions of g and h to be monomials — necessarily b<sub>m</sub>x<sup>m</sup> and c<sub>n</sub>x<sup>n</sup>. As m, n &gt; 0, the constant terms reduce to 0: p ∣ b₀ and p ∣ c₀. But then p² ∣ b₀c₀ = a₀, contradicting the third hypothesis. ∎ <span class="cite">— Aluffi §7.5, p. 146</span></p>
+<p><strong>Each hypothesis is load-bearing and used exactly once:</strong> the first keeps the reduction from collapsing in degree, the second makes it a monomial, and the third supplies the contradiction. Drop any one and the argument stops.</p>
+</div>
+
+<div class="worked">
+<strong>What Eisenstein delivers.</strong>
+<p><strong>Example 7.37.</strong> For irreducible p, the polynomial x<sup>n</sup> − p satisfies the criterion (p ∤ 1, p ∣ −p, p² ∤ −p). So x<sup>n</sup> − p is irreducible in ℚ[x] — and in particular x² − p has no rational root, which is a proof that √p is irrational, and more generally that the n-th root of p is irrational. <span class="cite">— Aluffi §7.5, Example 7.37, p. 147</span></p>
+<p><strong>Corollary 7.38.</strong> ℚ[x] has irreducible polynomials of arbitrarily high degree — take x<sup>n</sup> − p for any n. Contrast ℂ[x], where irreducibles have degree 1 (Corollary 7.18), and ℝ[x], where they have degree at most 2 (Proposition 7.20). No bound holds over ℚ. <span class="cite">— Aluffi §7.5, Corollary 7.38, p. 147</span></p>
+<p><strong>Example 7.39 — a shift of variable.</strong> For irreducible p the cyclotomic polynomial γ(x) = 1 + x + ⋯ + x<sup>p−1</sup> has all coefficients 1, so Eisenstein seems useless. But γ is irreducible if and only if γ(1 + x) is, and since γ(x) = (x<sup>p</sup> − 1)/(x − 1),</p>
+<p style="text-align:center">γ(1 + x) = ((1 + x)<sup>p</sup> − 1)/x = p + C(p,2)x + ⋯ + C(p,p−1)x<sup>p−2</sup> + x<sup>p−1</sup>,</p>
+<p>whose non-leading coefficients are all divisible by p while the constant term p is not divisible by p². Eisenstein applies. <span class="cite">— Aluffi §7.5, Example 7.39, p. 147</span></p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (a) Complete Example 7.39 by proving the claim it rests on: for an irreducible p and 1 ≤ i ≤ p − 1, show p divides the binomial coefficient C(p, i). (Aluffi's hint: write C(p, i) = [(p−1)⋯(p−i+1) / i(i−1)⋯1]·p and argue that the bracket is an integer.) (b) Then decide, with reasons, whether each of x³ − 3x + 1, 2x⁵ − 6x³ + 9x − 3 and x⁴ + 1 is irreducible in ℚ[x] — using the rational root test, Eisenstein, and reduction mod p respectively, and saying which test <em>fails</em> on which polynomial.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Eisenstein's criterion require p² ∤ a₀?</p>
+<button onclick="check(this,false)">To make the reduction mod p a monomial</button>
+<button data-ok onclick="check(this,true)">Because the contradiction is exactly p² ∣ b₀c₀ = a₀</button>
+<button onclick="check(this,false)">To make p not divide the leading coefficient</button>
+<div class="explain">The reduction becomes a monomial from the first two hypotheses. Lemma 7.36 then forces p ∣ b₀ and p ∣ c₀, so p² ∣ b₀c₀ = a₀ — and the third hypothesis is precisely what makes that impossible. Each of the three conditions is used once, at a different point, which is why none can be dropped. <span class="cite">— Aluffi §7.5, p. 146</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> x⁴ + 1 factors modulo 2, modulo 3, modulo 5 and modulo 7. Does it follow that it is reducible over ℤ?</p>
+<button onclick="check(this,false)">Yes — reducible mod several primes means reducible</button>
+<button data-ok onclick="check(this,true)">No — Proposition 7.33 runs only in the other direction, and x⁴ + 1 is irreducible in ℤ[x]</button>
+<button onclick="check(this,false)">Only if it also factors mod 11</button>
+<div class="explain">Proposition 7.33 says irreducible mod p ⟹ irreducible over ℚ. It says nothing when the reduction factors — that is the "not quite right" direction Aluffi flags. x⁴ + 1 is the standing example: it is reducible modulo every positive prime and irreducible in ℤ[x]. So no accumulation of primes can ever settle it, and no fourth prime, or fortieth, would change that. <span class="cite">— Aluffi §7.5, p. 145</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Corollary 7.26 assumes f is primitive. Where does the proof use it?</p>
+<button data-ok onclick="check(this,true)">To rule out a constant factor, so both factors have positive degree</button>
+<button onclick="check(this,false)">To apply Gauss's Lemma</button>
+<button onclick="check(this,false)">To ensure f has integer coefficients</button>
+<div class="explain">If f = gh in ℤ[x] with neither a unit, a constant factor would divide every coefficient of f and so divide the content — impossible when the content is 1. That is what forces both factors to have positive degree, hence to be non-units in ℚ[x]. Gauss's Lemma is used in the other direction and needs no primitivity. And 2x + 2 shows the corollary is genuinely false without it. <span class="cite">— Aluffi §7.4, Corollary 7.26, pp. 141–142</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Irreducibility depends violently on the field.</strong> Over ℂ, the irreducibles are exactly the degree-1 polynomials (Corollary 7.18, from the Fundamental Theorem of Algebra), so every polynomial splits into linear factors. Over ℝ they are degree 1 and the negative-discriminant quadratics (Proposition 7.20), because non-real roots come in conjugate pairs. Over ℚ there is no degree bound at all (Corollary 7.38). Roots decide irreducibility only in degrees 2 and 3 (Proposition 7.15).</li>
+<li><strong>Gauss's Lemma (Theorem 7.22)</strong> converts any ℚ[x]-factorisation of an integer polynomial into a ℤ[x]-factorisation, using a minimal-denominator argument resting on Lemma 7.23 — which is proved by showing that "all coefficients divisible by q" is a <em>prime ideal</em>. Consequence: for primitive f, irreducible in ℤ[x] ⟺ irreducible in ℚ[x] (Corollary 7.26), the irreducibles of ℤ[x] are the irreducible integers plus those primitive polynomials, and ℤ[x] is a UFD that is not a PID (Corollary 7.27).</li>
+<li><strong>Three tests, all one-directional.</strong> The rational root test (Proposition 7.29) makes root-finding a finite search but decides irreducibility only up to degree 3. Reduction mod p (Proposition 7.33) certifies irreducibility but never reducibility — and x⁴ + 1 is reducible modulo every prime while irreducible over ℤ. Eisenstein (Theorem 7.35) certifies irreducibility when the coefficients line up, sometimes only after a shift of variable, and gives x<sup>n</sup> − p, hence irrational n-th roots and unbounded irreducible degrees.</li>
+</ol>
+The habit to carry into aa-15 onwards: a factorisation theorem tells you the atoms exist and are unique; identifying <em>which</em> elements are atoms is a separate and usually harder question. The structure theorem of aa-20 will decompose modules into pieces indexed by irreducibles, and this is the lesson about how hard those irreducibles are to name.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §7.3 "Irreducibility in Polynomial Rings" (the maximality criterion, Example 7.13 and Proposition 7.14 p. 136; Proposition 7.15, Remark 7.16, Theorem 7.17 and Corollary 7.18 p. 137; Corollary 7.19, Proposition 7.20 and the Intermediate Value Theorem argument p. 138; the conjugate-pair argument and Example 7.21 p. 139), pp. 136–139; §7.4 "Irreducibility in ℚ[x] and ℤ[x]" (the 2x + 2 distinction pp. 139–140; Theorem 7.22 and Lemma 7.23 p. 140; the proof of Gauss's Lemma, Remark 7.24, Definition 7.25 and Corollary 7.26 p. 141; the proof of Corollary 7.26 and Corollary 7.27 p. 142; polynomial rings in several indeterminates p. 143), pp. 139–143; §7.5 "Irreducibility Tests in ℤ[x]" (Proposition 7.29 p. 143; Examples 7.30, 7.31, 7.32 and Proposition 7.33 p. 144; the proof, Example 7.34, the x⁴ + 1 caveat and Theorem 7.35 p. 145; Lemma 7.36 and the proof of Eisenstein p. 146; Example 7.37, Corollary 7.38 and Example 7.39 p. 147), pp. 143–147. Corollary 7.8, Theorem 7.11 and the units of R[x] come from aa-13 (§7.2, pp. 131–135), Proposition 6.33 and Remark 6.38 from aa-12 (§6.4, pp. 117–119), Definition 6.1 from aa-11 (§6.1, p. 106), the First Isomorphism Theorem from aa-10 (§5.5, p. 91), and Corollary 1.11 from aa-02 (§1.3, p. 10). The candidate lists in Examples 7.30 and 7.31, the factorisation x⁴ − 3x² + 1 = (x² + x − 1)(x² − x − 1), and the reduction x⁴ + 1 ≡ (x + 1)⁴ mod 2 were each verified by computation.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Real graphs. An odd-degree real polynomial runs from -infinity to +infinity,
+// so by the Intermediate Value Theorem it must cross the axis: it has a real
+// root, hence a linear factor. Even degree carries no such obligation.
+var pc=document.getElementById('odd'),px=pc.getContext('2d');
+var POLYS=[[function(t){return t*t*t-2*t+1;},'x³ − 2x + 1',true],
+           [function(t){return Math.pow(t,5)-3*t+1;},'x⁵ − 3x + 1',true],
+           [function(t){return t*t+1;},'x² + 1',false],
+           [function(t){return Math.pow(t,4)+4;},'x⁴ + 4',false]];
+var pi2=0;
+function setPoly(i){pi2=i;drawPoly();}
+function drawPoly(){px.clearRect(0,0,pc.width,pc.height);
+ var f=POLYS[pi2][0],name=POLYS[pi2][1],odd=POLYS[pi2][2];
+ var ox=pc.width/2,oy=pc.height/2+10,ux=88,uy=22;
+ px.strokeStyle='#2a333d';px.lineWidth=1;
+ px.beginPath();px.moveTo(12,oy);px.lineTo(pc.width-12,oy);
+ px.moveTo(ox,20);px.lineTo(ox,pc.height-20);px.stroke();
+ px.strokeStyle=odd?'#4caf82':'#e06c75';px.lineWidth=2.5;px.beginPath();
+ var started=false,roots=[];
+ for(var i=0;i<=600;i++){var t=-2.6+5.2*i/600,y=f(t),X=ox+t*ux,Y=oy-y*uy;
+  if(Y<8||Y>pc.height-8){started=false;continue;}
+  if(!started){px.moveTo(X,Y);started=true;}else px.lineTo(X,Y);
+  if(i>0){var tp=-2.6+5.2*(i-1)/600;if(f(tp)*y<0)roots.push((t+tp)/2);}}
+ px.stroke();
+ px.fillStyle='#d8a657';
+ for(var i=0;i<roots.length;i++){px.beginPath();px.arc(ox+roots[i]*ux,oy,4.5,0,7);px.fill();}
+ px.font='13px Segoe UI';px.fillStyle='#e8e8e8';
+ px.fillText(name+'   ('+(odd?'odd':'even')+' degree)',14,18);
+ px.fillStyle=odd?'#4caf82':'#e06c75';
+ px.fillText(odd?('crosses the axis '+roots.length+' time(s) in view - odd degree forces at least one real root, hence a linear factor')
+   :('no crossing in view - even degree carries no obligation to have a real root'),14,pc.height-12);}
+drawPoly();
+</script></body></html>
