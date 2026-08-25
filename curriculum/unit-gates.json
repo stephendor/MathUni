@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "gates": [
+    {"id": "lesson-lint", "ci": true, "argv": ["scripts/lesson_lint.py", "{lesson}"]},
+    {"id": "html-js", "ci": true, "argv": ["scripts/gate.py", "{lesson}"]},
+    {"id": "mission", "ci": true, "argv": ["scripts/mission.py", "--known-failing", "curriculum/mission-drift.txt", "{lesson}"]},
+    {"id": "coverage", "ci": true, "kind": "coverage", "argv": ["scripts/check_lesson_coverage.py", "{problem}", "{lesson}"]},
+    {"id": "sections", "ci": true, "modules": ["aa", "an", "la"], "argv": ["scripts/check_sections.py", "{problem}", "{lesson}"]},
+    {"id": "lab-outputs", "ci": true, "modules": ["lab"], "argv": ["scripts/check_lab_outputs.py", "{problem}", "--parse-only"]}
+  ]
+}
