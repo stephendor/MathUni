@@ -423,6 +423,26 @@ def test_a_file_citing_only_an_unindexed_book_still_counts_its_citations(
     assert "SKIP" in out                 # still reported as unchecked...
     assert "Lindstrom 2" in out          # ...and still counted
     assert "1 file(s) checked" in out    # but not counted as checked
+    assert "1 citation(s) checked, 2 unchecked" in out
+
+
+def test_checked_and_unchecked_partition_the_independent_parse(
+        tmp_path, monkeypatch, capsys):
+    """If attribution drops a citation, the gate must lose its verdict.
+
+    This is the watched failure for checked + unchecked == parsed total. The
+    total is counted before the deliberately broken splitter can omit it.
+    """
+    import scripts.check_sections as sections
+
+    p = tmp_path / "unit.md"
+    p.write_text("Abbott — §1.3, p. 16.", encoding="utf-8")
+    monkeypatch.setattr(
+        sections, "_attribution",
+        lambda: (["Abbott"], {"Abbott": "Abbott"}, lambda *_args: []))
+    assert sections.main([str(p)]) == 2
+    out = capsys.readouterr()
+    assert "citation partition mismatch" in out.err
 
 
 def test_a_citation_naming_no_book_is_counted_separately(tmp_path, capsys):

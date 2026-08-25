@@ -741,6 +741,7 @@ def main(argv=None):
         print("NO VERDICT: %s" % exc, file=sys.stderr)
         return 2
     total = bad = 0
+    parsed_citations = checked_citations = 0
     unindexed = {}
     unattributed = 0
     for path in args.paths:
@@ -756,6 +757,11 @@ def main(argv=None):
                   "with no page marker — cannot be checked"
                   % (path, cut[0], CAP), file=sys.stderr)
             return 2
+        # The denominator is derived before attribution can skip anything.
+        # The checked and unchecked counters below must partition this raw
+        # parse exactly; otherwise the gate has no verdict on its own coverage.
+        parsed_citations += len([1 for lab, _t, _c in tails(text)
+                                 if "." in lab])
         # Split BEFORE deciding whether this file is worth looking at. The
         # skip used to come first, so a file citing only Lindstrom was printed
         # as SKIP and its citations were never counted -- and the NOTE line
@@ -777,6 +783,8 @@ def main(argv=None):
                     else:
                         unindexed[current] = unindexed.get(current, 0) + n
                 continue
+            checked_citations += len([1 for lab, _t, _c in tails(part)
+                                      if "." in lab])
             checked_here = True
             rows, shared = index[current]
             for label, page, actual in check_text(part, rows, shared):
@@ -790,6 +798,13 @@ def main(argv=None):
             total += 1
         else:
             print("SKIP %s — names no indexed book" % path)
+    unchecked_citations = sum(unindexed.values()) + unattributed
+    if checked_citations + unchecked_citations != parsed_citations:
+        print("NO VERDICT: citation partition mismatch: %d checked + %d "
+              "unchecked != %d parsed"
+              % (checked_citations, unchecked_citations, parsed_citations),
+              file=sys.stderr)
+        return 2
     if not total:
         print("NO VERDICT: no file named an indexed book", file=sys.stderr)
         return 2
@@ -803,8 +818,10 @@ def main(argv=None):
     if unattributed:
         print("NOTE %d citation(s) name no book at all and were not checked"
               % unattributed)
-    print("%s %d file(s) checked, %d wrong label(s)"
-          % ("FAIL" if bad else "PASS", total, bad))
+    print("%s %d file(s) checked, %d citation(s) checked, %d unchecked, "
+          "%d wrong label(s)"
+          % ("FAIL" if bad else "PASS", total, checked_citations,
+             unchecked_citations, bad))
     return 1 if bad else 0
 
 
