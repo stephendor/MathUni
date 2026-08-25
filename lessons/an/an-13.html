@@ -77,7 +77,9 @@ When limits of nice functions go wrong — and the fix.
 const cv=document.getElementById('uconvCanvas'),ctx=cv.getContext('2d');
 const W=cv.width,H=cv.height,L=44,R=W-24,T=22,B=H-70;
 function px(x){return L+x*(R-L);}
-function py(y){return B-y*(B-T);}
+// Include the full epsilon band around both endpoint values in the viewport.
+// Mapping y=1 to T clipped the upper half of the band at x=1 off-canvas.
+function py(y){return B-((y+eps)/(1+2*eps))*(B-T);}
 const eps=0.18;
 let n=1,t=0,mode=0;
 function fpow(x,n){return Math.pow(x,n);}

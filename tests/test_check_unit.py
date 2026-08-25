@@ -35,7 +35,8 @@ def test_workflow_consumes_the_manifest_runner():
         encoding="utf-8"))
     assert {gate["id"] for gate in manifest["gates"]} == {
         "lesson-lint", "html-js", "mission", "coverage",
-        "hypothesis-parity", "cross-unit-refs", "sections", "lab-outputs"}
+        "hypothesis-parity", "cross-unit-refs", "visual-claims", "sections",
+        "lab-outputs"}
 
 
 def test_discovery_names_only_complete_unit_pairs():

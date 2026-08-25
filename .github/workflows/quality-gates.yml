@@ -121,4 +121,6 @@ jobs:
         # checks. This prevents a locally documented gate from silently being
         # omitted by a separately maintained hand-written workflow loop.
         run: python scripts/check_unit.py --all --ci
+      - name: Render every lesson canvas headlessly
+        run: python scripts/check_canvas_render.py lessons/*/*.html
       - run: python -m pytest -q

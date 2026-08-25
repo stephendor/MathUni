@@ -197,6 +197,25 @@ The crown jewel: symmetric operators diagonalise perfectly. Why?
 const cv=document.getElementById('spec'),ctx=cv.getContext('2d'),cx=220,cy=150,s=42;
 let t=0;
 function scr(p){return [cx+p[0]*s, cy-p[1]*s];}
+// VISUAL-CLAIM-PROBE-BEGIN spectral-eigenvector-angle
+function eigenDirections(a,b,c,d){
+  const tr=a+d, det=a*d-b*c, disc=tr*tr/4-det;
+  if(disc<=1e-12)return null;
+  const rt=Math.sqrt(disc);
+  return [tr/2+rt,tr/2-rt].map(function(lam){
+    const v=Math.abs(b)>1e-9?[b,lam-a]:(Math.abs(c)>1e-9?[lam-d,c]:(Math.abs(lam-a)<1e-9?[1,0]:[0,1]));
+    const n=Math.hypot(v[0],v[1]);return [v[0]/n,v[1]/n];
+  });
+}
+function eigenAngle(dirs){
+  const dot=Math.abs(dirs[0][0]*dirs[1][0]+dirs[0][1]*dirs[1][1]);
+  return Math.acos(Math.min(1,dot))*180/Math.PI;
+}
+const probeSym=eigenAngle(eigenDirections(1.9,1.1,1.1,1.0));
+const probeNonSym=eigenAngle(eigenDirections(1.9,1.1,0,1.0));
+if(Math.abs(probeSym-90)>1e-6)throw new Error('symmetric eigenvectors are not perpendicular');
+if(Math.abs(probeNonSym-90)<5)throw new Error('non-symmetric state does not discriminate');
+// VISUAL-CLAIM-PROBE-END
 function draw(){
   ctx.clearRect(0,0,cv.width,cv.height);
   const sym = (Math.floor(t/6)%2)===0;
@@ -217,15 +236,8 @@ function draw(){
   // These are NOT the ellipse's axes in general: the axes of the image ellipse are
   // singular directions, and those are perpendicular for every matrix, symmetric
   // or not, so they could not show what this canvas is about.
-  const tr=a+d, det=a*d-b*c, disc=tr*tr/4-det;
-  let dirs=null;
-  if(disc>1e-12){
-    const rt=Math.sqrt(disc);
-    dirs=[tr/2+rt, tr/2-rt].map(function(lam){
-      const v = Math.abs(b)>1e-9 ? [b, lam-a] : (Math.abs(c)>1e-9 ? [lam-d, c] : (Math.abs(lam-a)<1e-9?[1,0]:[0,1]));
-      const n=Math.hypot(v[0],v[1]);
-      return [v[0]/n, v[1]/n];
-    });
+  const dirs=eigenDirections(a,b,c,d);
+  if(dirs){
     dirs.forEach(function(u){
       const p0=scr([-2.6*u[0],-2.6*u[1]]), p1=scr([2.6*u[0],2.6*u[1]]);
       ctx.strokeStyle='#d8a657';ctx.lineWidth=2;
@@ -235,8 +247,7 @@ function draw(){
   ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='center';
   ctx.fillText(sym?'symmetric matrix \u2014 self-adjoint':'non-symmetric matrix \u2014 not self-adjoint',220,296);
   if(dirs){
-    const dot=Math.abs(dirs[0][0]*dirs[1][0]+dirs[0][1]*dirs[1][1]);
-    const ang=Math.acos(Math.min(1,dot))*180/Math.PI;
+    const ang=eigenAngle(dirs);
     ctx.fillText('angle between the eigenvector directions: '+ang.toFixed(1)+'\u00b0',220,314);
   }else{
     ctx.fillText('no real eigenvalue \u2014 no eigenvector direction to draw',220,314);

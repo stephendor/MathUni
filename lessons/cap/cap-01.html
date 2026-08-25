@@ -165,9 +165,9 @@ function draw(){
   ctx.font='13px Segoe UI'; ctx.textAlign='left'; ctx.fillStyle='#9aa5b1';
   ctx.fillText('death', X(0)-40, Y(9.6)); ctx.fillText('birth', X(9.2), Y(0)+20);
   ctx.fillStyle='#4caf82'; ctx.fillText('d = b + 2ε', X(6.4), Y(7.9));
-  ctx.fillStyle='#d8a657'; ctx.fillText('claimable: '+keep+' of '+PTS.length, 400, 40);
-  ctx.fillStyle='#5a6b7a'; ctx.fillText('inside the band: matchable to the diagonal', 400, 62);
-  ctx.fillStyle='#9aa5b1'; ctx.fillText('sampling accuracy ε = '+eps.toFixed(2), 400, 20);
+  ctx.fillStyle='#d8a657'; ctx.fillText('claimable: '+keep+' of '+PTS.length, 360, 40);
+  ctx.fillStyle='#5a6b7a'; ctx.fillText('inside band: matchable to diagonal', 360, 62);
+  ctx.fillStyle='#9aa5b1'; ctx.fillText('sampling accuracy ε = '+eps.toFixed(2), 360, 20);
 }
 function step(){ if(run){ eps+=dir*0.012; if(eps>2.05){eps=2.05;dir=-1;} if(eps<0.2){eps=0.2;dir=1;} draw(); }
   requestAnimationFrame(step); }

@@ -128,7 +128,7 @@ Why continuous images of compact sets can't misbehave.
 <script>
 (function(){
 const cv=document.getElementById('ivtCanvas'),ctx=cv.getContext('2d');
-const W=cv.width,H=cv.height,L=48,R=W-24,T=24,B=H-56;
+const W=cv.width,H=cv.height,L=48,R=W-24,T=24,B=H-76;
 function px(x){return L+x*(R-L);}
 function py(y){return B-((y+0.2)/1.6)*(B-T);}
 let t=0;
@@ -198,12 +198,13 @@ function draw(){
   }
   const eb=marks(cont,'#8ab4f8',0), ea=marks(jump,'#d8a657',-9);
   ctx.fillStyle='#9aa5b1';ctx.font='12px sans-serif';ctx.textAlign='left';
-  ctx.fillText('L = '+Lv.toFixed(3)+'    blue (continuous) crosses L '+hits+' time'+(hits===1?'':'s')+
-               '    amber (one jump) crosses '+jhits+' time'+(jhits===1?'':'s'),L,H-46);
-  ctx.fillText('extremes — blue max '+eb.hi.toFixed(2)+' min '+eb.lo.toFixed(2)+
-               ' (attained, and GUARANTEED by 4.4.2)     amber max '+ea.hi.toFixed(2)+
-               ' min '+ea.lo.toFixed(2)+' (attained, but nothing promised it)',L,H-30);
-  ctx.fillText('continuity is not needed for a value to be attained — it is needed for it to be GUARANTEED',L,H-14);
+  ctx.fillText('L = '+Lv.toFixed(3)+'    blue crosses '+hits+' time'+(hits===1?'':'s')+
+               '    amber crosses '+jhits+' time'+(jhits===1?'':'s'),L,H-62);
+  ctx.fillText('blue extremes: max '+eb.hi.toFixed(2)+' min '+eb.lo.toFixed(2)+
+               ' — attained and GUARANTEED by 4.4.2',L,H-46);
+  ctx.fillText('amber extremes: max '+ea.hi.toFixed(2)+' min '+ea.lo.toFixed(2)+
+               ' — attained, but not guaranteed',L,H-30);
+  ctx.fillText('continuity guarantees attainment; it is not required for attainment',L,H-14);
   t++;requestAnimationFrame(draw);
 }
 draw();

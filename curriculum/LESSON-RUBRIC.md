@@ -69,6 +69,7 @@ Check every one and cite the location of any defect:
 - [ ] Every **theorem/lemma statement** is correct (hypotheses and conclusion both).
 - [ ] Every **proof** is valid — no gaps papered over, no circularity, no false step.
 - [ ] Every **worked example** computes the right answer and the shown method actually produces it.
+- [ ] Every **visual claim** is honest: enumerate the nouns/formulas the caption promises, identify the drawing/computation that produces each, and run a discriminating state where the claimed comparison should fail.
 - [ ] Every **self-check** `data-ok` marks a genuinely correct option and the `.explain` is true.
 - [ ] The **guided-proof model answer** is a correct proof.
 - [ ] **Citations resolve** — the section/pages exist and actually contain what is attributed to them.
