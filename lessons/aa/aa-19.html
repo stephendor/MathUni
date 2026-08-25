@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-19 — Finitely generated vs finitely presented modules</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+.seq{font-family:Segoe UI,system-ui,sans-serif;text-align:center;color:var(--acc);margin:.9rem 0;font-size:1.05rem}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Finitely generated vs finitely presented modules <span class="cite">(aa-19)</span></h1>
+
+<div class="hook">
+The same 2 × 3 matrix of integers presents ℤ/2ℤ over ℤ and the <em>zero</em> module over ℚ. Nothing about the matrix changed. The ring did.
+<p>aa-18 turned finitely presented modules into matrices. Two questions follow immediately, and this lesson answers both. First: is "finitely presented" a common condition, or a rarity? Aluffi's answer is blunt — a module met in a dark alley is probably not finitely presented — but over a <strong>Noetherian</strong> ring, finitely generated already implies finitely presented. Second: how far can a matrix be reduced? Over a field, all the way to a block of 1s, which is Gaussian elimination and which proves that every finitely generated vector space is free. Over ℤ you cannot go that far, and what stops you is exactly what torsion is.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Is every finitely generated module finitely presented?</p>
+<button onclick="check(this,false)">Yes — finitely many generators forces finitely many relations</button>
+<button data-ok onclick="check(this,true)">No in general, but yes over a Noetherian ring</button>
+<button onclick="check(this,false)">Only for free modules</button>
+<div class="explain">Aluffi is explicit that it is "relatively easy" to construct modules that are finitely generated — even cyclic — and not finitely presented; ℤ itself can be realised that way over a suitably nasty integral domain. The good news is Theorem 9.29: over a Noetherian ring the implication holds, and that covers ℤ, every PID, every field, and every ring of classical algebraic geometry. <span class="cite">— Aluffi §9.3, p. 187</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: A finite presentation is exactly what a computer stores to compute homology.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>When are relations finitely generated?</h2>
+
+<p>Recall the two conditions. M is <strong>finitely generated</strong> when there is an exact sequence R<sup>⊕m</sup> → M → 0, and <strong>finitely presented</strong> when there is an exact sequence R<sup>⊕n</sup> → R<sup>⊕m</sup> → M → 0 — finitely many generators <em>and</em> finitely many relations. <span class="cite">— Aluffi §9.2, Definitions 9.22 and 9.23, p. 183</span></p>
+
+<p>The moral of aa-18 was that handling finitely presented modules is handling matrices. So the value of the whole apparatus depends on how often the second condition holds. <span class="cite">— Aluffi §9.3, p. 187</span></p>
+
+<div class="definition">
+<strong>Definition 9.28.</strong> A ring R is <strong>Noetherian</strong> if every ascending chain of ideals in R stabilises. <span class="cite">— Aluffi §9.3, Definition 9.28, p. 187</span>
+</div>
+
+<p>aa-12's Proposition 6.32 proved that PIDs satisfy this. And the condition is equivalent to: <em>every ideal of R is finitely generated</em> — Aluffi's Exercise 9.10, and your guided proof. <span class="cite">— Aluffi §9.3, p. 187</span></p>
+
+<div class="theorem">
+<strong>Theorem 9.29.</strong> Every finitely generated module over a Noetherian ring is finitely presented. <span class="cite">— Aluffi §9.3, Theorem 9.29, p. 187</span>
+</div>
+
+<p>Two lemmas do the work.</p>
+
+<div class="theorem">
+<strong>Lemma 9.30.</strong> If 0 → L → M → N → 0 is exact and L, N are finitely generated, then M is finitely generated. <span class="cite">— Aluffi §9.3, Lemma 9.30, p. 188</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Write j : L → M and π : M → N. Take generators ℓ₁, …, ℓ<sub>s</sub> of L and n₁, …, n<sub>t</sub> of N; identify L with j(L) ⊆ M (legal, j is injective), and choose <em>any</em> preimages n̄<sub>i</sub> ∈ M of the n<sub>i</sub> (possible, π is surjective). Claim: ℓ₁, …, ℓ<sub>s</sub>, n̄₁, …, n̄<sub>t</sub> generate M.
+<p>Given m ∈ M, write π(m) = r₁n₁ + ⋯ + r<sub>t</sub>n<sub>t</sub>. Then</p>
+<p style="text-align:center">π(m − r₁n̄₁ − ⋯ − r<sub>t</sub>n̄<sub>t</sub>) = π(m) − r₁n₁ − ⋯ − r<sub>t</sub>n<sub>t</sub> = 0,</p>
+<p>so that element lies in ker π = im j = L, and is therefore a combination r′₁ℓ₁ + ⋯ + r′<sub>s</sub>ℓ<sub>s</sub>. Rearranging expresses m in the claimed generators. ∎ <span class="cite">— Aluffi §9.3, p. 188</span></p>
+<p><strong>The shape of the argument is worth keeping:</strong> push m into N, correct it by a combination of chosen lifts, and the correction term falls into L by exactness. Every "assemble from a short exact sequence" proof looks like this.</p>
+<p><strong>And the converse fails.</strong> If M is finitely generated and L ⊆ M is a submodule, L need <em>not</em> be finitely generated. That failure is precisely the gap the Noetherian hypothesis fills. (The other half does hold: a quotient of a finitely generated module is finitely generated.) <span class="cite">— Aluffi §9.3, p. 188</span></p>
+</div>
+
+<div class="theorem">
+<strong>Lemma 9.31.</strong> If R is Noetherian, then for every m ≥ 0 every submodule of R<sup>⊕m</sup> is finitely generated. <span class="cite">— Aluffi §9.3, Lemma 9.31, p. 188</span>
+</div>
+
+<div class="worked">
+<strong>Proof — induction on m, using all three isomorphism theorems' worth of machinery.</strong> For m = 0 there is nothing to prove. Assume the claim for ranks below m, and view R<sup>⊕m</sup> as R<sup>⊕(m−1)</sup> ⊕ R, with j the inclusion of the first m − 1 coordinates and π the projection onto the last. Write F = j(R<sup>⊕(m−1)</sup>) ⊆ R<sup>⊕m</sup>, so that π is the projection R<sup>⊕m</sup> → R<sup>⊕m</sup>/F ≅ R.
+<p>Let M ⊆ R<sup>⊕m</sup> be a submodule. There is a short exact sequence</p>
+<p class="seq">0 → M ∩ F → M → M/(M ∩ F) → 0.</p>
+<p><em>Left term:</em> M ∩ F is a submodule of F ≅ R<sup>⊕(m−1)</sup>, hence finitely generated by induction.</p>
+<p><em>Right term:</em> by the <strong>Second Isomorphism Theorem</strong> (aa-17's Theorem 8.48), M/(M ∩ F) ≅ (M + F)/F, which is a submodule of R<sup>⊕m</sup>/F ≅ R — that is, an <em>ideal</em> of R (aa-16's Example 8.24) — and ideals of a Noetherian ring are finitely generated.</p>
+<p>Lemma 9.30 applied to the sequence now makes M finitely generated. ∎ <span class="cite">— Aluffi §9.3, p. 189</span></p>
+<p>Notice where the hypothesis enters: <em>once</em>, on the right-hand term, where a submodule of R is an ideal. Everything else is induction and the Second Isomorphism Theorem — and this is the first place in the module chapter where that theorem, the one rings could not state, is genuinely needed.</p>
+</div>
+
+<div class="worked">
+<strong>Proof of Theorem 9.29.</strong> Let M be finitely generated over Noetherian R, so there is a surjection f : R<sup>⊕m</sup> → M. Then ker f is a submodule of R<sup>⊕m</sup>, hence finitely generated by Lemma 9.31, so there is a surjection g : R<sup>⊕n</sup> → ker f. Viewing g as a map into R<sup>⊕m</sup> gives the exact sequence
+<p class="seq">R<sup>⊕n</sup> —g→ R<sup>⊕m</sup> —f→ M → 0,</p>
+<p>so M is finitely presented. ∎ <span class="cite">— Aluffi §9.3, p. 189</span></p>
+<p><strong>Examples 9.32, 9.33, 9.34 — the coverage.</strong> Every finitely generated abelian group is finitely presented, and more generally every finitely generated module over a PID, since PIDs are Noetherian; so, for a field k, every finitely generated k[t]-module. Fields are Noetherian, so finite-dimensional vector spaces are finitely presented. And ℂ[x₁, …, x<sub>n</sub>] is Noetherian by Hilbert's basis theorem — quoted in aa-13, not proved — so every ring of classical algebraic geometry is covered. <span class="cite">— Aluffi §9.3, Examples 9.32, 9.33 and 9.34, p. 189</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Where in the proof of Lemma 9.31 is the Noetherian hypothesis used?</p>
+<button onclick="check(this,false)">In the induction, to guarantee M ∩ F is finitely generated</button>
+<button data-ok onclick="check(this,true)">Once, on (M + F)/F — a submodule of R, i.e. an ideal, and ideals of a Noetherian ring are finitely generated</button>
+<button onclick="check(this,false)">Nowhere — the lemma holds over any ring</button>
+<div class="explain">The left term of the short exact sequence is handled by the induction hypothesis, not the ring. The right term is where R itself appears: the Second Isomorphism Theorem identifies it with a submodule of R<sup>⊕m</sup>/F ≅ R, submodules of R are its ideals, and "every ideal finitely generated" is exactly the Noetherian condition. Without it the lemma is false, which is why finitely generated need not imply finitely presented in general. <span class="cite">— Aluffi §9.3, Lemma 9.31, pp. 188–189</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Presentations exist. Now: how far can one be simplified?</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Over a field, every matrix reduces to a block of ones</h2>
+
+<div class="theorem">
+<strong>Theorem 9.35.</strong> Every finitely generated vector space is free: if k is a field and V is a finitely generated k-vector space, then V ≅ k<sup>⊕d</sup> for some d ≥ 0. <span class="cite">— Aluffi §9.4, Theorem 9.35, p. 190</span>
+</div>
+
+<p>In this setting the rank d is called the <strong>dimension</strong>. This is the "existence of bases" theorem from linear algebra, recovered here in the finite-dimensional case from the matrix picture. <span class="cite">— Aluffi §9.4, p. 190</span></p>
+
+<div class="theorem">
+<strong>Lemma 9.36.</strong> Let A be an m × n matrix over a <em>field</em> k. Then a sequence of elementary operations transforms A into a matrix with r diagonal entries equal to 1 and every other entry 0, for some r ≥ 0. That r is the <strong>rank</strong> of A. <span class="cite">— Aluffi §9.4, Lemma 9.36, p. 190</span>
+</div>
+
+<div class="worked">
+<strong>Proof — Gaussian elimination, by induction on min(m, n).</strong> If A = 0 we are done. Otherwise, switch rows and columns to move a nonzero entry to position (1,1). Because k is a <em>field</em>, that entry is a unit, so multiply its row by the inverse to make it 1. Adding multiples of the first row to the others clears the rest of the first column; adding multiples of the first column to the others clears the rest of the first row. The matrix now has 1 in the corner, zeroes along the first row and column, and a smaller matrix inside, to which induction applies. ∎ <span class="cite">— Aluffi §9.4, p. 191</span>
+<p><strong>The field hypothesis is used exactly once and cannot be weakened.</strong> The step "that entry is nonzero, therefore invertible" is available only over a field. Over ℤ, knowing an entry is nonzero tells you nothing about dividing by it — and that is the whole difference between this lemma and aa-20's version for Euclidean domains.</p>
+</div>
+
+<div class="worked">
+<strong>Proof of Theorem 9.35.</strong> V is finitely presented (Example 9.33), so V ≅ coker of some A : k<sup>⊕n</sup> → k<sup>⊕m</sup>. By Lemma 9.36 and aa-18's Corollary 9.26 we may take A in the reduced form. Its image is then the first r coordinate factors of k<sup>⊕m</sup>, so
+<p style="text-align:center">coker ≅ (k/k)<sup>⊕r</sup> ⊕ (k/0)<sup>⊕(m−r)</sup> ≅ 0<sup>⊕r</sup> ⊕ k<sup>⊕(m−r)</sup> ≅ k<sup>⊕(m−r)</sup>,</p>
+<p>so V is free of rank d = m − r. ∎ <span class="cite">— Aluffi §9.4, p. 191</span></p>
+<p>Read the two kinds of diagonal entry: a <strong>1</strong> kills its factor entirely (k/k = 0), and a <strong>0</strong> leaves its factor untouched (k/0 = k). Over a field those are the only two possibilities, so no third kind of summand can appear — which is exactly why vector spaces have no torsion.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Which step of Lemma 9.36's proof fails over ℤ?</p>
+<button onclick="check(this,false)">Switching two rows</button>
+<button data-ok onclick="check(this,true)">Scaling a row by the inverse of a nonzero entry</button>
+<button onclick="check(this,false)">Adding a multiple of one row to another</button>
+<div class="explain">Switching and adding multiples are available over any ring — both are multiplication by matrices invertible over that ring. Scaling by a<sub>11</sub><sup>−1</sup> is not: over ℤ only ±1 are units, so a nonzero entry usually cannot be turned into 1. Aluffi flags this explicitly, saying the process "crucially" uses that we work over a field. What survives over a Euclidean domain is a weaker normal form, which is aa-20's Lemma 9.38. <span class="cite">— Aluffi §9.4, pp. 191–192</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Same matrix, two rings, two answers.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The ring decides the module</h2>
+
+<div class="worked fade">
+<strong>Faded example — Example 9.37: the matrix of Example 9.13, now over ℚ.</strong> Take
+<p style="text-align:center">A = ( −4 &nbsp; 1 &nbsp; 7 / −2 &nbsp; 0 &nbsp; 4 ),</p>
+<p>which aa-18 reduced <em>over ℤ</em> to ( 1 0 0 / 0 2 0 ), presenting ℤ/2ℤ. Now read it as a map ℚ<sup>⊕3</sup> → ℚ<sup>⊕2</sup> and run Lemma 9.36 instead.</p>
+<p>The (1,1) entry is nonzero, so no switch is needed. Multiply the top row by the inverse of that entry to make it 1, giving ( 1 &nbsp; −¼ &nbsp; −7/4 / −2 &nbsp; 0 &nbsp; 4 ) — a step that is legal here and was ⟨your step: why not available over ℤ?⟩.</p>
+<p>Clear the rest of the first column and first row, reaching ( 1 &nbsp; 0 &nbsp; 0 / 0 &nbsp; −½ &nbsp; ½ ). Multiply the bottom row by −2 to get ( 1 0 0 / 0 1 −1 ), then add column 2 to column 3 to reach ⟨your step: the reduced form⟩.</p>
+<p>So r = 2 and m = 2, giving d = m − r = ⟨your step⟩. The ℚ-vector space presented by A is <strong>trivial</strong>. <span class="cite">— Aluffi §9.4, Example 9.37, p. 192</span></p>
+<p>One matrix; over ℤ it presents ℤ/2ℤ, over ℚ it presents 0. The module was never a property of the matrix alone.</p>
+</div>
+
+<p>The picture below is that fact. On the left, ℤ ⊕ ℤ with the image of A marked: a sublattice of index 2, so the quotient has two elements. On the right, ℚ ⊕ ℚ with the image of the same A: the whole plane, so the quotient is zero.</p>
+
+<canvas id="two" width="620" height="320" aria-label="The image of one matrix inside Z squared and inside Q squared, giving different cokernels"></canvas>
+<div class="controls">
+<button onclick="setRing(0)">over ℤ</button>
+<button onclick="setRing(1)">over ℚ</button>
+<button onclick="setRing(2)">both</button>
+</div>
+
+<div class="worked">
+<strong>Why the two answers differ, in one sentence.</strong> Over ℚ the entry −4 is invertible, so the second diagonal entry can be scaled to 1 and its factor dies. Over ℤ it cannot, and the diagonal entry 2 survives — producing the summand ℤ/2ℤ. <strong>Torsion is exactly the residue of diagonal entries that are neither units nor zero.</strong>
+<p>Over a field there are only two kinds of entry, units and 0, so only free summands survive: Theorem 9.35. Over a Euclidean domain a third kind exists, and aa-20's <strong>Theorem 9.40</strong> classifies what it produces. <span class="cite">— Aluffi §9.5, Theorem 9.40, p. 195</span></p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi writes that it is "easy to verify (Exercise 9.10)" that the Noetherian condition is equivalent to every ideal being finitely generated. Verify it. <strong>Let R be a commutative ring. Prove that every ascending chain of ideals stabilises if and only if every ideal of R is finitely generated.</strong> For one direction, given an ideal that is not finitely generated, build an infinite strictly ascending chain by adding one element at a time; for the other, take the union of a chain — and say why that union is an ideal.</p>
+<textarea placeholder="(<=) Suppose every ideal is finitely generated, and let I_1 subset I_2 subset ... be a chain. Let I be the union ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>(⟸) Suppose every ideal is finitely generated and let I₁ ⊆ I₂ ⊆ ⋯ be a chain. Put I = ⋃<sub>j</sub> I<sub>j</sub>. This is an ideal: any two elements of I lie in a common I<sub>j</sub> (the chain is nested), so I is closed under addition, and absorption is inherited from each I<sub>j</sub>. By hypothesis I = (a₁, …, a<sub>k</sub>) for finitely many generators. Each a<sub>i</sub> lies in some I<sub>j(i)</sub>; let m = max<sub>i</sub> j(i). Then all the a<sub>i</sub> lie in I<sub>m</sub>, so I ⊆ I<sub>m</sub>, and hence</p>
+<p style="text-align:center">I = I<sub>m</sub> = I<sub>m+1</sub> = ⋯,</p>
+<p>since every I<sub>j</sub> with j ≥ m sits between I<sub>m</sub> and I. The chain stabilises.</p>
+<p>(⟹) Contrapositively, suppose some ideal I is <em>not</em> finitely generated. Pick a₁ ∈ I. Since (a₁) ≠ I there is a₂ ∈ I \ (a₁); since (a₁, a₂) ≠ I there is a₃ ∈ I \ (a₁, a₂); and so on — the process never terminates, precisely because I has no finite generating set. This produces</p>
+<p style="text-align:center">(a₁) ⊊ (a₁, a₂) ⊊ (a₁, a₂, a₃) ⊊ ⋯,</p>
+<p>an ascending chain that never stabilises. ∎</p>
+<p>Grade yourself on two points. First, that the union of a <em>chain</em> of ideals is an ideal — this is false for an arbitrary family, and the nesting is what makes closure under addition work. Second, that the reverse direction is a construction, not a counting argument: each step is possible exactly because no finite subset generates I. Compare aa-12's Proposition 6.32, which is the same union trick with "principal" doing the work that "finitely generated" does here.</p>
+</details>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Take B = ( 2 &nbsp; 0 &nbsp; 4 / 0 &nbsp; 3 &nbsp; 3 ) as a map of free modules of ranks 3 and 2. (a) Reduce B over ℚ by Lemma 9.36 and give the dimension of the resulting vector space. (b) Reduce B over ℤ using only operations legal there — switches, sign changes, and adding integer multiples — and identify the abelian group. (c) Compare the two answers and say which diagonal entries were responsible for the difference. (One check for (b): the two answers must agree after tensoring away torsion, so the free ranks should match.)</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> A finitely generated module M over a Noetherian ring has a surjection R<sup>⊕m</sup> → M. What does Theorem 9.29 add?</p>
+<button data-ok onclick="check(this,true)">That ker of that surjection is itself finitely generated, so the relations can be listed too</button>
+<button onclick="check(this,false)">That the surjection is an isomorphism</button>
+<button onclick="check(this,false)">That M is free</button>
+<div class="explain">Finitely generated gives the surjection. What Lemma 9.31 supplies is that its kernel — the module of relations among the chosen generators — is also finitely generated, so a second free module maps onto it and the presentation R<sup>⊕n</sup> → R<sup>⊕m</sup> → M → 0 exists. M is generally neither free nor isomorphic to R<sup>⊕m</sup>: ℤ/2ℤ over ℤ is the standing example. <span class="cite">— Aluffi §9.3, Theorem 9.29, pp. 187–189</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Lemma 9.30 says: L and N finitely generated ⟹ M finitely generated. Does the converse hold?</p>
+<button onclick="check(this,false)">Yes, in both parts</button>
+<button data-ok onclick="check(this,true)">Only half — a quotient of a finitely generated module is finitely generated, but a submodule need not be</button>
+<button onclick="check(this,false)">No, in either part</button>
+<div class="explain">If M is generated by m₁, …, m<sub>k</sub> then their images generate any quotient, so N is finitely generated. But a submodule L of a finitely generated M need not be — Aluffi says so explicitly, and it is exactly the failure that Lemma 9.31 repairs under the Noetherian hypothesis. Note the shape: a ring can be finitely generated as a module over itself (by 1) while having an ideal that is not finitely generated. <span class="cite">— Aluffi §9.3, p. 188</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Over ℚ, the matrix of Example 9.13 presents the zero vector space. Over ℤ it presents ℤ/2ℤ. What does that show?</p>
+<button onclick="check(this,false)">That one of the two reductions contains an error</button>
+<button data-ok onclick="check(this,true)">That a presentation determines a module only together with its ring</button>
+<button onclick="check(this,false)">That ℤ/2ℤ is a ℚ-vector space</button>
+<div class="explain">Both reductions are correct; they use different operations because the units differ. Over ℚ every nonzero entry can be scaled to 1 and its factor collapses; over ℤ the entry 2 cannot, and its factor becomes ℤ/2ℤ. This is aa-15's "the ground ring is part of the data", now with a computation attached — and it is the reason homology with ℚ coefficients loses information that ℤ coefficients keep. <span class="cite">— Aluffi §9.4, Example 9.37, p. 192</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Finitely presented is not automatic</strong> — finitely generated modules that are not finitely presented exist, even cyclic ones. But over a <strong>Noetherian</strong> ring (Definition 9.28: ascending chains of ideals stabilise, equivalently every ideal is finitely generated) it is automatic: Theorem 9.29. That covers ℤ, all PIDs, all fields, all k[t] and all ℂ[x₁, …, x<sub>n</sub>].</li>
+<li><strong>The proof is two lemmas.</strong> Lemma 9.30 assembles generators across a short exact sequence; Lemma 9.31 inducts on rank, splitting a submodule of R<sup>⊕m</sup> by 0 → M ∩ F → M → M/(M ∩ F) → 0 and using the Second Isomorphism Theorem to identify the right-hand term with an ideal — the single place the Noetherian hypothesis is spent.</li>
+<li><strong>Over a field a matrix reduces to a block of 1s</strong> (Lemma 9.36 — Gaussian elimination), because every nonzero entry is a unit. Hence every finitely generated vector space is free of rank m − r (Theorem 9.35): a diagonal 1 kills its factor, a diagonal 0 keeps it, and no third case exists. Over ℤ a third case does exist, and the same matrix that presents 0 over ℚ presents ℤ/2ℤ over ℤ.</li>
+</ol>
+The sentence to carry into aa-20: <em>torsion is what a diagonal entry that is neither a unit nor zero leaves behind.</em> Theorem 9.40 will say exactly which entries can appear and in what order.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §9.2 "Modules from Matrices" (Definition 9.22 and Definition 9.23, p. 183); §9.3 "Finitely Generated vs. Finitely Presented" (the completion of Example 9.27, the rarity of finite presentation, Definition 9.28 and Theorem 9.29 p. 187; Lemma 9.30 and the failure of its converse p. 188; Lemma 9.31, the proof of Theorem 9.29 and Examples 9.32, 9.33, 9.34 p. 189), pp. 187–189; §9.4 "Vector Spaces are Free Modules" (Theorem 9.35 and Lemma 9.36 p. 190; the proofs p. 191; the field hypothesis and Example 9.37 p. 192, its computation concluding overleaf), pp. 190–192; §9.5 (Theorem 9.40, p. 195, quoted as forthcoming). Proposition 6.32 comes from aa-12 (§6.3, p. 116), Example 8.24 from aa-16 (§8.3, p. 161), Theorem 8.48 from aa-17 (§8.5, p. 170), and Corollary 9.26 and Example 9.13 from aa-18 (§9.1–9.2, pp. 178–186). Hilbert's basis theorem is quoted from §7.2 as Aluffi quotes it, without proof. The reduction of Example 9.13's matrix over both ℤ and ℚ, and the resulting image lattice and image plane, were recomputed before being drawn.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// One matrix, two ground rings. Over Z the image of A is the sublattice Z (+) 2Z,
+// of index 2, so the cokernel has two elements. Over Q the columns span the whole
+// plane, so the cokernel is zero. Membership over Z is computed from the columns.
+var tc=document.getElementById('two'),tx=tc.getContext('2d');
+var A=[[-4,1,7],[-2,0,4]];
+var mode=2;
+function setRing(m){mode=m;drawTwo();}
+function inImageZ(x,y){
+ for(var a=-8;a<=8;a++)for(var b=-8;b<=8;b++)for(var c=-8;c<=8;c++)
+  if(a*A[0][0]+b*A[0][1]+c*A[0][2]===x && a*A[1][0]+b*A[1][1]+c*A[1][2]===y)return true;
+ return false;}
+function panel(ox,oy,over){
+ var u=22,N=5;
+ tx.strokeStyle='#2a333d';tx.lineWidth=1;
+ if(over==='Q'){ // the whole plane is in the image
+  tx.fillStyle='rgba(138,180,248,0.20)';
+  tx.fillRect(ox-N*u-10,oy-N*u-10,2*N*u+20,2*N*u+20);}
+ tx.beginPath();tx.moveTo(ox-N*u-12,oy);tx.lineTo(ox+N*u+12,oy);
+ tx.moveTo(ox,oy-N*u-12);tx.lineTo(ox,oy+N*u+12);tx.stroke();
+ for(var x=-N;x<=N;x++)for(var y=-N;y<=N;y++){
+  var px=ox+x*u,py=oy-y*u;
+  if(over==='Z'){var on=inImageZ(x,y);
+   tx.fillStyle=on?'#4caf82':'#2f3d4a';
+   tx.beginPath();tx.arc(px,py,on?4.5:2.5,0,7);tx.fill();}
+  else{tx.fillStyle='#8ab4f8';tx.beginPath();tx.arc(px,py,2,0,7);tx.fill();}}
+ tx.font='13px Segoe UI';tx.textAlign='center';
+ tx.fillStyle=(over==='Z')?'#4caf82':'#8ab4f8';
+ tx.fillText(over==='Z'?'over Z:  image = Z ⊕ 2Z':'over Q:  image = all of Q ⊕ Q',ox,oy+N*u+34);
+ tx.fillStyle='#e8e8e8';
+ tx.fillText(over==='Z'?'cokernel ≅ Z/2Z   (2 elements)':'cokernel = 0   (dimension 0)',ox,oy+N*u+54);
+ tx.textAlign='left';}
+function drawTwo(){tx.clearRect(0,0,tc.width,tc.height);
+ tx.font='13px Segoe UI';tx.fillStyle='#e8e8e8';tx.textAlign='left';
+ tx.fillText('the same matrix  ( −4  1  7 / −2  0  4 ),  read over two different rings',14,20);
+ if(mode===0)panel(tc.width/2,150,'Z');
+ else if(mode===1)panel(tc.width/2,150,'Q');
+ else{panel(170,148,'Z');panel(450,148,'Q');}
+ tx.fillStyle='#9aa5b1';tx.textAlign='left';
+ tx.fillText('over Q every nonzero entry is a unit, so the second diagonal entry scales to 1 and its factor dies',14,tc.height-10);}
+drawTwo();
+</script></body></html>
