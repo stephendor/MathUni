@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-06 — Domains, fields, and zero-divisors</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Domains, fields, and zero-divisors <span class="cite">(aa-06)</span></h1>
+
+<div class="hook">
+In ℤ/10ℤ, 2 × 5 = 0. Neither factor is zero. Nothing has gone wrong — that is simply what multiplication does there.
+<p>aa-05 left us with a warning: multiplicative cancellation is not a theorem about rings, and no cleverness will make it one. This lesson turns the warning into a taxonomy. Ban zero-divisors and you get an <em>integral domain</em>, where cancellation returns. Demand inverses instead and you get a <em>field</em>, where division returns. Fields sit inside domains sit inside commutative rings sit inside rings, and every containment is strict — except, remarkably, when the ring is finite, where the bottom two collapse into one.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Every field is an integral domain. Is every integral domain a field?</p>
+<button onclick="check(this,false)">Yes — no zero-divisors is enough to build inverses</button>
+<button data-ok onclick="check(this,true)">No — ℤ is the standing counterexample</button>
+<button onclick="check(this,false)">Only for commutative rings</button>
+<div class="explain">ℤ has no zero-divisors and 0 ≠ 1, so it is an integral domain; but 2 has no integer inverse, so it is not a field. Aluffi's advice is to "always carry a copy of ℤ in your pocket to remind you of this fact". A second witness with a different flavour: ℚ[x] is a domain built over a <em>field</em>, and still not a field, because x has no inverse. Domains are strictly more common than fields — and Proposition 3.33 will show exactly when the distinction disappears. <span class="cite">— Aluffi §3.3, Remark 3.32, p. 56</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Field coefficients make homology a vector space; over a ring you keep torsion. This is that fork.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Commutativity, zero-divisors, and integral domains</h2>
+
+<p>Two properties of ℤ are not in the ring axioms, and the first order of business is to show that neither is hiding inside them.</p>
+
+<div class="worked">
+<strong>Example 3.19 — multiplication need not commute.</strong> One example settles it. In M<sub>2,2</sub>(ℝ), taking the two shears,
+<p style="text-align:center">(1 1 / 0 1)·(1 0 / 1 1) = (2 1 / 1 1) &nbsp;&nbsp;while&nbsp;&nbsp; (1 0 / 1 1)·(1 1 / 0 1) = (1 1 / 1 2),</p>
+<p>writing (a b / c d) for the matrix with rows (a b) and (c d). The two results differ, so no derivation of ab = ba from Definition 3.1 can exist. <span class="cite">— Aluffi §3.3, Example 3.19, p. 52</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 3.20 (commutative ring).</strong> A <strong>commutative ring</strong> is a ring R in which ab = ba for all a, b ∈ R. <span class="cite">— Aluffi §3.3, Definition 3.20, p. 52</span>
+</div>
+
+<p>A "random" ring should not be expected to be commutative — the linear transformations of V are noncommutative as soon as dim V &gt; 1, and matrix rings are everywhere in physics. But commutative rings abound, they are the subject of a discipline of their own, and most examples in this text are commutative. <strong>For the rest of this section, assume the ring is commutative.</strong> <span class="cite">— Aluffi §3.3, pp. 52–53</span></p>
+
+<p>Now the second property, the one aa-05 flagged as underivable:</p>
+<p style="text-align:center">for all a, b: &nbsp; ab = 0 ⟹ a = 0 or b = 0. &nbsp;&nbsp;(3.7)</p>
+
+<div class="worked">
+<strong>Example 3.21.</strong> In ℤ/10ℤ, [2]₁₀·[5]₁₀ = [0]₁₀ while [2]₁₀ ≠ [0]₁₀ and [5]₁₀ ≠ [0]₁₀. So (3.7) fails, in a commutative ring. <span class="cite">— Aluffi §3.3, Example 3.21, p. 53</span>
+</div>
+
+<div class="definition">
+<strong>Definition 3.22 (zero-divisor).</strong> Let R be a ring. An element a ∈ R is a <strong>zero-divisor</strong> if there exists a <em>nonzero</em> b ∈ R with ab = 0 <em>or</em> ba = 0. An element that is not a zero-divisor is a <strong>non-zero-divisor</strong> (nzd). <span class="cite">— Aluffi §3.3, Definition 3.22, p. 53</span>
+</div>
+
+<p>Read the definition carefully; two details bite. First, it is <strong>two-sided</strong>: a is a zero-divisor if it kills something on either side, so in a noncommutative ring you must check both. Consequently a is an nzd precisely when ab = 0 forces b = 0 <em>and</em> ba = 0 forces b = 0. Second, <strong>0 is itself a zero-divisor</strong> in any nontrivial ring, since 0·1 = 0 and 1 ≠ 0. Aluffi calls the terminology "somewhat unfortunate" — every element divides 0 — but this is the convention in force, and Definition 3.23 below is phrased to work around it. <span class="cite">— Aluffi §3.3, p. 53</span></p>
+
+<div class="definition">
+<strong>Definition 3.23 (integral domain).</strong> A commutative ring R is an <strong>integral domain</strong> if
+<p style="text-align:center">for all a, b ∈ R: &nbsp; ab = 0 ⟹ a = 0 or b = 0, &nbsp;&nbsp;and&nbsp;&nbsp; 0 ≠ 1 in R.</p>
+<span class="cite">— Aluffi §3.3, Definition 3.23, p. 53</span>
+</div>
+
+<p>Equivalently: a nontrivial commutative ring in which every <em>nonzero</em> element is a non-zero-divisor. The clause 0 ≠ 1 is not decoration — it excludes the trivial ring by hand, for reasons that Aluffi ties to not wanting to treat 1 as irreducible, and that resurface when domains are matched with prime ideals in §6.1. <span class="cite">— Aluffi §3.3, p. 53</span></p>
+
+<div class="worked">
+<strong>Example 3.24 — the ℤ/nℤ verdict, restated.</strong> aa-04's Theorem 2.15 proved that (3.7) holds in ℤ/nℤ exactly when n is prime, for n &gt; 1; and ℤ/0ℤ is a domain because ℤ is. So <strong>ℤ/nℤ is an integral domain precisely when n is a prime integer</strong> — with Aluffi's convention that 0 is prime doing exactly the work it was designed for at the n = 0 end. <span class="cite">— Aluffi §3.3, Example 3.24, pp. 53–54</span>
+<p>And most of §3.1's examples are domains: ℤ[x], ℚ[x], ℝ[x], ℂ[x] all are. A "random" commutative ring should not be expected to be one, but the familiar ones mostly are. <span class="cite">— Aluffi §3.3, Example 3.25, p. 54</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> In a nontrivial ring, is 0 a zero-divisor?</p>
+<button data-ok onclick="check(this,true)">Yes — 0·1 = 0 and 1 ≠ 0, so it meets Definition 3.22</button>
+<button onclick="check(this,false)">No — the definition excludes 0</button>
+<button onclick="check(this,false)">Only in rings that are not domains</button>
+<div class="explain">Definition 3.22 asks for a nonzero b with ab = 0; taking a = 0 and b = 1 works in any nontrivial ring. So 0 is always a zero-divisor, in ℤ as much as in ℤ/10ℤ. That is why Definition 3.23 says "every <em>nonzero</em> element is a non-zero-divisor" rather than "there are no zero-divisors" — the latter would be false everywhere. <span class="cite">— Aluffi §3.3, Definition 3.22, p. 53</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Zero-divisors are the obstruction. Next: what removing them buys.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Cancellation returns; units and the group of units</h2>
+
+<div class="theorem">
+<strong>Proposition 3.26.</strong> Let R be a ring and a ∈ R a non-zero-divisor. Then multiplicative cancellation holds for a:
+<p style="text-align:center">ab = ac ⟹ b = c &nbsp;&nbsp;and&nbsp;&nbsp; ba = ca ⟹ b = c.</p>
+In particular, in an integral domain cancellation holds for every nonzero element. <span class="cite">— Aluffi §3.3, Proposition 3.26, p. 54</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Suppose ab = ac. Then ab − ac = 0, and distributivity gives a(b − c) = 0. Since a is a non-zero-divisor and it kills b − c on the left, b − c = 0, i.e. b = c. For the right-hand version, from ba = ca we get (b − c)a = 0, and the <em>other half</em> of Definition 3.22 gives b − c = 0. ∎
+<p>Both halves are needed and neither implies the other in a noncommutative ring — this is exactly why Definition 3.22 was stated with "ab = 0 or ba = 0" rather than one side only. In a commutative ring the two arguments are the same argument written twice.</p>
+<p>Compare aa-04's Remark 2.17, which proved this for ℤ/pℤ. That was the special case; this is the statement it was a shadow of, and the proof is shorter because there is no arithmetic in it at all.</p>
+</div>
+
+<div class="definition">
+<strong>Definition 3.27 (unit).</strong> An element b of a ring R is a <strong>multiplicative inverse</strong> of a ∈ R if ab = ba = 1<sub>R</sub>. An element with an inverse is <strong>invertible</strong>, or a <strong>unit</strong>; the set of units of R is written R<sup>∗</sup>. <span class="cite">— Aluffi §3.3, Definition 3.27, p. 54</span>
+</div>
+
+<p>The inverse, when it exists, is unique — the argument is the one you ran in aa-05's you-try, verbatim from Proposition 3.15 with · in place of + — so it may be written a<sup>−1</sup>, and then a<sup>−n</sup> means (a<sup>−1</sup>)<sup>n</sup> and a<sup>m+n</sup> = a<sup>m</sup>a<sup>n</sup> for all integers m, n. <span class="cite">— Aluffi §3.3, p. 54</span></p>
+
+<p>Invertibility is not typical: 2 is not a unit in ℤ though it is in ℚ, and [2]<sub>n</sub> is a unit in ℤ/nℤ exactly when n is odd — for n = 2k + 1, [2]<sub>n</sub>[−k]<sub>n</sub> = [−2k]<sub>n</sub> = [1 − n]<sub>n</sub> = [1]<sub>n</sub>. <span class="cite">— Aluffi §3.3, p. 54</span></p>
+
+<div class="theorem">
+<strong>Proposition 3.28.</strong> For n &gt; 0, &nbsp; (ℤ/nℤ)<sup>∗</sup> = { [a]<sub>n</sub> : gcd(a, n) = 1 }. <span class="cite">— Aluffi §3.3, Proposition 3.28, p. 55</span>
+</div>
+
+<p>No proof is needed: this is aa-04's Proposition 2.16 with the word "unit" substituted for "has a multiplicative inverse". Note what has happened, though — a fact that was a piece of number theory has become a description of R<sup>∗</sup> for one family of rings. <span class="cite">— Aluffi §3.3, p. 55</span></p>
+
+<div class="worked fade">
+<strong>Faded example — sorting ℤ/12ℤ into units and zero-divisors.</strong>
+<p>By Proposition 3.28 the units are the classes [a]₁₂ with gcd(a, 12) = 1. Running through 0, …, 11 that gives ⟨your step: list them⟩ — four classes.</p>
+<p>Now the zero-divisors. [4]₁₂ is one, because [4]₁₂[3]₁₂ = [12]₁₂ = [0]₁₂ with [3]₁₂ ≠ 0. In general [a]₁₂ is a zero-divisor when gcd(a, 12) = d &gt; 1: take b = 12/d, so ab is a multiple of 12 while [b]₁₂ ≠ ⟨your step: why is b not 0 mod 12?⟩.</p>
+<p>Count them: 4 units, and the remaining ⟨your step: how many?⟩ classes are all zero-divisors, 0 included. There is nothing left over — in ℤ/nℤ every class is a unit or a zero-divisor, and never both.</p>
+<p>Finally, since ℤ/12ℤ has a nonzero zero-divisor it is <em>not</em> an integral domain, which agrees with Example 3.24 because 12 is not prime.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Do the same for ℤ/15ℤ: list the units, list the zero-divisors, and confirm the two lists partition the ring. Then answer the question the exercise is really asking: for which n is <em>every</em> nonzero class a unit? Check your answer against Theorem 2.15 before moving on. (One number to check yourself against: ℤ/15ℤ has eight units.)</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Proposition 3.26 assumes a is a non-zero-divisor, not that a is nonzero. Why?</p>
+<button onclick="check(this,false)">They are the same condition</button>
+<button data-ok onclick="check(this,true)">Nonzero is not enough — [2]₁₀ is nonzero and cannot be cancelled</button>
+<button onclick="check(this,false)">Because 0 can always be cancelled</button>
+<div class="explain">In ℤ/10ℤ, [2][5] = [0] = [2][0] while [5] ≠ [0], so the nonzero element [2] cannot be cancelled. Being nonzero is the weaker condition; being a non-zero-divisor is what the proof actually consumes. The two coincide exactly in an integral domain, which is why the "in particular" clause can be stated at all. <span class="cite">— Aluffi §3.3, Proposition 3.26, p. 54</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. One more layer down: rings where every nonzero element is a unit.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Fields, and where the tower collapses</h2>
+
+<div class="definition">
+<strong>Definition 3.29 (field).</strong> A <strong>field</strong> is a nontrivial commutative ring R in which every nonzero element is invertible — equivalently, R<sup>∗</sup> = R \ {0}. <span class="cite">— Aluffi §3.3, Definition 3.29, p. 55</span>
+</div>
+
+<p><strong>Example 3.30.</strong> ℚ, ℝ, ℂ are fields, and ℤ/pℤ is a field whenever p is a positive prime, by Theorem 2.15 — so ℤ/2ℤ, ℤ/3ℤ, ℤ/5ℤ, ℤ/7ℤ, ℤ/11ℤ and so on all are. <span class="cite">— Aluffi §3.3, Example 3.30, p. 55</span></p>
+
+<p>Aluffi then states the ℤ/nℤ verdict in its final, sharpest form, valid for <em>all</em> integers n: <span class="cite">— Aluffi §3.3, p. 55</span></p>
+<p style="text-align:center">ℤ/nℤ is an integral domain ⟺ n is prime; &nbsp;&nbsp; ℤ/nℤ is a field ⟺ n is irreducible.</p>
+<p>The two lines differ only at n = 0, where Aluffi's convention makes 0 prime but not irreducible — and correspondingly ℤ/0ℤ = ℤ is a domain but not a field. That is the whole reason the nonstandard convention was adopted back in Definition 1.19.</p>
+
+<div class="theorem">
+<strong>Proposition 3.31.</strong> Fields are integral domains. <span class="cite">— Aluffi §3.3, Proposition 3.31, p. 55</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Let R be a field. It is nontrivial, so 0 ≠ 1. Suppose ab = 0. If a = 0 we are done; otherwise a has an inverse a<sup>−1</sup>, and
+<p style="text-align:center">b = 1·b = (a<sup>−1</sup>a)b = a<sup>−1</sup>(ab) = a<sup>−1</sup>·0 = 0,</p>
+<p>the last step by aa-05's Corollary 3.18. ∎ <span class="cite">— Aluffi §3.3, p. 55</span></p>
+<p><strong>Remark 3.32.</strong> Read what that argument actually proved: <em>an invertible element is a non-zero-divisor.</em> Since in a field every nonzero element is invertible, every nonzero element is an nzd, which is the definition of a domain. The field hypothesis was used only to supply the inverse. <span class="cite">— Aluffi §3.3, Remark 3.32, p. 56</span></p>
+<p>Notice also that this is the same computation as aa-04's (iii) ⟹ (ii) in Theorem 2.15 — the one flagged there as never mentioning modular arithmetic. Here is the general theorem it was a special case of.</p>
+</div>
+
+<p><strong>The converse fails, twice over.</strong> ℤ is a domain and not a field (2 has no inverse). And ℚ[x] is a domain and not a field even though its coefficients form a field: an inverse of x would be a polynomial α(x) with xα(x) = 1, and no such polynomial exists. <span class="cite">— Aluffi §3.3, Remark 3.32, p. 56</span></p>
+
+<div class="theorem">
+<strong>Proposition 3.33.</strong> Every <em>finite</em> integral domain is a field. <span class="cite">— Aluffi §3.3, Proposition 3.33, p. 56</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Let R be a finite integral domain with elements r₁, …, r<sub>m</sub> listed without repetition, and let a ∈ R be nonzero. Consider
+<p style="text-align:center">ar₁, ar₂, …, ar<sub>m</sub>.</p>
+<p>These have no repetitions: if ar<sub>i</sub> = ar<sub>j</sub> then r<sub>i</sub> = r<sub>j</sub> by cancellation (Proposition 3.26, available because a is nonzero in a domain), so i = j. That is m distinct elements of a set with m elements, so the list <em>is</em> all of R. In particular 1 appears: ar<sub>i</sub> = 1 for some i, and r<sub>i</sub>a = 1 follows by commutativity. So a is invertible. ∎ <span class="cite">— Aluffi §3.3, p. 56</span></p>
+<p><strong>Where finiteness enters.</strong> Only at one step, and it is decisive: "m distinct elements inside a set of size m must be all of it" is false for infinite sets. In ℤ the list 2r₁, 2r₂, … is also repetition-free, and it is simply the even numbers — a proper subset, missing 1. <em>That</em> is why ℤ escapes.</p>
+<p>This is the same counting move as the proof of Fermat's little theorem in aa-04, where multiplication by [a]<sub>p</sub> permuted the nonzero classes. Here it is stated for what it is: a fact about injective self-maps of a finite set.</p>
+</div>
+
+<p>So the tower is rings ⊃ commutative rings ⊃ integral domains ⊃ fields, each containment strict — and the bottom containment ceases to be strict as soon as the ring is finite. This is why "field" and "domain" coincided for ℤ/nℤ with n ≠ 0: not for a reason about arithmetic, but because those rings are finite. Explore it below. <span class="cite">— Aluffi §3.3, p. 56</span></p>
+
+<canvas id="tower" width="620" height="330" aria-label="Nested classes of rings with example rings placed in the innermost class each belongs to"></canvas>
+<div class="controls">
+<button onclick="pick(0)">M₂(ℝ)</button>
+<button onclick="pick(1)">ℤ/10ℤ</button>
+<button onclick="pick(2)">ℤ</button>
+<button onclick="pick(3)">ℚ[x]</button>
+<button onclick="pick(4)">ℤ/7ℤ</button>
+<button onclick="pick(5)">ℚ</button>
+<button onclick="pick(-1)">clear</button>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Remark 3.32 says the proof of Proposition 3.31 really shows something more general. Extract it. <strong>Let R be any ring (not assumed commutative) and let a ∈ R be invertible. Prove that a is a non-zero-divisor.</strong> Definition 3.22 is two-sided, so your proof must be too — handle ab = 0 and ba = 0 separately. Then deduce Proposition 3.31 in one further line.</p>
+<textarea placeholder="Let a have inverse a^{-1}. Suppose ab = 0. Multiply on the left by a^{-1} ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>Let a<sup>−1</sup> be the inverse of a, so a<sup>−1</sup>a = aa<sup>−1</sup> = 1.</p>
+<p><em>Left.</em> Suppose ab = 0. Multiply on the left by a<sup>−1</sup>: &nbsp; b = 1·b = (a<sup>−1</sup>a)b = a<sup>−1</sup>(ab) = a<sup>−1</sup>·0 = 0, the last step by Corollary 3.18.</p>
+<p><em>Right.</em> Suppose ba = 0. Multiply on the <em>right</em> by a<sup>−1</sup>: &nbsp; b = b·1 = b(aa<sup>−1</sup>) = (ba)a<sup>−1</sup> = 0·a<sup>−1</sup> = 0, again by Corollary 3.18.</p>
+<p>So no nonzero b is killed by a on either side: a is a non-zero-divisor. ∎</p>
+<p><em>Deducing Proposition 3.31.</em> Let R be a field. It is commutative and nontrivial, so 0 ≠ 1, and every nonzero element is invertible, hence by the above a non-zero-divisor. That is exactly Definition 3.23. ∎</p>
+<p>Grade yourself on the two sides. If you proved only the left case and wrote "similarly" for the right, check that your "similarly" multiplies on the correct side — the whole point of the two-sided definition is that in a noncommutative ring left and right are different statements, and the two computations use the two different halves of aa<sup>−1</sup> = a<sup>−1</sup>a = 1.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Why does Definition 3.23 explicitly require 0 ≠ 1?</p>
+<button data-ok onclick="check(this,true)">To exclude the trivial ring, which would otherwise satisfy the condition vacuously</button>
+<button onclick="check(this,false)">Because 0 and 1 are always different in a commutative ring</button>
+<button onclick="check(this,false)">To ensure the ring has at least two zero-divisors</button>
+<div class="explain">In the trivial ring the only element is 0 = 1, and "ab = 0 ⟹ a = 0 or b = 0" holds because everything is 0. Without the clause it would count as a domain. Aluffi excludes it deliberately, tying the choice to not wanting 1 to count as irreducible, and the same exclusion appears in Definition 3.29 as the word "nontrivial". aa-05's guided proof showed 0 = 1 happens exactly in the one-element ring. <span class="cite">— Aluffi §3.3, Definition 3.23, p. 53</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Where exactly does the proof of Proposition 3.33 use that R is finite?</p>
+<button onclick="check(this,false)">In showing that the products ar₁, …, ar<sub>m</sub> are distinct</button>
+<button data-ok onclick="check(this,true)">In concluding that m distinct elements exhaust R, so 1 is among them</button>
+<button onclick="check(this,false)">In choosing the nonzero element a</button>
+<div class="explain">Distinctness comes from cancellation, which holds in every domain, finite or not — in ℤ the list 2r₁, 2r₂, … is also repetition-free. What fails for infinite R is the counting step: an injective self-map of an infinite set need not be surjective, and 2·ℤ is precisely a repetition-free list that misses 1. This is the same permutation-by-counting argument as Fermat's little theorem. <span class="cite">— Aluffi §3.3, p. 56</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> ℚ is a field. Is ℚ[x] a field?</p>
+<button onclick="check(this,false)">Yes — polynomials over a field always form a field</button>
+<button data-ok onclick="check(this,true)">No — x has no inverse, though ℚ[x] is an integral domain</button>
+<button onclick="check(this,false)">No — ℚ[x] has zero-divisors</button>
+<div class="explain">An inverse of x would be a polynomial α(x) with xα(x) = 1, and no such polynomial exists — multiplying by x can never produce a nonzero constant term. ℚ[x] does have no zero-divisors, so it is a domain, and it is infinite, so Proposition 3.33 does not apply. It is the second of Aluffi's two witnesses that domain does not imply field, and the more instructive one, because the failure survives even when the coefficients are as good as possible. <span class="cite">— Aluffi §3.3, Remark 3.32, p. 56</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the tower and the two theorems that hold it up:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Two properties of ℤ are not axioms.</strong> Commutativity of · fails in M<sub>2,2</sub>(ℝ) (Example 3.19); the law ab = 0 ⟹ a = 0 or b = 0 fails in ℤ/10ℤ (Example 3.21). Elements witnessing the second failure are <em>zero-divisors</em> (Definition 3.22, two-sided, and 0 always counts). A nontrivial commutative ring in which every nonzero element is a non-zero-divisor is an <strong>integral domain</strong>.</li>
+<li><strong>What each layer buys.</strong> Non-zero-divisor ⟹ cancellation (Proposition 3.26) — the property aa-05 proved underivable in general. Unit ⟹ non-zero-divisor (Remark 3.32), so <strong>field ⟹ domain</strong> (Proposition 3.31). Both converses fail: ℤ and ℚ[x] are domains that are not fields.</li>
+<li><strong>Finiteness collapses the last step</strong> (Proposition 3.33): in a finite domain, multiplication by a nonzero a is injective by cancellation, hence surjective by counting, hence hits 1. That — not anything about arithmetic — is why domain and field coincide for ℤ/nℤ with n ≠ 0.</li>
+</ol>
+And the summary line to keep: ℤ/nℤ is a domain exactly when n is prime, and a field exactly when n is irreducible. The two statements differ only at n = 0, which is exactly the gap Definition 1.19's convention was built to expose.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §3.3 "Special Types of Rings" (Example 3.19 and Definition 3.20 p. 52; the noncommutative examples, property (3.7), Example 3.21, Definition 3.22 and Definition 3.23 p. 53; Example 3.24 pp. 53–54; Example 3.25, Proposition 3.26 and Definition 3.27 p. 54; Proposition 3.28, Definition 3.29, Example 3.30 and Proposition 3.31 p. 55; Remark 3.32 and Proposition 3.33 p. 56), pp. 52–56. Corollary 3.18 is carried over from aa-05 (§3.2, p. 51); Theorem 2.15, Remark 2.17 and Proposition 2.16 from aa-04 (§2.4, pp. 32–34); Definition 1.19 from aa-02 (§1.4, p. 14). The ℤ/12ℤ and ℤ/15ℤ unit counts in the faded example and you-try were computed directly from Proposition 3.28.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Nested classes of rings. Each example ring is placed in the INNERMOST class
+// it belongs to; the reason it goes no deeper is printed underneath.
+var tw=document.getElementById('tower'),tg=tw.getContext('2d');
+var BOXES=[['rings','#e06c75'],['commutative rings','#d8a657'],
+           ['integral domains','#8ab4f8'],['fields','#4caf82']];
+var EX=[['M2(R)',0,'multiplication does not commute'],
+        ['Z/10Z',1,'[2][5] = 0 with neither factor 0'],
+        ['Z',2,'no inverse for 2 - domain, not a field'],
+        ['Q[x]',2,'no inverse for x, though Q is a field'],
+        ['Z/7Z',3,'finite domain, so a field (Prop 3.33)'],
+        ['Q',3,'every nonzero rational is invertible']];
+var sel=-1;
+function pick(i){sel=i;drawTower();}
+function drawTower(){tg.clearRect(0,0,tw.width,tw.height);
+ var x0=20,y0=26,w=tw.width-40,h=tw.height-72,step=34;
+ for(var k=0;k<4;k++){var x=x0+k*step,y=y0+k*22,ww=w-2*k*step,hh=h-2*k*22;
+  tg.strokeStyle=BOXES[k][1];tg.lineWidth=(sel>=0&&EX[sel][1]===k)?2.5:1;
+  tg.globalAlpha=(sel<0||EX[sel][1]>=k)?1:0.25;
+  tg.strokeRect(x,y,ww,hh);
+  tg.fillStyle=BOXES[k][1];tg.font='12px Segoe UI';
+  tg.fillText(BOXES[k][0],x+7,y+15);tg.globalAlpha=1;}
+ for(var i=0;i<EX.length;i++){var k=EX[i][1];
+  var x=x0+k*step+14,y=y0+k*22+34+(i%3)*22;
+  if(k>=2)y=y0+k*22+34+((i-2)%2)*24;
+  tg.globalAlpha=(sel<0||sel===i)?1:0.3;
+  tg.fillStyle=(sel===i)?BOXES[k][1]:'#e8e8e8';tg.font='13px Segoe UI';
+  tg.fillText(EX[i][0],x+ (k>=2?70:0),y);tg.globalAlpha=1;}
+ tg.fillStyle='#9aa5b1';tg.font='13px Segoe UI';
+ tg.fillText(sel<0?'each ring sits in the innermost class it belongs to - press one'
+   :(EX[sel][0]+': '+EX[sel][2]),20,tw.height-14);}
+drawTower();
+</script></body></html>
