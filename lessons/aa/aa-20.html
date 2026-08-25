@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-20 — Structure theorem: finitely generated modules over a PID</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+.seq{font-family:Segoe UI,system-ui,sans-serif;text-align:center;color:var(--acc);margin:.9rem 0;font-size:1.05rem}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Structure theorem: finitely generated modules over a PID <span class="cite">(aa-20)</span></h1>
+
+<div class="hook">
+Aluffi calls it "probably one of the most important theorems in this text". Every finitely generated module over a Euclidean domain is a direct sum of cyclic pieces — and the pieces are uniquely determined.
+<p>Ten units of machinery converge here. aa-18 turned such a module into a matrix; aa-19 showed the matrix exists whenever the ring is Noetherian, and that over a field it reduces to a block of 1s. Today the reduction is pushed as far as it can go over a Euclidean domain: not to 1s, but to a diagonal d₁ ∣ d₂ ∣ ⋯ ∣ d<sub>s</sub>. Each d<sub>i</sub> contributes one cyclic summand R/(d<sub>i</sub>), each zero row contributes a free summand R, and that list <em>is</em> the module. This is the theorem a persistence barcode is an instance of.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Over ℤ, can every matrix be reduced by elementary operations to a diagonal of 1s and 0s, as over a field?</p>
+<button onclick="check(this,false)">Yes — row reduction works over any ring</button>
+<button data-ok onclick="check(this,true)">No — the best available is a diagonal d₁ ∣ d₂ ∣ ⋯, and the d<sub>i</sub> need not be 1</button>
+<button onclick="check(this,false)">No — over ℤ no diagonal form exists at all</button>
+<div class="explain">aa-19 located the failure precisely: scaling a row by the inverse of a nonzero entry needs that entry to be a unit, and over ℤ only ±1 qualify. A diagonal form does still exist — Lemma 9.38 — but the diagonal entries are elements d₁ ∣ d₂ ∣ ⋯ ∣ d<sub>s</sub> rather than 1s. Those surviving entries are exactly what becomes torsion. <span class="cite">— Aluffi §9.5, Lemma 9.38, p. 193</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: This IS the barcode: persistence modules decompose into intervals by exactly this theorem.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>How far a matrix reduces over a Euclidean domain</h2>
+
+<div class="theorem">
+<strong>Lemma 9.38.</strong> Let A be an m × n matrix over a Euclidean domain R. Then elementary operations transform A into a diagonal matrix with entries d₁, …, d<sub>s</sub> and zeroes elsewhere, where
+<p style="text-align:center">d₁ ∣ d₂ ∣ ⋯ ∣ d<sub>s</sub>.</p>
+<span class="cite">— Aluffi §9.5, Lemma 9.38, p. 193</span>
+</div>
+
+<div class="worked">
+<strong>The row step, and why it terminates.</strong> Take a single row a = (a₁, …, a<sub>n</sub>), not all zero, and switch columns so a₁ ≠ 0. Over a field we would scale by a₁<sup>−1</sup>; here we cannot, so we <em>divide with remainder</em> instead. Let v be the Euclidean valuation (aa-12's Definition 6.24).
+<p>For each i ≥ 2 write a<sub>i</sub> = a₁q<sub>i</sub> + r<sub>i</sub> with r<sub>i</sub> = 0 or v(r<sub>i</sub>) &lt; v(a₁), and add −q<sub>i</sub> times the first column to the ith. Every entry beyond the first is now a remainder r<sub>i</sub>.</p>
+<p>If the row is now (d, 0, …, 0) — stop. Otherwise switch some nonzero remainder into the first position and repeat.</p>
+<p><strong>Why this halts:</strong> each time you go round, the new first entry has <em>strictly smaller valuation</em>, and valuations are nonnegative integers, so they cannot decrease forever. That is well-ordering, doing in aa-20 exactly what it did in aa-01. ∎ <span class="cite">— Aluffi §9.5, pp. 193–194</span></p>
+</div>
+
+<div class="worked">
+<strong>From a row to the whole matrix — and the divisibility condition.</strong> Move a nonzero entry to (1,1); run a row step to clear the first row; run a column step to clear the first column — which may spoil the first row, so run the row step again, and so on. The (1,1) valuation strictly decreases each time round, so this too terminates, leaving
+<p style="text-align:center">( d₁ &nbsp; 0 ⋯ 0 / 0 &nbsp; ⋯ inner matrix ⋯ ),</p>
+<p>and induction handles the inner matrix, giving d₂ ∣ d₃ ∣ ⋯ ∣ d<sub>s</sub>. <span class="cite">— Aluffi §9.5, p. 194</span></p>
+<p><strong>But the lemma also demands d₁ ∣ d₂, and that is not yet established.</strong> If it fails, perform a row operation putting d₂ into the (1,2) position and <em>start the whole reduction again</em>. The valuation of the (1,1) entry drops again, so after finitely many restarts the divisibility condition holds too. ∎ <span class="cite">— Aluffi §9.5, p. 195</span></p>
+<p>Aluffi's own verdict on the argument — "I will grant you that this argument is dreadful" — comes with its defence: it is an actual procedure that can be carried out. More elegant proofs exist and are less concrete.</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Example 9.39, the algorithm run by hand.</strong> Start from
+<p style="text-align:center">( −2 &nbsp; 0 &nbsp; 4 / −4 &nbsp; 1 &nbsp; 7 ).</p>
+<p>A row step on the top row clears the last entry (4 = (−2)(−2) + 0), giving ( −2 0 0 / −4 1 −1 ). A column step clears the first column below the corner: ( −2 0 0 / 0 1 −1 ). Clearing the last entry of the second row gives ( −2 0 0 / 0 1 0 ).</p>
+<p>Now check the lemma's condition: is −2 ∣ 1? ⟨your step: yes or no?⟩ — so we are <em>not</em> finished, and Aluffi performs the restart operation, putting a 1 into the (1,2) slot: ( −2 1 0 / 0 1 0 ).</p>
+<p>Running the reduction again — a column operation, then a row step, then a column step — reaches ( 1 0 0 / 0 ⟨your step⟩ 0 ), and now the divisibility 1 ∣ 2 does hold. <span class="cite">— Aluffi §9.5, Example 9.39, p. 195</span></p>
+<p>This is aa-18's matrix with its rows swapped, and it lands on the same normal form — as it must, since equivalent matrices have isomorphic cokernels.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Why does the row step of Lemma 9.38 terminate?</p>
+<button onclick="check(this,false)">Because the entries get smaller in absolute value</button>
+<button data-ok onclick="check(this,true)">Because the valuation of the first entry strictly decreases, and valuations are nonnegative integers</button>
+<button onclick="check(this,false)">Because there are finitely many columns</button>
+<div class="explain">Each pass replaces the leading entry by a remainder of strictly smaller valuation, and a strictly decreasing sequence in ℤ<sup>≥0</sup> must stop — well-ordering again. "Absolute value" is the valuation in the special case R = ℤ, not the general statement; over k[t] the valuation is the degree. And the number of columns is fixed, so it bounds nothing about how many passes occur. <span class="cite">— Aluffi §9.5, p. 194</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. The normal form is in hand. Now read the module off it.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The classification</h2>
+
+<div class="theorem">
+<strong>Theorem 9.40 (Classification of finitely generated modules over Euclidean domains).</strong> Let M be a finitely generated module over a Euclidean domain R. Then there are d₁, …, d<sub>s</sub> ∈ R with d₁ ∣ d₂ ∣ ⋯ ∣ d<sub>s</sub> and d₁ not a unit, and an integer r ≥ 0, such that
+<p style="text-align:center">M ≅ R<sup>⊕r</sup> ⊕ R/(d₁) ⊕ R/(d₂) ⊕ ⋯ ⊕ R/(d<sub>s</sub>).</p>
+<span class="cite">— Aluffi §9.5, Theorem 9.40, pp. 195–196</span>
+</div>
+
+<div class="worked">
+<strong>Proof — every ingredient has already been proved.</strong> Euclidean domains are PIDs (aa-12's Theorem 6.26) and PIDs are Noetherian (Proposition 6.32), so M is finitely presented by aa-19's Theorem 9.29:
+<p class="seq">R<sup>⊕n</sup> —φ→ R<sup>⊕m</sup> → M → 0,</p>
+<p>with φ given by a matrix. By Lemma 9.38 and aa-18's Corollary 9.26, we may replace that matrix by the diagonal form. Its image is</p>
+<p style="text-align:center">im φ = (d₁) ⊕ (d₂) ⊕ ⋯ ⊕ (d<sub>s</sub>) ⊕ 0 ⊕ ⋯ ⊕ 0 ⊆ R<sup>⊕m</sup>,</p>
+<p>so the cokernel is R/(d₁) ⊕ ⋯ ⊕ R/(d<sub>s</sub>) ⊕ R ⊕ ⋯ ⊕ R — the last m − s factors untouched. Factors with d<sub>i</sub> a unit are trivial and are discarded, which is why d₁ may be assumed a non-unit. ∎ <span class="cite">— Aluffi §9.5, p. 196</span></p>
+<p><strong>Read the diagonal.</strong> Each entry does one of three things: a <em>unit</em> kills its factor entirely; a <em>non-unit non-zero</em> d<sub>i</sub> leaves the torsion piece R/(d<sub>i</sub>); and a <em>missing</em> entry — a zero row — leaves a free factor R. aa-19's Theorem 9.35 is the case where only the first and third occur, which is exactly what a field permits.</p>
+</div>
+
+<p><strong>Remark 9.41 — it is a genuine classification.</strong> The rank r and the factors R/(d<sub>i</sub>) are <em>uniquely</em> determined by M. Aluffi does not prove it but names the route: first show the free part R<sup>⊕r</sup> and the torsion part T = R/(d₁) ⊕ ⋯ ⊕ R/(d<sub>s</sub>) are each determined; then show (i) R<sup>⊕r₁</sup> ≅ R<sup>⊕r₂</sup> forces r₁ = r₂, which comes down to invertible matrices being square, and (ii) the torsion decomposition is unique, proved by extracting one factor at a time — the last ideal (d<sub>s</sub>) is the <em>annihilator</em> of M. <span class="cite">— Aluffi §9.5, Remark 9.41, p. 196</span></p>
+
+<p><strong>Remark 9.42.</strong> The theorem and its uniqueness hold over every <em>PID</em>, not merely Euclidean domains; the proof is harder because there is no valuation to descend on. <span class="cite">— Aluffi §9.5, Remark 9.42, p. 196</span></p>
+
+<p><strong>Remark 9.43 — a theorem hidden inside the proof.</strong> Every submodule of a finitely generated free module over a Euclidean domain is itself <em>free</em>. This holds over any PID and <em>not beyond</em>: if an integral domain is not a PID then some ideal of it — a submodule of R — fails to be free. So "submodules of free are free" is another face of the PID condition. <span class="cite">— Aluffi §9.5, Remark 9.43, p. 196</span></p>
+
+<p>Drive the theorem below. Each matrix is reduced to its diagonal form, and the summands are drawn as bars: a bounded bar of length d for each torsion factor R/(d), an unbounded bar for each free factor R. The list of bars is the module.</p>
+
+<canvas id="bar" width="620" height="330" aria-label="Invariant factors of a matrix drawn as a bar diagram of cyclic summands"></canvas>
+<div class="controls">
+<button onclick="setEx(0)">( −2 0 4 / −4 1 7 )</button>
+<button onclick="setEx(1)">( 6 0 / 0 4 )</button>
+<button onclick="setEx(2)">Exercise 9.15</button>
+<button onclick="setEx(3)">( 2 0 / 0 6 / 0 0 )</button>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> A matrix over ℤ reduces to the diagonal (1, 0, 6) as a map ℤ<sup>⊕3</sup> → ℤ<sup>⊕3</sup>. What is the cokernel?</p>
+<button onclick="check(this,false)">ℤ/1ℤ ⊕ ℤ/6ℤ</button>
+<button data-ok onclick="check(this,true)">ℤ/6ℤ ⊕ ℤ — the 1 kills a factor, the 0 leaves one free</button>
+<button onclick="check(this,false)">ℤ<sup>⊕3</sup></button>
+<div class="explain">Read the diagonal entry by entry: 1 is a unit so ℤ/(1) = 0 and that factor vanishes; 0 gives ℤ/(0) ≅ ℤ, a free factor; 6 gives ℤ/6ℤ. The result is ℤ/6ℤ ⊕ ℤ. (Written in the normal form of Theorem 9.40 the zero entry is not listed among the d<sub>i</sub> at all — it shows up as one of the m − s untouched factors.) <span class="cite">— Aluffi §9.5, Theorem 9.40, p. 196</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Remark 9.43 says submodules of free modules are free over a PID. Why does this fail over ℤ[x]?</p>
+<button data-ok onclick="check(this,true)">Because (2, x) is an ideal of ℤ[x] that is not principal, hence not free</button>
+<button onclick="check(this,false)">Because ℤ[x] is not a domain</button>
+<button onclick="check(this,false)">Because ℤ[x] has no free modules</button>
+<div class="explain">An ideal is a submodule of R viewed as a free module of rank 1. If it were free of rank 1 it would be principal, and free of rank ≥ 2 is impossible inside a domain — any two elements a, b satisfy the relation b·a − a·b = 0. So a non-principal ideal is a non-free submodule of a free module, and (2, x) ⊆ ℤ[x] is aa-11's example. ℤ[x] is a perfectly good domain; it just is not a PID. <span class="cite">— Aluffi §9.5, Remark 9.43, p. 196</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Two payoffs: prime-power pieces, and a famous theorem of linear algebra.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Elementary divisors, and Cayley–Hamilton</h2>
+
+<p>The d<sub>i</sub> of Theorem 9.40 are the <strong>invariant factors</strong> of M. A Euclidean domain is a UFD, so each d<sub>i</sub> factors into irreducibles; and if d = q₁<sup>a₁</sup>⋯q<sub>r</sub><sup>a<sub>r</sub></sup> with the q<sub>i</sub> distinct irreducibles, the <strong>Chinese Remainder Theorem</strong> (aa-10's Theorem 5.52) splits <span class="cite">— Aluffi §9.6, p. 197; §5.6, Theorem 5.52, p. 97</span></p>
+<p style="text-align:center">R/(d) ≅ R/(q₁<sup>a₁</sup>) ⊕ ⋯ ⊕ R/(q<sub>r</sub><sup>a<sub>r</sub></sup>).</p>
+<p>The CRT gives a ring isomorphism, and a ring isomorphism between quotients of R is in particular an isomorphism of R-modules (aa-16's Example 8.35).</p>
+
+<div class="theorem">
+<strong>Corollary 9.44.</strong> Every finitely generated module over a Euclidean domain is a direct sum of cyclic modules R/(q<sup>a</sup>) with q irreducible — its <strong>elementary divisors</strong> — and the decomposition is unique. <span class="cite">— Aluffi §9.6, Corollary 9.44, p. 197</span>
+</div>
+
+<p>So the R/(q<sup>a</sup>) are the atoms: every finitely generated module is a direct sum of them, "in the simplest possible way". Over more general rings the situation is far worse. <span class="cite">— Aluffi §9.6, p. 197</span></p>
+
+<div class="worked">
+<strong>The k[t] application — a linear transformation <em>is</em> a module.</strong> Let k be a field and V a k-vector space. Aluffi's observation: giving a linear transformation α : V → V is the same as giving V the structure of a k[t]-module extending the k-action.
+<p><em>One way:</em> set t·v := α(v) and extend, so that for f(t) = a₀ + a₁t + ⋯ + a<sub>n</sub>t<sup>n</sup>,</p>
+<p style="text-align:center">f(t)·v = a₀v + a₁α(v) + a₂α²(v) + ⋯ + a<sub>n</sub>α<sup>n</sup>(v).</p>
+<p><em>The other way:</em> given such a module structure, "multiplication by t" is a k-linear map V → V. In short, <strong>α acts as multiplication by t</strong>. <span class="cite">— Aluffi §9.6, pp. 197–198</span></p>
+<p>Now suppose V is finite-dimensional. Its k-generators generate it over k[t], so V is a finitely generated k[t]-module — and k[t] is a Euclidean domain (aa-13's Theorem 7.2). Theorem 9.40 applies:</p>
+<p style="text-align:center">V ≅ k[t]/(f₁(t)) ⊕ ⋯ ⊕ k[t]/(f<sub>s</sub>(t)), &nbsp; f₁ ∣ ⋯ ∣ f<sub>s</sub>,</p>
+<p>with <em>no free part</em>, because k[t] itself is infinite-dimensional over k while V is not. <span class="cite">— Aluffi §9.6, p. 198</span></p>
+</div>
+
+<div class="worked">
+<strong>What the f<sub>i</sub> are.</strong> Chasing definitions identifies them with objects from ordinary linear algebra:
+<p>• the <strong>minimal polynomial</strong> of α is f<sub>s</sub>(t);</p>
+<p>• the <strong>characteristic polynomial</strong> of α is f₁(t)⋯f<sub>s</sub>(t).</p>
+<p>Since f₁ ∣ f₂ ∣ ⋯ ∣ f<sub>s</sub>, the minimal polynomial <em>divides</em> the characteristic polynomial — it is one of the factors of the product. That the minimal polynomial exists and is unique is itself an application: { f ∈ k[t] : f(α) = 0 } is an ideal of k[t], being the kernel of the evaluation homomorphism f ↦ f(α), and k[t] is a PID by aa-13's <strong>Corollary 7.7</strong> — so that ideal is (g) for a single g, unique once taken monic. <span class="cite">— Aluffi §7.2, Corollary 7.7, p. 134</span> <span class="cite">— Aluffi §9.6, p. 198</span></p>
+<p>And bases adapted to this decomposition are what "canonical forms" of a matrix are; the details belong to a more advanced text.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 9.45 (Cayley–Hamilton).</strong> Let α be a linear transformation of V with characteristic polynomial P(t). Then P(α) = 0. <span class="cite">— Aluffi §9.6, Theorem 9.45, p. 199</span>
+</div>
+
+<div class="worked">
+<strong>Why it follows.</strong> The minimal polynomial f<sub>s</sub> annihilates α by definition, and f<sub>s</sub> divides P — so P annihilates α too. That is the whole argument, once Theorem 9.40 is available.
+<p><strong>And it is not obvious.</strong> Aluffi warns against the fake proof "P(t) = det(tI − A), so P(A) = det(A − A) = det(0) = 0". Substituting a matrix for t in det(tI − A) does not give det of anything sensible: write out tI − A for a 3 × 3 matrix A and replace t by A, and you get an array some of whose entries are matrices and some are numbers. The identity is real; that derivation of it is not. <span class="cite">— Aluffi §9.6, p. 199 and its footnote</span></p>
+<p>Aluffi's closing comment on the whole chapter is worth keeping: a progression of comparatively simple steps has made an objectively difficult result straightforward. That is what the abstraction was for.</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi says of the k[t]-module construction that "it is easy to verify" — so verify it. <strong>Let V be a k-vector space and α : V → V a linear transformation. (a) Show that f(t)·v := a₀v + a₁α(v) + ⋯ + a<sub>n</sub>α<sup>n</sup>(v) makes V a k[t]-module whose restriction to constants is the original k-action; you need at least axioms (v), (vi) and (viii) of Definition 8.1. (b) Show that if V is finite-dimensional over k then V is finitely generated over k[t]. (c) Explain why the decomposition of V by Theorem 9.40 has free rank 0.</strong></p>
+<textarea placeholder="(a) Axiom (v): 1.v = v because the constant polynomial 1 acts as a_0 = 1 ... (vi): check (fg).v = f.(g.v) on monomials first ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>(a) <em>Axiom (v):</em> the polynomial 1 has a₀ = 1 and no other terms, so 1·v = v. <em>Axiom (viii):</em> each α<sup>k</sup> is k-linear, so f(t)·(v + w) = Σa<sub>k</sub>α<sup>k</sup>(v + w) = Σa<sub>k</sub>α<sup>k</sup>(v) + Σa<sub>k</sub>α<sup>k</sup>(w). <em>Axiom (vii)</em> is immediate from collecting coefficients. <em>Axiom (vi)</em>, (fg)·v = f·(g·v), is enough to check on monomials f = t<sup>i</sup>, g = t<sup>j</sup>, where it reads α<sup>i+j</sup>(v) = α<sup>i</sup>(α<sup>j</sup>(v)) — true by definition of composition — and the general case follows by bilinearity. Restricting to constant polynomials gives λ·v = λv, the original action.</p>
+<p>(b) If v₁, …, v<sub>d</sub> span V over k, they span it over k[t] as well: every k-combination is in particular a k[t]-combination, using only constant coefficients. So V = ⟨v₁, …, v<sub>d</sub>⟩ as a k[t]-module, and V is finitely generated over k[t].</p>
+<p>(c) Theorem 9.40 writes V ≅ k[t]<sup>⊕r</sup> ⊕ (torsion). But k[t] is <em>infinite-dimensional</em> as a k-vector space — 1, t, t², … are k-linearly independent — so a nonzero free part would make V infinite-dimensional over k, contradicting the hypothesis. Hence r = 0, and V is all torsion:</p>
+<p style="text-align:center">V ≅ k[t]/(f₁) ⊕ ⋯ ⊕ k[t]/(f<sub>s</sub>). ∎</p>
+<p>Grade yourself on (c). It is the step that converts a general classification into a statement about matrices, and the reason is a dimension count over k, not anything about α. Note also what (b) did <em>not</em> claim: V is finitely generated over k[t] by the same elements, but generally by <em>fewer</em> — a single vector often suffices, since t may be applied repeatedly.</p>
+</details>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (a) Aluffi's Exercise 9.14: run the row step on the vector (0, −12, 9, −3, −6) over ℤ, showing each division with remainder, and say what the surviving entry d is in terms of the original entries. (b) Exercise 9.15: determine, as a direct sum of cyclic groups, the cokernel of the map ℤ<sup>⊕3</sup> → ℤ<sup>⊕3</sup> given by ( 0 −2 0 / 6 4 −2 / 2 4 2 ). Check your invariant factors satisfy d₁ ∣ d₂ ∣ d₃. (c) Then rewrite your answer to (b) in elementary-divisor form using Corollary 9.44, and confirm the two forms have the same number of elements.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Why does the k[t]-module decomposition of a finite-dimensional V have no free summand?</p>
+<button onclick="check(this,false)">Because α has no eigenvalues</button>
+<button data-ok onclick="check(this,true)">Because k[t] is infinite-dimensional over k, and V is not</button>
+<button onclick="check(this,false)">Because k[t] is not a Euclidean domain</button>
+<div class="explain">A single free summand k[t] would already contain the k-linearly independent family 1, t, t², …, making V infinite-dimensional over k. So r = 0 and V is entirely torsion. k[t] <em>is</em> a Euclidean domain — that is what let Theorem 9.40 apply in the first place — and eigenvalues play no part in the argument. <span class="cite">— Aluffi §9.6, p. 198</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Cayley–Hamilton says P(α) = 0 for the characteristic polynomial P. Which fact about the invariant factors delivers it?</p>
+<button data-ok onclick="check(this,true)">The minimal polynomial is f<sub>s</sub>, the characteristic is f₁⋯f<sub>s</sub>, and f<sub>s</sub> divides that product</button>
+<button onclick="check(this,false)">That det(tI − A) evaluated at A is det(0)</button>
+<button onclick="check(this,false)">That every f<sub>i</sub> is irreducible</button>
+<div class="explain">f<sub>s</sub> annihilates α by definition of the minimal polynomial, and since f₁ ∣ ⋯ ∣ f<sub>s</sub> the product f₁⋯f<sub>s</sub> is a multiple of f<sub>s</sub> — so it annihilates α too. The det(0) argument is the fake proof Aluffi warns against in a footnote: substituting a matrix for t produces an array mixing matrices and scalars, not a determinant. And the f<sub>i</sub> are generally not irreducible; that is precisely what Corollary 9.44 refines. <span class="cite">— Aluffi §9.6, Theorem 9.45, p. 199</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the theorem and its two readings:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Lemma 9.38:</strong> over a Euclidean domain, elementary operations bring any matrix to a diagonal d₁ ∣ d₂ ∣ ⋯ ∣ d<sub>s</sub>. Division with remainder replaces the field's "scale by an inverse", and the procedure halts because the valuation of the leading entry strictly decreases — well-ordering, again. The divisibility condition requires restarting the whole reduction, which also terminates for the same reason.</li>
+<li><strong>Theorem 9.40:</strong> hence every finitely generated M over a Euclidean domain is R<sup>⊕r</sup> ⊕ R/(d₁) ⊕ ⋯ ⊕ R/(d<sub>s</sub>), with r and the d<sub>i</sub> uniquely determined (Remark 9.41), and the same holds over any PID (Remark 9.42). Read the diagonal: a unit kills a factor, a non-unit leaves torsion, a missing entry leaves a free factor. Hidden inside: every submodule of a free module over a PID is free (Remark 9.43).</li>
+<li><strong>Two payoffs.</strong> The Chinese Remainder Theorem refines the invariant factors into <em>elementary divisors</em> R/(q<sup>a</sup>) with q irreducible (Corollary 9.44) — the atoms. And over k[t], a linear transformation α on a finite-dimensional V <em>is</em> a k[t]-module with α acting as t; the decomposition has no free part, its last invariant factor is the minimal polynomial, the product of all of them is the characteristic polynomial, and <strong>Cayley–Hamilton</strong> follows because the first divides the second.</li>
+</ol>
+And the mission strip, unpacked: a persistence module over k[t] is a finitely generated graded module over a Euclidean domain. Theorem 9.40 decomposes it into cyclic pieces; each piece is an interval; the list of intervals is the barcode. The theorem you just proved is the theorem that makes persistent homology a finite object.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §9.5 "Finitely Generated Modules over Euclidean Domains" (Lemma 9.38 and the row step p. 193; termination of the row step and the full reduction p. 194; the divisibility restart and Example 9.39 p. 195; Theorem 9.40 with its proof, Remark 9.41, Remark 9.42 and Remark 9.43 p. 196), pp. 193–196; §9.6 "Linear Transformations and Modules over k[t]" (invariant factors, the Chinese Remainder splitting and Corollary 9.44 p. 197; the k[t]-module structure determined by a linear transformation and the vanishing free part p. 198; the minimal and characteristic polynomials p. 198; Theorem 9.45 and its footnote p. 199; the exercises pp. 199–200), pp. 197–200. Definition 6.24, Theorem 6.26 and Proposition 6.32 come from aa-12 (§6.3, pp. 112–116), Theorem 7.2 from aa-13 (§7.2, p. 132), Theorem 5.52 from aa-10 (§5.6, p. 97), Example 8.35 from aa-16 (§8.4, p. 164), Definition 8.29 and Example 8.45 from aa-16 and aa-17 (§8.3, p. 162; §8.5, p. 168), Corollary 9.26 from aa-18 (§9.2, p. 186), and Theorem 9.29 and Theorem 9.35 from aa-19 (§9.3–9.4, pp. 187–190). Every normal form shown in the visual — for the matrix of Example 9.39, for the diagonal pair (6, 4), for Exercise 9.15's matrix, and for the 3 × 2 example — was computed before being drawn.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Theorem 9.40 as a bar diagram. Each invariant factor d gives a bounded bar of
+// length d (the cyclic summand Z/dZ); each unused row of the target gives an
+// unbounded bar (a free summand Z). The normal forms below were computed first.
+var bc=document.getElementById('bar'),bx=bc.getContext('2d');
+var EX=[{A:'( −2  0  4 / −4  1  7 )',rows:2,d:[1,2],name:'Example 9.39'},
+        {A:'( 6  0 / 0  4 )',rows:2,d:[2,12],name:'diagonal (6, 4)'},
+        {A:'( 0 −2 0 / 6 4 −2 / 2 4 2 )',rows:3,d:[2,2,8],name:'Exercise 9.15'},
+        {A:'( 2  0 / 0  6 / 0  0 )',rows:3,d:[2,6],name:'a 3 × 2 matrix'}];
+var ei=0;
+function setEx(i){ei=i;drawBar();}
+function drawBar(){bx.clearRect(0,0,bc.width,bc.height);
+ var E=EX[ei],pad=26,y=104,h=22,gap=34;
+ bx.font='13px Segoe UI';bx.textAlign='left';bx.textBaseline='middle';
+ bx.fillStyle='#e8e8e8';
+ bx.fillText(E.name+':   A = '+E.A,pad,26);
+ var ds=E.d.filter(function(d){return Math.abs(d)!==1;});
+ var killed=E.d.length-ds.length, free=E.rows-E.d.length;
+ bx.fillStyle='#9aa5b1';
+ bx.fillText('normal form diagonal '+E.d.join(', ')+
+   '   ·   '+killed+' unit entr'+(killed===1?'y':'ies')+' kill a factor'+
+   '   ·   '+free+' zero row'+(free===1?'':'s')+' leave a free factor',pad,48);
+ var maxd=Math.max.apply(null,ds.concat([6])),unit=Math.min(46,(bc.width-2*pad-150)/maxd);
+ var i=0,parts=[];
+ for(var j=0;j<ds.length;j++){
+  var d=Math.abs(ds[j]),w=d*unit,yy=y+i*gap;
+  bx.fillStyle='rgba(138,180,248,0.55)';bx.fillRect(pad,yy-h/2,w,h);
+  bx.strokeStyle='#8ab4f8';bx.lineWidth=1.5;bx.strokeRect(pad,yy-h/2,w,h);
+  bx.fillStyle='#e8e8e8';bx.fillText('Z/'+d+'Z',pad+w+12,yy);
+  parts.push('Z/'+d+'Z');i++;}
+ for(var j=0;j<free;j++){
+  var yy=y+i*gap,w=bc.width-2*pad-90;
+  bx.fillStyle='rgba(76,175,130,0.45)';bx.fillRect(pad,yy-h/2,w,h);
+  bx.strokeStyle='#4caf82';bx.lineWidth=1.5;
+  bx.beginPath();bx.moveTo(pad,yy-h/2);bx.lineTo(pad+w,yy-h/2);
+  bx.lineTo(pad+w+14,yy);bx.lineTo(pad+w,yy+h/2);bx.lineTo(pad,yy+h/2);
+  bx.closePath();bx.stroke();
+  bx.fillStyle='#e8e8e8';bx.fillText('Z',pad+w+22,yy);
+  parts.push('Z');i++;}
+ if(!parts.length)parts.push('0');
+ bx.fillStyle='#e8e8e8';bx.font='14px Segoe UI';
+ bx.fillText('M  ≅  '+parts.join('  ⊕  '),pad,bc.height-22);
+ bx.fillStyle='#9aa5b1';bx.font='12px Segoe UI';
+ bx.fillText('bounded bars are torsion summands; the arrowed bar is a free summand',pad,bc.height-6);}
+drawBar();
+</script></body></html>
