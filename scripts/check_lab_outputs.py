@@ -86,6 +86,29 @@ class LabSetError(Exception):
     """The problem set's blocks are malformed, before any code is run."""
 
 
+_QUOTED_THEOREM = re.compile(r"^>\s+\*\*[^*\n]*Theorem[^*\n]*\*\*", re.MULTILINE)
+_PROBLEM = re.compile(r"^##\s+Problem\b", re.MULTILINE)
+_THEOREM_PROBE = re.compile(r"^\s*#\s*THEOREM-PROBE:\s*\S", re.MULTILINE)
+
+
+def check_theorem_probes(markdown_text):
+    """Require an executable boundary probe near every quoted theorem.
+
+    The probe marker must occur after the blockquote and before the next
+    problem.  This is intentionally coverage-style: execution/output checking
+    remains owned by the ordinary block gate.
+    """
+    failures = []
+    for match in _QUOTED_THEOREM.finditer(markdown_text):
+        following = _PROBLEM.search(markdown_text, match.end())
+        end = following.start() if following else len(markdown_text)
+        if not _THEOREM_PROBE.search(markdown_text, match.end(), end):
+            line = markdown_text[:match.start()].count("\n") + 1
+            failures.append("FAIL quoted theorem at line %d has no executable "
+                            "# THEOREM-PROBE before the next problem" % line)
+    return failures
+
+
 def _normalise(text):
     """Trailing whitespace and surrounding blank lines are not output."""
     lines = [line.rstrip() for line in text.replace("\r\n", "\n").split("\n")]
@@ -670,6 +693,7 @@ def main(argv=None):
               % (pins["python"], ".".join(str(p) for p in sys.version_info[:3])))
 
     structural = check_env_imports(blocks, grammar)
+    structural += check_theorem_probes(text)
     if structural:
         # The environment declaration is what licenses attributing the recorded
         # outputs to the recorded pins. If it is wrong there is nothing to learn

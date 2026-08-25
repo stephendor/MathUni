@@ -51,6 +51,13 @@ Semester-1/2 unit whose machinery that step makes runnable.
   library is demystified, not magic.
 - Keep environments reproducible: pin versions, note that Ripser/GUDHI are the
   fast C++ backends and giotto-tda/persim the scikit-friendly front ends.
+- Every theorem quoted in a blockquote has an executable hypothesis-boundary
+  instantiation before the next problem, marked `# THEOREM-PROBE: <case>`.
+  Illustrating a typical conclusion is not enough: choose a case that could
+  falsify a missing or misstated hypothesis.
+- Print evidence at the finest granularity used by the prose. If an answer
+  reasons about parts of an aggregate, its recorded block prints those parts;
+  a roll-up alone cannot support a claim about its decomposition.
 - lab-08 (Mapper) leans on la-15 (spectral methods) for its clustering step;
   lab-09 should reuse, not re-derive, everything from 01–08.
 

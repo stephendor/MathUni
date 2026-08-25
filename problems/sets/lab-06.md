@@ -313,6 +313,7 @@ operations you went there to perform.
 against the finite vector a pipeline would actually consume.
 
 ```python id=lipschitz
+# THEOREM-PROBE: Theorem 13.1 at a pair attaining the landscape bound
 def landscape_exact(dgm, t, layers):
     """Layer k of the landscape at t: the k-th largest tent value."""
     tents = np.maximum(np.minimum(t[:, None] - dgm[:, 0], dgm[:, 1] - t[:, None]), 0.0)
@@ -425,6 +426,7 @@ which is a weight that vanishes on the diagonal, offered as a recommendation.
 every hypothesis printed: nonnegative, ‖ω‖_∞ = 1, |∇ω| = 0.
 
 ```python id=image
+# THEOREM-PROBE: Theorem 13.3 with the boundary weight omega = 1
 def constant_weight(birth, pers):
     """omega = 1 everywhere: bounded, zero gradient, and NOT zero on the diagonal."""
     return np.ones_like(np.asarray(pers, dtype=float))

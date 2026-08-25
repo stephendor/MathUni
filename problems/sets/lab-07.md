@@ -501,6 +501,7 @@ Dey and Wang add, on the same page, that "in general, the Fréchet mean is not
 unique", and that "the computational question for Fréchet mean … remains open".
 
 ```python id=mean
+# THEOREM-PROBE: Theorem 13.10 on a finite empirical measure
 from gtda.diagrams import PersistenceLandscape
 
 landscapes = PersistenceLandscape(n_layers=2, n_bins=60).fit_transform(diagrams)

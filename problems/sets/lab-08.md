@@ -213,6 +213,7 @@ In words: **cycles smaller than the cover's Lebesgue number are killed; the
 survivors generate.** So the cover decides which loops you see. Sweep it.
 
 ```python id=cover
+# THEOREM-PROBE: Theorem 9.16 under cover refinement and fragmentation
 print("b1 of the Mapper graph, over the cover parameters. The cloud has one loop.")
 print()
 overlaps = (0.05, 0.15, 0.30, 0.45)

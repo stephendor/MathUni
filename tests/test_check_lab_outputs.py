@@ -15,6 +15,7 @@ from scripts.check_lab_outputs import (
     check_versions,
     check_completed,
     check_env_imports,
+    check_theorem_probes,
     _feature_version,
     compare_outputs,
     compare_runs,
@@ -235,6 +236,22 @@ def test_conflicting_duplicate_pin_is_rejected():
 def test_repeated_identical_pin_is_accepted():
     assert parse_env_pins("```env\nnumpy==1.26.4\nnumpy==1.26.4\n```") == {
         "numpy": "1.26.4"}
+
+
+def test_a_quoted_theorem_requires_a_local_executable_probe():
+    quoted = "> **Theorem 3.1, printed 49.** For every x.\n\n"
+    assert check_theorem_probes(quoted + code_block("p", "print(1)")) == [
+        "FAIL quoted theorem at line 1 has no executable # THEOREM-PROBE "
+        "before the next problem"]
+    probed = quoted + code_block("p", "# THEOREM-PROBE: boundary x=0\nprint(1)")
+    assert check_theorem_probes(probed) == []
+
+
+def test_a_probe_in_the_next_problem_cannot_satisfy_the_previous_theorem():
+    text = ("> **Nerve Theorem.** If the cover is good.\n\n"
+            "## Problem 2\n\n" +
+            code_block("later", "# THEOREM-PROBE: unrelated\nprint(1)"))
+    assert check_theorem_probes(text)
 
 
 # ------------------------------------------------- env module coverage

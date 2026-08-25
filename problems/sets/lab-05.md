@@ -251,6 +251,7 @@ to √2 δ in the plane, and the ratio against the guarantee would then be compu
 against a δ the perturbation does not satisfy.
 
 ```python id=perturb
+# THEOREM-PROBE: Isometry Theorem under an explicit bounded perturbation
 from gtda.homology import VietorisRipsPersistence
 
 rng = np.random.default_rng(20260813)
