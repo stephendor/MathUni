@@ -11,6 +11,11 @@ reference (a known-good Opus lesson) and the candidate side by side and read the
 
 The four gates are ordered. A lesson must clear each to reach the next.
 
+When creating or changing any mechanical row below, complete
+`curriculum/GATE-AUTHORING-CHECKLIST.md` first. The rubric specifies what lesson
+artifacts must satisfy; the checklist specifies the evidence a checker must
+provide before it can enforce a rubric row.
+
 ---
 
 ## Gate 0 — Mechanical admission (binary; all must pass)
