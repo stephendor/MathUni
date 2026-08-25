@@ -1,6 +1,8 @@
 """Gates 4-6. Every check here is paired with a control that watches it fire —
 a gate nobody has seen fail is a gate nobody knows works (invariant I2b)."""
-from scripts.gate import (external_hits, script_bodies, selftest, tag_errors)
+from scripts.gate import (css_expression_hits, external_hits,
+                          javascript_url_bodies, script_bodies, selftest,
+                          tag_errors)
 
 
 # --- gate 4: tag balance --------------------------------------------------
@@ -139,6 +141,32 @@ def test_a_javascript_comment_is_not_an_external_request():
     """The obvious false positive the `//` pattern invites."""
     assert external_hits("<script>// set up the canvas\nvar x=1;</script>") == []
     assert external_hits("<p>the ratio a//b is not a url</p>") == []
+
+
+def test_javascript_urls_are_extracted_but_ordinary_urls_are_not():
+    from scripts.gate import script_errors
+
+    html = ('<a href="javascript:draw()">ok</a>'
+            '<button formaction=" JAVASCRIPT:if (">bad</button>'
+            '<a href="lesson.html">ordinary</a>')
+    bodies = javascript_url_bodies(html)
+    assert bodies == ["draw()", "if ("]
+    bad, checked = script_errors(bodies)
+    assert checked == 2 and len(bad) == 1
+
+
+def test_svg_onload_is_already_an_event_handler():
+    from scripts.gate import handler_bodies, handler_errors
+
+    bodies = handler_bodies('<svg onload="draw("></svg>')
+    assert bodies == ["draw("]
+    assert handler_errors(bodies)[0]
+
+
+def test_css_expression_is_rejected_only_in_css_containers():
+    assert css_expression_hits('<p style="width:expression(x)">x</p>')
+    assert css_expression_hits('<style>p { width: EXPRESSION(x) }</style>')
+    assert css_expression_hits('<p>CSS expression(x) is obsolete.</p>') == []
 
 
 def test_non_javascript_script_blocks_are_not_sent_to_node():
