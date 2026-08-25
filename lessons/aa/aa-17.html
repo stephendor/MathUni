@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-17 — Isomorphism theorems for modules</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Isomorphism theorems for modules <span class="cite">(aa-17)</span></h1>
+
+<div class="hook">
+aa-10 gave you a First Isomorphism Theorem and a Third. It never gave you a Second. There is a reason, and it is not that the Second is hard.
+<p>It is that the Second Isomorphism Theorem was never a statement about rings at all — it is a statement about <em>modules</em>, and could not be said until modules existed. Today all three theorems appear together in their proper home, and each one is easier here than its ring counterpart. The First identifies every quotient; the Third organises the submodules of a quotient; and the Second relates two submodules that need not contain one another. Those three identities are what every Betti-number computation actually runs on.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Why did aa-10 state a First and a Third Isomorphism Theorem for rings, but no Second?</p>
+<button onclick="check(this,false)">Because the Second is false for rings</button>
+<button data-ok onclick="check(this,true)">Because the Second is a statement about modules — its conclusion is an isomorphism of modules, not of rings</button>
+<button onclick="check(this,false)">Because its proof needs the ring to be commutative</button>
+<div class="explain">Aluffi is explicit: for ideals I, J of a ring R, Theorem 8.48 does give J/(I ∩ J) ≅ (I + J)/I — and that is a useful statement — but it is an isomorphism of <em>R-modules</em>, not of rings. Neither side is a ring: J/(I ∩ J) is a quotient of one non-unital object by another. So the theorem is true and could not have been stated in the ring chapter without saying something it was not yet able to say. <span class="cite">— Aluffi §8.5, p. 171</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Second pass at the iso theorems; these are the identities behind every Betti computation.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>First: every quotient, and every finitely generated module</h2>
+
+<p>aa-16 assembled the canonical decomposition; the last thing to check was that the middle map is R-linear, and it is one line in each clause: <span class="cite">— Aluffi §8.4, p. 168</span></p>
+<p style="text-align:center">f̃(r·(m + ker f)) = f̃(r·m + ker f) = f(r·m) = r·f(m) = r·f̃(m + ker f),</p>
+<p>with the additive clause identical. So <strong>Theorem 8.43</strong> holds: every R-module homomorphism factors as surjection, isomorphism, injection.</p>
+
+<div class="theorem">
+<strong>Theorem 8.44 (First Isomorphism Theorem).</strong> If f : M → N is a <em>surjective</em> R-module homomorphism, then N ≅ M/ker f, via f̃(m + ker f) = f(m). <span class="cite">— Aluffi §8.5, Theorem 8.44, p. 168</span>
+</div>
+
+<p>Proof: the canonical decomposition gives M/ker f ≅ im f, and surjectivity makes im f = N. What the theorem says, in Aluffi's framing, is that the <em>prototype</em> of a surjective module homomorphism is the projection M → M/K: every homomorphic image of M is a quotient of M by a submodule, up to isomorphism. <span class="cite">— Aluffi §8.5, p. 168</span></p>
+
+<div class="worked">
+<strong>Example 8.45 — every cyclic module is R/I.</strong> Let M = ⟨m⟩ over a commutative R. The map R → M, r ↦ r·m, is an R-module homomorphism (aa-15's Example 8.18), and it is surjective precisely because m generates M. Its kernel I is a submodule of R — which, for commutative R, is the same thing as an ideal (aa-16's Example 8.24). So by Theorem 8.44,
+<p style="text-align:center">M ≅ R/I.</p>
+<span class="cite">— Aluffi §8.5, Example 8.45, pp. 168–169</span>
+<p>Over R = ℤ this says: <em>every cyclic abelian group is ℤ/nℤ for some n ≥ 0</em>, with n = 0 giving ℤ itself. That single sentence is what makes aa-22's classification statable.</p>
+</div>
+
+<div class="worked">
+<strong>Example 8.46 — the same idea with n generators.</strong> For any ring R, M = ⟨m₁, …, m<sub>n</sub>⟩ if and only if the map
+<p style="text-align:center">R<sup>⊕n</sup> → M, &nbsp; (r₁, …, r<sub>n</sub>) ↦ r₁m₁ + ⋯ + r<sub>n</sub>m<sub>n</sub></p>
+<p>is surjective — which is just Definition 8.28 rewritten. By Theorem 8.44, M ≅ R<sup>⊕n</sup>/K for some submodule K ⊆ R<sup>⊕n</sup>. <span class="cite">— Aluffi §8.5, Example 8.46, p. 169</span></p>
+<p><strong>So "generated by n elements" and "a quotient of the free module R<sup>⊕n</sup>" are the same condition.</strong> That reformulation is the entire basis of the computational side of module theory: to describe M you record n generators and the submodule K of relations among them. aa-18 makes K a matrix, and aa-19 asks when K is itself finitely generated.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> M is generated by 3 elements. What does Example 8.46 let you say about M?</p>
+<button onclick="check(this,false)">M is isomorphic to R<sup>⊕3</sup></button>
+<button data-ok onclick="check(this,true)">M is isomorphic to R<sup>⊕3</sup>/K for some submodule K</button>
+<button onclick="check(this,false)">M has exactly 3 submodules</button>
+<div class="explain">The map R<sup>⊕3</sup> → M sending the standard triple to the generators is surjective, so the First Isomorphism Theorem gives M ≅ R<sup>⊕3</sup>/K with K its kernel. M itself need not be free: taking R = ℤ, M = ℤ/2ℤ is generated by one element and is ℤ/2ℤ = ℤ<sup>⊕1</sup>/2ℤ, not ℤ. The submodule K is exactly the relations the generators satisfy, and it is where all the information beyond "three generators" lives. <span class="cite">— Aluffi §8.5, Example 8.46, p. 169</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Next: the submodules of a quotient.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Third: the submodules of M/K</h2>
+
+<p>If K ⊆ L ⊆ M are submodules, then K is a submodule of L, so L/K makes sense — and as a subset of M/K it is the set of cosets ℓ + K with ℓ ∈ L, i.e. π(L). <span class="cite">— Aluffi §8.5, p. 169</span></p>
+
+<div class="theorem">
+<strong>Theorem 8.47 (Third Isomorphism Theorem).</strong> Let K ⊆ L ⊆ M be submodules. Then L/K is a submodule of M/K, every submodule of M/K is of this form, and
+<p style="text-align:center">(M/K)/(L/K) ≅ M/L.</p>
+<span class="cite">— Aluffi §8.5, Theorem 8.47, p. 169</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Let π : M → M/K be the projection.
+<p><em>L/K is a submodule:</em> it is π(L), and images of submodules are submodules — Proposition 8.32(i).</p>
+<p><em>Every submodule arises this way:</em> given a submodule L̄ ⊆ M/K, put L = π<sup>−1</sup>(L̄), a submodule by Proposition 8.32(ii), containing K = π<sup>−1</sup>(0) since 0 ∈ L̄; and π(L) = L̄.</p>
+<p><em>The isomorphism:</em> compose the two projections to get a surjection ρ : M → (M/K)/(L/K), ρ(m) = (m + K) + L/K. Then</p>
+<p style="text-align:center">ker ρ = { m : m + K ∈ L/K } = π<sup>−1</sup>(L/K) = L,</p>
+<p>so Theorem 8.44 gives (M/K)/(L/K) ≅ M/L. ∎ <span class="cite">— Aluffi §8.5, p. 169</span></p>
+<p><strong>Compare aa-10's Theorem 5.57 and notice what vanished.</strong> There, showing J/I was an <em>ideal</em> of R/I required a hand computation with absorption — the footnote in Aluffi's ring proof. Here nothing of the kind is needed: L/K is a module because it is the quotient of a module by a module, and Proposition 8.32 delivers it as an image. Aluffi's own comment is that the module version "clarifies a little" the ring statement. <span class="cite">— Aluffi §8.5, p. 170</span></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> The submodules of M/K are in bijection with which submodules of M?</p>
+<button onclick="check(this,false)">All submodules of M</button>
+<button data-ok onclick="check(this,true)">Those containing K</button>
+<button onclick="check(this,false)">Those contained in K</button>
+<div class="explain">L ↦ L/K and L̄ ↦ π<sup>−1</sup>(L̄) are mutually inverse between {submodules L with K ⊆ L ⊆ M} and {submodules of M/K}, because π<sup>−1</sup> of anything containing 0 must contain π<sup>−1</sup>(0) = K. Quotienting by K discards precisely the submodules that do not contain K — which is aa-10's dictionary, and is how ℤ/12ℤ was found to have six ideals, one for each divisor of 12. <span class="cite">— Aluffi §8.5, Theorem 8.47, p. 169</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the one rings could not have.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Second: two submodules, neither inside the other</h2>
+
+<p>Take submodules K, L of M with <em>no</em> containment assumed. aa-16's Examples 8.26 and 8.27 give two more submodules for free: K + L, the smallest containing both, and K ∩ L, the largest inside both. Four modules, arranged in a diamond. <span class="cite">— Aluffi §8.5, p. 170</span></p>
+
+<div class="theorem">
+<strong>Theorem 8.48 (Second Isomorphism Theorem).</strong> For submodules K, L of an R-module M,
+<p style="text-align:center">L/(K ∩ L) ≅ (K + L)/K,</p>
+via the well-defined isomorphism ℓ + (K ∩ L) ↦ ℓ + K. <span class="cite">— Aluffi §8.5, Theorem 8.48, p. 170</span>
+</div>
+
+<p>Aluffi's mnemonic: there are as many Ks as Ls in the formula. <span class="cite">— Aluffi §8.5, p. 170</span></p>
+
+<div class="worked">
+<strong>Proof.</strong> Define φ : L → (K + L)/K by φ(ℓ) = ℓ + K.
+<p><em>φ is surjective</em> — the step Aluffi calls "maybe a little surprisingly". A general element of (K + L)/K is (k + ℓ) + K with k ∈ K, ℓ ∈ L. But (k + ℓ) − ℓ = k ∈ K, so ℓ + K = (k + ℓ) + K, and that element is φ(ℓ). The K-part of the numerator is invisible in the quotient.</p>
+<p><em>ker φ = K ∩ L</em>: &nbsp; ker φ = { ℓ ∈ L : ℓ + K = K } = { ℓ ∈ L : ℓ ∈ K } = K ∩ L.</p>
+<p>Now apply Theorem 8.44 to the surjection φ: L/ker φ ≅ (K + L)/K, i.e. L/(K ∩ L) ≅ (K + L)/K, and the induced map sends ℓ + (K ∩ L) to φ(ℓ) = ℓ + K. ∎ <span class="cite">— Aluffi §8.5, p. 170</span></p>
+<p><strong>Note the pattern, for the third time today.</strong> Build one surjection, compute its kernel, quote the First Isomorphism Theorem. Theorems 8.47 and 8.48 are both that, with a different map. Aluffi even notes in a footnote that the well-definedness of the isomorphism is <em>hidden inside</em> the argument — the First Isomorphism Theorem supplied it, so it never had to be checked by hand.</p>
+</div>
+
+<p>The four modules and the two isomorphic quotients, drawn. Choose K and L below; the two coloured edges are the two sides of Theorem 8.48, and they are always the same size.</p>
+
+<canvas id="dia" width="620" height="320" aria-label="The diamond of submodules K, L, K intersect L and K + L, with the two isomorphic quotients marked"></canvas>
+<div class="controls">
+<button onclick="setKL(4,6)">K = 4ℤ, L = 6ℤ</button>
+<button onclick="setKL(6,10)">K = 6ℤ, L = 10ℤ</button>
+<button onclick="setKL(4,9)">K = 4ℤ, L = 9ℤ</button>
+<button onclick="setKL(12,18)">K = 12ℤ, L = 18ℤ</button>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — checking Theorem 8.48 in ℤ.</strong> Take M = ℤ, K = 4ℤ, L = 6ℤ, both submodules of ℤ (aa-16's Example 8.24: submodules of ℤ are its ideals).
+<p>By aa-10's Example 5.45, K + L = (4) + (6) = (gcd(4, 6)) = ⟨your step⟩ℤ. And by Example 5.46, K ∩ L = (lcm(4, 6)) = ⟨your step⟩ℤ.</p>
+<p>Left-hand side: L/(K ∩ L) = 6ℤ/12ℤ. Its elements are the cosets of 12ℤ inside 6ℤ, namely 0 + 12ℤ and 6 + 12ℤ — so it has ⟨your step: how many?⟩ elements.</p>
+<p>Right-hand side: (K + L)/K = 2ℤ/4ℤ, with cosets 0 + 4ℤ and 2 + 4ℤ — the same count.</p>
+<p>Both are isomorphic to ℤ/2ℤ, as Theorem 8.48 promises. In ℤ the theorem is exactly the identity gcd·lcm relation from aa-02 wearing quotient notation: |L/(K ∩ L)| = lcm/L-index and |(K + L)/K| = K-index/gcd, and these agree because ⟨your step: which classical identity?⟩.</p>
+</div>
+
+<div class="worked">
+<strong>What the theorem gives back to rings.</strong> If I, J are ideals of a ring R then
+<p style="text-align:center">J/(I ∩ J) ≅ (I + J)/I</p>
+<p>as R-modules — useful, and unavailable in the ring chapter because neither side is a ring. <span class="cite">— Aluffi §8.5, p. 171</span></p>
+<p><strong>Remark 8.49.</strong> Everything here applies to <em>abelian groups</em> without a word of extra argument: that is the case R = ℤ. So the three isomorphism theorems for abelian groups are already proved. <span class="cite">— Aluffi §8.5, Remark 8.49, p. 171</span></p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Two of Aluffi's exercises that this material makes short. (a) Exercise 8.13: prove that an R-module homomorphism f is injective if and only if ker f = {0}. (Both directions are two lines; the reverse uses f(a) − f(b) = f(a − b).) (b) Exercise 8.22: for submodules L₁ ⊆ M₁ and L₂ ⊆ M₂, show L₁ ⊕ L₂ is a submodule of M₁ ⊕ M₂ and identify the quotient (M₁ ⊕ M₂)/(L₁ ⊕ L₂). Guess the answer first from Example 8.46, then prove it by building a surjection and computing its kernel — the method of all three theorems today. <span class="cite">— Aluffi §8.5, Exercises 8.13 and 8.22, pp. 172–173</span></p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi's Exercise 8.19 defines the notion the mission strip is really about. Call m ∈ M a <strong>torsion</strong> element if r·m = 0 for some <em>nonzero</em> r ∈ R. <strong>Prove that if R is an integral domain, the torsion elements of M form a submodule T of M. Then show by explicit example what goes wrong when R has zero-divisors.</strong> Use Proposition 8.23, so you need only nonemptiness and two closures.</p>
+<textarea placeholder="Nonempty: 0 is torsion because 1.0 = 0 and 1 is nonzero. Closed under +: if r.m = 0 and s.n = 0 with r, s nonzero, consider (rs).(m + n) ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><em>Nonempty.</em> 0 ∈ T, since 1·0 = 0 and 1 ≠ 0 in a nontrivial ring.</p>
+<p><em>Closed under addition.</em> Let r·m = 0 and s·n = 0 with r, s ≠ 0. Then</p>
+<p style="text-align:center">(rs)·(m + n) = (rs)·m + (rs)·n = s·(r·m) + r·(s·n) = 0 + 0 = 0,</p>
+<p>using axioms (vi) and (viii) and commutativity where needed. And <strong>rs ≠ 0 because R is an integral domain</strong> — this is the only place the hypothesis is used, and it is decisive. So m + n ∈ T.</p>
+<p><em>Closed under scalars.</em> If r·m = 0 with r ≠ 0 and a ∈ R, then r·(a·m) = (ra)·m = (ar)·m = a·(r·m) = 0, so a·m ∈ T.</p>
+<p>By Proposition 8.23, T is a submodule. ∎</p>
+<p><em>What breaks with zero-divisors.</em> Take R = ℤ/6ℤ acting on itself. Then [2] is torsion, since [3][2] = [0] with [3] ≠ 0; and [3] is torsion, since [2][3] = [0]. But [2] + [3] = [5], and [5] is a <em>unit</em> in ℤ/6ℤ, so r[5] = 0 forces r = 0: <strong>[5] is not torsion.</strong> The set of torsion elements is not closed under addition, and is not a submodule.</p>
+<p>Grade yourself on the middle step. If your proof produced an annihilator for m + n without checking that it is nonzero, it proved nothing — and the ℤ/6ℤ example is what that gap looks like when it is real. This matters beyond the exercise: over an integral domain the torsion submodule is well defined, M/T is torsion-free (Exercise 8.21), and aa-20's structure theorem is the statement that a finitely generated module over a PID splits into a free part and that torsion part. Betti numbers count the first; torsion coefficients describe the second.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In the proof of Theorem 8.48, why is φ : L → (K + L)/K surjective?</p>
+<button onclick="check(this,false)">Because K ⊆ L</button>
+<button data-ok onclick="check(this,true)">Because (k + ℓ) + K = ℓ + K — the K-part is invisible in the quotient</button>
+<button onclick="check(this,false)">Because φ is injective and the modules are finite</button>
+<div class="explain">A general element of (K + L)/K is (k + ℓ) + K, and its difference from ℓ + K is k ∈ K, so the two cosets are equal — meaning every element is already φ(ℓ) for some ℓ ∈ L. No containment between K and L is assumed anywhere; that is the point of this theorem as against the Third. And injectivity plays no part: the kernel is K ∩ L, which is generally nonzero. <span class="cite">— Aluffi §8.5, p. 170</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> All three isomorphism theorems today were proved the same way. What way?</p>
+<button data-ok onclick="check(this,true)">Construct one surjection, compute its kernel, apply Theorem 8.44</button>
+<button onclick="check(this,false)">Construct an explicit inverse map and check both composites</button>
+<button onclick="check(this,false)">Count elements on both sides</button>
+<div class="explain">Theorem 8.47 composed two projections and found ker ρ = L; Theorem 8.48 used φ(ℓ) = ℓ + K and found ker φ = K ∩ L. In neither case was an inverse constructed or a well-definedness check performed by hand — the First Isomorphism Theorem supplied both, which is exactly what Aluffi's footnote to Theorem 8.48 observes. Counting would not even apply, since the modules are usually infinite. <span class="cite">— Aluffi §8.5, pp. 169–170</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why is the Third Isomorphism Theorem easier for modules than for rings?</p>
+<button onclick="check(this,false)">Because modules are commutative and rings need not be</button>
+<button data-ok onclick="check(this,true)">Because L/K is automatically a module, whereas J/I had to be checked to be an ideal by hand</button>
+<button onclick="check(this,false)">Because module quotients are always finite</button>
+<div class="explain">In aa-10's Theorem 5.57, showing J/I is an ideal of R/I took a separate absorption computation, which Aluffi relegated to a footnote. Here L/K is the quotient of a module by a module and is a module for that reason alone, and Proposition 8.32(i) hands it over as an image of a submodule. Commutativity is irrelevant — modules over noncommutative rings are covered — and nothing is finite. <span class="cite">— Aluffi §8.5, p. 170</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three theorems and the single method behind them:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>First (Theorem 8.44):</strong> a surjection f : M → N gives N ≅ M/ker f. Consequences: every cyclic module is R/I (Example 8.45), so every cyclic abelian group is ℤ/nℤ; and M is generated by n elements exactly when M ≅ R<sup>⊕n</sup>/K for some submodule K of relations (Example 8.46) — the reformulation that makes modules computable.</li>
+<li><strong>Third (Theorem 8.47):</strong> for K ⊆ L ⊆ M, (M/K)/(L/K) ≅ M/L, and the submodules of M/K are exactly the L/K for K ⊆ L ⊆ M. Easier than the ring version, because L/K is a module for free rather than an ideal to be verified.</li>
+<li><strong>Second (Theorem 8.48):</strong> for any two submodules, L/(K ∩ L) ≅ (K + L)/K — as many Ks as Ls. It has no ring counterpart because neither side is a ring, which is why aa-10 was silent about it. Proved, like the others, by one surjection and one kernel.</li>
+</ol>
+The method is the content: <em>build a surjection, compute its kernel, quote the First Isomorphism Theorem.</em> And the object to carry forward is the torsion submodule of the guided proof — well defined exactly when R is a domain, and exactly what aa-20 will separate from the free part.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §8.4 (the proof of the canonical decomposition, concluded p. 168); §8.5 "Isomorphism Theorems" (Theorem 8.44 p. 168; Example 8.45 pp. 168–169; Example 8.46 and Theorem 8.47 with its proof p. 169; the comparison with the ring version and Theorem 8.48 p. 170; the proof of Theorem 8.48 p. 170; the corollary for ideals and Remark 8.49 p. 171; the exercises, including the torsion exercise and the injectivity criterion, pp. 172–173), pp. 168–173. Definition 8.14, Example 8.18 and Proposition 8.9 come from aa-15 (§8.1–8.2, pp. 156–159); Proposition 8.23, Example 8.24, Examples 8.26 and 8.27, Definition 8.28, Proposition 8.32, Theorem 8.40 and Proposition 8.41 from aa-16 (§8.3–8.4, pp. 161–167); Theorem 5.57 and Examples 5.45 and 5.46 from aa-10 (§5.6–5.7, pp. 95–100). The ℤ/6ℤ counterexample in the guided proof and the four gcd–lcm diamonds in the visual were computed directly.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// The diamond of Theorem 8.48 inside Z: K = aZ, L = bZ, K + L = gcd(a,b)Z,
+// K ∩ L = lcm(a,b)Z. The two coloured edges are the two quotients, and the
+// index along each is computed, not asserted.
+var dc=document.getElementById('dia'),dx=dc.getContext('2d');
+var KA=4,LB=6;
+function gcd(a,b){while(b){var t=a%b;a=b;b=t;}return a;}
+function setKL(a,b){KA=a;LB=b;drawDia();}
+function drawDia(){dx.clearRect(0,0,dc.width,dc.height);
+ var g=gcd(KA,LB),l=KA*LB/g;
+ var cx=dc.width/2,top=64,mid=168,bot=268,dxx=118;
+ var nodes=[[cx,top,'K + L = '+g+'Z'],[cx-dxx,mid,'K = '+KA+'Z'],
+            [cx+dxx,mid,'L = '+LB+'Z'],[cx,bot,'K ∩ L = '+l+'Z']];
+ function line(i,j,col,w){dx.strokeStyle=col;dx.lineWidth=w;
+  dx.beginPath();dx.moveTo(nodes[i][0],nodes[i][1]);dx.lineTo(nodes[j][0],nodes[j][1]);dx.stroke();}
+ line(0,2,'#2a333d',1);line(1,3,'#2a333d',1);
+ line(0,1,'#4caf82',3);line(2,3,'#8ab4f8',3);
+ dx.font='13px Segoe UI';dx.textAlign='center';dx.textBaseline='middle';
+ for(var i=0;i<4;i++){var n=nodes[i];
+  dx.fillStyle='#1a2027';dx.fillRect(n[0]-64,n[1]-15,128,30);
+  dx.strokeStyle='#2a333d';dx.lineWidth=1;dx.strokeRect(n[0]-64,n[1]-15,128,30);
+  dx.fillStyle='#e8e8e8';dx.fillText(n[2],n[0],n[1]);}
+ dx.font='12px Segoe UI';
+ dx.fillStyle='#4caf82';
+ dx.fillText('(K+L)/K  has  '+(KA/g)+'  elements',cx-dxx-6,(top+mid)/2-16);
+ dx.fillStyle='#8ab4f8';
+ dx.fillText('L/(K∩L)  has  '+(l/LB)+'  elements',cx+dxx+6,(mid+bot)/2+16);
+ dx.textAlign='left';dx.font='13px Segoe UI';dx.fillStyle='#e8e8e8';
+ dx.fillText('Theorem 8.48 in Z:   K = '+KA+'Z,  L = '+LB+'Z',14,20);
+ dx.fillStyle=((KA/g)===(l/LB))?'#4caf82':'#e06c75';
+ dx.fillText('both quotients have '+(KA/g)+' elements  -  gcd·lcm = '+g+'·'+l+' = '+(KA*LB)+' = '+KA+'·'+LB,
+   14,dc.height-12);}
+drawDia();
+</script></body></html>
