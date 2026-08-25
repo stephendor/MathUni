@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-18 — Free modules; modules from matrices</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+.seq{font-family:Segoe UI,system-ui,sans-serif;text-align:center;color:var(--acc);margin:.9rem 0;font-size:1.05rem}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Free modules; modules from matrices <span class="cite">(aa-18)</span></h1>
+
+<div class="hook">
+A finitely presented module is a matrix. Not "is described by" — the matrix <em>is</em> the module, up to isomorphism, and every question you can ask about the module becomes a row-and-column operation.
+<p>That is the claim this lesson establishes, and it is why a computer can compute homology at all. The route runs: a free module has a basis; a homomorphism out of a free module is an arbitrary choice of images; a homomorphism between free modules is therefore a matrix; and a module presented by generators and relations is the <em>cokernel</em> of such a matrix. Elementary row and column operations change the matrix and not the cokernel — so simplifying the matrix computes the module. Reducing a boundary matrix is exactly this.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> M is an abelian group and f : ℤ/2ℤ → M is a homomorphism. Can f(1) be any element of M you like?</p>
+<button onclick="check(this,false)">Yes — a homomorphism is determined by where the generator goes, and the choice is free</button>
+<button data-ok onclick="check(this,true)">No — f(1) must satisfy 2·f(1) = 0</button>
+<button onclick="check(this,false)">No — f(1) must be 0</button>
+<div class="explain">f is determined by f(1), but not freely: 2·f(1) = f(2·1) = f(0) = 0, so the image must be killed by 2. Any such element works, and there may be many — in ℤ/4ℤ both 0 and 2 qualify — but the choice is constrained. That constraint is exactly what "not free" means. Over a <em>free</em> module the images of the basis may be chosen with no constraint at all (Proposition 9.8), and Aluffi calls that "a huge simplification". <span class="cite">— Aluffi §9.1, Example 9.10, pp. 176–177</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Boundary matrices present the chain modules; reducing them is persistence computation.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Free modules, bases, and maps out of them</h2>
+
+<div class="definition">
+<strong>Definition 9.1.</strong> An R-module F is <strong>free of rank m</strong> if F ≅ R<sup>⊕m</sup>. <span class="cite">— Aluffi §9.1, Definition 9.1, p. 174</span>
+<p><strong>Remark 9.2.</strong> Infinite rank is a legitimate notion — ℤ[x] is a free ℤ-module of countably infinite rank — but everything here is finite rank. <span class="cite">— Aluffi §9.1, Remark 9.2, p. 174</span></p>
+</div>
+
+<p>Elements of R<sup>⊕m</sup> are m-tuples. Write e<sub>i</sub> for the tuple with 1 in position i and 0 elsewhere. Then every r = (r₁, …, r<sub>m</sub>) is r₁e₁ + ⋯ + r<sub>m</sub>e<sub>m</sub>, so the e<sub>i</sub> generate. <span class="cite">— Aluffi §9.1, p. 175</span></p>
+
+<div class="definition">
+<strong>Definition 9.3.</strong> Elements x₁, …, x<sub>m</sub> of an R-module are <strong>linearly independent</strong> if r₁x₁ + ⋯ + r<sub>m</sub>x<sub>m</sub> = 0 forces r₁ = ⋯ = r<sub>m</sub> = 0. <span class="cite">— Aluffi §9.1, Definition 9.3, p. 175</span>
+<p><strong>Definition 9.5.</strong> A tuple (x₁, …, x<sub>m</sub>) is a <strong>basis</strong> if it is a linearly independent generating set. <span class="cite">— Aluffi §9.1, Definition 9.5, p. 175</span></p>
+</div>
+
+<p>The e<sub>i</sub> are independent, since r₁e₁ + ⋯ + r<sub>m</sub>e<sub>m</sub> = 0 says (r₁, …, r<sub>m</sub>) = (0, …, 0) — so they are a basis. <em>Remark 9.4</em> notes that "linearly independent set" is a slight abuse: a genuine set forbids repetitions, and x₁ = x₂ would give the nontrivial relation x₁ − x₂ = 0. <span class="cite">— Aluffi §9.1, Remark 9.4, p. 175</span></p>
+
+<div class="theorem">
+<strong>Proposition 9.6.</strong> F is free of rank m if and only if it has a basis (x₁, …, x<sub>m</sub>). <span class="cite">— Aluffi §9.1, Proposition 9.6, p. 175</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> One direction is the paragraph above. Conversely, given a basis, define φ : R<sup>⊕m</sup> → F by φ(r₁, …, r<sub>m</sub>) = r₁x₁ + ⋯ + r<sub>m</sub>x<sub>m</sub>. It is surjective because the x<sub>i</sub> generate (aa-17's Example 8.46), and injective because they are independent — φ(r) = 0 is exactly the relation r₁x₁ + ⋯ + r<sub>m</sub>x<sub>m</sub> = 0, which forces every r<sub>i</sub> = 0, so ker φ = {0}. Hence φ is an isomorphism. ∎ <span class="cite">— Aluffi §9.1, p. 175</span>
+<p><strong>Read the two halves of "basis".</strong> Generating gives surjectivity; independence gives injectivity. That is not a coincidence of notation — it is the reason both conditions appear in Definition 9.5.</p>
+</div>
+
+<div class="worked">
+<strong>Example 9.7 — most modules are not free.</strong> ℤ/2ℤ is not free as a ℤ-module: a free ℤ-module of rank ≥ 1 is infinite, and rank 0 is trivial. Its single nonzero element x = [1]₂ generates it but is <em>not</em> linearly independent over ℤ, because 2x = 0 while 2 ≠ 0 in ℤ.
+<p>But ℤ/2ℤ <em>is</em> free as a module over itself — it is a field, hence a vector space over itself, with basis (x). <strong>Free is a property of the pair (module, ring), not of the set.</strong> <span class="cite">— Aluffi §9.1, Example 9.7, p. 176</span></p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 9.8.</strong> Every R-module homomorphism f : R<sup>⊕m</sup> → M has the form
+<p style="text-align:center">f(r₁, …, r<sub>m</sub>) = r₁a₁ + ⋯ + r<sub>m</sub>a<sub>m</sub>, &nbsp; where a<sub>i</sub> = f(e<sub>i</sub>);</p>
+and conversely <em>every</em> choice of a₁, …, a<sub>m</sub> ∈ M determines such a homomorphism. <span class="cite">— Aluffi §9.1, Proposition 9.8, p. 176</span>
+</div>
+
+<p>Proof: R-linearity gives f(r) = f(Σ r<sub>i</sub>e<sub>i</sub>) = Σ r<sub>i</sub>f(e<sub>i</sub>); and the formula defines a homomorphism for any choice of the a<sub>i</sub>. This generalises aa-15's Example 8.18, which was the case m = 1. Aluffi's <em>Remark 9.9</em> notes this is another universal property — in the professional phrasing, that "the free functor is left-adjoint to the forgetful functor" — mentioned, he says, purely to amuse. <span class="cite">— Aluffi §9.1, Remark 9.9, p. 176</span></p>
+
+<p><strong>The content is the word "every".</strong> For a free module the images of the basis may be assigned with <em>no relations to satisfy</em>. Example 9.10 is the contrast: a homomorphism out of ℤ/2ℤ is determined by f(1), but f(1) must satisfy 2·f(1) = 0. That is the prediction gate, and it is what non-freeness costs. <span class="cite">— Aluffi §9.1, Example 9.10 and the following remark, pp. 176–177</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which of these is a basis of ℤ<sup>⊕2</sup> as a ℤ-module?</p>
+<button onclick="check(this,false)">(1, 0), (0, 1), (1, 1)</button>
+<button data-ok onclick="check(this,true)">(1, 0), (1, 1)</button>
+<button onclick="check(this,false)">(2, 0), (0, 2)</button>
+<div class="explain">(1,0) and (1,1) generate — (0,1) = (1,1) − (1,0) — and are independent, since a(1,0) + b(1,1) = (a+b, b) = 0 forces b = 0 then a = 0. The first list generates but is dependent: (1,1) − (1,0) − (0,1) = 0 is a nontrivial relation. The third is independent but does not generate: (1,0) is not an integer combination of (2,0) and (0,2). A basis needs both halves, which is precisely why Proposition 9.6 gets both surjectivity and injectivity out of it. <span class="cite">— Aluffi §9.1, Definition 9.5, p. 175</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now let both ends be free, and a matrix appears.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Homomorphisms between free modules are matrices</h2>
+
+<div class="theorem">
+<strong>Corollary 9.11.</strong> For a homomorphism f : R<sup>⊕n</sup> → R<sup>⊕m</sup> there is an m × n matrix A over R with f(r) = A·r for all r; the <strong>jth column of A is f(e<sub>j</sub>)</strong>. Conversely every m × n matrix determines such a homomorphism. <span class="cite">— Aluffi §9.1, Corollary 9.11, p. 177</span>
+</div>
+
+<p>Note the index switch: the map goes from R<sup>⊕n</sup> to R<sup>⊕m</sup> — n first — and the matrix is m × n — n second. The number of columns is the rank of the <em>source</em>. <em>Remark 9.12</em>: remember firmly that the jth column is f(e<sub>j</sub>); Aluffi calls it invaluable in concrete computations. <span class="cite">— Aluffi §9.1, Remark 9.12, p. 177</span></p>
+
+<div class="worked">
+<strong>Example 9.13.</strong> A homomorphism ℤ<sup>⊕3</sup> → ℤ<sup>⊕2</sup> is the same as a 2 × 3 integer matrix. The matrix
+<p style="text-align:center">A = ( −4 &nbsp; 1 &nbsp; 7 / −2 &nbsp; 0 &nbsp; 4 )</p>
+<p>writing rows separated by a slash, represents the f with f(e₁) = (−4, −2), f(e₂) = (1, 0), f(e₃) = (7, 4) — that is, f(r₁, r₂, r₃) = (−4r₁ + r₂ + 7r₃, −2r₁ + 4r₃). Aluffi's comment: the matrix form is easier to parse. <span class="cite">— Aluffi §9.1, Example 9.13, p. 178</span></p>
+<p>And by Proposition 9.14, <strong>composition of homomorphisms corresponds to matrix multiplication</strong> — which is what makes the correspondence useful rather than merely tidy. <span class="cite">— Aluffi §9.1, Proposition 9.14, p. 179</span></p>
+</div>
+
+<div class="worked">
+<strong>Elementary operations are composition with isomorphisms.</strong> Swapping two rows of A is the same as multiplying A on the <em>left</em> by the identity matrix with those rows swapped; swapping two columns is multiplying on the <em>right</em> by the same thing. The general mnemonic: an operation on rows is left multiplication by that operation applied to the identity; on columns, right multiplication. Since those elementary matrices are invertible, the operations amount to composing f with isomorphisms. <span class="cite">— Aluffi §9.1, p. 181</span>
+</div>
+
+<div class="definition">
+<strong>Definition 9.15.</strong> Matrices A, A′ over R are <strong>equivalent</strong> if A′ = PAQ for some P, Q invertible over R. <span class="cite">— Aluffi §9.2, Definition 9.15, p. 181</span>
+</div>
+
+<p>A sequence of elementary operations therefore produces an equivalent matrix. <em>Remark 9.16</em> adds an honest caveat: the converse can fail — there are rings, even PIDs, with equivalent matrices that no sequence of elementary operations connects. For everything here, elementary operations suffice. <span class="cite">— Aluffi §9.2, Remark 9.16, p. 181</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> f : ℤ<sup>⊕4</sup> → ℤ<sup>⊕2</sup> is a homomorphism. What shape is its matrix, and what is its third column?</p>
+<button onclick="check(this,false)">4 × 2, and the third column is f(e₃) — a 4-tuple</button>
+<button data-ok onclick="check(this,true)">2 × 4, and the third column is f(e₃) — a 2-tuple</button>
+<button onclick="check(this,false)">2 × 4, and the third column is e₃</button>
+<div class="explain">The source has rank 4, so there are 4 columns; the target has rank 2, so each column is a 2-tuple: a 2 × 4 matrix. And the jth column is the image of the jth basis vector, f(e₃) — not e₃ itself. Aluffi flags both points, the index switch and the column rule, because both are easy to invert under pressure. <span class="cite">— Aluffi §9.1, Corollary 9.11 and Remark 9.12, p. 177</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Last segment: from matrices to modules that are not free.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Exact sequences, cokernels, and presentation by a matrix</h2>
+
+<div class="definition">
+<strong>Definition 9.17 (exact).</strong> A sequence of modules and homomorphisms is <strong>exact at M<sub>i</sub></strong> if im f<sub>i+1</sub> = ker f<sub>i</sub>, and <strong>exact</strong> if it is exact at every module that is both a source and a target. <span class="cite">— Aluffi §9.2, Definition 9.17, p. 182</span>
+</div>
+
+<div class="worked">
+<strong>What exactness says at the ends.</strong>
+<p><strong>Example 9.18.</strong> M —f→ N → 0 is exact ⟺ f is <em>surjective</em>: the second map is trivial, so its kernel is all of N, and exactness demands im f = N. <span class="cite">— Aluffi §9.2, Example 9.18, p. 182</span></p>
+<p><strong>Example 9.19.</strong> 0 → L —g→ M is exact ⟺ g is <em>injective</em>. <span class="cite">— Aluffi §9.2, Example 9.19, p. 182</span></p>
+<p><strong>Example 9.20 — a short exact sequence</strong> is 0 → L → M → N → 0, and Aluffi asks you to develop the habit of reading it at once as <em>N is M/L</em>: g embeds L as the submodule im g = ker f, and the First Isomorphism Theorem gives N ≅ M/ker f. The standard example:</p>
+<p class="seq">0 → ℤ —(×2)→ ℤ → ℤ/2ℤ → 0,</p>
+<p>with the injection identifying ℤ with 2ℤ inside itself — aa-15's isomorphism 2ℤ ≅ ℤ, read as an exact sequence. <span class="cite">— Aluffi §9.2, Example 9.20, p. 182; §8.5, Theorem 8.44, p. 168</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 9.21 (cokernel).</strong> For f : M → N, &nbsp; coker f := N/im f. <span class="cite">— Aluffi §9.2, Definition 9.21, p. 183</span>
+</div>
+
+<p>The kernel measures failure of injectivity; the cokernel measures failure of surjectivity. The name is literal — reverse every arrow in the universal property of kernels and you get the universal property cokernels satisfy. And for any f the sequence <span class="cite">— Aluffi §9.2, p. 183</span></p>
+<p class="seq">0 → ker f → M —f→ N → coker f → 0</p>
+<p>is exact: at N, for instance, because the kernel of N → N/im f is im f.</p>
+
+<div class="definition">
+<strong>Definition 9.22.</strong> M is <strong>finitely generated</strong> if there is an exact sequence R<sup>⊕m</sup> → M → 0 with m finite. <span class="cite">— Aluffi §9.2, Definition 9.22, p. 183</span>
+<p><strong>Definition 9.23.</strong> M is <strong>finitely presented</strong> if there is an exact sequence R<sup>⊕n</sup> → R<sup>⊕m</sup> → M → 0 with both free modules of finite rank. <span class="cite">— Aluffi §9.2, Definition 9.23, p. 183</span></p>
+</div>
+
+<p>Unwound: M is finitely generated when some R<sup>⊕m</sup> ↠ M (aa-17's Example 8.46 again), and finitely <em>presented</em> when the kernel of that surjection is <em>also</em> finitely generated, so that some R<sup>⊕n</sup> ↠ ker f. Equivalently — and this is the sentence the lesson is for — <strong>M is finitely presented exactly when it is the cokernel of a homomorphism of finitely generated free modules</strong>, hence the cokernel of a matrix. <span class="cite">— Aluffi §9.2, pp. 183–184</span></p>
+
+<p>So a finitely presented module has "an amazingly concrete description": a matrix. Any module-theoretic operation becomes an operation on that matrix, and this is exactly how computer algebra systems represent modules. <span class="cite">— Aluffi §9.2, p. 184</span></p>
+
+<div class="theorem">
+<strong>Proposition 9.25.</strong> Let f : M → N and f′ : M′ → N′ be homomorphisms, and let φ : M′ → M and ψ : N → N′ be isomorphisms with f′ = ψ ∘ f ∘ φ. Then coker f ≅ coker f′. <span class="cite">— Aluffi §9.2, Proposition 9.25, p. 184</span>
+<p><strong>Corollary 9.26.</strong> If A and A′ are equivalent matrices, the modules they define are isomorphic. <span class="cite">— Aluffi §9.2, Corollary 9.26, p. 186</span></p>
+</div>
+
+<div class="worked">
+<strong>Sketch of Proposition 9.25.</strong> Compose to get a surjection π′ ∘ ψ : N → coker f′, and compute its kernel:
+<p style="text-align:center">ker(π′ ∘ ψ) = ψ<sup>−1</sup>(ker π′) = ψ<sup>−1</sup>(f′(M′)) = ψ<sup>−1</sup>(ψ(f(M))) = f(M) = ker π,</p>
+<p>using exactness of the bottom row, then commutativity of the diagram together with the surjectivity of φ<sup>−1</sup>. The First Isomorphism Theorem then gives coker f = N/ker π ≅ coker f′. ∎ <span class="cite">— Aluffi §9.2, pp. 184–185</span></p>
+<p>Once more: one surjection, one kernel, Theorem 8.44. That has now proved every structural theorem in three consecutive units.</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Example 9.27: what module is that matrix?</strong> Take A = ( −4 &nbsp; 1 &nbsp; 7 / −2 &nbsp; 0 &nbsp; 4 ) from Example 9.13, and let G be the cokernel of the corresponding map ℤ<sup>⊕3</sup> → ℤ<sup>⊕2</sup>. Reduce by elementary operations, each of which leaves the cokernel unchanged by Corollary 9.26.
+<p>Swap columns 1 and 2: &nbsp; ( 1 &nbsp; −4 &nbsp; 7 / 0 &nbsp; −2 &nbsp; 4 ).</p>
+<p>Add (−2)× row 2 to row 1: &nbsp; ( 1 &nbsp; 0 &nbsp; ⟨your step: −4 − (−2)(−2) and 7 − (−2)(4)⟩ / 0 &nbsp; −2 &nbsp; 4 ).</p>
+<p>Add 2× column 2 to column 3, then column 1 to column 3, clearing the last column to ⟨your step⟩.</p>
+<p>Multiply column 2 by −1, a unit in ℤ: &nbsp; ( 1 &nbsp; 0 &nbsp; 0 / 0 &nbsp; 2 &nbsp; 0 ).</p>
+<p>Now read the image off: the map sends e₁ ↦ (1, 0), e₂ ↦ (0, 2), e₃ ↦ (0, 0), so im = ℤ ⊕ 2ℤ inside ℤ ⊕ ℤ, and</p>
+<p style="text-align:center">G ≅ (ℤ ⊕ ℤ)/(ℤ ⊕ 2ℤ) ≅ ⟨your step: which famous abelian group?⟩.</p>
+<span class="cite">— Aluffi §9.2, Example 9.27, p. 186</span>
+<p>That is the whole method. The picture below runs the same reduction and draws the image lattice at every step.</p>
+</div>
+
+<canvas id="red" width="620" height="330" aria-label="Elementary reduction of a matrix, with the image sublattice of Z squared drawn at each step"></canvas>
+<div class="controls">
+<button onclick="stepRed()">next operation ▸</button>
+<button onclick="resetRed()">reset</button>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi states Corollary 9.26 and writes: "Make sure you understand why Corollary 9.26 follows from Proposition 9.25." Write that argument out. <strong>Let A be an m × n matrix over R and A′ = PAQ with P, Q invertible. Show that the modules coker(A) and coker(A′) are isomorphic</strong>, by identifying the isomorphisms φ and ψ that Proposition 9.25 needs and checking the commuting condition. Then say which elementary operations correspond to P and which to Q.</p>
+<textarea placeholder="Let f : R^n -> R^m be the map given by A and f' the map given by A' = PAQ. Take phi to be the map given by Q and psi the map given by P ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>Let f : R<sup>⊕n</sup> → R<sup>⊕m</sup> be r ↦ A·r and f′ : R<sup>⊕n</sup> → R<sup>⊕m</sup> be r ↦ A′·r.</p>
+<p>Since Q is invertible, the map φ : R<sup>⊕n</sup> → R<sup>⊕n</sup>, φ(r) = Q·r, is an isomorphism (its inverse is multiplication by Q<sup>−1</sup>, and Corollary 9.11 makes both homomorphisms). Likewise ψ : R<sup>⊕m</sup> → R<sup>⊕m</sup>, ψ(s) = P·s, is an isomorphism.</p>
+<p>By Proposition 9.14, composition corresponds to matrix multiplication, so</p>
+<p style="text-align:center">(ψ ∘ f ∘ φ)(r) = P·(A·(Q·r)) = (PAQ)·r = A′·r = f′(r),</p>
+<p>i.e. f′ = ψ ∘ f ∘ φ, which is exactly the hypothesis of Proposition 9.25. Therefore coker f ≅ coker f′. ∎</p>
+<p><em>Which is which.</em> P multiplies on the <strong>left</strong>, so it performs <strong>row</strong> operations, and it is an automorphism of the <em>target</em> R<sup>⊕m</sup> — a change of basis downstream. Q multiplies on the <strong>right</strong>, so it performs <strong>column</strong> operations, an automorphism of the <em>source</em> R<sup>⊕n</sup> — a change of the generating set of relations.</p>
+<p>Grade yourself on that last paragraph. Column operations do not change the image at all, since they only re-express the same set of columns; row operations move the image by an automorphism of R<sup>⊕m</sup>, so the submodule genuinely changes while the quotient does not. Both are legal, and confusing them is the standard way to lose track of what a reduction has computed.</p>
+</details>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (a) Identify the abelian group presented by the matrix ( 2 &nbsp; 0 / 0 &nbsp; 3 ) — a map ℤ<sup>⊕2</sup> → ℤ<sup>⊕2</sup> — first directly, then by reducing and comparing with aa-10's Chinese Remainder Theorem. (b) Do the same for ( 6 &nbsp; 0 / 0 &nbsp; 4 ), and note that the answer is <em>not</em> ℤ/6ℤ × ℤ/4ℤ rewritten arbitrarily: check your answer by counting elements. (c) Present ℤ/2ℤ ⊕ ℤ as the cokernel of a matrix ℤ<sup>⊕1</sup> → ℤ<sup>⊕2</sup>, and say why no <em>square</em> matrix can present it.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> The sequence 0 → L → M → N → 0 is exact. What is N?</p>
+<button data-ok onclick="check(this,true)">Isomorphic to M/L, with L identified with its image in M</button>
+<button onclick="check(this,false)">Isomorphic to L</button>
+<button onclick="check(this,false)">The direct sum L ⊕ M</button>
+<div class="explain">Exactness at L makes the first map injective, so L embeds in M; exactness at M makes that image equal ker(M → N); exactness at N makes M → N surjective. The First Isomorphism Theorem then gives N ≅ M/ker = M/L. Aluffi asks you to make this reading automatic — a short exact sequence is a submodule and a quotient, packaged. <span class="cite">— Aluffi §9.2, Example 9.20, p. 182</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> What extra condition does "finitely presented" add to "finitely generated"?</p>
+<button onclick="check(this,false)">That the module is free</button>
+<button data-ok onclick="check(this,true)">That the relations among the generators are themselves finitely generated</button>
+<button onclick="check(this,false)">That the module is finite</button>
+<div class="explain">Finitely generated means some R<sup>⊕m</sup> ↠ M; finitely presented means additionally that ker of that surjection is finitely generated, so some R<sup>⊕n</sup> ↠ ker, giving R<sup>⊕n</sup> → R<sup>⊕m</sup> → M → 0. In words: finitely many generators <em>and</em> finitely many relations. Free is much stronger — it means <em>no</em> relations — and finite is unrelated, since ℤ itself is finitely presented and infinite. Whether the second condition is automatic is aa-19's question. <span class="cite">— Aluffi §9.2, Definitions 9.22 and 9.23, p. 183</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Why may you freely perform row and column operations when identifying the module a matrix presents?</p>
+<button onclick="check(this,false)">Because they do not change the matrix</button>
+<button data-ok onclick="check(this,true)">Because they replace A by an equivalent PAQ, and equivalent matrices have isomorphic cokernels</button>
+<button onclick="check(this,false)">Because they preserve the determinant</button>
+<div class="explain">Each elementary operation is multiplication by an invertible matrix on the left (rows) or right (columns), so the new matrix is PAQ — equivalent in the sense of Definition 9.15. Proposition 9.25 then says the cokernels are isomorphic, which is Corollary 9.26. The matrix certainly does change, and the determinant is not even defined for a non-square matrix; what is preserved is the isomorphism class of the module. <span class="cite">— Aluffi §9.2, Corollary 9.26, p. 186</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the chain from "free" to "a matrix is a module":
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Free means having a basis</strong> (Definition 9.1, Proposition 9.6) — generating gives surjectivity, independence gives injectivity. Most modules are not free: ℤ/2ℤ is not free over ℤ, though it is free over itself. A homomorphism out of a free module is an <em>arbitrary</em> assignment of images to the basis (Proposition 9.8); out of a non-free module the images are constrained by relations, which is what "not free" costs.</li>
+<li><strong>A homomorphism R<sup>⊕n</sup> → R<sup>⊕m</sup> is an m × n matrix</strong> whose jth column is f(e<sub>j</sub>) (Corollary 9.11), composition is matrix multiplication (Proposition 9.14), and elementary row/column operations are composition with isomorphisms — that is, replacement of A by an equivalent PAQ (Definition 9.15).</li>
+<li><strong>A finitely presented module is the cokernel of a matrix</strong> (Definitions 9.21–9.23): finitely many generators and finitely many relations, packaged as R<sup>⊕n</sup> → R<sup>⊕m</sup> → M → 0. Equivalent matrices give isomorphic modules (Proposition 9.25, Corollary 9.26), so <em>reducing the matrix identifies the module</em> — the 2 × 3 matrix of Example 9.13 reduces to diag(1, 2) and presents ℤ/2ℤ.</li>
+</ol>
+That last sentence is the computational half of the module theory, and it is literally the algorithm: a boundary matrix over a coefficient ring presents a chain module, and reducing it computes the homology. aa-20 will say how far the reduction can always be pushed when R is a PID.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §9.1 "Free Modules" (Definition 9.1 and Remark 9.2 p. 174; the standard tuples, Definition 9.3, Remark 9.4, Definition 9.5 and Proposition 9.6 p. 175; Example 9.7, Proposition 9.8, Remark 9.9 and Example 9.10 p. 176; the constraint on non-free sources, Corollary 9.11 and Remark 9.12 p. 177; that proof concluding overleaf, with Example 9.13 p. 178; Proposition 9.14 p. 179; elementary operations as multiplication by elementary matrices p. 181), pp. 174–181; §9.2 "Modules from Matrices" (Definition 9.15 and Remark 9.16 p. 181; Definition 9.17 and Examples 9.18, 9.19, 9.20 p. 182; Definition 9.21, the four-term exact sequence, Definition 9.22 and Definition 9.23 p. 183; the matrix description and Proposition 9.25 p. 184; the proof pp. 184–185; Corollary 9.26 and Example 9.27 p. 186), pp. 181–186. Example 8.18 comes from aa-15 (§8.2, p. 159), Example 8.46 and Theorem 8.44 from aa-17 (§8.5, pp. 168–169), and Example 8.34 from aa-16 (§8.3, p. 163). The reduction of the matrix in Example 9.27 and the resulting image lattice ℤ ⊕ 2ℤ were recomputed here before being drawn.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Example 9.27's reduction, with the image sublattice of Z (+) Z redrawn at
+// every step. Column operations leave the image set alone; row operations move
+// it by an automorphism of Z (+) Z. The quotient never changes.
+var rc=document.getElementById('red'),rx=rc.getContext('2d');
+var STEPS=[[[-4,1,7],[-2,0,4]],
+           [[1,-4,7],[0,-2,4]],
+           [[1,0,-1],[0,-2,4]],
+           [[1,0,-1],[0,-2,0]],
+           [[1,0,0],[0,-2,0]],
+           [[1,0,0],[0,2,0]]];
+var NOTES=['the matrix of Example 9.13',
+           'swap columns 1 and 2  (column op)',
+           'add (−2)× row 2 to row 1  (row op)',
+           'add 2× column 2 to column 3  (column op)',
+           'add column 1 to column 3  (column op)',
+           'multiply column 2 by −1, a unit  (column op)'];
+var si=0;
+function stepRed(){if(si<STEPS.length-1)si++;drawRed();}
+function resetRed(){si=0;drawRed();}
+function inImage(A,x,y){ // is (x,y) an integer combination of the columns of A?
+ for(var a=-8;a<=8;a++)for(var b=-8;b<=8;b++)for(var c=-8;c<=8;c++){
+  if(a*A[0][0]+b*A[0][1]+c*A[0][2]===x && a*A[1][0]+b*A[1][1]+c*A[1][2]===y)return true;}
+ return false;}
+function drawRed(){rx.clearRect(0,0,rc.width,rc.height);
+ var A=STEPS[si];
+ // matrix, left
+ rx.font='15px Segoe UI';rx.textAlign='center';rx.textBaseline='middle';
+ var mx0=96,my0=118,cw=40,ch=34;
+ rx.strokeStyle='#2a333d';rx.lineWidth=1;
+ rx.strokeRect(mx0-cw/2-8,my0-ch/2-8,3*cw+16,2*ch+16);
+ for(var i=0;i<2;i++)for(var j=0;j<3;j++){
+  rx.fillStyle=(A[i][j]===0)?'#4d5a66':'#e8e8e8';
+  rx.fillText(''+A[i][j],mx0+j*cw,my0+i*ch);}
+ rx.textAlign='left';rx.font='13px Segoe UI';rx.fillStyle='#8ab4f8';
+ rx.fillText('step '+si+' of '+(STEPS.length-1)+':  '+NOTES[si],14,22);
+ // lattice, right
+ var cx=430,cy=170,u=22,N=5;
+ rx.strokeStyle='#2a333d';rx.lineWidth=1;
+ rx.beginPath();rx.moveTo(cx-N*u-14,cy);rx.lineTo(cx+N*u+14,cy);
+ rx.moveTo(cx,cy-N*u-14);rx.lineTo(cx,cy+N*u+14);rx.stroke();
+ var count=0,tot=0;
+ for(var x=-N;x<=N;x++)for(var y=-N;y<=N;y++){
+  var on=inImage(A,x,y);tot++;if(on)count++;
+  rx.fillStyle=on?'#4caf82':'#2f3d4a';
+  rx.beginPath();rx.arc(cx+x*u,cy-y*u,on?4.5:2.5,0,7);rx.fill();}
+ rx.fillStyle='#9aa5b1';rx.font='12px Segoe UI';
+ rx.fillText('green: the image of the map inside Z ⊕ Z',300,44);
+ rx.fillText(count+' of '+tot+' lattice points in view lie in the image',300,62);
+ rx.fillStyle='#e8e8e8';rx.font='13px Segoe UI';
+ rx.fillText('the matrix simplifies; the quotient (Z ⊕ Z)/image never changes',14,rc.height-14);}
+drawRed();
+</script></body></html>
