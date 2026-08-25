@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-02 — GCD, Bézout, and the Fundamental Theorem of Arithmetic</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>GCD, Bézout, and the Fundamental Theorem of Arithmetic <span class="cite">(aa-02)</span></h1>
+
+<div class="hook">
+1 = 3·5 − 2·7. Fifteen minus fourteen. A child could check it; the question is why it was <em>available</em>.
+<p>It is available because 5 and 7 share no factor — and Bézout's theorem says that whenever two integers share nothing, some whole-number combination of them lands exactly on 1. Today the greatest common divisor stops being "the biggest number in both lists" and becomes something you can <em>construct</em>: it is the smallest positive quantity you can build out of a and b by adding multiples. From that one shift come the Euclidean algorithm, the proof that irreducible integers are prime, and unique factorisation itself.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Aluffi defines gcd(a, b) without ever saying "largest". Under his definition, what is gcd(0, 0)?</p>
+<button onclick="check(this,false)">Undefined — there is no largest common divisor of 0 and 0</button>
+<button data-ok onclick="check(this,true)">0</button>
+<button onclick="check(this,false)">1, by convention</button>
+<div class="explain">Every integer divides 0, so every integer is a common divisor of 0 and 0 — and there is indeed no <em>largest</em> one. But the definition asks instead for a nonnegative d that every common divisor <em>divides</em>, and 0 is the only integer divisible by every integer. So gcd(0, 0) = 0, with no special case needed. Watch for this: the whole reason Aluffi phrases the second requirement with "divides" rather than "≤" is that divisibility survives into rings where there is no order at all. <span class="cite">— Aluffi §1.3, Remark 1.7, p. 8</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Unique factorisation is the template for every 'decompose into irreducibles' theorem ahead.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>The gcd, defined by divisibility — and Bézout</h2>
+
+<div class="definition">
+<strong>Definition 1.5 (greatest common divisor).</strong> Let a, b ∈ ℤ. A <em>nonnegative</em> integer d is <strong>the greatest common divisor</strong> of a and b, written gcd(a, b) or (a, b), if
+<p>(i) d ∣ a and d ∣ b; &nbsp; and &nbsp; (ii) if c ∣ a and c ∣ b, then c ∣ d.</p>
+<span class="cite">— Aluffi §1.3, Definition 1.5, p. 7</span>
+</div>
+
+<p>Requirement (i) makes d a common divisor. Requirement (ii) is where the surprise lives: it does not say d is the <em>biggest</em> common divisor, it says every other common divisor <em>goes into</em> d. When a and b are not both 0 the two readings agree — by aa-01's Lemma 1.2, c ∣ d with d ≠ 0 forces |c| ≤ |d|, and d is nonnegative — so d really is the largest. But when they disagree, Aluffi's version is the one that keeps working. <span class="cite">— Aluffi §1.3, p. 8</span></p>
+
+<div class="worked">
+<strong>Example 1.6 — the slow way.</strong> To see gcd(30, −42) = 6, list the divisors of 30:
+<p style="text-align:center">−30, −15, −10, −6, −5, −3, −2, −1, 1, 2, 3, 5, <strong>6</strong>, 10, 15, 30</p>
+and the divisors of −42:
+<p style="text-align:center">−42, −21, −14, −7, −6, −3, −2, −1, 1, 2, 3, <strong>6</strong>, 7, 14, 21, 42</p>
+and take the largest integer occurring in both lists: 6. <span class="cite">— Aluffi §1.3, Example 1.6, p. 8</span>
+<p>Aluffi's own comment on this method: it is <em>extremely</em> inefficient, because listing divisors means factoring, and factoring a number a few thousand digits long may take longer than the age of the universe. Segment 2 replaces it with something fast.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 1.8 (Bézout).</strong> Let a, b be integers. Then d = gcd(a, b) is an integer linear combination of a and b: there exist integers m, n with d = ma + nb. In fact, if a and b are not both 0, then gcd(a, b) is the <em>smallest positive</em> linear combination of a and b. <span class="cite">— Aluffi §1.3, Theorem 1.8, p. 8</span>
+</div>
+
+<div class="worked">
+<strong>Proof of Theorem 1.8.</strong> If a = b = 0 then gcd(a, b) = 0 = 1·0 + 1·0, a linear combination. So assume a, b are not both 0, and put
+<p style="text-align:center">S = { ma + nb : m, n ∈ ℤ and ma + nb &gt; 0 }.</p>
+<p>S is nonempty: taking m = a and n = b gives a² + b² &gt; 0. So S is a nonempty set of nonnegative integers, and <strong>well-ordering</strong> hands us its least element d = ma + nb. We show d = gcd(a, b) by checking the two requirements of Definition 1.5.</p>
+<p><em>(i) d ∣ a.</em> If a = 0 this is automatic. Otherwise divide with remainder (aa-01's Theorem 1.3): a = dq + r with 0 ≤ r &lt; d. Then</p>
+<p style="text-align:center">r = a − dq = a − (ma + nb)q = a(1 − mq) + b(−nq),</p>
+<p>so r is itself a linear combination of a and b. It cannot be positive: it is smaller than d, and d is the <em>least</em> positive one. With r ≥ 0 that forces r = 0, so a = dq and d ∣ a. The same argument with the roles swapped gives d ∣ b.</p>
+<p><em>(ii)</em> Let c ∣ a and c ∣ b, say a = uc and b = vc. Then d = ma + nb = m(uc) + n(vc) = (mu + nv)c, so c ∣ d. ∎</p>
+<p>Notice what did the work: not arithmetic, but the same "least element of a set you build by hand" move as aa-01. Bézout is well-ordering applied to combinations rather than to remainders.</p>
+</div>
+
+<p>Three consequences, each one line from Bézout, and each one we spend the rest of the lesson cashing in.</p>
+
+<div class="theorem">
+<strong>Corollary 1.9.</strong> gcd(a, b) = 1 if and only if 1 can be written as a linear combination of a and b. <span class="cite">— Aluffi §1.3, Corollary 1.9, p. 10</span>
+<p><strong>Definition 1.10.</strong> a and b are <strong>relatively prime</strong> if gcd(a, b) = 1. <span class="cite">— Aluffi §1.3, Definition 1.10, p. 10</span></p>
+<p><strong>Corollary 1.11.</strong> If a ∣ bc and gcd(a, b) = 1, then a ∣ c. <span class="cite">— Aluffi §1.3, Corollary 1.11, p. 10</span></p>
+</div>
+
+<div class="worked">
+<strong>Proof of Corollary 1.9.</strong> If gcd(a, b) = 1 then Theorem 1.8 writes 1 = ma + nb. Conversely, if 1 <em>is</em> some linear combination of a and b, then it is certainly the smallest positive one (nothing positive is smaller than 1), and Theorem 1.8 identifies the smallest positive combination as the gcd. So gcd(a, b) = 1. ∎
+<p><strong>Proof of Corollary 1.11.</strong> By Theorem 1.8 write 1 = ma + nb, and multiply through by c:</p>
+<p style="text-align:center">c = (ma + nb)c = (mc)a + n(bc).</p>
+<p>The first term is visibly a multiple of a. The second is too, because a ∣ bc by hypothesis: write bc = ra, and then n(bc) = (nr)a. So a divides the sum, which is c. ∎</p>
+<p>Coprimality is used <em>exactly once</em>, at the very first step, and everything after is bookkeeping. That is a reliable sign of where a theorem's content sits.</p>
+</div>
+
+<p><strong>Remark 1.12.</strong> The hypothesis gcd(a, b) = 1 cannot be dropped: 10 ∣ (6·5) = 30, yet 10 divides neither 6 nor 5. No contradiction — gcd(10, 6) = 2 ≠ 1, so there is no equation 10m + 6n = 1 to multiply by c. <span class="cite">— Aluffi §1.3, Remark 1.12, p. 11</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Theorem 1.8 says gcd(a, b) is the smallest positive linear combination of a and b. Given that gcd(30, −42) = 6, which of these is <em>impossible</em>?</p>
+<button onclick="check(this,false)">30m − 42n = 12 for some integers m, n</button>
+<button data-ok onclick="check(this,true)">30m − 42n = 3 for some integers m, n</button>
+<button onclick="check(this,false)">30m − 42n = 6 for some integers m, n</button>
+<div class="explain">Every linear combination of 30 and −42 is a multiple of 6 — both numbers are, so any m·30 + n·(−42) is — and 3 is not a multiple of 6. 12 is fine (double a combination giving 6), and 6 itself is exactly what the theorem promises: 3·30 + 2·(−42) = 90 − 84 = 6. <span class="cite">— Aluffi §1.3, Theorem 1.8, p. 9</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. You now have the gcd as a <em>construction</em>. Next: how to run that construction fast.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>The Euclidean algorithm, forwards and backwards</h2>
+
+<p>Listing divisors is hopeless for large numbers. But dividing with remainder is instant — and one lemma turns repeated division into a gcd machine.</p>
+
+<div class="theorem">
+<strong>Lemma 1.15.</strong> Let a, b, q, r be integers with b ≠ 0 and a = bq + r. Then gcd(a, b) = gcd(b, r). <span class="cite">— Aluffi §1.4, Lemma 1.15, p. 12</span>
+</div>
+
+<div class="worked">
+<strong>Proof (one direction; the other is your guided proof below).</strong> It is enough to show the pair (a, b) and the pair (b, r) have <em>the same common divisors</em> — then the gcds coincide, since the gcd of a pair is determined by the set of its common divisors.
+<p>Let c ∣ a and c ∣ b, say a = cs and b = ct. Then</p>
+<p style="text-align:center">r = a − bq = cs − ctq = c(s − tq),</p>
+<p>so c ∣ r; and we already have c ∣ b. Hence every common divisor of a and b is a common divisor of b and r.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 1.14 (Euclidean algorithm).</strong> Let a, b be integers with b ≠ 0. Set r₋₂ = a and r₋₁ = b, and for i ≥ 0 let rᵢ be the remainder of dividing rᵢ₋₂ by rᵢ₋₁. Then there is an n with rₙ ≠ 0 and rₙ₊₁ = 0, and gcd(a, b) = rₙ — the <em>last nonzero remainder</em>. <span class="cite">— Aluffi §1.3, Theorem 1.14, p. 11</span>
+</div>
+
+<div class="worked">
+<strong>Why Lemma 1.15 proves Theorem 1.14.</strong> The remainders strictly decrease and stay nonnegative, so one of them must eventually be 0 — the process terminates. Applying the lemma at every line,
+<p style="text-align:center">gcd(a, b) = gcd(b, r₀) = gcd(r₀, r₁) = ⋯ = gcd(rₙ₋₁, rₙ) = gcd(rₙ, 0) = rₙ.</p>
+<p>The last equality is the prediction gate's definition at work: gcd(rₙ, 0) = rₙ because rₙ divides both rₙ and 0, and any common divisor of them divides rₙ. ∎ &nbsp; No factorisation was performed anywhere. <span class="cite">— Aluffi §1.4, p. 12</span></p>
+</div>
+
+<p>Geometrically the algorithm tiles an a × b rectangle with squares: cut off the largest square you can, then repeat on the strip that is left. The side of the last square is the gcd. Drive it below.</p>
+
+<canvas id="eu" width="620" height="230" aria-label="Euclidean algorithm as tiling a rectangle with squares"></canvas>
+<div class="controls">
+<button onclick="setEu(42,30)">42 × 30</button>
+<button onclick="setEu(21,13)">21 × 13</button>
+<button onclick="setEu(48,18)">48 × 18</button>
+<button onclick="stepEu()">Cut squares ▸</button>
+<button onclick="resetEu()">Reset</button>
+</div>
+
+<div class="worked">
+<strong>Example 1.13 — the algorithm on a = 30, b = −42.</strong>
+<p style="text-align:center">30 = (−42)·0 + 30<br>−42 = 30·(−2) + 18<br>30 = 18·1 + 12<br>18 = 12·1 + <strong>6</strong><br>12 = 6·2 + 0</p>
+The last nonzero remainder is 6, and we found gcd(30, −42) = 6 by inspection in Segment 1. <span class="cite">— Aluffi §1.3, Example 1.13, p. 11</span>
+</div>
+
+<p><strong>Remark 1.16 (running it backwards).</strong> The algorithm also <em>produces</em> the Bézout coefficients: start at the line that produced the gcd and substitute the earlier remainders one at a time. <span class="cite">— Aluffi §1.4, Remark 1.16, p. 12</span></p>
+
+<div class="worked">
+<strong>Worked example — back-substitution for 30 and −42.</strong>
+<p>Second-to-last line: 6 = 18 − 12·1 = 18 − 12.</p>
+<p>The line above gives 12 = 30 − 18, so &nbsp; 6 = 18 − (30 − 18) = 2·18 − 30.</p>
+<p>The line above that gives 18 = −42 − 30·(−2), so</p>
+<p style="text-align:center">6 = 2·(−42 − 30·(−2)) − 30 = 3·30 + 2·(−42),</p>
+<p>giving m = 3, n = 2. Check: 90 − 84 = 6. ✓ The discipline is never to multiply anything out: keep each line as a combination of the two numbers appearing on the previous line.</p>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — do it for 1234 and 288.</strong>
+<p>Forward: 1234 = 288·4 + 82; &nbsp; 288 = 82·3 + 42; &nbsp; 82 = 42·1 + 40; &nbsp; 42 = 40·1 + 2; &nbsp; 40 = 2·20 + 0. So gcd(1234, 288) = ⟨your step: read off the last nonzero remainder⟩.</p>
+<p>Backward, starting from the line that produced it: 2 = 42 − 40.</p>
+<p>The line above gives 40 = 82 − 42, so 2 = 42 − (82 − 42) = ⟨your step: collect the 42s⟩·42 − 82.</p>
+<p>The line above that gives 42 = 288 − 3·82, so 2 = 2(288 − 3·82) − 82 = 2·288 − ⟨your step⟩·82.</p>
+<p>Finally 82 = 1234 − 4·288, so 2 = 2·288 − 7(1234 − 4·288) = ⟨your step⟩·1234 + ⟨your step⟩·288. Check against −8638 + 8640 = 2.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Run the Euclidean algorithm on 803 and 154, then back-substitute to get Bézout coefficients. Two sanity checks before you start: the answer divides both numbers, and 154 = 2·7·11 — so the gcd is one of 1, 2, 7, 11, 14, 22, 77, 154. Write out every division line; the back-substitution is only as reliable as the forward record.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Why does the Euclidean algorithm always stop?</p>
+<button onclick="check(this,false)">Because every integer has finitely many divisors</button>
+<button data-ok onclick="check(this,true)">Because the remainders strictly decrease and stay ≥ 0</button>
+<button onclick="check(this,false)">Because gcd(a, b) ≤ min(|a|, |b|)</button>
+<div class="explain">Division with remainder forces 0 ≤ rᵢ &lt; rᵢ₋₁, so the remainders form a strictly decreasing sequence of nonnegative integers — which cannot go on forever. (Well-ordering again, in yet another disguise: an infinite strictly decreasing sequence of nonnegative integers would be a nonempty set with no least element.) Divisor-counting is exactly what the algorithm avoids doing. <span class="cite">— Aluffi §1.3, Theorem 1.14, p. 11</span></div>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi leaves half of Lemma 1.15 to you — literally: "The reader should work this out." Do it. <strong>Show that if c is a common divisor of b and r, then c is a common divisor of a and b</strong>, where a = bq + r. Then say in one sentence why the two halves together give gcd(a, b) = gcd(b, r).</p>
+<textarea placeholder="Suppose c | b and c | r. Write b = ... and r = ..., and substitute into a = bq + r ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>Suppose c ∣ b and c ∣ r, say b = ct and r = cu for integers t, u. Then</p>
+<p style="text-align:center">a = bq + r = (ct)q + cu = c(tq + u),</p>
+<p>so c ∣ a; and c ∣ b was a hypothesis. Hence c is a common divisor of a and b.</p>
+<p>Together with the direction proved in the body, the pairs (a, b) and (b, r) have <em>exactly the same</em> set of common divisors. The gcd of a pair is determined by that set — it is the nonnegative member of the set that every member divides — so gcd(a, b) = gcd(b, r). ∎</p>
+<p>Grade yourself on one thing: did you substitute into a = bq + r, or did you try to derive this from the direction already proved? The two directions are genuinely separate computations; neither follows from the other.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the payoff: what the bricks of ℤ are, and why there is only one way to stack them.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Irreducible, prime, and unique factorisation</h2>
+
+<p>Addition needs one brick: every integer is built from 1. Multiplication needs infinitely many — and Aluffi is careful to give them <em>two</em> names, because in general rings the two names come apart.</p>
+
+<div class="definition">
+<strong>Definition 1.17 (irreducible).</strong> An integer p is <strong>irreducible</strong> if p ≠ ±1 and the only divisors of p are ±1 and ±p. An integer ≠ 0, ≠ ±1 is <strong>reducible</strong> (or composite) if it is not irreducible. Note that 0 and ±1 are neither. <span class="cite">— Aluffi §1.4, Definition 1.17, p. 13</span>
+</div>
+
+<div class="definition">
+<strong>Definition 1.19 (prime).</strong> An integer p is <strong>prime</strong> if p ≠ ±1 and whenever p divides a product bc of two integers, p divides b or p divides c. <span class="cite">— Aluffi §1.4, Definition 1.19, p. 14</span>
+</div>
+
+<p>Irreducibility is about <em>factorisations</em>: p cannot be broken up. Primality is about <em>products</em>: p cannot hide inside one. They are different sentences about different things. Two warnings from the text, both easy to trip on. First, 10 is not prime — 10 ∣ 30 = 6·5 while 10 divides neither 6 nor 5. Second, and unusually, <strong>0 is prime</strong> under Definition 1.19; most books exclude it, and Aluffi keeps it deliberately, to line up with the language of prime <em>ideals</em> in §6.1. That is why Theorem 1.21 below carries the hypothesis p ≠ 0. <span class="cite">— Aluffi §1.4, p. 14</span></p>
+
+<div class="theorem">
+<strong>Lemma 1.18.</strong> If p is irreducible and b is not a multiple of p, then gcd(p, b) = 1. <span class="cite">— Aluffi §1.4, Lemma 1.18, p. 13</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Let c be a common divisor of p and b. Since c ∣ p and p is irreducible, c is ±1 or ±p. But c ∣ b, and p ∤ b, so c ≠ ±p. Hence c = ±1. This applies in particular to c = gcd(p, b), which is nonnegative, so gcd(p, b) = 1. ∎
+<p>Combine with Corollary 1.9: for an irreducible p and any b it does not divide, there are integers m, n with mp + nb = 1. That is not obvious by inspection, and it is the engine of everything below.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 1.21.</strong> Let p ∈ ℤ with p ≠ 0. Then p is prime if and only if p is irreducible. <span class="cite">— Aluffi §1.4, Theorem 1.21, p. 14</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> If p = ±1 then p is neither prime nor irreducible, so the claim holds in that case; assume p ≠ 0, ±1.
+<p><em>Prime ⟹ irreducible.</em> Let d ∣ p, say p = dq. Then p ∣ dq (as dq = 1·p), and p prime gives p ∣ d or p ∣ q. If p ∣ d, then with d ∣ p, aa-01's Lemma 1.2 gives |d| ≤ |p| and |p| ≤ |d|, so d = ±p. If instead p ∣ q, write q = ep; then p = dq = dep, so p(de − 1) = 0, and p ≠ 0 forces de = 1, i.e. d ∣ 1, i.e. d = ±1. So the only divisors of p are ±1, ±p.</p>
+<p><em>Irreducible ⟹ prime.</em> Suppose p ∣ bc. If p ∣ b we are done, so assume p ∤ b. Lemma 1.18 gives gcd(p, b) = 1, and Corollary 1.11 turns p ∣ bc into p ∣ c. ∎</p>
+<p><strong>Read the asymmetry.</strong> The first direction used nothing but divisibility. The second reached back through Corollary 1.11 to Bézout — that is, to well-ordering. Aluffi's whole reason for keeping two words is that the second direction is the one that <em>fails</em> in general rings (§6.2): nonzero primes are always irreducible in a domain, but irreducibles need not be prime. ℤ is special, and Theorem 1.21 is where the specialness is spent.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 1.22 (Fundamental Theorem of Arithmetic).</strong> Every integer n ≠ 0, ≠ ±1 is a product of finitely many irreducible integers, n = q₁⋯q_r. Further this factorisation is unique: if n = q₁⋯q_r = p₁⋯p_s with all qᵢ, pⱼ irreducible, then s = r and, after reordering the factors, p₁ = ±q₁, …, p_r = ±q_r. <span class="cite">— Aluffi §1.4, Theorem 1.22, p. 15</span>
+</div>
+
+<div class="worked">
+<strong>Proof — existence (well-ordering and Definition 1.17 only).</strong> Signs can be absorbed into the factors, so take n &gt; 1, and let S be the set of integers n &gt; 1 with no factorisation into irreducibles. If S ≠ ∅ it has a least element n. Then n is not itself irreducible, so n = ab with a and b different from ±1, ±n; taking both positive, 1 &lt; a &lt; n and 1 &lt; b &lt; n (Lemma 1.2 again). Both are below the minimum of S, so both factor into irreducibles, and concatenating those factorisations factors n — contradicting n ∈ S. So S = ∅.
+<p><strong>Uniqueness (needs Theorem 1.21).</strong> Let T be the set of n &gt; 1 with a non-unique factorisation; if T ≠ ∅ take its least element n and write n = q₁⋯q_r = p₁⋯p_s, all factors positive irreducibles. Then p₁ divides q₁⋯q_r; p₁ is irreducible, hence <em>prime</em> by Theorem 1.21, hence divides some qᵢ — reorder so that it divides q₁. But q₁ is irreducible and p₁ ≠ ±1, so p₁ = ±q₁, and both being positive, p₁ = q₁. Cancel it: q₂⋯q_r = p₂⋯p_s. That number is n/q₁ &lt; n, so <em>its</em> factorisation is unique, forcing r − 1 = s − 1 and the remaining factors to match up to order. Contradiction. ∎</p>
+<p><strong>The line to remember:</strong> existence never mentions primality; uniqueness cannot be proved without it. In a setting where irreducible does not imply prime, you keep existence and lose uniqueness — which is precisely what Problem 6 makes you build. <span class="cite">— Aluffi §1.4, pp. 16–17</span></p>
+</div>
+
+<p>Once factorisation is unique, every positive integer <em>is</em> a list of exponents: n = 2^ν₂ · 3^ν₃ · 5^ν₅ ⋯ with only finitely many νᵢ nonzero, and the list is determined by n. Divisibility then becomes a comparison of lists: c ∣ n exactly when every exponent of c is ≤ the corresponding exponent of n. <span class="cite">— Aluffi §1.4, p. 18</span></p>
+
+<div class="theorem">
+<strong>Proposition 1.25.</strong> Write nonzero a = ±2^α₂3^α₃5^α₅⋯ and b = ±2^β₂3^β₃5^β₅⋯. Then gcd(a, b) = 2^δ₂3^δ₃5^δ₅⋯ where δᵢ = min(αᵢ, βᵢ) for every i. <span class="cite">— Aluffi §1.4, Proposition 1.25, p. 18</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> A positive c = 2^γ₂3^γ₃⋯ is a common divisor of a and b exactly when γᵢ ≤ αᵢ and γᵢ ≤ βᵢ for all i, i.e. exactly when γᵢ ≤ min(αᵢ, βᵢ) = δᵢ for all i — which says precisely that c ∣ d, where d = 2^δ₂3^δ₃⋯. Taking c = d shows d is itself a common divisor (requirement (i) of Definition 1.5); the same display shows every common divisor divides d (requirement (ii)). ∎
+<p><strong>Example 1.26.</strong> 30 = 2·3·5 and −42 = −2·3·7, so taking minima exponent by exponent, gcd(30, −42) = 2·3 = 6 — the third time today we have reached 6, by a third method. Taking <em>maxima</em> instead gives lcm(30, −42) = 2·3·5·7 = 210. <span class="cite">— Aluffi §1.4, Example 1.26, p. 19</span></p>
+<p>And a warning Aluffi repeats: this is a beautiful formula and a terrible algorithm. It needs the factorisations, which is the expensive part; the Euclidean algorithm needs none.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which half of the Fundamental Theorem of Arithmetic uses Theorem 1.21 (irreducible ⟺ prime)?</p>
+<button onclick="check(this,false)">Existence — you need primality to break n up</button>
+<button data-ok onclick="check(this,true)">Uniqueness — you need p₁ to divide one of the qᵢ</button>
+<button onclick="check(this,false)">Both halves, equally</button>
+<div class="explain">Existence runs on well-ordering plus Definition 1.17: a least non-factorable n splits as ab with both factors smaller, and both factor. Nowhere does it ask whether a divisor is prime. Uniqueness is where p₁ ∣ q₁⋯q_r has to become p₁ ∣ qᵢ for one single i — and that step <em>is</em> the definition of prime, reached from irreducibility by Theorem 1.21. <span class="cite">— Aluffi §1.4, p. 17</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> In the set S = {1, 5, 9, 13, 17, …} of positive integers of the form 4k + 1 (closed under multiplication), 9 and 21 and 49 have no divisors <em>inside S</em> other than 1 and themselves, and 441 = 9·49 = 21·21. What does this show?</p>
+<button onclick="check(this,false)">Well-ordering fails in S</button>
+<button data-ok onclick="check(this,true)">An S-irreducible need not be S-prime, so uniqueness can fail while existence survives</button>
+<button onclick="check(this,false)">S has no irreducible elements at all</button>
+<div class="explain">S inherits well-ordering from ℤ, so the existence argument still runs — every element of S above 1 is a product of S-irreducibles. What S lacks is Theorem 1.21: 9 is S-irreducible but not S-prime, since 9 ∣ 21·21 while 9 ∤ 21. And Theorem 1.21 came from Bézout, which S has no version of, since S is not closed under subtraction. This is Problem 6, and it is the cleanest demonstration that "irreducible = prime" is a theorem about ℤ, not a definition. <span class="cite">— Aluffi §1.4, p. 15</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> Under Definition 1.19 as Aluffi writes it, is 0 prime?</p>
+<button data-ok onclick="check(this,true)">Yes — and he says so explicitly, calling the choice nonstandard</button>
+<button onclick="check(this,false)">No — 0 is excluded by the definition</button>
+<button onclick="check(this,false)">The definition does not decide the question</button>
+<div class="explain">0 ≠ ±1, and if 0 ∣ bc then bc = 0, so b = 0 or c = 0, i.e. 0 ∣ b or 0 ∣ c. The condition holds. Aluffi flags this as a deliberate, nonstandard choice made to align with prime ideals in §6.1 — which is also why Theorem 1.21 has to say p ≠ 0: 0 is prime but is <em>not</em> irreducible, since it has divisors other than ±1 and ±0. <span class="cite">— Aluffi §1.4, Definition 1.19, p. 14</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Reconstruct the three load-bearing claims and the dependency between them:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>Bézout (Theorem 1.8):</strong> gcd(a, b) is the smallest <em>positive</em> integer of the form ma + nb. Proved by well-ordering on the set of positive combinations. This turns the gcd from something you find into something you build.</li>
+<li><strong>Theorem 1.21:</strong> for p ≠ 0, irreducible ⟺ prime. The irreducible-implies-prime direction runs Lemma 1.18 → Corollary 1.11 → Bézout; the other direction is pure divisibility. Only the second generalises to arbitrary rings.</li>
+<li><strong>FTA (Theorem 1.22):</strong> existence of a factorisation into irreducibles needs only well-ordering and Definition 1.17; <em>uniqueness</em> needs Theorem 1.21, hence needs Bézout. Remove Bézout — as in the 4k+1 numbers — and you keep existence and lose uniqueness.</li>
+</ol>
+Everything traces to one fact about order in ℤ, exactly as in aa-01. The rest of the module asks which of these properties survive when ℤ is replaced by a general ring: §6.2 for prime versus irreducible, §6.4 for unique factorisation.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §1.3 "Greatest Common Divisors" (Definition 1.5 p. 7; Example 1.6, Remark 1.7, Theorem 1.8 p. 8; Corollary 1.9, Definition 1.10, Corollary 1.11 p. 10; Remark 1.12, Example 1.13, Theorem 1.14 p. 11), pp. 7–11; §1.4 "The Fundamental Theorem of Arithmetic" (Lemma 1.15, Remark 1.16 p. 12; Definition 1.17, Lemma 1.18 p. 13; Definition 1.19, Theorem 1.21 p. 14; Theorem 1.22 p. 15, proof pp. 16–17; Proposition 1.25 p. 18; Example 1.26 p. 19), pp. 12–19. Lemma 1.2 and the well-ordering principle are carried over from aa-01 (Aluffi §1.1, pp. 4–5). The 4k+1 counterexample in Self-check 4 is Problem 6 of this unit's set, built from the same sections.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// Euclidean algorithm as square-tiling: cut the largest squares off an a x b
+// rectangle, repeat on the strip that remains. The last square's side is the gcd.
+var ec=document.getElementById('eu'),ex=ec.getContext('2d');
+var EA=42,EB=30,L0=42,W0=30,cuts=[],curL=0,curW=0,doneEu=false;
+var PAL=['#8ab4f8','#4caf82','#d8a657','#e06c75','#b48ead','#88c0d0'];
+function resetEu(){L0=Math.max(EA,EB);W0=Math.min(EA,EB);curL=L0;curW=W0;cuts=[];doneEu=false;drawEu();}
+function setEu(a,b){EA=a;EB=b;resetEu();}
+function stepEu(){if(doneEu)return;if(curW===0){doneEu=true;drawEu();return;}
+ var k=Math.floor(curL/curW),rem=curL-k*curW;
+ cuts.push([curW,k]);curL=curW;curW=rem;if(rem===0)doneEu=true;drawEu();}
+function drawEu(){ex.clearRect(0,0,ec.width,ec.height);
+ var pad=14,s=Math.min((ec.width-2*pad)/L0,(ec.height-70)/W0);
+ ex.strokeStyle='#2a333d';ex.lineWidth=1;ex.strokeRect(pad,pad,L0*s,W0*s);
+ var cx=pad,cy=pad,horiz=true;
+ for(var t=0;t<cuts.length;t++){var side=cuts[t][0],n=cuts[t][1];
+  for(var i=0;i<n;i++){ex.fillStyle=PAL[t%PAL.length];ex.globalAlpha=0.55;
+   ex.fillRect(cx,cy,side*s,side*s);ex.globalAlpha=1;ex.strokeStyle='#0c1013';
+   ex.strokeRect(cx,cy,side*s,side*s);
+   if(side*s>18){ex.fillStyle='#0c1013';ex.font='11px Segoe UI';ex.fillText(''+side,cx+4,cy+14);}
+   if(horiz){cx+=side*s;}else{cy+=side*s;}}
+  horiz=!horiz;}
+ ex.fillStyle='#e8e8e8';ex.font='13px Segoe UI';
+ ex.fillText('rectangle '+L0+' x '+W0,pad,ec.height-34);
+ ex.fillStyle=doneEu?'#4caf82':'#9aa5b1';
+ ex.fillText(doneEu?('nothing left over - gcd = '+cuts[cuts.length-1][0])
+   :('strip left: '+curL+' x '+curW+' - cut again'),pad,ec.height-14);
+}
+resetEu();
+</script></body></html>
