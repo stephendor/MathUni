@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-03 — Equivalence relations, quotients, and ℤ/nℤ</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Equivalence relations, quotients, and ℤ/nℤ <span class="cite">(aa-03)</span></h1>
+
+<div class="hook">
+Take the number line and glue every multiple of 12 onto the same spot. Do it honestly — not "pretend they are equal", but <em>build a new set whose points are whole infinite families of integers</em>. What falls out is a clock face.
+<p>This is the single most reused construction in the rest of your degree. Quotient rings, quotient modules, quotient groups, and — three semesters from now — homology itself are all this move, performed on a bigger object. Today we perform it on ℤ, where you can see every piece. The one thing to guard against is the reflex that "reducing mod 12" turns an integer into a smaller integer. It does not. It turns an integer into a <em>set</em>.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Aluffi's definition of congruence allows n = 0. How many elements does ℤ/0ℤ have?</p>
+<button onclick="check(this,false)">Zero — the quotient is empty</button>
+<button onclick="check(this,false)">One — everything is glued to a single point</button>
+<button data-ok onclick="check(this,true)">Infinitely many — it is a copy of ℤ</button>
+<div class="explain">Congruence mod 0 asks that b − a ∈ 0ℤ = {0}, i.e. a = b. So congruence mod 0 is plain <em>equality</em>, every class [a]₀ = {a} is a singleton, and ℤ/0ℤ is ℤ with each element wrapped in braces. Gluing nothing is a legitimate gluing. Keep this case in view: it is why Theorem 2.7 says "for all <em>positive</em> integers n". <span class="cite">— Aluffi §2.2, Remark 2.8, p. 26</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Your very first quotient — the construction homology is built from, rehearsed on integers.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Equivalence relations and the quotient set</h2>
+
+<p>Aluffi treats this as a reminder rather than new material, and points you at Appendix A §A.8 if it is not fresh. Here is the machinery in the four bullets he uses, because every one of them gets used again today. <span class="cite">— Aluffi §2.1, p. 22</span></p>
+
+<div class="definition">
+<strong>Equivalence relation, class, quotient.</strong> A relation ∼ on a set A is an <strong>equivalence relation</strong> if it is reflexive (a ∼ a), symmetric (a ∼ b ⟹ b ∼ a) and transitive (a ∼ b and b ∼ c ⟹ a ∼ c). Given one, the <strong>equivalence class</strong> of a ∈ A is
+<p style="text-align:center">[a] = { b ∈ A : a ∼ b },</p>
+and the <strong>quotient</strong> A/∼ is the set whose <em>elements</em> are these classes. The classes are pairwise disjoint and their union is all of A — they form a <strong>partition</strong> of A. <span class="cite">— Aluffi §2.1, p. 22</span>
+</div>
+
+<p>The three axioms generalise properties of the relation =, which is the prototypical (and trivial) example. Two further facts, both of which we will lean on:</p>
+
+<ul>
+<li>The <strong>projection</strong> π : A → A/∼, π(a) = [a], is surjective, and π(a) = π(b) ⟺ a ∼ b. <span class="cite">— Aluffi §2.1, p. 22</span></li>
+<li>That last property <em>characterises</em> the quotient: if f : A → B is any surjection with f(a) = f(b) ⟺ a ∼ b, then there is an <strong>induced function</strong> f̃ : A/∼ → B with f̃([a]) = f(a), and it is a bijection. <span class="cite">— Aluffi §2.1, p. 23</span></li>
+</ul>
+
+<p>The second bullet is the first "universal property" in the book, and it is worth naming the pattern now: a quotient is not characterised by what its elements <em>are</em>, but by which functions it accepts. Aluffi flags the connection to category theory and moves on; we will do the same, and meet it in earnest in aa-07.</p>
+
+<div class="worked">
+<strong>Worked example — the induced function, and what "well defined" means.</strong> Let A = ℤ, let f : ℤ → {even, odd} record the parity of an integer, and let a ∼ b mean f(a) = f(b).
+<p>∼ is an equivalence relation — reflexive, symmetric and transitive because = is. There are two classes, and f̃ sends the class of 4 to "even".</p>
+<p>Now the subtlety. To evaluate f̃ on a class you must first <em>pick a representative</em>: to compute f̃([4]) you may reach for 4, or for 10, or for −628. The definition f̃([a]) = f(a) is only a definition at all if every representative gives the same answer — and here it does, precisely because a ∼ b was <em>defined</em> as f(a) = f(b). Every "is this well defined?" question for the rest of the module has exactly this shape: <em>does the recipe survive a change of representative?</em></p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Which of these relations on ℤ is <em>not</em> transitive?</p>
+<button data-ok onclick="check(this,true)">a ∼ b when |a − b| ≤ 1</button>
+<button onclick="check(this,false)">a ∼ b when a and b have the same sign or are both 0</button>
+<button onclick="check(this,false)">a ∼ b when a − b is even</button>
+<div class="explain">|a − b| ≤ 1 is reflexive and symmetric, but 0 ∼ 1 and 1 ∼ 2 while |0 − 2| = 2, so 0 ∼ 2 fails. This is the standard witness that the three axioms are independent — Problem 3(a) of your set asks you to build all three such witnesses. The other two relations are genuine equivalence relations (the second has three classes, the third has two).</div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now we pick <em>one</em> family of equivalence relations on ℤ and study it to death.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Congruence mod n</h2>
+
+<p>Write nℤ = { nk : k ∈ ℤ } = { …, −2n, −n, 0, n, 2n, … } for the set of multiples of n.</p>
+
+<div class="definition">
+<strong>Definition 2.1 (congruence).</strong> Let n ≥ 0 be an integer and a, b ∈ ℤ. We say <strong>a is congruent to b modulo n</strong>, written a ≡ b mod n, if b − a ∈ nℤ. Equivalently, a ≡ b mod n ⟺ n ∣ (b − a). <span class="cite">— Aluffi §2.2, Definition 2.1, p. 23</span>
+</div>
+
+<p><strong>Remark 2.2.</strong> Negative moduli are not excluded for any deep reason — they are redundant, because nℤ = (−n)ℤ, so the relations for n and −n coincide and we may as well take n ≥ 0. And congruence modulo 0 is just equality, since 0ℤ = {0}. <span class="cite">— Aluffi §2.2, Remark 2.2, p. 23</span></p>
+
+<div class="worked">
+<strong>Congruence is an equivalence relation — transitivity, written out.</strong> Suppose a ≡ b mod n, so b − a = nk for some integer k, and b ≡ c mod n, so c − b = nℓ for some integer ℓ. Then
+<p style="text-align:center">c − a = (c − b) + (b − a) = nℓ + nk = n(k + ℓ),</p>
+so c − a ∈ nℤ, i.e. a ≡ c mod n. ∎
+<p>Reflexivity (a − a = 0 = n·0) and symmetry (if b − a = nk then a − b = n(−k)) are the same one-line move, and are yours in the guided proof below. Note that all three arguments work verbatim for n = 0. <span class="cite">— Aluffi §2.2, p. 23</span></p>
+</div>
+
+<p>Now the classes. For n ≥ 0 and a ∈ ℤ, write [a]<sub>n</sub> for the congruence class of a:</p>
+
+<p style="text-align:center">[a]<sub>n</sub> = { b ∈ ℤ : n divides b − a } = { a + nk : k ∈ ℤ },</p>
+
+<p>also written a + nℤ. We call a a <strong>representative</strong> of [a]<sub>n</sub>. Because this is an equivalence relation and nothing more, we get for free — no proof needed — the identity Aluffi labels (2.1): <span class="cite">— Aluffi §2.2, p. 24</span></p>
+
+<div class="theorem">
+<strong>(2.1)</strong> &nbsp; [a]<sub>n</sub> = [b]<sub>n</sub> &nbsp; ⟺ &nbsp; a ≡ b mod n. <span class="cite">— Aluffi §2.2, p. 24</span>
+</div>
+
+<div class="worked">
+<strong>Example 2.3 (n = 2) and Example 2.4 (n = 3).</strong> For n = 2 there are two classes:
+<p style="text-align:center">[0]₂ = {…, −6, −4, −2, 0, 2, 4, 6, …} &nbsp;&nbsp; [1]₂ = {…, −5, −3, −1, 1, 3, 5, 7, …}</p>
+<p>the even and the odd integers; in the other notation, the odd integers are 1 + 2ℤ, which is exactly "1 plus an even integer". For n = 3 there are three:</p>
+<p style="text-align:center">[0]₃ = {…, −6, −3, 0, 3, 6, …} &nbsp; [1]₃ = {…, −5, −2, 1, 4, 7, …} &nbsp; [2]₃ = {…, −4, −1, 2, 5, 8, …}</p>
+<p>Each list is a partition of ℤ: every integer appears in exactly one class. Test yourself on −4 and 5. They are <em>not</em> congruent mod 2 and sit in different classes there; they <em>are</em> congruent mod 3, and by (2.1) that means [−4]₃ = [5]₃ = [2]₃ — a real equality of sets, not a resemblance. One subset of ℤ, three names. <span class="cite">— Aluffi §2.2, Example 2.3 and Example 2.4, p. 24; discussion p. 25</span></p>
+</div>
+
+<p>The picture below is the gluing in the hook. The number line runs left to right; the circle has n slots; each integer flies to its class. Change n and watch which integers land together.</p>
+
+<canvas id="wrap" width="620" height="250" aria-label="Integers wrapping onto n congruence classes arranged in a circle"></canvas>
+<div class="controls">
+<button onclick="setN(2)">n = 2</button>
+<button onclick="setN(3)">n = 3</button>
+<button onclick="setN(5)">n = 5</button>
+<button onclick="setN(12)">n = 12</button>
+<button onclick="highlightNext()">Highlight next class ▸</button>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> Is [2]₃ another name for the number 2?</p>
+<button onclick="check(this,false)">Yes — it is 2, decorated with a subscript</button>
+<button data-ok onclick="check(this,true)">No — it is an infinite subset of ℤ, and also an element of ℤ/3ℤ</button>
+<button onclick="check(this,false)">No — it is the number 2 taken modulo 3, which is again 2</button>
+<div class="explain">[2]₃ = {…, −4, −1, 2, 5, 8, …}. Aluffi is emphatic here: 2 and 5 are different numbers, yet [2]₃ and [5]₃ are <em>the same element</em> of ℤ/3ℤ, because they are the same subset. Holding one object as both "a subset of ℤ" and "a point of a new set" is the whole conceptual cost of this lesson, and it is paid once. <span class="cite">— Aluffi §2.2, p. 25</span></div>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Aluffi remarks in passing that for positive n, n ∣ (b − a) if and only if a and b leave <em>the same remainder</em> on division by n — and defers it to Exercise 1.8. Prove it. <strong>Let n &gt; 0 and let a, b ∈ ℤ have remainders r<sub>a</sub>, r<sub>b</sub> under division by n. Show that a ≡ b mod n if and only if r<sub>a</sub> = r<sub>b</sub>.</strong> Use aa-01's Theorem 1.3 in both directions, and say explicitly which part of it — existence or <em>uniqueness</em> — each direction consumes.</p>
+<textarea placeholder="Write a = nq_a + r_a and b = nq_b + r_b with 0 <= r_a, r_b < n. Then b - a = ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p>By Theorem 1.3 write a = nq<sub>a</sub> + r<sub>a</sub> and b = nq<sub>b</sub> + r<sub>b</sub> with 0 ≤ r<sub>a</sub>, r<sub>b</sub> &lt; n. Subtracting,</p>
+<p style="text-align:center">b − a = n(q<sub>b</sub> − q<sub>a</sub>) + (r<sub>b</sub> − r<sub>a</sub>).</p>
+<p>(⟸) If r<sub>a</sub> = r<sub>b</sub> the last bracket vanishes, so b − a = n(q<sub>b</sub> − q<sub>a</sub>) ∈ nℤ, i.e. a ≡ b mod n. This direction uses only the <em>existence</em> half of Theorem 1.3.</p>
+<p>(⟹) If a ≡ b mod n, then n ∣ (b − a), and since n also divides n(q<sub>b</sub> − q<sub>a</sub>), it divides the difference r<sub>b</sub> − r<sub>a</sub>. But both remainders lie in {0, …, n − 1}, so |r<sub>b</sub> − r<sub>a</sub>| ≤ n − 1 &lt; n. A nonzero multiple of n has absolute value at least n (aa-01's Lemma 1.2), so r<sub>b</sub> − r<sub>a</sub> = 0. This direction is where <em>uniqueness</em> of the remainder does the work — equivalently, where the window 0 ≤ r &lt; n is used. ∎</p>
+<p>Grade yourself on the second direction. If your proof never used the size of the remainders, it is not finished: n ∣ (r<sub>b</sub> − r<sub>a</sub>) does not by itself say r<sub>b</sub> = r<sub>a</sub>.</p>
+</details>
+</div>
+
+<div class="break">☕ Break — 5 minutes. We have the classes. Now we make the set <em>of</em> classes, and count it.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>ℤ/nℤ, and exactly how big it is</h2>
+
+<div class="definition">
+<strong>Definition 2.5 (the quotient ℤ/nℤ).</strong> For any integer n ≥ 0, ℤ/nℤ denotes the set of congruence classes mod n in ℤ — the <strong>quotient of ℤ modulo nℤ</strong>, or "ℤ mod n". <span class="cite">— Aluffi §2.2, Definition 2.5, p. 25</span>
+</div>
+
+<p>A notational warning worth repeating in your own notes: ℤ<sub>n</sub> is a common alternative, and it is a pity, because ℤ<sub>p</sub> already means the <em>p-adic numbers</em>, which are something else entirely. Aluffi uses ℤ/nℤ throughout, and so will we. <span class="cite">— Aluffi §2.2, p. 25</span></p>
+
+<p>And the conceptual warning, which is the one people actually trip on: <strong>resist with all your might the temptation to think of ℤ/nℤ as a subset of ℤ.</strong> Each <em>element</em> of ℤ/nℤ may be viewed as a subset of ℤ; the set of those elements is not itself sitting inside ℤ. The relationship between ℤ and ℤ/nℤ is real, but it runs through the projection π, not through inclusion — and it is taken up properly in Example 4.19. <span class="cite">— Aluffi §2.2, p. 25</span></p>
+
+<div class="theorem">
+<strong>Lemma 2.6.</strong> Let n be a positive integer.
+<p>(i) If a ∈ ℤ and r is the remainder of a on division by n, then [a]<sub>n</sub> = [r]<sub>n</sub>.</p>
+<p>(ii) The classes [0]<sub>n</sub>, [1]<sub>n</sub>, …, [n−1]<sub>n</sub> are all distinct.</p>
+<span class="cite">— Aluffi §2.2, Lemma 2.6, p. 25</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> (i) If a = nq + r then a − r = nq ∈ nℤ, so a ≡ r mod n, and (2.1) upgrades that to [a]<sub>n</sub> = [r]<sub>n</sub>.
+<p>(ii) Suppose 0 ≤ r₁ &lt; n and 0 ≤ r₂ &lt; n with [r₁]<sub>n</sub> = [r₂]<sub>n</sub>; we show r₁ = r₂. From the bounds, 0 ≤ |r₂ − r₁| &lt; n. From the equality of classes, n ∣ (r₂ − r₁), hence n ∣ |r₂ − r₁|. If |r₂ − r₁| ≠ 0 then Lemma 1.2 gives n ≤ |r₂ − r₁| &lt; n, a contradiction. So |r₂ − r₁| = 0, i.e. r₁ = r₂. ∎ <span class="cite">— Aluffi §2.2, p. 26</span></p>
+<p>The two halves do different jobs and it is worth naming them: (i) says the list [0]<sub>n</sub>, …, [n−1]<sub>n</sub> is <strong>exhaustive</strong>, (ii) says it is <strong>irredundant</strong>. A count needs both.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 2.7.</strong> For all positive integers n, the set ℤ/nℤ consists of exactly n elements: [0]<sub>n</sub>, [1]<sub>n</sub>, …, [n−1]<sub>n</sub>. <span class="cite">— Aluffi §2.2, Theorem 2.7, p. 26</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> Immediate from Lemma 2.6: by (i) every class equals one on the list, and by (ii) the entries of the list are pairwise different. ∎
+<p><strong>But do not over-read the list.</strong> Aluffi labours the point and so will we: {[0]₅, [1]₅, [2]₅, [3]₅, [4]₅} is only one of infinitely many correct listings of ℤ/5ℤ. So is</p>
+<p style="text-align:center">[160]₅, [−324]₅, [17]₅, [48]₅, [−4329349871]₅.</p>
+<p>Despite appearances that is <em>the same list</em>, item for item. The conventional choice of representatives is memorable; that is its entire advantage. At the extreme, ℤ/1ℤ has exactly one element, and there is no way whatsoever to tell [0]₁ from [1]₁. <span class="cite">— Aluffi §2.2, p. 26</span></p>
+</div>
+
+<p><strong>Remark 2.8 (the n = 0 case, as predicted).</strong> Congruence mod 0 is equality, so [a]₀ = {a} and ℤ/0ℤ is a copy of ℤ. So ℤ itself may be viewed as one of the quotients — the case n = 0 — and Theorem 2.7's restriction to positive n is exactly what keeps that case from contradicting it. <span class="cite">— Aluffi §2.2, Remark 2.8, p. 26</span></p>
+
+<div class="worked fade">
+<strong>Faded example — a map between two quotients.</strong> Consider the proposed rule π([a]₆) = [a]₃, from ℤ/6ℤ to ℤ/3ℤ.
+<p>To check it is well defined, take two names for the same input: [a]₆ = [b]₆, which by (2.1) means 6 ∣ (b − a). We need [a]₃ = [b]₃, i.e. ⟨your step: what divisibility statement?⟩.</p>
+<p>And indeed 6 ∣ (b − a) forces it, because 3 ∣ 6 and divisibility is ⟨your step: which property of ∣ ?⟩. So the rule is well defined.</p>
+<p>Now break it. Consider instead the rule ρ([a]₃) = [a]₆, going the other way. Take a = 0 and b = 3: these have the same class mod 3, since 3 ∣ 3. But [0]₆ and [3]₆ are ⟨your step: equal or different?⟩, because 6 ∤ 3. So ρ sends one input to two different outputs, and is not a function at all.</p>
+<p>Read the asymmetry: the rule survives when the target modulus <em>divides</em> the source modulus. Problem 5 asks you to prove that this is exactly the condition, in both directions.</p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Decide, with proof, whether each rule is well defined. (a) f([a]<sub>n</sub>) = [a²]<sub>n</sub>, from ℤ/nℤ to ℤ/nℤ. (b) g([a]₄) = [3a]₄. (c) h([a]<sub>n</sub>) = a, from ℤ/nℤ to ℤ. In each case the whole question is: if [a]<sub>n</sub> = [b]<sub>n</sub>, does the recipe give the same answer for b as for a? Do (c) first — it is the one that fails, and the reason it fails is the reason ℤ/nℤ is not a subset of ℤ.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> In the proof of Lemma 2.6(ii), which hypothesis is doing the work?</p>
+<button onclick="check(this,false)">That n is prime</button>
+<button data-ok onclick="check(this,true)">That both representatives lie in the window 0 ≤ r &lt; n</button>
+<button onclick="check(this,false)">That the classes are disjoint</button>
+<div class="explain">n ∣ (r₂ − r₁) on its own says nothing — it holds for r₁ = 0, r₂ = n. What kills the nonzero case is the bound |r₂ − r₁| &lt; n coming from both representatives sitting in [0, n), colliding with Lemma 1.2's "a nonzero multiple of n has absolute value at least n". Primality is irrelevant here, and disjointness is what (2.1) already encodes. <span class="cite">— Aluffi §2.2, p. 26</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Which list is <em>not</em> a complete, irredundant listing of ℤ/4ℤ?</p>
+<button onclick="check(this,false)">[0]₄, [1]₄, [2]₄, [3]₄</button>
+<button onclick="check(this,false)">[8]₄, [−3]₄, [6]₄, [11]₄</button>
+<button data-ok onclick="check(this,true)">[0]₄, [1]₄, [2]₄, [3]₄, [4]₄</button>
+<div class="explain">The third repeats itself: [4]₄ = [0]₄ by (2.1), since 4 ∣ 4. It is exhaustive but not irredundant, so it is a list of five names for four elements. The second is fine — reduce each representative mod 4 and you get 0, 1, 2, 3 in some order. This is Lemma 2.6's two halves used as a checklist. <span class="cite">— Aluffi §2.2, Theorem 2.7, p. 26</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> What must you check before defining an operation on ℤ/nℤ by a formula on representatives?</p>
+<button onclick="check(this,false)">That the formula is commutative</button>
+<button data-ok onclick="check(this,true)">That changing the representative does not change the answer</button>
+<button onclick="check(this,false)">That the formula sends 0 to 0</button>
+<div class="explain">A class has infinitely many names, and a formula written in terms of a name defines a function on classes only if every name gives the same value. That is the entire content of "well defined", and it is what §2.3 has to verify before ℤ/nℤ can be given + and · at all — which is aa-04's first order of business. Commutativity and the behaviour at 0 are questions you can only ask <em>after</em> the operation exists. <span class="cite">— Aluffi §2.1, p. 23</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the chain from "relation" to "exactly n elements":
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>An equivalence relation partitions its set.</strong> Reflexive, symmetric, transitive ⟹ the classes [a] = {b : a ∼ b} are disjoint and cover A, and A/∼ is the set <em>whose elements are those classes</em>. The projection π(a) = [a] is surjective with π(a) = π(b) ⟺ a ∼ b, and that property pins A/∼ down up to bijection.</li>
+<li><strong>Congruence mod n is such a relation</strong> (Definition 2.1: n ∣ b − a), for every n ≥ 0 — including n = 0, where it is equality. Its classes are [a]<sub>n</sub> = a + nℤ, and [a]<sub>n</sub> = [b]<sub>n</sub> ⟺ a ≡ b mod n, which is free from the general theory.</li>
+<li><strong>ℤ/nℤ has exactly n elements for n &gt; 0</strong> (Theorem 2.7), because division with remainder makes the list [0]<sub>n</sub>, …, [n−1]<sub>n</sub> exhaustive (Lemma 2.6(i)) and the window 0 ≤ r &lt; n makes it irredundant (Lemma 2.6(ii)). The list is one choice of representatives among infinitely many.</li>
+</ol>
+The load-bearing habit, not the theorem: a class has many names, so any rule written on names must be checked for independence of the name. That check is called <em>well-definedness</em>, and you will run it on every quotient for the rest of the degree.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §2.1 "Equivalence Relations and Quotients" (reflexive/symmetric/transitive, classes, partition, the projection π and the induced function), pp. 22–23; §2.2 "Congruence mod n" (Definition 2.1, Remark 2.2 and the transitivity computation p. 23; congruence classes, the identity (2.1), Example 2.3 and Example 2.4 p. 24; Definition 2.5 and Lemma 2.6 p. 25, its proof concluding overleaf; Theorem 2.7 and Remark 2.8 p. 26), pp. 23–26. Theorem 1.3 (division with remainder) and Lemma 1.2 are carried over from aa-01 (Aluffi §1.1–1.2, pp. 4–7). The transitivity witness in Self-check 1 and the ℤ/6ℤ → ℤ/3ℤ map in the faded example are Problems 3 and 5 of this unit's set, built from these same sections.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// The gluing: a stretch of the number line above, n classes on a circle below,
+// each integer joined to the class it falls into. Highlight one class at a time.
+var wc=document.getElementById('wrap'),wx=wc.getContext('2d');
+var NN=3,hi=-1,LO=-9,HI=9;
+var PAL=['#8ab4f8','#4caf82','#d8a657','#e06c75','#b48ead','#88c0d0','#d08770','#a3be8c','#5e81ac','#bf616a','#ebcb8b','#81a1c1'];
+function cls(a){var r=a%NN;return r<0?r+NN:r;}
+function setN(n){NN=n;hi=-1;drawWrap();}
+function highlightNext(){hi=(hi+1)%NN;drawWrap();}
+function drawWrap(){wx.clearRect(0,0,wc.width,wc.height);
+ var pad=24,W=wc.width-2*pad,ly=42,cxm=wc.width/2,cym=178,R=58;
+ wx.strokeStyle='#2a333d';wx.beginPath();wx.moveTo(pad,ly);wx.lineTo(wc.width-pad,ly);wx.stroke();
+ var pts=[];
+ for(var k=0;k<NN;k++){var th=-Math.PI/2+2*Math.PI*k/NN;
+  pts.push([cxm+R*Math.cos(th),cym+R*Math.sin(th)]);}
+ for(var a=LO;a<=HI;a++){var x=pad+W*(a-LO)/(HI-LO),c=cls(a),on=(hi<0||hi===c);
+  var p=pts[c];
+  wx.globalAlpha=on?0.5:0.08;wx.strokeStyle=PAL[c%PAL.length];wx.lineWidth=1;
+  wx.beginPath();wx.moveTo(x,ly+6);wx.bezierCurveTo(x,ly+55,p[0],p[1]-55,p[0],p[1]-9);wx.stroke();
+  wx.globalAlpha=on?1:0.25;wx.fillStyle=PAL[c%PAL.length];
+  wx.beginPath();wx.arc(x,ly,3.5,0,7);wx.fill();
+  wx.font='10px Segoe UI';wx.fillText(''+a,x-(a<0?7:3),ly-9);}
+ wx.globalAlpha=1;
+ for(var k=0;k<NN;k++){var p=pts[k],on=(hi<0||hi===k);
+  wx.globalAlpha=on?1:0.3;wx.fillStyle=PAL[k%PAL.length];
+  wx.beginPath();wx.arc(p[0],p[1],11,0,7);wx.fill();
+  wx.fillStyle='#0c1013';wx.font='11px Segoe UI';wx.fillText(''+k,p[0]-3,p[1]+4);}
+ wx.globalAlpha=1;wx.fillStyle='#e8e8e8';wx.font='13px Segoe UI';
+ wx.fillText('Z  ->  Z/'+NN+'Z',pad,wc.height-12);
+ wx.fillStyle='#9aa5b1';
+ wx.fillText(hi<0?'every integer joined to its class - press to isolate one'
+  :('class ['+hi+']  = { '+hi+' + '+NN+'k } - one point of Z/'+NN+'Z'),pad+110,wc.height-12);
+}
+drawWrap();
+</script></body></html>
