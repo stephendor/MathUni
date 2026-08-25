@@ -30,6 +30,9 @@ import re
 import sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if REPO not in sys.path:
+    sys.path.insert(0, REPO)
+from scripts.citations import printed_pages_in, sentence_end  # noqa: E402
 INDEX = os.path.join(REPO, "resources", "sections.json")
 
 # A citation's section label, then the text up to the next citation, the next
@@ -67,20 +70,16 @@ _DASH = r"\s*[–—-]\s*"
 # was, and the control had no way to fire. (Codex, PR #26.)
 CITE = re.compile(r"§(%s(?:%s%s)?|%s(?:%s%s)?)"
                   % (_SECTION, _DASH, _SECTION, _CHAPTER, _DASH, _CHAPTER))
-# The tail runs to the next citation, the next tag, or the end of the sentence.
-# Stopping at the sentence boundary matters: pages named in a FOLLOWING
-# sentence belong to whatever that sentence cites, and letting the tail run on
-# reports them against this label.
-_STOP = re.compile(r"[§<]|\.\s+[A-Z]")
-
-
 def tails(text):
     """(label, tail, truncated) for each §LABEL in `text`, in order."""
+    # Sentence boundaries are a shared corpus-reading contract. Import the
+    # citation gate's abbreviation-aware rule rather than re-deriving it here.
     out = []
     for m in CITE.finditer(text):
         rest = text[m.end():]
-        stop = _STOP.search(rest)
-        end = stop.start() if stop else len(rest)
+        structural = re.search(r"[§<]", rest)
+        structural_end = structural.start() if structural else len(rest)
+        end = min(structural_end, sentence_end(rest))
         truncated = end > CAP
         out.append((m.group(1), rest[:min(end, CAP)], truncated))
     return out
@@ -88,14 +87,14 @@ def tails(text):
 # whose FAR end lands in the next section pass unexamined, which is the
 # likeliest place for a footer's label to be wrong. Only the numbers actually
 # written are taken; the interior of a range is never invented.
-PAGES = re.compile(r"\bpp?\.\s*(\d+(?:\s*(?:[-–—,]|and)\s*\d+)*)")
-_NUM = re.compile(r"\d+")
-
-
 def pages_in(tail):
-    """Every printed page number written under a p./pp. marker in `tail`."""
-    return [int(n) for m in PAGES.finditer(tail)
-            for n in _NUM.findall(m.group(1))]
+    """Every written page member, using the shared citation-page grammar.
+
+    Unlike the folio gate, this gate deliberately does not expand interiors:
+    section claims are tested at the page members the author actually wrote,
+    especially the far endpoint where a boundary error becomes visible.
+    """
+    return sorted(printed_pages_in(tail, expand_ranges=False))
 
 # The section heading as the books print it. Two shapes so far: Axler letters
 # its sections ("## 3.B Null Spaces and Ranges") and Abbott numbers them

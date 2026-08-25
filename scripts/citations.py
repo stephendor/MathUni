@@ -195,7 +195,8 @@ def spans(text):
     return out
 
 
-def printed_pages_in(span):
+def printed_pages_in(span, expand_ranges=True):
+    """Printed pages named in text; optionally retain only written members."""
     pages = set()
     for m in PAGES.finditer(span):
         rest = re.sub(r"[*_]", "", m.group(1))
@@ -208,7 +209,9 @@ def printed_pages_in(span):
             n = int(tok.group(0))
             joiner = rest[pos:tok.start()]
             if prev is not None and re.fullmatch(r"\s*[-–—]\s*", joiner):
-                if n >= prev and n - prev <= 60:   # else malformed or absurd
+                if not expand_ranges:
+                    pages.add(n)
+                elif n >= prev and n - prev <= 60:  # else malformed or absurd
                     pages.update(range(prev, n + 1))
             else:
                 pages.add(n)
@@ -327,6 +330,20 @@ _ABBREV = {"p", "pp", "ch", "chap", "ed", "eds", "vol", "no", "nos", "cf",
 _SENTENCE = re.compile(r"(?<=[a-z0-9)\]’\"])\.\s+(?=[A-Z§])")
 
 
+def sentence_breaks(text):
+    """Real sentence boundaries, excluding citation/book abbreviations."""
+    for match in _SENTENCE.finditer(text):
+        word = re.search(r"([A-Za-z.]+)$", text[:match.start()])
+        if word and word.group(1).rstrip(".").lower() in _ABBREV:
+            continue
+        yield match
+
+
+def sentence_end(text):
+    """Offset of the first real sentence boundary, or ``len(text)``."""
+    return next((match.start() for match in sentence_breaks(text)), len(text))
+
+
 def _split_assertions(span):
     """A span's assertions: semicolon-separated, and sentence-separated.
 
@@ -343,10 +360,7 @@ def _split_assertions(span):
     known abbreviation.
     """
     out, start = [], 0
-    for m in _SENTENCE.finditer(span):
-        word = re.search(r"([A-Za-z.]+)$", span[:m.start()])
-        if word and word.group(1).rstrip(".").lower() in _ABBREV:
-            continue
+    for m in sentence_breaks(span):
         out.append(span[start:m.start()])
         start = m.end()
     out.append(span[start:])

@@ -104,6 +104,12 @@ def test_a_following_sentence_is_not_charged_to_this_label():
     assert check_text(text, ROWS) == []
 
 
+def test_sentence_boundary_contract_ignores_book_abbreviations():
+    """`ed.` is not an excuse to drop the later page from the denominator."""
+    text = "Axler §1.B, Cummings 2nd ed. Theorem 2.3, p. 20."
+    assert check_text(text, ROWS) == [("1.B", 20, "1.C")]
+
+
 def test_a_bare_chapter_number_is_not_judged():
     """"§4" claims a chapter, not a section, so there is nothing to compare."""
     assert check_text("Axler §4, p. 30", ROWS) == []
@@ -112,6 +118,7 @@ def test_a_bare_chapter_number_is_not_judged():
 def test_a_number_without_a_page_marker_is_not_a_page():
     assert pages_in("Theorem 2.23, and 40 more like it") == []
     assert pages_in("p. 35") == [35]
+    assert pages_in("printed **35–37**") == [35, 37]
 
 
 # --- absence must not look like cleanliness --------------------------------
