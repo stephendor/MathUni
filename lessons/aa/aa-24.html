@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-24 — Group actions</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Group actions <span class="cite">(aa-24)</span></h1>
+
+<div class="hook">
+Groups do not sit still. A group is most useful when it is <em>doing</em> something to a set — permuting vertices, shuffling configurations, moving points of a space — and the doing is where the theorems hide.
+<p>The definition turns out to be something you already have. aa-21 established the principle: an action of a ring R on an abelian group M is a ring homomorphism R → End(M). Replace "ring" by "group" and "End" by the group of <em>bijections</em>, and an action of G on a set A is a group homomorphism G → S<sub>A</sub>. From that one identification come orbits, the partition they induce, the counting arguments of aa-28, and a theorem — Cayley's — saying every group whatsoever is a group of permutations.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> aa-21 defined a ring acting on a module as a ring homomorphism into End(M). What should an action of a group G on a set A be?</p>
+<button data-ok onclick="check(this,true)">A group homomorphism G → S<sub>A</sub>, the group of bijections of A</button>
+<button onclick="check(this,false)">Any function G × A → A</button>
+<button onclick="check(this,false)">A bijection between G and A</button>
+<div class="explain">Aluffi's Remark 10.7 laid down the template: acting on an object means mapping into that object's automorphism group. For a bare set the automorphisms are all the bijections, so the automorphism group is S<sub>A</sub> and an action is a homomorphism G → S<sub>A</sub>. Definition 11.19 spells this out as a function ρ : G × A → A with two properties, and Proposition 11.20 proves the two descriptions are the same thing. An arbitrary function would not compose correctly, and G and A need not even have the same size. <span class="cite">— Aluffi Underground §11.2, p. 236</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Covering space theory (Semester 3) is a group acting on a space; deck groups are actions.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>Symmetric groups, and what an action is</h2>
+
+<div class="definition">
+<strong>Definition 11.17.</strong> The <strong>symmetric</strong> (or <strong>permutation</strong>) group on a set A, written S<sub>A</sub>, is the group of bijections A → A. <span class="cite">— Aluffi Underground §11.2, Definition 11.17, p. 235</span>
+</div>
+
+<p>For a finite set a bijection is a scrambling — a <em>permutation</em>. With A = {1, 2, 3} there are 3! = 6 of them, and Aluffi lists all six; for A = {1, …, n} the group has n! elements and is written S<sub>n</sub>. <span class="cite">— Aluffi Underground §11.2, Example 11.18, p. 236</span></p>
+
+<p>Why "symmetric"? A symmetry is a transformation preserving some salient feature — flipping an equilateral triangle about an axis, say. A set has no features to preserve, every element being like every other, so <em>every</em> bijection counts as a symmetry of it. Hence the name. These groups are a rich supply of examples, and far more representative of what groups look like than abelian ones. <span class="cite">— Aluffi Underground §11.2, p. 236</span></p>
+
+<div class="definition">
+<strong>Definition 11.19 (action).</strong> An <strong>action</strong> of a group G on a set A is a function ρ : G × A → A with, for all a ∈ A,
+<p style="text-align:center">ρ(e<sub>G</sub>, a) = a &nbsp;&nbsp;and&nbsp;&nbsp; ρ(gh, a) = ρ(g, ρ(h, a)).</p>
+Writing ga for ρ(g, a), these read <strong>e<sub>G</sub>a = a</strong> and <strong>(gh)a = g(ha)</strong>. <span class="cite">— Aluffi Underground §11.2, Definition 11.19, p. 237</span>
+</div>
+
+<div class="theorem">
+<strong>Proposition 11.20.</strong> Actions of G on A correspond exactly to group homomorphisms σ : G → S<sub>A</sub>, via σ(g)(a) = ρ(g, a). <span class="cite">— Aluffi Underground §11.2, Proposition 11.20, p. 237</span>
+</div>
+
+<div class="worked">
+<strong>Proof of one direction.</strong> Given ρ, the formula defines a function σ(g) : A → A for each g. Then σ(e<sub>G</sub>)(a) = ρ(e<sub>G</sub>, a) = a, so σ(e<sub>G</sub>) = id<sub>A</sub>. And
+<p style="text-align:center">σ(gh)(a) = ρ(gh, a) = ρ(g, ρ(h, a)) = σ(g)(σ(h)(a)) = (σ(g) ∘ σ(h))(a),</p>
+<p>so σ(gh) = σ(g) ∘ σ(h). In particular σ(g) ∘ σ(g<sup>−1</sup>) = σ(e<sub>G</sub>) = id<sub>A</sub>, which shows each σ(g) really is a <em>bijection</em> — so σ lands in S<sub>A</sub> and preserves the operation. ∎ The converse is your guided proof. <span class="cite">— Aluffi Underground §11.2, p. 237</span></p>
+<p><strong>Read the last step.</strong> Nothing in Definition 11.19 said the maps a ↦ ga were invertible; that came out of the two axioms, using the inverse in G. This is the same phenomenon as aa-23's guided proof, where φ(g<sup>−1</sup>) = φ(g)<sup>−1</sup> also came free — group inverses keep doing work that has to be assumed elsewhere.</p>
+</div>
+
+<p><strong>Carter says the same thing, and starts there.</strong> His <strong>Definition 9.1</strong> is simply: G <em>acts on</em> a set S if there is a homomorphism φ : G → Perm(S), where Perm(S) is the group of permutations of S. His gloss on why it must be a homomorphism rather than a mere function: the interpretation of ab should be the action of a followed by the action of b, and φ(ab) = φ(a)φ(b) is exactly that demand. <span class="cite">— Carter §9.1, Definition 9.1, p. 195</span></p>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> Definition 11.19 does not require the map a ↦ ga to be a bijection. Why is it one anyway?</p>
+<button onclick="check(this,false)">Because A is finite</button>
+<button data-ok onclick="check(this,true)">Because σ(g) ∘ σ(g<sup>−1</sup>) = σ(e) = id, so g<sup>−1</sup> supplies the inverse map</button>
+<button onclick="check(this,false)">It need not be — the definition allows non-bijections</button>
+<div class="explain">The two axioms give σ(g)σ(g<sup>−1</sup>) = σ(gg<sup>−1</sup>) = σ(e) = id<sub>A</sub> and likewise the other way, so a ↦ ga has a two-sided inverse, namely a ↦ g<sup>−1</sup>a. Finiteness is irrelevant — the argument works for any A. And the conclusion is not optional: it is what makes σ land in S<sub>A</sub> at all, which is the content of Proposition 11.20. <span class="cite">— Aluffi Underground §11.2, Proposition 11.20, p. 237</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now watch an action act.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Orbits, transitivity, faithfulness</h2>
+
+<div class="worked fade">
+<strong>Faded example — Example 11.21: C₃ on the vertices of a triangle.</strong> Take A = {1, 2, 3} as the vertices of an equilateral triangle, and let C₃ = {e, g, g²} act by rotating clockwise, g being a 120° rotation.
+<p>Then e leaves the triangle alone, g turns it 120°, and g² turns it ⟨your step: how far?⟩. On vertices this is the homomorphism C₃ → S₃ given by</p>
+<p style="text-align:center">e ↦ (1↦1, 2↦2, 3↦3), &nbsp; g ↦ (1↦2, 2↦3, 3↦1), &nbsp; g² ↦ (1↦3, 2↦⟨your step⟩, 3↦2).</p>
+<p>And the flip f about the axis through the centre and vertex 1 gives an action of C₂ = {e, f} with f ↦ (1↦1, 2↦3, 3↦2) — vertex 1 is ⟨your step: moved or fixed?⟩. <span class="cite">— Aluffi Underground §11.2, Example 11.21, p. 238</span></p>
+<p>Two groups, one set, two very different actions. The rotation moves every vertex; the flip pins one down.</p>
+</div>
+
+<div class="definition">
+<strong>Definition 11.22 (orbit).</strong> For G acting on A, the <strong>orbit</strong> of a ∈ A is { ga : g ∈ G } — the elements a can be sent to. The orbit is <strong>trivial</strong> if it is {a}, i.e. if a is a <strong>fixed point</strong>. <span class="cite">— Aluffi Underground §11.2, Definition 11.22, p. 238</span>
+</div>
+
+<p><strong>The orbits partition A.</strong> Aluffi records this in one sentence and flags where it goes: it "will lead to powerful counting principles down the road, such as the class equation" of aa-28. For the C₂-flip above the orbits are {1} and {2, 3}. <span class="cite">— Aluffi Underground §11.2, Example 11.23, p. 239</span></p>
+
+<div class="definition">
+<strong>Definition 11.24.</strong> The action is <strong>transitive</strong> if A is a single orbit — for all a, b there is g with b = ga. <span class="cite">— Aluffi Underground §11.2, Definition 11.24, p. 239</span>
+<p><strong>Definition 11.26.</strong> The action is <strong>faithful</strong> if σ : G → S<sub>A</sub> is injective — equivalently, if every g ≠ e moves <em>some</em> element. It is <strong>free</strong> if every g ≠ e moves <em>every</em> element. <span class="cite">— Aluffi Underground §11.2, Definition 11.26, p. 239</span></p>
+</div>
+
+<p>The C₃-rotation is transitive: any vertex reaches any other by turning the triangle. The C₂-flip is not — vertex 1 goes nowhere. And nothing in Definition 11.19 forces a non-identity element to move anything at all: the <em>trivial</em> action ga = a is legal for any G and A, and teaches nothing. Faithfulness is the condition ruling that out. <span class="cite">— Aluffi Underground §11.2, Example 11.25 and the remark following, p. 239</span></p>
+
+<div class="worked">
+<strong>Carter's picture of the same distinction.</strong> Carter draws an action as an <strong>action diagram</strong>: like a Cayley diagram, but of the set being acted on rather than of the group. For the rectangle puzzle, V₄ = ⟨h, v⟩ acts on the four configurations by φ(h) = "swap with the horizontal flip", φ(v) = "swap with the vertical flip" — and that action diagram <em>is</em> a Cayley diagram. <span class="cite">— Carter §9.1, p. 195</span>
+<p>Then he deliberately breaks it: define θ instead by θ(h) = the horizontal-flip permutation and <strong>θ(v) = the identity permutation</strong>. This is still a perfectly good action, but its diagram is <em>not</em> a Cayley diagram — there are too few arrows, and the non-identity element v is drawn as though it were e. Carter's point is that action diagrams are a strictly larger class than Cayley diagrams. <span class="cite">— Carter §9.1, p. 196</span></p>
+<p>In Aluffi's vocabulary, θ is exactly an action that is <em>not faithful</em>: v ≠ e lies in the kernel of θ. The two books are describing one phenomenon — Carter as a missing arrow in a picture, Aluffi as a non-injective σ.</p>
+</div>
+
+<p>Below: a group acting on the vertices of a triangle. Step through the group elements and watch the permutation; the orbit colouring shows the partition, and the caption reports whether the action is transitive, faithful, or free.</p>
+
+<canvas id="act" width="620" height="330" aria-label="A group acting on the vertices of a triangle, with orbits coloured"></canvas>
+<div class="controls">
+<button onclick="setAct(0)">C₃ rotating</button>
+<button onclick="setAct(1)">C₂ flipping about vertex 1</button>
+<button onclick="setAct(2)">S₃, all six</button>
+<button onclick="setAct(3)">the trivial action</button>
+<button onclick="stepAct()">next element ▸</button>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> What is the difference between a <em>faithful</em> and a <em>free</em> action?</p>
+<button onclick="check(this,false)">None — the words are synonyms</button>
+<button data-ok onclick="check(this,true)">Faithful: every g ≠ e moves at least one element. Free: every g ≠ e moves every element</button>
+<button onclick="check(this,false)">Faithful means transitive; free means it has a fixed point</button>
+<div class="explain">Free is strictly stronger, and implies faithful. The C₂-flip on {1, 2, 3} is faithful — f moves 2 and 3 — but not free, since it fixes vertex 1. Transitivity is a separate axis entirely: it is about whether the <em>set</em> is one orbit, not about which group elements do anything. The C₃-rotation happens to be transitive, faithful and free at once. <span class="cite">— Aluffi Underground §11.2, Definition 11.26, p. 239</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> What structure do the orbits of an action put on A?</p>
+<button data-ok onclick="check(this,true)">A partition — every element lies in exactly one orbit</button>
+<button onclick="check(this,false)">A group structure</button>
+<button onclick="check(this,false)">A total order</button>
+<div class="explain">"Lies in the same orbit as" is reflexive (via e), symmetric (via g<sup>−1</sup>) and transitive (via gh), so it is an equivalence relation and its classes partition A — aa-03's machinery, reused. That partition is what makes orbit-counting arguments possible, and Aluffi points forward to the class equation of aa-28 as the payoff. <span class="cite">— Aluffi Underground §11.2, p. 239</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. One action every group already has.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>Cayley's theorem, and conjugation</h2>
+
+<p><strong>Every group acts on itself.</strong> Take A = G and ρ(g, h) = gh. The two axioms of Definition 11.19 are immediate: eg = g because e is the identity, and (gh)k = g(hk) because the operation is associative. This is <em>left-multiplication</em>. <span class="cite">— Aluffi Underground §11.2, p. 240</span></p>
+
+<div class="theorem">
+<strong>Lemma 11.28.</strong> The left-multiplication action of G on itself is <em>free</em>, hence faithful. <span class="cite">— Aluffi Underground §11.2, Lemma 11.28, p. 240</span>
+<p><strong>Theorem 11.29 (Cayley's theorem).</strong> Every group G is isomorphic to a subgroup of a symmetric group S<sub>A</sub> — and one may take A = G. <span class="cite">— Aluffi Underground §11.2, Theorem 11.29, p. 240</span></p>
+</div>
+
+<div class="worked">
+<strong>Both proofs, in full.</strong> Lemma 11.28: if g ≠ e then gh ≠ h for every h — which is aa-23's cancellation, one line. ∎
+<p>Theorem 11.29: the action is faithful, so σ : G → S<sub>G</sub> is <em>injective</em>; an injective homomorphism identifies G with its image, which is a subgroup of S<sub>G</sub> by aa-23's Example 11.9. ∎ <span class="cite">— Aluffi Underground §11.2, p. 240</span></p>
+<p><strong>That is the whole thing.</strong> A theorem with a name, proved from cancellation and a definition — because the right definition was chosen first. Carter states the same result: every group can be embedded into some S<sub>n</sub>, and he uses it to justify hunting for a set that any given group permutes. <span class="cite">— Carter §9.1, p. 195</span></p>
+</div>
+
+<div class="worked">
+<strong>Example 11.30 — Cayley's theorem is the triangle picture, relabelled.</strong> Take Example 11.21's action of C₃ on the vertices, and rename them: 1 ↔ e, 2 ↔ g, 3 ↔ g². The same three pictures now read
+<p style="text-align:center">g ↦ (e ↦ g, g ↦ g², g² ↦ e),</p>
+<p>which is exactly left-multiplication by g. So the rotation action <em>was</em> the Cayley embedding all along, and it identifies C₃ with a subgroup of S<sub>{e, g, g²}</sub>. <span class="cite">— Aluffi Underground §11.2, Example 11.30, p. 240</span></p>
+</div>
+
+<p><strong>And the honest limitation.</strong> Cayley's theorem is conceptually important — complete knowledge of symmetric groups would be complete knowledge of all groups — but useless as a strategy. S₇₀ has 70! &gt; 10¹⁰⁰ elements, "substantially more than the estimated number of elementary particles in the universe". Any classification must do something other than search inside symmetric groups. <span class="cite">— Aluffi Underground §11.3, p. 241</span></p>
+
+<div class="worked">
+<strong>A second action every group has: conjugation.</strong> Let G act on itself by g·a := gag<sup>−1</sup>. The orbits of this action have a name.
+<p><strong>Definition 11.31.</strong> The <strong>conjugacy class</strong> of a ∈ G is its orbit under conjugation — the set of all conjugates gag<sup>−1</sup>. <span class="cite">— Aluffi Underground §11.3, Definition 11.31, p. 241</span></p>
+<p>Since orbits partition, <em>the conjugacy classes partition G</em> — and counting that partition is the class equation of aa-28. Note that in an abelian group gag<sup>−1</sup> = a always, so every class is a single element: conjugation is interesting only because groups are not commutative.</p>
+<p>The example to conjugate in is the dihedral group. <strong>Definition 11.32</strong> writes D<sub>2n</sub> for the symmetries of a regular n-gon, so the square's group is D₈ with eight elements. (aa-23's warning stands: Carter and many others write D₄ for this group. This module follows Aluffi Underground.) <span class="cite">— Aluffi Underground §11.3, Definition 11.32, p. 242</span></p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Proposition 11.20 has two halves and Aluffi proves one, leaving the converse as Exercise 11.14. Supply it. <strong>Let σ : G → S<sub>A</sub> be a group homomorphism and define ρ(g, a) := σ(g)(a). Prove that ρ satisfies both conditions of Definition 11.19</strong>, saying at each step which property of σ you use. Then answer: where would the argument fail if σ were merely a function, not a homomorphism?</p>
+<textarea placeholder="First condition: rho(e, a) = sigma(e)(a). Since sigma is a group homomorphism, sigma(e) = ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><em>First condition.</em> ρ(e<sub>G</sub>, a) = σ(e<sub>G</sub>)(a). By aa-23's Exercise 11.2 a group homomorphism sends the identity to the identity, so σ(e<sub>G</sub>) = id<sub>A</sub>, and ρ(e<sub>G</sub>, a) = a.</p>
+<p><em>Second condition.</em> For g, h ∈ G and a ∈ A,</p>
+<p style="text-align:center">ρ(gh, a) = σ(gh)(a) = (σ(g) ∘ σ(h))(a) = σ(g)(σ(h)(a)) = ρ(g, ρ(h, a)),</p>
+<p>where the second equality is exactly the statement that σ preserves the operation — the group operation in S<sub>A</sub> being composition.</p>
+<p>So ρ is an action, and taken with Aluffi's half the two notions correspond. ∎</p>
+<p><em>Where a mere function fails.</em> Both conditions. If σ is only a function, σ(e) need not be id<sub>A</sub>, so the first axiom can fail; and σ(gh) need not be σ(g) ∘ σ(h), so the second fails — meaning "do h, then do g" would not agree with "do gh". Carter puts the same point in words: the requirement that φ be a homomorphism is what makes the interpretation of a product be the two actions in succession.</p>
+<p>Grade yourself on naming composition as the operation in S<sub>A</sub>. If your second step read σ(gh) = σ(g)σ(h) without saying that the product on the right is composition of bijections, the computation is not yet connected to Definition 11.19.</p>
+</details>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> (a) Write out the action of D₈ on the four vertices of a square as a homomorphism D₈ → S₄, listing where each of the eight elements sends 1, 2, 3, 4. Is it faithful? Is it free? Is it transitive? (b) The same group also acts on the two <em>diagonals</em> of the square. Write that action as a homomorphism D₈ → S₂ and find its kernel — you should find four elements, so this action is <em>not</em> faithful. (c) Compare with Carter's θ: both are legitimate actions of the same group on different sets, and only one of them sees the whole group. (d) Finally, compute the conjugacy classes of S₃ using Definition 11.31, and check that they partition the six elements.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> Cayley's theorem embeds every group in a symmetric group. Why does that not classify all groups?</p>
+<button onclick="check(this,false)">Because the embedding is not injective</button>
+<button data-ok onclick="check(this,true)">Because symmetric groups are far too large to search — 70! exceeds 10¹⁰⁰</button>
+<button onclick="check(this,false)">Because it only works for finite groups</button>
+<div class="explain">The embedding is injective — that is exactly what Lemma 11.28 provides. And the theorem holds for any group, with A = G. The obstruction is size: knowing that every group of order 70 sits inside S₇₀ is true and useless, since S₇₀ has more than 10¹⁰⁰ elements. Aluffi's conclusion is that classification must go beyond brute-force analysis of subgroups of symmetric groups. <span class="cite">— Aluffi Underground §11.3, p. 241</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In an abelian group, what are the conjugacy classes?</p>
+<button data-ok onclick="check(this,true)">Singletons — gag<sup>−1</sup> = a for every g</button>
+<button onclick="check(this,false)">A single class containing everything</button>
+<button onclick="check(this,false)">The cosets of the subgroup generated by a</button>
+<div class="explain">If the group is commutative then gag<sup>−1</sup> = agg<sup>−1</sup> = a, so each element's conjugacy class is just itself. Conjugation carries information precisely to the extent that the group fails to be abelian — which is why aa-28's class equation is a genuinely non-abelian counting tool and has no content for the groups of aa-22. <span class="cite">— Aluffi Underground §11.3, Definition 11.31, p. 241</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>An action is a homomorphism into the symmetric group.</strong> Definition 11.19 lists two axioms — ea = a and (gh)a = g(ha) — and Proposition 11.20 shows these are exactly a group homomorphism σ : G → S<sub>A</sub>. Bijectivity of a ↦ ga is not assumed; it follows, using g<sup>−1</sup>. Carter's Definition 9.1 takes the homomorphism as the definition outright.</li>
+<li><strong>Orbits partition the set.</strong> The orbit of a is {ga}; the action is <em>transitive</em> if there is one orbit, <em>faithful</em> if every non-identity element moves something, <em>free</em> if every non-identity element moves everything. Carter's non-faithful θ, which sends v to the identity permutation, is the same phenomenon as a non-injective σ — a missing arrow in the action diagram.</li>
+<li><strong>Every group acts on itself.</strong> By left multiplication the action is free (Lemma 11.28, one line of cancellation), so σ : G → S<sub>G</sub> is injective and <strong>Cayley's theorem</strong> follows: every group is a subgroup of a symmetric group. Conceptually decisive, practically useless — 70! &gt; 10¹⁰⁰. By <em>conjugation</em>, g·a = gag<sup>−1</sup>, the orbits are the conjugacy classes (Definition 11.31), which partition G and are all singletons exactly when G is abelian.</li>
+</ol>
+The mission strip is aa-24 read forwards: a deck transformation group acts on a covering space, freely and often transitively on each fibre, and everything in the third semester's covering-space theory is orbits, transitivity and faithfulness applied to a topological space instead of a triangle.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi Underground, <em>Algebra: Notes from the Underground</em> — §11.2 "Why Groups? Actions of a Group" (Definition 11.17 p. 235; Example 11.18 and the discussion of the word "symmetric" p. 236; Definition 11.19 and Proposition 11.20 with proof p. 237; Example 11.21 and Definition 11.22 p. 238; Example 11.23, Definition 11.24, Example 11.25 and Definition 11.26 p. 239; the left-multiplication action, Lemma 11.28, Theorem 11.29 and Example 11.30 p. 240), pp. 235–240; Aluffi Underground §11.3 (the size of S₇₀ and Definition 11.31 p. 241; Definition 11.32 p. 242), pp. 241–242.
+Second source: Carter, <em>Visual Group Theory</em>. Carter §9.1 "Group actions" gives Definition 9.1 and the embedding of every group into a symmetric group, p. 195. Carter §9.1 also contrasts the faithful action φ of V₄ on the rectangle's configurations with the action θ that sends v to the identity permutation, whose action diagram is not a Cayley diagram, p. 196.
+In Aluffi Underground: Remark 10.7 and Proposition 10.6 come from aa-21 (§10.1, pp. 206–207), Definition 11.1, Definition 11.2, Example 11.9 and the cancellation identity from aa-23 (§11.1, pp. 229–232), and the partition machinery from aa-03 (§2.1, p. 22). The D₈ and conjugacy computations set in the you-try follow Definition 11.31 and Definition 11.32 as stated above.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// A group acting on the three vertices of a triangle. Each group element is a
+// permutation of {1,2,3}; orbits are computed from the listed permutations, and
+// transitive / faithful / free are decided from them, not asserted.
+var ac=document.getElementById('act'),ax=ac.getContext('2d');
+var ACTS=[{n:'C₃ rotating',lab:['e','g','g²'],p:[[0,1,2],[1,2,0],[2,0,1]]},
+          {n:'C₂ flipping about vertex 1',lab:['e','f'],p:[[0,1,2],[0,2,1]]},
+          {n:'S₃, all six',lab:['e','r','r²','f','rf','r²f'],
+           p:[[0,1,2],[1,2,0],[2,0,1],[0,2,1],[1,0,2],[2,1,0]]},
+          {n:'the trivial action',lab:['e','g','g²'],p:[[0,1,2],[0,1,2],[0,1,2]]}];
+var ai=0,ek=0;
+function setAct(i){ai=i;ek=0;drawAct();}
+function stepAct(){ek=(ek+1)%ACTS[ai].p.length;drawAct();}
+function drawAct(){ax.clearRect(0,0,ac.width,ac.height);
+ var A=ACTS[ai],perm=A.p[ek];
+ // orbits from the whole list of permutations
+ var orb=[0,1,2].map(function(i){return i;});
+ function find(x){while(orb[x]!==x)x=orb[x];return x;}
+ function join(x,y){var a=find(x),b=find(y);if(a!==b)orb[b]=a;}
+ for(var k=0;k<A.p.length;k++)for(var i=0;i<3;i++)join(i,A.p[k][i]);
+ var reps={},nOrb=0;
+ for(var i=0;i<3;i++){var r=find(i);if(!(r in reps)){reps[r]=nOrb++;}}
+ var COL=['#4caf82','#8ab4f8','#d8a657'];
+ var cx=ac.width/2,cy=ac.height/2+16,R=98;
+ function pt(i){var th=-Math.PI/2+2*Math.PI*i/3;return [cx+R*Math.cos(th),cy+R*Math.sin(th)];}
+ ax.strokeStyle='#2a333d';ax.lineWidth=1.5;ax.beginPath();
+ for(var i=0;i<3;i++){var p=pt(i);if(i===0)ax.moveTo(p[0],p[1]);else ax.lineTo(p[0],p[1]);}
+ ax.closePath();ax.stroke();
+ // arrows for the current permutation
+ for(var i=0;i<3;i++){var a=pt(i),b=pt(perm[i]);
+  if(i===perm[i]){ax.strokeStyle='#4d5a66';ax.lineWidth=1.5;
+   ax.beginPath();ax.arc(a[0],a[1],22,0,7);ax.stroke();continue;}
+  ax.strokeStyle='#8ab4f8';ax.lineWidth=2;
+  ax.beginPath();ax.moveTo(a[0],a[1]);
+  ax.quadraticCurveTo(cx,cy,b[0],b[1]);ax.stroke();}
+ ax.font='14px Segoe UI';ax.textAlign='center';ax.textBaseline='middle';
+ for(var i=0;i<3;i++){var p=pt(i);
+  ax.fillStyle=COL[reps[find(i)]%COL.length];
+  ax.beginPath();ax.arc(p[0],p[1],17,0,7);ax.fill();
+  ax.fillStyle='#0c1013';ax.fillText(''+(i+1),p[0],p[1]);}
+ // verdicts, computed
+ var transitive=(nOrb===1);
+ var faithful=true,free=true;
+ // a non-identity element that acts as the identity permutation breaks faithfulness;
+ // one that fixes any point breaks freeness.
+ for(var k=1;k<A.p.length;k++){
+  var isId=true,fixesSome=false;
+  for(var i=0;i<3;i++){if(A.p[k][i]!==i)isId=false;else fixesSome=true;}
+  if(isId)faithful=false;
+  if(fixesSome)free=false;}
+ ax.textAlign='left';ax.font='13px Segoe UI';ax.fillStyle='#e8e8e8';
+ ax.fillText(A.n+'  -  showing element  '+A.lab[ek],14,20);
+ ax.fillStyle='#9aa5b1';
+ ax.fillText(nOrb+' orbit'+(nOrb===1?'':'s')+' (one colour each)',14,40);
+ ax.fillStyle=transitive?'#4caf82':'#d8a657';
+ ax.fillText('transitive: '+(transitive?'yes':'no')+
+   '     faithful: '+(faithful?'yes':'no')+
+   '     free: '+(free?'yes':'no'),14,ac.height-14);}
+drawAct();
+</script></body></html>
