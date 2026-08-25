@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>aa-09 — Kernels, ideals, and quotient rings</title>
+<style>
+:root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;--good:#4caf82;--bad:#e06c75}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);max-width:46rem;margin:2rem auto;padding:0 1.2rem;line-height:1.65;font-size:1.05rem}
+h1,h2,h3{font-family:Segoe UI,system-ui,sans-serif}
+.hook{background:linear-gradient(135deg,#1a2340,#1a2027);border-left:4px solid var(--acc);padding:1.2rem;border-radius:10px;font-size:1.15rem;margin:1.4rem 0}
+.mission{color:var(--dim);font-style:italic;border-top:1px solid #2a333d;border-bottom:1px solid #2a333d;padding:.6rem 0;margin:1rem 0}
+.segment{margin:2.2rem 0}.timebox{display:inline-block;background:#26313c;color:var(--acc);border-radius:999px;padding:.15rem .8rem;font-size:.8rem;font-family:Segoe UI,sans-serif}
+.theorem,.definition{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.definition{border-left:4px solid var(--good)}.theorem{border-left:4px solid var(--acc)}
+.worked{background:#151b21;border:1px dashed #2a333d;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+.fade{opacity:.92}.you-try{border-left:4px solid #d8a657;background:#1d1c16;border-radius:10px;padding:1rem 1.2rem;margin:1.2rem 0}
+canvas{display:block;margin:1rem auto;background:#0c1013;border-radius:10px;max-width:100%}
+.selfcheck{background:var(--panel);border-radius:10px;padding:1rem 1.2rem;margin:1.6rem 0}
+.selfcheck button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.45rem .9rem;margin:.25rem;cursor:pointer;font-size:.95rem}
+.selfcheck button.correct{background:var(--good);color:#08130d}.selfcheck button.wrong{background:var(--bad);color:#1b0c0e}
+.explain{display:none;color:var(--dim);margin-top:.6rem}.selfcheck.answered .explain{display:block}
+.cite{color:var(--dim);font-size:.85rem}footer{margin:3rem 0 2rem;color:var(--dim);font-size:.9rem;border-top:1px solid #2a333d;padding-top:1rem}
+.break{background:#14231b;border-radius:10px;text-align:center;padding:.8rem;margin:2rem 0;color:var(--good)}
+.controls{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.6rem 0 1.2rem}
+.controls button{background:#26313c;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.5rem 1rem;cursor:pointer;font-size:.9rem;font-family:Segoe UI,sans-serif}
+.controls button:hover{background:#2f3d4a}
+textarea{width:100%;box-sizing:border-box;background:#0c1013;color:var(--ink);border:1px solid #2a333d;border-radius:8px;padding:.7rem;font-family:Georgia,serif;font-size:1rem;min-height:6rem}
+details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
+.blankpage{background:#161d16;border:1px solid #274027;border-radius:10px;padding:1rem 1.2rem;margin:2rem 0}
+</style></head><body>
+<p class="cite">Abstract Algebra · Nexus College</p>
+<h1>Kernels, ideals, and quotient rings <span class="cite">(aa-09)</span></h1>
+
+<div class="hook">
+Take ℝ[x], the real polynomials, and declare x² + 1 to be zero. Not "approximately zero" — build a new ring in which it genuinely is. What you get is ℂ.
+<p>That is the whole of today in one sentence. aa-03 built ℤ/nℤ by gluing along congruence mod n; now we do it for an arbitrary ring, gluing along an arbitrary <em>ideal</em>. And the ideals are not chosen for convenience: they are forced. The set of things a homomorphism sends to 0 turns out to have exactly one strange extra property — it absorbs multiplication by everything — and that property is precisely what is needed to make the quotient's multiplication well defined. Kernel modulo image is the shape of a homology group; this is where the shape is first assembled.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Predict before we start.</strong> Let f : R → S be a nontrivial ring homomorphism. Is ker f = {r : f(r) = 0} a subring of R?</p>
+<button onclick="check(this,false)">Yes — it is closed under both operations</button>
+<button data-ok onclick="check(this,true)">No — it does not contain 1<sub>R</sub></button>
+<button onclick="check(this,false)">No — it is not closed under addition</button>
+<div class="explain">It is closed under both operations and contains 0 and all its negatives. What it lacks is 1: f(1) = 1 ≠ 0 whenever S is nontrivial, so 1 ∉ ker f. Aluffi's word for it is the one from aa-05: the kernel is a <strong>rng</strong>. It is not a subring, and it is not <em>supposed</em> to be — it is a different kind of substructure, and naming that kind is the business of Segment 1. <span class="cite">— Aluffi §5.2, p. 80</span></div>
+</div>
+
+<p class="mission">Why this matters for the mission: Kernel-mod-image, made concrete for rings — the exact shape of a homology group.</p>
+
+<div class="segment">
+<span class="timebox">Segment 1 · ~25 min</span>
+<h2>What a kernel is, and why "ideal" is the right word</h2>
+
+<p>Aluffi's plan for the chapter, stated up front: given any ring homomorphism f : R → S, factor it as
+<p style="text-align:center">R → R′ → S′ → S</p>
+with the first map a surjection, the last an injection, and the middle one an <em>isomorphism</em>. Half of that is already in hand. <span class="cite">— Aluffi §5.1, p. 78</span></p>
+
+<div class="theorem">
+<strong>Proposition 5.1.</strong> If f : R → S is a ring homomorphism, then im f = f(R) is a subring of S. <span class="cite">— Aluffi §5.1, Proposition 5.1, p. 78</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> f(R) contains 1<sub>S</sub> = f(1<sub>R</sub>) by Definition 4.15 and 0<sub>S</sub> = f(0<sub>R</sub>) by Proposition 4.16. If s₁ = f(r₁) and s₂ = f(r₂), then s₁ + s₂ = f(r₁ + r₂) and s₁s₂ = f(r₁r₂) are again in f(R); and −f(r) = f(−r). Now apply aa-07's Proposition 4.14. ∎
+<p>So S′ = im f and the last arrow is the inclusion, which aa-08 already knows is an injective homomorphism. The hard half is the first arrow, and it starts by asking which elements f fails to distinguish: f(a₁) = f(a₂) ⟺ f(a₂ − a₁) = 0. <span class="cite">— Aluffi §5.2, p. 79</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 5.3 (kernel).</strong> For a ring homomorphism f : R → S, the <strong>kernel</strong> is ker f = { r ∈ R : f(r) = 0 }. <span class="cite">— Aluffi §5.2, Definition 5.3, p. 79</span>
+</div>
+
+<p>With it, the relation "f cannot tell a₁ from a₂" becomes &nbsp; a₁ ∼ a₂ ⟺ a₂ − a₁ ∈ ker f. <span class="cite">— Aluffi §5.2, p. 79</span></p>
+
+<div class="worked">
+<strong>Two kernels you already have.</strong>
+<p><strong>Example 5.4.</strong> For φ : ℤ → ℤ/nℤ, φ(a) = [a]<sub>n</sub>: &nbsp; [a]<sub>n</sub> = 0 ⟺ a ∈ nℤ, so <strong>ker φ = nℤ</strong>. <span class="cite">— Aluffi §5.2, Example 5.4, p. 79</span></p>
+<p><strong>Example 5.5.</strong> For e₀ : R[x] → R, e₀(f) = f(0): since f(0) = a₀, the kernel is the set of polynomials with <em>no constant term</em>. <span class="cite">— Aluffi §5.2, Example 5.5, p. 79</span></p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 5.6.</strong> For a ring homomorphism f, the pair (ker f, +) satisfies axioms (i)–(iv) of Definition 3.1. <span class="cite">— Aluffi §5.2, Proposition 5.6, p. 80</span>
+<p><strong>Proposition 5.7 (absorption).</strong> For all a ∈ ker f and all r ∈ R: &nbsp; ra ∈ ker f and ar ∈ ker f. <span class="cite">— Aluffi §5.2, Proposition 5.7, p. 80</span></p>
+</div>
+
+<div class="worked">
+<strong>Proofs.</strong> For 5.6: f(a + b) = f(a) + f(b) = 0 + 0 = 0 gives closure; f(0) = 0 gives 0 ∈ ker f; f(−a) = −f(a) = 0 gives negatives. Associativity and commutativity of + are universally quantified in R, so they hold in any closed subset — aa-07's argument again. ∎
+<p>For 5.7: f(ar) = f(a)f(r) = 0·f(r) = 0, by aa-05's Corollary 3.18; and f(ra) = f(r)·0 = 0 likewise. ∎ <span class="cite">— Aluffi §5.2, p. 80</span></p>
+<p><strong>Read absorption carefully — it is stronger than closure.</strong> Closure under · would say: the product of two kernel elements is in the kernel. Absorption says: the product of a kernel element with <em>anything at all in R</em> is in the kernel. The kernel does not merely fail to escape; it swallows. That asymmetry is the whole reason a kernel is not a subring, and it is exactly what Segment 3 will consume.</p>
+</div>
+
+<div class="definition">
+<strong>Definition 5.8 (ideal).</strong> A subset I of a ring R is an <strong>ideal</strong> if it is closed under + and satisfies axioms (i)–(iv) of Definition 3.1 together with the <strong>absorption property</strong>: for all a ∈ I and all r ∈ R, ar ∈ I and ra ∈ I. <span class="cite">— Aluffi §5.2, Definition 5.8, p. 80</span>
+</div>
+
+<p>Strictly these are <em>two-sided</em> ideals. Absorbing only on the left gives a left-ideal, only on the right a right-ideal; this text uses two-sided throughout, and for commutative rings the distinction is immaterial. <span class="cite">— Aluffi §5.2, pp. 80–81</span></p>
+
+<div class="theorem">
+<strong>Proposition 5.9.</strong> A <em>nonempty</em> subset I of a ring R is an ideal if and only if it is closed under addition and satisfies absorption. <span class="cite">— Aluffi §5.2, Proposition 5.9, p. 81</span>
+</div>
+
+<div class="worked">
+<strong>Proof of the substantive direction.</strong> Assume I is nonempty, closed under +, and absorbing. Axioms (i) and (iv) are universal in R, hence inherited. For (ii): I contains some element a, so by absorption it contains 0·a = 0. For (iii): given a ∈ I, absorption gives (−1)·a = −a ∈ I. ∎ <span class="cite">— Aluffi §5.2, p. 81</span>
+<p>Compare Proposition 4.14 for subrings: there you had to check the existential axioms by hand, because closure under · gave you nothing about 0 or negatives. Here absorption is strong enough to <em>produce</em> both. Two clauses replace four.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 1.</strong> What does absorption say that closure under multiplication does not?</p>
+<button onclick="check(this,false)">Nothing — they are the same condition</button>
+<button data-ok onclick="check(this,true)">That a product of an element of I with <em>any</em> element of R stays in I, not just products within I</button>
+<button onclick="check(this,false)">That I contains 1</button>
+<div class="explain">Closure asks only that I·I ⊆ I. Absorption asks that R·I ⊆ I and I·R ⊆ I — a much larger demand, and one that no subring of a nontrivial ring can meet unless it is the whole ring (if 1 ∈ I then r = r·1 ∈ I for every r). Ideals and subrings are genuinely different kinds of substructure, and only one of them is what a kernel is. <span class="cite">— Aluffi §5.2, Definition 5.8, p. 80</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Ideals exist in quantity. Let us count some.</div>
+
+<div class="segment">
+<span class="timebox">Segment 2 · ~25 min</span>
+<h2>Where ideals come from, and the principal ones</h2>
+
+<div class="worked">
+<strong>The standing examples.</strong>
+<p><strong>5.10.</strong> Propositions 5.6 and 5.7 together say: <em>every kernel is an ideal.</em> Aluffi previews the converse — every ideal is a kernel — for §5.4. <span class="cite">— Aluffi §5.2, Example 5.10, p. 81</span></p>
+<p><strong>5.11 and 5.12.</strong> R itself is an ideal of R (the kernel of the map to a trivial ring), and {0<sub>R</sub>} is an ideal of R (the kernel of id<sub>R</sub>). Every ring has at least these two. <span class="cite">— Aluffi §5.2, Examples 5.11 and 5.12, p. 81</span></p>
+<p><strong>5.13 — a non-example.</strong> ℤ is <em>not</em> an ideal of ℚ. It is closed under + and even under ·, but absorption fails: ½ ∈ ℚ and 3 ∈ ℤ, while ½·3 = 3/2 ∉ ℤ. This is the cleanest illustration that a subring need not be an ideal. <span class="cite">— Aluffi §5.2, Example 5.13, p. 81</span></p>
+<p><strong>5.14.</strong> nℤ is an ideal of ℤ — it is a kernel by Example 5.4, and directly: it is nonempty, sums of multiples of n are multiples of n, and any integer times a multiple of n is a multiple of n. <span class="cite">— Aluffi §5.2, Example 5.14, p. 81</span></p>
+<p><strong>5.15.</strong> The polynomials in ℂ[x, y] with no constant term form an ideal. <span class="cite">— Aluffi §5.2, Example 5.15, pp. 81–82</span></p>
+</div>
+
+<div class="theorem">
+<strong>Proposition 5.16.</strong> Let R be a <em>commutative</em> ring and a ∈ R. Then (a) = { ra : r ∈ R }, the set of multiples of a, is an ideal of R. <span class="cite">— Aluffi §5.2, Proposition 5.16, p. 82</span>
+<p><strong>Definition 5.17.</strong> (a) is the <strong>principal ideal</strong> generated by a. More generally, for a₁, …, a<sub>n</sub> ∈ R the set (a₁, …, a<sub>n</sub>) = { r₁a₁ + ⋯ + r<sub>n</sub>a<sub>n</sub> } is the <strong>ideal generated by</strong> a₁, …, a<sub>n</sub>. <span class="cite">— Aluffi §5.2, Definition 5.17, p. 82</span></p>
+</div>
+
+<div class="worked">
+<strong>Proof of Proposition 5.16.</strong> By Proposition 5.9 only two things need checking. Nonempty: a = 1·a ∈ (a). Closed under +: r₁a + r₂a = (r₁ + r₂)a. Absorbing: if b = ca then rb = r(ca) = (rc)a ∈ (a) by associativity, and br ∈ (a) because R is commutative. ∎
+<p>Aluffi flags that commutativity is <em>necessary</em> here, not decorative: in a noncommutative ring the left-multiples of a need not absorb on the right. <span class="cite">— Aluffi §5.2, p. 82</span></p>
+<p><strong>Remark 5.18.</strong> If a₁, …, a<sub>n</sub> lie in an ideal I, then so does every combination r₁a₁ + ⋯ + r<sub>n</sub>a<sub>n</sub>, by absorption followed by closure. So (a₁, …, a<sub>n</sub>) is the <em>smallest</em> ideal containing them. <span class="cite">— Aluffi §5.2, Remark 5.18, p. 82</span></p>
+<p>Most of Segment 2's examples are principal: R = (1), {0} = (0), and nℤ = (n). Example 5.15 is not — it is (x, y), and needs two generators.</p>
+</div>
+
+<div class="worked">
+<strong>Worked example — the ideals of ℤ are exactly the nℤ.</strong> Let I ⊆ ℤ be an ideal. If I = {0} then I = 0ℤ. Otherwise I contains a nonzero element and, being closed under negation, a positive one; let n be the <em>least</em> positive element of I, which exists by well-ordering.
+<p>Certainly nℤ ⊆ I, by absorption. Conversely take any m ∈ I and divide with remainder — aa-01's <strong>Theorem 1.3</strong> — writing m = nq + r with 0 ≤ r &lt; n. Then r = m − nq is a difference of two elements of I, so r ∈ I. But 0 ≤ r &lt; n and n was the least <em>positive</em> element, so r = 0. Hence m ∈ nℤ, and I = nℤ = (n). ∎ <span class="cite">— Aluffi §1.2, Theorem 1.3, p. 6</span></p>
+<p>Every ideal of ℤ is principal. That is a special property of ℤ, not a general fact — aa-12 gives it a name (principal ideal domain) and aa-11 exhibits rings without it. Note also the shape of the argument: <em>least positive element, then divide</em>, exactly as in aa-02's Bézout and aa-07's characteristic.</p>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 2.</strong> ℤ is a subring of ℚ. Is it an ideal of ℚ?</p>
+<button onclick="check(this,false)">Yes — subrings of commutative rings are ideals</button>
+<button data-ok onclick="check(this,true)">No — ½·3 = 3/2 escapes, so absorption fails</button>
+<button onclick="check(this,false)">No — ℤ is not closed under addition in ℚ</button>
+<div class="explain">ℤ passes every closure test and still fails absorption, which needs q·a ∈ ℤ for <em>every</em> rational q. In fact no proper subring containing 1 can be an ideal: 1 ∈ I forces r = r·1 ∈ I for all r, so I = R. Subring and ideal are near-opposite conditions — one asks you to contain 1, the other effectively forbids it. <span class="cite">— Aluffi §5.2, Example 5.13, p. 81</span></div>
+</div>
+</div>
+
+<div class="break">☕ Break — 5 minutes. Now the payoff: quotient by an ideal.</div>
+
+<div class="segment">
+<span class="timebox">Segment 3 · ~25 min</span>
+<h2>The quotient ring R/I</h2>
+
+<div class="definition">
+<strong>Definition 5.19.</strong> Let I be an ideal of R. Define a ∼<sub>I</sub> b ⟺ b − a ∈ I; we say a is <strong>congruent to b modulo the ideal I</strong>. <span class="cite">— Aluffi §5.3, Definition 5.19, p. 83</span>
+</div>
+
+<div class="theorem">
+<strong>Proposition 5.20.</strong> ∼<sub>I</sub> is an equivalence relation. <span class="cite">— Aluffi §5.3, Proposition 5.20, p. 83</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> <em>Reflexive:</em> a − a = 0 ∈ I. <em>Symmetric:</em> if b − a ∈ I then a − b = −(b − a) ∈ I. <em>Transitive:</em> if b − a ∈ I and c − b ∈ I then c − a = (c − b) + (b − a) ∈ I. ∎
+<p><strong>Aluffi's own footnote to this, and it matters:</strong> the proof used only axioms (i)–(iv) — <em>absorption was never needed</em>. So the equivalence relation, the classes, and the addition on classes all work for any additively-closed subgroup. Absorption is being held in reserve, and Lemma 5.25 is where it gets spent. <span class="cite">— Aluffi §5.3, p. 83</span></p>
+<p><strong>Example 5.21.</strong> With R = ℤ and I = nℤ, a ∼<sub>I</sub> b is exactly a ≡ b mod n. Everything in aa-03 was this construction in one instance. <span class="cite">— Aluffi §5.3, Example 5.21, p. 84</span></p>
+</div>
+
+<div class="definition">
+<strong>Definition 5.22.</strong> The class of a is written a + I and called the <strong>coset</strong> of a modulo I; the set of cosets is R/I, the <strong>quotient of R modulo I</strong>. <span class="cite">— Aluffi §5.3, Definition 5.22, p. 84</span>
+</div>
+
+<p><strong>Remark 5.23.</strong> The notation is literal: a + I = { a + r : r ∈ I } as a subset of R. In particular I = 0 + I is itself a coset, so I is an element of R/I. And the old warning returns unchanged: a + I is both a subset of R and a single element of R/I, exactly as [a]<sub>n</sub> was. In the new notation [a]<sub>n</sub> is a + nℤ. <span class="cite">— Aluffi §5.3, Remark 5.23, p. 84</span></p>
+
+<div class="definition">
+<strong>Definition 5.24.</strong> For cosets a + I and b + I,
+<p style="text-align:center">(a + I) + (b + I) := (a + b) + I, &nbsp;&nbsp; (a + I)·(b + I) := (a·b) + I.</p>
+<span class="cite">— Aluffi §5.3, Definition 5.24, p. 84</span>
+</div>
+
+<p>This is Definition 2.10 with I in place of nℤ, and it raises the same question in the same place: the recipe names representatives, so is it well defined? <span class="cite">— Aluffi §2.3, Definition 2.10, p. 27</span></p>
+
+<div class="theorem">
+<strong>Lemma 5.25.</strong> Let I be an ideal of R and a, a′, b, b′ ∈ R with a′ − a ∈ I and b′ − b ∈ I. Then (i) (a′ + b′) − (a + b) ∈ I, and (ii) a′b′ − ab ∈ I. <span class="cite">— Aluffi §5.3, Lemma 5.25, p. 85</span>
+</div>
+
+<div class="worked">
+<strong>Proof of (ii) — where absorption is spent.</strong> Write a′ − a = i and b′ − b = j with i, j ∈ I. Then
+<p style="text-align:center">a′b′ − ab = (a + i)(b + j) − ab = aj + ib + ij.</p>
+<p>Now look at the three terms. <em>aj</em> is an element of I multiplied by an arbitrary a ∈ R — in I by absorption. <em>ib</em> likewise, on the other side. <em>ij</em> is in I by absorption too (or by closure). Their sum is in I because I is closed under +. So a′b′ − ab ∈ I. ∎ <span class="cite">— Aluffi §5.3, p. 85</span></p>
+<p><strong>This is the answer to "why ideals?".</strong> Nothing weaker works: aj and ib are products of an ideal element with an element of R that is under no control whatsoever, and only absorption can place them back inside I. Mere closure under multiplication would leave both terms loose, and the product of cosets would depend on the representatives — precisely the collapse of aa-04's Example 2.11.</p>
+</div>
+
+<div class="theorem">
+<strong>Theorem 5.26.</strong> For an ideal I of a ring R, (R/I, +, ·) is a ring, with 0<sub>R/I</sub> = 0 + I = I and 1<sub>R/I</sub> = 1 + I. <span class="cite">— Aluffi §5.3, Theorem 5.26, p. 85</span>
+</div>
+
+<div class="worked">
+<strong>Proof.</strong> All the difficulty was in the definition; the axioms are routine transfers from R. For instance axiom (iii): given a + I, the coset (−a) + I satisfies (a + I) + ((−a) + I) = (a − a) + I = 0 + I. Every other axiom goes the same way, by picking representatives, using the axiom in R, and pushing back down. ∎ <span class="cite">— Aluffi §5.3, p. 85</span>
+<p><strong>Example 5.27.</strong> ℤ/nℤ is R/I with R = ℤ, I = nℤ — and now n may be any integer, since (−n)ℤ = nℤ. <span class="cite">— Aluffi §5.3, Example 5.27, pp. 85–86</span></p>
+<p><strong>Examples 5.28, 5.29.</strong> At the extremes: R/R is the trivial ring (one coset), and R/(0) ≅ R. <span class="cite">— Aluffi §5.3, Examples 5.28 and 5.29, p. 86</span></p>
+<p><strong>Example 5.31 — the quotient can be worse than the ring.</strong> ℤ is an integral domain, but ℤ/4ℤ is not. Passing to a quotient does <em>not</em> preserve being a domain. <span class="cite">— Aluffi §5.3, Example 5.31, p. 86</span></p>
+</div>
+
+<p>Below: cosets of a principal ideal drawn inside a ring. The grid is the Gaussian integers ℤ[i] from aa-07; the ideal (z) = { wz : w ∈ ℤ[i] } is one colour, and each translate a + (z) is another. The cosets tile the plane without overlapping — Proposition 5.20 made visible — and the number of colours is the size of the quotient ring ℤ[i]/(z).</p>
+
+<canvas id="cos" width="620" height="330" aria-label="The Gaussian integers coloured by coset of a principal ideal"></canvas>
+<div class="controls">
+<button onclick="setI(2,0)">I = (2)</button>
+<button onclick="setI(1,1)">I = (1 + i)</button>
+<button onclick="setI(2,1)">I = (2 + i)</button>
+<button onclick="setI(3,0)">I = (3)</button>
+</div>
+
+<div class="worked fade">
+<strong>Faded example — Example 5.32: identify ℤ[x]/(x).</strong>
+<p>Take f(x) = a₀ + a₁x + ⋯ + a<sub>n</sub>x<sup>n</sup>. Then f(x) − a₀ = (a₁ + a₂x + ⋯ + a<sub>n</sub>x<sup>n−1</sup>)·x, which lies in (x). So as cosets, f(x) + (x) = ⟨your step: which constant?⟩ + (x). Every coset therefore has an <em>integer</em> representative.</p>
+<p>Define φ : ℤ → ℤ[x]/(x) by φ(a) = a + (x). The previous paragraph says φ is ⟨your step: injective or surjective?⟩.</p>
+<p>For the other half, suppose φ(a) = φ(b). Then b − a is a multiple of x. But b − a is an integer, and the only integer that is a multiple of x is ⟨your step⟩. So a = b, and φ is injective.</p>
+<p>Finally φ is a homomorphism: φ(1) = 1 + (x) = 1<sub>ℤ[x]/(x)</sub>, and φ(a + b) = (a + b) + (x) = (a + (x)) + (b + (x)), with multiplication identical. Conclusion: <strong>ℤ[x]/(x) ≅ ℤ</strong>, and the same argument gives R[x]/(x) ≅ R for every ring R. <span class="cite">— Aluffi §5.3, Example 5.32, pp. 86–87</span></p>
+</div>
+
+<div class="worked">
+<strong>Example 5.34 — ℝ[x]/(x² + 1) ≅ ℂ.</strong> Every coset can be written uniquely as a + bx + (x² + 1), so cosets correspond to pairs (a, b). Addition is componentwise. Multiplication is where the ideal does something:
+<p style="text-align:center">(a₁ + b₁x)(a₂ + b₂x) = a₁a₂ + (a₁b₂ + a₂b₁)x + b₁b₂x²,</p>
+<p>and the leftover x² term can be reduced, because b₁b₂x² − (−b₁b₂) = b₁b₂(x² + 1) lies in the ideal — so b₁b₂x² + (x² + 1) = −b₁b₂ + (x² + 1). Hence</p>
+<p style="text-align:center">(a₁, b₁)·(a₂, b₂) = (a₁a₂ − b₁b₂, &nbsp; a₁b₂ + a₂b₁),</p>
+<p>which is exactly the multiplication rule for complex numbers. So the quotient is ℂ. <span class="cite">— Aluffi §5.3, Example 5.34, pp. 87–88</span></p>
+<p><strong>What just happened.</strong> Quotienting by (x² + 1) is <em>declaring x² + 1 = 0</em>, i.e. adjoining a square root of −1 — and the coset x + (x² + 1) is that root. Note the contrast with Example 5.31: there the quotient of a domain failed to be a domain; here the quotient of a domain is a <strong>field</strong> in the sense of Definition 3.29. Which of the two happens is decided entirely by the ideal, and aa-11 is about telling them apart. <span class="cite">— Aluffi §3.3, Definition 3.29, p. 55</span></p>
+</div>
+
+<div class="you-try">
+<p><strong>You try (solo).</strong> Two pieces Aluffi hands to the reader. (a) Lemma 5.25(i) — "Work this out!" — show (a′ + b′) − (a + b) ∈ I using only axioms (i)–(iv) for I, and note that absorption is not needed. (b) Compute ℝ[x]/(x² − 1) by the method of Example 5.34: cosets are a + bx again, but now x² reduces to +1 rather than −1. Multiply out, and then check whether your answer has zero-divisors. (It does; find two. Compare Example 5.31 and ask what is different about x² + 1.)</p>
+</div>
+
+<h3>Guided proof (write it yourself)</h3>
+<p>Example 5.33 generalises the faded example and Aluffi ends it with "Please do this." <strong>Let R be a commutative ring and r ∈ R. Prove that R[x]/(x − r) ≅ R.</strong> Three steps: show every coset has a constant representative, define φ : R → R[x]/(x − r) by φ(a) = a + (x − r), and prove φ is a bijective homomorphism. For the first step, Aluffi's hint is a change of variable x = t + r.</p>
+<textarea placeholder="Let f(x) in R[x]. Substituting x = t + r, put g(t) = f(t + r); then g(t) - g(0) is a multiple of t, so ..."></textarea>
+<details><summary>Reveal model answer</summary>
+<p><em>Every coset has a constant representative.</em> Put g(t) = f(t + r), a polynomial in t. As in Example 5.32, g(t) − g(0) is a multiple of t. Substituting back t = x − r gives f(x) − f(r) ∈ (x − r), hence the equality of cosets</p>
+<p style="text-align:center">f(x) + (x − r) = f(r) + (x − r),</p>
+<p>and f(r) ∈ R. So every element of R[x]/(x − r) is of the form a + (x − r) with a ∈ R.</p>
+<p><em>φ is surjective.</em> That is exactly the previous paragraph.</p>
+<p><em>φ is injective.</em> Suppose a + (x − r) = b + (x − r) with a, b ∈ R. Then b − a is a multiple of x − r, say b − a = (x − r)h(x). Comparing degrees: the left side is a constant, and if h ≠ 0 the right side has degree at least 1. So h = 0 and b − a = 0. (Equivalently: evaluate at x = r, which sends the right side to 0.)</p>
+<p><em>φ is a homomorphism.</em> φ(1) = 1 + (x − r) = 1<sub>R[x]/(x−r)</sub>; and φ(a + b) = (a + b) + (x − r) = (a + (x − r)) + (b + (x − r)) = φ(a) + φ(b), with the multiplicative line identical by Definition 5.24.</p>
+<p>So φ is a bijective ring homomorphism: R[x]/(x − r) ≅ R. ∎</p>
+<p>Grade yourself on injectivity — it is the only step with content, and "b − a is a multiple of x − r and also a constant" needs an actual reason, either a degree count or an evaluation. Aluffi says this fact is used frequently in concrete examples and is worth memorising: <em>killing x − r is the same as substituting r</em>. aa-10 will explain why, by identifying the map as evaluation and the ideal as its kernel.</p>
+</details>
+
+<div class="selfcheck">
+<p><strong>Self-check 3.</strong> Which part of Lemma 5.25 requires the absorption property?</p>
+<button onclick="check(this,false)">Part (i), about sums</button>
+<button data-ok onclick="check(this,true)">Part (ii), about products — the terms aj and ib need it</button>
+<button onclick="check(this,false)">Neither; closure under + suffices for both</button>
+<div class="explain">Part (i) uses only that I is closed under + and negation. Part (ii) expands a′b′ − ab = aj + ib + ij, where a and b are arbitrary elements of R and i, j ∈ I — and only absorption puts aj and ib back into I. Aluffi flags this deliberately, having already noted that Proposition 5.20 needs no absorption at all. Absorption exists to make <em>multiplication</em> descend to the quotient, and nothing else. <span class="cite">— Aluffi §5.3, Lemma 5.25, p. 85</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 4.</strong> ℤ is an integral domain. Must ℤ/I be one for every ideal I?</p>
+<button onclick="check(this,false)">Yes — quotients inherit the domain property</button>
+<button data-ok onclick="check(this,true)">No — ℤ/4ℤ has [2][2] = 0</button>
+<button onclick="check(this,false)">Yes, provided I is principal</button>
+<div class="explain">ℤ/4ℤ is a quotient of a domain by a principal ideal and has zero-divisors. So neither "domain" nor "principal" is enough — what decides the matter is a property of the ideal itself. ℤ/pℤ <em>is</em> a domain for prime p, and ℝ[x]/(x² + 1) is even a field; ℝ[x]/(x² − 1) is not a domain. aa-11 names the two conditions on I that make the quotient a domain or a field. <span class="cite">— Aluffi §5.3, Example 5.31, p. 86</span></div>
+</div>
+
+<div class="selfcheck">
+<p><strong>Self-check 5.</strong> In R/I, what is the zero element?</p>
+<button data-ok onclick="check(this,true)">The coset 0 + I, which as a subset of R is I itself</button>
+<button onclick="check(this,false)">The element 0 of R</button>
+<button onclick="check(this,false)">The empty set</button>
+<div class="explain">0<sub>R/I</sub> = 0 + I, and as a subset of R that coset is exactly I. So the ideal you divided by becomes the single element 0 of the quotient — which is what "declaring the elements of I to be zero" means precisely. This is the double vision of Remark 5.23: I is simultaneously a subset of R and one point of R/I. <span class="cite">— Aluffi §5.3, Theorem 5.26 and Remark 5.23, pp. 84–85</span></div>
+</div>
+
+<div class="blankpage">
+<strong>Blank-page ending.</strong> Close the screen. Reconstruct the chain from homomorphism to quotient ring:
+<details><summary>Then check yourself</summary>
+<ol>
+<li><strong>A kernel is not a subring — it is an ideal.</strong> ker f is closed under + with 0 and negatives (Proposition 5.6) and satisfies <em>absorption</em>: r·(kernel element) is in the kernel for every r ∈ R (Proposition 5.7). It misses 1. Definition 5.8 abstracts exactly those two properties, and Proposition 5.9 reduces the check to nonempty + closed under + + absorbing.</li>
+<li><strong>Ideals are plentiful and often principal.</strong> {0} and R always; nℤ = (n) in ℤ, and by well-ordering plus division with remainder <em>every</em> ideal of ℤ is of this form; (x, y) ⊆ ℂ[x, y] needs two generators. ℤ ⊆ ℚ is a subring that is not an ideal — absorption fails.</li>
+<li><strong>R/I is a ring</strong> (Theorem 5.26). The relation b − a ∈ I is an equivalence relation using only the additive axioms (Proposition 5.20); addition of cosets needs no more; but <strong>multiplication of cosets is well defined only because of absorption</strong> (Lemma 5.25(ii), where the terms aj and ib appear). That single line is the reason ideals are the right objects to quotient by.</li>
+</ol>
+And the two computations to keep: R[x]/(x − r) ≅ R — killing x − r is substituting r — and ℝ[x]/(x² + 1) ≅ ℂ, where quotienting <em>creates</em> a square root of −1. A quotient is not only a collapse; it is a construction.</details>
+</div>
+</div>
+
+<footer>Sources: Aluffi, <em>Algebra: Notes from the Underground</em> — §5.1 "Rings: Canonical Decomposition, I" (the factorisation programme and Proposition 5.1, Remark 5.2, p. 78), pp. 77–78; §5.2 "Kernels and Ideals" (Definition 5.3, Examples 5.4 and 5.5 p. 79; Propositions 5.6 and 5.7 and Definition 5.8 p. 80; Proposition 5.9, Examples 5.10–5.14 p. 81; Example 5.15, Proposition 5.16, Definition 5.17, Remark 5.18 p. 82), pp. 79–82; §5.3 "Quotient Rings" (Definition 5.19 and Proposition 5.20 p. 83; Example 5.21, Definition 5.22, Remark 5.23, Definition 5.24 p. 84; Lemma 5.25 and Theorem 5.26 p. 85; Example 5.27 p. 85 and Examples 5.28–5.31 p. 86; Example 5.32 pp. 86–87; Example 5.33 p. 87; Example 5.34 pp. 87–88), pp. 83–88. Proposition 4.14 and the Gaussian integers come from aa-07 (§4.2, pp. 62–63), Definition 4.15 and Proposition 4.16 from aa-08 (§4.3, pp. 64–65), Corollary 3.18 from aa-05 (§3.2, p. 51), Definition 3.29 from aa-06 (§3.3, p. 55), Definition 2.10 from aa-04 (§2.3, p. 27), and Theorem 1.3 from aa-01 (§1.2, p. 6). The classification of the ideals of ℤ in Segment 2 is Aluffi's Exercise 5.14, assembled here from well-ordering and division with remainder.</footer>
+
+<script>
+function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
+btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}
+sc.classList.add('answered');
+try{const done=document.querySelectorAll('.selfcheck.answered').length,total=document.querySelectorAll('.selfcheck').length;
+localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:total,ts:Date.now()}));}catch(e){}}
+
+// The Gaussian integers coloured by coset of the principal ideal (z).
+// Points of the ideal itself are drawn large; each translate gets its own hue.
+var oc=document.getElementById('cos'),ox=oc.getContext('2d');
+var IA=2,IB=1;
+var COL=['#4caf82','#8ab4f8','#d8a657','#e06c75','#b48ead','#88c0d0','#a3be8c','#d08770','#ebcb8b'];
+function setI(a,b){IA=a;IB=b;drawCos();}
+function drawCos(){ox.clearRect(0,0,oc.width,oc.height);
+ var cx=oc.width/2,cy=oc.height/2-6,u=24,N=10;
+ ox.strokeStyle='#2a333d';ox.lineWidth=1;
+ ox.beginPath();ox.moveTo(10,cy);ox.lineTo(oc.width-10,cy);
+ ox.moveTo(cx,14);ox.lineTo(cx,oc.height-30);ox.stroke();
+ // p is in the ideal (z) iff p*conj(z) is divisible by |z|^2 in both parts.
+ // Labels are assigned by scanning and comparing against representatives found
+ // so far, which is the definition of a coset rather than an approximation to it.
+ var n2=IA*IA+IB*IB,reps=[],lab={};
+ function inI(a,b){return ((a*IA+b*IB)%n2===0)&&(((b*IA-a*IB)%n2)===0);}
+ function label(a,b){var k=a+','+b;if(k in lab)return lab[k];
+  for(var i=0;i<reps.length;i++){if(inI(a-reps[i][0],b-reps[i][1])){lab[k]=i;return i;}}
+  reps.push([a,b]);lab[k]=reps.length-1;return reps.length-1;}
+ for(var a=-N;a<=N;a++)for(var b=-N;b<=N;b++)label(a,b);
+ for(var a=-N;a<=N;a++)for(var b=-N;b<=N;b++){
+  var x=cx+a*u,y=cy-b*u;
+  if(x<8||x>oc.width-8||y<16||y>oc.height-30)continue;
+  var idx=label(a,b),isI=inI(a,b);
+  ox.fillStyle=COL[idx%COL.length];
+  ox.beginPath();ox.arc(x,y,isI?5:3,0,7);ox.fill();}
+ var hx=cx+IA*u,hy=cy-IB*u;
+ ox.strokeStyle='#e8e8e8';ox.lineWidth=1.5;
+ ox.beginPath();ox.moveTo(cx,cy);ox.lineTo(hx,hy);ox.stroke();
+ ox.fillStyle='#e8e8e8';ox.font='13px Segoe UI';
+ ox.fillText('Z[i] coloured by coset of ('+IA+(IB<0?' - ':' + ')+Math.abs(IB)+'i)',12,18);
+ ox.fillStyle='#9aa5b1';
+ ox.fillText(reps.length+' cosets - each colour is one element of the quotient ring; the big dots are the ideal itself',12,oc.height-10);}
+drawCos();
+</script></body></html>
