@@ -72,6 +72,7 @@ Check every one and cite the location of any defect:
 - [ ] Every **self-check** `data-ok` marks a genuinely correct option and the `.explain` is true.
 - [ ] The **guided-proof model answer** is a correct proof.
 - [ ] **Citations resolve** — the section/pages exist and actually contain what is attributed to them.
+- [ ] **Cross-unit claims reconcile** — every named unit reference resolves; when this unit derives a result an earlier unit deferred or anticipated, re-read that earlier answer against the new derivation and record any correction before acceptance.
 - [ ] **Nothing is supplied from outside the source.** Every statement traces to the
       cited sections. Where the source did not cover something, the lesson says so
       with a `NOT IN SOURCE:` marker rather than filling the hole.

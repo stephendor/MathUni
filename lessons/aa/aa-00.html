@@ -79,7 +79,7 @@ A rectangle, a light switch, and a dance move walk into a bar — same group.
 
 <p>Here is the remarkable part. Take two light switches on a wall, side by side, and allow yourself two actions: flip switch 1, flip switch 2. Map out the four configurations (off-off, on-off, off-on, on-on) exactly the way we mapped the rectangle. Carter shows the resulting map has <em>exactly the same shape</em> as the rectangle's — same four nodes, same connecting pattern, just relabelled. <span class="cite">— Carter §2.5, pp. 19–20</span> Two utterly different physical situations — folded paper and household wiring — turn out to be the same mathematical object wearing different clothes. Carter names this shared structure the <strong>Klein 4-group</strong>. <span class="cite">— Carter §2.5, p. 20</span></p>
 
-<p>The dance-move version from the hook works the same way: a quarter-turn, a half-turn, a three-quarter-turn and standing still, with "turn again" as the only action. That one has a different map (it's a loop of four, not the rectangle's cross-shape) — a preview that not all groups of size 4 look alike, a question gt-03 picks up with Cayley diagrams properly.</p>
+<p>The dance-move version from the hook works the same way: a quarter-turn, a half-turn, a three-quarter-turn and standing still, with "turn again" as the only action. That one has a different map (it's a loop of four, not the rectangle's cross-shape) — a preview that not all groups of size 4 look alike, a question aa-25 picks up with Cayley diagrams properly.</p>
 
 <div class="selfcheck">
 <p><strong>Self-check 1.</strong> How many distinct configurations does the rectangle puzzle have in total, once you count every combination of flips reachable from the solved state?</p>
@@ -145,7 +145,7 @@ A rectangle, a light switch, and a dance move walk into a bar — same group.
 <p>&emsp;Horizontal flip, undone by: <span class="gap">⟨your answer⟩</span></p>
 <p>&emsp;Vertical flip, undone by: <span class="gap">⟨your answer⟩</span></p>
 <p>&emsp;180° rotation (horizontal-then-vertical), undone by: <span class="gap">⟨your answer: which single combination reverses it?⟩</span></p>
-<p>This "undo move" is what later chapters will call an <strong>inverse</strong>. Notice that in this particular group every move is its own undo — that will not be true of every group you meet (gt-03's Cayley diagrams will show groups where undoing takes a different move entirely).</p>
+<p>This "undo move" is what later chapters will call an <strong>inverse</strong>. Notice that in this particular group every move is its own undo — that will not be true of every group you meet (aa-25's Cayley diagrams will show groups where undoing takes a different move entirely).</p>
 </div>
 
 <div class="you-try">
@@ -167,7 +167,7 @@ A rectangle, a light switch, and a dance move walk into a bar — same group.
 <button onclick="check(this,false)">The vertical flip</button>
 <button onclick="check(this,true)" data-ok>The solved (do-nothing) configuration</button>
 <button onclick="check(this,false)">There is no such role in a group of actions</button>
-<div class="explain">Just as adding 0 leaves a number unchanged, applying the "do-nothing" action leaves every configuration unchanged. This role — an action that changes nothing — is exactly what gt-02 will formalise as the group's identity element.</div>
+<div class="explain">Just as adding 0 leaves a number unchanged, applying the "do-nothing" action leaves every configuration unchanged. This role — an action that changes nothing — is exactly what aa-23 formalises as the group's identity element.</div>
 </div>
 
 <div class="guided-proof">
@@ -203,8 +203,8 @@ A rectangle, a light switch, and a dance move walk into a bar — same group.
 
 <footer>Sources: Carter, <em>Visual Group Theory</em> — Ch. 1 "What is a Group?" §1.2–1.4 (Observations 1.1–1.4, Rules 1.5–1.8, Definition 1.9), pp. 4–7; Ch. 2 "What Do Groups Look Like?" §2.2 "A Not-So-Famous Toy" (the rectangle puzzle), pp. 14–15; §2.3 "Mapping a Group" (exploring the rectangle's four configurations), pp. 15–18; §2.4 "Cayley Diagrams", p. 18; §2.5 "A Touch More Abstract" (the light-switch group and the Klein 4-group), pp. 19–20.
 <br>Also see: Matthew Macauley, Visual Group Theory lecture series, Lecture 1 (introduction to groups as symmetries) — Clemson University, freely available on YouTube.
-<br>Deferred to gt-02: the formal axioms (closure, associativity, identity, inverses stated as a definition on a set with a binary operation), proofs of uniqueness, order of an element.
-<br>Deferred to gt-03: Cayley diagrams drawn properly, generators, groups where the map is not the rectangle's cross-shape.
+<br>Deferred to aa-23: the formal axioms (closure, associativity, identity, inverses stated as a definition on a set with a binary operation), proofs of uniqueness, order of an element.
+<br>Deferred to aa-25: Cayley diagrams drawn properly, generators, groups where the map is not the rectangle's cross-shape.
 </footer>
 <script>
 function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
