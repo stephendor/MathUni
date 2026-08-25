@@ -39,11 +39,11 @@ In ℤ/12ℤ, 7 + 7 = 2. Not approximately, not by convention — the two classe
 </div>
 
 <div class="selfcheck">
-<p><strong>Predict before we start.</strong> In ℤ/nℤ, ask that every nonzero class have a multiplicative inverse. For which n does that hold?</p>
+<p><strong>Predict before we start.</strong> Let n &gt; 1. In ℤ/nℤ, ask that every nonzero class have a multiplicative inverse. For which n does that hold?</p>
 <button onclick="check(this,false)">All n — you can always solve ax = 1</button>
 <button onclick="check(this,false)">All odd n</button>
 <button data-ok onclick="check(this,true)">Exactly the n that are prime</button>
-<div class="explain">Exactly the primes, and it is Theorem 2.15 — one of three equivalent statements, the other two being "n is prime" and "ℤ/nℤ has no product of nonzero classes equal to zero". In ℤ/4ℤ the class [2]₄ has no inverse: no row of the multiplication table headed by 2 contains a 1. In ℤ/5ℤ every nonzero row does. Note this property fails in ℤ itself — 2 has no integer inverse — so it is something the quotient <em>gains</em>. <span class="cite">— Aluffi §2.4, Theorem 2.15, p. 32</span></div>
+<div class="explain">Exactly the primes, and it is Theorem 2.15 — one of three equivalent statements, the other two being "n is prime" and "ℤ/nℤ has no product of nonzero classes equal to zero". The restriction n &gt; 1 in the question is not idle: ℤ/1ℤ has no nonzero classes at all, so the condition holds there vacuously while 1 is not prime. Self-check 2 below returns to that boundary. In ℤ/4ℤ the class [2]₄ has no inverse: no row of the multiplication table headed by 2 contains a 1. In ℤ/5ℤ every nonzero row does. Note this property fails in ℤ itself — 2 has no integer inverse — so it is something the quotient <em>gains</em>. <span class="cite">— Aluffi §2.4, Theorem 2.15, p. 32</span></div>
 </div>
 
 <p class="mission">Why this matters for the mission: Finite rings are the coefficient worlds Z/2, Z/p that TDA computes homology over.</p>
@@ -238,7 +238,11 @@ The + and · on the <em>right</em> are the familiar operations in ℤ; the ones 
 <p>Take p. If p ∣ a then both sides are 0 mod p. Otherwise, since de ≡ 1 mod k there is an integer ℓ with de = 1 + kℓ, and</p>
 <p style="text-align:center">a<sup>de</sup> = a<sup>1+kℓ</sup> = a·(a<sup>p−1</sup>)<sup>(q−1)ℓ</sup> ≡ a·1<sup>(q−1)ℓ</sup> = a mod p,</p>
 <p>using Fermat's little theorem in the form a<sup>p−1</sup> ≡ 1 mod p, valid because p is prime and p ∤ a. The argument for q is identical with the roles swapped. ∎ <span class="cite">— Aluffi §2.5, pp. 38–39</span></p>
-<p><strong>Where the security sits.</strong> The eavesdropper may know n, e and the encrypted b and still be stuck. But k = (p−1)(q−1) requires p and q, and once k is known, d is just the inverse of e mod k — one run of the Euclidean algorithm. So <em>factoring n breaks the scheme completely</em>. No efficient classical factoring method is known; that, and nothing stronger, is what the security rests on. <span class="cite">— Aluffi §2.5, p. 39</span></p>
+<p><strong>Where the security sits.</strong> The eavesdropper may know n, e and the encrypted b and still be stuck. But k = (p−1)(q−1) requires p and q, and once k is known, d is just the inverse of e mod k — one run of the Euclidean algorithm. So <em>factoring n breaks the scheme completely</em>, and no efficient classical factoring method is known. <span class="cite">— Aluffi §2.5, p. 39</span></p>
+
+<p><strong>Two things that sentence does not say.</strong> First, factoring is <em>sufficient</em> to recover the private key; it is not known to be <em>necessary</em>. Whether inverting RSA is as hard as factoring is an open problem, so "the security rests on factoring and nothing else" is a stronger claim than anyone can currently make — the correct statement is that breaking the scheme is no harder than factoring.</p>
+
+<p>Second, what is described here is <em>textbook</em> RSA: the bare modular exponentiation, and a correctness construction rather than a deployable one. Because it is deterministic, the same message always encrypts to the same ciphertext, which leaks repetition; and because it is multiplicative, an attacker who cannot read a message can still manipulate it — the ciphertext of m·m′ is the product of their ciphertexts. Real deployments therefore never encrypt a raw message: they use a randomised padding scheme built around this arithmetic. The number theory of this lesson is the whole of the correctness argument and none of the security argument.</p>
 </div>
 
 <div class="worked">

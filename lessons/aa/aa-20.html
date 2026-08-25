@@ -33,7 +33,7 @@ details{margin:.8rem 0}summary{cursor:pointer;color:var(--acc)}
 
 <div class="hook">
 Aluffi calls it "probably one of the most important theorems in this text". Every finitely generated module over a Euclidean domain is a direct sum of cyclic pieces — and the pieces are uniquely determined.
-<p>Ten units of machinery converge here. aa-18 turned such a module into a matrix; aa-19 showed the matrix exists whenever the ring is Noetherian, and that over a field it reduces to a block of 1s. Today the reduction is pushed as far as it can go over a Euclidean domain: not to 1s, but to a diagonal d₁ ∣ d₂ ∣ ⋯ ∣ d<sub>s</sub>. Each d<sub>i</sub> contributes one cyclic summand R/(d<sub>i</sub>), each zero row contributes a free summand R, and that list <em>is</em> the module. This is the theorem a persistence barcode is an instance of.</p>
+<p>Ten units of machinery converge here. aa-18 turned such a module into a matrix; aa-19 showed the matrix exists whenever the ring is Noetherian, and that over a field it reduces to a block of 1s. Today the reduction is pushed as far as it can go over a Euclidean domain: not to 1s, but to a diagonal d₁ ∣ d₂ ∣ ⋯ ∣ d<sub>s</sub>. Each d<sub>i</sub> contributes one cyclic summand R/(d<sub>i</sub>), each zero row contributes a free summand R, and that list <em>is</em> the module. This is the theorem a persistence barcode is an instance of — once specialised, as §9.6 and the mission note below spell out, to <em>graded</em> k[t]-modules and degree-preserving maps, which is what records an interval's birth time.</p>
 </div>
 
 <div class="selfcheck">
@@ -110,7 +110,7 @@ Aluffi calls it "probably one of the most important theorems in this text". Ever
 <p><strong>Read the diagonal.</strong> Each entry does one of three things: a <em>unit</em> kills its factor entirely; a <em>non-unit non-zero</em> d<sub>i</sub> leaves the torsion piece R/(d<sub>i</sub>); and a <em>missing</em> entry — a zero row — leaves a free factor R. aa-19's Theorem 9.35 is the case where only the first and third occur, which is exactly what a field permits.</p>
 </div>
 
-<p><strong>Remark 9.41 — it is a genuine classification.</strong> The rank r and the factors R/(d<sub>i</sub>) are <em>uniquely</em> determined by M. Aluffi does not prove it but names the route: first show the free part R<sup>⊕r</sup> and the torsion part T = R/(d₁) ⊕ ⋯ ⊕ R/(d<sub>s</sub>) are each determined; then show (i) R<sup>⊕r₁</sup> ≅ R<sup>⊕r₂</sup> forces r₁ = r₂, which comes down to invertible matrices being square, and (ii) the torsion decomposition is unique, proved by extracting one factor at a time — the last ideal (d<sub>s</sub>) is the <em>annihilator</em> of M. <span class="cite">— Aluffi §9.5, Remark 9.41, p. 196</span></p>
+<p><strong>Remark 9.41 — it is a genuine classification.</strong> The rank r and the factors R/(d<sub>i</sub>) are <em>uniquely</em> determined by M. Aluffi does not prove it but names the route: first show the free part R<sup>⊕r</sup> and the torsion part T = R/(d₁) ⊕ ⋯ ⊕ R/(d<sub>s</sub>) are each determined; then show (i) R<sup>⊕r₁</sup> ≅ R<sup>⊕r₂</sup> forces r₁ = r₂, which comes down to invertible matrices being square, and (ii) the torsion decomposition is unique, proved by extracting one factor at a time — the last ideal (d<sub>s</sub>) is the <em>annihilator of the torsion part T</em> — not of M. Take that distinction seriously: as soon as M has a free summand, Ann(M) = (0), since no nonzero r kills R. For M = R ⊕ R/(d) the annihilator is (0) while d<sub>s</sub> = d, so the route has to isolate T first and only then read (d<sub>s</sub>) = Ann(T). <span class="cite">— Aluffi §9.5, Remark 9.41, p. 196</span></p>
 
 <p><strong>Remark 9.42.</strong> The theorem and its uniqueness hold over every <em>PID</em>, not merely Euclidean domains; the proof is harder because there is no valuation to descend on. <span class="cite">— Aluffi §9.5, Remark 9.42, p. 196</span></p>
 
@@ -154,10 +154,12 @@ Aluffi calls it "probably one of the most important theorems in this text". Ever
 <p>The CRT gives a ring isomorphism, and a ring isomorphism between quotients of R is in particular an isomorphism of R-modules (aa-16's Example 8.35).</p>
 
 <div class="theorem">
-<strong>Corollary 9.44.</strong> Every finitely generated module over a Euclidean domain is a direct sum of cyclic modules R/(q<sup>a</sup>) with q irreducible — its <strong>elementary divisors</strong> — and the decomposition is unique. <span class="cite">— Aluffi §9.6, Corollary 9.44, p. 197</span>
+<strong>Corollary 9.44.</strong> Every finitely generated module over a Euclidean domain is isomorphic to a direct sum of cyclic modules R/(q<sup>a</sup>) with q irreducible and a ≥ 0 — the q<sup>a</sup> are its <strong>elementary divisors</strong> — and the decomposition is unique. <span class="cite">— Aluffi §9.6, Corollary 9.44, p. 197</span>
 </div>
 
 <p>So the R/(q<sup>a</sup>) are the atoms: every finitely generated module is a direct sum of them, "in the simplest possible way". Over more general rings the situation is far worse. <span class="cite">— Aluffi §9.6, p. 197</span></p>
+
+<p><strong>Read the free part back in.</strong> Every R/(q<sup>a</sup>) with q irreducible is torsion, and R/(q⁰) = R/(1) = 0, so no combination of those atoms produces a free summand: M = R is finitely generated and torsion-free, and is not a direct sum of any of them. The elementary-divisor form is therefore R<sup>⊕r</sup> ⊕ (a sum of the R/(q<sup>a</sup>) with a ≥ 1), exactly parallel to the R<sup>⊕r</sup> in Theorem 9.40 — or, read the other way, the corollary and the "atoms" slogan apply as stated to finitely generated <em>torsion</em> modules. The free rank r is the piece the CRT refinement never touches.</p>
 
 <div class="worked">
 <strong>The k[t] application — a linear transformation <em>is</em> a module.</strong> Let k be a field and V a k-vector space. Aluffi's observation: giving a linear transformation α : V → V is the same as giving V the structure of a k[t]-module extending the k-action.

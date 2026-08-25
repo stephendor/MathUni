@@ -85,7 +85,11 @@ Prime factorisation for groups: Sylow's theorems pull p-subgroups out of thin ai
 
 <p>Aluffi is candid about the scale of the reduced problem: classifying finite simple groups <em>has</em> been achieved, and "it should be counted among the most complex single achievements in the whole of mathematics". <span class="cite">— Aluffi Underground §12.3, p. 275</span> The realistic question, and the one this unit answers, is narrower: <em>given n, can we decide whether a simple group of order n exists?</em></p>
 
-<p><strong>Example 12.27.</strong> A group of order p<sup>r</sup> with r &gt; 1 is not simple: its centre is nontrivial by aa-28's Corollary 12.22, and the centre is normal. <span class="cite">— Aluffi Underground §12.4, Example 12.27, p. 276</span> That settles 4, 8, 9 at once, while 2, 3, 5, 7, 11, 13 are simple by Example 12.26. Orders 6, 10, 12 need work.</p>
+<p><strong>Example 12.27.</strong> A group of order p<sup>r</sup> with r &gt; 1 is not simple: its centre is nontrivial by aa-28's Corollary 12.22, and the centre is normal. <span class="cite">— Aluffi Underground §12.4, Example 12.27, p. 276</span></p>
+
+<p>Written that compactly the argument has a gap worth closing yourself, because simplicity asks for a normal subgroup that is <em>proper</em> as well as nontrivial. If Z(G) ≠ G, the centre is exactly such a subgroup and the argument is complete. If Z(G) = G, then G is abelian — and an abelian group of order p<sup>r</sup> with r &gt; 1 is not simple by Example 12.26, since its order is not prime; concretely, Cauchy's theorem supplies an element of order p, and the subgroup it generates is proper, nontrivial and automatically normal. Either way G is not simple, and the case split costs one sentence.</p>
+
+<p>That settles 4, 8, 9 at once, while 2, 3, 5, 7, 11, 13 are simple by Example 12.26. Orders 6, 10, 12 need work.</p>
 
 <div class="worked">
 <strong>Example 12.28 — the ad hoc argument, kept deliberately.</strong> Let |G| = 2p with p &gt; 2 prime. Element orders are 2, p or 2p. Could all non-identity elements have order 2? If x, y and xy all have order at most 2 then xy = (xy)⁻¹ = y⁻¹x⁻¹ = yx, so G would be commutative — and then by the classification of finite abelian groups it would be cyclic, so not every element would have order 2. Contradiction.

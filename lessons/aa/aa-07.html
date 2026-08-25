@@ -150,9 +150,9 @@ Two rings with four elements each: ℤ/4ℤ, and ℤ/2ℤ × ℤ/2ℤ. Same size
 </div>
 
 <div class="you-try">
-<p><strong>You try (solo).</strong> Aluffi's Example 4.13: let R be the set of real matrices of the form (a −b / b a), i.e. rows (a, −b) and (b, a). Use Proposition 4.14 to show R is a subring of M<sub>2,2</sub>(ℝ). The one real computation is the product,
+<p><strong>You try (solo).</strong> Aluffi's Example 4.13: let R be the set of real matrices of the form (a −b / b a), i.e. rows (a, −b) and (b, a). Use Proposition 4.14 to show R is a subring of M<sub>2,2</sub>(ℝ). The one real computation is the product,</p>
 <p style="text-align:center">(a₁ −b₁ / b₁ a₁)·(a₂ −b₂ / b₂ a₂) = (a₁a₂ − b₁b₂ &nbsp; −(a₁b₂ + b₁a₂) / a₁b₂ + b₁a₂ &nbsp; a₁a₂ − b₁b₂).</p>
-Then answer the question the shape is asking: where have you seen those two coefficients before, today? <span class="cite">— Aluffi §4.2, Example 4.13, p. 63</span></p>
+<p>Then answer the question the shape is asking: where have you seen those two coefficients before, today? <span class="cite">— Aluffi §4.2, Example 4.13, p. 63</span></p>
 </div>
 
 <h3>Guided proof (write it yourself)</h3>
@@ -214,11 +214,11 @@ Then answer the question the shape is asking: where have you seen those two coef
 </div>
 
 <div class="selfcheck">
-<p><strong>Self-check 4.</strong> Of π : R × S → R, π(a, b) = a, and ι : R → R × S, ι(a) = (a, 0), which preserves the multiplicative identity?</p>
+<p><strong>Self-check 4.</strong> Let S be a <em>nontrivial</em> ring. Of π : R × S → R, π(a, b) = a, and ι : R → R × S, ι(a) = (a, 0), which preserves the multiplicative identity?</p>
 <button data-ok onclick="check(this,true)">π only</button>
 <button onclick="check(this,false)">ι only</button>
 <button onclick="check(this,false)">Both</button>
-<div class="explain">π(1, 1) = 1<sub>R</sub> ✓. But ι(1<sub>R</sub>) = (1<sub>R</sub>, 0<sub>S</sub>), and that is not (1<sub>R</sub>, 1<sub>S</sub>) unless S is trivial. Both maps respect + and ·, so the identity condition is the one doing the separating — which is the reason it is on the list at all. <span class="cite">— Aluffi §4.1, p. 61; §4.2, Example 4.10, p. 62</span></div>
+<div class="explain">π(1, 1) = 1<sub>R</sub> ✓. But ι(1<sub>R</sub>) = (1<sub>R</sub>, 0<sub>S</sub>), and that is not (1<sub>R</sub>, 1<sub>S</sub>) — which is exactly why the question assumes S nontrivial. Drop that hypothesis and the answer changes: in the trivial ring 0<sub>S</sub> = 1<sub>S</sub>, so ι preserves the identity too and "both" becomes correct. Both maps respect + and ·, so the identity condition is the one doing the separating — which is the reason it is on the list at all. <span class="cite">— Aluffi §4.1, p. 61; §4.2, Example 4.10, p. 62</span></div>
 </div>
 
 <div class="selfcheck">

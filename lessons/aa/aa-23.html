@@ -32,7 +32,7 @@ ol.ax{margin:.4rem 0 .4rem 1.2rem}ol.ax li{margin:.25rem 0}
 <h1>Groups and their category: subgroups and homomorphisms <span class="cite">(aa-23)</span></h1>
 
 <div class="hook">
-There are 42 abelian groups of order 1024. There are 49,487,365,402 groups of order 1024.
+There are 42 abelian groups of order 1024. There are 49,487,365,402 groups of order 1024 — or, by the count usually cited today, 49,487,365,422.
 <p>One axiom separates those two numbers. Drop commutativity from Definition 8.11 and what remains — associativity, an identity, inverses — is a <strong>group</strong>, and the theory becomes incomparably wilder. Aluffi's comparison is blunt: the classification of finite abelian groups took us one lesson; the classification of finite simple groups fills many thousands of pages by hundreds of authors over fifty years, and "is not stuff for mere mortals". Today we set up the category of groups and watch, at four separate points, exactly what stops working when gh ≠ hg.</p>
 </div>
 
@@ -74,6 +74,7 @@ The <strong>order</strong> |G| is its cardinality. <span class="cite">— Aluffi
 <p style="text-align:center">(gh)² = ghgh &nbsp;<em>cannot be simplified</em>, &nbsp;&nbsp;and&nbsp;&nbsp; (gh)<sup>−1</sup> = h<sup>−1</sup>g<sup>−1</sup>,</p>
 <p>where the switch is <em>necessary</em>: check (gh)(h<sup>−1</sup>g<sup>−1</sup>) = g(hh<sup>−1</sup>)g<sup>−1</sup> = e, whereas (gh)(g<sup>−1</sup>h<sup>−1</sup>) does not collapse. <span class="cite">— Aluffi Underground §11.1, p. 230</span></p>
 <p><strong>And the size of the change.</strong> Aluffi's figures: 42 abelian groups of order 1024, all writable from aa-22's classification; 49,487,365,402 groups of order 1024. One axiom. <span class="cite">— Aluffi Underground §11.1, p. 230</span></p>
+<p>A note on that second figure, since it is quoted here verbatim and Aluffi himself hedges it with "I am told". The number produced by the Besche–Eick–O'Brien enumeration of groups of order 1024, and the one usually quoted, is <strong>49,487,365,422</strong> — twenty more than the printed figure. Nothing in the argument turns on the last two digits; the gap between 42 and roughly 4.9 × 10¹⁰ is the point. But if you meet the number elsewhere and it disagrees with this page, the other source is probably the right one.</p>
 </div>
 
 <div class="worked">
@@ -236,7 +237,7 @@ The <strong>order</strong> |G| is its cardinality. <span class="cite">— Aluffi
 <strong>Blank-page ending.</strong> Close the screen. Rebuild the three claims and the four failures:
 <details><summary>Then check yourself</summary>
 <ol>
-<li><strong>A group is Definition 8.11 minus commutativity</strong> (Definition 11.1). Uniqueness of e and of inverses, and cancellation, survive verbatim — cancellation now being <em>free</em>, since every element is invertible. What changes is order: (gh)<sup>−1</sup> = h<sup>−1</sup>g<sup>−1</sup>, and (gh)² does not simplify. The scale of the change: 42 abelian groups of order 1024 against 49,487,365,402 groups.</li>
+<li><strong>A group is Definition 8.11 minus commutativity</strong> (Definition 11.1). Uniqueness of e and of inverses, and cancellation, survive verbatim — cancellation now being <em>free</em>, since every element is invertible. What changes is order: (gh)<sup>−1</sup> = h<sup>−1</sup>g<sup>−1</sup>, and (gh)² does not simplify. The scale of the change: 42 abelian groups of order 1024 against about 4.9 × 10¹⁰ groups — 49,487,365,402 as Aluffi prints it, 49,487,365,422 by the standard enumeration.</li>
 <li><strong>A group homomorphism has one condition</strong> (Definition 11.2); φ(e) = e and φ(g<sup>−1</sup>) = φ(g)<sup>−1</sup> follow by cancellation, where the ring analogue had to be imposed. Groups and homomorphisms form a category (Proposition 11.3), and isomorphism is defined and behaves as in every previous chapter.</li>
 <li><strong>Four things break.</strong> Hom(G, H) is no longer a group (Remark 11.4) — the abelian construction needs one transposition it cannot make. ⟨g₁, …, g<sub>n</sub>⟩ has no normal form, only words (Remark 11.12). G × H is a product but <em>not</em> a coproduct (Definition 11.13). And, most bluntly, the classification is out of reach. What survives: the subgroup test, now down to one condition (Proposition 11.7), images and preimages of subgroups, and kernels.</li>
 </ol>

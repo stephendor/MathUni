@@ -186,7 +186,7 @@ and conversely <em>every</em> choice of a₁, …, a<sub>m</sub> ∈ M determine
 <div class="worked fade">
 <strong>Faded example — Example 9.27: what module is that matrix?</strong> Take A = ( −4 &nbsp; 1 &nbsp; 7 / −2 &nbsp; 0 &nbsp; 4 ) from Example 9.13, and let G be the cokernel of the corresponding map ℤ<sup>⊕3</sup> → ℤ<sup>⊕2</sup>. Reduce by elementary operations, each of which leaves the cokernel unchanged by Corollary 9.26.
 <p>Swap columns 1 and 2: &nbsp; ( 1 &nbsp; −4 &nbsp; 7 / 0 &nbsp; −2 &nbsp; 4 ).</p>
-<p>Add (−2)× row 2 to row 1: &nbsp; ( 1 &nbsp; 0 &nbsp; ⟨your step: −4 − (−2)(−2) and 7 − (−2)(4)⟩ / 0 &nbsp; −2 &nbsp; 4 ).</p>
+<p>Add (−2)× row 2 to row 1: &nbsp; ( 1 &nbsp; 0 &nbsp; ⟨your step: −4 + (−2)(−2) and 7 + (−2)(4)⟩ / 0 &nbsp; −2 &nbsp; 4 ).</p>
 <p>Add 2× column 2 to column 3, then column 1 to column 3, clearing the last column to ⟨your step⟩.</p>
 <p>Multiply column 2 by −1, a unit in ℤ: &nbsp; ( 1 &nbsp; 0 &nbsp; 0 / 0 &nbsp; 2 &nbsp; 0 ).</p>
 <p>Now read the image off: the map sends e₁ ↦ (1, 0), e₂ ↦ (0, 2), e₃ ↦ (0, 0), so im = ℤ ⊕ 2ℤ inside ℤ ⊕ ℤ, and</p>
@@ -215,7 +215,7 @@ and conversely <em>every</em> choice of a₁, …, a<sub>m</sub> ∈ M determine
 </details>
 
 <div class="you-try">
-<p><strong>You try (solo).</strong> (a) Identify the abelian group presented by the matrix ( 2 &nbsp; 0 / 0 &nbsp; 3 ) — a map ℤ<sup>⊕2</sup> → ℤ<sup>⊕2</sup> — first directly, then by reducing and comparing with aa-10's Chinese Remainder Theorem. (b) Do the same for ( 6 &nbsp; 0 / 0 &nbsp; 4 ), and note that the answer is <em>not</em> ℤ/6ℤ × ℤ/4ℤ rewritten arbitrarily: check your answer by counting elements. (c) Present ℤ/2ℤ ⊕ ℤ as the cokernel of a matrix ℤ<sup>⊕1</sup> → ℤ<sup>⊕2</sup>, and say why no <em>square</em> matrix can present it.</p>
+<p><strong>You try (solo).</strong> (a) Identify the abelian group presented by the matrix ( 2 &nbsp; 0 / 0 &nbsp; 3 ) — a map ℤ<sup>⊕2</sup> → ℤ<sup>⊕2</sup> — first directly, then by reducing and comparing with aa-10's Chinese Remainder Theorem. (b) Do the same for ( 6 &nbsp; 0 / 0 &nbsp; 4 ), and note that the answer is <em>not</em> ℤ/6ℤ × ℤ/4ℤ rewritten arbitrarily: check your answer by counting elements. (c) Present ℤ/2ℤ ⊕ ℤ as the cokernel of a matrix ℤ<sup>⊕1</sup> → ℤ<sup>⊕2</sup>. Then present the <em>same</em> module as the cokernel of a square matrix ℤ<sup>⊕2</sup> → ℤ<sup>⊕2</sup>, and say what the extra column costs you. (Hint for the second: a zero on the diagonal contributes a free summand, exactly as in the faded example above. The moral is that the shape of a presenting matrix is not an invariant of the module — only its Smith normal form is.)</p>
 </div>
 
 <div class="selfcheck">
@@ -250,7 +250,7 @@ and conversely <em>every</em> choice of a₁, …, a<sub>m</sub> ∈ M determine
 <li><strong>A homomorphism R<sup>⊕n</sup> → R<sup>⊕m</sup> is an m × n matrix</strong> whose jth column is f(e<sub>j</sub>) (Corollary 9.11), composition is matrix multiplication (Proposition 9.14), and elementary row/column operations are composition with isomorphisms — that is, replacement of A by an equivalent PAQ (Definition 9.15).</li>
 <li><strong>A finitely presented module is the cokernel of a matrix</strong> (Definitions 9.21–9.23): finitely many generators and finitely many relations, packaged as R<sup>⊕n</sup> → R<sup>⊕m</sup> → M → 0. Equivalent matrices give isomorphic modules (Proposition 9.25, Corollary 9.26), so <em>reducing the matrix identifies the module</em> — the 2 × 3 matrix of Example 9.13 reduces to diag(1, 2) and presents ℤ/2ℤ.</li>
 </ol>
-That last sentence is the computational half of the module theory, and it is literally the algorithm: a boundary matrix over a coefficient ring presents a chain module, and reducing it computes the homology. aa-20 will say how far the reduction can always be pushed when R is a PID.</details>
+That last sentence is the computational half of the module theory, and it is close to the algorithm — but say exactly what it computes. The matrix of ∂<sub>k</sub> presents its own cokernel, C<sub>k−1</sub>/im ∂<sub>k</sub>; it does not present the chain module C<sub>k</sub>, and it is not by itself H<sub>k−1</sub> = ker ∂<sub>k−1</sub>/im ∂<sub>k</sub>. Reducing one boundary matrix therefore gives you the image, and homology needs the adjacent map's kernel as well — which is why the persistence algorithm reduces the boundary matrices together rather than one at a time. aa-20 will say how far the reduction can always be pushed when R is a PID.</details>
 </div>
 </div>
 

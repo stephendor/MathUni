@@ -87,7 +87,7 @@ and further f(1<sub>R</sub>) = 1<sub>S</sub>. <span class="cite">— Aluffi §4.
 </div>
 
 <div class="you-try">
-<p><strong>You try (solo).</strong> Example 4.22, which Aluffi leaves with "Verify this!": define e₂ : ℤ[x] → ℤ by e₂(α(x)) = α(2). Show it is a ring homomorphism — all three conditions. The multiplicative one is the only one with content, and the right way to see it is that the coefficient formula for a product of polynomials becomes, after substituting 2, the ordinary product of two integers. Then state the general version: for any ring R and any r ∈ R, evaluation e<sub>r</sub> : R[x] → R is a ring homomorphism. (Keep this map; aa-14 is largely about its kernel.) <span class="cite">— Aluffi §4.3, Example 4.22, p. 66</span></p>
+<p><strong>You try (solo).</strong> Example 4.22, which Aluffi leaves with "Verify this!": define e₂ : ℤ[x] → ℤ by e₂(α(x)) = α(2). Show it is a ring homomorphism — all three conditions. The multiplicative one is the only one with content, and the right way to see it is that the coefficient formula for a product of polynomials becomes, after substituting 2, the ordinary product of two integers. Then state the general version, with the hypothesis it needs: for any <em>commutative</em> ring R and any r ∈ R, evaluation e<sub>r</sub> : R[x] → R is a ring homomorphism. (More precisely, commutativity of R can be weakened to "r is central in R", but not dropped. The indeterminate x is central in R[x], so Ax = xA there for every coefficient A; multiplicativity of e<sub>r</sub> would therefore force Ar = rA. In M₂(ℝ) take A = (0 1 / 0 0) and r = (1 0 / 0 0): then Ar is the zero matrix while rA = A, so no evaluation at that r can be multiplicative.) Keep this map; aa-14 is largely about its kernel — and ℤ, the ring in the example, is commutative, so nothing there is affected. <span class="cite">— Aluffi §4.3, Example 4.22, p. 66</span></p>
 </div>
 
 <div class="selfcheck">
@@ -119,7 +119,7 @@ and further f(1<sub>R</sub>) = 1<sub>S</sub>. <span class="cite">— Aluffi §4.
 <div class="worked">
 <strong>Example 4.26 — the determinant, which fails on the clause you would not guess.</strong> On M<sub>2,2</sub>(ℝ), det(a b / c d) = ad − bc. Then det(I) = 1 ✓, and det(AB) = det(A)det(B) ✓ — a genuine identity, which Aluffi verifies by expanding both sides. But
 <p style="text-align:center">(1 0 / 0 0) + (0 0 / 0 1) = (1 0 / 0 1),</p>
-<p>and the two determinants on the left are both 0 while the determinant on the right is 1. Since 0 + 0 ≠ 1, det does not preserve addition. Not a ring homomorphism. (It <em>is</em> a group homomorphism — aa-23's Example 11.16.) <span class="cite">— Aluffi §4.3, Example 4.26, pp. 67–68</span></p>
+<p>and the two determinants on the left are both 0 while the determinant on the right is 1. Since 0 + 0 ≠ 1, det does not preserve addition. Not a ring homomorphism. (Restricted to units on both sides it <em>is</em> a group homomorphism, det : GL<sub>2</sub>(ℝ) → ℝ*, which is aa-23's Example 11.16. The restriction is needed, not cosmetic: M<sub>2,2</sub>(ℝ) is not a group under multiplication because singular matrices have no inverse, and ℝ is not one either because 0 has none. Multiplicativity alone does not make a map of monoids a map of groups.) <span class="cite">— Aluffi §4.3, Example 4.26, pp. 67–68</span></p>
 <p>Line the three failures up: 4.24 fails · and 1, 4.26 fails + while satisfying · and 1, and 4.25 fails by existing at all. Between them they show that none of the three conditions implies the others.</p>
 </div>
 
