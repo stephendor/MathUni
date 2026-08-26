@@ -510,7 +510,7 @@ localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:tot
   var P=[[180,190],[270,170],[250,240],[360,205],[430,255]];
   function dist(a,b){return Math.sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));}
   g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
-  g.fillText('a finite metric space, with B(x, ε_x) drawn at ε_x = distance to the nearest other point', 320, 40);
+  g.fillText('B(x, ε_x), where ε_x is the nearest-neighbour distance', 320, 40);
   g.save(); g.setLineDash([4,4]); g.strokeStyle='#8ab4f8'; g.lineWidth=1.5;
   P.forEach(function(p,i){
     var e=Infinity;
@@ -520,9 +520,9 @@ localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:tot
   g.restore();
   P.forEach(function(p){ g.fillStyle='#4caf82'; g.beginPath(); g.arc(p[0],p[1],5,0,6.2832); g.fill(); });
   g.fillStyle='#9aa5b1'; g.font='12px Segoe UI,system-ui,sans-serif';
-  g.fillText('each ball contains only its own centre — the nearest point lies on the boundary, which the open ball excludes', 320, 352);
+  g.fillText('each open ball contains its centre; its nearest neighbour lies on the boundary', 320, 352);
   g.fillStyle='#e06c75';
-  g.fillText('so every singleton is open: the metric topology of any finite metric space is discrete', 320, 376);
+  g.fillText('every singleton is open, so every finite metric space is discrete', 320, 376);
 })();
 </script>
 </body></html>

@@ -56,19 +56,31 @@ _LIST_FAMILIES = (
     ("numbered", re.compile(r"^\s*(\d+)\.\s+", re.M), "1"),
 )
 _EQUIVALENT = re.compile(r"the following are equivalent\s*:", re.I)
+_EXTRACT_BOUNDARY = re.compile(r"(?m)^(?:=== p\.\d+.*===|#{1,6}\s+.*)$")
+
+
+def _list_regions(text):
+    """Split an extraction where a new page or Markdown heading starts."""
+    starts = [0] + [match.start() for match in _EXTRACT_BOUNDARY.finditer(text)]
+    starts = sorted(set(starts))
+    return [text[start:end] for start, end in
+            zip(starts, starts[1:] + [len(text)]) if text[start:end].strip()]
 
 
 def extract_integrity_errors(text):
     """Structural signs that a page extraction silently dropped list items."""
     errors = []
-    roman_positions = {m.start() for m in _LIST_FAMILIES[0][1].finditer(text)}
-    for name, pattern, first in _LIST_FAMILIES:
-        matches = list(pattern.finditer(text))
-        if name == "lettered" and matches and matches[0].start() in roman_positions:
-            continue  # `(i)` is a Roman marker unless context proves otherwise
-        if matches and matches[0].group(1).lower() != first:
-            errors.append("%s list begins at %s, not %s"
-                          % (name, matches[0].group(1), first))
+    for region_number, region in enumerate(_list_regions(text), 1):
+        roman_positions = {
+            m.start() for m in _LIST_FAMILIES[0][1].finditer(region)}
+        for name, pattern, first in _LIST_FAMILIES:
+            matches = list(pattern.finditer(region))
+            if name == "lettered":
+                matches = [m for m in matches if m.start() not in roman_positions]
+            if matches and matches[0].group(1).lower() != first:
+                errors.append("%s list begins at %s, not %s (region %d)"
+                              % (name, matches[0].group(1), first,
+                                 region_number))
     for match in _EQUIVALENT.finditer(text):
         tail = text[match.end():match.end() + 2000]
         labelled = max((len(pattern.findall(tail))

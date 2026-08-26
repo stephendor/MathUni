@@ -4,10 +4,12 @@ import json
 import os
 import subprocess
 import sys
+import yaml
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MANIFEST = os.path.join(REPO, "curriculum", "unit-gates.json")
 ZERO_REFS = os.path.join(REPO, "curriculum", "coverage-zero-refs.json")
+SYLLABUS = os.path.join(REPO, "curriculum", "syllabus.yaml")
 
 
 def load_json(path):
@@ -40,17 +42,16 @@ def commands_for_unit(uid, ci=False, manifest_path=MANIFEST,
     return commands
 
 
+def load_syllabus_units(path=SYLLABUS):
+    with open(path, encoding="utf-8") as handle:
+        return {row["id"] for row in yaml.safe_load(handle)["units"]}
+
+
 def discovered_units():
-    root = os.path.join(REPO, "problems", "sets")
-    out = []
-    for name in os.listdir(root):
-        if not name.endswith(".md"):
-            continue
-        uid = name[:-3]
-        context = unit_context(uid)
-        if os.path.isfile(os.path.join(REPO, context["lesson"])):
-            out.append(uid)
-    return sorted(out)
+    # The syllabus owns the governed population.  Deriving --all from an
+    # artifact intersection made deletion remove the unit from the run; using
+    # the registry ensures run_unit sees and rejects either missing half.
+    return sorted(load_syllabus_units())
 
 
 def run_unit(uid, ci=False):

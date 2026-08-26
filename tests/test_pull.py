@@ -44,6 +44,19 @@ def test_a_page_with_no_number_yields_nothing_rather_than_a_guess():
     assert folio_of("no numbers here") == (None, None)
 
 
+def test_each_extracted_page_checks_its_own_first_list_item():
+    text = ("=== p.1 ===\n(i) first\n(ii) second\n"
+            "=== p.2 ===\n(ii) silently lost first\n(iii) third\n")
+    errors = extract_integrity_errors(text)
+    assert any("roman list begins at ii" in error and "region" in error
+               for error in errors)
+
+
+def test_each_heading_starts_a_fresh_list_region():
+    text = "# First\n(i) one\n(ii) two\n# Second\n(ii) missing one\n"
+    assert any("begins at ii" in error for error in extract_integrity_errors(text))
+
+
 # --- fitting an offset over a range ----------------------------------------
 
 def _pages(spec):

@@ -759,8 +759,8 @@ def main(argv=None):
         # The denominator is derived before attribution can skip anything.
         # The checked and unchecked counters below must partition this raw
         # parse exactly; otherwise the gate has no verdict on its own coverage.
-        parsed_citations += len([1 for lab, _t, _c in tails(text)
-                                 if "." in lab])
+        parsed_citations += len([1 for lab, tail, _c in tails(text)
+                                 if "." in lab and pages_in(tail)])
         # Split BEFORE deciding whether this file is worth looking at. The
         # skip used to come first, so a file citing only Lindstrom was printed
         # as SKIP and its citations were never counted -- and the NOTE line
@@ -775,16 +775,18 @@ def main(argv=None):
             if named is not None:
                 current = named
             if current is None or current not in index:
-                n = len([1 for lab, _t, _c in tails(part) if "." in lab])
+                n = len([1 for lab, tail, _c in tails(part)
+                         if "." in lab and pages_in(tail)])
                 if n:
                     if current is None:
                         unattributed += n
                     else:
                         unindexed[current] = unindexed.get(current, 0) + n
                 continue
-            checked_citations += len([1 for lab, _t, _c in tails(part)
-                                      if "." in lab])
-            checked_here = True
+            n = len([1 for lab, tail, _c in tails(part)
+                     if "." in lab and pages_in(tail)])
+            checked_citations += n
+            checked_here = checked_here or bool(n)
             rows, shared = index[current]
             for label, page, actual in check_text(part, rows, shared):
                 bad += 1

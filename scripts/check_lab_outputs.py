@@ -102,7 +102,15 @@ def check_theorem_probes(markdown_text):
     for match in _QUOTED_THEOREM.finditer(markdown_text):
         following = _PROBLEM.search(markdown_text, match.end())
         end = following.start() if following else len(markdown_text)
-        if not _THEOREM_PROBE.search(markdown_text, match.end(), end):
+        executable_probe = False
+        for fence in FENCE.finditer(markdown_text, match.end(), end):
+            info = fence.group("info").strip()
+            lang = info.split(" ")[0] if info else ""
+            if lang in PYTHON_LANGS and _ID.search(info) \
+                    and _THEOREM_PROBE.search(fence.group("body")):
+                executable_probe = True
+                break
+        if not executable_probe:
             line = markdown_text[:match.start()].count("\n") + 1
             failures.append("FAIL quoted theorem at line %d has no executable "
                             "# THEOREM-PROBE before the next problem" % line)

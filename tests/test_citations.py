@@ -518,9 +518,50 @@ def test_running_prose_page_reference_is_checked_once(tmp_path):
     failures, checked, unavailable = C.check_file(str(src), FakeBook())
     assert failures == [] and checked == 1 and unavailable == set()
 
+
+def test_ambiguous_running_prose_requires_explicit_markup(tmp_path):
+    import pytest
+    import scripts.citations as C
+
+    class FakeBook:
+        name = "Fake"
+
+    src = tmp_path / "unit.md"
+    src.write_text("Theorem 1.1 and Theorem 9.9, p. 7.\n", encoding="utf-8")
+    with pytest.raises(C.Unreadable, match="ambiguous result/page binding"):
+        C.check_file(str(src), FakeBook())
+
+
+def test_deduplication_keeps_the_attributed_book(tmp_path):
+    import scripts.citations as C
+
+    class FakeBook:
+        def __init__(self, name, text):
+            self.name, self.text = name, text
+
+        def pdf_pages_for(self, printed):
+            return [10]
+
+        def text_of(self, _page):
+            return self.text
+
+        def find_result(self, _result):
+            return True
+
+    src = tmp_path / "unit.md"
+    src.write_text(
+        "**Sources:** BookA, Theorem 2.3, p. 7.\n\n"
+        "BookB Theorem 2.3, p. 7.\n", encoding="utf-8")
+    books = {"BookA": FakeBook("BookA", "Theorem 2.3"),
+             "BookB": FakeBook("BookB", "no such result")}
+    failures, checked, unavailable = C.check_file(
+        str(src), "BookA", books=books, all_names=sorted(books))
+    assert checked == 2 and len(failures) == 1 and unavailable == set()
+
     # The same assertion inside a recognised span must not enter twice.
     src.write_text("**Sources:** Fake, Theorem 2.3, p. 7\n\n", encoding="utf-8")
-    failures, checked, unavailable = C.check_file(str(src), FakeBook())
+    failures, checked, unavailable = C.check_file(
+        str(src), FakeBook("Fake", "Theorem 2.3"))
     assert failures == [] and checked == 1 and unavailable == set()
 
 

@@ -1,13 +1,16 @@
 """Validate the unit-to-source modality record."""
 import json
 import sys
+import yaml
 
 ALLOWED = {"proves", "states", "sets-as-exercise", "disclaims", "applies"}
 
 
-def errors(records, books):
+def errors(records, books, units=None):
     out = []
     for unit, rows in records.items():
+        if units is not None and unit not in units:
+            out.append("unknown unit %r" % unit)
         for index, row in enumerate(rows, 1):
             label = "%s[%d]" % (unit, index)
             for field in ("claim", "source", "section", "page", "modality"):
@@ -25,7 +28,9 @@ def main():
         records = json.load(f)
     with open("resources/bookmap.json", encoding="utf-8") as f:
         books = json.load(f)
-    found = errors(records, books)
+    with open("curriculum/syllabus.yaml", encoding="utf-8") as f:
+        units = {row["id"] for row in yaml.safe_load(f)["units"]}
+    found = errors(records, books, units)
     for error in found:
         print("FAIL " + error)
     print("%s %d modality record error(s)" % (

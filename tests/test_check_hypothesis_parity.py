@@ -1,4 +1,4 @@
-from scripts.check_hypothesis_parity import contract_errors, parity_errors, result_contexts
+from scripts.check_hypothesis_parity import contract_errors, main, parity_errors, result_contexts
 
 
 def test_scope_block_is_attached_to_following_named_result():
@@ -35,6 +35,19 @@ def test_explanatory_direction_words_are_not_hypotheses():
     assert parity_errors(problem, lesson) == []
 
 
+def test_scope_on_a_different_claim_does_not_attach_to_a_result_mention():
+    problem = ("Suppose V is finite-dimensional. Prove that singular maps "
+               "are not a subspace; use Theorem 1.34 for the subspace test.")
+    lesson = "<p><strong>Theorem 1.34.</strong> A subset is a subspace iff...</p>"
+    assert parity_errors(problem, lesson) == []
+
+
+def test_a_narrower_lesson_statement_is_not_a_missing_prerequisite():
+    problem = "Prove Theorem 1.2."
+    lesson = "<p><strong>Theorem 1.2.</strong> If G is finite, it works.</p>"
+    assert parity_errors(problem, lesson) == []
+
+
 def test_contract_requires_hypothesis_in_both_artifacts():
     problem = "Let R be commutative.\n\nProve Example 8.30."
     lesson = "<p><strong>Example 8.30.</strong> Every cyclic module is R/I.</p>"
@@ -47,4 +60,17 @@ def test_contract_rejects_a_stale_result_label():
     assert contract_errors("Prove Theorem 1.2.", "<p>Theorem 1.2.</p>", {
         "Theorem 9.9": ["finite"]}) == [
             "set missing named result Theorem 9.9",
-            "lesson missing named result Theorem 9.9"]
+        "lesson missing named result Theorem 9.9"]
+
+
+def test_cli_applies_general_parity_without_a_contract(tmp_path, capsys):
+    problem = tmp_path / "set.md"
+    lesson = tmp_path / "lesson.html"
+    contracts = tmp_path / "contracts.json"
+    problem.write_text("Let G be finite.\n\nProve Theorem 1.2.", encoding="utf-8")
+    lesson.write_text("<p><strong>Theorem 1.2.</strong> It works.</p>",
+                      encoding="utf-8")
+    contracts.write_text("{}", encoding="utf-8")
+    assert main(["--unit", "u-01", "--contracts", str(contracts),
+                 str(problem), str(lesson)]) == 1
+    assert "Theorem 1.2 differs" in capsys.readouterr().out

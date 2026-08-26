@@ -254,6 +254,17 @@ def test_a_probe_in_the_next_problem_cannot_satisfy_the_previous_theorem():
     assert check_theorem_probes(text)
 
 
+def test_probe_marker_must_be_inside_an_id_python_block():
+    quoted = "> **Stability Theorem.** Bound.\n\n"
+    decoys = (
+        "# THEOREM-PROBE: heading only\n\n"
+        "```text id=out\n# THEOREM-PROBE: recorded output\n```\n\n"
+        "```python\n# THEOREM-PROBE: untracked code\nprint(1)\n```\n")
+    assert check_theorem_probes(quoted + decoys)
+    real = "```python id=probe\n# THEOREM-PROBE: boundary\nprint(1)\n```\n"
+    assert check_theorem_probes(quoted + real) == []
+
+
 # ------------------------------------------------- env module coverage
 
 def test_env_block_must_import_what_later_blocks_use():

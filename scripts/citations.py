@@ -748,9 +748,11 @@ def pageless_results(text, primary, names, titles=None):
 def unspanned_citations(text, attributed, primary, names, titles=None):
     """Page-bearing prose references not already captured as citation spans."""
     covered = Counter()
-    for span, pages, _line, _name in attributed:
+    covered_results = Counter()
+    for span, pages, _line, name in attributed:
         for result in results_in(span):
-            covered[(result, tuple(sorted(pages)))] += 1
+            covered[(result, tuple(sorted(pages)), name)] += 1
+            covered_results[result] += 1
 
     plain = strip_tags(text)
     out, current, cursor = [], primary, 0
@@ -767,12 +769,25 @@ def unspanned_citations(text, attributed, primary, names, titles=None):
         # More than one result or more than one page phrase needs explicit
         # citation markup: proximity alone cannot bind the pairs honestly.
         if len(results) != 1 or len(list(PAGES.finditer(assertion))) != 1:
+            # strip_tags can join adjacent explicit markdown spans into one
+            # assertion.  If every result occurrence is already owned by a
+            # recognised span, this is not unbound running prose.
+            if results and all(covered_results[result] for result in results):
+                for result in results:
+                    covered_results[result] -= 1
+                continue
+            if results:
+                line = plain[:start].count("\n") + 1
+                raise Unreadable(
+                    "line %d has ambiguous result/page binding; add explicit "
+                    "citation markup" % line)
             continue
         line = plain[:start].count("\n") + 1
         for result in results:
-            key = (result, tuple(sorted(pages)))
+            key = (result, tuple(sorted(pages)), current)
             if covered[key]:
                 covered[key] -= 1
+                covered_results[result] -= 1
             else:
                 out.append((result, pages, line, current))
     return out

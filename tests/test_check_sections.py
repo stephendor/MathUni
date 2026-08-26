@@ -310,6 +310,14 @@ def test_the_corpus_numbered_citations_are_actually_checked():
     assert labels == ["1.3", "2.4"]
 
 
+def test_pageless_section_mention_is_not_in_the_checked_denominator(
+        tmp_path, capsys):
+    p = tmp_path / "unit.md"
+    p.write_text("Abbott §1.3 discusses completeness.", encoding="utf-8")
+    assert main([str(p)]) == 2
+    assert "citation(s) checked" not in capsys.readouterr().out
+
+
 # --- one book per file was never true --------------------------------------
 
 def test_a_second_book_in_one_file_is_not_checked_against_the_first(

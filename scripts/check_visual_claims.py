@@ -12,6 +12,10 @@ PROBE = re.compile(
     r"// VISUAL-CLAIM-PROBE-END",
     re.S,
 )
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REQUIRED = {
+    "lessons/la/la-15.html": {"spectral-eigenvector-angle"},
+}
 
 
 def probes(text):
@@ -42,7 +46,10 @@ def main(argv=None):
     with open(args.lesson_path, encoding="utf-8") as handle:
         text = handle.read()
     found = probes(text)
+    rel = os.path.relpath(os.path.abspath(args.lesson_path), REPO).replace("\\", "/")
+    missing = sorted(REQUIRED.get(rel, set()) - {name for name, _ in found})
     failures = run_probes(text)
+    failures.extend((name, "required probe is missing") for name in missing)
     for name, detail in failures:
         print("FAIL visual claim %s: %s" % (name, detail))
     print("%s %d visual claim probe(s)" % (

@@ -11,3 +11,9 @@ def test_location_without_modality_fails():
     rows = {"u-01": [{"claim": "X", "source": "Book", "section": "1",
                        "page": 2}]}
     assert any("modality" in error for error in errors(rows, {"Book": {}}))
+
+
+def test_unknown_unit_key_fails():
+    rows = {"cta-04": [{"claim": "X", "source": "Book", "section": "1",
+                         "page": 2, "modality": "proves"}]}
+    assert "unknown unit 'cta-04'" in errors(rows, {"Book": {}}, {"cat-04"})

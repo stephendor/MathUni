@@ -39,8 +39,12 @@ def test_workflow_consumes_the_manifest_runner():
         "source-heading", "sections", "lab-outputs"}
 
 
-def test_discovery_names_only_complete_unit_pairs():
+def test_discovery_names_the_governed_unit_population():
     units = discovered_units()
     assert "aa-07" in units and "lab-02" in units
-    assert all((ROOT / unit_context(uid)["problem"]).is_file() and
-               (ROOT / unit_context(uid)["lesson"]).is_file() for uid in units)
+
+
+def test_discovery_keeps_incomplete_pairs_visible(monkeypatch):
+    monkeypatch.setattr("scripts.check_unit.load_syllabus_units",
+                        lambda: {"aa-07", "future-99"})
+    assert "future-99" in discovered_units()

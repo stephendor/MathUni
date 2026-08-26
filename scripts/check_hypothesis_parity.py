@@ -95,9 +95,28 @@ def parity_errors(problem_text, lesson_text):
     lesson = result_contexts(lesson_text, html=True)
     errors = []
     for ref in sorted(set(problem) & set(lesson)):
-        problem_terms = qualifiers(problem[ref])
-        lesson_terms = qualifiers(lesson[ref])
-        if problem_terms != lesson_terms:
+        # Compare result statements/instructions, not incidental mentions in
+        # surrounding discussion.  A problem may say "Suppose V is finite"
+        # and later mention a prior theorem while explaining a different
+        # claim; charging that scope to the mention creates false parity.
+        direct = re.compile(
+            r"^(?:(?:(?:let|assume|throughout|suppose|if)\b.*?"
+            r"[.!?]\s+))?(?:prove\s+)?%s\b" % re.escape(ref), re.I)
+
+        def is_direct(context):
+            candidate = re.sub(r"^[\s*_()\d.:-]+", "", context)
+            return bool(direct.search(candidate))
+
+        problem_contexts = [c for c in problem[ref] if is_direct(c)]
+        lesson_contexts = [c for c in lesson[ref] if is_direct(c)]
+        if not problem_contexts or not lesson_contexts:
+            continue
+        problem_terms = qualifiers(problem_contexts)
+        lesson_terms = qualifiers(lesson_contexts)
+        # The lesson is allowed to teach a theorem in a narrower setting than
+        # a later exercise needs.  The dangerous direction is the reverse:
+        # the set depends on a hypothesis that its supplying lesson omitted.
+        if problem_terms - lesson_terms:
             errors.append((ref, problem_terms, lesson_terms))
     return errors
 
@@ -136,9 +155,14 @@ def main(argv=None):
     with open(args.contracts, encoding="utf-8") as handle:
         contracts = json.load(handle)
     errors = contract_errors(problem, lesson, contracts.get(args.unit, {}))
+    errors.extend(
+        "%s differs: set=%s lesson=%s" %
+        (ref, sorted(problem_terms), sorted(lesson_terms))
+        for ref, problem_terms, lesson_terms in parity_errors(problem, lesson)
+    )
     for error in errors:
         print("FAIL " + error)
-    print("%s %d contracted hypothesis error(s)" % (
+    print("%s %d hypothesis parity error(s)" % (
         "FAIL" if errors else "PASS", len(errors)))
     return 1 if errors else 0
 

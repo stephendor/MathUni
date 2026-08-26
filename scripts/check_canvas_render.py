@@ -101,6 +101,11 @@ def render_errors(paths, browser=None, exceptions_path=EXCEPTIONS):
     errors = []
     with open(exceptions_path, encoding="utf-8") as handle:
         exceptions = json.load(handle)
+    requested = {
+        os.path.relpath(os.path.abspath(path), REPO).replace("\\", "/")
+        for path in paths
+    }
+    exercised = set()
     for item in render_results(paths, browser=browser):
         parsed = unquote(urlparse(item["url"]).path).lstrip("/")
         if os.name == "nt" and re.match(r"^[A-Za-z]:/", parsed):
@@ -113,8 +118,15 @@ def render_errors(paths, browser=None, exceptions_path=EXCEPTIONS):
                               " after click" if item.get("state") else "")
         if not item["painted"]:
             errors.append(label + " is blank")
-        elif item["clipped"] and exception_key not in exceptions:
-            errors.append(label + " paints against an edge with an interior gap")
+        elif item["clipped"]:
+            if exception_key in exceptions:
+                exercised.add(exception_key)
+            else:
+                errors.append(label + " paints against an edge with an interior gap")
+    stale = sorted(key for key in exceptions
+                   if key.rsplit("#", 1)[0] in requested and key not in exercised)
+    errors.extend("stale canvas-render exception was not exercised: " + key
+                  for key in stale)
     return errors
 
 
