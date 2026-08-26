@@ -181,6 +181,12 @@ def test_css_expression_is_rejected_only_in_css_containers():
     assert css_expression_hits('<p>CSS expression(x) is obsolete.</p>') == []
 
 
+def test_css_expression_in_comments_and_strings_is_inert():
+    html = ('<style>/* IE used width: expression(x) */ '
+            'p::after { content: "expression(y)"; }</style>')
+    assert css_expression_hits(html) == []
+
+
 def test_non_javascript_script_blocks_are_not_sent_to_node():
     """`<script type="application/json">{"x": 1}</script>` is data. node --check
     rejects it as JavaScript, failing a valid offline lesson."""

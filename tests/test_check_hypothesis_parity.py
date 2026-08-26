@@ -83,6 +83,17 @@ def test_contract_requires_hypothesis_in_both_artifacts():
     lesson = "<p><strong>Example 8.30.</strong> Every cyclic module is R/I.</p>"
     assert contract_errors(problem, lesson, {
         "Example 8.30": ["commutative"]}) == [
+        "lesson Example 8.30 missing hypotheses ['commutative']"]
+
+
+def test_contract_qualifier_cannot_come_from_another_result_sentence():
+    problem = ("Theorem 1.1 assumes R is commutative. "
+               "Example 8.30 holds.")
+    lesson = ("<p>Theorem 1.1 assumes R is commutative. "
+              "Example 8.30 holds.</p>")
+    assert contract_errors(problem, lesson, {
+        "Example 8.30": ["commutative"]}) == [
+            "set Example 8.30 missing hypotheses ['commutative']",
             "lesson Example 8.30 missing hypotheses ['commutative']"]
 
 

@@ -28,6 +28,7 @@ def governed_modules(repo=REPO):
 def unit_refs(text, repo=REPO):
     text = re.sub(r"<(script|style)\b[^>]*>.*?</\1>", "", text,
                   flags=re.I | re.S)
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
     modules = governed_modules(repo)
     refs = set()
     for match in UNIT_REF.finditer(text):

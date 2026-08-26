@@ -100,10 +100,11 @@ def extract_integrity_errors(text):
                                  region_number))
             values = [_marker_value(name, match.group(1)) for match in matches]
             for index, (left, right) in enumerate(zip(values, values[1:])):
-                between = region[matches[index].end():matches[index + 1].start()]
-                paragraphs = [part for part in re.split(r"\n\s*\n", between)
-                              if part.strip()]
-                restarted = right == 1 and len(paragraphs) >= 2
+                # Returning to the first marker starts a new list. Requiring a
+                # particular amount of intervening prose made extraction
+                # integrity depend on an author's paragraph formatting and
+                # rejected intact pages containing consecutive exercises.
+                restarted = right == 1
                 if restarted:
                     continue
                 if right != left + 1:

@@ -35,3 +35,7 @@ def test_unknown_module_reference_is_not_filtered_out(tmp_path):
 def test_unknown_module_after_corpus_cross_reference_wording_is_retained(tmp_path):
     assert unit_refs("Deferred to cta-04.", str(tmp_path)) == ["cta-04"]
     assert unit_refs("This is developed in cta-04.", str(tmp_path)) == ["cta-04"]
+
+
+def test_hidden_html_comment_does_not_create_a_unit_reference(tmp_path):
+    assert unit_refs("<!-- See aa-99. -->", str(tmp_path)) == []

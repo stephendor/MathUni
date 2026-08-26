@@ -70,6 +70,11 @@ def test_unheaded_list_may_restart_after_an_intervening_prose_paragraph():
     assert extract_integrity_errors(text) == []
 
 
+def test_consecutive_unheaded_lists_may_restart_at_one():
+    text = "1. first\n2. second\n1. new first\n2. new second\n"
+    assert extract_integrity_errors(text) == []
+
+
 def test_each_heading_starts_a_fresh_list_region():
     text = "# First\n(i) one\n(ii) two\n# Second\n(ii) missing one\n"
     assert any("begins at ii" in error for error in extract_integrity_errors(text))

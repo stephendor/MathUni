@@ -439,8 +439,17 @@ def css_expression_hits(html):
     p.feed(html)
     p.close()
     values = p.styles + [m.group(1) for m in _STYLE_TAG.finditer(html)]
+    def executable_css(value):
+        # Comments and quoted strings are inert CSS text. Searching the raw
+        # container made documentation such as `/* width: expression(x) */`
+        # fail even though no declaration could execute it.
+        active = re.sub(r"/\*.*?\*/", "", value, flags=re.S)
+        active = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
+                        "", active, flags=re.S)
+        return re.search(r"\bexpression\s*\(", active, re.I)
+
     return ["CSS expression %d" % n for n, value in enumerate(values, 1)
-            if re.search(r"\bexpression\s*\(", value, re.I)]
+            if executable_css(value)]
 
 
 # One node process per FILE, not per handler. A lesson carries fifteen or so

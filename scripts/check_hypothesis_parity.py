@@ -103,6 +103,14 @@ def positive_qualifiers(text):
     return terms
 
 
+def sentences(text):
+    """Split prose without cutting result numbers or page abbreviations."""
+    protected = re.sub(r"\b([Pp])\.", r"\1<DOT>", text)
+    protected = re.sub(r"(?<=\d)\.(?=\d)", "<DOT>", protected)
+    return [part.replace("<DOT>", ".") for part in
+            re.split(r"(?<=[.!?])\s+", protected)]
+
+
 def qualifiers(contexts):
     terms = set()
     for context in contexts:
@@ -164,7 +172,31 @@ def contract_errors(problem_text, lesson_text, requirements):
             if ref not in contexts:
                 errors.append("%s missing named result %s" % (artifact, ref))
                 continue
-            joined = " ".join(contexts[ref])
+            scoped = []
+            for context in contexts[ref]:
+                context_sentences = sentences(context)
+                for index, sentence in enumerate(context_sentences):
+                    if ref not in sentence:
+                        continue
+                    parts = [sentence]
+                    # HTML theorem labels commonly form a sentence of their
+                    # own (`Corollary 9.11.</strong> Suppose ...`). Its actual
+                    # statement is the next sentence, so keep that one too.
+                    label = sentence.strip().rstrip(".")
+                    if label.endswith(ref) and index + 1 < len(context_sentences):
+                        parts.append(context_sentences[index + 1])
+                    # A scope paragraph may explain why its standing
+                    # hypothesis matters before the result appears. Search
+                    # backward to the nearest explicit scope sentence, but
+                    # never cross another named result.
+                    for prior in reversed(context_sentences[:index]):
+                        if REF_PATTERN.search(prior):
+                            break
+                        if SCOPE.search(prior.lstrip("*_() abcdefg.:-")):
+                            parts.insert(0, prior)
+                            break
+                    scoped.append(" ".join(parts))
+            joined = " ".join(scoped)
             found = positive_qualifiers(joined)
             missing = expected - found
             if missing:
