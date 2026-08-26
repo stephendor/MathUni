@@ -1,4 +1,5 @@
-from scripts.check_hypothesis_parity import contract_errors, main, parity_errors, result_contexts
+from scripts.check_hypothesis_parity import (contract_errors, main, parity_errors,
+                                             registry_errors, result_contexts)
 
 
 def test_scope_block_is_attached_to_following_named_result():
@@ -61,6 +62,11 @@ def test_contract_rejects_a_stale_result_label():
         "Theorem 9.9": ["finite"]}) == [
             "set missing named result Theorem 9.9",
         "lesson missing named result Theorem 9.9"]
+
+
+def test_contract_registry_rejects_unknown_unit_key():
+    assert registry_errors({"cat-04"}, {"cta-04": {}}) == [
+        "hypothesis contract names unknown unit cta-04"]
 
 
 def test_cli_applies_general_parity_without_a_contract(tmp_path, capsys):

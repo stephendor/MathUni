@@ -310,6 +310,14 @@ def test_unspanned_results_follow_the_last_named_book_segment():
     assert got == [("Theorem 1.2", {3}, 1, "Axler")]
 
 
+def test_unspanned_scan_ignores_non_rendered_html_containers():
+    from scripts.citations import unspanned_citations
+    text = ("<!-- Theorem 1.2, p. 4 -->"
+            "<script>const note='Theorem 2.3, p. 5';</script>"
+            "<style>/* Theorem 3.4, p. 6 */</style>")
+    assert unspanned_citations(text, [], "Axler", ["Axler"]) == []
+
+
 def test_the_number_first_word_order_rejects_a_longer_sibling():
     """Axler prints "1.8 Definition"; that order needs the same boundary."""
     from scripts.citations import found_on_page

@@ -253,6 +253,14 @@ def test_a_quoted_theorem_requires_a_local_executable_probe():
     assert check_theorem_probes(probed) == []
 
 
+def test_one_probe_cannot_cover_two_quoted_theorems():
+    text = ("> **First Theorem**\n\n> **Second Theorem**\n\n"
+            + code_block("p", "# THEOREM-PROBE: only one\nprint(1)"))
+    failures = check_theorem_probes(text)
+    assert len(failures) == 1
+    assert "line 3" in failures[0]
+
+
 def test_a_probe_in_the_next_problem_cannot_satisfy_the_previous_theorem():
     text = ("> **Nerve Theorem.** If the cover is good.\n\n"
             "## Problem 2\n\n" +

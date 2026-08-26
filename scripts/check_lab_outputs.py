@@ -99,6 +99,7 @@ def check_theorem_probes(markdown_text):
     remains owned by the ordinary block gate.
     """
     failures = []
+    used_probes = set()
     for match in _QUOTED_THEOREM.finditer(markdown_text):
         following = _PROBLEM.search(markdown_text, match.end())
         end = following.start() if following else len(markdown_text)
@@ -107,8 +108,10 @@ def check_theorem_probes(markdown_text):
             info = fence.group("info").strip()
             lang = info.split(" ")[0] if info else ""
             if lang in PYTHON_LANGS and _ID.search(info) \
-                    and _THEOREM_PROBE.search(fence.group("body")):
+                    and _THEOREM_PROBE.search(fence.group("body")) \
+                    and fence.start() not in used_probes:
                 executable_probe = True
+                used_probes.add(fence.start())
                 break
         if not executable_probe:
             line = markdown_text[:match.start()].count("\n") + 1

@@ -309,7 +309,9 @@ function drawSieve(){
  sx.fillStyle='#9aa5b1';
  sx.fillText('green: a simple group exists    red: ruled out    amber: still open',14,sc2.height-38);
  sx.fillStyle='#d8a657';
- sx.fillText(open.length+' order'+(open.length===1?'':'s')+' still open: '+
-   (open.length?open.join(', '):'none'),14,sc2.height-16);}
+ var summary=open.length+' order'+(open.length===1?'':'s')+' still open';
+ if(RULE>0)summary+=': '+(open.length?open.join(', '):'none');
+ else summary+=' (the composite orders)';
+ sx.fillText(summary,14,sc2.height-16);}
 drawSieve();
 </script></body></html>

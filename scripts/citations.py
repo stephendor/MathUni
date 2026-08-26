@@ -176,6 +176,13 @@ def strip_tags(text):
     return re.sub(r"<[^>]+>", " ", text)
 
 
+def rendered_text(text):
+    text = re.sub(r"<!--[\s\S]*?-->", " ", text)
+    text = re.sub(r"<(script|style)\b[^>]*>[\s\S]*?</\1>", " ", text,
+                  flags=re.I)
+    return strip_tags(text)
+
+
 def spans(text):
     """Citation spans, as (span_text, line_number)."""
     out, seen = [], set()
@@ -730,7 +737,7 @@ def pageless_results(text, primary, names, titles=None):
     compare.  They still need a name check, because silently dropping the
     incomplete pair is how a plausible but nonexistent result number survives.
     """
-    plain = strip_tags(text)
+    plain = rendered_text(text)
     out, current, cursor = [], primary, 0
     for assertion in _split_assertions(plain):
         start = plain.find(assertion, cursor)
@@ -754,7 +761,7 @@ def unspanned_citations(text, attributed, primary, names, titles=None):
             covered[(result, tuple(sorted(pages)), name)] += 1
             covered_results[result] += 1
 
-    plain = strip_tags(text)
+    plain = rendered_text(text)
     out, current, cursor = [], primary, 0
     for assertion in _split_assertions(plain):
         start = plain.find(assertion, cursor)

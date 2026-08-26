@@ -57,6 +57,17 @@ _LIST_FAMILIES = (
 )
 _EQUIVALENT = re.compile(r"the following are equivalent\s*:", re.I)
 _EXTRACT_BOUNDARY = re.compile(r"(?m)^(?:=== p\.\d+.*===|#{1,6}\s+.*)$")
+_PAGE_BOUNDARY = re.compile(r"^=== p\.\d+.*===")
+
+
+def _marker_value(name, marker):
+    if name == "numbered":
+        return int(marker)
+    if name == "lettered":
+        return ord(marker.lower()) - ord("a") + 1
+    roman = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5,
+             "vi": 6, "vii": 7, "viii": 8, "ix": 9, "x": 10}
+    return roman[marker.lower()]
 
 
 def _list_regions(text):
@@ -70,17 +81,27 @@ def _list_regions(text):
 def extract_integrity_errors(text):
     """Structural signs that a page extraction silently dropped list items."""
     errors = []
+    previous_last = {}
     for region_number, region in enumerate(_list_regions(text), 1):
+        page_continuation = bool(_PAGE_BOUNDARY.match(region))
         roman_positions = {
             m.start() for m in _LIST_FAMILIES[0][1].finditer(region)}
         for name, pattern, first in _LIST_FAMILIES:
             matches = list(pattern.finditer(region))
             if name == "lettered":
                 matches = [m for m in matches if m.start() not in roman_positions]
-            if matches and matches[0].group(1).lower() != first:
+            first_value = (_marker_value(name, matches[0].group(1))
+                           if matches else None)
+            continues = (page_continuation and name in previous_last
+                         and first_value == previous_last[name] + 1)
+            if matches and matches[0].group(1).lower() != first and not continues:
                 errors.append("%s list begins at %s, not %s (region %d)"
                               % (name, matches[0].group(1), first,
                                  region_number))
+            if matches:
+                previous_last[name] = _marker_value(name, matches[-1].group(1))
+            elif not page_continuation:
+                previous_last.pop(name, None)
     for match in _EQUIVALENT.finditer(text):
         tail = text[match.end():match.end() + 2000]
         labelled = max((len(pattern.findall(tail))

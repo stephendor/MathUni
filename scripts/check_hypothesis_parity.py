@@ -6,6 +6,8 @@ import os
 import re
 import sys
 
+import yaml
+
 QUALIFIERS = {
     "commutative": re.compile(r"\bcommutative\b", re.I),
     "finite": re.compile(r"\bfinite\b", re.I),
@@ -27,6 +29,14 @@ REF_PREFIX = re.compile(
 DEFAULT_CONTRACTS = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     "curriculum", "hypothesis-contracts.json")
+SYLLABUS = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "curriculum", "syllabus.yaml")
+
+
+def registry_errors(units, contracts):
+    return ["hypothesis contract names unknown unit %s" % unit
+            for unit in sorted(set(contracts) - set(units))]
 
 
 class Blocks(HTMLParser):
@@ -145,6 +155,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--unit", required=True)
     parser.add_argument("--contracts", default=DEFAULT_CONTRACTS)
+    parser.add_argument("--syllabus", default=SYLLABUS)
     parser.add_argument("problem_set_path")
     parser.add_argument("lesson_html_path")
     args = parser.parse_args(argv)
@@ -154,7 +165,10 @@ def main(argv=None):
         lesson = handle.read()
     with open(args.contracts, encoding="utf-8") as handle:
         contracts = json.load(handle)
-    errors = contract_errors(problem, lesson, contracts.get(args.unit, {}))
+    with open(args.syllabus, encoding="utf-8") as handle:
+        units = {unit["id"] for unit in yaml.safe_load(handle)["units"]}
+    errors = registry_errors(units, contracts)
+    errors += contract_errors(problem, lesson, contracts.get(args.unit, {}))
     errors.extend(
         "%s differs: set=%s lesson=%s" %
         (ref, sorted(problem_terms), sorted(lesson_terms))

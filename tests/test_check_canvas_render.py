@@ -38,6 +38,15 @@ x.fillRect(10,10,20,20);</script>""")
     assert any("not visible" in error for error in render_errors([path]))
 
 
+def test_each_interactive_canvas_state_is_checked(tmp_path):
+    path = lesson(tmp_path, """
+<button onclick="c.getContext('2d').clearRect(0,0,c.width,c.height)">blank</button>
+<button onclick="c.getContext('2d').fillRect(10,10,20,20)">restore</button>
+<script>c.getContext('2d').fillRect(10,10,20,20)</script>""")
+    assert any("after click" in error and "blank" in error
+               for error in render_errors([path]))
+
+
 def test_unused_exception_for_a_requested_lesson_fails(tmp_path):
     path = lesson(tmp_path, """<script>const x=c.getContext('2d');
 x.fillRect(10,10,20,20);</script>""")

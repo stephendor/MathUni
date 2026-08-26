@@ -21,3 +21,11 @@ def test_unknown_unit_key_fails():
 
 def test_empty_record_population_fails():
     assert "no modality records were provided" in errors({}, {"Book": {}})
+
+
+def test_source_must_belong_to_the_enclosing_unit():
+    rows = {"cat-04": [{"claim": "X", "source": "Axler", "section": "1",
+                         "page": 2, "modality": "states"}]}
+    found = errors(rows, {"Axler": {}, "Spivak": {}}, {"cat-04"},
+                   {"cat-04": {"Spivak"}})
+    assert "cat-04[1] source 'Axler' is not a resource for cat-04" in found

@@ -63,11 +63,14 @@ async function run(){
     const canvases=[...doc.querySelectorAll('canvas')].filter(c=>
       c.getAttribute('aria-hidden')!=='true');
     for(const c of canvases) out.push({url,id:c.id,visible:visible(c),...pixels(c)});
+    let interaction=0;
     for(const b of doc.querySelectorAll('button[onclick]')){
-      if(!/^check\s*\(/.test(b.getAttribute('onclick'))) try{b.click()}catch(e){}
+      if(/^check\s*\(/.test(b.getAttribute('onclick'))) continue;
+      try{b.click()}catch(e){}
+      interaction++;
+      await new Promise(ok=>setTimeout(ok,40));
+      for(const c of canvases) out.push({url,id:c.id,state:'after-click-'+interaction,visible:visible(c),...pixels(c)});
     }
-    await new Promise(ok=>setTimeout(ok,40));
-    for(const c of canvases) out.push({url,id:c.id,state:'after-click',visible:visible(c),...pixels(c)});
     f.remove();
   }
   document.getElementById('result').textContent=JSON.stringify(out);
