@@ -98,7 +98,8 @@ async function run(){
         target.dispatchEvent(new MouseEvent('click',{bubbles:true,
           clientX:r.left+r.width*point[0],clientY:r.top+r.height*point[1]}));
         interaction++;
-        await new Promise(ok=>setTimeout(ok,80));
+        const settle=point[2]==='left'?Number(target.dataset.renderSettleMs||80):80;
+        await new Promise(ok=>setTimeout(ok,settle));
         for(const c of canvases) out.push({url,id:c.id,state:'after-canvas-'+point[2],visible:visible(c),...pixels(c)});
       }
     }

@@ -12,7 +12,9 @@ import argparse
 import re
 import sys
 
-REF_PATTERN = re.compile(r"(Theorem|Definition|Lemma|Corollary)\s+\d+[A-Za-z]?(?:\.\d+)*")
+REF_PATTERN = re.compile(
+    r"(Theorem|Definition|Lemma|Corollary|Proposition|Example)\s+"
+    r"\d+[A-Za-z]?(?:\.\d+)*")
 
 # Obs 153: REF_PATTERN only matches the singular-and-separate citation form
 # ("Definition 11.9"). A plural keyword with a comma/dash-joined list
@@ -22,7 +24,8 @@ REF_PATTERN = re.compile(r"(Theorem|Definition|Lemma|Corollary)\s+\d+[A-Za-z]?(?
 # range reads as an untaught miss, and a problem set citing that way has its
 # references skipped by the denominator entirely. Expand such citations into
 # their individual singular refs before checking coverage.
-_KEYWORD = r"Theorems?|Definitions?|Lemmas?|Corollar(?:y|ies)"
+_KEYWORD = (r"Theorems?|Definitions?|Lemmas?|Corollar(?:y|ies)|"
+            r"Propositions?|Examples?")
 _NUMBER = r"\d+[A-Za-z]?(?:\.\d+)*"
 _RANGE_PATTERN = re.compile(rf"({_KEYWORD})\s+({_NUMBER}(?:\s*(?:[-–—,]|and)\s*{_NUMBER})+)")
 _SINGULAR_KEYWORD = {
@@ -34,6 +37,10 @@ _SINGULAR_KEYWORD = {
     "lemmas": "Lemma",
     "corollary": "Corollary",
     "corollaries": "Corollary",
+    "proposition": "Proposition",
+    "propositions": "Proposition",
+    "example": "Example",
+    "examples": "Example",
 }
 
 

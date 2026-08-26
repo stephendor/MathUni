@@ -87,6 +87,16 @@ def result_contexts(text, html=False):
     return out
 
 
+def positive_qualifiers(text):
+    terms = set()
+    for name, pattern in QUALIFIERS.items():
+        for match in pattern.finditer(text):
+            prefix = text[max(0, match.start() - 12):match.start()]
+            if not re.search(r"(?:\bnot\s+|\bnon[- ]?)$", prefix, re.I):
+                terms.add(name)
+    return terms
+
+
 def qualifiers(contexts):
     terms = set()
     for context in contexts:
@@ -95,13 +105,14 @@ def qualifiers(contexts):
                 "", sentence.strip().lstrip("*_() abcdefg.:-"))
             if not SCOPE.search(candidate):
                 continue
+            positive = positive_qualifiers(candidate)
+            terms.update(positive)
             for name, pattern in QUALIFIERS.items():
                 for match in pattern.finditer(candidate):
                     prefix = candidate[max(0, match.start() - 12):match.start()]
-                    if re.search(r"(?:\bnot\s+|\bnon[- ]?)$", prefix, re.I):
+                    if name not in positive and re.search(
+                            r"(?:\bnot\s+|\bnon[- ]?)$", prefix, re.I):
                         terms.add("not " + name)
-                    else:
-                        terms.add(name)
     return terms
 
 
@@ -115,8 +126,9 @@ def parity_errors(problem_text, lesson_text):
         # and later mention a prior theorem while explaining a different
         # claim; charging that scope to the mention creates false parity.
         direct = re.compile(
-            r"^(?:(?:(?:let|assume|throughout|suppose|if)\b.*?"
-            r"[.!?]\s+))?(?:prove\s+)?%s\b" % re.escape(ref), re.I)
+            r"^(?:(?:(?:let|assume|throughout|suppose|if)\b[^.!?]*?"
+            r"(?:[.!?]\s+|\band\s+)))?(?:prove\s+)?%s\b"
+            % re.escape(ref), re.I)
 
         def is_direct(context):
             candidate = re.sub(r"^[\s*_()\d.:-]+", "", context)
@@ -147,7 +159,7 @@ def contract_errors(problem_text, lesson_text, requirements):
                 errors.append("%s missing named result %s" % (artifact, ref))
                 continue
             joined = " ".join(contexts[ref])
-            found = qualifiers([joined])
+            found = positive_qualifiers(joined)
             missing = expected - found
             if missing:
                 errors.append("%s %s missing hypotheses %s" % (

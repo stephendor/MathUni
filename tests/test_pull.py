@@ -58,6 +58,11 @@ def test_a_list_may_continue_at_the_next_page_boundary():
     assert extract_integrity_errors(text) == []
 
 
+def test_missing_marker_inside_a_list_is_rejected():
+    errors = extract_integrity_errors("(i) first\n(iii) third\n")
+    assert any("roman list jumps from 1 to 3" in error for error in errors)
+
+
 def test_each_heading_starts_a_fresh_list_region():
     text = "# First\n(i) one\n(ii) two\n# Second\n(ii) missing one\n"
     assert any("begins at ii" in error for error in extract_integrity_errors(text))

@@ -24,6 +24,19 @@ def test_matching_hypothesis_passes():
     assert parity_errors(problem, lesson) == []
 
 
+def test_same_sentence_and_prove_connector_preserves_scope():
+    problem = "Assume G is finite and prove Theorem 1.2."
+    lesson = "<p><strong>Theorem 1.2.</strong> It works.</p>"
+    assert parity_errors(problem, lesson) == [
+        ("Theorem 1.2", {"finite"}, set())]
+
+
+def test_scope_does_not_jump_across_an_intervening_sentence():
+    problem = "Assume G is finite. Discuss the example. Theorem 1.2 applies."
+    lesson = "<p><strong>Theorem 1.2.</strong> It works.</p>"
+    assert parity_errors(problem, lesson) == []
+
+
 def test_negated_qualifier_cannot_satisfy_positive_hypothesis():
     problem = "Let R be commutative. Theorem 1.2 works."
     lesson = "<p>Let R be not commutative. Theorem 1.2 works.</p>"

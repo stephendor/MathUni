@@ -84,6 +84,15 @@ const r=c.getBoundingClientRect();if(e.clientX-r.left<r.width*.1)x.clearRect(0,0
                for error in render_errors([path]))
 
 
+def test_canvas_declared_settle_time_reaches_late_animation_state(tmp_path):
+    path = lesson(tmp_path, """<script>
+c.dataset.renderSettleMs='180';const x=c.getContext('2d');x.fillRect(10,10,20,20);
+c.addEventListener('click',e=>{const r=c.getBoundingClientRect();
+if(e.clientX-r.left<r.width*.1)setTimeout(()=>x.clearRect(0,0,c.width,c.height),120);});</script>""")
+    assert any("after-canvas-left" in error and "blank" in error
+               for error in render_errors([path]))
+
+
 def test_unused_exception_for_a_requested_lesson_fails(tmp_path):
     path = lesson(tmp_path, """<script>const x=c.getContext('2d');
 x.fillRect(10,10,20,20);</script>""")

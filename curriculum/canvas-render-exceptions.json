@@ -5,6 +5,7 @@
   "lessons/la/la-04.html#bc": "basis vectors intentionally continue beyond the plotting window",
   "lessons/la/la-09.html#q": "quotient-space lines intentionally continue beyond the plotting window",
   "lessons/tda2/tda2-04.html#ilCanvas": "the initial interleaving path intentionally begins on the left viewport edge",
+  "lessons/pw/pw-02.html#dominoCanvas@after-canvas-left": "the settled domino cascade intentionally reaches the canvas edge",
   "lessons/pw/pw-02.html#dominoCanvas@after-canvas-centre": "the running domino cascade intentionally reaches the canvas edge",
   "lessons/pw/pw-02.html#dominoCanvas@after-canvas-right": "the running domino cascade intentionally reaches the canvas edge"
 }

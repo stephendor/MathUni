@@ -17,6 +17,12 @@ def test_ref_absent_from_lesson_is_reported():
     assert find_missing_refs(problem_set, lesson) == ["Theorem 1.29"]
 
 
+def test_propositions_and_examples_belong_to_coverage_population():
+    problem_set = "Use Proposition 9.25 and Example 9.39."
+    lesson = "<p>Example 9.39 is worked here.</p>"
+    assert find_missing_refs(problem_set, lesson) == ["Proposition 9.25"]
+
+
 def test_multiple_missing_refs_sorted():
     problem_set = "See Theorem 1.34, Theorem 1.29, Definition 1.20."
     lesson = "<p>No theorems mentioned here.</p>"

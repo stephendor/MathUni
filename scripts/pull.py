@@ -98,6 +98,11 @@ def extract_integrity_errors(text):
                 errors.append("%s list begins at %s, not %s (region %d)"
                               % (name, matches[0].group(1), first,
                                  region_number))
+            values = [_marker_value(name, match.group(1)) for match in matches]
+            for left, right in zip(values, values[1:]):
+                if right != left + 1:
+                    errors.append("%s list jumps from %s to %s (region %d)" % (
+                        name, left, right, region_number))
             if matches:
                 previous_last[name] = _marker_value(name, matches[-1].group(1))
             elif not page_continuation:
