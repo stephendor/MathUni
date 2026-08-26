@@ -43,7 +43,23 @@ def test_each_interactive_canvas_state_is_checked(tmp_path):
 <button onclick="c.getContext('2d').clearRect(0,0,c.width,c.height)">blank</button>
 <button onclick="c.getContext('2d').fillRect(10,10,20,20)">restore</button>
 <script>c.getContext('2d').fillRect(10,10,20,20)</script>""")
-    assert any("after click" in error and "blank" in error
+    assert any("after-click" in error and "blank" in error
+               for error in render_errors([path]))
+
+
+def test_range_input_states_are_checked(tmp_path):
+    path = lesson(tmp_path, """
+<input id="r" type="range" min="0" max="1" value="0">
+<script>const x=c.getContext('2d');x.fillRect(10,10,20,20);
+r.addEventListener('input',()=>{if(r.value==='1')x.clearRect(0,0,c.width,c.height)})</script>""")
+    assert any("after-range" in error and "blank" in error
+               for error in render_errors([path]))
+
+
+def test_canvas_click_state_is_checked(tmp_path):
+    path = lesson(tmp_path, """<script>const x=c.getContext('2d');
+x.fillRect(10,10,20,20);c.addEventListener('click',()=>x.clearRect(0,0,c.width,c.height));</script>""")
+    assert any("after-canvas" in error and "blank" in error
                for error in render_errors([path]))
 
 

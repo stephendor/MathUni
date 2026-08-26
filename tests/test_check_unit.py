@@ -19,7 +19,9 @@ def test_manifest_applies_module_specific_gates():
     aa = [name for name, _command in commands_for_unit("aa-07", ci=True)]
     lab = [name for name, _command in commands_for_unit("lab-02", ci=True)]
     assert "sections" in aa and "lab-outputs" not in aa
-    assert "lab-outputs" in lab and "sections" not in lab
+    assert "lab-outputs" in lab and "sections" in lab
+    assert "--allow-no-indexed" in dict(
+        commands_for_unit("pw-04", ci=True))["sections"]
 
 
 def test_zero_ref_disposition_reaches_the_coverage_command():

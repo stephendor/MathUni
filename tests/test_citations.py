@@ -310,6 +310,13 @@ def test_unspanned_results_follow_the_last_named_book_segment():
     assert got == [("Theorem 1.2", {3}, 1, "Axler")]
 
 
+def test_pageless_results_follow_the_last_named_book_segment():
+    from scripts.citations import pageless_results
+    got = pageless_results("Compare Abbott with Axler Theorem 1.2.",
+                           "Abbott", ["Abbott", "Axler"])
+    assert got == [("Theorem 1.2", 1, "Axler")]
+
+
 def test_unspanned_scan_ignores_non_rendered_html_containers():
     from scripts.citations import unspanned_citations
     text = ("<!-- Theorem 1.2, p. 4 -->"

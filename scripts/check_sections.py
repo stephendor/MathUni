@@ -699,6 +699,9 @@ def main(argv=None):
                     help="regenerate the section index for BOOK from its "
                          "page tree (needs the book drive)")
     ap.add_argument("--selftest", action="store_true")
+    ap.add_argument("--allow-no-indexed", action="store_true",
+                    help="succeed with an explicit zero-checked report when "
+                         "the supplied unit names no indexed book")
     args = ap.parse_args(argv)
 
     if args.selftest:
@@ -807,6 +810,10 @@ def main(argv=None):
               file=sys.stderr)
         return 2
     if not total:
+        if args.allow_no_indexed:
+            print("PASS 0 file(s) checked, 0 citation(s) checked, %d unchecked, "
+                  "0 wrong label(s)" % unchecked_citations)
+            return 0
         print("NO VERDICT: no file named an indexed book", file=sys.stderr)
         return 2
     if unindexed:

@@ -29,3 +29,20 @@ def test_source_must_belong_to_the_enclosing_unit():
     found = errors(rows, {"Axler": {}, "Spivak": {}}, {"cat-04"},
                    {"cat-04": {"Spivak"}})
     assert "cat-04[1] source 'Axler' is not a resource for cat-04" in found
+
+
+def test_locations_require_scalar_types_and_match_indexed_section():
+    rows = {"u-01": [{"claim": "X", "source": "Book", "section": {},
+                       "page": "banana", "modality": "proves"}]}
+    found = errors(rows, {"Book": {}}, sections={
+        "Book": {"sections": {"1.1": 1, "1.2": 5}}})
+    assert "u-01[1] section must be a string" in found
+    assert "u-01[1] page must be a positive integer" in found
+
+
+def test_page_must_fall_inside_indexed_section():
+    rows = {"u-01": [{"claim": "X", "source": "Book", "section": "1.1",
+                       "page": 5, "modality": "proves"}]}
+    assert "u-01[1] page 5 is outside indexed section 1.1" in errors(
+        rows, {"Book": {}}, sections={
+            "Book": {"sections": {"1.1": 1, "1.2": 5}}})

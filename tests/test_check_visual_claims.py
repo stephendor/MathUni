@@ -2,7 +2,7 @@ from scripts.check_visual_claims import main, probes, run_probes
 
 
 def block(source):
-    return "// VISUAL-CLAIM-PROBE-BEGIN demo\n%s\n// VISUAL-CLAIM-PROBE-END" % source
+    return "<script>// VISUAL-CLAIM-PROBE-BEGIN demo\n%s\n// VISUAL-CLAIM-PROBE-END</script>" % source
 
 
 def test_probe_is_discovered_and_executed():
@@ -15,6 +15,11 @@ def test_non_discriminating_comparison_fails():
     text = block("const a=90,b=90;if(Math.abs(a-b)<5)throw new Error('no discrimination');")
     failures = run_probes(text)
     assert failures and failures[0][0] == "demo"
+
+
+def test_comment_only_placeholder_is_not_a_probe():
+    text = "<!-- " + block("// placeholder") + " -->"
+    assert probes(text) == []
 
 
 def test_required_probe_cannot_disappear(monkeypatch, tmp_path, capsys):

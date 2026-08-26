@@ -162,6 +162,11 @@ def test_javascript_url_scheme_normalizes_browser_control_characters():
     assert bodies == ["if (", "draw()"]
 
 
+def test_javascript_scheme_in_metadata_is_not_executable():
+    assert javascript_url_bodies(
+        '<div data-example="javascript:if ("></div>') == []
+
+
 def test_svg_onload_is_already_an_event_handler():
     from scripts.gate import handler_bodies, handler_errors
 

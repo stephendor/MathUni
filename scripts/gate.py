@@ -389,6 +389,7 @@ def script_errors(bodies, modules=None):
 # in prose or inside a <pre>. The parser decides both questions the way a
 # browser does, including entity-unescaping the value before it is compiled.
 class _ExecutableAttributes(HTMLParser):
+    URL_ATTRIBUTES = {"href", "src", "action", "formaction", "xlink:href"}
     def __init__(self):
         HTMLParser.__init__(self, convert_charrefs=True)
         self.found = []
@@ -404,7 +405,8 @@ class _ExecutableAttributes(HTMLParser):
             # Browsers remove ASCII tab/newline characters while preprocessing
             # URL schemes, including when HTML entities produced them.
             normalized = re.sub(r"[\t\n\r]", "", value).lstrip()
-            if normalized.lower().startswith("javascript:"):
+            if name in self.URL_ATTRIBUTES \
+                    and normalized.lower().startswith("javascript:"):
                 self.javascript_urls.append(normalized[len("javascript:"):])
             if name == "style":
                 self.styles.append(value)

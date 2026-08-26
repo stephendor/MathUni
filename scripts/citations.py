@@ -744,11 +744,13 @@ def pageless_results(text, primary, names, titles=None):
         if start < 0:
             start = cursor
         cursor = start + len(assertion)
-        current = book_named_in(assertion, names, titles) or current
-        if printed_pages_in(assertion):
-            continue
-        line = plain[:start].count("\n") + 1
-        out.extend((result, line, current) for result in results_in(assertion))
+        for part, named in split_at_books(assertion, names, titles):
+            if named is not None:
+                current = named
+            if printed_pages_in(part):
+                continue
+            line = plain[:start].count("\n") + 1
+            out.extend((result, line, current) for result in results_in(part))
     return out
 
 

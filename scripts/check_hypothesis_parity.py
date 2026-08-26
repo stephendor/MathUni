@@ -95,8 +95,13 @@ def qualifiers(contexts):
                 "", sentence.strip().lstrip("*_() abcdefg.:-"))
             if not SCOPE.search(candidate):
                 continue
-            terms.update(name for name, pattern in QUALIFIERS.items()
-                         if pattern.search(candidate))
+            for name, pattern in QUALIFIERS.items():
+                for match in pattern.finditer(candidate):
+                    prefix = candidate[max(0, match.start() - 12):match.start()]
+                    if re.search(r"(?:\bnot\s+|\bnon[- ]?)$", prefix, re.I):
+                        terms.add("not " + name)
+                    else:
+                        terms.add(name)
     return terms
 
 
@@ -142,8 +147,7 @@ def contract_errors(problem_text, lesson_text, requirements):
                 errors.append("%s missing named result %s" % (artifact, ref))
                 continue
             joined = " ".join(contexts[ref])
-            found = {name for name, pattern in QUALIFIERS.items()
-                     if pattern.search(joined)}
+            found = qualifiers([joined])
             missing = expected - found
             if missing:
                 errors.append("%s %s missing hypotheses %s" % (

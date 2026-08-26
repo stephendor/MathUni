@@ -1,5 +1,6 @@
 """Execute pure visual-claim probes embedded beside canvas computations."""
 import argparse
+from html.parser import HTMLParser
 import os
 import re
 import subprocess
@@ -19,7 +20,24 @@ REQUIRED = {
 
 
 def probes(text):
-    return PROBE.findall(text)
+    class Scripts(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.in_script = False
+            self.parts = []
+        def handle_starttag(self, tag, attrs):
+            self.in_script = tag == "script"
+        def handle_endtag(self, tag):
+            if tag == "script":
+                self.in_script = False
+        def handle_data(self, data):
+            if self.in_script:
+                self.parts.append(data)
+    parser = Scripts()
+    parser.feed(text)
+    return [(name, source) for script in parser.parts
+            for name, source in PROBE.findall(script)
+            if re.search(r"\bthrow\b", source)]
 
 
 def run_probes(text, node="node"):

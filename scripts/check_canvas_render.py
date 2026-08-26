@@ -71,6 +71,24 @@ async function run(){
       await new Promise(ok=>setTimeout(ok,40));
       for(const c of canvases) out.push({url,id:c.id,state:'after-click-'+interaction,visible:visible(c),...pixels(c)});
     }
+    for(const control of doc.querySelectorAll('input[type=range]')){
+      for(const value of [control.min,control.max]){
+        if(value==='')continue;
+        control.value=value;
+        control.dispatchEvent(new Event('input',{bubbles:true}));
+        control.dispatchEvent(new Event('change',{bubbles:true}));
+        interaction++;
+        await new Promise(ok=>setTimeout(ok,40));
+        for(const c of canvases) out.push({url,id:c.id,state:'after-range-'+interaction,visible:visible(c),...pixels(c)});
+      }
+    }
+    for(const target of canvases){
+      const r=target.getBoundingClientRect();
+      target.dispatchEvent(new MouseEvent('click',{bubbles:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2}));
+      interaction++;
+      await new Promise(ok=>setTimeout(ok,40));
+      for(const c of canvases) out.push({url,id:c.id,state:'after-canvas-'+interaction,visible:visible(c),...pixels(c)});
+    }
     f.remove();
   }
   document.getElementById('result').textContent=JSON.stringify(out);
@@ -126,7 +144,7 @@ def render_errors(paths, browser=None, exceptions_path=EXCEPTIONS):
         rel = os.path.relpath(source, REPO).replace("\\", "/")
         exception_key = rel + "#" + item.get("id", "")
         label = "%s#%s%s" % (item["url"], item.get("id", ""),
-                              " after click" if item.get("state") else "")
+                              " " + item["state"] if item.get("state") else "")
         if not item["visible"]:
             errors.append(label + " is not visible")
         elif not item["painted"]:
