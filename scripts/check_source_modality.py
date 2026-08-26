@@ -8,6 +8,8 @@ ALLOWED = {"proves", "states", "sets-as-exercise", "disclaims", "applies"}
 
 def errors(records, books, units=None):
     out = []
+    if not any(records.values()):
+        out.append("no modality records were provided")
     for unit, rows in records.items():
         if units is not None and unit not in units:
             out.append("unknown unit %r" % unit)
@@ -33,8 +35,9 @@ def main():
     found = errors(records, books, units)
     for error in found:
         print("FAIL " + error)
-    print("%s %d modality record error(s)" % (
-        "FAIL" if found else "PASS", len(found)))
+    count = sum(len(rows) for rows in records.values())
+    print("%s checked %d modality record(s); %d error(s)" % (
+        "FAIL" if found else "PASS", count, len(found)))
     return 1 if found else 0
 
 

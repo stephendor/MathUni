@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from scripts.check_unit_references import missing_references
+from scripts.check_unit_references import missing_references, unit_refs
 
 
 def make_pair(root, uid):
@@ -25,3 +25,8 @@ def test_missing_sibling_is_reported(tmp_path):
 
 def test_version_like_text_is_not_a_unit_reference(tmp_path):
     assert missing_references("encoded as utf-8", str(tmp_path)) == []
+
+
+def test_unknown_module_reference_is_not_filtered_out(tmp_path):
+    assert unit_refs("See cta-04.", str(tmp_path)) == ["cta-04"]
+    assert missing_references("See cta-04.", str(tmp_path))

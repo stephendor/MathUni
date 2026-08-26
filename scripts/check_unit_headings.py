@@ -26,6 +26,11 @@ def contract_errors(unit, books, sections, contract):
     return errors
 
 
+def registry_errors(units, contracts):
+    return ["heading contract names unknown unit %s" % unit
+            for unit in sorted(set(contracts) - set(units))]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--unit", required=True)
@@ -46,6 +51,7 @@ def main(argv=None):
                               if not data.get("edition"))
     errors = (["bookmap entries lack edition: %s" % ", ".join(missing_editions)]
               if missing_editions else [])
+    errors += registry_errors(units, contracts)
     if args.unit in contracts:
         errors += contract_errors(units[args.unit], books, sections,
                                   contracts[args.unit])

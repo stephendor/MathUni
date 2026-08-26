@@ -155,6 +155,13 @@ def test_javascript_urls_are_extracted_but_ordinary_urls_are_not():
     assert checked == 2 and len(bad) == 1
 
 
+def test_javascript_url_scheme_normalizes_browser_control_characters():
+    bodies = javascript_url_bodies(
+        '<a href="java&#x09;script:if (">tab</a>'
+        '<a href="java&#10;script:draw()">newline</a>')
+    assert bodies == ["if (", "draw()"]
+
+
 def test_svg_onload_is_already_an_event_handler():
     from scripts.gate import handler_bodies, handler_errors
 

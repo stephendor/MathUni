@@ -29,8 +29,18 @@ def unit_refs(text, repo=REPO):
     text = re.sub(r"<(script|style)\b[^>]*>.*?</\1>", "", text,
                   flags=re.I | re.S)
     modules = governed_modules(repo)
-    return sorted({uid for uid in UNIT_REF.findall(text)
-                   if uid.rsplit("-", 1)[0] in modules})
+    refs = set()
+    for match in UNIT_REF.finditer(text):
+        uid = match.group(1)
+        module = uid.rsplit("-", 1)[0]
+        # Known module ids are unambiguous anywhere. An unknown prefix is only
+        # unit-shaped evidence in an explicit cross-reference context; this
+        # avoids treating mathematical compounds such as "genus-11" as ids.
+        context = text[max(0, match.start() - 24):match.start()]
+        if module in modules or re.search(
+                r"(?:see|unit|lesson|problem set|from)\s+$", context, re.I):
+            refs.add(uid)
+    return sorted(refs)
 
 
 def missing_references(text, repo=REPO):
@@ -59,6 +69,13 @@ def main(argv=None):
             text = handle.read()
         refs = unit_refs(text)
         checked += len(refs)
+        modules = governed_modules()
+        for uid in refs:
+            module = uid.rsplit("-", 1)[0]
+            if module not in modules:
+                failed = True
+                print("FAIL %s references %s with unknown module %s" % (
+                    path, uid, module))
         for uid, absent in missing_references(text):
             failed = True
             print("FAIL %s references %s, missing %s" % (

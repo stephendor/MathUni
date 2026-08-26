@@ -27,6 +27,17 @@ x.fillRect(10,c.height+10,20,20);</script>""")
     assert any("blank" in error for error in render_errors([path]))
 
 
+@pytest.mark.parametrize("wrapper", [
+    "<style>canvas{visibility:hidden}</style>",
+    "<style>body{opacity:0}</style>",
+    "<style>body{display:none}</style>",
+])
+def test_painted_but_invisible_canvas_fails(tmp_path, wrapper):
+    path = lesson(tmp_path, wrapper + """<script>const x=c.getContext('2d');
+x.fillRect(10,10,20,20);</script>""")
+    assert any("not visible" in error for error in render_errors([path]))
+
+
 def test_unused_exception_for_a_requested_lesson_fails(tmp_path):
     path = lesson(tmp_path, """<script>const x=c.getContext('2d');
 x.fillRect(10,10,20,20);</script>""")

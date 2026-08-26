@@ -303,6 +303,13 @@ def test_a_book_name_matches_only_as_a_consecutive_phrase():
         == ["Cummings", "Cummings Real Analysis"]
 
 
+def test_unspanned_results_follow_the_last_named_book_segment():
+    from scripts.citations import unspanned_citations
+    text = "Compare Abbott with Axler Theorem 1.2, p. 3."
+    got = unspanned_citations(text, [], "Abbott", ["Abbott", "Axler"])
+    assert got == [("Theorem 1.2", {3}, 1, "Axler")]
+
+
 def test_the_number_first_word_order_rejects_a_longer_sibling():
     """Axler prints "1.8 Definition"; that order needs the same boundary."""
     from scripts.citations import found_on_page

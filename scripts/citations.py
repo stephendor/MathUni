@@ -761,35 +761,38 @@ def unspanned_citations(text, attributed, primary, names, titles=None):
         if start < 0:
             start = cursor
         cursor = start + len(assertion)
-        current = book_named_in(assertion, names, titles) or current
-        pages = printed_pages_in(assertion)
-        if not pages:
-            continue
-        results = results_in(assertion)
+        segments = split_at_books(assertion, names, titles)
+        for part, named in segments:
+            if named is not None:
+                current = named
+            pages = printed_pages_in(part)
+            if not pages:
+                continue
+            results = results_in(part)
         # More than one result or more than one page phrase needs explicit
         # citation markup: proximity alone cannot bind the pairs honestly.
-        if len(results) != 1 or len(list(PAGES.finditer(assertion))) != 1:
+            if len(results) != 1 or len(list(PAGES.finditer(part))) != 1:
             # strip_tags can join adjacent explicit markdown spans into one
             # assertion.  If every result occurrence is already owned by a
             # recognised span, this is not unbound running prose.
-            if results and all(covered_results[result] for result in results):
-                for result in results:
-                    covered_results[result] -= 1
+                if results and all(covered_results[result] for result in results):
+                    for result in results:
+                        covered_results[result] -= 1
+                    continue
+                if results:
+                    line = plain[:start].count("\n") + 1
+                    raise Unreadable(
+                        "line %d has ambiguous result/page binding; add explicit "
+                        "citation markup" % line)
                 continue
-            if results:
-                line = plain[:start].count("\n") + 1
-                raise Unreadable(
-                    "line %d has ambiguous result/page binding; add explicit "
-                    "citation markup" % line)
-            continue
-        line = plain[:start].count("\n") + 1
-        for result in results:
-            key = (result, tuple(sorted(pages)), current)
-            if covered[key]:
-                covered[key] -= 1
-                covered_results[result] -= 1
-            else:
-                out.append((result, pages, line, current))
+            line = plain[:start].count("\n") + 1
+            for result in results:
+                key = (result, tuple(sorted(pages)), current)
+                if covered[key]:
+                    covered[key] -= 1
+                    covered_results[result] -= 1
+                else:
+                    out.append((result, pages, line, current))
     return out
 
 

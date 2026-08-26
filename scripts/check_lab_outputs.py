@@ -683,6 +683,11 @@ def main(argv=None):
         print("FAIL %s" % error)
         return 1
 
+    theorem_failures = check_theorem_probes(text)
+    if theorem_failures:
+        for line in theorem_failures:
+            print(line)
+        return 1
     if not blocks:
         print("UNCHECKED no id-tagged python blocks - nothing to verify")
         return 0
@@ -701,7 +706,6 @@ def main(argv=None):
               % (pins["python"], ".".join(str(p) for p in sys.version_info[:3])))
 
     structural = check_env_imports(blocks, grammar)
-    structural += check_theorem_probes(text)
     if structural:
         # The environment declaration is what licenses attributing the recorded
         # outputs to the recorded pins. If it is wrong there is nothing to learn

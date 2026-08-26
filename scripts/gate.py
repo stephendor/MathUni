@@ -401,8 +401,11 @@ class _ExecutableAttributes(HTMLParser):
                 self.found.append(value)
             if value is None:
                 continue
-            if value.lstrip().lower().startswith("javascript:"):
-                self.javascript_urls.append(value.lstrip()[len("javascript:"):])
+            # Browsers remove ASCII tab/newline characters while preprocessing
+            # URL schemes, including when HTML entities produced them.
+            normalized = re.sub(r"[\t\n\r]", "", value).lstrip()
+            if normalized.lower().startswith("javascript:"):
+                self.javascript_urls.append(normalized[len("javascript:"):])
             if name == "style":
                 self.styles.append(value)
 

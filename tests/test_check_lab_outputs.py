@@ -45,6 +45,12 @@ def write(tmp_path, text, name="lab-00.md"):
     return str(path)
 
 
+def test_quoted_theorem_without_tagged_blocks_fails_main(tmp_path, capsys):
+    path = write(tmp_path, "> **Boundary Theorem**\n\nNo executable probe.\n")
+    assert main([path, "--parse-only"]) == 1
+    assert "no executable # THEOREM-PROBE" in capsys.readouterr().out
+
+
 # ---------------------------------------------------------------- parsing
 
 def test_parses_paired_blocks_in_document_order():

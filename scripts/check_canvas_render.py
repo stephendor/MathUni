@@ -45,6 +45,14 @@ function pixels(c){
   const interiorGap=[...rows.slice(2,-2)].includes(0)||[...cols.slice(2,-2)].includes(0);
   return {painted:n,bbox:[minX,minY,maxX,maxY],clipped:!!(n&&edge&&interiorGap)};
 }
+function visible(c){
+  for(let e=c;e;e=e.parentElement){
+    const s=getComputedStyle(e);
+    if(s.display==='none'||s.visibility==='hidden'||s.visibility==='collapse'||Number(s.opacity)===0)return false;
+  }
+  const r=c.getBoundingClientRect();
+  return r.width>0&&r.height>0;
+}
 async function run(){
   const out=[];
   for(const url of urls){
@@ -53,13 +61,13 @@ async function run(){
     await new Promise(ok=>setTimeout(ok,80));
     const doc=f.contentDocument;
     const canvases=[...doc.querySelectorAll('canvas')].filter(c=>
-      c.getAttribute('aria-hidden')!=='true' && getComputedStyle(c).display!=='none');
-    for(const c of canvases) out.push({url,id:c.id,...pixels(c)});
+      c.getAttribute('aria-hidden')!=='true');
+    for(const c of canvases) out.push({url,id:c.id,visible:visible(c),...pixels(c)});
     for(const b of doc.querySelectorAll('button[onclick]')){
       if(!/^check\s*\(/.test(b.getAttribute('onclick'))) try{b.click()}catch(e){}
     }
     await new Promise(ok=>setTimeout(ok,40));
-    for(const c of canvases) out.push({url,id:c.id,state:'after-click',...pixels(c)});
+    for(const c of canvases) out.push({url,id:c.id,state:'after-click',visible:visible(c),...pixels(c)});
     f.remove();
   }
   document.getElementById('result').textContent=JSON.stringify(out);
@@ -116,7 +124,9 @@ def render_errors(paths, browser=None, exceptions_path=EXCEPTIONS):
         exception_key = rel + "#" + item.get("id", "")
         label = "%s#%s%s" % (item["url"], item.get("id", ""),
                               " after click" if item.get("state") else "")
-        if not item["painted"]:
+        if not item["visible"]:
+            errors.append(label + " is not visible")
+        elif not item["painted"]:
             errors.append(label + " is blank")
         elif item["clipped"]:
             if exception_key in exceptions:

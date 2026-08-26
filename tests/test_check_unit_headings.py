@@ -1,4 +1,4 @@
-from scripts.check_unit_headings import contract_errors
+from scripts.check_unit_headings import contract_errors, registry_errors
 
 
 CONTRACT = {"book": "Axler", "edition": "3rd edition",
@@ -19,3 +19,8 @@ def test_fourth_edition_title_fails_against_third_edition_contract():
         {"Axler": {"edition": "3rd edition"}},
         {"Axler": {"sections": {"5.B": 143, "5.C": 155}}}, CONTRACT)
     assert any("unit title omits" in error for error in errors)
+
+
+def test_contract_for_unknown_unit_fails_registry():
+    assert registry_errors({"cat-04": {}}, {"cta-04": CONTRACT}) == [
+        "heading contract names unknown unit cta-04"]

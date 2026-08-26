@@ -17,3 +17,7 @@ def test_unknown_unit_key_fails():
     rows = {"cta-04": [{"claim": "X", "source": "Book", "section": "1",
                          "page": 2, "modality": "proves"}]}
     assert "unknown unit 'cta-04'" in errors(rows, {"Book": {}}, {"cat-04"})
+
+
+def test_empty_record_population_fails():
+    assert "no modality records were provided" in errors({}, {"Book": {}})
