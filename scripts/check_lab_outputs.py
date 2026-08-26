@@ -692,8 +692,8 @@ def main(argv=None):
             print(line)
         return 1
     if not blocks:
-        print("UNCHECKED no id-tagged python blocks - nothing to verify")
-        return 0
+        print("FAIL no id-tagged python blocks - nothing to verify")
+        return 1
     if not pins and not args.allow_unpinned:
         print("FAIL %d executable blocks and no env block: the environment is "
               "unrecorded, so the outputs cannot be attributed to one"

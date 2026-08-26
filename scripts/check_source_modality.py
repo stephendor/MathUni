@@ -32,7 +32,9 @@ def errors(records, books, units=None, unit_sources=None, sections=None):
                     label, row.get("source"), unit))
             if row.get("modality") not in ALLOWED:
                 out.append("%s has invalid modality %r" % (label, row.get("modality")))
-            indexed = (sections or {}).get(row.get("source"), {}).get("sections", {})
+            book_index = (sections or {}).get(row.get("source"), {})
+            indexed = book_index.get("sections", {})
+            shared = set(book_index.get("shared", []))
             if indexed and isinstance(section, str):
                 if section not in indexed:
                     out.append("%s names unknown indexed section %r" % (label, section))
@@ -40,7 +42,10 @@ def errors(records, books, units=None, unit_sources=None, sections=None):
                     starts = sorted(set(indexed.values()))
                     start = indexed[section]
                     later = [value for value in starts if value > start]
-                    if page < start or (later and page >= later[0]):
+                    outside = page < start or (later and page >= later[0])
+                    shared_boundary = bool(later and page == later[0]
+                                           and page in shared)
+                    if outside and not shared_boundary:
                         out.append("%s page %d is outside indexed section %s" % (
                             label, page, section))
     return out

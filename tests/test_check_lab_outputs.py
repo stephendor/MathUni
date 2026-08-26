@@ -208,9 +208,9 @@ def test_cli_fails_on_an_unpinned_set(tmp_path, capsys):
     assert "the environment is unrecorded" in capsys.readouterr().out
 
 
-def test_cli_reports_a_set_with_no_executable_blocks_as_unchecked(tmp_path, capsys):
-    assert main([write(tmp_path, "Just prose.\n"), "--python", sys.executable]) == 0
-    assert capsys.readouterr().out.strip().startswith("UNCHECKED")
+def test_cli_reports_a_set_with_no_executable_blocks_as_failure(tmp_path, capsys):
+    assert main([write(tmp_path, "Just prose.\n"), "--python", sys.executable]) == 1
+    assert capsys.readouterr().out.strip().startswith("FAIL")
 
 
 def test_cli_shares_state_across_blocks_in_document_order(tmp_path, capsys):
@@ -455,6 +455,17 @@ def test_cli_fails_on_a_block_that_only_raises_the_second_time(tmp_path, capsys)
 
 
 # ---------------------------------------------------------- --parse-only
+
+def test_cli_rejects_a_set_with_no_id_tagged_blocks(tmp_path, capsys):
+    path = write(tmp_path, "# prose only\n")
+    assert main([path]) == 1
+    assert "FAIL no id-tagged python blocks" in capsys.readouterr().out
+
+
+def test_parse_only_rejects_a_set_with_no_id_tagged_blocks(tmp_path, capsys):
+    path = write(tmp_path, "# prose only\n")
+    assert main([path, "--parse-only"]) == 1
+    assert "FAIL no id-tagged python blocks" in capsys.readouterr().out
 
 def test_a_block_that_does_not_parse_is_reported():
     """Skipping it dropped its imports from the analysis, so the set passed."""

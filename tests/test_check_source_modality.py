@@ -46,3 +46,10 @@ def test_page_must_fall_inside_indexed_section():
     assert "u-01[1] page 5 is outside indexed section 1.1" in errors(
         rows, {"Book": {}}, sections={
             "Book": {"sections": {"1.1": 1, "1.2": 5}}})
+
+
+def test_shared_boundary_page_may_belong_to_preceding_section():
+    rows = {"u-01": [{"claim": "X", "source": "Book", "section": "1.1",
+                       "page": 5, "modality": "proves"}]}
+    assert errors(rows, {"Book": {}}, sections={
+        "Book": {"sections": {"1.1": 1, "1.2": 5}, "shared": [5]}}) == []
