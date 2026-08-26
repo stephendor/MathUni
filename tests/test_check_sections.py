@@ -10,10 +10,10 @@ import pytest
 from scripts.check_sections import (ALUFFI_LOCAL_SECTION, ALUFFI_SUBSECTION,
                                     BARE_SECTION, CAP, LETTERED, NUMBERED,
                                     HIERARCHICAL_SECTION, NUMBERED_SECTION, ROMAN_SECTION,
-                                    RUNNING_SECTION, NoVerdict,
+                                    RUNNING_SECTION, OUDOT_LOCAL_SECTION, NoVerdict,
                                     _primary, admissible, check_text,
                                     extend_first_plateau, load_index, main,
-                                    main_text_plateaus, pages_in, section_of,
+                                    learner_text, main_text_plateaus, pages_in, section_of,
                                     selftest, span, tails, uncovered,
                                     unreadable)
 
@@ -48,6 +48,21 @@ def test_refresh_heading_shapes_cover_trailing_dots_and_running_heads():
     assert ALUFFI_LOCAL_SECTION.search("## 5. Universal properties").group(1) == "5"
     assert ALUFFI_SUBSECTION.search(
         "**1.3. When are two categories equivalent?**").group(1) == "1.3"
+    assert OUDOT_LOCAL_SECTION.search(
+        "# 1. Persistence and persistence modules").group(1) == "1"
+
+
+def test_html_section_gate_ignores_non_learner_visible_citations():
+    html = ("<p>Axler §2.A, p. 28</p>"
+            "<!-- Axler §9.9, p. 999 -->"
+            "<script>const hidden='Axler §9.9, p. 999'</script>"
+            "<style>.x{content:'Axler §9.9, p. 999'}</style>")
+    visible = learner_text("lesson.html", html)
+    assert [label for label, _tail, _cut in tails(visible)] == ["2.A"]
+
+
+def test_descending_dash_after_page_is_not_a_page_range():
+    assert pages_in("p. 395 — 1-Wasserstein") == [395]
 
 
 def test_refresh_safe_numbered_shape_rejects_result_headings():
@@ -65,6 +80,12 @@ def test_a_unique_chapter_qualified_suffix_resolves_local_section_notation():
     rows = [(1, "I.3.2"), (10, "VIII.1.3")]
     assert check_text("Aluffi §3.2, p. 1", rows) == []
     assert check_text("Aluffi §1.3, p. 10", rows) == []
+
+
+def test_chapter_zero_local_item_resolves_to_roman_parent_section():
+    rows = [(18, "I.3"), (20, "I.3.2"), (27, "I.4"), (27, "I.4.1")]
+    assert check_text("Aluffi §3.1, p. 18", rows) == []
+    assert check_text("Aluffi §3.2, p. 27", rows, {27}) == []
 
 
 def test_chapter_qualified_range_inherits_abbreviated_far_endpoint():
@@ -522,7 +543,7 @@ def test_a_genuinely_shared_page_still_admits_both():
 
 def test_two_sections_starting_on_a_shared_page_are_both_admissible():
     rows = [(31, "I.5.1"), (33, "I.5.2"), (33, "I.5.3")]
-    assert admissible(33, rows, {33}) == ["I.5.3", "I.5.2"]
+    assert admissible(33, rows, {33}) == ["I.5.3", "I.5.2", "I.5.1"]
 
 
 def test_the_committed_index_marks_no_page_both_gap_and_shared():

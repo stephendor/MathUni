@@ -32,7 +32,7 @@ import sys
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if REPO not in sys.path:
     sys.path.insert(0, REPO)
-from scripts.citations import printed_pages_in, sentence_end  # noqa: E402
+from scripts.citations import printed_pages_in, rendered_text, sentence_end  # noqa: E402
 INDEX = os.path.join(REPO, "resources", "sections.json")
 
 # A citation's section label, then the text up to the next citation, the next
@@ -115,6 +115,13 @@ def pages_in(tail):
     """
     return sorted(printed_pages_in(tail, expand_ranges=False))
 
+
+def learner_text(path, text):
+    """Return only prose a learner can see when the input is HTML."""
+    if path.lower().endswith((".html", ".htm")):
+        return rendered_text(text)
+    return text
+
 # The section heading as the books print it. Two shapes so far: Axler letters
 # its sections ("## 3.B Null Spaces and Ranges") and Abbott numbers them
 # ("## 1.3 The Axiom of Completeness"). A book that labels sections some third
@@ -178,6 +185,8 @@ ALUFFI_TITLE_CHAPTER = {
 }
 ALUFFI_LOCAL_SECTION = re.compile(
     r"^#{2,4}\s+(\d{1,2})\.\s+(.{2,60})", re.M)
+OUDOT_LOCAL_SECTION = re.compile(
+    r"^#{1,4}\s+(\d{1,2})\.\s+(.{2,60})", re.M)
 ALUFFI_SUBSECTION = re.compile(
     r"^\*\*(\d+\.\d{1,2})\.\s+"
     r"(?!(?:%s)\b)(.{2,60})" % _RESULT_KIND, re.M | re.I)
@@ -355,16 +364,16 @@ def admissible(page, rows, shared=()):
         return [here]
     if any(start == page and label is None for start, label in rows):
         return [here]
-    same_page = [label for start, label in rows
-                 if start == page and label not in (None, here)]
-    if same_page:
-        return [here] + same_page
     before = None
     for start, label in rows:
         if start >= page:
             break
         if label != here:
             before = label
+    same_page = [label for start, label in rows
+                 if start == page and label not in (None, here)]
+    if same_page:
+        return [here] + same_page + ([before] if before else [])
     return [here, before] if before else [here]
 
 
@@ -389,7 +398,19 @@ def span(label, rows):
         # Resolve that shorthand only when its suffix identifies one committed
         # section uniquely; ambiguity remains a loud failure.
         matches = [lab for lab in order if lab.endswith("." + part)]
-        return matches[0] if len(matches) == 1 else part
+        if len(matches) == 1:
+            return matches[0]
+        # Chapter 0 also numbers local items as §3.1, §3.2, ... inside
+        # Roman-labelled §I.3.  The generated index records the enclosing
+        # printed section, so collapse that local item only when its parent is
+        # uniquely identifiable.
+        local = re.fullmatch(r"(\d+)\.\d+", part)
+        if local:
+            parents = [lab for lab in order
+                       if re.fullmatch(r"[IVX]+\." + local.group(1), lab)]
+            if len(parents) == 1:
+                return parents[0]
+        return part
 
     raw_parts = re.split(r"\s*[–—-]\s*", label)
     # Chapter-qualified ranges commonly abbreviate the far endpoint:
@@ -431,7 +452,10 @@ def check_text(text, rows, shared=()):
             if not matched:
                 matched = any(actual and any(
                     (actual.endswith("." + candidate)
-                     or actual.startswith(candidate + "."))
+                     or actual.startswith(candidate + ".")
+                     or (re.fullmatch(r"\d+\.\d+", candidate)
+                         and re.fullmatch(r"[IVX]+\." +
+                                          candidate.split(".", 1)[0], actual)))
                     for candidate in named)
                               for actual in ok)
             if not matched:
@@ -551,10 +575,11 @@ def refresh(book, out=INDEX):
                 else:
                     oudout_chapter = str(int(oudout_chapter or "0") + 1)
         patterns = BOOK_SECTION_HEADINGS.get(book, SECTION_HEADINGS)
-        if book in ("Aluffi Chapter 0", "Oudot"):
+        if book == "Aluffi Chapter 0":
             patterns += (ALUFFI_LOCAL_SECTION, ALUFFI_SUBSECTION)
         if book == "Oudot":
-            patterns += (PLAIN_SUBSECTION,)
+            patterns += (OUDOT_LOCAL_SECTION, ALUFFI_SUBSECTION,
+                         PLAIN_SUBSECTION)
         matches = sorted((m for pattern in patterns
                           for m in pattern.finditer(text)),
                          key=lambda m: m.start())
@@ -895,6 +920,7 @@ def main(argv=None):
             print("NO VERDICT: cannot read %s: %s" % (path, exc),
                   file=sys.stderr)
             return 2
+        text = learner_text(path, text)
         cut = unreadable(text)
         if cut:
             print("NO VERDICT: %s: citation of §%s runs past %d characters "

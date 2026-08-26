@@ -68,6 +68,12 @@ def test_interaction_runtime_error_is_reported_even_when_canvas_stays_valid(tmp_
                for error in render_errors([path]))
 
 
+def test_startup_runtime_error_is_reported_even_when_canvas_stays_valid(tmp_path):
+    path = lesson(tmp_path, """<script>const x=c.getContext('2d');
+x.fillRect(10,10,20,20);throw new Error('broken startup')</script>""")
+    assert any("broken startup" in error for error in render_errors([path]))
+
+
 def test_range_input_states_are_checked(tmp_path):
     path = lesson(tmp_path, """
 <input id="r" type="range" min="0" max="1" value="0">

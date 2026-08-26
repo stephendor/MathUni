@@ -292,10 +292,11 @@ def printed_pages_in(span, expand_ranges=True):
             n = int(tok.group(0))
             joiner = rest[pos:tok.start()]
             if prev is not None and re.fullmatch(r"\s*[-–—]\s*", joiner):
-                if not expand_ranges:
-                    pages.add(n)
-                elif n >= prev and n - prev <= 60:  # else malformed or absurd
-                    pages.update(range(prev, n + 1))
+                if n >= prev and n - prev <= 60:  # else malformed or absurd
+                    if not expand_ranges:
+                        pages.add(n)
+                    else:
+                        pages.update(range(prev, n + 1))
             else:
                 pages.add(n)
             prev, pos = n, tok.end()

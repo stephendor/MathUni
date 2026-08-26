@@ -66,14 +66,20 @@ function visible(c){
 async function run(){
   const out=[];
   for(const url of urls){
-    const f=document.createElement('iframe'); f.src=url; document.body.appendChild(f);
-    await new Promise((ok,bad)=>{f.onload=ok;f.onerror=bad});
+    const f=document.createElement('iframe');
+    document.body.appendChild(f);
+    const source=await (await fetch(url)).text();
+    const bootstrap=`<script>
+window.__canvasRuntimeErrors=[];
+const __recordCanvasError=e=>window.__canvasRuntimeErrors.push(
+  String(e.reason||e.error||e.message||e));
+window.addEventListener('error',__recordCanvasError);
+window.addEventListener('unhandledrejection',__recordCanvasError);
+<\/script><base href="${url.replaceAll('&','&amp;').replaceAll('"','&quot;')}">`;
+    await new Promise((ok,bad)=>{f.onload=ok;f.onerror=bad;f.srcdoc=bootstrap+source});
     await new Promise(ok=>setTimeout(ok,80));
     const doc=f.contentDocument;
-    const runtimeErrors=[];
-    const recordError=e=>runtimeErrors.push(String(e.reason||e.error||e.message||e));
-    f.contentWindow.addEventListener('error',recordError);
-    f.contentWindow.addEventListener('unhandledrejection',recordError);
+    const runtimeErrors=f.contentWindow.__canvasRuntimeErrors;
     const canvases=[...doc.querySelectorAll('canvas')].filter(c=>
       c.getAttribute('aria-hidden')!=='true');
     function snapshot(state){
