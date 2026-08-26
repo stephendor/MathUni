@@ -35,11 +35,21 @@ def harness(paths):
 const urls=%s;
 function pixels(c){
   const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+  const counts=new Map();
+  for(let i=0;i<d.length;i+=4){
+    const key=d[i]+','+d[i+1]+','+d[i+2]+','+d[i+3];
+    counts.set(key,(counts.get(key)||0)+1);
+  }
+  let background=null,bgCount=-1;
+  for(const [key,count] of counts)if(count>bgCount){background=key;bgCount=count;}
   let n=0,minX=c.width,minY=c.height,maxX=-1,maxY=-1;
   const rows=new Uint8Array(c.height), cols=new Uint8Array(c.width);
-  for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++)if(d[(y*c.width+x)*4+3]){
-    n++; rows[y]=1; cols[x]=1; minX=Math.min(minX,x);maxX=Math.max(maxX,x);
-    minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+  for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){
+    const i=(y*c.width+x)*4,key=d[i]+','+d[i+1]+','+d[i+2]+','+d[i+3];
+    if(key!==background){
+      n++; rows[y]=1; cols[x]=1; minX=Math.min(minX,x);maxX=Math.max(maxX,x);
+      minY=Math.min(minY,y);maxY=Math.max(maxY,y);
+    }
   }
   const edge=minX<=1||minY<=1||maxX>=c.width-2||maxY>=c.height-2;
   const interiorGap=[...rows.slice(2,-2)].includes(0)||[...cols.slice(2,-2)].includes(0);
@@ -84,10 +94,13 @@ async function run(){
     }
     for(const target of canvases){
       const r=target.getBoundingClientRect();
-      target.dispatchEvent(new MouseEvent('click',{bubbles:true,clientX:r.left+r.width/2,clientY:r.top+r.height/2}));
-      interaction++;
-      await new Promise(ok=>setTimeout(ok,40));
-      for(const c of canvases) out.push({url,id:c.id,state:'after-canvas-'+interaction,visible:visible(c),...pixels(c)});
+      for(const point of [[.08,.5,'left'],[.5,.5,'centre'],[.92,.5,'right']]){
+        target.dispatchEvent(new MouseEvent('click',{bubbles:true,
+          clientX:r.left+r.width*point[0],clientY:r.top+r.height*point[1]}));
+        interaction++;
+        await new Promise(ok=>setTimeout(ok,80));
+        for(const c of canvases) out.push({url,id:c.id,state:'after-canvas-'+point[2],visible:visible(c),...pixels(c)});
+      }
     }
     f.remove();
   }
@@ -105,13 +118,16 @@ def render_results(paths, browser=None):
         page = os.path.join(tmp, "harness.html")
         with open(page, "w", encoding="utf-8") as handle:
             handle.write(harness(paths))
-        budget = max(8000, len(paths) * 250)
+        # Each lesson may now exercise button, range, and three canvas-click
+        # states. Scale the virtual-time allowance with that expanded surface.
+        budget = max(8000, len(paths) * 650)
         command = [browser, "--headless=new", "--disable-gpu", "--no-sandbox",
                    "--allow-file-access-from-files", "--disable-web-security",
                    "--virtual-time-budget=%d" % budget, "--dump-dom",
                    Path(page).as_uri()]
         result = subprocess.run(command, capture_output=True, text=True,
-                                encoding="utf-8", errors="replace", timeout=60)
+                                encoding="utf-8", errors="replace",
+                                timeout=max(60, len(paths)))
     if result.returncode:
         raise RuntimeError(result.stderr.strip() or "headless browser failed")
     marker = '<pre id="result">'
@@ -143,6 +159,8 @@ def render_errors(paths, browser=None, exceptions_path=EXCEPTIONS):
             source = "/" + parsed
         rel = os.path.relpath(source, REPO).replace("\\", "/")
         exception_key = rel + "#" + item.get("id", "")
+        state_exception_key = (exception_key + "@" + item["state"]
+                               if item.get("state") else exception_key)
         label = "%s#%s%s" % (item["url"], item.get("id", ""),
                               " " + item["state"] if item.get("state") else "")
         if not item["visible"]:
@@ -150,7 +168,9 @@ def render_errors(paths, browser=None, exceptions_path=EXCEPTIONS):
         elif not item["painted"]:
             errors.append(label + " is blank")
         elif item["clipped"]:
-            if exception_key in exceptions:
+            if state_exception_key in exceptions:
+                exercised.add(state_exception_key)
+            elif exception_key in exceptions:
                 exercised.add(exception_key)
             else:
                 errors.append(label + " paints against an edge with an interior gap")

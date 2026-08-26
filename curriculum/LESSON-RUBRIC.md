@@ -82,9 +82,11 @@ Check every one and cite the location of any defect:
 - [ ] **Cross-unit claims reconcile** — every named unit reference resolves; when this unit derives a result an earlier unit deferred or anticipated, re-read that earlier answer against the new derivation and record any correction before acceptance.
 - [ ] **Source modality is recorded** — for each load-bearing attribution, record whether the cited location proves, states, sets as an exercise, disclaims, or applies the claim; location alone is not evidence of modality.
 - [ ] **Claims absent from the source are declared** under the footer heading `Stated here but not in the source`, with an independent justification and an exhaustive check where finite-checkable; complete `MATHEMATICAL-CLAIM-REVIEW.md`.
-- [ ] **Nothing is supplied from outside the source.** Every statement traces to the
-      cited sections. Where the source did not cover something, the lesson says so
-      with a `NOT IN SOURCE:` marker rather than filling the hole.
+- [ ] **Nothing is supplied silently from outside the source.** Every statement
+      either traces to the cited sections or follows the reviewed exception above.
+      `NOT IN SOURCE:` marks an unresolved generation-stage gap and remains a veto;
+      an accepted outside-source claim instead uses the reviewed footer declaration
+      and completed `MATHEMATICAL-CLAIM-REVIEW.md`, with no gap marker left behind.
 
 > **Read the gap count before scoring.** On hard material a candidate that
 > declares **zero** gaps is not thereby complete — the likelier reading is that it

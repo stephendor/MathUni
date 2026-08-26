@@ -62,8 +62,11 @@ which one supports the claim.
 
 A marked gap is an honest, reviewable defect; an unsupported claim is an
 invisible one. **A lesson is not committable while it still carries a gap
-marker** — `lesson_lint.py` fails on one. Resolve it (find the source, or
-rescope the lesson) and remove the marker. The marker exists so that a
+marker** — `lesson_lint.py` fails on one. Resolve it by finding the source,
+rescoping the lesson, or using the rubric's reviewed outside-source exception:
+add the footer declaration, supply the independent justification and a finite
+exhaustive check where possible, and complete `MATHEMATICAL-CLAIM-REVIEW.md`.
+Only then remove the marker. The marker exists so that a
 generation run can report the hole instead of inventing a filler, which is
 exactly what the drift test measures.
 

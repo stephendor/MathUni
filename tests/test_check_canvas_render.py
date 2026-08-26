@@ -27,6 +27,19 @@ x.fillRect(10,c.height+10,20,20);</script>""")
     assert any("blank" in error for error in render_errors([path]))
 
 
+def test_uniform_opaque_background_is_observably_blank(tmp_path):
+    path = lesson(tmp_path, """<script>const x=c.getContext('2d');
+x.fillStyle='#123456';x.fillRect(0,0,c.width,c.height);</script>""")
+    assert any("blank" in error for error in render_errors([path]))
+
+
+def test_foreground_over_opaque_background_passes(tmp_path):
+    path = lesson(tmp_path, """<script>const x=c.getContext('2d');
+x.fillStyle='#123456';x.fillRect(0,0,c.width,c.height);
+x.fillStyle='#ffffff';x.fillRect(10,10,20,20);</script>""")
+    assert render_errors([path]) == []
+
+
 @pytest.mark.parametrize("wrapper", [
     "<style>canvas{visibility:hidden}</style>",
     "<style>body{opacity:0}</style>",
@@ -59,6 +72,14 @@ r.addEventListener('input',()=>{if(r.value==='1')x.clearRect(0,0,c.width,c.heigh
 def test_canvas_click_state_is_checked(tmp_path):
     path = lesson(tmp_path, """<script>const x=c.getContext('2d');
 x.fillRect(10,10,20,20);c.addEventListener('click',()=>x.clearRect(0,0,c.width,c.height));</script>""")
+    assert any("after-canvas" in error and "blank" in error
+               for error in render_errors([path]))
+
+
+def test_canvas_click_includes_left_interaction_target(tmp_path):
+    path = lesson(tmp_path, """<script>const x=c.getContext('2d');
+x.fillRect(10,10,20,20);c.addEventListener('click',e=>{
+const r=c.getBoundingClientRect();if(e.clientX-r.left<r.width*.1)x.clearRect(0,0,c.width,c.height);});</script>""")
     assert any("after-canvas" in error and "blank" in error
                for error in render_errors([path]))
 
