@@ -49,6 +49,7 @@ jobs:
       - run: python scripts/validate_syllabus.py --selftest
       - run: python scripts/check_id_consistency.py
       - run: python scripts/check_resources.py --selftest
+      - run: python scripts/check_source_modality.py
       - name: Every unit's resources name something that can be read
         # --shallow because the runner has no page trees. Check 1 (does the
         # resource resolve to a book in bookmap.json, or to a non-book class
@@ -64,36 +65,7 @@ jobs:
         # all and 156 citations were never checked by anything.
         run: python scripts/check_resources.py --shallow
       - run: python scripts/lesson_lint.py --selftest
-      - name: Lint the committed lesson corpus (obs 150)
-        # lesson_lint.py was only ever invoked with an explicit path or via
-        # --selftest, so it never re-validated the lessons already on disk
-        # when it landed — a lesson nobody regenerates is a lesson nobody
-        # checks. This ran non-blocking while six pre-existing lessons failed;
-        # PR #11 repaired those and la-01's Markdown leaks are fixed here, so
-        # the whole corpus now passes and this is a hard gate as intended.
-        run: |
-          status=0
-          for f in lessons/*/*.html; do
-            echo "--- $f ---"
-            python scripts/lesson_lint.py "$f" || status=1
-          done
-          exit "$status"
       - run: python scripts/gate.py --selftest
-      - name: Gates 4-6 over the committed lesson corpus
-        # gate.py, mission.py and pull.py lived in a session scratchpad from S3
-        # until 2026-08-21, copied forward by hand; the S2 plan records their
-        # promotion as "deferred three times". Run over all 81 lessons for the
-        # first time, gates 4-6 failed five — three of them a false positive in
-        # the gate itself (an svg xmlns read as an external request) and two a
-        # real stray </p>. Both are repaired here, so this lands as a hard gate
-        # rather than as another non-blocking step waiting on a repair.
-        run: |
-          status=0
-          for f in lessons/*/*.html; do
-            echo "--- $f ---"
-            python scripts/gate.py "$f" || status=1
-          done
-          exit "$status"
       - run: python scripts/mission.py --selftest
       - name: Gate 8 — mission strips quoted verbatim, against the drift ratchet
         # 15 of 81 lessons do not yet quote their mission_link verbatim; the S2
@@ -144,20 +116,12 @@ jobs:
             --known-failing curriculum/mission-drift.txt \
             --baseline /tmp/drift-baseline.txt \
             lessons/*/*.html
-      - name: Structure of the lab sets (gate 9, the half CI can run)
-        # The full gate re-executes every block and diffs its stdout, which
-        # needs the pinned 3.11 lab interpreter this runner does not have —
-        # giotto-tda publishes no wheel for 3.13. What does not need it is the
-        # structural half: every code block paired with a recorded output, no
-        # duplicate ids, no contradictory pins, and an env block that imports
-        # every module the set uses. That runs here. Re-execution stays a
-        # local command against the pinned interpreter, and is recorded as
-        # such in the plan rather than described as enforced.
-        run: |
-          status=0
-          for f in problems/sets/lab-*.md; do
-            echo "--- $f ---"
-            python scripts/check_lab_outputs.py "$f" --parse-only || status=1
-          done
-          exit "$status"
+      - name: Manifest-owned per-unit gate parity
+        # One manifest now owns the corpus-level lint, executable-content,
+        # mission, citation-coverage, indexed-section, and lab-structure
+        # checks. This prevents a locally documented gate from silently being
+        # omitted by a separately maintained hand-written workflow loop.
+        run: python scripts/check_unit.py --all --ci
+      - name: Render every lesson canvas headlessly
+        run: python scripts/check_canvas_render.py lessons/*/*.html
       - run: python -m pytest -q

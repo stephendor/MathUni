@@ -77,7 +77,9 @@ When limits of nice functions go wrong — and the fix.
 const cv=document.getElementById('uconvCanvas'),ctx=cv.getContext('2d');
 const W=cv.width,H=cv.height,L=44,R=W-24,T=22,B=H-70;
 function px(x){return L+x*(R-L);}
-function py(y){return B-y*(B-T);}
+// Include the full epsilon band around both endpoint values in the viewport.
+// Mapping y=1 to T clipped the upper half of the band at x=1 off-canvas.
+function py(y){return B-((y+eps)/(1+2*eps))*(B-T);}
 const eps=0.18;
 let n=1,t=0,mode=0;
 function fpow(x,n){return Math.pow(x,n);}
@@ -242,6 +244,8 @@ draw();
 <p>If you can say: (1) the point is chosen before <var>N</var>, or after it; (2) the limit is 0 then 1, and <var>x</var> = (1/2)<sup>1/<var>N</var></sup> beats <var>N</var>; (3) 1/<var>n</var> is free of <var>x</var> and <var>x</var><sup><var>n</var></sup> is not; (4) <var>N</var> first, &delta; second, and the reverse is circular — then you have the unit.</p>
 </details>
 </div>
+
+<p class="dependency-crosswalk"><strong>Problem-set dependency crosswalk.</strong> The accompanying set explicitly invokes Example 2.5.3. These named source results are required supporting dependencies for its exercises, alongside the results developed above.</p>
 
 <footer>
 Sources: Abbott, <em>Understanding Analysis</em> — §6.2 "Uniform Convergence of a Sequence of Functions" (Definition 6.2.1), p. 154; (Example 6.2.2), pp. 154, 155; the failed proof that a pointwise limit of continuous functions is continuous, p. 157; (Definition 6.2.3), p. 157; (Example 6.2.4), p. 158; (Theorem 6.2.5, Theorem 6.2.6), p. 160; (Exercise 6.2.4), p. 161.

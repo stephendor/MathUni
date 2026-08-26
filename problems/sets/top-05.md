@@ -119,8 +119,8 @@ the product topology.
 
 *(Munkres §19, p. 113 for $J$-tuples and the cartesian product; p. 114 for both
 definitions and the projection maps; p. 115 for the basis computation,
-Theorem 19.1 and the two consequences; p. 116 for Theorem 19.2, whose proof is
-Exercise 1.)*
+Theorem 19.1 and the two consequences; p. 116 for Theorem 19.2; Exercise 1,
+which assigns its proof, p. 118.)*
 
 <details><summary>Nudge</summary>
 In (c), test the one-point-space case before answering — it is the degenerate
@@ -249,8 +249,8 @@ precisely what Theorem 19.6 adds, and what top-04's Exercise 12 warning about
 maps *out of* a product becomes in this setting — does the arbitrary-index
 version make the domain case any better?
 
-*(Munkres §19, p. 116 for the sentence introducing Theorem 19.6; p. 117 for the
-theorem, its proof and Example 2; p. 118 for Exercise 5, which is set and not
+*(Munkres §19, p. 116 for the motivation preceding the theorem; p. 117 for
+Theorem 19.6, its proof and Example 2; p. 118 for Exercise 5, which is set and not
 answered in the text.)*
 
 <details><summary>Nudge</summary>

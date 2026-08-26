@@ -41,7 +41,7 @@ in terms of saturated sets, and verify your restatement against Example 1 —
 $X = [0,1] \cup [2,3]$, $Y = [0,2]$, with $p$ the obvious map.
 
 *(Munkres §22, p. 137 for the definition of a quotient map, open and closed maps,
-saturated sets, and Examples 1 and 2.)*
+saturated sets and Example 1; p. 138 for Example 2.)*
 
 <details><summary>Nudge</summary>
 For (c), the hyperbola $xy = 1$ is closed in the plane; what is its image under
@@ -196,7 +196,7 @@ Show that this is Theorem 22.2's continuity clause and not more.
 $X^* = \{g^{-1}(\{z\})\}$ with the quotient topology, (a) $g$ induces a bijective
 continuous $f : X^* \to Z$, a homeomorphism if and only if $g$ is a quotient map;
 (b) if $Z$ is Hausdorff so is $X^*$.
-(d) Combine Corollary 22.3(a) with top-08's Theorem 26.6 to get a working
+(d) Combine Corollary 22.3(a) with top-08's compact-to-Hausdorff homeomorphism criterion to get a working
 criterion: if $X$ is compact, $Z$ is Hausdorff and $g : X \to Z$ is a continuous
 surjection, then $X^*$ is homeomorphic to $Z$. Prove it, and then use it on
 Example 4 — the closed unit ball with its boundary circle collapsed — to say
@@ -204,7 +204,8 @@ precisely what would still have to be supplied to conclude that $X^*$ is $S^2$.
 
 *(Munkres §22, p. 142 for Theorem 22.2 and Corollary 22.3 with their proofs;
 p. 139 for Example 4, whose conclusion is stated as "One can show that…" and not
-proved. top-08's Theorem 26.6 is Munkres §26, p. 167.)*
+proved. The compact-to-Hausdorff homeomorphism criterion used from top-08 is
+Munkres §26, p. 167.)*
 
 <details><summary>Nudge</summary>
 In (d), Theorem 26.6 needs a continuous bijection from a compact space to a

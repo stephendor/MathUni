@@ -1,0 +1,5 @@
+{
+  "lab-02": "quoted results are named rather than numbered in the primary text",
+  "lab-03": "the unit teaches an algorithm and unnamed uniqueness result",
+  "tda1-09": "the source results are named but unnumbered (Persistence Equivalence Theorem, Snake Lemma, and Mayer-Vietoris Sequence Theorem), so the numbered-result coverage grammar has no applicable references"
+}

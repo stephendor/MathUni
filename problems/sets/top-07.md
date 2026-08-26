@@ -81,7 +81,7 @@ connected. Then say what happens for infinite products — is the finiteness in
 the statement essential, or an artefact of the proof? Do not guess; say what
 §23 does and does not settle.
 
-*(Munkres §23, p. 149 for Theorems 23.3 and 23.4; p. 150 for Theorem 23.5 and
+*(Munkres §23, p. 150 for Theorems 23.3 and 23.4; p. 150 for Theorem 23.5 and
 Theorem 23.6.)*
 
 <details><summary>Nudge</summary>
@@ -200,9 +200,9 @@ path components $S$ and $V = 0 \times [-1,1]$, with $S$ open and not closed and
 $V$ closed and not open.
 
 *(Munkres §25, p. 159 for components and Theorem 25.1; p. 160 for path
-components, the pasting argument and Theorem 25.2; p. 161 for the openness and
-closedness remarks and Examples 1 and 2; p. 161 for local connectedness and
-Theorems 25.3, 25.4; p. 162 for Theorem 25.5. The topologist's sine curve is
+components, the pasting argument and Theorem 25.2; p. 160 for the openness and
+closedness remarks and Examples 1 and 2; p. 161 for local connectedness,
+Theorems 25.3 and 25.4, and Theorem 25.5. The topologist's sine curve is
 introduced in §24, Example 7, p. 156.)*
 
 <details><summary>Nudge</summary>
@@ -264,8 +264,8 @@ $X$. Are they equal? Is $X$ locally path connected? Say what this tells you abou
 why a point cloud is not analysed through its own metric topology, and which
 construction replaces it.
 
-*(Munkres §25, p. 161 for local connectedness and local path connectedness and
-for Theorems 25.3 and 25.4; p. 162 for Theorem 25.5; p. 161, Example 2, for the
+*(Munkres §25, p. 161 for local connectedness and local path connectedness,
+Theorems 25.3, 25.4 and 25.5; p. 160, Example 2, for the
 topologist's sine curve's components. Part (c) concerns this unit's mission
 strip and part (d) is derived from top-06; neither is in Munkres.)*
 

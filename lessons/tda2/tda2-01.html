@@ -48,7 +48,7 @@ Filtrations only ever add. What if the arrows were allowed to point both ways �
 </div>
 </div>
 
-<p class="mission">Why this matters for the mission: A zigzag module is a representation of an A<sub>n</sub> quiver with arbitrary arrow directions, and by Gabriel's theorem it still decomposes into intervals — so a barcode survives even though tda1-04's monotone filtration does not. This is what lets persistence handle time-varying and sliced data.</p>
+<p class="mission">Why this matters for the mission: A zigzag module is a representation of an A_n quiver with arbitrary arrow directions, and by Gabriel's theorem it still decomposes into intervals — so a barcode survives even though tda1-04's monotone filtration does not. This is what lets persistence handle time-varying and sliced data.</p>
 
 <div class="segment">
 <span class="timebox">Segment 1 · ~25 min</span>
@@ -69,17 +69,17 @@ Filtrations only ever add. What if the arrows were allowed to point both ways �
 </div>
 
 <div class="definition">
-<p><strong>Definition 4.11 (interval module).</strong> An interval module 𝓘<sub>[b,d]</sub>, also called an interval or a bar, over an index set 0, 1, …, n with field 𝐤 is a sequence of vector spaces 𝓘<sub>[b,d]</sub> : I<sub>0</sub> ↔ I<sub>1</sub> ↔ ⋯ ↔ I<sub>n</sub> where I<sub>k</sub> = 𝐤 for b ≤ k ≤ d and 0 otherwise, the maps 𝐤 ← 𝐤 and 𝐤 → 𝐤 being identities. <span class="cite">— Dey &amp; Wang §4.3, Definition 4.11, pp. 127–128</span></p>
+<p><strong>Definition 4.11 (interval module).</strong> An interval module 𝓘<sub>[b,d]</sub>, also called an interval or a bar, over an index set 0, 1, …, n with field 𝐤 is a sequence of vector spaces 𝓘<sub>[b,d]</sub> : I<sub>0</sub> ↔ I<sub>1</sub> ↔ ⋯ ↔ I<sub>n</sub> where I<sub>k</sub> = 𝐤 for b ≤ k ≤ d and 0 otherwise, the maps 𝐤 ← 𝐤 and 𝐤 → 𝐤 being identities. <span class="cite">— Dey &amp; Wang §4.3, Definition 4.11, p. 126</span></p>
 </div>
 
 <div class="theorem">
-<p><strong>Theorem 4.10.</strong> Every quiver representation 𝕍(Q) for an A<sub>n</sub>-type quiver Q has an interval decomposition, that is 𝕍(Q) ≅ ⊕<sub>i</sub> 𝓘<sub>[b<sub>i</sub>,d<sub>i</sub>]</sub>. Furthermore this decomposition is unique up to isomorphism and permutation of the intervals. <span class="cite">— Dey &amp; Wang §4.3, Theorem 4.10, p. 128</span></p>
+<p><strong>Theorem 4.10.</strong> Every quiver representation 𝕍(Q) for an A<sub>n</sub>-type quiver Q has an interval decomposition, that is 𝕍(Q) ≅ ⊕<sub>i</sub> 𝓘<sub>[b<sub>i</sub>,d<sub>i</sub>]</sub>. Furthermore this decomposition is unique up to isomorphism and permutation of the intervals. <span class="cite">— Dey &amp; Wang §4.3, Theorem 4.10, p. 127</span></p>
 </div>
 
 <p>Since the underlying graph of a zigzag persistence module is of A<sub>n</sub> type, we get H<sub>p</sub>𝓕 ≅ ⊕<sub>i</sub> 𝓘<sub>[b<sub>i</sub>,d<sub>i</sub>]</sub>, and that decomposition is the barcode. Ghrist tells the same story from the representation-theoretic side: Gabriel's classification theorem for quivers of type A reveals that the Structure Theorem classifies indecomposables of <em>any</em> linear sequence in which each node is an 𝔽-vector space and each arrow a linear transformation going either left or right. An indecomposable interval is, as before, a sequence of copies of 𝔽 with identity maps, respecting the arrow directions. In classical persistence all arrows go right; in consistency tests they alternate.</p>
 
 <div class="theorem">
-<p><strong>Remark 4.2 — the bars have changed shape.</strong> Unlike the bars defined in Chapter 3 for non-zigzag filtrations, an interval module here is non-zero on the <em>closed</em> index range b ≤ k ≤ d. So a zigzag bar [b, d] is closed at both ends: index d is the last index at which the class is present, not the first at which it is absent. <span class="cite">— Dey &amp; Wang §4.3, Remark 4.2, p. 128</span></p>
+<p><strong>Remark 4.2 — the bars have changed shape.</strong> Unlike the bars defined in Chapter 3 for non-zigzag filtrations, an interval module here is non-zero on the <em>closed</em> index range b ≤ k ≤ d. So a zigzag bar [b, d] is closed at both ends: index d is the last index at which the class is present, not the first at which it is absent. <span class="cite">— Dey &amp; Wang §4.3, Remark 4.2, p. 127</span></p>
 </div>
 
 <h3>Visual: a zigzag filtration and its barcode</h3>
@@ -160,11 +160,11 @@ draw();
 </div>
 
 <div class="definition">
-<p><strong>Definition 4.12 (representative cycles).</strong> For a zigzag filtration 𝓕 and an interval [b,d] in Dgm<sub>p</sub>(𝓕), a set of representative p-cycles is an indexed set {c<sub>i</sub> ⊆ K<sub>i</sub> : i ∈ [b,d]} of p-cycles whose classes are carried to one another across the interval, and which genuinely begin and end there — for b &gt; 0, [c<sub>b</sub>] is not in the image of φ<sub>b−1</sub> when that arrow points into index b, and symmetrically at the right endpoint. <span class="cite">— Dey &amp; Wang §4.3, Definition 4.12, pp. 129–130</span></p>
+<p><strong>Definition 4.12 (representative cycles).</strong> For a zigzag filtration 𝓕 and an interval [b,d] in Dgm<sub>p</sub>(𝓕), a set of representative p-cycles is an indexed set {c<sub>i</sub> ⊆ K<sub>i</sub> : i ∈ [b,d]} of p-cycles whose classes are carried to one another across the interval, and which genuinely begin and end there — for b &gt; 0, [c<sub>b</sub>] is not in the image of φ<sub>b−1</sub> when that arrow points into index b, and symmetrically at the right endpoint. <span class="cite">— Dey &amp; Wang §4.3, Definition 4.12, p. 128</span></p>
 </div>
 
 <div class="theorem">
-<p><strong>Theorem 4.11.</strong> Let 𝓕 : K<sub>0</sub> ↔ ⋯ ↔ K<sub>n</sub> be a zigzag filtration with H<sub>p</sub>(K<sub>0</sub>) = 0 and A an index set. Then H<sub>p</sub>𝓕 is <em>equal</em> to — not merely isomorphic to — a direct sum of interval submodules ⊕<sub>α∈A</sub>𝓘<sub>[b<sub>α</sub>,d<sub>α</sub>]</sub> if and only if each 𝓘<sub>[b<sub>α</sub>,d<sub>α</sub>]</sub> is induced by a set of representative p-cycles for [b<sub>α</sub>, d<sub>α</sub>], where Dgm<sub>p</sub>(𝓕) = {[b<sub>α</sub>, d<sub>α</sub>]}. <span class="cite">— Dey &amp; Wang §4.3, Theorem 4.11, pp. 130–131</span></p>
+<p><strong>Theorem 4.11.</strong> Let 𝓕 : K<sub>0</sub> ↔ ⋯ ↔ K<sub>n</sub> be a zigzag filtration with H<sub>p</sub>(K<sub>0</sub>) = 0 and A an index set. Then H<sub>p</sub>𝓕 is <em>equal</em> to — not merely isomorphic to — a direct sum of interval submodules ⊕<sub>α∈A</sub>𝓘<sub>[b<sub>α</sub>,d<sub>α</sub>]</sub> if and only if each 𝓘<sub>[b<sub>α</sub>,d<sub>α</sub>]</sub> is induced by a set of representative p-cycles for [b<sub>α</sub>, d<sub>α</sub>], where Dgm<sub>p</sub>(𝓕) = {[b<sub>α</sub>, d<sub>α</sub>]}. <span class="cite">— Dey &amp; Wang §4.3, Theorem 4.11, p. 129</span></p>
 </div>
 
 <p>The single word being upgraded is "isomorphic". Theorem 4.10 supplies an abstract decomposition; Theorem 4.11 says exactly when the decomposition can be realised on the nose, by actual cycles sitting in the actual complexes — and the answer is: precisely when representative cycles exist. That matters in practice for the same reason it mattered in at2-08: only a concrete representative can be localised, drawn, or fed to anything downstream.</p>
@@ -293,7 +293,7 @@ draw();
 </div>
 
 <footer>
-Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §4.3 "Persistence for Zigzag Filtration": the zigzag filtration and the induced zigzag persistence module, and Figure 4.4's example barcode (pp. 125–126); Definition 4.10 on quivers and A<sub>n</sub>-type representations (pp. 126–127); Definition 4.11 on interval modules and Remark 4.2 on the closed endpoints (pp. 127–128); Theorem 4.10, the interval decomposition and its uniqueness (p. 128); Definition 4.12 on representative cycles and Theorem 4.11 upgrading isomorphism to equality (pp. 129–131). §4.5 "Levelset Zigzag Persistence": the levelset and interval-set construction (pp. 137–138); Definition 4.14 on regular intervals, Morse type and critical values (p. 138); Definition 4.15 on compatible complexes and Proposition 4.14 (pp. 140–141); the two kinds of sublevel-set bar and Theorem 4.15's correspondence (pp. 142–143). Ghrist, <em>Elementary Applied Topology</em> — §5.15 "Zigzag persistence": the consistency-test motivation from subsampling, Gabriel's classification for type-A quivers, and the moral that the homology of a sequence is worth more than a sequence of homologies (pp. 108–109). Deferred: the zigzag persistence algorithm itself (Dey §4.3.2), persistence for zigzag towers (§4.4), and the correspondence with extended persistence, Theorem 4.16 (Dey §4.5.4).
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §4.3 "Persistence for Zigzag Filtration": the zigzag filtration and the induced zigzag persistence module, and Figure 4.4's example barcode (pp. 125–126); Definition 4.10 on quivers and A<sub>n</sub>-type representations and Definition 4.11 on interval modules (p. 126); Theorem 4.10, the interval decomposition and its uniqueness, and Remark 4.2 on the closed endpoints (p. 127); Definition 4.12 on representative cycles (p. 128); Theorem 4.11 upgrading isomorphism to equality (p. 129). §4.5 "Levelset Zigzag Persistence": the levelset and interval-set construction (pp. 137–138); Definition 4.14 on regular intervals, Morse type and critical values (p. 138); Definition 4.15 on compatible complexes and Proposition 4.14 (pp. 140–141); the two kinds of sublevel-set bar and Theorem 4.15's correspondence (pp. 142–143). Ghrist, <em>Elementary Applied Topology</em> — §5.15 "Zigzag persistence": the consistency-test motivation from subsampling, Gabriel's classification for type-A quivers, and the moral that the homology of a sequence is worth more than a sequence of homologies (pp. 108–109). Deferred: the zigzag persistence algorithm itself (Dey §4.3.2), persistence for zigzag towers (§4.4), and the correspondence with extended persistence, Theorem 4.16 (Dey §4.5.4).
 </footer>
 
 <script>

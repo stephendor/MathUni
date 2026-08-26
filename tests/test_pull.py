@@ -1,7 +1,8 @@
 """The folio fitter. Synthetic pages throughout — CI has no access to the
 book drive, and a check that silently does nothing when its input is missing
 is the silent-absence failure mode this project keeps paying for."""
-from scripts.pull import fit_offsets, folio_candidates, folio_of, parse_range
+from scripts.pull import (extract_integrity_errors, fit_offsets,
+                          folio_candidates, folio_of, parse_range)
 
 
 def page(head="", tail=""):
@@ -41,6 +42,42 @@ def test_head_and_tail_spans_do_not_overlap_on_a_short_page():
 def test_a_page_with_no_number_yields_nothing_rather_than_a_guess():
     assert folio_candidates(page(head="Chapter 6. Sequences", tail="see below")) == []
     assert folio_of("no numbers here") == (None, None)
+
+
+def test_each_extracted_page_checks_its_own_first_list_item():
+    text = ("=== p.1 ===\n(i) first\n(ii) second\n"
+            "=== p.2 ===\n(ii) silently lost first\n(iii) third\n")
+    errors = extract_integrity_errors(text)
+    assert any("roman list begins at ii" in error and "region" in error
+               for error in errors)
+
+
+def test_a_list_may_continue_at_the_next_page_boundary():
+    text = ("=== p.1 ===\n(i) first\n"
+            "=== p.2 ===\n(ii) continued\n(iii) continued\n")
+    assert extract_integrity_errors(text) == []
+
+
+def test_missing_marker_inside_a_list_is_rejected():
+    errors = extract_integrity_errors("(i) first\n(iii) third\n")
+    assert any("roman list jumps from 1 to 3" in error for error in errors)
+
+
+def test_unheaded_list_may_restart_after_an_intervening_prose_paragraph():
+    text = ("1. first item\n2. second item\n\n"
+            "This paragraph introduces a separate exercise.\n\n"
+            "1. first new item\n2. second new item\n")
+    assert extract_integrity_errors(text) == []
+
+
+def test_consecutive_unheaded_lists_may_restart_at_one():
+    text = "1. first\n2. second\n1. new first\n2. new second\n"
+    assert extract_integrity_errors(text) == []
+
+
+def test_each_heading_starts_a_fresh_list_region():
+    text = "# First\n(i) one\n(ii) two\n# Second\n(ii) missing one\n"
+    assert any("begins at ii" in error for error in extract_integrity_errors(text))
 
 
 # --- fitting an offset over a range ----------------------------------------
@@ -228,3 +265,25 @@ def test_two_agreeing_folios_do_reach_a_verdict(tmp_path):
     from scripts.pull import cmd_folio
     d = _corpus(tmp_path, {10: "84\nprose\n", 11: "85\nprose\n"})
     assert cmd_folio(d, "book", "10-11") == 0
+
+
+def test_extract_integrity_rejects_a_list_starting_at_its_second_item():
+    broken = ("Assume K is a subset of X. The following are equivalent:\n\n"
+              "(ii) Every family of closed sets has the property.\n")
+    errors = extract_integrity_errors(broken)
+    assert any("roman list begins at ii, not i" in error for error in errors)
+    assert any("fewer than two labelled clauses" in error for error in errors)
+
+
+def test_extract_integrity_accepts_complete_enumerations():
+    complete = ("The following are equivalent:\n\n(i) K is compact.\n\n"
+                "(ii) Every family has the property.\n")
+    assert extract_integrity_errors(complete) == []
+
+
+def test_pages_command_fails_loudly_on_a_lossy_extract(tmp_path, capsys):
+    from scripts.pull import cmd_pages
+
+    d = _corpus(tmp_path, {83: "(ii) the surviving clause\n"})
+    assert cmd_pages(d, "83", None) == 1
+    assert "EXTRACT INTEGRITY FAIL" in capsys.readouterr().err

@@ -187,6 +187,7 @@ some collection of convex sets somewhere has Rips(r) as its nerve.
 (c) Witness the gap on the triangle of Problem 1, at r = 0.5.
 
 ```python id=nerve
+# THEOREM-PROBE: Nerve Theorem at the non-convex-cover boundary
 centre = tri.mean(axis=0)
 circumradius = np.linalg.norm(tri[0] - centre)
 r = 0.5

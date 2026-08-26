@@ -388,25 +388,68 @@ def script_errors(bodies, modules=None):
 # looking. A regex also cannot tell an attribute from the same text appearing
 # in prose or inside a <pre>. The parser decides both questions the way a
 # browser does, including entity-unescaping the value before it is compiled.
-class _Handlers(HTMLParser):
+class _ExecutableAttributes(HTMLParser):
+    URL_ATTRIBUTES = {"href", "src", "action", "formaction", "xlink:href"}
     def __init__(self):
         HTMLParser.__init__(self, convert_charrefs=True)
         self.found = []
+        self.javascript_urls = []
+        self.styles = []
 
     def handle_starttag(self, tag, attrs):
         for name, value in attrs:
             if name.startswith("on") and value is not None:
                 self.found.append(value)
+            if value is None:
+                continue
+            # Browsers remove ASCII tab/newline characters while preprocessing
+            # URL schemes, including when HTML entities produced them.
+            normalized = re.sub(r"[\t\n\r]", "", value).lstrip()
+            if name in self.URL_ATTRIBUTES \
+                    and normalized.lower().startswith("javascript:"):
+                self.javascript_urls.append(normalized[len("javascript:"):])
+            if name == "style":
+                self.styles.append(value)
 
     handle_startendtag = handle_starttag
 
 
 def handler_bodies(html):
     """Every event-handler attribute value, in document order."""
-    p = _Handlers()
+    p = _ExecutableAttributes()
     p.feed(html)
     p.close()
     return p.found
+
+
+def javascript_url_bodies(html):
+    """JavaScript bodies carried by URL-valued attributes."""
+    p = _ExecutableAttributes()
+    p.feed(html)
+    p.close()
+    return p.javascript_urls
+
+
+_STYLE_TAG = re.compile(r"<style\b[^>]*>(.*?)</style>", re.I | re.S)
+
+
+def css_expression_hits(html):
+    """Legacy executable CSS expressions in style attributes or blocks."""
+    p = _ExecutableAttributes()
+    p.feed(html)
+    p.close()
+    values = p.styles + [m.group(1) for m in _STYLE_TAG.finditer(html)]
+    def executable_css(value):
+        # Comments and quoted strings are inert CSS text. Searching the raw
+        # container made documentation such as `/* width: expression(x) */`
+        # fail even though no declaration could execute it.
+        active = re.sub(r"/\*.*?\*/", "", value, flags=re.S)
+        active = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
+                        "", active, flags=re.S)
+        return re.search(r"\bexpression\s*\(", active, re.I)
+
+    return ["CSS expression %d" % n for n, value in enumerate(values, 1)
+            if executable_css(value)]
 
 
 # One node process per FILE, not per handler. A lesson carries fifteen or so
@@ -504,6 +547,15 @@ def check(path):
     hbad, hchecked = handler_errors(hbodies)
     _row(not hbad, "event handlers parse (%d checked)" % hchecked, hbad)
     fails += hbad
+
+    url_bodies = javascript_url_bodies(html)
+    ubad, uchecked = script_errors(url_bodies)
+    _row(not ubad, "javascript URLs parse (%d checked)" % uchecked, ubad)
+    fails += ubad
+
+    css_bad = css_expression_hits(html)
+    _row(not css_bad, "no executable CSS expressions", css_bad)
+    fails += css_bad
 
     return fails
 
@@ -708,6 +760,17 @@ def selftest():
               len(handler_errors(["return false", "check(this,false"])[0]) == 1)
     check_one("a non-handler attribute is left alone",
               handler_bodies('<a href="index.html">x</a>') == [])
+    check_one("an SVG onload handler is checked like an HTML handler",
+              handler_bodies('<svg onload="draw()"></svg>') == ["draw()"])
+    check_one("a javascript URL is extracted for syntax checking",
+              javascript_url_bodies('<a href=" JAVASCRIPT:draw()">x</a>')
+              == ["draw()"])
+    check_one("a non-javascript URL is not treated as executable",
+              javascript_url_bodies('<a href="lesson.html">x</a>') == [])
+    check_one("CSS expression is rejected only in CSS containers",
+              css_expression_hits('<p style="width: expression(x)">x</p>')
+              and css_expression_hits('<style>p{x:EXPRESSION(y)}</style>')
+              and not css_expression_hits('<p>expression(x) in prose</p>'))
     if shutil.which("node"):
         check_one("the shipped truncated handler FAILS",
                   bool(handler_errors(handler_bodies(shipped))[0]))

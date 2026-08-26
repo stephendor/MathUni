@@ -7,12 +7,12 @@ and every problem below says which:
 1. **Repo artifacts** — `MISSION.md` (the success criteria the capstone answers
    to) and `curriculum/LESSON-RUBRIC.md` (a worked example of what it looks like
    to write down in advance what would count as failure).
-2. **Theorems already proved in this curriculum**, cited to their texts: Dey &
+2. **Theorems already proved in this curriculum**, cited to their texts: <span class="cite">Dey &
    Wang, *Computational Topology for Data Analysis* — Definition 6.1 and
    Definition 6.2 (p. 181), Theorem 6.3 (p. 182), Definition 6.8 (pp. 193–194),
    Definition 6.10 and Proposition 6.9 (p. 195), Theorem 6.11 (pp. 196–197),
-   Theorem 6.13 (p. 198), Definition 13.8 (p. 406); Ghrist, *Elementary Applied
-   Topology* — Theorem 10.15 (p. 220).
+    Theorem 6.13 (p. 198), Definition 13.8 (p. 406);</span> <span class="cite">Ghrist,
+   *Elementary Applied Topology* — Theorem 10.15, p. 220.</span>
 3. **tdlbook.org** — *Topological Deep Learning: Going Beyond Graph Data*, the
    capstone companion named in `resources/RESOURCES.md`. It is cited here for
    what it is and is not: a text on combinatorial complexes and neural networks,

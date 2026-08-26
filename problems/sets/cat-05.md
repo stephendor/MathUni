@@ -12,10 +12,10 @@ Definition 3.86 of a product with its universal property (pp. 108–109);
 $\mathbf{Cone}(D)$, and the limit as its terminal object, with Examples 3.93
 and 3.94 identifying terminal objects and products as limits over the empty and
 two-object discrete indexing categories (p. 111); §3.5.3, Example 3.99 on
-pullbacks and Remark 3.100 distinguishing two uses of that word (p. 112);
+pullbacks (p. 112); Remark 3.100 distinguishing two uses of that word (p. 113);
 Definition 3.102, that a cocone in $\mathcal{C}$ is a cone in
 $\mathcal{C}^{\mathrm{op}}$, with Spivak's remark that this is "like a
-compressed file" and will be unpacked in Chapter 6 (p. 113).
+compressed file" and will be unpacked in Chapter 6 (p. 114).
 Aluffi, *Algebra: Chapter 0* — §I.5 (pp. 31–38): Proposition 5.4, §5.3 on
 quotients with Claim 5.5, §5.4 products, and §5.5 coproducts with
 Proposition 5.6 and the remark that the coproduct in the $\le$ category is

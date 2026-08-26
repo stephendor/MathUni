@@ -42,7 +42,7 @@ table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}th,td{b
 </div>
 </div>
 
-<p class="mission">Why this matters for the mission: A d-parameter persistence module is a ℤᵈ-graded module over the polynomial ring k[t₁,…,t_d] (aa-13’s rings acting on aa-15’s modules); for d ≥ 2 the interval decomposition behind a barcode is unavailable—the structural fact that separates TDA II from TDA I.</p>
+<p class="mission">Why this matters for the mission: A d-parameter persistence module is a Z^d-graded module over the polynomial ring k[x_1,...,x_d] (aa-13's rings acting on aa-15's modules). For d &gt;= 2 there is no interval decomposition and hence no barcode — the structural fact that separates tda2 from tda1.</p>
 
 <div class="segment">
 <span class="timebox">Segment 1 · ~25 min</span>
@@ -76,7 +76,7 @@ table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}th,td{b
 <text x="112" y="128" fill="#4caf82" font-size="16">t₂ •</text><text x="455" y="128" fill="#4caf82" font-size="16">t₂ •</text>
 <text x="222" y="232" fill="#9aa5b1" font-size="15">t₂• after t₁• = t₁• after t₂•</text>
 </svg>
-<p class="cite">The diagram is the map interpretation of Dey &amp; Wang, §11.1.1, Definition 11.2, p. 326.</p>
+<p class="cite">The diagram is the map interpretation of Dey &amp; Wang, §11.1.1, Definition 11.2, pp. 325–326.</p>
 
 <div class="worked">
 <p><strong>Worked Example 1 · Problem 1(c).</strong> Let M<sub>(0,0)</sub>, M<sub>(1,0)</sub>, M<sub>(0,1)</sub>, and M<sub>(1,1)</sub> each be k, with all other grades 0. Let t₁• be the identity on the two horizontal nonzero maps and let t₂• be the zero map on the two vertical nonzero maps; maps involving a zero source or target are the unique zero maps.</p>
@@ -147,7 +147,7 @@ table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}th,td{b
 </div>
 
 <div class="definition">
-<p><strong>Definition 11.6 (Morphism).</strong> A graded-module morphism f : M → N is an R-linear map preserving grades: f(M<sub>u</sub>) ⊆ N<sub>u</sub> for every u ∈ ℤᵈ. Equivalently, it is a collection of linear maps f<sub>u</sub> : M<sub>u</sub> → N<sub>u</sub> for which every square with a structure map commutes. Two graded modules are isomorphic when there are morphisms in both directions whose composites are identity maps; we write M ≅ N. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.6, p. 328</span></p>
+<p><strong>Definition 11.6 (Morphism).</strong> A graded-module morphism f : M → N is an R-linear map preserving grades: f(M<sub>u</sub>) ⊆ N<sub>u</sub> for every u ∈ ℤᵈ. Equivalently, it is a collection of linear maps f<sub>u</sub> : M<sub>u</sub> → N<sub>u</sub> for which every square with a structure map commutes. Two graded modules are isomorphic when there are morphisms in both directions whose composites are identity maps; we write M ≅ N. <span class="cite">— Dey &amp; Wang, §11.1.1, Definition 11.6, p. 327</span></p>
 </div>
 
 <div class="definition">
@@ -192,7 +192,7 @@ table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}th,td{b
 <p><strong>Application Worked Example · Problem 4.</strong> Let N<sub>u</sub> = k for u ≥ (0,0), N<sub>u</sub> = 0 otherwise, with identity structure maps wherever both pieces are nonzero. Define f : M → N on the module from Problem 2 by sending every component generator in M<sub>u</sub> to the generator 1 ∈ N<sub>u</sub>; in particular, f<sub>(1,0)</sub>([a]) = f<sub>(1,0)</sub>([b]) = 1.</p>
 <p>This is grade-preserving because f<sub>u</sub> lands in N<sub>u</sub>. It is R-linear because the two possible routes around the only nontrivial square both send [a] to 1, and at (1,0) the map t₂• sends both [a] and [b] to [a], which f also sends to 1. Thus every structure-map square commutes.</p>
 <p>For any morphism g : N → M, the component g<sub>(1,0)</sub> has domain dimension 1 and codomain dimension 2. Its image has dimension at most 1, so it cannot be surjective.</p>
-<p>A map M<sub>u</sub> → N<sub>u+e₁</sub> is not grade-preserving in the sense of Definition 11.6. The construction that handles this is a shift. With Definition 11.7’s convention, such a map is an ordinary morphism M → N<sub>→(−e₁)</sub>, because (N<sub>→(−e₁)</sub>)<sub>u</sub> = N<sub>u+e₁</sub>. The minus sign is forced by the source’s shift convention. <span class="cite">— Dey &amp; Wang, §11.1.1, Definitions 11.6–11.7, p. 328</span></p>
+<p>A map M<sub>u</sub> → N<sub>u+e₁</sub> is not grade-preserving in the sense of Definition 11.6. The construction that handles this is a shift. With Definition 11.7’s convention, such a map is an ordinary morphism M → N<sub>→(−e₁)</sub>, because (N<sub>→(−e₁)</sub>)<sub>u</sub> = N<sub>u+e₁</sub>. The minus sign is forced by the source’s shift convention. <span class="cite">— Dey &amp; Wang, §11.1.1, Definitions 11.6–11.7, pp. 327–328</span></p>
 </div>
 
 <h3>Why the barcode stops being the right summary</h3>
@@ -251,7 +251,7 @@ table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem}th,td{b
 </details>
 </div>
 
-<footer>Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — Chapter 11 opening, pp. 321–324; §11.1.1, Definition 11.1, p. 325; Definition 11.2, pp. 325–326; Definition 11.3, p. 326; Definition 11.4, p. 326; Definition 11.5, pp. 326–327; Definitions 11.6–11.9, p. 328. Prerequisite results used: H₀ and connected components from tda1-03; polynomial-ring, ideal, and PID language from aa-13; the one-parameter interval/barcode structure from tda1-04. Later presentation matrices and decomposition algorithms are deferred to the later tda2 units.</footer>
+<footer>Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — Chapter 11 opening, pp. 321–324; §11.1.1, Definition 11.1, p. 325; Definition 11.2, pp. 325–326; Definition 11.3, p. 326; Definition 11.4, p. 326; Definition 11.5, pp. 326–327; Definitions 11.6–11.9, pp. 327–328. Prerequisite results used: H₀ and connected components from tda1-03; polynomial-ring, ideal, and PID language from aa-13; the one-parameter interval/barcode structure from tda1-04. Later presentation matrices and decomposition algorithms are deferred to the later tda2 units.</footer>
 <script>
 function check(btn,ok){const sc=btn.closest('.selfcheck');if(sc.classList.contains('answered'))return;
 btn.classList.add(ok?'correct':'wrong');if(!ok){const c=sc.querySelector('button[data-ok]');if(c)c.classList.add('correct');}

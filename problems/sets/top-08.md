@@ -85,12 +85,12 @@ would go wrong with an infinite one.
 (c) Show that the Hausdorff hypothesis in Theorem 26.3 cannot be dropped: give a
 non-Hausdorff space with a compact subspace that is not closed.
 (d) Prove Theorem 26.6: a bijective continuous $f : X \to Y$ with $X$ compact
-and $Y$ Hausdorff is a homeomorphism. Then revisit top-04's Example 6 — the map
+and $Y$ Hausdorff is a homeomorphism. Then revisit top-04's continuous-bijection counterexample — the map
 $F : [0,1) \to S^1$, continuous and bijective and not a homeomorphism — and say
 which hypothesis of Theorem 26.6 it fails, with the reason.
 
 *(Munkres §26, p. 165 for Theorem 26.2; pp. 165–166 for Theorem 26.3; p. 167 for
-Theorem 26.6. top-04's Example 6 is Munkres §18, p. 107.)*
+Theorem 26.6. top-04's continuous-bijection example is Munkres §18, p. 106.)*
 
 <details><summary>Nudge</summary>
 For (c), the finite complement topology on an infinite set is not Hausdorff and
@@ -147,7 +147,7 @@ sequence $C_1 \supset C_2 \supset \cdots$ of non-empty closed subsets of a
 compact space has non-empty intersection. Then show it fails in $\mathbb{R}$ by
 exhibiting nested non-empty closed sets with empty intersection.
 
-*(Munkres §26, p. 168 for Theorem 26.7 and Lemma 26.8; pp. 169–170 for the
+*(Munkres §26, p. 167 for Theorem 26.7; p. 168 for Lemma 26.8; pp. 169–170 for the
 finite intersection property and Theorem 26.9.)*
 
 <details><summary>Nudge</summary>
@@ -203,7 +203,7 @@ uniform continuity theorem. State the definition of uniform continuity first,
 and say exactly which quantifier moves when "continuous" becomes "uniformly
 continuous".
 
-*(Munkres §27, pp. 172–173 for Theorem 27.1; p. 174 for Corollary 27.2 and
+*(Munkres §27, pp. 172–173 for Theorem 27.1; p. 173 for Corollary 27.2 and
 Theorem 27.3; p. 174 for Theorem 27.4; pp. 175–176 for the distance from a point
 to a set, Lemma 27.5, uniform continuity and Theorem 27.6.)*
 

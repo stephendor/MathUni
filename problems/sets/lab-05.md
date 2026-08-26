@@ -6,7 +6,7 @@ Analysis*, Chapter 3 "Stability", printed **49–66** (folio = PDF − 9).
 Specifically: **Theorem 3.1** (Isometry), printed 49; the bottleneck distance and
 the remark that it is an extended pseudometric, printed 51; **Definition 3.3**
 (ε-interleaving), printed 52; **Lemma 3.4**, printed 56; **Corollary 3.6**,
-printed 61. **Theorem 1.13** is cited by Oudot at printed 51 and lives in his
+printed 61. The result numbered 1.13 is cited by Oudot at printed 51 and lives in his
 Chapter 1. Plus executed code, in the environment pinned below. API surfaces
 verified by execution: `persim.bottleneck`,
 `gtda.homology.VietorisRipsPersistence`.
@@ -251,6 +251,7 @@ to √2 δ in the plane, and the ratio against the guarantee would then be compu
 against a δ the perturbation does not satisfy.
 
 ```python id=perturb
+# THEOREM-PROBE: Isometry Theorem under an explicit bounded perturbation
 from gtda.homology import VietorisRipsPersistence
 
 rng = np.random.default_rng(20260813)
@@ -441,8 +442,8 @@ Say what the theorem does deliver, what it does not, and where the trust actuall
 has to be placed. Then write the corrected strip in one sentence.
 
 <details><summary>Partial</summary>
-(a) Cite Oudot's **Theorem 3.1**, printed 49, and its function-level consequence
-**Corollary 3.6**, printed 61. The ε the strip means is the one bounding the
+(a) Cite Oudot's **Theorem 3.1**, printed 49. Then cite its function-level
+consequence, **Corollary 3.6**, printed 61. The ε the strip means is the one bounding the
 *input* perturbation — ‖f − g‖_∞, or the δ of Problem 4 — and the theorem's
 content is that the *output* perturbation is bounded by it, which is the shape of
 every ε-δ statement `pw-04` would have introduced.

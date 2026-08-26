@@ -1,0 +1,8 @@
+{
+  "la-12": {
+    "book": "Axler",
+    "edition": "3rd edition",
+    "sections": ["5.B", "5.C"],
+    "required_title_terms": ["upper-triangular", "diagonalisability"]
+  }
+}

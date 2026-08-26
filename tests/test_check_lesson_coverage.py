@@ -17,6 +17,21 @@ def test_ref_absent_from_lesson_is_reported():
     assert find_missing_refs(problem_set, lesson) == ["Theorem 1.29"]
 
 
+def test_propositions_and_examples_belong_to_coverage_population():
+    problem_set = "Use Proposition 9.25 and Example 9.39."
+    lesson = "<p>Example 9.39 is worked here.</p>"
+    assert find_missing_refs(problem_set, lesson) == ["Proposition 9.25"]
+
+
+def test_hidden_html_cannot_satisfy_visible_result_coverage():
+    problem = "Prove Proposition 1.2 and discuss Example 1.3."
+    lesson = ("<!-- Proposition 1.2 -->"
+              "<script>const note = 'Example 1.3';</script>"
+              "<style>.x::after{content:'Example 1.3'}</style>")
+    assert find_missing_refs(problem, lesson) == [
+        "Example 1.3", "Proposition 1.2"]
+
+
 def test_multiple_missing_refs_sorted():
     problem_set = "See Theorem 1.34, Theorem 1.29, Definition 1.20."
     lesson = "<p>No theorems mentioned here.</p>"
@@ -37,14 +52,36 @@ def test_ref_not_falsely_covered_by_longer_numbered_ref():
     assert find_missing_refs(problem_set, lesson) == ["Theorem 1.2"]
 
 
-def test_cli_reports_zero_ref_source_as_unchecked(tmp_path, capsys):
+def test_cli_rejects_zero_refs_without_a_disposition(tmp_path, capsys):
     problem_set = tmp_path / "problems.md"
     lesson = tmp_path / "lesson.html"
     problem_set.write_text("Discuss the chapter introduction.", encoding="utf-8")
     lesson.write_text("<html>discussion</html>", encoding="utf-8")
 
-    assert main([str(problem_set), str(lesson)]) == 0
-    assert capsys.readouterr().out.strip() == "UNCHECKED checked 0 refs - nothing to verify"
+    assert main([str(problem_set), str(lesson)]) == 1
+    assert "supply --expect-zero-refs" in capsys.readouterr().out
+
+
+def test_cli_accepts_an_explicit_zero_ref_disposition(tmp_path, capsys):
+    problem_set = tmp_path / "problems.md"
+    lesson = tmp_path / "lesson.html"
+    problem_set.write_text("Discuss the chapter introduction.", encoding="utf-8")
+    lesson.write_text("<html>discussion</html>", encoding="utf-8")
+
+    assert main(["--expect-zero-refs", "introductory discussion only",
+                 str(problem_set), str(lesson)]) == 0
+    assert "expected: introductory discussion only" in capsys.readouterr().out
+
+
+def test_cli_rejects_a_stale_zero_ref_disposition(tmp_path, capsys):
+    problem_set = tmp_path / "problems.md"
+    lesson = tmp_path / "lesson.html"
+    problem_set.write_text("Apply Lemma 3.1.", encoding="utf-8")
+    lesson.write_text("<html>Lemma 3.1</html>", encoding="utf-8")
+
+    assert main(["--expect-zero-refs", "none expected",
+                 str(problem_set), str(lesson)]) == 1
+    assert "expected zero refs" in capsys.readouterr().out
 
 
 def test_cli_min_refs_rejects_vacuous_coverage(tmp_path, capsys):

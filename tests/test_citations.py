@@ -303,6 +303,96 @@ def test_a_book_name_matches_only_as_a_consecutive_phrase():
         == ["Cummings", "Cummings Real Analysis"]
 
 
+def test_unspanned_results_follow_the_last_named_book_segment():
+    from scripts.citations import unspanned_citations
+    text = "Compare Abbott with Axler Theorem 1.2, p. 3."
+    got = unspanned_citations(text, [], "Abbott", ["Abbott", "Axler"])
+    assert got == [("Theorem 1.2", {3}, 1, "Axler")]
+
+
+def test_unspanned_book_attribution_does_not_leak_to_later_paragraph():
+    from scripts.citations import unspanned_citations
+
+    text = ("Munkres, Theorem 1.2, p. 3.\n\n"
+            "Theorem 4.5, p. 9.")
+
+    got = unspanned_citations(
+        text, [], "Lindstrom", ["Lindstrom", "Munkres"])
+
+    assert got == [
+        ("Theorem 1.2", {3}, 1, "Munkres"),
+        ("Theorem 4.5", {9}, 3, "Lindstrom"),
+    ]
+
+
+def test_pageless_results_follow_the_last_named_book_segment():
+    from scripts.citations import pageless_results
+    got = pageless_results("Compare Abbott with Axler Theorem 1.2.",
+                           "Abbott", ["Abbott", "Axler"])
+    assert got == [("Theorem 1.2", 1, "Axler")]
+
+
+def test_unspanned_scan_ignores_non_rendered_html_containers():
+    from scripts.citations import unspanned_citations
+    text = ("<!-- Theorem 1.2, p. 4 -->"
+            "<script>const note='Theorem 2.3, p. 5';</script>"
+            "<style>/* Theorem 3.4, p. 6 */</style>")
+    assert unspanned_citations(text, [], "Axler", ["Axler"]) == []
+
+
+def test_rendered_block_controls_remain_separate_assertions():
+    import scripts.citations as C
+
+    text = (
+        '<button>Abbott, Theorem 1.2, p. 3</button>'
+        '<button>Lindstrom, Lemma 4.5, p. 9</button>'
+    )
+
+    plain = C.rendered_text(text)
+    assertions = [a for a in C._split_assertions(plain) if a.strip()]
+
+    assert len(assertions) == 2
+
+
+def test_problem_subparts_are_separate_assertions():
+    import scripts.citations as C
+
+    text = ("(a) Use Theorem 1.2. "
+            "(b) Compare Lemma 3.4 on p. 9.")
+
+    assertions = [a for a in C._split_assertions(text) if a.strip()]
+
+    assert len(assertions) == 2
+
+
+def test_sentence_after_markdown_math_is_an_assertion_boundary():
+    import scripts.citations as C
+
+    assertions = C._split_assertions(
+        "The hypothesis holds for $Y$. Proposition 1.2 is on p. 3.")
+
+    assert len(assertions) == 2
+
+
+def test_primary_inference_uses_citation_evidence_not_audit_mentions():
+    import scripts.citations as C
+
+    text = (
+        '<p>Axler is outside this unit and unwritten.</p>\n'
+        '<footer>Sources: Dey, Theorem 9.16, p. 274.</footer>'
+    )
+
+    assert C.inferred_citation_book(text, ["Axler", "Dey"]) == "Dey"
+
+
+def test_no_page_result_claim_is_an_explicit_checked_zero():
+    import scripts.citations as C
+
+    text = "Carried from an2-01: Definition 3.1.1. No book is opened here."
+
+    assert not C.has_page_result_claim(text)
+
+
 def test_the_number_first_word_order_rejects_a_longer_sibling():
     """Axler prints "1.8 Definition"; that order needs the same boundary."""
     from scripts.citations import found_on_page
@@ -476,6 +566,236 @@ def test_a_sentence_ends_an_assertion_but_an_abbreviation_does_not():
         == [[46], [18]]
 
 
+def test_pageless_result_is_a_named_third_outcome(tmp_path, capsys):
+    """A missing page cannot silently enter the checked denominator."""
+    import scripts.citations as C
+
+    class FakeBook:
+        name = "Fake"
+
+        def find_result(self, result):
+            return result == "Theorem 5.52"
+
+    src = tmp_path / "unit.md"
+    src.write_text("Theorem 5.52 is correct. Theorem 5.20 is not.\n",
+                   encoding="utf-8")
+    failures, checked, unavailable = C.check_file(str(src), FakeBook())
+    output = capsys.readouterr().out
+    assert failures == [] and checked == 0 and unavailable == set()
+    assert "pageless Theorem 5.20 was not found" in output
+    assert "pageless Theorem 5.52 was not found" not in output
+    assert "2 pageless result reference(s)" in output
+
+
+def test_running_prose_page_reference_is_checked_once(tmp_path):
+    """A bare result-and-page sentence is a citation, without span markup."""
+    import scripts.citations as C
+
+    class FakeBook:
+        name = "Fake"
+
+        def pdf_pages_for(self, printed):
+            return [10] if printed == 7 else []
+
+        def text_of(self, pdf_page):
+            return "Theorem 2.3"
+
+        def find_result(self, result):
+            return True
+
+    src = tmp_path / "unit.md"
+    src.write_text("That is Fake Theorem 2.3, p. 7.\n", encoding="utf-8")
+    failures, checked, unavailable = C.check_file(str(src), FakeBook())
+    assert failures == [] and checked == 1 and unavailable == set()
+
+
+def test_ambiguous_running_prose_requires_explicit_markup(tmp_path):
+    import pytest
+    import scripts.citations as C
+
+    class FakeBook:
+        name = "Fake"
+
+    src = tmp_path / "unit.md"
+    src.write_text("Theorem 1.1 and Theorem 9.9, p. 7.\n", encoding="utf-8")
+    with pytest.raises(C.Unreadable, match="ambiguous result/page binding"):
+        C.check_file(str(src), FakeBook())
+
+
+def test_later_explicit_spans_do_not_cover_earlier_ambiguous_prose(tmp_path):
+    import pytest
+    import scripts.citations as C
+
+    class FakeBook:
+        name = "Fake"
+
+    src = tmp_path / "unit.md"
+    src.write_text(
+        "Theorem 1.2 and Lemma 1.3, p. 999.\n\n"
+        "**Sources:** Fake, Theorem 1.2, p. 7; Lemma 1.3, p. 8.\n\n",
+        encoding="utf-8")
+    with pytest.raises(C.Unreadable, match="ambiguous result/page binding"):
+        C.check_file(str(src), FakeBook())
+
+
+def test_footer_audit_prose_is_not_a_citation_span():
+    import scripts.citations as C
+
+    text = (
+        '<footer>Sources: BookA, Theorem 2.3, p. 7. '
+        '<p>BookB, Lemma 4.5, p. 9.</p>'
+        '<p><strong>Not established here.</strong> Theorem 99.1 is deferred; '
+        'BookC discusses it on p. 400.</p></footer>'
+    )
+
+    found = C.spans(text)
+
+    assert len(found) == 1
+    body, _line = found[0]
+    assert "Theorem 2.3" in body
+    assert "Lemma 4.5" in body
+    assert "Theorem 99.1" not in body
+
+
+def test_footer_italic_modality_prose_is_not_a_citation_span():
+    import scripts.citations as C
+
+    text = (
+        '<footer>Sources: BookA, Theorem 2.3, p. 7. '
+        '<br><br><em>Modality.</em> Theorem 2.3 is deferred on p. 8.'
+        '</footer>'
+    )
+
+    found = C.spans(text)
+
+    assert len(found) == 1
+    body, _line = found[0]
+    assert "p. 7" in body
+    assert "p. 8" not in body
+
+
+def test_parenthetical_inside_footer_audit_is_not_a_citation_span():
+    import scripts.citations as C
+
+    text = (
+        '<footer>Sources: BookA, Theorem 2.3, p. 7. '
+        '<br><br><em>Not established here.</em> Theorem 9.9 '
+        '(BookA, p. 400).</footer>'
+    )
+
+    found = C.spans(text)
+
+    assert len(found) == 1
+    assert "Theorem 9.9" not in found[0][0]
+    assert C.pageless_results(text, "BookA", ["BookA"]) == []
+
+
+def test_body_audit_heading_does_not_hide_later_sources_footer():
+    import scripts.citations as C
+
+    text = (
+        '<p><strong>Not established here.</strong> Theorem 9.9.</p>\n'
+        '<footer>Sources: Dey, Theorem 1.2, p. 7.</footer>'
+    )
+
+    found = C.spans(text)
+
+    assert len(found) == 1
+    assert "Theorem 1.2" in found[0][0]
+
+
+def test_bold_numbered_result_with_punctuation_is_a_book_label():
+    import scripts.citations as C
+
+    raw = "**3.3.** Formulate precisely what identity means.\n"
+
+    assert C.book_label_for("3.3", raw) == "Formulate precisely what identity means."
+
+
+def test_page_less_deferred_clause_does_not_inherit_a_sources_page_union():
+    import scripts.citations as C
+
+    source = (
+        "Theorem 1.1, p. 10. Lemma 2.2, p. 20. "
+        "Deferred: Proposition 9.9."
+    )
+    by_text = [(text, pages) for text, pages in C.clauses(source)]
+
+    assert by_text[-1][1] == set()
+
+
+def test_parenthetical_inside_sources_is_not_checked_twice_without_its_book():
+    import scripts.citations as C
+
+    text = (
+        "**Sources:** Dey, Theorem 1.1, p. 10. Ghrist, discussion "
+        "(Theorem 7.23, pp. 149–150).\n\n"
+    )
+
+    found = C.spans(text)
+
+    assert len(found) == 1
+    assert "Ghrist" in found[0][0]
+
+
+def test_deduplication_keeps_the_attributed_book(tmp_path):
+    import scripts.citations as C
+
+    class FakeBook:
+        def __init__(self, name, text):
+            self.name, self.text = name, text
+
+        def pdf_pages_for(self, printed):
+            return [10]
+
+        def text_of(self, _page):
+            return self.text
+
+        def find_result(self, _result):
+            return True
+
+    src = tmp_path / "unit.md"
+    src.write_text(
+        "**Sources:** BookA, Theorem 2.3, p. 7.\n\n"
+        "BookB Theorem 2.3, p. 7.\n", encoding="utf-8")
+    books = {"BookA": FakeBook("BookA", "Theorem 2.3"),
+             "BookB": FakeBook("BookB", "no such result")}
+    failures, checked, unavailable = C.check_file(
+        str(src), "BookA", books=books, all_names=sorted(books))
+    assert checked == 2 and len(failures) == 1 and unavailable == set()
+
+    # The same assertion inside a recognised span must not enter twice.
+    src.write_text("**Sources:** Fake, Theorem 2.3, p. 7\n\n", encoding="utf-8")
+    failures, checked, unavailable = C.check_file(
+        str(src), FakeBook("Fake", "Theorem 2.3"))
+    assert failures == [] and checked == 1 and unavailable == set()
+
+
+def test_ambiguous_folio_resolution_is_counted(tmp_path, capsys):
+    """Accept-any-candidate remains valid, but its weaker proof is visible."""
+    import scripts.citations as C
+
+    class FakeBook:
+        name = "Fake"
+
+        def pdf_pages_for(self, printed):
+            return [10, 110]
+
+        def text_of(self, pdf_page):
+            return "Theorem 2.3" if pdf_page == 10 else ""
+
+        def find_result(self, result):
+            return True
+
+    src = tmp_path / "unit.md"
+    src.write_text("**Sources:** Fake, Theorem 2.3, p. 7\n\n",
+                   encoding="utf-8")
+    failures, checked, unavailable = C.check_file(str(src), FakeBook())
+    output = capsys.readouterr().out
+    assert failures == [] and checked == 1 and unavailable == set()
+    assert "1 citation(s) resolved to more than one candidate PDF page" in output
+
+
 def test_a_range_expands_but_a_list_does_not():
     """`Exercises 1.3.1-1.3.9` cites all nine — taking only the ends left seven
     out of the denominator. `Definitions 8.3, 8.5` cites exactly two, and
@@ -637,6 +957,18 @@ def test_a_path_with_no_syllabus_book_does_not_stop_the_run(tmp_path,
                                     encoding="utf-8")
     assert C.main([str(tmp_path / "scratch.md"),
                    str(tmp_path / "u2.md")]) == 1
+
+
+def test_a_path_without_a_syllabus_primary_uses_its_first_named_book(
+        tmp_path, monkeypatch, capsys):
+    C = _two_fake_books(tmp_path, monkeypatch)
+    monkeypatch.setattr(C, "book_for_unit", lambda uid: None)
+    src = tmp_path / "cap-01.md"
+    src.write_text("*(Beta, Theorem 2.2, p. 70)*\n", encoding="utf-8")
+
+    assert C.main([str(src)]) == 0
+    out = capsys.readouterr().out
+    assert "primary Beta" in out
 
 
 def test_a_missing_primary_does_not_blind_the_rest_of_the_file(tmp_path,

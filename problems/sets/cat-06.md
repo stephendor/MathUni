@@ -1,7 +1,7 @@
 # cat-06 — Adjunctions
 
 **Module:** Category Theory · **Unit:** cat-06
-**Sources:** Aluffi, *Algebra: Chapter 0* — §VIII.1.3 (pp. 492–493): the
+**Sources:** Aluffi, *Algebra: Chapter 0* — §VIII.1.5 (pp. 492–493): the
 informal introduction of adjoint functors as *natural* isomorphisms
 $\operatorname{Hom}_\mathsf{C}(X, \mathcal{G}(Y)) \cong
 \operatorname{Hom}_\mathsf{D}(\mathcal{F}(X), Y)$, the parenthetical that the

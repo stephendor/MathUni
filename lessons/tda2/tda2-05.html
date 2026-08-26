@@ -62,7 +62,7 @@ Morse theory with no calculus at all: pair each cell with a neighbour, and whate
 <p>In words: f is supposed to increase with dimension, and it is allowed to fail in at most one direction downwards and at most one direction upwards at each simplex. Dey and Wang note that by a result of Chari the two conditions force the two sets to be <em>disjoint</em> — a simplex cannot be the exceptional facet of one pair and the exceptional cofacet of another. That disjointness is exactly what makes the induced pairing well defined.</p>
 
 <div class="definition">
-<p><strong>Definition 10.2 (matching).</strong> A set of ordered pairs M = {(σ, τ)} is a matching in K if σ is a facet of τ in every pair, and any simplex appears in at most one pair. Such an M defines disjoint subsets L, U ⊆ K with a bijection μ : L → U. <span class="cite">— Dey &amp; Wang §10.1, Definition 10.2, p. 291</span></p>
+<p><strong>Definition 10.2 (matching).</strong> A set of ordered pairs M = {(σ, τ)} is a matching in K if σ is a facet of τ in every pair, and any simplex appears in at most one pair. Such an M defines disjoint subsets L, U ⊆ K with a bijection μ : L → U. <span class="cite">— Dey &amp; Wang §10.1, Definition 10.2, p. 290</span></p>
 </div>
 
 <div class="definition">
@@ -70,19 +70,19 @@ Morse theory with no calculus at all: pair each cell with a neighbour, and whate
 </div>
 
 <div class="theorem">
-<p><strong>Fact 10.1.</strong> The matching induced by a Morse function on K is acyclic, thus is a Morse matching. <span class="cite">— Dey &amp; Wang §10.1, Fact 10.1, p. 292</span></p>
+<p><strong>Fact 10.1.</strong> The matching induced by a Morse function on K is acyclic, thus is a Morse matching. <span class="cite">— Dey &amp; Wang §10.1, Fact 10.1, p. 291</span></p>
 </div>
 
 <p><em>Why.</em> Dey and Wang's observation is that along a sequence like a V-path, the function values on the facets of the matched pairs strictly decrease. A cyclic path returns to its own starting simplex, which would force that value to be strictly less than itself. So no cyclic path can exist. ∎</p>
 
 <div class="theorem">
-<p><strong>Fact 10.2.</strong> A Morse matching M in K defines a Morse function on K. <span class="cite">— Dey &amp; Wang §10.1, Fact 10.2, p. 292</span></p>
+<p><strong>Fact 10.2.</strong> A Morse matching M in K defines a Morse function on K. <span class="cite">— Dey &amp; Wang §10.1, Fact 10.2, p. 291</span></p>
 </div>
 
 <p>Facts 10.1 and 10.2 together are the reason the subject is usable. The two notions determine each other, so one may define the theory with functions and compute with matchings — and matchings are finite combinatorial data, which functions are not.</p>
 
 <div class="definition">
-<p><strong>Definition 10.4 (discrete Morse vector field).</strong> A DMVF V in K is a partition V = C ⊔ L ⊔ U where L is the set of facets paired with a unique cofacet in U under a Morse matching M with μ(L) = U, and C is the set of unpaired simplices, called <em>critical simplices</em>. Each pair (σ, μ(σ)) is drawn as an arrow with tail in σ and head in μ(σ); the critical simplices are the critical points of the field. <span class="cite">— Dey &amp; Wang §10.1.1, Definition 10.4, p. 293</span></p>
+<p><strong>Definition 10.4 (discrete Morse vector field).</strong> A DMVF V in K is a partition V = C ⊔ L ⊔ U where L is the set of facets paired with a unique cofacet in U under a Morse matching M with μ(L) = U, and C is the set of unpaired simplices, called <em>critical simplices</em>. Each pair (σ, μ(σ)) is drawn as an arrow with tail in σ and head in μ(σ); the critical simplices are the critical points of the field. <span class="cite">— Dey &amp; Wang §10.1.1, Definition 10.4, p. 292</span></p>
 </div>
 
 <h3>Visual: a matching, its V-paths, and what breaks</h3>
@@ -199,11 +199,11 @@ draw();
 <p>Start from the trivial DMVF in which every simplex is critical — the field induced by f(σ) = dim σ, whose matching is empty. Then reduce the number of critical cells by cancelling them in pairs.</p>
 
 <div class="definition">
-<p><strong>Definition 10.5 (critical V-path).</strong> Given a DMVF V = C ⊔ L ⊔ U induced by M, a V-path π : σ<sub>0</sub> ≺ ⋯ ≺ σ<sub>k</sub> is <em>critical</em> if both σ<sub>0</sub> and σ<sub>k</sub> are critical. <span class="cite">— Dey &amp; Wang §10.2, Definition 10.5, p. 295</span></p>
+<p><strong>Definition 10.5 (critical V-path).</strong> Given a DMVF V = C ⊔ L ⊔ U induced by M, a V-path π : σ<sub>0</sub> ≺ ⋯ ≺ σ<sub>k</sub> is <em>critical</em> if both σ<sub>0</sub> and σ<sub>k</sub> are critical. <span class="cite">— Dey &amp; Wang §10.1.1, Definition 10.5, p. 293</span></p>
 </div>
 
 <div class="definition">
-<p><strong>Definition 10.6 (cancellation).</strong> Let (σ<sub>0</sub>, σ<sub>k</sub>) be a pair of critical simplices joined by a critical V-path π. The pair is <em>cancelled</em> by modifying the matching along π — shifting the matched pairs so that σ<sub>0</sub> and σ<sub>k</sub> become paired and the interior simplices re-pair accordingly. <span class="cite">— Dey &amp; Wang §10.2, Definition 10.6, pp. 295–296</span></p>
+<p><strong>Definition 10.6 (cancellation).</strong> Let (σ<sub>0</sub>, σ<sub>k</sub>) be a pair of critical simplices joined by a critical V-path π. The pair is <em>cancelled</em> by modifying the matching along π — shifting the matched pairs so that σ<sub>0</sub> and σ<sub>k</sub> become paired and the interior simplices re-pair accordingly. <span class="cite">— Dey &amp; Wang §10.1.1, Definition 10.6, pp. 293–294</span></p>
 </div>
 
 <div class="theorem">
@@ -215,17 +215,17 @@ draw();
 <h3>Which pairs to cancel: persistence decides</h3>
 
 <div class="theorem">
-<p><strong>Proposition 10.3.</strong> Let (v<sub>1</sub>,e<sub>1</sub>), …, (v<sub>n</sub>,e<sub>n</sub>) be the sequence of all non-essential persistence pairs of vertices and edges, sorted in increasing order of the appearance of the edges e<sub>i</sub> in a filtration of a 1-complex K. Let V<sub>0</sub> be the DMVF in K with all simplices critical. Then the cancellations may be performed in that order. <span class="cite">— Dey &amp; Wang §10.2.1, Proposition 10.3, pp. 297–298</span></p>
+<p><strong>Proposition 10.3.</strong> Let (v<sub>1</sub>,e<sub>1</sub>), …, (v<sub>n</sub>,e<sub>n</sub>) be the sequence of all non-essential persistence pairs of vertices and edges, sorted in increasing order of the appearance of the edges e<sub>i</sub> in a filtration of a 1-complex K. Let V<sub>0</sub> be the DMVF in K with all simplices critical. Then the cancellations may be performed in that order. <span class="cite">— Dey &amp; Wang §10.2.1, Proposition 10.3, pp. 295–296</span></p>
 </div>
 
 <p>Persistence pairs are the natural cancellation order because a persistence pair is exactly a creator paired with its destroyer — which is the relation a critical V-path realises. The persistence computation hands over a ready-made list of cancellable pairs, ordered by significance, and a threshold δ on persistence becomes a dial controlling how much gets cancelled.</p>
 
 <div class="theorem">
-<p><strong>Theorem 10.5.</strong> Let K be a finite simplicial 2-complex whose underlying space is a 2-manifold without boundary, and let 𝓕 be a simplex-wise filtration of K. Starting from the trivial DMVF where each simplex is critical, one can obtain a DMVF in K by cancelling the vertex–edge and edge–triangle persistence pairs given by 𝓕. <span class="cite">— Dey &amp; Wang §10.2, Theorem 10.5, p. 301</span></p>
+<p><strong>Theorem 10.5.</strong> Let K be a finite simplicial 2-complex whose underlying space is a 2-manifold without boundary, and let 𝓕 be a simplex-wise filtration of K. Starting from the trivial DMVF where each simplex is critical, one can obtain a DMVF in K by cancelling the vertex–edge and edge–triangle persistence pairs given by 𝓕. <span class="cite">— Dey &amp; Wang §10.2.1, Theorem 10.5, p. 297</span></p>
 </div>
 
 <div class="theorem">
-<p><strong>Theorem 10.6.</strong> Given a simplicial 1-complex or a simplicial 2-manifold K with n simplices, one can compute (a) a DMVF by cancelling all persistence pairs resulting from a given filtration of K in O(nα(n)) time; (b) a DMVF as above when the filtration is induced by a given PL-function on K in O(n log n) time. <span class="cite">— Dey &amp; Wang §10.2.2, Theorem 10.6, p. 303</span></p>
+<p><strong>Theorem 10.6.</strong> Given a simplicial 1-complex or a simplicial 2-manifold K with n simplices, one can compute (a) a DMVF by cancelling all persistence pairs resulting from a given filtration of K in O(nα(n)) time; (b) a DMVF as above when the filtration is induced by a given PL-function on K in O(n log n) time. <span class="cite">— Dey &amp; Wang §10.2.2, Theorem 10.6, p. 300</span></p>
 </div>
 
 <p>Note the hypotheses in Theorem 10.5. It is a statement about 2-manifolds without boundary, extended by duality to filtrations of a simplicial d-complex in which each (d−1)-simplex has at most two d-simplices as cofacets. It is not a statement about arbitrary complexes, and the reason is Proposition 10.2: uniqueness of the critical V-path is what a manifold's local structure supplies.</p>
@@ -316,7 +316,7 @@ draw();
 </div>
 
 <footer>
-Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §10.1 "Discrete Morse Function": Definition 10.1 with Chari's disjointness remark, Definition 10.2 on matchings, Definition 10.3 on V-paths and Morse matchings, Facts 10.1 and 10.2, and Proposition 10.1's weak and strong Morse inequalities (pp. 290–293); §10.1.1, Definition 10.4 on discrete Morse vector fields and the arrow picture (pp. 293–294). §10.2 "Persistence-Based Discrete Morse Vector Fields": Definition 10.5 on critical V-paths, Definition 10.6 on cancellation, Proposition 10.2's uniqueness criterion (pp. 295–296); Proposition 10.3 on cancelling in persistence order (pp. 297–298); Theorem 10.5 for 2-manifolds without boundary and its extension by duality (p. 301); Theorem 10.6's O(nα(n)) and O(n log n) bounds (p. 303). §10.4 "Graph Reconstruction": Theorem 10.9 on the O(Pert(K)) complexity of MORSERECON (p. 309); Definition 10.7's (β, ν, ω)-approximation with conditions (C-1) and (C-2) and the illustrative construction ρ = f<sub>G</sub> + g (pp. 309–310); Theorem 10.12's Ĝ ⊆ G<sup>ω</sup>, Proposition 10.13's homotopy equivalence, and Theorem 10.14's explicit homotopy with matching first Betti numbers (pp. 310–313); §10.5's road network and neuron network applications (pp. 313–316). Ghrist, <em>Elementary Applied Topology</em> — §7.8 "Discrete Morse theory": discrete vector fields and critical cells, discrete flowlines and periodicity, the chain-level flow Φ = Id + ∂V + V∂ and its finite-time limit, and Theorem 7.23 (pp. 149–150). Deferred: §10.3's stable and unstable manifolds in full, the algorithms PARTIALPERSDMVF and COLLECTG with Propositions 10.7, 10.8 and 10.11 and Corollary 10.10, and Proposition 10.4's edge–triangle duality.
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §10.1 "Discrete Morse Function": Definition 10.1 with Chari's disjointness remark and Definition 10.2 on matchings (p. 290); Definition 10.3 on V-paths and Morse matchings and Facts 10.1 and 10.2 (p. 291); Proposition 10.1's weak and strong Morse inequalities and Definition 10.4 on discrete Morse vector fields (p. 292); Definition 10.5 on critical V-paths and Definition 10.6 on cancellation (pp. 293–294). §10.2 "Persistence-Based Discrete Morse Vector Fields": Proposition 10.2's uniqueness criterion and Proposition 10.3 on cancelling in persistence order (pp. 295–296); Theorem 10.5 for 2-manifolds without boundary and its extension by duality (p. 297); Theorem 10.6's O(nα(n)) and O(n log n) bounds (p. 300). §10.4 "Graph Reconstruction": Theorem 10.9 on the O(Pert(K)) complexity of MORSERECON (p. 307); Definition 10.7's (β, ν, ω)-approximation with conditions (C-1) and (C-2) and the illustrative construction ρ = f<sub>G</sub> + g (p. 308); Theorem 10.12's Ĝ ⊆ G<sup>ω</sup>, Proposition 10.13's homotopy equivalence, and Theorem 10.14's explicit homotopy with matching first Betti numbers (pp. 310–313); §10.5's road network and neuron network applications (pp. 313–316). Ghrist, <em>Elementary Applied Topology</em> — §7.8 "Discrete Morse theory": discrete vector fields and critical cells, discrete flowlines and periodicity, the chain-level flow Φ = Id + ∂V + V∂ and its finite-time limit, and Theorem 7.23 (pp. 149–150). Deferred: §10.3's stable and unstable manifolds in full, the algorithms PARTIALPERSDMVF and COLLECTG with Propositions 10.7, 10.8 and 10.11 and Corollary 10.10, and Proposition 10.4's edge–triangle duality.
 </footer>
 
 <script>

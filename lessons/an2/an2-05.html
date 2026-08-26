@@ -70,13 +70,13 @@ follows from it, which is less than it sounds.</strong>
 <em>The identification is exact.</em> tda1-07 states stability as Oudot's
 Corollary 3.6: for 𝔮-tame f and g on the same space X,
 d<sub>b</sub>(dgm(f), dgm(g)) ≤ ‖f − g‖<sub>∞</sub>. That sup norm is an2-01's sup
-metric d₁ on C(X), and by Proposition 4.2.3 below, smallness in it <em>is</em>
+metric d₁ on C(X), and by Lindström's Proposition 4.2.3 below, smallness in it <em>is</em>
 uniform convergence. The strip's "exact language" is not a metaphor: the
 hypothesis of the stability theorem is a statement in the metric space an2-01
 built, and this unit is what that metric space controls.
 <br><br>
 <em>And what it controls is a specific list.</em> Sup-norm closeness transfers
-continuity (Theorem 6.2.6) and the value of an integral (Proposition 4.3.1). It
+continuity (Theorem 6.2.6) and the value of an integral (Lindström's Proposition 4.3.1). It
 does <strong>not</strong> transfer differentiability, and it does not transfer the
 value of a derivative — Segment 3's figure is the counterexample. So a hypothesis
 of the form ‖f − g‖<sub>∞</sub> ≤ ε licenses nothing whatever about gradients of
@@ -113,7 +113,7 @@ on x — we may need a much larger N for some x's than for others."</span>
 </div>
 
 <p>Abbott makes the gap numerical before he makes it formal. For gₙ(x) = xⁿ on
-[0, 1] <span class="cite">— Example 6.2.2(ii), printed 155</span>, getting within
+[0, 1] <span class="cite">— Example 6.2.2(ii), printed 154–155</span>, getting within
 1/3 of the limit needs n ≥ 2 at x = 1/2, and n ≥ 11 at x = 9/10. At x = 0.99 it
 needs n ≥ 110, and as x → 1⁻ the requirement runs off to infinity. There is no
 largest N, which is precisely why no single N exists.</p>
@@ -149,13 +149,13 @@ and nothing more.
 </div>
 
 <div class="theorem">
-<strong>Theorem 6.2.6 (printed 160) / Proposition 4.2.4 (printed 83).</strong> A
+<strong>Theorem 6.2.6 (printed 160) / Lindström's Proposition 4.2.4 (printed 83).</strong> A
 uniform limit of continuous functions is continuous. <span class="cite">Both
 proved, by the same ε/3 argument; Lindström names the technique, calling such
 arguments "ε/3-arguments" and adding that "it's quite instructive to take a
 closer look at the proof to see where it fails for pointwise convergence".</span>
 <br><br>
-<strong>Proposition 4.2.3 (printed 81).</strong> fₙ → f uniformly if and only if
+<strong>Lindström's Proposition 4.2.3 (printed 81).</strong> fₙ → f uniformly if and only if
 sup{d_Y(fₙ(x), f(x)) : x ∈ X} → 0. <span class="cite">Proved. Lindström flags a
 subtlety inside: "note that we may have unstrict inequality ≤ for the supremum
 although we have strict inequality &lt; for each x ∈ X" — the same phenomenon
@@ -168,12 +168,12 @@ for all m, n ≥ N and all x ∈ A. <span class="cite">Stated; proof set as
 Exercise 6.2.6.</span>
 </div>
 
-<p>Proposition 4.2.3 is the sentence that connects this unit to the previous
+<p>Lindström's Proposition 4.2.3 is the sentence that connects this unit to the previous
 four. The supremum in it is an2-01's sup metric d₁ on C[a, b]. So <strong>uniform
 convergence is convergence in d₁</strong>, by Lemma 3.2.2; "uniformly Cauchy" is
 Definition 3.4.1 in that metric; and Theorem 6.2.5 asserting that the two coincide
 is exactly the statement that the space is <em>complete</em> — which is an2-08's
-Theorem 4.6.4. Three units' worth of machinery turns out to have been about this
+Lindström's Theorem 4.6.4. Three units' worth of machinery turns out to have been about this
 one notion all along.</p>
 
 <div class="selfcheck">
@@ -194,7 +194,7 @@ not a proof that fails everywhere.</div>
 </div>
 
 <div class="selfcheck">
-<p><strong>Self-check 2.</strong> Proposition 4.2.3 identifies uniform
+<p><strong>Self-check 2.</strong> Lindström's Proposition 4.2.3 identifies uniform
 convergence with convergence in which metric space?</p>
 <button onclick="check(this,false)">(C[a,b], d₂) with the integral metric of an2-01</button>
 <button onclick="check(this,true)" data-ok>(C[a,b], d₁) with the sup metric — so an2-01's and an2-02's results all apply</button>
@@ -202,7 +202,7 @@ convergence with convergence in which metric space?</p>
 <button onclick="check(this,false)">None; uniform convergence is not metrisable</button>
 <div class="explain">The sup metric. an2-01 proved d₁ is a metric and worked its
 triangle inequality; an2-02 recorded Lindström's Example 2, that of the three
-metrics on C[a,b] only d₁ is complete; Theorem 4.6.4 supplies that completeness at
+metrics on C[a,b] only d₁ is complete; Lindström's Theorem 4.6.4 supplies that completeness at
 printed 102. The integral metric d₂ induces a genuinely different notion of
 convergence, and the tents of Segment 2 separate all three: they converge to 0
 <em>pointwise</em>, but d₁(fₙ, 0) = n → ∞ and d₂(fₙ, 0) = ½ for every n, since
@@ -226,19 +226,19 @@ fₙ's, will the derivatives converge to f′?" The answers are yes-with-a-hypot
 and no, and the asymmetry is the subject of this unit's second half.</p>
 
 <div class="theorem">
-<strong>Proposition 4.3.1 (printed 87).</strong> If continuous fₙ → f uniformly
+<strong>Lindström's Proposition 4.3.1 (printed 87).</strong> If continuous fₙ → f uniformly
 on [a, b], then Fₙ(x) = ∫ₐˣ fₙ converges uniformly to F(x) = ∫ₐˣ f.
 <span class="cite">Proved.</span>
 <br><br>
-<strong>Corollary 4.3.2 (printed 87).</strong> The same with an arbitrary lower
+<strong>Lindström's Corollary 4.3.2 (printed 87).</strong> The same with an arbitrary lower
 limit x₀ ∈ [a, b]. <span class="cite">Proved, by splitting the integral.</span>
 <br><br>
-<strong>Corollary 4.3.3 (printed 88).</strong> A uniformly convergent series of
+<strong>Lindström's Corollary 4.3.3 (printed 88).</strong> A uniformly convergent series of
 continuous functions may be integrated term by term.
 <span class="cite">Proved, from 4.3.2 applied to the partial sums.</span>
 </div>
 
-<p>Proposition 4.3.1's proof is three lines and it is worth watching the ε move.
+<p>Lindström's Proposition 4.3.1's proof is three lines and it is worth watching the ε move.
 Uniform convergence gives N with |f(t) − fₙ(t)| &lt; ε/(b − a) for every t, and
 then</p>
 
@@ -250,7 +250,7 @@ interval had to be bounded twice over</strong>: once to divide by b − a at all
 and once to replace the upper limit x by b. On [0, ∞) neither step is available
 and the proposition is false.</p>
 
-<p>Lindström attaches a warning to Corollary 4.3.3 that is worth keeping
+<p>Lindström attaches a warning to Lindström's Corollary 4.3.3 that is worth keeping
 <span class="cite">— printed 88</span>: "This formula may look obvious, but it
 does not in general hold for series that only converge pointwise. As we shall see
 many times later in the book, interchanging integrals and infinite sums is quite
@@ -268,7 +268,7 @@ fₙ(x) = 0; and fₙ(0) = 0 for every n. So fₙ → 0 <em>pointwise</em> on [0
 <br><br>
 ⟨your step: compute ∫₀¹ fₙ as the area of a triangle with base 1/n and height n,
 observe that it does not depend on n, and conclude that ∫₀¹ fₙ does not converge
-to ∫₀¹ 0. Then use Proposition 4.2.3 to show the convergence is not uniform, by
+to ∫₀¹ 0. Then use Lindström's Proposition 4.2.3 to show the convergence is not uniform, by
 computing one supremum — and say how badly it fails, since the number you get does
 not merely fail to tend to 0.⟩
 </div>
@@ -287,9 +287,9 @@ whatever n is. Uniform convergence loses the derivative because squeezing a grap
 vertically says nothing about its slope; these compensate by oscillating faster.</p>
 
 <div class="selfcheck">
-<p><strong>Self-check 3.</strong> Why does Proposition 4.3.1 need a
+<p><strong>Self-check 3.</strong> Why does Lindström's Proposition 4.3.1 need a
 <em>bounded</em> interval?</p>
-<button onclick="check(this,false)">Because unbounded intervals are not compact, and Theorem 4.6.4 fails there</button>
+<button onclick="check(this,false)">Because unbounded intervals are not compact, and Lindström's Theorem 4.6.4 fails there</button>
 <button onclick="check(this,true)" data-ok>Because the proof divides ε by b − a, and on an unbounded interval there is no such number</button>
 <button onclick="check(this,false)">It does not; the proposition holds on [0, ∞) with the same proof</button>
 <button onclick="check(this,false)">Because continuous functions on unbounded intervals need not be integrable</button>
@@ -297,12 +297,12 @@ vertically says nothing about its slope; these compensate by oscillating faster.
 <em>integrand</em>, and turning that into a bound on the <em>integral</em> costs
 a factor equal to the length of the interval — which must be finite for the
 trade to be worth anything. On [0, ∞), take fₙ equal to 1/n on [0, n], falling
-linearly to 0 across [n, n + 1], and 0 beyond — continuous, as Proposition 4.3.1
+linearly to 0 across [n, n + 1], and 0 beyond — continuous, as Lindström's Proposition 4.3.1
 requires of its functions, so the witness actually tests the hypothesis under
 discussion. Then sup|fₙ| = 1/n → 0, so fₙ → 0 uniformly, while
 ∫₀<sup>∞</sup> fₙ = 1 + 1/(2n) → 1, not 0. (The lazy version of this witness,
 1/n on [0, n] and 0 after, has a jump at x = n and so is not continuous; it
-would refute nothing, because Proposition 4.3.1 never claimed it.) The first
+would refute nothing, because Lindström's Proposition 4.3.1 never claimed it.) The first
 option names a true fact that is not the reason; the fourth confuses
 integrability with the estimate.</div>
 </div>
@@ -353,14 +353,14 @@ functions with the same derivative may differ by a constant." Take fₙ ≡ n; t
 derivatives converge uniformly to 0 and the functions converge nowhere.</p>
 
 <div class="theorem">
-<strong>Proposition 4.3.5 (Lindström, printed 90).</strong> Let {fₙ} be
+<strong>Lindström's Proposition 4.3.5 (Lindström, printed 90).</strong> Let {fₙ} be
 differentiable on [a, b], with <em>continuous</em> derivatives fₙ′ converging
 uniformly to g, and suppose {fₙ(x₀)} converges for some x₀. Then {fₙ} converges
 uniformly to a differentiable f with f′ = g. <span class="cite">Proved — and the
-proof is three lines: "The proposition is just Corollary 4.3.2 in a convenient
+proof is three lines: "The proposition is just Lindström's Corollary 4.3.2 in a convenient
 disguise."</span>
 <br><br>
-<strong>Corollary 4.3.6 (printed 90).</strong> The series form: term-by-term
+<strong>Lindström's Corollary 4.3.6 (printed 90).</strong> The series form: term-by-term
 differentiation, under the same conditions. <span class="cite">Stated, with
 "Proof. Left to the reader."</span>
 </div>
@@ -368,11 +368,11 @@ differentiation, under the same conditions. <span class="cite">Stated, with
 <div class="guided-proof">
 <strong>Guided proof — the same theorem at two prices.</strong>
 <br><br>
-Prove Proposition 4.3.5 Lindström's way: apply Corollary 4.3.2 to {fₙ′}, use the
+Prove Lindström's Proposition 4.3.5 Lindström's way: apply Lindström's Corollary 4.3.2 to {fₙ′}, use the
 Fundamental Theorem of Calculus to identify ∫<sub>x₀</sub><sup>x</sup> fₙ′ with
 fₙ(x) − fₙ(x₀), and finish. Then answer the comparison question: Lindström's
 statement has one hypothesis Abbott's Theorem 6.3.3 does not. Name it, say where
-in your proof it was spent, and decide whether Proposition 4.3.5 is a
+in your proof it was spent, and decide whether Lindström's Proposition 4.3.5 is a
 <em>corollary</em> of Theorem 6.3.3.
 <br><br>
 Start: Lindström calls his own result one that "may look ugly and unsatisfactory,
@@ -381,7 +381,7 @@ is not which statement is better but what each purchase costs.
 <textarea class="proof-input" aria-label="Write your proof here"></textarea>
 <details class="model-answer"><summary>Reveal the model answer</summary>
 <p><strong>The proof.</strong> The fₙ′ are continuous and converge uniformly to
-g, so Corollary 4.3.2 applies to them: ∫<sub>x₀</sub><sup>x</sup> fₙ′(t) dt
+g, so Lindström's Corollary 4.3.2 applies to them: ∫<sub>x₀</sub><sup>x</sup> fₙ′(t) dt
 converges uniformly to ∫<sub>x₀</sub><sup>x</sup> g(t) dt. By the Fundamental
 Theorem of Calculus the left side is fₙ(x) − fₙ(x₀), so</p>
 <p style="text-align:center">fₙ(x) − fₙ(x₀) → ∫<sub>x₀</sub><sup>x</sup> g(t) dt
@@ -390,15 +390,15 @@ uniformly on [a, b].</p>
 f(x) = b + ∫<sub>x₀</sub><sup>x</sup> g(t) dt. By the Fundamental Theorem of
 Calculus again, f′ = g. ∎</p>
 <p><strong>The extra hypothesis, and where it was spent — twice.</strong>
-Continuity of the derivatives. First, Corollary 4.3.2 is stated for
+Continuity of the derivatives. First, Lindström's Corollary 4.3.2 is stated for
 <em>continuous</em> functions, so without it the very first line is unavailable.
 Second, the closing appeal to the Fundamental Theorem needs the integrand g
-continuous — which is free here, by Proposition 4.2.4, precisely because the fₙ′
+continuous — which is free here, by Lindström's Proposition 4.2.4, precisely because the fₙ′
 were continuous and converged uniformly. Remove the hypothesis and both ends of
 the argument fail.</p>
 <p><strong>Is it a corollary of Theorem 6.3.3?</strong> Yes. Lindström's
 hypotheses are Abbott's plus continuity of the fₙ′, so every situation
-Proposition 4.3.5 covers is one Theorem 6.3.3 already covers, with the same
+Lindström's Proposition 4.3.5 covers is one Theorem 6.3.3 already covers, with the same
 conclusion. Abbott's is the stronger theorem.</p>
 <p><strong>So what did Lindström buy?</strong> Not generality — proof length, and
 reuse. His argument spends only machinery he has already built two pages earlier,
@@ -416,7 +416,7 @@ the reader a favour, and Lindström says so.</p>
 not.</strong> <span class="cite">Abbott's Exercise 6.3.2.</span>
 <br><br>
 Let gₙ(x) = xⁿ/n on [0, 1]. Then sup|gₙ| = 1/n → 0, so gₙ → 0 uniformly by
-Proposition 4.2.3; the limit g = 0 is differentiable with g′ = 0.
+Lindström's Proposition 4.2.3; the limit g = 0 is differentiable with g′ = 0.
 <br><br>
 ⟨your step: compute gₙ′ and identify its pointwise limit on [0, 1]. Decide
 whether that convergence is uniform — Theorem 6.2.6 settles it in one line, from
@@ -428,9 +428,9 @@ Abbott's Example 6.2.2(ii).⟩
 
 <table class="cmp">
 <tr><th>property of the fₙ</th><th>transfers under uniform convergence?</th><th>authority</th></tr>
-<tr><td>continuity</td><td>yes</td><td>Theorem 6.2.6, Proposition 4.2.4</td></tr>
+<tr><td>continuity</td><td>yes</td><td>Theorem 6.2.6, Lindström's Proposition 4.2.4</td></tr>
 <tr><td>uniform continuity</td><td>yes</td><td>Abbott's Exercise 6.2.7</td></tr>
-<tr><td>the value of ∫ₐᵇ</td><td>yes, on a bounded interval</td><td>Proposition 4.3.1</td></tr>
+<tr><td>the value of ∫ₐᵇ</td><td>yes, on a bounded interval</td><td>Lindström's Proposition 4.3.1</td></tr>
 <tr><td>boundedness</td><td>yes</td><td>uniform closeness to one bounded function</td></tr>
 <tr><td>differentiability</td><td><strong>no</strong></td><td>Example 6.2.2(iii): x<sup>1+1/(2n−1)</sup> → |x|</td></tr>
 <tr><td>the value of f′</td><td><strong>no</strong></td><td>Lindström's Example 3: sin(nx)/n → 0, cos nx diverges</td></tr>
@@ -445,7 +445,7 @@ and about none of the rows below it.</p>
 correction.
 <br><br>
 <em>The identification.</em> Write Oudot's Corollary 3.6 as tda1-07 has it. Using
-Proposition 4.2.3 and Self-check 2, say what "‖f − g‖<sub>∞</sub> small" is a
+Lindström's Proposition 4.2.3 and Self-check 2, say what "‖f − g‖<sub>∞</sub> small" is a
 statement <em>in</em> — name the metric space, from an2-01 — and say why the strip's
 word "exact" is earned rather than decorative.
 <br><br>
@@ -482,18 +482,18 @@ conclusion is about f′, which is not what was assumed.</div>
 
 <div class="selfcheck">
 <p><strong>Self-check 5.</strong> Lindström gives the Weierstrass M-test twice:
-as Exercise 11 to §4.2 (printed 85) and as Proposition 4.3.4 (printed 89), where
+as Lindström's Exercise 11 to §4.2 (printed 85) and as Lindström's Proposition 4.3.4 in §4.3 (printed 89), where
 it is stated and proved. What does the duplication tell you about citing him?</p>
 <button onclick="check(this,false)">Nothing — an exercise and a proposition with the same content are interchangeable citations</button>
 <button onclick="check(this,true)" data-ok>That the modality depends on which occurrence you cite, so the page must be checked and not inferred from the section</button>
 <button onclick="check(this,false)">That the exercise is a misprint, since a book would not do both</button>
-<button onclick="check(this,false)">That Proposition 4.3.4 is the harder version, with extra hypotheses</button>
+<button onclick="check(this,false)">That Lindström's Proposition 4.3.4 is the harder version, with extra hypotheses</button>
 <div class="explain">The modality is a property of the occurrence, not of the
 result. Writing "Lindström sets the M-test as an exercise" is true of printed 85
 and false of printed 89, where he proves it in full; the two statements have the
 same content. This is the second time in an2 that one of his results carries two
-modalities — an2-02 found Lemma 3.7.11 set as Exercise 8 to §3.4 on printed 63 and
-proved on printed 75. The practical consequence is that a citation's verb must be
+modalities — an2-02 found <span class="cite">Lindström's Lemma 3.7.11 set as Lindström's Exercise 8 to
+§3.4 on printed 63 and proved in §3.7 on printed 75</span>. The practical consequence is that a citation's verb must be
 checked against the page cited, which is what the modality field in these lessons'
 footers exists to record.</div>
 </div>
@@ -524,14 +524,14 @@ approach, and neither implies the other.</div>
 it exactly.</strong> Of the three terms in |f(x) − f(c)|, two are controlled by
 pointwise convergence and continuity; the third needs one N to serve every x in
 an interval that only existed after N was chosen. Definition 6.2.3 supplies
-exactly that and the same argument then closes. By Proposition 4.2.3 uniform
+exactly that and the same argument then closes. By Lindström's Proposition 4.2.3 uniform
 convergence <em>is</em> convergence in an2-01's sup metric, so Theorem 6.2.5 and
-completeness (Theorem 4.6.4) are an2-02's questions asked again.
+completeness (Lindström's Theorem 4.6.4) are an2-02's questions asked again.
 <br><br>
 2. <strong>Integration survives uniform convergence; pointwise convergence loses
-it.</strong> Proposition 4.3.1 costs a factor b − a, so the interval must be
+it.</strong> Lindström's Proposition 4.3.1 costs a factor b − a, so the interval must be
 bounded — twice, in the proof. The tents of Example 1 have integral ½ for every n
-and tend pointwise to 0, and Corollary 4.3.3 carries the result to series with
+and tend pointwise to 0, and Lindström's Corollary 4.3.3 carries the result to series with
 Lindström's warning attached: interchanging integrals and infinite sums is tricky
 and this is the case where it is safe.
 <br><br>
@@ -540,8 +540,8 @@ the derivatives.</strong> sin(nx)/n → 0 uniformly with derivatives that diverg
 x<sup>1+1/(2n−1)</sup> → |x| uniformly with a limit that is not differentiable.
 Theorem 6.3.3 assumes (fₙ′) uniformly convergent plus one point of agreement — one
 point, because functions with equal derivatives can differ by a constant.
-Lindström's Proposition 4.3.5 adds continuity of the fₙ′ and gets a three-line
-proof by routing through Corollary 4.3.2 and the Fundamental Theorem of Calculus;
+Lindström's Lindström's Proposition 4.3.5 adds continuity of the fₙ′ and gets a three-line
+proof by routing through Lindström's Corollary 4.3.2 and the Fundamental Theorem of Calculus;
 it is a corollary of Abbott's theorem, and the extra hypothesis buys brevity
 rather than strength.
 </details>
@@ -566,26 +566,26 @@ Theorem 6.3.3, and Exercises 6.3.1 to 6.3.3, printed 166. Exercises 6.3.4 and
 6.3.5, printed 167.
 <br><br>
 Lindström, <em>Spaces: An Introduction to Real Analysis</em>, §4.1 "Modes of
-continuity", printed 79–81; §4.2 "Modes of convergence", printed 81–86; §4.3
+continuity", printed 79–80; §4.2 "Modes of convergence", printed 81–85; §4.3
 "Integrating and differentiating sequences", printed 86–92 (folio = PDF − 13).
 Definition 4.1.1 and Example 1, printed 79. Proposition 4.1.2 with proof,
 Definition 4.1.3 and Example 2, printed 80. The opening of §4.2,
-Definition 4.2.1, Definition 4.2.2 and Proposition 4.2.3 with proof, printed 81.
-Examples 1 and 2 with Figures 4.2.1 and 4.2.2, printed 82–83. Proposition 4.2.4
+Definition 4.2.1, Definition 4.2.2 and Lindström's Proposition 4.2.3 with proof, printed 81.
+Examples 1 and 2 with Figures 4.2.1 and 4.2.2, printed 82–83. Lindström's Proposition 4.2.4
 with proof and the remark on ε/3-arguments, printed 83. Example 3, printed 84.
-Exercises 1–12 to §4.2, including Exercise 9 (the pointwise counterexample to
-Lemma 4.8.8) and Exercise 11 (the M-test, set and named), printed 85–86. The
+Exercises 1–12 to §4.2, including Exercise 9 (the pointwise counterexample used
+in an2-03) and Lindström's Exercise 11 (the M-test, set and named), printed 85–86. The
 opening of §4.3 with its two questions, and Example 1 with Figure 4.3.1, printed
-86. The value of ∫₀¹ fₙ, Proposition 4.3.1 with proof, and Corollary 4.3.2 with
-proof, printed 87. Corollary 4.3.3 with proof and the warning about interchanging
-integrals and infinite sums, printed 88. Proposition 4.3.4 with proof, Example 2,
-and Example 3, printed 89. Proposition 4.3.5 with proof, Corollary 4.3.6 with
+86. The value of ∫₀¹ fₙ, Lindström's Proposition 4.3.1 with proof, and Lindström's Corollary 4.3.2 with
+proof, printed 87. Lindström's Corollary 4.3.3 with proof and the warning about interchanging
+integrals and infinite sums, printed 88. Lindström's Proposition 4.3.4 with proof, Example 2,
+and Example 3, printed 89. Lindström's Proposition 4.3.5 with proof, Lindström's Corollary 4.3.6 with
 "Proof. Left to the reader", and the start of Example 4, printed 90.
 <br><br>
 Carried from earlier units: Definition 3.1.1 and Proposition 3.1.4, printed 44
 and 47; Lemma 3.2.2 and Proposition 3.2.5, printed 49–50; Definition 3.4.1,
-printed 59; Lemma 4.8.8, printed 110 (an2-03's). Named from another unit's
-section: Theorem 4.6.4, printed 102 (an2-08's).
+printed 59; Lindström's Lemma 4.8.8, printed 110 (an2-03's). Named from another unit's
+section: Lindström's Theorem 4.6.4, printed 102 (an2-08's).
 <br><br>
 <em>Modality.</em> Abbott <strong>proves</strong> Theorem 6.2.6 and
 Theorem 6.3.1, and <strong>states and sets as exercises</strong> Theorem 6.2.5
@@ -593,33 +593,34 @@ Theorem 6.3.1, and <strong>states and sets as exercises</strong> Theorem 6.2.5
 by combining them. He <strong>writes out a proof in order to break it</strong> at
 printed 156–157, which is a modality with no name in the register and is recorded
 here as such. Lindström <strong>proves</strong> Proposition 4.1.2,
-Proposition 4.2.3, Proposition 4.2.4, Proposition 4.3.1, Corollary 4.3.2,
-Corollary 4.3.3, Proposition 4.3.4 and Proposition 4.3.5, and
-<strong>leaves to the reader</strong> Corollary 4.3.6.
-<strong>The Weierstrass M-test carries two modalities in this book</strong>: set
-and named as Exercise 11 to §4.2 at printed 85, and stated and proved as
-Proposition 4.3.4 at printed 89. Both are recorded because a citation's verb is a
+Lindström's Proposition 4.2.3, Lindström's Proposition 4.2.4, Lindström's Proposition 4.3.1, Lindström's Corollary 4.3.2,
+Lindström's Corollary 4.3.3, Lindström's Proposition 4.3.4 and Lindström's Proposition 4.3.5, and
+<strong>leaves to the reader</strong> Lindström's Corollary 4.3.6.
+<strong>The Weierstrass M-test carries two modalities in this book</strong>:
+<span class="cite">set and named as Lindström's Exercise 11 to §4.2 at printed 85</span>,
+and <span class="cite">stated and proved as Lindström's Proposition 4.3.4 at printed
+89</span>. Both are recorded because a citation's verb is a
 property of the page cited, not of the result — the second such case in an2 after
-Lemma 3.7.11. Oudot's Corollary 3.6 is <strong>reported</strong> from tda1-07;
+Lindström's Lemma 3.7.11. Oudot's Corollary 3.6 is <strong>reported</strong> from tda1-07;
 this unit does not open that book.
 <br><br>
-<em>Stated here but not in the source.</em> That Proposition 4.3.5 is a corollary
+<em>Stated here but not in the source.</em> That Lindström's Proposition 4.3.5 is a corollary
 of Theorem 6.3.3 — neither book cites the other, and the comparison, the location
 of the extra hypothesis at both ends of Lindström's proof, and the conclusion that
 the extra assumption buys brevity rather than strength are this lesson's. The
 transfer table is assembled here from results and exercises stated separately in
-the two books. The counterexample in Self-check 3 showing Proposition 4.3.1 fails
+the two books. The counterexample in Self-check 3 showing Lindström's Proposition 4.3.1 fails
 on [0, ∞) is likewise this lesson's; Lindström states the proposition for [a, b]
 and does not discuss the unbounded case.
 <br><br>
 <em>Not established here.</em> The Weierstrass M-test in its own right, and series
 of functions generally — Abbott §6.4–6.6 and Lindström §4.10–4.11, which are
-an2-06's; Proposition 4.3.4 is quoted here only because Corollary 4.3.3 needs a
+an2-06's; Lindström's Proposition 4.3.4 is quoted here only because Lindström's Corollary 4.3.3 needs a
 way to certify uniform convergence. Power series — Lindström §4.4, printed 92
-onwards. The completeness of C[a, b] under the sup metric — Theorem 4.6.4,
+onwards. The completeness of C[a, b] under the sup metric — Lindström's Theorem 4.6.4,
 printed 102, an2-08's, used here as a hypothesis-supplier only. Arzelà–Ascoli and
-equicontinuity in earnest — an2-03's, though Abbott's Exercises 6.2.15 and 6.2.16
-set both from scratch at printed 163. The Fundamental Theorem of Calculus, used
+equicontinuity in earnest — an2-03's, though <span class="cite">Abbott's
+Exercises 6.2.15 and 6.2.16 are set from scratch at printed 163</span>. The Fundamental Theorem of Calculus, used
 twice in the guided proof, and Riemann integration under it: assumed throughout
 and established by no S1 unit — the an module runs an-01 to an-14 with no
 integration unit in it, and an-13 is uniform convergence, not the integral. Everything about persistence diagrams in the

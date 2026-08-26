@@ -51,14 +51,22 @@ from the text — never from recollection. If the source available to the writer
 does not contain something the lesson needs, say so in place rather than
 supplying it from memory or quietly routing around it:
 
+When a sentence's main claim belongs to a numbered result, cite that result in
+that sentence. A supporting result used in its proof gets its own sentence and
+citation; do not put two result numbers on one folio and leave review to infer
+which one supports the claim.
+
 ```html
 <p class="gap">NOT IN SOURCE: the proof that the cover is good</p>
 ```
 
 A marked gap is an honest, reviewable defect; an unsupported claim is an
 invisible one. **A lesson is not committable while it still carries a gap
-marker** — `lesson_lint.py` fails on one. Resolve it (find the source, or
-rescope the lesson) and remove the marker. The marker exists so that a
+marker** — `lesson_lint.py` fails on one. Resolve it by finding the source,
+rescoping the lesson, or using the rubric's reviewed outside-source exception:
+add the footer declaration, supply the independent justification and a finite
+exhaustive check where possible, and complete `MATHEMATICAL-CLAIM-REVIEW.md`.
+Only then remove the marker. The marker exists so that a
 generation run can report the hole instead of inventing a filler, which is
 exactly what the drift test measures.
 

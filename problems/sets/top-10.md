@@ -37,7 +37,7 @@ that remark made into a theorem.
 converse fails — naming a first-countable non-metrizable space from §28 or §30
 and the property that separates it.
 
-*(Munkres §30, p. 190 for the first countability axiom; p. 191 for the second and
+*(Munkres §30, p. 190 for the first countability axiom; p. 190 for the second and
 for Theorem 30.1; §21, pp. 130–131, for the original versions and Munkres's
 remark.)*
 
@@ -92,7 +92,7 @@ the counting argument is the interesting part.
 given Example 3's statement that $\mathbb{R}_\ell$ is not. Say which clause of
 the theorem you use and in which direction.
 
-*(Munkres §30, p. 191 for Theorem 30.2 and its proof and for Example 1; p. 192
+*(Munkres §30, p. 191 for Theorem 30.2 and its proof; p. 190 for Example 1; p. 192
 for Example 3; p. 193 for Example 4.)*
 
 <details><summary>Nudge</summary>
@@ -207,8 +207,8 @@ second-countable, Lindelöf, separable. Mark each cell ✓, ✗ or "not settled 
 §30", and give the source for every entry. Three of the twenty cells are not
 settled by §30; identify them and say so rather than guessing.
 
-*(Munkres §30, p. 191 for Example 2; pp. 192–193 for Example 3; p. 193 for
-Example 4; p. 194 for Example 5. top-06's Theorem 20.4 and Theorem 20.5 give the
+*(Munkres §30, p. 190 for Example 2; pp. 192–193 for Example 3; p. 193 for
+Example 4; p. 194 for Example 5. Munkres §20, Theorem 20.4 p. 124 and Theorem 20.5 p. 125, give the
 relation between the uniform and product topologies on $\mathbb{R}^\omega$.)*
 
 <details><summary>Nudge</summary>
@@ -291,6 +291,7 @@ are in a position to assess, and saying so is the correct answer.
 (c) All four hold, trivially. So countability separates nothing about a point
 cloud; the object it could be informative about is the space being sampled, and
 §30 says nothing about that either.
+
 (d) The honest answer names the Urysohn metrization theorem as described on
 p. 189 and proved in §34, p. 214, records that §40, p. 248, is titled for another
 metrization theorem whose statement this unit has not read, and declines to

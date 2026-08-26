@@ -293,7 +293,7 @@ Hatcher's book contains elsewhere.
 (a) Simplicial complexes: not present in these pages — Hatcher's simplicial
 homology is §2.1. Homology: not present. An algorithm: not present. "Finite" as a
 hypothesis: present, on p. 8, in the product warning.
-(c) at1-02 owns the homotopy-theoretic half — Proposition 0.17, collapsing a
+(c) at1-02 owns the homotopy-theoretic half — the contractible-subcomplex collapsing result, collapsing a
 contractible subcomplex, the two criteria. This unit owns the point-set half.
 The shared result is the description of the operations themselves.
 </details>

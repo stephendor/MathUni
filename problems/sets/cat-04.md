@@ -1,20 +1,20 @@
 # cat-04 — Natural transformations and the Yoneda lemma
 
 **Module:** Category Theory · **Unit:** cat-04
-**Sources:** Aluffi, *Algebra: Chapter 0* — §VIII.1.3 (pp. 492–493):
+**Sources:** Aluffi, *Algebra: Chapter 0* — §VIII.1.5 (pp. 492–493):
 Definition 1.15 of a natural transformation and of a natural isomorphism, the
 remark that any "there is a natural homomorphism…" is likely hiding one, with
 the Hurewicz homomorphism named as an example, and the informal account of
-adjoint functors with Example 1.16 on free groups; Exercise 1.9 (p. 496),
+adjoint functors with Example 1.16 on free groups; Exercise 1.9 (p. 497),
 defining the functor category $\mathsf{D}^\mathsf{C}$ whose morphisms are
 natural transformations, and the covariant functor
 $X \mapsto h_X := \operatorname{Hom}_\mathsf{C}(-, X)$; **Exercise 1.10**
-(p. 497), which *states* the Yoneda lemma and supplies a hint; Exercise 1.11
+(p. 497), which *states* the Yoneda lemma and supplies a hint; item 1.11
 (p. 497) on representable functors.
 Spivak, *Seven Sketches in Compositionality* — §3.3.4 (p. 95): Definition 3.49
 of a natural transformation in specification style with the naturality
 condition and its commutative square, and Definition 3.51 of a diagram as a
-functor from an indexing category; §1.4 (p. 20): Exercise 1.66 and the remark
+functor from an indexing category; §1.2.3 (p. 20): Exercise 1.66 and the remark
 naming it the **Yoneda lemma for preorders**, with the gloss that "to know an
 element is the same as knowing its upper set".
 

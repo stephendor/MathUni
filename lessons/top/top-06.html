@@ -116,7 +116,7 @@ to d.
 inducing 𝒯 and 𝒯′. Then 𝒯′ is finer than 𝒯 if and only if for each x in X and
 each ε &gt; 0 there exists δ &gt; 0 such that B_{d′}(x,δ) ⊂ B_d(x,ε).
 <br><br>
-<strong>Theorem 20.3 (printed 122).</strong> The topologies on ℝⁿ induced by the
+<strong>Theorem 20.3 (printed 123).</strong> The topologies on ℝⁿ induced by the
 euclidean metric d and the square metric ρ are the same as the product topology
 on ℝⁿ.
 </div>
@@ -196,7 +196,7 @@ standard bounded metric on ℝ. If x and y are two points of ℝ^ω, define
 D(x,y) = sup{ d̄(x_i, y_i) / i }. Then D is a metric that induces the product
 topology on ℝ^ω.
 <br><br>
-<span class="cite">Of Theorem 20.4's last clause Munkres writes: "Showing these
+<span class="cite">Of the preceding theorem's last clause Munkres writes: "Showing these
 three topologies are different if J is infinite is a task we leave to the
 exercises" (printed 125). The strictness is <em>stated</em> here and proved
 nowhere in §20; Problem 3(b) does one half of it.</span>
@@ -291,8 +291,8 @@ the same hypothesis on X, and Munkres notes parenthetically in the proof that
 "metrizability of Y is not needed" — the sequence lemma is applied in the domain
 only.</p>
 
-<p>He then draws the moral himself, on printed 130: "in proving Lemma 21.2 and
-Theorem 21.3 we did not use the full strength of the hypothesis that the space X
+<p>He then draws the moral himself, <span class="cite">on printed 130: "in proving Lemma 21.2 and
+Theorem 21.3</span> we did not use the full strength of the hypothesis that the space X
 is metrizable. All we really needed was the countable collection B_d(x, 1/n) of
 balls about x." That observation becomes the <strong>first countability
 axiom</strong> — X has a countable basis at x if there are neighbourhoods
@@ -466,8 +466,8 @@ verification, pp. 119–120; metrizable spaces, metric spaces and bounded sets,
 pp. 120–121; Theorem 20.1 and the standard bounded metric, p. 121; the norm, the
 euclidean and square metrics, p. 121; Lemma 20.2 with its proof, p. 122;
 Theorem 20.3, pp. 122–123; the uniform metric and uniform topology, p. 124;
-Theorem 20.4 with its proof and the sentence deferring the strictness to the
-exercises, pp. 124–125; the metrizability claim and Theorem 20.5, p. 125.
+Theorem 20.4 with its proof, p. 124; the sentence deferring strictness to the
+exercises, p. 125; the metrizability claim and Theorem 20.5, p. 125.
 <strong>§21 "The Metric Topology (continued)", printed 129–135:</strong> the
 opening survey of subspaces, order topologies, the Hausdorff axiom and products,
 p. 129; Theorem 21.1 with its proof, pp. 129–130; Lemma 21.2 and Theorem 21.3
@@ -478,7 +478,7 @@ metric, p. 131; Theorem 21.6 with its ε/3 proof, pp. 131–132.
 <br><br>
 <em>Modality.</em> Lemma 21.4 is <em>stated</em> and not proved — Munkres sends
 the reader to Exercise 12 — and appears here as a problem, never as a worked
-example. The strictness clause of Theorem 20.4 is stated and left "to the
+example. The strictness clause just stated is left "to the
 exercises" (p. 125). The negative half of the metrizability claim on p. 125 is
 asserted with "as we shall see" and is not proved in §20. The check that a
 subspace of a metric space is metrized by the restricted metric, and that
@@ -486,9 +486,9 @@ countable products of metrizable spaces are metrizable, are both left to the
 reader on p. 129.
 <br><br>
 <em>Not established here.</em> Which spaces are metrizable in general — the
-metrization theorems are §34 and §40, printed 214 and 248, far outside this unit,
+metrization theorems are §§34–40, printed 214 and 248, far outside this unit,
 and this lesson asserts nothing about their content. Connectedness and
-compactness in metric spaces — §23 and §26, printed 148 and 163 (top-07,
+compactness in metric spaces — §§23–26, printed 148 and 163 (top-07,
 top-08); compactness of metric spaces specifically is §45, printed 275. The
 first countability axiom gets only its definition here; §30, printed 190
 (top-10), is where it is studied. Filtrations, Vietoris–Rips and Čech complexes —
@@ -510,7 +510,7 @@ localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:tot
   var P=[[180,190],[270,170],[250,240],[360,205],[430,255]];
   function dist(a,b){return Math.sqrt((a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1]));}
   g.textAlign='center'; g.font='12px Segoe UI,system-ui,sans-serif'; g.fillStyle='#e8e8e8';
-  g.fillText('a finite metric space, with B(x, ε_x) drawn at ε_x = distance to the nearest other point', 320, 40);
+  g.fillText('B(x, ε_x), where ε_x is the nearest-neighbour distance', 320, 40);
   g.save(); g.setLineDash([4,4]); g.strokeStyle='#8ab4f8'; g.lineWidth=1.5;
   P.forEach(function(p,i){
     var e=Infinity;
@@ -520,9 +520,9 @@ localStorage.setItem('nexus-'+document.title,JSON.stringify({done:done,total:tot
   g.restore();
   P.forEach(function(p){ g.fillStyle='#4caf82'; g.beginPath(); g.arc(p[0],p[1],5,0,6.2832); g.fill(); });
   g.fillStyle='#9aa5b1'; g.font='12px Segoe UI,system-ui,sans-serif';
-  g.fillText('each ball contains only its own centre — the nearest point lies on the boundary, which the open ball excludes', 320, 352);
+  g.fillText('each open ball contains its centre; its nearest neighbour lies on the boundary', 320, 352);
   g.fillStyle='#e06c75';
-  g.fillText('so every singleton is open: the metric topology of any finite metric space is discrete', 320, 376);
+  g.fillText('every singleton is open, so every finite metric space is discrete', 320, 376);
 })();
 </script>
 </body></html>

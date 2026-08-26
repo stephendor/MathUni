@@ -50,6 +50,79 @@ BOOKMAP = os.path.join(REPO, "resources", "bookmap.json")
 FOLIO_LINE = re.compile(r"^\**\s*(\d{1,4})\s*\**$")
 EDGE_LINES = 2  # how far from each edge a folio may sit
 
+_LIST_FAMILIES = (
+    ("roman", re.compile(r"^\s*\((i{1,3}|iv|v|vi{0,3}|ix|x)\)\s+", re.I | re.M), "i"),
+    ("lettered", re.compile(r"^\s*\(([a-z])\)\s+", re.I | re.M), "a"),
+    ("numbered", re.compile(r"^\s*(\d+)\.\s+", re.M), "1"),
+)
+_EQUIVALENT = re.compile(r"the following are equivalent\s*:", re.I)
+_EXTRACT_BOUNDARY = re.compile(r"(?m)^(?:=== p\.\d+.*===|#{1,6}\s+.*)$")
+_PAGE_BOUNDARY = re.compile(r"^=== p\.\d+.*===")
+
+
+def _marker_value(name, marker):
+    if name == "numbered":
+        return int(marker)
+    if name == "lettered":
+        return ord(marker.lower()) - ord("a") + 1
+    roman = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5,
+             "vi": 6, "vii": 7, "viii": 8, "ix": 9, "x": 10}
+    return roman[marker.lower()]
+
+
+def _list_regions(text):
+    """Split an extraction where a new page or Markdown heading starts."""
+    starts = [0] + [match.start() for match in _EXTRACT_BOUNDARY.finditer(text)]
+    starts = sorted(set(starts))
+    return [text[start:end] for start, end in
+            zip(starts, starts[1:] + [len(text)]) if text[start:end].strip()]
+
+
+def extract_integrity_errors(text):
+    """Structural signs that a page extraction silently dropped list items."""
+    errors = []
+    previous_last = {}
+    for region_number, region in enumerate(_list_regions(text), 1):
+        page_continuation = bool(_PAGE_BOUNDARY.match(region))
+        roman_positions = {
+            m.start() for m in _LIST_FAMILIES[0][1].finditer(region)}
+        for name, pattern, first in _LIST_FAMILIES:
+            matches = list(pattern.finditer(region))
+            if name == "lettered":
+                matches = [m for m in matches if m.start() not in roman_positions]
+            first_value = (_marker_value(name, matches[0].group(1))
+                           if matches else None)
+            continues = (page_continuation and name in previous_last
+                         and first_value == previous_last[name] + 1)
+            if matches and matches[0].group(1).lower() != first and not continues:
+                errors.append("%s list begins at %s, not %s (region %d)"
+                              % (name, matches[0].group(1), first,
+                                 region_number))
+            values = [_marker_value(name, match.group(1)) for match in matches]
+            for index, (left, right) in enumerate(zip(values, values[1:])):
+                # Returning to the first marker starts a new list. Requiring a
+                # particular amount of intervening prose made extraction
+                # integrity depend on an author's paragraph formatting and
+                # rejected intact pages containing consecutive exercises.
+                restarted = right == 1
+                if restarted:
+                    continue
+                if right != left + 1:
+                    errors.append("%s list jumps from %s to %s (region %d)" % (
+                        name, left, right, region_number))
+            if matches:
+                previous_last[name] = _marker_value(name, matches[-1].group(1))
+            elif not page_continuation:
+                previous_last.pop(name, None)
+    for match in _EQUIVALENT.finditer(text):
+        tail = text[match.end():match.end() + 2000]
+        labelled = max((len(pattern.findall(tail))
+                        for _name, pattern, _first in _LIST_FAMILIES), default=0)
+        if labelled < 2:
+            errors.append("'the following are equivalent' is followed by fewer "
+                          "than two labelled clauses")
+    return errors
+
 
 def load_bookmap(path=BOOKMAP):
     with open(path, encoding="utf-8") as f:
@@ -220,13 +293,17 @@ def cmd_pages(d, spec, out):
         chunks.append("\n=== p.%d (NO SUCH PAGE) ===\n" % n if t is None
                       else "\n=== p.%d ===\n" % n + t)
     blob = "".join(chunks)
+    integrity = extract_integrity_errors(blob)
     if out:
         with open(out, "w", encoding="utf-8") as f:
             f.write(blob)
         print("wrote %s (%d chars, pp. %d-%d)" % (out, len(blob), lo, hi))
     else:
         print(blob)
-    return 0
+    for error in integrity:
+        print("EXTRACT INTEGRITY FAIL: %s — inspect the PDF page directly" % error,
+              file=sys.stderr)
+    return 1 if integrity else 0
 
 
 def cmd_folio(d, book, spec):

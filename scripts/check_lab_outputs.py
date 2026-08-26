@@ -86,6 +86,40 @@ class LabSetError(Exception):
     """The problem set's blocks are malformed, before any code is run."""
 
 
+_QUOTED_THEOREM = re.compile(r"^>\s+\*\*[^*\n]*Theorem[^*\n]*\*\*", re.MULTILINE)
+_PROBLEM = re.compile(r"^##\s+Problem\b", re.MULTILINE)
+_THEOREM_PROBE = re.compile(r"^\s*#\s*THEOREM-PROBE:\s*\S", re.MULTILINE)
+
+
+def check_theorem_probes(markdown_text):
+    """Require an executable boundary probe near every quoted theorem.
+
+    The probe marker must occur after the blockquote and before the next
+    problem.  This is intentionally coverage-style: execution/output checking
+    remains owned by the ordinary block gate.
+    """
+    failures = []
+    used_probes = set()
+    for match in _QUOTED_THEOREM.finditer(markdown_text):
+        following = _PROBLEM.search(markdown_text, match.end())
+        end = following.start() if following else len(markdown_text)
+        executable_probe = False
+        for fence in FENCE.finditer(markdown_text, match.end(), end):
+            info = fence.group("info").strip()
+            lang = info.split(" ")[0] if info else ""
+            if lang in PYTHON_LANGS and _ID.search(info) \
+                    and _THEOREM_PROBE.search(fence.group("body")) \
+                    and fence.start() not in used_probes:
+                executable_probe = True
+                used_probes.add(fence.start())
+                break
+        if not executable_probe:
+            line = markdown_text[:match.start()].count("\n") + 1
+            failures.append("FAIL quoted theorem at line %d has no executable "
+                            "# THEOREM-PROBE before the next problem" % line)
+    return failures
+
+
 def _normalise(text):
     """Trailing whitespace and surrounding blank lines are not output."""
     lines = [line.rstrip() for line in text.replace("\r\n", "\n").split("\n")]
@@ -652,6 +686,11 @@ def main(argv=None):
         print("FAIL %s" % error)
         return 1
 
+    theorem_failures = check_theorem_probes(text)
+    if theorem_failures:
+        for line in theorem_failures:
+            print(line)
+        return 1
     if not blocks:
         print("UNCHECKED no id-tagged python blocks - nothing to verify")
         return 0

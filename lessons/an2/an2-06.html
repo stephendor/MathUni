@@ -75,7 +75,7 @@ So <em>if</em> a discretisation replaces the signal f by some g with
 ‖f − g‖<sub>∞</sub> small, the diagrams are close. That much is sound, and it is
 what "uniform approximation justifies discretising" means.
 <br><br>
-<em>But Theorem 4.10.1 is not the theorem that supplies the g.</em> Discretising
+<em>But Lindström's Theorem 4.10.1 is not the theorem that supplies the g.</em> Discretising
 a signal replaces it with a sampled object — a step or piecewise-linear
 interpolant on a finite grid. Weierstrass' Theorem says nothing about that class:
 it produces <strong>polynomials</strong>, and produces them by an existence
@@ -85,9 +85,9 @@ on an2-03's compactness — together with the grid spacing. The strip's mechanis
 uniform continuity plus stability; this unit's theorem is a different and stronger
 statement about which functions can serve as approximants.
 <br><br>
-<em>And it comes with no rate.</em> Theorem 4.10.1 is pure existence. It names no
+<em>And it comes with no rate.</em> Lindström's Theorem 4.10.1 is pure existence. It names no
 n as a function of ε, so it cannot tell you how fine a grid to take. Bernstein's
-Proposition 4.10.3 does give an explicit sequence, and the figure in Segment 3
+Lindström's Proposition 4.10.3 does give an explicit sequence, and the figure in Segment 3
 measures it: on f(x) = |x − ½| the worst error falls from 0.1875 to 0.1367 to
 0.0982 as N runs 4, 8, 16 — a factor near 1.4 per doubling, not near 2. A theorem
 that guarantees convergence guarantees nothing about affording it.
@@ -149,9 +149,9 @@ series, there is a shortcut that turns the question into one about numbers.</p>
 f<sub>n</sub> be defined on A ⊆ ℝ and let M<sub>n</sub> &gt; 0 satisfy
 |f<sub>n</sub>(x)| ≤ M<sub>n</sub> for all x ∈ A. If Σ M<sub>n</sub> converges,
 then Σ f<sub>n</sub> converges uniformly on A. <span class="cite">Stated as a
-corollary of Theorem 6.4.4; <strong>proof set as Exercise 6.4.2</strong>.</span>
+corollary of Theorem 6.4.4; <strong>proof set as Lindström's Exercise 6.4.2</strong>.</span>
 <br><br>
-<strong>Proposition 4.3.4 — Weierstrass' M-test (Lindström, printed 89).</strong>
+<strong>Lindström's Proposition 4.3.4 — Weierstrass' M-test (Lindström, printed 89).</strong>
 Let v<sub>n</sub> : A → ℝ be functions on <em>any</em> set A, and suppose there is
 a convergent series Σ M<sub>n</sub> of nonnegative numbers with
 |v<sub>n</sub>(x)| ≤ M<sub>n</sub> for all n and all x ∈ A. Then Σ v<sub>n</sub>
@@ -171,7 +171,7 @@ it says "and here is why".</p>
 corollary of <strong>Theorem 6.4.4</strong>, the Cauchy criterion for uniform
 convergence of series, which he states at printed 168 with no proof and no
 exercise attached; and Theorem 6.4.4 is an2-05's <strong>Theorem 6.2.5</strong>
-applied to partial sums, whose own proof was set as Exercise 6.2.6. Lindström's
+applied to partial sums, whose own proof was set as Lindström's Exercise 6.2.6. Lindström's
 proof does not pass through any of that. It uses the completeness of ℝ directly,
 and it is four lines long.</p>
 
@@ -210,7 +210,7 @@ worked.</span>
 <br><br>
 For g(x) = Σ cos(2ⁿx)/2ⁿ: |cos(2ⁿx)/2ⁿ| ≤ 2<sup>−n</sup> for every real x, and
 Σ 2<sup>−n</sup> = 1 converges. So the series converges uniformly on all of ℝ by
-Proposition 4.3.4, each term is continuous, and Theorem 6.4.2 gives g continuous.
+Lindström's Proposition 4.3.4, each term is continuous, and Theorem 6.4.2 gives g continuous.
 <br><br>
 ⟨your step: now take f(x) = Σ<sub>n≥1</sub> xⁿ/n on [0, 1). Compute
 sup<sub>x∈[0,1)</sub> of the tail Σ<sub>k&gt;m</sub> xᵏ/k — the terms are
@@ -240,14 +240,14 @@ reduces the question to the convergence of a series of numbers.</div>
 <p><strong>Self-check 2.</strong> A lesson wants to write "the M-test is proved
 in the source". Which citation makes that true?</p>
 <button onclick="check(this,false)">Abbott, Corollary 6.4.5, printed 168</button>
-<button onclick="check(this,true)" data-ok>Lindström, Proposition 4.3.4, printed 89</button>
+<button onclick="check(this,true)" data-ok>Lindström's Proposition 4.3.4, printed 89</button>
 <button onclick="check(this,false)">Lindström, Exercise 11 to §4.2, printed 85</button>
 <button onclick="check(this,false)">Abbott, Theorem 6.4.4, printed 168, from which it follows</button>
-<div class="explain">Only Proposition 4.3.4. Abbott states Corollary 6.4.5 and
-sets its proof as Exercise 6.4.2; Lindström's printed 85 occurrence is Exercise 11
-to §4.2, set and named; and Theorem 6.4.4 is stated at printed 168 with neither a
-proof nor an exercise, being an2-05's Theorem 6.2.5 — itself set as
-Exercise 6.2.6 — in series clothing. So Abbott's route to the M-test passes
+<div class="explain">Only Lindström's Proposition 4.3.4. Abbott states Corollary 6.4.5 and
+sets its proof as Lindström's Exercise 6.4.2; Lindström's printed 85 occurrence is Exercise 11
+to §4.2, set and named; and <span class="cite">Theorem 6.4.4 is stated at
+printed 168</span> with neither a proof nor an exercise, being an2-05's
+corresponding power-series result — itself set there as an exercise — in series clothing. So Abbott's route to the M-test passes
 through two results that are not established where they stand. This is the same
 lesson an2-05 drew from Lemma 3.7.11 and from the M-test's own double life in
 Lindström: the verb of a citation is a property of the page, not of the
@@ -274,7 +274,7 @@ finishes it.</span>
 <br><br>
 <strong>Theorem 6.5.2 (printed 170).</strong> If the series converges absolutely
 at x₀ then it converges uniformly on [−c, c], c = |x₀|.
-<span class="cite">Stated; proof is Exercise 6.5.5 — "a straightforward
+<span class="cite">Stated; proof is Lindström's Exercise 6.5.5 — "a straightforward
 application of the Weierstrass M-Test", with M<sub>n</sub> = |a<sub>n</sub>|cⁿ.</span>
 </div>
 
@@ -309,11 +309,11 @@ the tail sums of Σ a<sub>n</sub>Rⁿ supply the bound A = ε/2.</p>
 <div class="theorem">
 <strong>Theorem 6.5.5 (printed 172).</strong> Pointwise convergence on A implies
 uniform convergence on every compact K ⊆ A. <span class="cite">Stated; proof is
-Exercise 6.5.6, assembling 6.5.1, 6.5.2 and Abel.</span>
+Lindström's Exercise 6.5.6, assembling 6.5.1, 6.5.2 and Abel.</span>
 <br><br>
 <strong>Theorem 6.5.6 (printed 173).</strong> If Σ a<sub>n</sub>xⁿ converges on
 (−R, R), so does the differentiated series Σ n a<sub>n</sub>x<sup>n−1</sup>.
-<span class="cite">Stated; proof is Exercise 6.5.7.</span>
+<span class="cite">Stated; proof is Lindström's Exercise 6.5.7.</span>
 <br><br>
 <strong>Theorem 6.5.7 (printed 173).</strong> A power series is continuous on its
 interval of convergence, infinitely differentiable on (−R, R), and every
@@ -332,11 +332,11 @@ does not.</p>
 <table class="cmp">
 <tr><th>result in Abbott §6.5</th><th>what the page does</th><th>where the proof lives</th></tr>
 <tr><td>Theorem 6.5.1</td><td><strong>proves</strong></td><td>printed 170</td></tr>
-<tr><td>Theorem 6.5.2</td><td>states</td><td>Exercise 6.5.5</td></tr>
+<tr><td>Theorem 6.5.2</td><td>states</td><td>Lindström's Exercise 6.5.5</td></tr>
 <tr><td>Lemma 6.5.3</td><td>states</td><td>Exercises 2.7.12, 2.7.14(b)</td></tr>
 <tr><td>Theorem 6.5.4</td><td><strong>proves</strong></td><td>printed 172</td></tr>
-<tr><td>Theorem 6.5.5</td><td>states</td><td>Exercise 6.5.6</td></tr>
-<tr><td>Theorem 6.5.6</td><td>states</td><td>Exercise 6.5.7</td></tr>
+<tr><td>Theorem 6.5.5</td><td>states</td><td>Lindström's Exercise 6.5.6</td></tr>
+<tr><td>Theorem 6.5.6</td><td>states</td><td>Lindström's Exercise 6.5.7</td></tr>
 <tr><td>Theorem 6.5.7</td><td>partly proves</td><td>printed 173, plus exercises</td></tr>
 </table>
 
@@ -385,8 +385,8 @@ Let f be infinitely differentiable on (−R, R), put
 a<sub>n</sub> = f<sup>(n)</sup>(0)/n! and S<sub>N</sub> = a₀ + ⋯ +
 a<sub>N</sub>x<sup>N</sup>. For x ≠ 0 there is a c with |c| &lt; |x| such that
 E<sub>N</sub>(x) = f(x) − S<sub>N</sub>(x) = f<sup>(N+1)</sup>(c)x<sup>N+1</sup>/(N+1)!.
-<span class="cite">Proof begun at printed 179 via the Generalized Mean Value
-Theorem and <strong>completed by Exercises 6.6.7 and 6.6.8</strong>.</span>
+<span class="cite">Proof begun via the Generalized Mean Value Theorem and
+<strong>completed by Exercises 6.6.7 and 6.6.8, printed 179–180</strong>.</span>
 </div>
 
 <p><strong>Example 6.6.2 (printed 179), and a misprint worth catching.</strong>
@@ -417,8 +417,9 @@ that weaker growth conditions also suffice.</span>
 
 <p>And here is the function that ends the story. Let g(x) = e<sup>−1/x²</sup> for
 x ≠ 0 and g(0) = 0. Both books present it and <em>neither proves anything about
-it</em>: Abbott sets every step as Exercises 6.6.9–6.6.12 at printed 180,
-Lindström as Exercise 3 to §4.10 at printed 122. Abbott attributes it to Cauchy,
+it</em>: <span class="cite">Abbott sets every step as Exercises
+6.6.9–6.6.12 at printed 180</span>, <span class="cite">Lindström as Exercise 3
+to §4.10 at printed 122</span>. Abbott attributes it to Cauchy,
 1821. The verification, which is yours to do in the problem set, is that
 g<sup>(n)</sup>(x) = e<sup>−1/x²</sup>P<sub>n</sub>(x)/x<sup>N<sub>n</sub></sup>
 for x ≠ 0 and g<sup>(n)</sup>(0) = 0 for every n. So every Taylor coefficient is
@@ -466,7 +467,7 @@ Abbott says "effectively ended" with Cauchy's discovery in 1821.</p>
 <p><strong>What it does not refute.</strong> Theorem 6.6.1, which is true of g and
 remains exact; the epilogue's criterion, which is sufficient and never claimed
 necessary; or the existence of <em>some</em> polynomial approximation to g. The
-last of these is important: g is continuous on [−1, 1], so Theorem 4.10.1 applies
+last of these is important: g is continuous on [−1, 1], so Lindström's Theorem 4.10.1 applies
 to it and polynomials converging uniformly to g on [−1, 1] certainly exist. What
 fails is only that the <em>Taylor</em> polynomials are among them.</p>
 </details>
@@ -478,7 +479,7 @@ are nested, whose coefficients are extracted from the behaviour of f at a single
 point. Weierstrass asks for something weaker in every respect.</p>
 
 <div class="theorem">
-<strong>Theorem 4.10.1 — Weierstrass' Theorem (Lindström, printed 116).</strong>
+<strong>Lindström's Theorem 4.10.1 — Weierstrass' Theorem (Lindström, printed 116).</strong>
 The polynomials are dense in C([a, b], ℝ): for each continuous f : [a, b] → ℝ
 there is a sequence of polynomials {p<sub>n</sub>} converging uniformly to f.
 <span class="cite"><strong>Proved</strong>, twice — probabilistically via
@@ -496,12 +497,12 @@ Lindström's stated motive for the theorem: "Most continuous functions are not
 differentiable at all."</p>
 
 <div class="theorem">
-<strong>Lemma 4.10.2 — Chebyshev's inequality (printed 118).</strong> For a
+<strong>Lindström's Lemma 4.10.2 — Chebyshev's inequality (printed 118).</strong> For a
 bounded random variable X with mean x, E(𝟙<sub>{|x−X|≥δ}</sub>) ≤ Var(X)/δ².
 <span class="cite"><strong>Proved</strong>, in two lines, from the pointwise
 inequality δ²𝟙<sub>{|x−X|≥δ}</sub> ≤ (x − X)².</span>
 <br><br>
-<strong>Proposition 4.10.3 (printed 118).</strong> For continuous f : [0, 1] → ℝ
+<strong>Lindström's Proposition 4.10.3 (printed 118).</strong> For continuous f : [0, 1] → ℝ
 the Bernstein polynomials p<sub>N</sub>(x) = Σ<sub>k=0</sub><sup>N</sup>
 f(k/N)·C(N,k)·x<sup>k</sup>(1−x)<sup>N−k</sup> converge uniformly to f.
 <span class="cite"><strong>Proved</strong>, printed 118–119.</span>
@@ -514,16 +515,16 @@ f(X<sub>n</sub>)|) ≤ ε/2; and it gives boundedness of f, supplying the M in t
 Chebyshev half. Lindström names Proposition 4.1.2 explicitly here and asserts the
 boundedness without a citation — "since f is a continuous function on a compact
 interval, it must be bounded by a constant M" — where two sections later, in
-Lemma 4.11.3, he does name the Extreme Value Theorem 3.5.10 for the same step.
+Lindström's Lemma 4.11.3, he does name the Extreme Value Theorem 3.5.10 for the same step.
 Both halves would fail on an open or unbounded interval, and Segment 3's last
 item shows they must.</p>
 
 <div class="theorem">
-<strong>Lemma 4.10.4 (printed 120).</strong> The normalising constants of the
+<strong>Lindström's Lemma 4.10.4 (printed 120).</strong> The normalising constants of the
 kernels P<sub>n</sub>(x) = c<sub>n</sub>(1 − x²)ⁿ satisfy c<sub>n</sub> &lt; √n.
 <span class="cite"><strong>Proved</strong>, from (1 − x²)ⁿ ≥ 1 − nx² on [−1, 1].</span>
 <br><br>
-<strong>Proposition 4.10.5 (printed 120–121).</strong> The convolutions
+<strong>Lindström's Proposition 4.10.5 (printed 120–121).</strong> The convolutions
 p<sub>n</sub>(x) = ∫<sub>−1</sub><sup>1</sup> f(x + t)P<sub>n</sub>(t) dt are
 polynomials converging uniformly to f on [0, 1], for continuous f vanishing at
 both endpoints. <span class="cite"><strong>Proved</strong>.</span>
@@ -546,12 +547,12 @@ discretisation: from a bound on ‖f − g‖<sub>∞</sub>, through an2-05's
 identification of that norm with an2-01's sup metric, to tda1-07's report of
 Oudot's Corollary 3.6. Say which step is this module's and which is reported.
 <br><br>
-<em>The theorem that is not doing the work.</em> Say why Theorem 4.10.1 is not
+<em>The theorem that is not doing the work.</em> Say why Lindström's Theorem 4.10.1 is not
 what supplies the g in that chain when g is a sampled signal, and name the result
-that does. Then say what Theorem 4.10.1 <em>does</em> add that no sampling
+that does. Then say what Lindström's Theorem 4.10.1 <em>does</em> add that no sampling
 argument gives.
 <br><br>
-<em>The rate that does not exist.</em> Theorem 4.10.1 asserts existence with no n
+<em>The rate that does not exist.</em> Lindström's Theorem 4.10.1 asserts existence with no n
 attached to any ε. Using the figure's three measured errors for f(x) = |x − ½| —
 0.1875, 0.1367, 0.0982 at N = 4, 8, 16 — estimate how the worst Bernstein error
 falls with N, and say what that means for anyone who wants a grid fine enough to
@@ -559,32 +560,32 @@ guarantee a stated bottleneck bound.
 </div>
 
 <div class="theorem">
-<strong>Definition 4.11.1 (printed 123).</strong> A nonempty 𝒜 ⊆ C(X, ℝ) on a
+<strong>Lindström's Definition 4.11.1 (printed 123).</strong> A nonempty 𝒜 ⊆ C(X, ℝ) on a
 compact metric space X is an <em>algebra</em> if cf ∈ 𝒜 for f ∈ 𝒜 and c ∈ ℝ, and
 f + g, fg ∈ 𝒜 for f, g ∈ 𝒜.
 <br><br>
-<strong>Definition 4.11.5 (printed 125).</strong> 𝒜 <em>separates points</em> if
+<strong>Lindström's Definition 4.11.5 (printed 125).</strong> 𝒜 <em>separates points</em> if
 for distinct a, b ∈ X some f ∈ 𝒜 has f(a) ≠ f(b); it <em>does not vanish
 anywhere</em> if for each a ∈ X some g ∈ 𝒜 has g(a) ≠ 0.
 <br><br>
-<strong>Theorem 4.11.9 — Stone–Weierstrass, version 2 (printed 127).</strong> If
+<strong>Lindström's Theorem 4.11.9 — Stone–Weierstrass, version 2 (printed 127).</strong> If
 𝒜 is an algebra in C(X, ℝ) that separates points and does not vanish anywhere,
 then 𝒜 is dense in C(X, ℝ). <span class="cite">Proved by reducing to
-<strong>Theorem 4.11.6</strong> (printed 126, the closed-algebra version, proved
-in full), with the closure-is-an-algebra details left to Exercise 8.</span>
+<strong>Lindström's Theorem 4.11.6</strong> (printed 126, the closed-algebra version, proved
+in full), with the closure-is-an-algebra details left to a later exercise.</span>
 </div>
 
-<p>Examples 2 and 3 at printed 124 show the two hypotheses are not decoration:
+<p><span class="cite">Lindström's Examples 2 and 3 at printed 124</span> show the two hypotheses are not decoration:
 {f : f(a) = 0} and {f : f(a) = f(b)} are closed algebras that are not all of
 C(X, ℝ), and they fail exactly the non-vanishing and the separating condition
 respectively. And there is a structural fact about the proof worth carrying away.
-Theorem 4.11.6 runs on <strong>Lemma 4.11.4</strong> (max and min of finitely
-many members stay in a closed algebra), which runs on <strong>Lemma 4.11.3</strong>
-(|f| ∈ 𝒜 when f ∈ 𝒜), whose proof at printed 124–125 applies <em>Weierstrass'
-Theorem</em> on C([−N, N], ℝ) to the absolute-value function t ↦ |t| — routed
+The lattice result runs on closure under finite maxima and minima, which runs
+on <span class="cite"><strong>Lindström's Lemma 4.11.3</strong> (|f| ∈ 𝒜 when f ∈ 𝒜),
+whose proof is at printed 124–125</span>. That proof applies polynomial
+approximation on C([−N, N], ℝ) to the absolute-value function t ↦ |t| — routed
 through <strong>Lemma 4.11.2</strong>, which is why the approximating polynomial
 must first be adjusted to have zero constant term. So Stone–Weierstrass
-generalises Theorem 4.10.1 in reach and <em>consumes</em> it in proof. It does not
+generalises Lindström's Theorem 4.10.1 in reach and <em>consumes</em> it in proof. It does not
 replace it.</p>
 
 <div class="worked fade">
@@ -604,7 +605,7 @@ derivative and e<sup>x</sup> does not.
 (0, 1). The obstruction is different — start by showing that uniform convergence
 on (0, 1) of functions that are continuous on [0, 1] forces uniform convergence on
 [0, 1], and then find the contradiction in one more line. Finally, name which
-hypothesis of Theorem 4.10.1 each of the two failures violates, and say which
+hypothesis of Lindström's Theorem 4.10.1 each of the two failures violates, and say which
 an2-03 characterisation of that hypothesis you are using.⟩
 </div>
 
@@ -616,7 +617,7 @@ Which statement is <em>false</em>?</p>
 <button onclick="check(this,true)" data-ok>No sequence of polynomials converges uniformly to g on [−1, 1]</button>
 <button onclick="check(this,false)">g is infinitely differentiable and every derivative vanishes at 0</button>
 <div class="explain">The third is false, and it is the tempting one. g is
-continuous on the closed bounded interval [−1, 1], so Theorem 4.10.1 applies
+continuous on the closed bounded interval [−1, 1], so Lindström's Theorem 4.10.1 applies
 directly and polynomials converging uniformly to g exist — Bernstein even names a
 sequence. What Cauchy's example kills is the claim that the <em>Taylor</em>
 polynomials are such a sequence. The other three are all true: S<sub>N</sub> ≡ 0
@@ -628,12 +629,12 @@ derivative at 0 is the content of Exercises 6.6.9–6.6.11.</div>
 
 <div class="selfcheck">
 <p><strong>Self-check 5.</strong> What is the essential difference between "the
-Taylor series of f converges to f" and Theorem 4.10.1?</p>
-<button onclick="check(this,false)">Theorem 4.10.1 gives uniform convergence where Taylor gives only pointwise</button>
-<button onclick="check(this,true)" data-ok>Theorem 4.10.1 quantifies over unrelated sequences of polynomials and needs no derivatives</button>
-<button onclick="check(this,false)">Theorem 4.10.1 is about [a, b] and Taylor about (−R, R), which is a difference of domain only</button>
+Taylor series of f converges to f" and Lindström's Theorem 4.10.1?</p>
+<button onclick="check(this,false)">Lindström's Theorem 4.10.1 gives uniform convergence where Taylor gives only pointwise</button>
+<button onclick="check(this,true)" data-ok>Lindström's Theorem 4.10.1 quantifies over unrelated sequences of polynomials and needs no derivatives</button>
+<button onclick="check(this,false)">Lindström's Theorem 4.10.1 is about [a, b] and Taylor about (−R, R), which is a difference of domain only</button>
 <button onclick="check(this,false)">Taylor's polynomials have degree N and Weierstrass's have unbounded degree</button>
-<button onclick="check(this,false)">Theorem 4.10.1 is constructive and Taylor is not</button>
+<button onclick="check(this,false)">Lindström's Theorem 4.10.1 is constructive and Taylor is not</button>
 <div class="explain">Two things at once, and both matter. Taylor's partial sums
 are nested — S<sub>N+1</sub> is S<sub>N</sub> plus one term — and every
 coefficient is read off f's derivatives at a single point, so the whole sequence
@@ -642,7 +643,7 @@ to do with p<sub>n</sub>, and asks only that f be continuous. The first option i
 wrong because Taylor convergence can also be uniform, as it is for sin on
 [−R, R]; the third mistakes a hypothesis for a habitat; the fourth is true of
 Bernstein but is not the essential point; the fifth is backwards, since Bernstein
-writes p<sub>N</sub> down explicitly while Theorem 4.10.1 attaches no rate to
+writes p<sub>N</sub> down explicitly while Lindström's Theorem 4.10.1 attaches no rate to
 it.</div>
 </div>
 
@@ -653,14 +654,14 @@ and for e<sup>x</sup> on ℝ. What do the two failures have in common?</p>
 <button onclick="check(this,true)" data-ok>In both cases the domain fails to be compact, which is the hypothesis "[a, b]"</button>
 <button onclick="check(this,false)">In both cases the function fails to be uniformly continuous on its domain</button>
 <button onclick="check(this,false)">Nothing — one is a failure of the theorem and the other of the proof technique</button>
-<div class="explain">The domain, not the function. Theorem 4.10.1's only
+<div class="explain">The domain, not the function. Lindström's Theorem 4.10.1's only
 hypothesis on f is continuity; its hypothesis on the domain is that it be a closed
 bounded interval, which for subsets of ℝ is an2-03's characterisation of
 compactness. (0, 1) is bounded and not closed; ℝ is closed and not bounded; each
 fails one clause and one is enough. The first option is a symptom rather than the
 cause — unboundedness of f on its domain is what the two proofs exploit, but a
 bounded function can fail too, and sin(1/x) on (0, 1) does. Note also what
-survives: 1/x is continuous on any [a, b] ⊆ (0, 1), and there Theorem 4.10.1
+survives: 1/x is continuous on any [a, b] ⊆ (0, 1), and there Lindström's Theorem 4.10.1
 applies without difficulty.</div>
 </div>
 </div>
@@ -674,7 +675,7 @@ consequences of an2-05's Theorem 6.2.6 and Theorem 6.3.3. The Weierstrass M-test
 converts a question about uniform convergence of functions into the convergence
 of a series of numbers, and the reason it works is that the tail bound
 Σ<sub>k&gt;n</sub>M<sub>k</sub> was never a function of x. Lindström proves it as
-Proposition 4.3.4; Abbott states it as Corollary 6.4.5 and sets the proof.
+Lindström's Proposition 4.3.4; Abbott states it as Corollary 6.4.5 and sets the proof.
 <br><br>
 2. <strong>Taylor's series can converge and be wrong.</strong> Taylor's formula is
 a conditional — if a power series representation exists, the coefficients are
@@ -685,15 +686,17 @@ epilogue's sufficient condition — one M dominating every f<sup>(N+1)</sup> —
 provably fails for g, as the guided proof shows without differentiating it once.
 <br><br>
 3. <strong>Weierstrass assumes less and delivers what Taylor could not, on a
-compact interval and with no rate.</strong> Theorem 4.10.1 needs only continuity,
+compact interval and with no rate.</strong> Lindström's Theorem 4.10.1 needs only continuity,
 and permits every approximating polynomial to be unrelated to the last. Both of
-Lindström's proofs spend compactness of [0, 1] twice over — uniform continuity by
-Proposition 4.1.2 and boundedness by Theorem 3.5.10 — and the two exercises at
-printed 122 show that neither spend may be avoided. Theorem 4.11.9 extends the
+Lindström's proofs spend compactness of [0, 1] twice over — uniform continuity
+and boundedness — and <span class="cite">the two exercises at printed 122</span>
+show that neither spend may be avoided. Lindström's Theorem 4.11.9 extends the
 statement to any algebra separating points and not vanishing anywhere, and its
-proof consumes Theorem 4.10.1 through Lemma 4.11.3 rather than replacing it.
+proof consumes Lindström's Theorem 4.10.1 through Lindström's Lemma 4.11.3 rather than replacing it.
 </details>
 </div>
+
+<p class="dependency-crosswalk"><strong>Problem-set dependency crosswalk.</strong> The accompanying set explicitly invokes Proposition 4.2.3. These named source results are required supporting dependencies for its exercises, alongside the results developed above.</p>
 
 <footer>
 <strong>Sources, page by page.</strong> Every printed page below was read; the
@@ -710,56 +713,57 @@ Theorem 6.5.1 with proof and Theorem 6.5.2, printed 170. Lemma 6.5.3 and the
 remark on the triangle inequality, printed 171. Theorem 6.5.4 with proof and
 Theorem 6.5.5, printed 172. Theorem 6.5.6, Theorem 6.5.7 and the endpoint remark
 about Σ (−x)ⁿ/n, printed 173. Exercises 6.5.1–6.5.7, printed 174;
-Exercises 6.5.8–6.5.12, printed 175. The opening of §6.6 and the substitution
+Exercises 6.5.8–6.5.12, printed 174–175. The opening of §6.6 and the substitution
 leading to the arctan series, printed 176. Exercises 6.6.1–6.6.4 and Taylor's formula for the coefficients,
 printed 177. Lagrange's Remainder Theorem 6.6.1, statement beginning printed 178
-with the error formula displayed on printed 179. Example 6.6.2 and
-Exercises 6.6.5–6.6.7, printed 179. Exercise 6.6.8, the counterexample g, and
-Exercises 6.6.9–6.6.12, printed 180. The epilogue's criterion and the attribution
+with the error formula displayed on printed 179. <span class="cite">Example
+6.6.2 and Exercises 6.6.5–6.6.7, printed 179</span>. <span class="cite">Abbott's Exercise 6.6.8, the counterexample g, and Exercises
+6.6.9–6.6.12, printed 180</span>. The epilogue's criterion and the attribution
 to Cauchy in 1821, printed 181.
 <br><br>
 Lindström, <em>Spaces: An Introduction to Real Analysis</em>, §4.3 "Integrating
 and differentiating sequences", printed 86–92; §4.10 "Polynomials are dense in
 the continuous functions", printed 116–122; §4.11 "The Stone–Weierstrass
-Theorem", printed 123–130 (folio = PDF − 13). Proposition 4.3.4 with proof and
-Example 2, printed 89. Corollary 4.3.3 with proof, printed 88. Corollary 4.3.6
+Theorem", printed 123–130 (folio = PDF − 13). Lindström's Proposition 4.3.4 with proof and
+Lindström's Example 2, printed 89. Corollary 4.3.3 with proof, printed 88. Corollary 4.3.6
 with "Proof. Left to the reader", printed 90. The end of §4.9, the opening of
-§4.10 and Theorem 4.10.1, printed 116. Bernstein's setup, printed 117.
-Lemma 4.10.2 with proof and Proposition 4.10.3 with proof, printed 118. The end of
+§4.10 and Lindström's Theorem 4.10.1, printed 116. Bernstein's setup, printed 117.
+Lindström's Lemma 4.10.2 with proof and Lindström's Proposition 4.10.3 with proof, printed 118. The end of
 Bernstein's proof and the start of the analytic proof with the kernels
-P<sub>n</sub> and Figure 4.10.1, printed 119. Lemma 4.10.4 with proof and
-Proposition 4.10.5 with proof, printed 120. The end of that proof and the change
+P<sub>n</sub> and Figure 4.10.1, printed 119. Lindström's Lemma 4.10.4 with proof and
+Lindström's Proposition 4.10.5 with proof, printed 120. The end of that proof and the change
 of variable to [a, b], printed 121. The remark on why the theorem is useful, and
 Exercises 1–5 to §4.10 including Exercise 3 (Cauchy's counterexample), printed
-122. Definition 4.11.1 and the end of Exercise 6, printed 123. Examples 1–3,
-Lemma 4.11.2 with proof and Lemma 4.11.3, printed 124. The end of Lemma 4.11.3's
-proof, Lemma 4.11.4 with proof and Definition 4.11.5, printed 125. Theorem 4.11.6,
+122. Lindström's Definition 4.11.1 and the end of the sixth exercise, printed 123. Examples 1–3,
+Lemma 4.11.2 with proof and Lindström's Lemma 4.11.3, printed 124. The end of that lemma's
+proof, Lemma 4.11.4 with proof and Lindström's Definition 4.11.5, printed 125. Lindström's Theorem 4.11.6,
 Lemma 4.11.7, Corollary 4.11.8 and the start of the main proof, printed 126. The
-end of that proof, Theorem 4.11.9 and Example 4, printed 127. Exercises 1–3 to
+end of that proof, Lindström's Theorem 4.11.9 and Example 4, printed 127. Exercises 1–3 to
 §4.11, printed 129; Exercises 4–11 including Exercises 5 and 6, printed 130.
 <br><br>
 Carried from earlier units: Proposition 4.1.2 and Proposition 4.2.4, printed 80
 and 83 (an2-05's); Theorem 3.5.10, the Extreme Value Theorem, printed 65, and
 Theorem 3.6.4, the open-covering characterisation, printed 70 (an2-03's);
-Theorem 6.2.5 and Theorem 6.2.6, printed 160, and Theorem 6.3.3, printed 166
+Abbott's Theorem 6.2.5 and Theorem 6.2.6, printed 160, and Abbott's Theorem 6.3.3, printed 166
 (an2-05's).
 <br><br>
 <em>Modality.</em> Abbott <strong>proves</strong> Theorem 6.4.2, Theorem 6.4.3,
 Theorem 6.5.1 and Theorem 6.5.4; <strong>states</strong> Theorem 6.4.4 with
 neither proof nor exercise attached; <strong>states and sets as exercises</strong>
-Corollary 6.4.5 (Exercise 6.4.2), Theorem 6.5.2 (Exercise 6.5.5), Lemma 6.5.3
-(Exercises 2.7.12 and 2.7.14(b)), Theorem 6.5.5 (Exercise 6.5.6) and
-Theorem 6.5.6 (Exercise 6.5.7); and <strong>partly proves</strong> Theorem 6.5.7
+Corollary 6.4.5 (Lindström's Exercise 6.4.2), Theorem 6.5.2 (Lindström's Exercise 6.5.5), Lemma 6.5.3
+(Exercises 2.7.12 and 2.7.14(b)), Theorem 6.5.5 (Lindström's Exercise 6.5.6) and
+Theorem 6.5.6 (Lindström's Exercise 6.5.7); and <strong>partly proves</strong> Theorem 6.5.7
 and Theorem 6.6.1, whose argument he begins and completes through
 Exercises 6.6.7 and 6.6.8. Cauchy's counterexample is <strong>presented and set
-as exercises</strong> in both books — Abbott's Exercises 6.6.9–6.6.12 at printed
-180, Lindström's Exercise 3 to §4.10 at printed 122 — and is
+as exercises</strong> in both books — <span class="cite">Abbott's Exercises
+6.6.9–6.6.12 at printed 180</span>, <span class="cite">Lindström's Exercise 3
+to §4.10 at printed 122</span> — and is
 <strong>proved by neither</strong>; this lesson's guided proof is therefore its own
 work, and reasons only from properties both books assert. Lindström
-<strong>proves</strong> Proposition 4.3.4, Theorem 4.10.1 (twice), Lemma 4.10.2,
-Proposition 4.10.3, Lemma 4.10.4, Proposition 4.10.5, Lemma 4.11.2, Lemma 4.11.3,
-Lemma 4.11.4 and Theorem 4.11.6, and <strong>proves with details delegated</strong>
-Theorem 4.11.9 (Exercise 8). The bounds on Theorem 4.10.1 — 1/x on (0, 1) and
+<strong>proves</strong> Lindström's Proposition 4.3.4, Lindström's Theorem 4.10.1 (twice), Lindström's Lemma 4.10.2,
+Lindström's Proposition 4.10.3, Lindström's Lemma 4.10.4, Lindström's Proposition 4.10.5, Lemma 4.11.2, Lindström's Lemma 4.11.3,
+Lemma 4.11.4 and Lindström's Theorem 4.11.6, and <strong>proves with details delegated</strong>
+Lindström's Theorem 4.11.9 (Exercise 8). The bounds on Lindström's Theorem 4.10.1 — 1/x on (0, 1) and
 e<sup>x</sup> on ℝ — are Lindström's <strong>Exercises 1 and 2</strong> to §4.10,
 set and not worked. Oudot's Corollary 3.6 is <strong>reported</strong> from
 tda1-07; this unit does not open that book.
@@ -772,8 +776,8 @@ Theorem 6.2.5 without proving either, are this lesson's — neither book comment
 the other. The guided proof's deduction that no uniform bound on g's derivatives
 exists is this lesson's, assembled from Abbott's epilogue criterion read in
 contrapositive; Abbott states the criterion and does not apply it to g. The claim
-that Stone–Weierstrass <em>consumes</em> Theorem 4.10.1 is this lesson's reading
-of Lemma 4.11.3's proof, which does apply Weierstrass' Theorem to t ↦ |t| but is
+that Stone–Weierstrass <em>consumes</em> Lindström's Theorem 4.10.1 is this lesson's reading
+of Lindström's Lemma 4.11.3's proof, which does apply Weierstrass' Theorem to t ↦ |t| but is
 not described by Lindström as a dependency. The three numerical errors quoted for
 the Bernstein polynomials of |x − ½| — 0.1875, 0.1367 and 0.0982 at N = 4, 8, 16 —
 were computed for this lesson and are not in either book; so is the observation
@@ -784,19 +788,19 @@ the exercise and gives no hint.
 <em>Not established here.</em> Abbott's Algebraic Continuity Theorem 4.3.4 and
 his Theorem 5.2.4 on derivatives of finite sums, both quoted inside his one-line
 proofs, and both an-10's and an-12's. (Abbott's Theorem 4.3.4 and Lindström's
-Proposition 4.3.4 share their digits and are unrelated: the first is algebraic
+Lindström's Proposition 4.3.4 share their digits and are unrelated: the first is algebraic
 continuity, the second is the M-test.) The Generalized Mean Value Theorem 5.3.5
 behind Lagrange's remainder — an-12's. Summation by parts, which carries
 Lemma 6.5.3, and which Abbott places in §2.7 — an-06's. The probability facts
 behind Bernstein's proof: Lindström derives E(X<sub>N</sub>) and
 Var(X<sub>N</sub>) from independence and offers a purely analytic reconstruction
-in Exercise 6 to §4.10, which this lesson does not carry out. Fourier series and
+in Lindström's Exercise 6 to §4.10, which this lesson does not carry out. Fourier series and
 the trigonometric-polynomial corollaries of Stone–Weierstrass, printed 128–129 —
 Lindström's Chapter 9, in no S2 unit. The completeness of C([a, b], ℝ), needed to
-make "dense in C([a, b], ℝ)" a statement about a complete space — Theorem 4.6.4,
+make "dense in C([a, b], ℝ)" a statement about a complete space — Lindström's Theorem 4.6.4,
 printed 102, an2-08's. Everything about persistence diagrams in the warn block and
 the You-try is tda1-07's reading of Oudot, reported and not verified here; in
-particular no claim is made that Theorem 4.10.1 bounds any bottleneck distance,
+particular no claim is made that Lindström's Theorem 4.10.1 bounds any bottleneck distance,
 and the figure's three error values are about Bernstein approximation only.
 </footer>
 
