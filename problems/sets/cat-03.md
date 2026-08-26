@@ -1,7 +1,7 @@
 # cat-03 — Functors
 
 **Module:** Category Theory · **Unit:** cat-03
-**Sources:** Aluffi, *Algebra: Chapter 0* — §VIII.1.1–1.2 (pp. 484–487):
+**Sources:** Aluffi, *Algebra: Chapter 0* — §VIII.1.1–1.3 (pp. 484–488):
 Definition 1.1 of a covariant functor, the definition of a contravariant
 functor as a covariant functor on $\mathsf{C}^{\mathrm{op}}$, the reversal
 $\mathcal{G}(\beta\alpha) = \mathcal{G}(\alpha)\mathcal{G}(\beta)$, the
@@ -18,7 +18,7 @@ action on objects while functors in general are not; §3.3.3 (p. 93):
 Definition 3.44, that a $\mathcal{C}$-instance is a functor
 $\mathcal{C} \to \mathbf{Set}$, and the summary that a schema is a category and
 the data is a set-valued functor whose constraints are enforced by preservation
-of composition; §3.3 (p. 101): the composite of two functors, worked through
+of composition; §3.4 (p. 101): the composite of two functors, worked through
 $\mathbf{Gr} \to \mathrm{DDS} \to \mathbf{Set}$.
 
 Interleaves cat-01 and cat-02, whose categories and universal properties are

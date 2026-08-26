@@ -30,3 +30,8 @@ def test_version_like_text_is_not_a_unit_reference(tmp_path):
 def test_unknown_module_reference_is_not_filtered_out(tmp_path):
     assert unit_refs("See cta-04.", str(tmp_path)) == ["cta-04"]
     assert missing_references("See cta-04.", str(tmp_path))
+
+
+def test_unknown_module_after_corpus_cross_reference_wording_is_retained(tmp_path):
+    assert unit_refs("Deferred to cta-04.", str(tmp_path)) == ["cta-04"]
+    assert unit_refs("This is developed in cta-04.", str(tmp_path)) == ["cta-04"]

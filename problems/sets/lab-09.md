@@ -3,9 +3,9 @@
 **Module:** Computational Lab · **Unit:** lab-09
 **Sources:** executed code, in the environment pinned below, plus the eight units
 before it. Two results are used by name and are cited to their own books, since
-the two number differently: **Theorem 13.1** (Λ∞ ≤ d_B, the landscape's
-1-Lipschitz property) is Dey and Wang, printed 393, established in `lab-06`; and
-**Corollary 3.6** (d_b(dgm f, dgm g) ≤ ‖f − g‖∞) is Oudot, printed 61, established
+the two number differently: Dey and Wang's **Theorem 13.1** (Λ∞ ≤ d_B, the landscape's
+1-Lipschitz property), printed 393, established in `lab-06`; and Oudot's
+**Corollary 3.6** (d_b(dgm f, dgm g) ≤ ‖f − g‖∞), printed 61, established
 in `lab-05`. API surfaces verified by execution:
 `gtda.homology.VietorisRipsPersistence` with `collapse_edges=True`,
 `gtda.diagrams.PersistenceLandscape`.

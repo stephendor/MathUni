@@ -48,14 +48,14 @@ No barcode, so compute the next best thing: generators, relations, and whatever 
 </div>
 </div>
 
-<p class="mission">Why this matters for the mission: Multiparameter modules are handled through presentations (aa-19's finitely presented modules) because aa-20's PID structure theorem does not apply to 𝐤[x,y]. Total diagonalisation decomposes a presentation, and rank invariants, graded Betti numbers and blockcodes are the computable but incomplete summaries that stand in for the barcode.</p>
+<p class="mission">Why this matters for the mission: Multiparameter modules are handled through presentations (aa-19's finitely presented modules) because aa-20's PID structure theorem does not apply to k[x,y]. Total diagonalisation decomposes a presentation, and rank invariants, graded Betti numbers and blockcodes are the computable but incomplete summaries that stand in for the barcode.</p>
 
 <div class="segment">
 <span class="timebox">Segment 1 · ~25 min</span>
 <h2>Presentations, and the three-way correspondence</h2>
 
 <div class="definition">
-<p><strong>Definition 11.10 (decomposition).</strong> For a finitely generated graded module M, a decomposition is an isomorphism M ≅ ⊕ M<sup>i</sup> for some collection {M<sup>i</sup>}. M is <em>indecomposable</em> if M ≅ M<sup>1</sup> ⊕ M<sup>2</sup> implies M<sup>1</sup> = 𝟎 or M<sup>2</sup> = 𝟎. By the Krull–Schmidt theorem there exists an essentially unique decomposition into indecomposables, up to permutation and isomorphism. <span class="cite">— Dey &amp; Wang §11.2.1, Definition 11.10, p. 329</span></p>
+<p><strong>Definition 11.10 (decomposition).</strong> For a finitely generated graded module M, a decomposition is an isomorphism M ≅ ⊕ M<sup>i</sup> for some collection {M<sup>i</sup>}. M is <em>indecomposable</em> if M ≅ M<sup>1</sup> ⊕ M<sup>2</sup> implies M<sup>1</sup> = 𝟎 or M<sup>2</sup> = 𝟎. By the Krull–Schmidt theorem there exists an essentially unique decomposition into indecomposables, up to permutation and isomorphism. <span class="cite">— Dey &amp; Wang §11.2, Definition 11.10, p. 328</span></p>
 </div>
 
 <p>With classification unavailable, the object one actually computes with is a presentation.</p>
@@ -193,7 +193,7 @@ draw();
 </div>
 
 <div class="theorem">
-<p><strong>Fact 11.3.</strong> The rank invariant of a one-parameter module is a complete invariant. For a one-parameter persistence module H<sub>p</sub> it is given by the persistent Betti numbers β<sub>p</sub><sup>i,j</sup>. <span class="cite">— Dey &amp; Wang §11.6.1, Fact 11.3, p. 358</span></p>
+<p><strong>Fact 11.3.</strong> The rank invariant of a one-parameter module is a complete invariant. For a one-parameter persistence module H<sub>p</sub> it is given by the persistent Betti numbers β<sub>p</sub><sup>i,j</sup>. <span class="cite">— Dey &amp; Wang §11.6.1, Fact 11.3, p. 357</span></p>
 </div>
 
 <p>So in one parameter the rank invariant <em>is</em> the barcode, in another notation. In several parameters it is not complete, and Dey and Wang name the specific thing it misses: it cannot provide information about the birth and death of generators. The repair is to take ranks not between single grades but between whole sets of them.</p>
@@ -203,11 +203,11 @@ draw();
 </div>
 
 <div class="theorem">
-<p><strong>Fact 11.4.</strong> With P<sub>𝐮</sub> the immediate predecessors and S<sub>𝐮</sub> the immediate successors of a grade 𝐮: (a) m generators are born at grade 𝐮 if and only if coker(⊕<sub>𝐮′∈P<sub>𝐮</sub></sub>M<sub>𝐮′</sub> → M<sub>𝐮</sub>) has dimension m; (b) m generators die leaving grade 𝐮 if and only if ker(M<sub>𝐮</sub> → ⊕<sub>𝐮′∈S<sub>𝐮</sub></sub>M<sub>𝐮′</sub>) has dimension m. <span class="cite">— Dey &amp; Wang §11.6.1, Fact 11.4, pp. 358–359</span></p>
+<p><strong>Fact 11.4.</strong> With P<sub>𝐮</sub> the immediate predecessors and S<sub>𝐮</sub> the immediate successors of a grade 𝐮: (a) m generators are born at grade 𝐮 if and only if coker(⊕<sub>𝐮′∈P<sub>𝐮</sub></sub>M<sub>𝐮′</sub> → M<sub>𝐮</sub>) has dimension m; (b) m generators die leaving grade 𝐮 if and only if ker(M<sub>𝐮</sub> → ⊕<sub>𝐮′∈S<sub>𝐮</sub></sub>M<sub>𝐮′</sub>) has dimension m. <span class="cite">— Dey &amp; Wang §§11.6.1–11.6.2, Fact 11.4, pp. 358–359</span></p>
 </div>
 
 <div class="theorem">
-<p><strong>Fact 11.5.</strong> Two <em>interval decomposable</em> modules are isomorphic if and only if they have the same multirank invariants. <span class="cite">— Dey &amp; Wang §11.6.1, Fact 11.5, p. 359</span></p>
+<p><strong>Fact 11.5.</strong> Two <em>interval decomposable</em> modules are isomorphic if and only if they have the same multirank invariants. <span class="cite">— Dey &amp; Wang §11.6.1, Fact 11.5, p. 358</span></p>
 </div>
 
 <p>Read Fact 11.5 carefully, because it is the kind of statement that gets misquoted. It is completeness <em>on a restricted class</em>. Outside the interval decomposable modules the multirank invariant is still not complete — Dey and Wang say so explicitly in the same passage. What a practitioner may conclude from two modules having equal multirank invariants is: nothing, unless both are already known to be interval decomposable. Different multirank invariants, on the other hand, always prove non-isomorphism.</p>
@@ -235,7 +235,7 @@ draw();
 </div>
 
 <div class="definition">
-<p><strong>Definition 11.23 (blockcode).</strong> The set of dimension functions 𝓑<sub>dm</sub>(M) := {dm M<sup>i</sup>} over the indecomposable summands is the <em>blockcode</em> of M. <span class="cite">— Dey &amp; Wang §11.6.2, Definition 11.23, p. 361</span></p>
+<p><strong>Definition 11.23 (blockcode).</strong> The set of dimension functions 𝓑<sub>dm</sub>(M) := {dm M<sup>i</sup>} over the indecomposable summands is the <em>blockcode</em> of M. <span class="cite">— Dey &amp; Wang §11.6.2, Definition 11.23, p. 360</span></p>
 </div>
 
 <h3>Worked example 3: the alternating sum on a free module</h3>
@@ -318,7 +318,7 @@ draw();
 </div>
 
 <footer>
-Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §11.2.1: Definition 11.10 on decomposition and the Krull–Schmidt theorem (p. 329); Definition 11.13 on presentations, Remark 11.1 on minimal presentations, Definition 11.14 on the presentation matrix (pp. 330–331); Theorem 11.1's three-way correspondence, Remark 11.2, Proposition 11.2 for non-minimal presentations, and Remark 11.3's [f] ≅ [f<sup>∗</sup>] ⊕ [g] ⊕ [h] (pp. 331–332); §11.3, Definition 11.15 on diagonalisation (pp. 332–333). §11.6: the opening statement that no finite computable complete invariant exists for multiparameter modules (pp. 356–357); Definitions 11.17 and 11.18 and Fact 11.3 on the rank invariant, Definition 11.19 and Facts 11.4 and 11.5 on the multirank invariant (pp. 357–359); Definitions 11.20 to 11.23 and Fact 11.6 on free resolutions, graded Betti numbers, persistent graded Betti numbers and blockcodes (pp. 359–361). Assumed from tda2-02: graded modules, shifted and free modules, and the failure of the PID argument. Deferred: the TOTDIAGONALIZE algorithm and its correctness and complexity analysis (Dey §11.4, pp. 337–350), and the computation of presentations from a filtration (Dey §11.5).
+Sources: Dey &amp; Wang, <em>Computational Topology for Data Analysis</em> — §11.2: Definition 11.10 on decomposition and the Krull–Schmidt theorem (p. 328); Definition 11.13 on presentations, Remark 11.1 on minimal presentations, Definition 11.14 on the presentation matrix (pp. 330–331); Theorem 11.1's three-way correspondence, Remark 11.2, Proposition 11.2 for non-minimal presentations, and Remark 11.3's [f] ≅ [f<sup>∗</sup>] ⊕ [g] ⊕ [h] (pp. 331–332); §11.3, Definition 11.15 on diagonalisation (pp. 332–333). §11.6: the opening statement that no finite computable complete invariant exists for multiparameter modules (pp. 356–357); Definitions 11.17 and 11.18 and Fact 11.3 on the rank invariant, Definition 11.19 and Facts 11.4 and 11.5 on the multirank invariant (pp. 357–359); Definitions 11.20 to 11.23 and Fact 11.6 on free resolutions, graded Betti numbers, persistent graded Betti numbers and blockcodes (pp. 359–361). Assumed from tda2-02: graded modules, shifted and free modules, and the failure of the PID argument. Deferred: the TOTDIAGONALIZE algorithm and its correctness and complexity analysis (Dey §11.4, pp. 337–349), and the computation of presentations from a filtration (Dey §11.5).
 </footer>
 
 <script>

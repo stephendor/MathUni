@@ -52,7 +52,7 @@ INDEX = os.path.join(REPO, "resources", "sections.json")
 # detected and reported as NO VERDICT rather than absorbed. The cap is also
 # large enough that reaching it means something is malformed, not long.
 CAP = 2000
-_SECTION = r"\d+\.(?:[A-Z]|\d{1,2})"
+_SECTION = r"(?:[IVX]+\.)?\d+(?:\.(?:[A-Z]|\d{1,2})){1,2}"
 _CHAPTER = r"\d+"
 _DASH = r"\s*[–—-]\s*"
 # A Sources line names a RANGE of sections at least as often as a single one,
@@ -81,7 +81,10 @@ def tails(text, book_patterns=()):
         # old structural stops omitted this boundary, so an unpaged mention at
         # the end of one exercise absorbed page markers from the next source
         # note and inflated the independent denominator.
-        structural = re.search(r"(?:[§<]|\r?\n\s*\r?\n)", rest)
+        structural = re.search(
+            r"(?:[§<]|\b(?:ch\.|chapter)\s+\d+|\r?\n\s*\([a-z]\)\s+|"
+            r"\r?\n\s*\r?\n)",
+            rest, re.I)
         structural_end = structural.start() if structural else len(rest)
         # A semicolon followed by a newly named source starts a new attributed
         # clause. A bare semicolon is not enough: source notes legitimately use
@@ -120,13 +123,66 @@ def pages_in(tail):
 _HEAD = r"^#{1,6}\s*\**\s*(\d+\.%s)\**\s+(.{2,60})"
 LETTERED = re.compile(_HEAD % "[A-F]", re.M)
 NUMBERED = re.compile(_HEAD % r"\d{1,2}", re.M)
-# Which shape a book uses is read off the book, not configured. The numbered
-# pattern alone would be a disaster on Axler, whose RESULTS are headed "10.58
-# Definition"; run over Axler it invented sections 10.58 and 10.59 out of two
-# of them. So the lettered pattern is tried first over the whole book and
-# wins outright if it finds anything, because no book labels sections both
-# ways and no book numbers a result with a letter.
+# Refresh needs a safer numbered pattern than NUMBERED.  Axler headings such
+# as ``### 10.58 Definition`` are results, not sections; conversely Lindström
+# prints real section headings as ``## 3.1. Definitions and examples`` and
+# Hatcher exposes them in running heads as ``Section 1.1``.  Books can also use
+# numbered main sections and lettered appendices (Hatcher), so choosing one
+# shape for the whole book silently builds a partial index.
+_RESULT_KIND = (r"Definition|Theorem|Proposition|Lemma|Corollary|Example|"
+                r"Exercise|Remark|Notation")
+NUMBERED_SECTION = re.compile(
+    r"^#{1,6}\s*\**\s*(\d+\.\d{1,2})\.?\**\s+"
+    r"(?!\**\s*(?:%s)\b)\**\s*(.{2,60})" % _RESULT_KIND, re.M | re.I)
+HIERARCHICAL_SECTION = re.compile(
+    r"^#{1,6}\s*\**\s*(\d+\.\d{1,2}\.\d{1,2})\.?\**\s+"
+    r"(?!\**\s*(?:%s)\b)\**\s*(.{2,60})" % _RESULT_KIND, re.M | re.I)
+RUNNING_SECTION = re.compile(
+    r"^(?:#{1,6}\s*)?Section\s+(\d+\.\d{1,2})\.?\s*$", re.M | re.I)
+ROMAN_SECTION = re.compile(
+    r"^#{1,6}\s*\**\s*([IVX]+\.\d{1,2})\.?\**\s+(.{2,60})", re.M)
+BARE_SECTION = re.compile(
+    r"^#{1,6}\s*\**\s*§\s*(\d{1,3})\**\s+(.{2,60})", re.M)
+SECTION_HEADINGS = (LETTERED, HIERARCHICAL_SECTION, NUMBERED_SECTION, RUNNING_SECTION,
+                    ROMAN_SECTION, BARE_SECTION)
+# Heading shapes are properties of a source, not interchangeable guesses.
+# Applying every pattern to every book turns Axler's number-first theorem
+# headings (``### 1.3 Description ...``) into sections, and lets an isolated
+# three-part heading inside Aluffi overwrite the surrounding Roman chapter
+# context.  Keep each generated index on the grammar the book actually uses.
+BOOK_SECTION_HEADINGS = {
+    "Axler": (LETTERED,),
+    "Edelsbrunner": (ROMAN_SECTION,),
+    "Munkres": (BARE_SECTION,),
+    # Hatcher's main numbered section title is on the opening folio; its
+    # running head first appears on the following page.  Prefer the title so
+    # boundary citations to pp. 40, 56, 102, ... are not shifted by one.
+    "Hatcher": (LETTERED, NUMBERED_SECTION, RUNNING_SECTION),
+    "Aluffi Chapter 0": (ROMAN_SECTION, NUMBERED_SECTION),
+    # Underground prints results as bold prose, while a real section can be
+    # titled "3.1 Definition and Examples".  The generic result-word guard
+    # would reject that boundary and let §2.5 run six pages too far.
+    "Aluffi Underground": (NUMBERED,),
+}
 HEADING = LETTERED   # the default, and what the selftest's fixtures use
+ROMAN_CHAPTER = re.compile(r"^---Chapter\s+([IVX]+)\s*$", re.M)
+# Two chapter divider markers were lost in the Chapter 0 markdown extraction.
+# Their title pages survived, so recover the same context from those exact
+# book-level headings rather than allowing sections from V and VI to inherit IV.
+ALUFFI_CHAPTER_TITLE = re.compile(
+    r"^# (Irreducibility and factorization in integral domains|Linear algebra)$",
+    re.M)
+ALUFFI_TITLE_CHAPTER = {
+    "Irreducibility and factorization in integral domains": "V",
+    "Linear algebra": "VI",
+}
+ALUFFI_LOCAL_SECTION = re.compile(
+    r"^#{2,4}\s+(\d{1,2})\.\s+(.{2,60})", re.M)
+ALUFFI_SUBSECTION = re.compile(
+    r"^\*\*(\d+\.\d{1,2})\.\s+"
+    r"(?!(?:%s)\b)(.{2,60})" % _RESULT_KIND, re.M | re.I)
+PLAIN_SUBSECTION = re.compile(
+    r"^(\d+\.\d{1,2})\.\s+(.{2,60})", re.M)
 # A chapter opening: "CHAPTER" alone above its number (Axler), or a markdown
 # heading carrying the word and the number (Abbott's "# Chapter 1"). The page
 # belongs to no section, and neither does anything after it until that
@@ -299,6 +355,10 @@ def admissible(page, rows, shared=()):
         return [here]
     if any(start == page and label is None for start, label in rows):
         return [here]
+    same_page = [label for start, label in rows
+                 if start == page and label not in (None, here)]
+    if same_page:
+        return [here] + same_page
     before = None
     for start, label in rows:
         if start >= page:
@@ -319,10 +379,30 @@ def span(label, rows):
     naming an end the book does not have is left as-is, to fail loudly rather
     than resolve to something plausible.
     """
-    parts = re.split(r"\s*[–—-]\s*", label)
-    if len(parts) != 2:
-        return [label]
     order = [lab for _p, lab in rows if lab is not None]
+
+    def resolve(part):
+        if part in order:
+            return part
+        # Chapter 0 citations often use the book's documented local form
+        # (§5.3 while already discussing Chapter I) rather than §I.5.3.
+        # Resolve that shorthand only when its suffix identifies one committed
+        # section uniquely; ambiguity remains a loud failure.
+        matches = [lab for lab in order if lab.endswith("." + part)]
+        return matches[0] if len(matches) == 1 else part
+
+    raw_parts = re.split(r"\s*[–—-]\s*", label)
+    # Chapter-qualified ranges commonly abbreviate the far endpoint:
+    # ``§VIII.1.1–1.3`` means VIII.1.1 through VIII.1.3.  Resolve that
+    # written shorthand before the ordinary local-suffix rule.
+    if len(raw_parts) == 2 and raw_parts[0] in order and raw_parts[1] not in order:
+        prefix = raw_parts[0].split(".", 1)[0] + "."
+        inherited = prefix + raw_parts[1]
+        if inherited in order:
+            raw_parts[1] = inherited
+    parts = [resolve(part) for part in raw_parts]
+    if len(parts) != 2:
+        return parts
     if parts[0] not in order or parts[1] not in order:
         return [label]
     i, j = order.index(parts[0]), order.index(parts[1])
@@ -333,12 +413,28 @@ def check_text(text, rows, shared=()):
     """[(label, page, actual)] for every citation whose label is wrong."""
     wrong = []
     for label, tail, _cut in tails(text):
-        if "." not in label:          # a bare chapter number, e.g. "§4"
+        # A bare number is normally a chapter reference and is not judged.
+        # Some books (notably Munkres) explicitly number their *sections* as
+        # bare §N labels.  Judge it only when the committed index proves that
+        # this source uses that exact section-label shape.
+        if "." not in label and label not in {lab for _p, lab in rows}:
             continue
         named = span(label, rows)
         for page in pages_in(tail):
             ok = admissible(page, rows, shared)
-            if not set(named) & set(ok):
+            # Chapter-qualified books permit a local citation form while the
+            # surrounding chapter is clear (Aluffi writes §3.2 for §I.3.2).
+            # The cited page supplies that context.  Accept a suffix only at
+            # the comparison point; globally resolving §3.2 would be
+            # ambiguous across the book's nine chapters.
+            matched = set(named) & set(ok)
+            if not matched:
+                matched = any(actual and any(
+                    (actual.endswith("." + candidate)
+                     or actual.startswith(candidate + "."))
+                    for candidate in named)
+                              for actual in ok)
+            if not matched:
                 wrong.append((label, page, ok[0]))
     return wrong
 
@@ -427,25 +523,55 @@ def refresh(book, out=INDEX):
                 return n + off
         return None
 
-    lettered = sum(len(LETTERED.findall(page_text(d, n) or ""))
-                   for n in all_pages(d))
-    heading = LETTERED if lettered else NUMBERED
-
     found = {}
     gaps = []
     shared = set()
+    roman_chapter = None
+    oudout_chapter = None
     for n in all_pages(d):
         p = printed(n)
         if p is None:
             continue
         text = page_text(d, n) or ""
-        for m in heading.finditer(text):
+        chapter_marks = list(ROMAN_CHAPTER.finditer(text))
+        if chapter_marks:
+            roman_chapter = chapter_marks[-1].group(1)
+        if book == "Aluffi Chapter 0":
+            title_marks = list(ALUFFI_CHAPTER_TITLE.finditer(text))
+            if title_marks:
+                roman_chapter = ALUFFI_TITLE_CHAPTER[title_marks[-1].group(1)]
+        first = next((ln.strip() for ln in text.splitlines() if ln.strip()), "")
+        chapter_open = CHAPTER_OPEN.match(first)
+        if chapter_open:
+            gaps.append(p)
+            if book == "Oudot":
+                number = re.search(r"\d+", first)
+                if number:
+                    oudout_chapter = number.group(0)
+                else:
+                    oudout_chapter = str(int(oudout_chapter or "0") + 1)
+        patterns = BOOK_SECTION_HEADINGS.get(book, SECTION_HEADINGS)
+        if book in ("Aluffi Chapter 0", "Oudot"):
+            patterns += (ALUFFI_LOCAL_SECTION, ALUFFI_SUBSECTION)
+        if book == "Oudot":
+            patterns += (PLAIN_SUBSECTION,)
+        matches = sorted((m for pattern in patterns
+                          for m in pattern.finditer(text)),
+                         key=lambda m: m.start())
+        for m in matches:
+            label = m.group(1)
+            if (book == "Aluffi Chapter 0" and roman_chapter
+                    and re.fullmatch(r"\d+(?:\.\d{1,2})?", label)):
+                label = roman_chapter + "." + label
+            if (book == "Oudot" and oudout_chapter
+                    and re.fullmatch(r"\d+(?:\.\d{1,2})?", label)):
+                label = oudout_chapter + "." + label
             # A section starts once. A later page mentioning the label in a
             # running head or a table of contents must not move the boundary,
             # so the FIRST page carrying the heading wins.
-            if m.group(1) in found:
+            if label in found:
                 continue
-            found[m.group(1)] = p
+            found[label] = p
             # Does the previous section still occupy the top of this page?
             # Drop bare folios and running heads before deciding: they are
             # short and they are on every page.
@@ -460,9 +586,6 @@ def refresh(book, out=INDEX):
         # section, and neither does anything after it until the chapter's
         # first section heading — which for an unsectioned chapter (Axler's
         # chapter 4) is the whole chapter.
-        first = next((ln.strip() for ln in text.splitlines() if ln.strip()), "")
-        if CHAPTER_OPEN.match(first):
-            gaps.append(p)
     # A gap page is never a shared page. The two rows say opposite things —
     # "nothing from before is in force here" against "the previous section
     # runs on into this page" — and the gap is the one read off the book's
@@ -472,8 +595,8 @@ def refresh(book, out=INDEX):
     # previous section. Abbott's printed 213 was recorded as both.
     shared -= set(gaps)
     if not found:
-        raise NoVerdict("no section headings found for %r — neither the "
-                        "lettered nor the numbered shape matched anything, so "
+        raise NoVerdict("no section headings found for %r — none of the "
+                        "supported section-heading shapes matched, so "
                         "this book labels its sections some third way" % book)
 
     data = {}
@@ -762,7 +885,7 @@ def main(argv=None):
         print("NO VERDICT: %s" % exc, file=sys.stderr)
         return 2
     total = bad = 0
-    parsed_citations = checked_citations = 0
+    parsed_citations = checked_citations = checked_bare_sections = 0
     unindexed = {}
     unattributed = 0
     for path in args.paths:
@@ -793,24 +916,43 @@ def main(argv=None):
         # (CodeRabbit review of PR #25.)
         checked_here = False
         current = _primary(path)
+        segments = []
+        cursor = 0
         for part, named in split_at_books(text, names, titles):
             if named is not None:
                 current = named
-            if current is None or current not in index:
-                n = len([1 for lab, tail, _c in tails(part)
-                         if "." in lab and pages_in(tail)])
-                if n:
-                    if current is None:
-                        unattributed += n
-                    else:
-                        unindexed[current] = unindexed.get(current, 0) + n
+            segments.append((cursor, cursor + len(part), current))
+            cursor += len(part)
+
+        parsed = tails(text, book_patterns)
+        matches = list(CITE.finditer(text))
+        seg_i = 0
+        for match, (label, tail, _cut) in zip(matches, parsed):
+            pages = pages_in(tail)
+            if not pages:
                 continue
-            n = len([1 for lab, tail, _c in tails(part)
-                     if "." in lab and pages_in(tail)])
-            checked_citations += n
-            checked_here = checked_here or bool(n)
+            while (seg_i + 1 < len(segments)
+                   and match.start() >= segments[seg_i][1]):
+                seg_i += 1
+            current = segments[seg_i][2] if segments else _primary(path)
+            dotted = "." in label
+            if current is None or current not in index:
+                if dotted:
+                    if current is None:
+                        unattributed += 1
+                    else:
+                        unindexed[current] = unindexed.get(current, 0) + 1
+                continue
             rows, shared = index[current]
-            for label, page, actual in check_text(part, rows, shared):
+            bare_section = (not dotted
+                            and label in {row_label for _p, row_label in rows})
+            if not dotted and not bare_section:
+                continue
+            checked_citations += int(dotted)
+            checked_bare_sections += int(bare_section)
+            checked_here = True
+            citation = "§" + label + tail
+            for _label, page, actual in check_text(citation, rows, shared):
                 bad += 1
                 print("FAIL %s: cited §%s of %s, but printed p. %d is in %s"
                       % (path, label, current, page,
@@ -846,9 +988,9 @@ def main(argv=None):
         print("NOTE %d citation(s) name no book at all and were not checked"
               % unattributed)
     print("%s %d file(s) checked, %d citation(s) checked, %d unchecked, "
-          "%d wrong label(s)"
+          "%d bare-section citation(s) checked, %d wrong label(s)"
           % ("FAIL" if bad else "PASS", total, checked_citations,
-             unchecked_citations, bad))
+             unchecked_citations, checked_bare_sections, bad))
     return 1 if bad else 0
 
 

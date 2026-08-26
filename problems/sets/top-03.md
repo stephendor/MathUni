@@ -373,7 +373,7 @@ under a different heading.
 
 *(Munkres §17, p. 100 for Theorem 17.11 and the note that its proof is left to
 the exercises; p. 95 for interior, closure and the remark about the interior;
-p. 102, Exercise 19, for the definition of the boundary and for parts (a) and
+§18, p. 102, Exercise 19, for the definition of the boundary and for parts (a) and
 (b). The order topology and its three basis types are §14, p. 84.)*
 
 <details><summary>Nudge</summary>

@@ -2,7 +2,7 @@
 
 **Module:** Topology · **Unit:** top-09
 **Sources:** Munkres, *Topology*, 2nd ed. — §28 "Limit Point Compactness"
-(pp. 178–181) and §29 "Local Compactness" (pp. 182–189). Numbered results used:
+(pp. 178–181) and §29 "Local Compactness" (pp. 182–188). Numbered results used:
 Theorem 28.1, Theorem 28.2, Theorem 29.1, Theorem 29.2, Corollary 29.3,
 Corollary 29.4.
 
@@ -38,8 +38,8 @@ order, and say which of the three speaks about *subsets*, which about
 *sequences*, and which about *covers*. This is bookkeeping, and it is the reason
 the three are not obviously comparable.
 
-*(Munkres §28, p. 178 for limit point compactness, Theorem 28.1 and Examples 1
-and 2; p. 179 for subsequences and sequential compactness.)*
+*(Munkres §28, p. 179 for limit point compactness, Theorem 28.1, Examples 1
+and 2, and subsequences and sequential compactness.)*
 
 <details><summary>Nudge</summary>
 In (b), take any subset containing $\{n\} \times \{y\}$ — what are the open sets

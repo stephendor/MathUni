@@ -70,16 +70,24 @@ async function run(){
     await new Promise((ok,bad)=>{f.onload=ok;f.onerror=bad});
     await new Promise(ok=>setTimeout(ok,80));
     const doc=f.contentDocument;
+    const runtimeErrors=[];
+    const recordError=e=>runtimeErrors.push(String(e.reason||e.error||e.message||e));
+    f.contentWindow.addEventListener('error',recordError);
+    f.contentWindow.addEventListener('unhandledrejection',recordError);
     const canvases=[...doc.querySelectorAll('canvas')].filter(c=>
       c.getAttribute('aria-hidden')!=='true');
-    for(const c of canvases) out.push({url,id:c.id,visible:visible(c),...pixels(c)});
+    function snapshot(state){
+      for(const c of canvases) out.push({url,id:c.id,state,...pixels(c),visible:visible(c)});
+      while(runtimeErrors.length)out.push({url,id:'',state,runtimeError:runtimeErrors.shift()});
+    }
+    snapshot(undefined);
     let interaction=0;
     for(const b of doc.querySelectorAll('button[onclick]')){
       if(/^check\s*\(/.test(b.getAttribute('onclick'))) continue;
-      try{b.click()}catch(e){}
+      try{b.click()}catch(e){runtimeErrors.push(String(e))}
       interaction++;
       await new Promise(ok=>setTimeout(ok,40));
-      for(const c of canvases) out.push({url,id:c.id,state:'after-click-'+interaction,visible:visible(c),...pixels(c)});
+      snapshot('after-click-'+interaction);
     }
     for(const control of doc.querySelectorAll('input[type=range]')){
       for(const value of [control.min,control.max]){
@@ -89,18 +97,19 @@ async function run(){
         control.dispatchEvent(new Event('change',{bubbles:true}));
         interaction++;
         await new Promise(ok=>setTimeout(ok,40));
-        for(const c of canvases) out.push({url,id:c.id,state:'after-range-'+interaction,visible:visible(c),...pixels(c)});
+        snapshot('after-range-'+interaction);
       }
     }
     for(const target of canvases){
       const r=target.getBoundingClientRect();
       for(const point of [[.08,.5,'left'],[.5,.5,'centre'],[.92,.5,'right']]){
-        target.dispatchEvent(new MouseEvent('click',{bubbles:true,
-          clientX:r.left+r.width*point[0],clientY:r.top+r.height*point[1]}));
+        try{target.dispatchEvent(new MouseEvent('click',{bubbles:true,
+          clientX:r.left+r.width*point[0],clientY:r.top+r.height*point[1]}))}
+        catch(e){runtimeErrors.push(String(e))}
         interaction++;
         const settle=point[2]==='left'?Number(target.dataset.renderSettleMs||80):80;
         await new Promise(ok=>setTimeout(ok,settle));
-        for(const c of canvases) out.push({url,id:c.id,state:'after-canvas-'+point[2],visible:visible(c),...pixels(c)});
+        snapshot('after-canvas-'+point[2]);
       }
     }
     f.remove();
@@ -164,7 +173,9 @@ def render_errors(paths, browser=None, exceptions_path=EXCEPTIONS):
                                if item.get("state") else exception_key)
         label = "%s#%s%s" % (item["url"], item.get("id", ""),
                               " " + item["state"] if item.get("state") else "")
-        if not item["visible"]:
+        if item.get("runtimeError"):
+            errors.append(label + " raised runtime error: " + item["runtimeError"])
+        elif not item["visible"]:
             errors.append(label + " is not visible")
         elif not item["painted"]:
             errors.append(label + " is blank")

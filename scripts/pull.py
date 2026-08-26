@@ -99,7 +99,13 @@ def extract_integrity_errors(text):
                               % (name, matches[0].group(1), first,
                                  region_number))
             values = [_marker_value(name, match.group(1)) for match in matches]
-            for left, right in zip(values, values[1:]):
+            for index, (left, right) in enumerate(zip(values, values[1:])):
+                between = region[matches[index].end():matches[index + 1].start()]
+                paragraphs = [part for part in re.split(r"\n\s*\n", between)
+                              if part.strip()]
+                restarted = right == 1 and len(paragraphs) >= 2
+                if restarted:
+                    continue
                 if right != left + 1:
                     errors.append("%s list jumps from %s to %s (region %d)" % (
                         name, left, right, region_number))

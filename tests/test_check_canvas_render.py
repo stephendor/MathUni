@@ -60,6 +60,14 @@ def test_each_interactive_canvas_state_is_checked(tmp_path):
                for error in render_errors([path]))
 
 
+def test_interaction_runtime_error_is_reported_even_when_canvas_stays_valid(tmp_path):
+    path = lesson(tmp_path, """
+<button onclick="throw new Error('broken control')">break</button>
+<script>c.getContext('2d').fillRect(10,10,20,20)</script>""")
+    assert any("after-click" in error and "broken control" in error
+               for error in render_errors([path]))
+
+
 def test_range_input_states_are_checked(tmp_path):
     path = lesson(tmp_path, """
 <input id="r" type="range" min="0" max="1" value="0">

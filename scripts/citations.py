@@ -143,7 +143,18 @@ SPAN_PATTERNS = (
     re.compile(r'<span class="cite">(.*?)</span>', re.S),
     re.compile(r'<p class="cite">(.*?)</p>', re.S),
     re.compile(r"^\*\*Sources:\*\*(.*?)(?=\n\n)", re.S | re.M),
-    re.compile(r"^<footer>(.*?)</footer>", re.S | re.M),
+    # A lesson footer can contain two different records: first the source
+    # citations, then an audit headed "Not established", "Stated but not
+    # proved", "Sharpened" or "Deferred". The audit deliberately names
+    # results that the unit does NOT source or prove. Treating the entire
+    # footer as one citation span attached those names to every earlier folio
+    # and even carried a book named in the audit into later clauses. Keep all
+    # source paragraphs (some lessons use one paragraph per book), but stop at
+    # the first audit heading.
+    re.compile(
+        r"^<footer>(.*?)(?=<(?:strong|em)\s*>(?:Not established|Stated|"
+        r"Sharpened|Deferred|Correction|Modality)\b|</footer>)",
+        re.S | re.M | re.I),
     # `[^)]` stopped the parenthetical span at the FIRST close paren, so a
     # citation naming an exercise part — "Exercise 8.28(d), p. 280" — was cut
     # off before its page reference and the whole span went unrecognised. Not
@@ -167,6 +178,21 @@ SPAN_PATTERNS = (
                r"(?:\bpp?\.|\bprinted)\s*\d+(?:[^()]|\([^()]*\))*?\))", re.S),
 )
 
+FOOTER_BLOCK = re.compile(r"<footer\b[^>]*>.*?</footer>", re.S | re.I)
+AUDIT_HEADING = re.compile(
+    r"<(?:strong|em)\s*>(?:Not established|Stated|Sharpened|Deferred|"
+    r"Correction|Modality)\b", re.I)
+
+
+def audit_footer_ranges(text):
+    """Audit suffix ranges, but only when the heading is inside a footer."""
+    out = []
+    for footer in FOOTER_BLOCK.finditer(text):
+        heading = AUDIT_HEADING.search(footer.group(0))
+        if heading:
+            out.append((footer.start() + heading.start(), footer.end()))
+    return out
+
 
 class Unreadable(Exception):
     """An input this gate was asked to read could not be read. Verdict 2."""
@@ -180,14 +206,63 @@ def rendered_text(text):
     text = re.sub(r"<!--[\s\S]*?-->", " ", text)
     text = re.sub(r"<(script|style)\b[^>]*>[\s\S]*?</\1>", " ", text,
                   flags=re.I)
+    # Block boundaries carry assertion semantics.  Flattening adjacent quiz
+    # buttons, paragraphs and divisions to spaces merged mutually exclusive
+    # answers into one impossible result/page binding.  Preserve those
+    # boundaries as blank lines before removing the remaining markup.
+    text = re.sub(r"</(?:button|p|div|li|tr|details|summary|h[1-6])\s*>",
+                  "\n\n", text, flags=re.I)
+    text = re.sub(r"<br\s*/?>", "\n\n", text, flags=re.I)
     return strip_tags(text)
+
+
+def without_citation_spans(text):
+    """Blank recognised citation spans while preserving line positions."""
+    ranges = sorted((m.start(), m.end()) for pattern in SPAN_PATTERNS
+                    for m in pattern.finditer(text))
+    if not ranges:
+        return text
+    merged = []
+    for start, end in ranges:
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    chars = list(text)
+    for start, end in merged:
+        for index in range(start, end):
+            if chars[index] not in "\r\n":
+                chars[index] = " "
+    return "".join(chars)
+
+
+def without_audit_footer(text):
+    """Blank lesson-footer audit prose while preserving line positions."""
+    chars = list(text)
+    for start, end in audit_footer_ranges(text):
+        for index in range(start, end):
+            if chars[index] not in "\r\n":
+                chars[index] = " "
+    return "".join(chars)
 
 
 def spans(text):
     """Citation spans, as (span_text, line_number)."""
-    out, seen = [], set()
+    out, seen, covered = [], set(), []
+    excluded = audit_footer_ranges(text)
     for pat in SPAN_PATTERNS:
         for m in pat.finditer(text):
+            if any(m.start() >= start and m.end() <= end
+                   for start, end in excluded):
+                continue
+            # Patterns are ordered from explicit/outer markup to generic
+            # parentheticals.  Do not re-check a parenthetical already inside
+            # a Sources block, cite paragraph, or emphasized citation: the
+            # inner fragment has lost the outer book attribution and can turn
+            # one correct citation into a second false failure.
+            if any(m.start() >= start and m.end() <= end
+                   for start, end in covered):
+                continue
             body = strip_tags(m.group(1))
             line = text[:m.start()].count("\n") + 1
             # The markdown and plain parenthetical patterns overlap on the
@@ -198,6 +273,7 @@ def spans(text):
             if key in seen:
                 continue
             seen.add(key)
+            covered.append((m.start(), m.end()))
             out.append((body, line))
     return out
 
@@ -318,15 +394,20 @@ def clauses(span):
     exactly that said ok. A check whose target grows with the number of things
     being checked is nearly unfalsifiable where citations are densest.
 
-    A clause carrying no page reference of its own falls back to the span's
-    pages, so `(Cummings §4.3, Theorem 4.8, pp. 125-127)` stays one assertion
-    however it is punctuated.
+    A clause carrying no page reference of its own may fall back to the span's
+    pages only when the whole span has one result and one page phrase.  That
+    keeps `Theorem 7.6; proved there, pp. 225-226` checkable without attaching
+    every page in a long Sources footer to its final page-less `Deferred`
+    clause.
     """
     whole = printed_pages_in(span)
     parts = [c for c in _split_assertions(span) if c.strip()]
     if len(parts) < 2:
         return [(span, whole)]
-    return [(c, printed_pages_in(c) or whole) for c in parts]
+    unique_fallback = (len(results_in(span)) == 1
+                       and len(list(PAGES.finditer(span))) == 1)
+    return [(c, printed_pages_in(c) or (whole if unique_fallback else set()))
+            for c in parts]
 
 
 # Abbreviations whose full stop is not a sentence end. `p.` and `pp.` are the
@@ -334,7 +415,7 @@ def clauses(span):
 # the rule does not have to be rediscovered per book.
 _ABBREV = {"p", "pp", "ch", "chap", "ed", "eds", "vol", "no", "nos", "cf",
            "eq", "eqn", "fig", "sec", "art", "trans", "repr", "i.e", "e.g"}
-_SENTENCE = re.compile(r"(?<=[a-z0-9)\]’\"])\.\s+(?=[A-Z§])")
+_SENTENCE = re.compile(r"(?<=[a-z0-9)\]’\"*$])\.\s+(?=[A-Z§])")
 
 
 def sentence_breaks(text):
@@ -366,12 +447,18 @@ def _split_assertions(span):
     letter or a closing bracket, and the word before the stop must not be a
     known abbreviation.
     """
-    out, start = [], 0
-    for m in sentence_breaks(span):
-        out.append(span[start:m.start()])
-        start = m.end()
-    out.append(span[start:])
-    return [c for part in out for c in part.split(";")]
+    paragraphs = re.split(
+        r"(?:\r?\n)\s*(?:\r?\n|---\s*(?:\r?\n|$))|(?=\([a-z]\)\s)",
+        span)
+    assertions = []
+    for paragraph in paragraphs:
+        out, start = [], 0
+        for m in sentence_breaks(paragraph):
+            out.append(paragraph[start:m.start()])
+            start = m.end()
+        out.append(paragraph[start:])
+        assertions.extend(c for part in out for c in part.split(";"))
+    return assertions
 
 
 def deaccent(text):
@@ -409,7 +496,10 @@ def name_pattern(name):
     appeared somewhere after it. The most-specific-match rule then attributed
     the Proofs citations to Real Analysis. (CodeRabbit review of PR #21.)
     """
-    gap = r"[\s,:;*_\-–—'\"()]*"
+    # Raw HTML source notes commonly wrap the title in <em>...</em>.  Tags are
+    # display markup, not words between the author and title, so allow them in
+    # the same punctuation gap while still requiring consecutive vocabulary.
+    gap = r"(?:[\s,:;*_\-–—'\"()]|<[^>]*>)*"
     return re.compile(
         r"\b" + gap.join(re.escape(w) for w in deaccent(name).split()) + r"\b",
         re.I)
@@ -564,7 +654,7 @@ def book_label_for(num, raw):
     m = re.search(r"^#{1,6}\s*\**\s*%s\**\s+(.+)$" % re.escape(num), raw, re.M)
     if m:
         return re.sub(r"[*#$]", "", m.group(1)).strip()[:60]
-    m = re.search(r"^\*\*%s\**\s+(.+)$" % re.escape(num), raw, re.M)
+    m = re.search(r"^\*\*%s[.)]?\**\s+(.+)$" % re.escape(num), raw, re.M)
     if m:
         return re.sub(r"[*#$]", "", m.group(1)).strip()[:60]
     # A bare numbered item: the number at the start of a line, an optional
@@ -737,9 +827,10 @@ def pageless_results(text, primary, names, titles=None):
     compare.  They still need a name check, because silently dropping the
     incomplete pair is how a plausible but nonexistent result number survives.
     """
-    plain = rendered_text(text)
-    out, current, cursor = [], primary, 0
+    plain = rendered_text(without_audit_footer(text))
+    out, cursor = [], 0
     for assertion in _split_assertions(plain):
+        current = primary
         start = plain.find(assertion, cursor)
         if start < 0:
             start = cursor
@@ -756,16 +847,10 @@ def pageless_results(text, primary, names, titles=None):
 
 def unspanned_citations(text, attributed, primary, names, titles=None):
     """Page-bearing prose references not already captured as citation spans."""
-    covered = Counter()
-    covered_results = Counter()
-    for span, pages, _line, name in attributed:
-        for result in results_in(span):
-            covered[(result, tuple(sorted(pages)), name)] += 1
-            covered_results[result] += 1
-
-    plain = rendered_text(text)
-    out, current, cursor = [], primary, 0
+    plain = rendered_text(without_audit_footer(without_citation_spans(text)))
+    out, cursor = [], 0
     for assertion in _split_assertions(plain):
+        current = primary
         start = plain.find(assertion, cursor)
         if start < 0:
             start = cursor
@@ -781,13 +866,6 @@ def unspanned_citations(text, attributed, primary, names, titles=None):
         # More than one result or more than one page phrase needs explicit
         # citation markup: proximity alone cannot bind the pairs honestly.
             if len(results) != 1 or len(list(PAGES.finditer(part))) != 1:
-            # strip_tags can join adjacent explicit markdown spans into one
-            # assertion.  If every result occurrence is already owned by a
-            # recognised span, this is not unbound running prose.
-                if results and all(covered_results[result] for result in results):
-                    for result in results:
-                        covered_results[result] -= 1
-                    continue
                 if results:
                     line = plain[:start].count("\n") + 1
                     raise Unreadable(
@@ -796,12 +874,7 @@ def unspanned_citations(text, attributed, primary, names, titles=None):
                 continue
             line = plain[:start].count("\n") + 1
             for result in results:
-                key = (result, tuple(sorted(pages)), current)
-                if covered[key]:
-                    covered[key] -= 1
-                    covered_results[result] -= 1
-                else:
-                    out.append((result, pages, line, current))
+                out.append((result, pages, line, current))
     return out
 
 
@@ -976,6 +1049,32 @@ def book_for_unit(uid):
             if res.lower().startswith(name.lower()):
                 return name
     return None
+
+
+def inferred_citation_book(text, names, titles=None):
+    """First book actually named by a page-bearing citation span."""
+    titles = titles or {}
+    for body, _line in spans(text):
+        if not (results_in(body) and printed_pages_in(body)):
+            continue
+        for _part, named in split_at_books(body, names, titles):
+            if named is not None:
+                return named
+    plain = rendered_text(without_audit_footer(text))
+    for assertion in _split_assertions(plain):
+        if not (results_in(assertion) and printed_pages_in(assertion)):
+            continue
+        for _part, named in split_at_books(assertion, names, titles):
+            if named is not None:
+                return named
+    return None
+
+
+def has_page_result_claim(text):
+    """Whether rendered, non-audit prose makes any result-plus-page claim."""
+    plain = rendered_text(without_audit_footer(text))
+    return any(results_in(assertion) and printed_pages_in(assertion)
+               for assertion in _split_assertions(plain))
 
 
 ALUFFI = ["Aluffi Chapter 0", "Aluffi Underground", "Spivak"]
@@ -1348,6 +1447,23 @@ def main(argv=None):
             print("ERROR could not read %s" % e)
             return None
         if name is None:
+            # Capstones and implementation labs intentionally have no primary
+            # textbook in the syllabus, but many of them still carry explicit
+            # citations to several books.  Refusing the whole file loses those
+            # checkable claims.  Use the first book the file itself names as
+            # the default for any immediately following shorthand; normal
+            # left-to-right attribution still switches at every later name.
+            try:
+                with open(path, encoding="utf-8") as f:
+                    raw = f.read()
+            except OSError as e:
+                print("=== %s" % path)
+                print("ERROR could not read %s: %s" % (path, e))
+                return None
+            name = inferred_citation_book(raw, all_names, titles)
+            if name is None and not has_page_result_claim(raw):
+                return ""
+        if name is None:
             print("=== %s" % path)
             print("ERROR could not tell which book to check %s against; "
                   "pass --book" % path)
@@ -1367,6 +1483,10 @@ def main(argv=None):
         primary = book_name if a.book else per_path_book(p)
         if primary is None:
             blocked = True
+            continue
+        if primary == "":
+            print("=== %s  (no page-bearing textbook citation claims)" % p)
+            print("PASS 0 citation(s) checked, 0 wrong")
             continue
         print("=== %s  (primary %s)" % (p, primary))
         try:

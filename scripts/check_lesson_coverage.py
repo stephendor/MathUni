@@ -9,6 +9,7 @@ as support from prose discussing the source or gate itself, and does not claim
 to establish mathematical use or truth.
 """
 import argparse
+from html.parser import HTMLParser
 import re
 import sys
 
@@ -82,13 +83,46 @@ def find_refs(problem_set_text):
     return sorted(refs)
 
 
+class VisibleText(HTMLParser):
+    """Collect learner-visible prose while excluding executable containers."""
+
+    def __init__(self):
+        super().__init__()
+        self.parts = []
+        self.hidden_depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() in {"script", "style"}:
+            self.hidden_depth += 1
+        elif not self.hidden_depth:
+            self.parts.append(" ")
+
+    def handle_endtag(self, tag):
+        if tag.lower() in {"script", "style"} and self.hidden_depth:
+            self.hidden_depth -= 1
+        elif not self.hidden_depth:
+            self.parts.append(" ")
+
+    def handle_data(self, data):
+        if not self.hidden_depth:
+            self.parts.append(data)
+
+
+def rendered_text(source):
+    parser = VisibleText()
+    parser.feed(source)
+    return "".join(parser.parts)
+
+
 def find_missing_refs(problem_set_text, lesson_html_text):
     refs = find_refs(problem_set_text)
     # A lesson may teach the same reference under a range/list citation rather
     # than the singular-and-separate form the check searches for; canonicalise
     # the lesson side the same way so a range-cited result reads as covered
     # rather than as a false miss.
-    lesson_expanded = lesson_html_text + " " + " ".join(_expand_range_refs(lesson_html_text))
+    visible_lesson = rendered_text(lesson_html_text)
+    lesson_expanded = visible_lesson + " " + " ".join(
+        _expand_range_refs(visible_lesson))
     missing = []
     for r in refs:
         # Match the lesson's own wrapping too: the keyword and number may be

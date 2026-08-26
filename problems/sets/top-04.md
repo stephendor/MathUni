@@ -185,8 +185,8 @@ property of a subset of $\mathbb{R}$ that is *not* topological, with two
 homeomorphic subsets disagreeing on it.
 
 *(Munkres §18, p. 105 for the definitions of homeomorphism, topological property
-and imbedding; p. 106 for Examples 4, 5 and the start of 6; p. 107 for the
-$S^1$ half of Example 6 and for Example 7; pp. 107–108 for Theorem 18.2.)*
+and imbedding; p. 106 for Examples 4, 5 and Example 6; p. 107 for the
+continuation of its $S^1$ example and for Example 7; pp. 107–108 for Theorem 18.2.)*
 
 <details><summary>Nudge</summary>
 For (d)'s non-topological property, "bounded" is a good candidate — Munkres's

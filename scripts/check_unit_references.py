@@ -37,8 +37,11 @@ def unit_refs(text, repo=REPO):
         # unit-shaped evidence in an explicit cross-reference context; this
         # avoids treating mathematical compounds such as "genus-11" as ids.
         context = text[max(0, match.start() - 24):match.start()]
-        if module in modules or re.search(
-                r"(?:see|unit|lesson|problem set|from)\s+$", context, re.I):
+        cross_reference = re.search(
+            r"(?:see|unit|lesson|problem set|from|deferred to|developed in|"
+            r"covered in|proved in|introduced in|reviewed in|builds on)\s+$",
+            context, re.I)
+        if module in modules or cross_reference:
             refs.add(uid)
     return sorted(refs)
 

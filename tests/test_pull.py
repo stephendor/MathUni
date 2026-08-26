@@ -63,6 +63,13 @@ def test_missing_marker_inside_a_list_is_rejected():
     assert any("roman list jumps from 1 to 3" in error for error in errors)
 
 
+def test_unheaded_list_may_restart_after_an_intervening_prose_paragraph():
+    text = ("1. first item\n2. second item\n\n"
+            "This paragraph introduces a separate exercise.\n\n"
+            "1. first new item\n2. second new item\n")
+    assert extract_integrity_errors(text) == []
+
+
 def test_each_heading_starts_a_fresh_list_region():
     text = "# First\n(i) one\n(ii) two\n# Second\n(ii) missing one\n"
     assert any("begins at ii" in error for error in extract_integrity_errors(text))

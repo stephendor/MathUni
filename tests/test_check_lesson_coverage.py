@@ -23,6 +23,15 @@ def test_propositions_and_examples_belong_to_coverage_population():
     assert find_missing_refs(problem_set, lesson) == ["Proposition 9.25"]
 
 
+def test_hidden_html_cannot_satisfy_visible_result_coverage():
+    problem = "Prove Proposition 1.2 and discuss Example 1.3."
+    lesson = ("<!-- Proposition 1.2 -->"
+              "<script>const note = 'Example 1.3';</script>"
+              "<style>.x::after{content:'Example 1.3'}</style>")
+    assert find_missing_refs(problem, lesson) == [
+        "Example 1.3", "Proposition 1.2"]
+
+
 def test_multiple_missing_refs_sorted():
     problem_set = "See Theorem 1.34, Theorem 1.29, Definition 1.20."
     lesson = "<p>No theorems mentioned here.</p>"

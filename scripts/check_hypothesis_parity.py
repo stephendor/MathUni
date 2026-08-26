@@ -45,17 +45,23 @@ class Blocks(HTMLParser):
     def __init__(self):
         super().__init__()
         self.parts = []
+        self.hidden_depth = 0
 
     def handle_starttag(self, tag, attrs):
-        if tag in self.BREAKS:
+        if tag.lower() in {"script", "style"}:
+            self.hidden_depth += 1
+        elif not self.hidden_depth and tag in self.BREAKS:
             self.parts.append("\n")
 
     def handle_endtag(self, tag):
-        if tag in self.BREAKS:
+        if tag.lower() in {"script", "style"} and self.hidden_depth:
+            self.hidden_depth -= 1
+        elif not self.hidden_depth and tag in self.BREAKS:
             self.parts.append("\n")
 
     def handle_data(self, data):
-        self.parts.append(data)
+        if not self.hidden_depth:
+            self.parts.append(data)
 
 
 def text_blocks(text, html=False):

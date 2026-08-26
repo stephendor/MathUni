@@ -20,7 +20,7 @@
 #
 # The 15 fall into two classes, and the class decides who repairs them.
 #
-# --- Class A: content divergence (1 remaining of 4) -------------------------------------
+# --- Class A: content divergence (resolved) -----------------------------------
 # The lesson asserts something the syllabus does not. aa-00's syllabus strip
 # calls the unit an optional on-ramp about abstracting structure; its lesson
 # claims groups measure symmetry as homology measures holes. These are two
@@ -29,8 +29,8 @@
 # never soften the quotation to make it true.
 #
 # aa-00, aa-01 and pw-03 were S1 units already slated for re-authoring (they
-# predate every S2 convention); they come off this list as those units are
-# repaired. tda2-02 is S4 and needs its own pass.
+# predate every S2 convention). tda2-02 was repaired in the corpus-wide
+# remediation pass on 2026-08-26.
 #
 # pw-03 STRUCK 2026-08-22 on the s1-pw branch: its lesson now quotes the
 # syllabus sentence exactly and carries the flourish in the paragraph below.
@@ -45,9 +45,10 @@
 # STALE before they were struck -- in the pytest suite rather than at the
 # command line, which is where the binding between this list and reality
 # actually lives.
-tda2-02
+# tda2-02 STRUCK 2026-08-26: its divergent paraphrase was replaced with the
+# exact syllabus mission during the exception-free corpus validation pass.
 #
-# --- Class B: typography reverted while quoting (11) ---------------------
+# --- Class B: typography reverted while quoting (resolved) ---------------
 # The lesson quotes the right sentence but re-renders the syllabus's ASCII
 # maths as Unicode while doing it: H^n -> Hn, H_{n-1} -> Hn−1, Z -> ℤ,
 # F_p -> 𝔽p, S^2 x S^1 -> S2 × S1, A_n -> An, Kunneth -> Künneth, and in
@@ -61,17 +62,6 @@ tda2-02
 # their strips (H_1, pi_1, F_2, H^0), quote it exactly, and pass. The authors
 # who reverted it are the deviation.
 #
-# All 11 are S3/S4 content. The repair is mechanical — replace the strip's text
-# with the syllabus's, character for character — but it is 11 lessons in two
-# semesters this branch is not otherwise touching, so it is its own PR.
-at2-01
-at2-02
-at2-03
-at2-04
-at2-05
-at2-06
-at2-07
-at2-08
-tda2-01
-tda2-03
-tda2-06
+# All 11 were STRUCK 2026-08-26 after their rendered typography was replaced
+# with the syllabus text character for character. The exception-free mission
+# run then checked all 145 governed lessons with zero drift.

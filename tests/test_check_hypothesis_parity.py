@@ -44,6 +44,15 @@ def test_negated_qualifier_cannot_satisfy_positive_hypothesis():
         ("Theorem 1.2", {"commutative"}, {"not commutative"})]
 
 
+def test_hidden_html_cannot_satisfy_a_hypothesis_contract():
+    problem = "Assume R is commutative and prove Corollary 9.11."
+    lesson = ("<p><strong>Corollary 9.11.</strong> The conclusion holds.</p>"
+              "<script>const note='Assume R is commutative. Corollary 9.11';</script>"
+              "<style>/* Assume R is commutative. Corollary 9.11 */</style>")
+    assert parity_errors(problem, lesson) == [
+        ("Corollary 9.11", {"commutative"}, set())]
+
+
 def test_unrelated_prose_does_not_supply_a_hypothesis():
     problem = "Finite examples are useful.\n\nProve Theorem 1.2."
     lesson = "<p><strong>Theorem 1.2.</strong> It works.</p>"

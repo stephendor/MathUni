@@ -346,7 +346,7 @@ do to a noisy circle, what does the resulting cover look like, and where do six
 loops come from?
 
 (b) Definition 9.6, printed 273, defines the pullback pseudometric
-d_f(x, x′) := inf over paths γ of diam_Z(f ∘ γ), and Theorem 9.16's cycle sizes
+d_f(x, x′) := inf over paths γ of diam_Z(f ∘ γ). Theorem 9.16, printed 274, has cycle sizes
 s(z) are measured in it. Use that to say why the choice of lens is not a cosmetic
 one — what does changing f change, in the theorem's own terms?
 

@@ -7,7 +7,10 @@ import json
 
 import pytest
 
-from scripts.check_sections import (CAP, LETTERED, NUMBERED, NoVerdict,
+from scripts.check_sections import (ALUFFI_LOCAL_SECTION, ALUFFI_SUBSECTION,
+                                    BARE_SECTION, CAP, LETTERED, NUMBERED,
+                                    HIERARCHICAL_SECTION, NUMBERED_SECTION, ROMAN_SECTION,
+                                    RUNNING_SECTION, NoVerdict,
                                     _primary, admissible, check_text,
                                     extend_first_plateau, load_index, main,
                                     main_text_plateaus, pages_in, section_of,
@@ -32,6 +35,74 @@ def test_the_defect_this_gate_was_built_for_fires():
 def test_the_repaired_citation_passes():
     cite = '<span class="cite">— Axler §3.B, Definition 3.12, p. 59</span>'
     assert check_text(cite, ROWS) == []
+
+
+def test_refresh_heading_shapes_cover_trailing_dots_and_running_heads():
+    assert NUMBERED_SECTION.search(
+        "## 3.1. Definitions and examples").group(1) == "3.1"
+    assert RUNNING_SECTION.search("Section 1.1").group(1) == "1.1"
+    assert ROMAN_SECTION.search("### III.1 Simplicial Complexes").group(1) == "III.1"
+    assert BARE_SECTION.search("## §46 Pointwise Convergence").group(1) == "46"
+    assert HIERARCHICAL_SECTION.search(
+        "### 11.1.1 Persistence modules").group(1) == "11.1.1"
+    assert ALUFFI_LOCAL_SECTION.search("## 5. Universal properties").group(1) == "5"
+    assert ALUFFI_SUBSECTION.search(
+        "**1.3. When are two categories equivalent?**").group(1) == "1.3"
+
+
+def test_refresh_safe_numbered_shape_rejects_result_headings():
+    assert NUMBERED.search("### 10.58 **Definition**").group(1) == "10.58"
+    assert NUMBERED_SECTION.search("### 10.58 **Definition**") is None
+    assert ROMAN_SECTION.search("### III.1.16 **Remark**") is None
+
+
+def test_a_bare_label_is_judged_when_the_book_indexes_bare_sections():
+    rows = [(1, "45"), (10, "46")]
+    assert check_text("Munkres §45, p. 10", rows) == [("45", 10, "46")]
+
+
+def test_a_unique_chapter_qualified_suffix_resolves_local_section_notation():
+    rows = [(1, "I.3.2"), (10, "VIII.1.3")]
+    assert check_text("Aluffi §3.2, p. 1", rows) == []
+    assert check_text("Aluffi §1.3, p. 10", rows) == []
+
+
+def test_chapter_qualified_range_inherits_abbreviated_far_endpoint():
+    rows = [(483, "VIII.1.1"), (485, "VIII.1.2"), (487, "VIII.1.3")]
+    assert check_text("Aluffi §VIII.1.1–1.3, pp. 484–487", rows) == []
+
+
+def test_a_new_chapter_reference_ends_the_previous_section_citation():
+    parsed = tails("Cummings §2.2, p. 41; ch. 6 opener, p. 198")
+    assert pages_in(parsed[0][1]) == [41]
+
+
+def test_hierarchical_and_roman_chapter_section_labels_are_parsed_whole():
+    assert [x[0] for x in tails("Oudot §2.1.1, p. 29")] == ["2.1.1"]
+    assert [x[0] for x in tails("Aluffi §VIII.1.3, p. 492")] == ["VIII.1.3"]
+
+
+def test_source_specific_heading_grammars_do_not_treat_axler_results_as_sections():
+    from scripts.check_sections import BOOK_SECTION_HEADINGS, HIERARCHICAL_SECTION
+
+    axler = "### 1.3 Description of vector spaces\n## 1.B Definition of vector space"
+    assert [m.group(1) for pattern in BOOK_SECTION_HEADINGS["Axler"]
+            for m in pattern.finditer(axler)] == ["1.B"]
+    assert HIERARCHICAL_SECTION.search("#### 3.3.2 Functors").group(1) == "3.3.2"
+
+
+def test_underground_accepts_a_section_title_beginning_with_definition():
+    from scripts.check_sections import BOOK_SECTION_HEADINGS
+
+    text = "## 3.1 Definition and Examples"
+    matches = [m.group(1) for pattern in BOOK_SECTION_HEADINGS["Aluffi Underground"]
+               for m in pattern.finditer(text)]
+    assert matches == ["3.1"]
+
+
+def test_a_parent_section_citation_covers_its_numbered_subsections():
+    rows = [(1, "4.3"), (2, "4.3.1"), (5, "4.3.2")]
+    assert check_text("Dey §4.3, p. 5", rows) == []
 
 
 # --- boundaries ------------------------------------------------------------
@@ -290,6 +361,11 @@ def test_unpaged_section_does_not_absorb_the_next_paragraph_pages():
     assert pages_in(tails(text)[0][1]) == []
 
 
+def test_section_tail_stops_at_the_next_lettered_problem_part():
+    text = "Use §14, p. 84.\n(d) Read Exercise 19 (p. 102)."
+    assert pages_in(tails(text)[0][1]) == [84]
+
+
 def test_terminal_section_label_does_not_absorb_the_next_sentence_pages():
     text = "Compare §3.7. Lindstrom restates it on printed 107."
     assert pages_in(tails(text)[0][1]) == []
@@ -338,13 +414,27 @@ def test_pageless_section_mention_is_not_in_the_checked_denominator(
 
 # --- one book per file was never true --------------------------------------
 
+def without_index(monkeypatch, book):
+    """Keep unindexed-source behavior tests independent of corpus growth."""
+    import scripts.check_sections as sections
+    real = sections.load_index
+
+    def load():
+        index = real()
+        index.pop(book, None)
+        return index
+
+    monkeypatch.setattr(sections, "load_index", load)
+
+
 def test_a_second_book_in_one_file_is_not_checked_against_the_first(
-        tmp_path, capsys):
+        tmp_path, monkeypatch, capsys):
     """pw-04 cites Abbott and Cummings in one Sources line. Attributing the
     whole file to the first indexed name it happened to contain reported all
     four Cummings citations as wrong labels in Abbott — the same mechanism
     citations.py's attribute() was written to remove. Cummings has no section
     index, so its citations are counted as unchecked and said out loud."""
+    without_index(monkeypatch, "Cummings Real Analysis")
     p = tmp_path / "unit.md"
     p.write_text(
         "Sources: Abbott, Understanding Analysis — §1.3, p. 16. "
@@ -356,10 +446,12 @@ def test_a_second_book_in_one_file_is_not_checked_against_the_first(
     assert "not checked" in out and "Cummings Real Analysis 1" in out
 
 
-def test_an_unindexed_book_is_counted_not_silently_dropped(tmp_path, capsys):
+def test_an_unindexed_book_is_counted_not_silently_dropped(
+        tmp_path, monkeypatch, capsys):
     """Silence is the failure mode this script exists to remove. A citation
     that was parsed and then not checked is neither a pass nor a failure, and
     the report gives its count."""
+    without_index(monkeypatch, "Lindstrom")
     p = tmp_path / "unit.md"
     p.write_text(
         "Sources: Abbott, Understanding Analysis — §1.3, p. 16. "
@@ -428,6 +520,11 @@ def test_a_genuinely_shared_page_still_admits_both():
     assert check_text("Abbott §1.4, Exercise 1.4.13, p. 29", rows, shared) == []
 
 
+def test_two_sections_starting_on_a_shared_page_are_both_admissible():
+    rows = [(31, "I.5.1"), (33, "I.5.2"), (33, "I.5.3")]
+    assert admissible(33, rows, {33}) == ["I.5.3", "I.5.2"]
+
+
 def test_the_committed_index_marks_no_page_both_gap_and_shared():
     """Belt and braces: `admissible` guards against a stale index, and refresh
     no longer produces one. If this fails, the index was regenerated by a
@@ -440,12 +537,13 @@ def test_the_committed_index_marks_no_page_both_gap_and_shared():
 # --- the unchecked count must not itself be short --------------------------
 
 def test_a_file_citing_only_an_unindexed_book_still_counts_its_citations(
-        tmp_path, capsys):
+        tmp_path, monkeypatch, capsys):
     """The skip used to happen before the split, so a file citing only an
     unindexed book was printed as SKIP and its citations vanished from the
     NOTE line -- which exists precisely to be the honest denominator for the
     PASS line above it. Corpus-wide it reported 195 when the true figure was
     1432 in 112 files. (CodeRabbit review of PR #25.)"""
+    without_index(monkeypatch, "Lindstrom")
     only = tmp_path / "only.md"
     only.write_text("Sources: Lindstrom, Spaces — §3.1, p. 43; §3.2, p. 48.",
                     encoding="utf-8")
@@ -459,13 +557,9 @@ def test_a_file_citing_only_an_unindexed_book_still_counts_its_citations(
     assert "1 citation(s) checked, 2 unchecked" in out
 
 
-def test_checked_and_unchecked_partition_the_independent_parse(
+def test_a_broken_attribution_splitter_cannot_drop_the_independent_parse(
         tmp_path, monkeypatch, capsys):
-    """If attribution drops a citation, the gate must lose its verdict.
-
-    This is the watched failure for checked + unchecked == parsed total. The
-    total is counted before the deliberately broken splitter can omit it.
-    """
+    """Parsed citations survive even if attribution returns no segments."""
     import scripts.check_sections as sections
 
     p = tmp_path / "unit.md"
@@ -475,7 +569,8 @@ def test_checked_and_unchecked_partition_the_independent_parse(
         lambda: (["Abbott"], {"Abbott": "Abbott"}, lambda *_args: []))
     assert sections.main([str(p)]) == 2
     out = capsys.readouterr()
-    assert "citation partition mismatch" in out.err
+    assert "citation partition mismatch" not in out.err
+    assert "no file named an indexed book" in out.err
 
 
 def test_a_citation_naming_no_book_is_counted_separately(tmp_path, capsys):
@@ -489,10 +584,11 @@ def test_a_citation_naming_no_book_is_counted_separately(tmp_path, capsys):
     assert "1 citation(s) name no book at all" in out
 
 
-def test_no_checkable_file_is_still_no_verdict(tmp_path, capsys):
+def test_no_checkable_file_is_still_no_verdict(tmp_path, monkeypatch, capsys):
     """Counting a file's citations must not make it look checked. Two files
     naming only an unindexed book are both SKIPped and the run has no verdict
     at all -- exit 2, never a PASS over an empty set."""
+    without_index(monkeypatch, "Hatcher")
     for name in ("a.md", "b.md"):
         (tmp_path / name).write_text(
             "Sources: Hatcher — §1.1, p. 30; §1.2, p. 40.", encoding="utf-8")

@@ -3,14 +3,14 @@
     {
       "claim": "Yoneda lemma",
       "source": "Aluffi Chapter 0",
-      "section": "VIII.1.3",
+      "section": "VIII.1.5",
       "page": 497,
       "modality": "sets-as-exercise"
     },
     {
       "claim": "Yoneda lemma for preorders",
       "source": "Spivak",
-      "section": "1.4",
+      "section": "1.2.3",
       "page": 20,
       "modality": "states"
     }
