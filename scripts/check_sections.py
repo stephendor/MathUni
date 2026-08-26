@@ -70,16 +70,32 @@ _DASH = r"\s*[–—-]\s*"
 # was, and the control had no way to fire. (Codex, PR #26.)
 CITE = re.compile(r"§(%s(?:%s%s)?|%s(?:%s%s)?)"
                   % (_SECTION, _DASH, _SECTION, _CHAPTER, _DASH, _CHAPTER))
-def tails(text):
+def tails(text, book_patterns=()):
     """(label, tail, truncated) for each §LABEL in `text`, in order."""
     # Sentence boundaries are a shared corpus-reading contract. Import the
     # citation gate's abbreviation-aware rule rather than re-deriving it here.
     out = []
     for m in CITE.finditer(text):
         rest = text[m.end():]
-        structural = re.search(r"[§<]", rest)
+        # A new paragraph cannot complete the preceding section citation. The
+        # old structural stops omitted this boundary, so an unpaged mention at
+        # the end of one exercise absorbed page markers from the next source
+        # note and inflated the independent denominator.
+        structural = re.search(r"(?:[§<]|\r?\n\s*\r?\n)", rest)
         structural_end = structural.start() if structural else len(rest)
-        end = min(structural_end, sentence_end(rest))
+        # A semicolon followed by a newly named source starts a new attributed
+        # clause. A bare semicolon is not enough: source notes legitimately use
+        # several semicolon-separated page markers for one section.
+        for pattern in book_patterns:
+            source_switch = re.search(r";\s*(?=%s)" % pattern.pattern, rest,
+                                      pattern.flags)
+            if source_switch:
+                structural_end = min(structural_end, source_switch.start())
+        # `sentence_end` deliberately protects decimal-looking abbreviations.
+        # Immediately after an already parsed §N.N label, however, a leading
+        # full stop is unambiguously the end of that sentence.
+        immediate_end = 0 if re.match(r"\s*[.!?]", rest) else len(rest)
+        end = min(structural_end, sentence_end(rest), immediate_end)
         truncated = end > CAP
         out.append((m.group(1), rest[:min(end, CAP)], truncated))
     return out
@@ -739,6 +755,9 @@ def main(argv=None):
     # reported as unchecked rather than measured against the wrong book.
     try:
         names, titles, split_at_books = _attribution()
+        from scripts.citations import name_patterns
+        book_patterns = [pattern for name in names
+                         for pattern in name_patterns(name, titles.get(name))]
     except NoVerdict as exc:
         print("NO VERDICT: %s" % exc, file=sys.stderr)
         return 2
@@ -762,7 +781,7 @@ def main(argv=None):
         # The denominator is derived before attribution can skip anything.
         # The checked and unchecked counters below must partition this raw
         # parse exactly; otherwise the gate has no verdict on its own coverage.
-        parsed_citations += len([1 for lab, tail, _c in tails(text)
+        parsed_citations += len([1 for lab, tail, _c in tails(text, book_patterns)
                                  if "." in lab and pages_in(tail)])
         # Split BEFORE deciding whether this file is worth looking at. The
         # skip used to come first, so a file citing only Lindstrom was printed

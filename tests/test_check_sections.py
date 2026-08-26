@@ -285,6 +285,24 @@ def test_a_numbered_section_label_is_parsed_whole():
     assert [lab for lab, _t, _c in tails("Abbott §1.4, p. 29")] == ["1.4"]
 
 
+def test_unpaged_section_does_not_absorb_the_next_paragraph_pages():
+    text = "Problem 2 to §3.5 asks for a proof.\n\n*(Lindstrom p. 63.)*"
+    assert pages_in(tails(text)[0][1]) == []
+
+
+def test_terminal_section_label_does_not_absorb_the_next_sentence_pages():
+    text = "Compare §3.7. Lindstrom restates it on printed 107."
+    assert pages_in(tails(text)[0][1]) == []
+
+
+def test_section_does_not_absorb_pages_after_a_named_source_switch():
+    import re
+
+    text = "See §4.8 (next unit); Abbott's Definition is on printed 224."
+    abbott = re.compile(r"\bAbbott\b", re.I)
+    assert pages_in(tails(text, [abbott])[0][1]) == []
+
+
 def test_a_wrong_numbered_label_fails():
     """The negative control for the line above: if this ever passes, the
     numbered half of the gate has gone quiet again."""
