@@ -314,3 +314,57 @@ def test_neither_page_route_requires_a_token():
     """Reading is not mutating; the token guards writes, not the front door."""
     for path in ("/", "/review"):
         assert get(path).status == 200
+
+# --- surviving pythonw, which hands the process no stdio at all -------------
+
+def test_request_logging_survives_stderr_being_none():
+    """The logon task runs serve.py under pythonw.exe, where sys.stderr is None.
+    BaseHTTPRequestHandler calls log_request on every send_response, so an
+    unguarded write raised inside the handler thread and the server answered
+    every request by closing the connection -- listening, and serving nothing.
+    """
+    import sys
+
+    from scripts.serve import Handler
+
+    class Bare(Handler):
+        def __init__(self):           # no socket, no request; only the logger
+            pass
+
+    real = sys.stderr
+    sys.stderr = None
+    try:
+        Bare().log_message("%s", "no console here")   # must not raise
+    finally:
+        sys.stderr = real
+
+
+def test_attach_stdio_is_a_noop_when_a_console_exists(tmp_path):
+    from scripts.serve import _attach_stdio
+
+    target = tmp_path / "server.log"
+    _attach_stdio(str(target))
+    assert not target.exists(), "must not create a log when stdio already works"
+
+
+def test_attach_stdio_gives_a_windowless_run_somewhere_to_write(tmp_path):
+    import sys
+
+    from scripts.serve import _attach_stdio
+
+    target = tmp_path / "nested" / "server.log"
+    real_out, real_err = sys.stdout, sys.stderr
+    sys.stdout = sys.stderr = None
+    try:
+        _attach_stdio(str(target))
+        assert sys.stdout is not None and sys.stderr is not None
+        sys.stdout.write("hello from pythonw")
+        sys.stdout.flush()
+    finally:
+        try:
+            if sys.stdout is not None:
+                sys.stdout.close()
+        except (OSError, ValueError):
+            pass
+        sys.stdout, sys.stderr = real_out, real_err
+    assert "hello from pythonw" in target.read_text(encoding="utf-8")

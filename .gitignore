@@ -16,3 +16,5 @@ state/today.json
 state/last-daily-run.json
 # Port, per-run token and pid of the local server.
 state/server.json
+# Written only when the server runs windowless (pythonw has no console).
+state/server.log

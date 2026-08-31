@@ -60,9 +60,48 @@ $ServerTask = 'NexusCollege Server'
 $OldTask    = 'NexusCollege Morning'
 $AumidKey   = "HKCU:\Software\Classes\AppUserModelId\$AppId"
 
-$python  = (Get-Command python).Source
-$pythonw = (Get-Command pythonw -ErrorAction SilentlyContinue)
-if ($pythonw) { $pythonw = $pythonw.Source } else { $pythonw = $python }
+# Choosing the interpreter by name is not safe here, and this was not
+# hypothetical: the first install of this task registered miniconda's
+# pythonw.exe, because the installer ran in a shell whose profile had put
+# conda ahead of the Python that actually has pyyaml. daily.py then died on
+# `import yaml` at module-import time -- before its own crash handler could
+# run, so it wrote no failure heartbeat -- and because notify.ps1 exits 0 by
+# design, the task reported Last Result: 0. A task that reports success while
+# doing nothing is the exact failure this loop was rebuilt to remove, so the
+# interpreter is now PROVEN before it is registered.
+function Resolve-Python {
+    param([string]$Root)
+    $seen = New-Object System.Collections.Generic.List[string]
+    foreach ($name in 'python', 'python3') {
+        Get-Command $name -All -ErrorAction SilentlyContinue |
+            ForEach-Object { if ($_.Source) { $seen.Add($_.Source) } }
+    }
+    # The py launcher knows about installs that are not on PATH at all.
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+        $viaPy = & py -c "import sys; print(sys.executable)" 2>$null
+        if ($LASTEXITCODE -eq 0 -and $viaPy) { $seen.Add($viaPy.Trim()) }
+    }
+    foreach ($cand in ($seen | Select-Object -Unique)) {
+        # Import the real entry point, not a proxy for it: this is the exact
+        # chain the scheduled task will execute.
+        & $cand -c "import sys; sys.path.insert(0, r'$Root'); import scripts.daily" 2>$null
+        if ($LASTEXITCODE -eq 0) { return $cand }
+        Write-Verbose "rejected (cannot import scripts.daily): $cand"
+    }
+    return $null
+}
+
+$python = Resolve-Python -Root $RepoRoot
+if (-not $python) {
+    Write-Error ("No Python on this machine can import scripts.daily. Tried every " +
+                 "python/python3 on PATH plus the py launcher. Install pyyaml " +
+                 "(pip install -r requirements-dev.txt) and re-run.")
+    exit 1
+}
+# pythonw from the SAME installation, never resolved separately by name.
+$pythonw = Join-Path (Split-Path -Parent $python) 'pythonw.exe'
+if (-not (Test-Path $pythonw)) { $pythonw = $python }
+Write-Output "interpreter: $pythonw"
 
 function Remove-TaskIfPresent($Name) {
     $exists = schtasks /Query /TN $Name 2>$null
@@ -87,6 +126,13 @@ if ($Uninstall) {
     } else {
         Write-Output "AUMID not present: $AppId"
     }
+    $lnk = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Nexus College.lnk'
+    if (Test-Path $lnk) {
+        if ($PSCmdlet.ShouldProcess($lnk, 'remove Start Menu shortcut')) {
+            Remove-Item $lnk -Force
+            Write-Output 'removed Start Menu shortcut'
+        }
+    }
     Write-Output 'uninstalled. scripts/daily.py still works when run by hand.'
     exit 0
 }
@@ -100,6 +146,126 @@ if ($PSCmdlet.ShouldProcess($AumidKey, 'register AppUserModelID for toasts')) {
         -PropertyType DWord -Force | Out-Null
     Write-Output "registered AUMID: $AppId"
 }
+
+# --- 1b. the Start Menu shortcut that makes the AUMID real ----------------
+# The registry key above is necessary but NOT sufficient, and this was measured
+# rather than assumed: with only the key, ToastNotifier.Show() returned without
+# error and produced zero notifications, while the identical toast under an
+# already-registered AUMID produced two. Windows will not surface a toast whose
+# AUMID has no Start Menu shortcut carrying it as a shell property, so setting
+# System.AppUserModel.ID on a .lnk is the step that turns the AUMID on.
+if (-not ('NexusToast.Aumid' -as [type])) {
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+
+namespace NexusToast {
+  [ComImport, Guid("00021401-0000-0000-C000-000000000046")]
+  public class ShellLink { }
+
+  [ComImport, Guid("0000010b-0000-0000-C000-000000000046"),
+   InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+  public interface IPersistFile {
+    void GetClassID(out Guid pClassID);
+    [PreserveSig] int IsDirty();
+    void Load([MarshalAs(UnmanagedType.LPWStr)] string pszFileName, int dwMode);
+    void Save([MarshalAs(UnmanagedType.LPWStr)] string pszFileName,
+              [MarshalAs(UnmanagedType.Bool)] bool fRemember);
+    void SaveCompleted([MarshalAs(UnmanagedType.LPWStr)] string pszFileName);
+    void GetCurFile([MarshalAs(UnmanagedType.LPWStr)] out string ppszFileName);
+  }
+
+  [StructLayout(LayoutKind.Sequential, Pack = 4)]
+  public struct PropertyKey {
+    public Guid fmtid;
+    public uint pid;
+    public PropertyKey(Guid g, uint p) { fmtid = g; pid = p; }
+  }
+
+  // Size=24 is load-bearing, not decoration. PROPVARIANT on x64 is vt plus
+  // three reserved WORDs (8 bytes) then a 16-byte union. Declared without an
+  // explicit size this struct marshals as 16 bytes, SetValue reads past the
+  // end of it, and the property is silently not written -- the shortcut saves
+  // fine, the call returns success, and the AUMID reads back VT_EMPTY. That
+  // was observed here before it was fixed.
+  [StructLayout(LayoutKind.Explicit, Size = 24)]
+  public struct PropVariant {
+    [FieldOffset(0)] public ushort vt;
+    [FieldOffset(8)] public IntPtr pointerValue;
+    public void SetString(string v) {
+      vt = 31; // VT_LPWSTR
+      pointerValue = Marshal.StringToCoTaskMemUni(v);
+    }
+    public void Clear() {
+      if (pointerValue != IntPtr.Zero) { Marshal.FreeCoTaskMem(pointerValue); }
+      pointerValue = IntPtr.Zero; vt = 0;
+    }
+  }
+
+  [ComImport, Guid("886d8eeb-8cf2-4446-8d02-cdba1dbdcf99"),
+   InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+  public interface IPropertyStore {
+    void GetCount(out uint cProps);
+    void GetAt(uint iProp, out PropertyKey pkey);
+    void GetValue(ref PropertyKey key, out PropVariant pv);
+    void SetValue(ref PropertyKey key, ref PropVariant pv);
+    void Commit();
+  }
+
+  public static class Aumid {
+    // PKEY_AppUserModel_ID
+    static readonly Guid AppUserModel =
+      new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3");
+    public static void Set(string lnkPath, string appId) {
+      IPersistFile link = (IPersistFile)new ShellLink();
+      link.Load(lnkPath, 2); // STGM_READWRITE
+      IPropertyStore store = (IPropertyStore)link;
+      PropertyKey key = new PropertyKey(AppUserModel, 5);
+      PropVariant pv = new PropVariant();
+      pv.SetString(appId);
+      store.SetValue(ref key, ref pv);
+      store.Commit();
+      pv.Clear();
+      link.Save(lnkPath, true);
+    }
+    public static string Get(string lnkPath) {
+      IPersistFile link = (IPersistFile)new ShellLink();
+      link.Load(lnkPath, 0);
+      IPropertyStore store = (IPropertyStore)link;
+      PropertyKey key = new PropertyKey(AppUserModel, 5);
+      PropVariant pv;
+      store.GetValue(ref key, out pv);
+      if (pv.vt == 31 && pv.pointerValue != IntPtr.Zero) {
+        return Marshal.PtrToStringUni(pv.pointerValue);
+      }
+      return "(not set, vt=" + pv.vt + ")";
+    }
+  }
+}
+'@
+}
+
+$startMenu = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs'
+$shortcut  = Join-Path $startMenu 'Nexus College.lnk'
+if ($PSCmdlet.ShouldProcess($shortcut, 'create Start Menu shortcut carrying the AUMID')) {
+    $wsh = New-Object -ComObject WScript.Shell
+    $lnk = $wsh.CreateShortcut($shortcut)
+    # Targets the static page, which always exists and always shows today; it
+    # links onward to the server when the server is up.
+    $lnk.TargetPath       = (Join-Path $RepoRoot 'dashboard\today.html')
+    $lnk.WorkingDirectory = $RepoRoot
+    $lnk.Description      = "Today's study day"
+    $lnk.Save()
+    [NexusToast.Aumid]::Set($shortcut, $AppId)
+    $readback = [NexusToast.Aumid]::Get($shortcut)
+    if ($readback -ne $AppId) {
+        Write-Error ("Set the AUMID on $shortcut but it reads back as '$readback'. " +
+                     "Toasts will be dropped silently. Not continuing quietly.")
+        exit 1
+    }
+    Write-Output "created Start Menu shortcut: $shortcut (AUMID verified: $readback)"
+}
+
 
 # --- 2. the daily task ----------------------------------------------------
 # One <Exec> cannot both build the day and post the toast, and a .cmd wrapper
@@ -230,4 +396,8 @@ Write-Output ''
 Write-Output 'Installed. Verify with:'
 Write-Output '  schtasks /Query /TN "NexusCollege Daily" /V /FO LIST'
 Write-Output '  python scripts\check_daily_liveness.py'
+Write-Output ''
+Write-Output 'Note: the daily task has two actions, so its Last Result reflects the'
+Write-Output 'TOAST, not the build - notify.ps1 exits 0 on purpose. The heartbeat and'
+Write-Output 'check_daily_liveness.py are the verdict that matters.'
 Write-Output 'Remove with: -Uninstall'

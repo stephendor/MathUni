@@ -66,6 +66,7 @@ BIND = "127.0.0.1"
 DEFAULT_PORT = 8787
 PORT_SCAN = 20
 SERVER_STATE = "state/server.json"
+SERVER_LOG = "state/server.log"
 
 LOOPBACK_NAMES = ("127.0.0.1", "localhost", "::1")
 
@@ -319,7 +320,19 @@ class Handler(BaseHTTPRequestHandler):
         self._dispatch("POST")
 
     def log_message(self, fmt, *args):
-        sys.stderr.write("%s %s\n" % (self.log_date_time_string(), fmt % args))
+        # Under pythonw.exe -- which is how the logon task runs this --
+        # sys.stderr is None. BaseHTTPRequestHandler calls log_request on
+        # every send_response, so an unguarded write raised inside the handler
+        # thread and the server answered every request by closing the
+        # connection: it listened, and served nothing.
+        stream = sys.stderr
+        if stream is None:
+            return
+        try:
+            stream.write("%s %s\n" % (self.log_date_time_string(),
+                                              fmt % args))
+        except (OSError, ValueError):
+            pass
 
 
 def port_in_use(port, host=BIND, timeout=0.35):
@@ -372,6 +385,28 @@ def _is_our_server(port, host=BIND):
         return False
 
 
+def _attach_stdio(path=SERVER_LOG):
+    """Point stdout/stderr at a file when there is no console.
+
+    pythonw.exe leaves both as None. Every print in this module would then
+    raise, and the failure would be invisible -- the shape of bug this whole
+    loop exists to stamp out. A windowless server that cannot be diagnosed
+    is only marginally better than one that lies.
+    """
+    if sys.stdout is not None and sys.stderr is not None:
+        return
+    handle = None
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        handle = open(path, "a", encoding="utf-8", newline="\n", buffering=1)
+    except OSError:
+        pass
+    if sys.stdout is None:
+        sys.stdout = handle
+    if sys.stderr is None:
+        sys.stderr = handle
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Local college surface (no model).")
     ap.add_argument("--port", type=int, default=DEFAULT_PORT)
@@ -388,6 +423,8 @@ def main(argv=None):
     if port_in_use(args.port) and _is_our_server(args.port):
         print("already running on http://%s:%d/" % (BIND, args.port))
         return 0
+
+    _attach_stdio()
 
     httpd = bind_server(args.port)
     port = httpd.server_address[1]

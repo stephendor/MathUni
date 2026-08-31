@@ -83,7 +83,12 @@ def verdict(heartbeat, today, max_age_days=0):
 def load_heartbeat(path=HEARTBEAT):
     if not os.path.exists(path):
         return {}
-    with open(path, encoding="utf-8") as f:
+    # utf-8-sig, not utf-8: daily.py writes no BOM, but anything on Windows that
+    # rewrites this file by hand (PowerShell's Set-Content -Encoding UTF8, for
+    # one) adds one, and a BOM would turn a perfectly good heartbeat into
+    # "unreadable". Tolerating it here costs nothing; utf-8-sig also decodes
+    # plain UTF-8 unchanged.
+    with open(path, encoding="utf-8-sig") as f:
         return json.load(f)
 
 

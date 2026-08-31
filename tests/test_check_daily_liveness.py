@@ -128,3 +128,22 @@ def test_the_healthy_outcomes_are_exactly_what_daily_py_writes():
                if '"%s"' % o in src}
     assert written == {"built", "already-built", "rest", "failed"}
     assert set(HEALTHY_OUTCOMES) == written - {"failed"}
+
+def test_a_heartbeat_with_a_windows_bom_still_reads(tmp_path):
+    """PowerShell's Set-Content -Encoding UTF8 writes a BOM. Without utf-8-sig
+    a hand-edited heartbeat reports "unreadable" and the check goes blind.
+    """
+    from scripts.check_daily_liveness import load_heartbeat
+
+    path = tmp_path / "hb.json"
+    path.write_text('{"date": "2026-09-01", "outcome": "built"}',
+                    encoding="utf-8-sig")
+    assert load_heartbeat(str(path))["date"] == "2026-09-01"
+
+
+def test_a_plain_utf8_heartbeat_is_unaffected(tmp_path):
+    from scripts.check_daily_liveness import load_heartbeat
+
+    path = tmp_path / "hb.json"
+    path.write_text('{"date": "2026-09-01", "outcome": "rest"}', encoding="utf-8")
+    assert load_heartbeat(str(path))["outcome"] == "rest"
