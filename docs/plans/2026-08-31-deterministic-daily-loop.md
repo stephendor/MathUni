@@ -6,7 +6,7 @@ deterministic local artifacts. A model is only ever invoked by something Stephen
 deliberately started, so a usage limit or a provider outage can no longer cause a
 silently missing study day.
 
-**Status:** Phases 1–3 complete. Phases 4–5 specified, not started.
+**Status:** Phases 1–4 complete. Phase 5 specified, not started.
 
 ---
 
@@ -171,7 +171,7 @@ Phase 5. Rendered server-side from `state/today.json` + `state/progress.json`.
 Single renderer shared with a static fallback write, so a dead server still leaves
 a readable page on disk.
 
-## Phase 4 — `review.html`, offline flashcards with writeback
+## Phase 4 — `review.html`, offline flashcards with writeback *(done)*
 
 `srs/deck.json` already carries fronts and backs. The page renders cards, Stephen
 self-rates 1–4, `POST /api/rate` calls `scheduler.rate_card` directly. The full SRS

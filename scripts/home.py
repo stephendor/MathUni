@@ -25,9 +25,15 @@ from html import escape
 
 STALE_DAYS = 7          # an in-progress unit older than this gets a gentle offer
 
-CSS = """
+# The one place the college's colours are written down. review.py imports it
+# rather than restating it: two pages of the same application quietly drifting
+# apart in palette is the cheapest kind of divergence to prevent.
+PALETTE = """
 :root{--bg:#101418;--panel:#1a2027;--ink:#e8e8e8;--dim:#9aa5b1;--acc:#8ab4f8;
 --good:#4caf82;--warm:#d8a657;--bad:#e06c75;--line:#2a333d}
+"""
+
+CSS = PALETTE + """
 *{box-sizing:border-box}
 body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);
 max-width:54rem;margin:0 auto;padding:2rem 1.2rem 4rem;line-height:1.6;font-size:1.02rem}

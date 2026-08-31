@@ -41,9 +41,9 @@ import os
 import secrets
 import socket
 import sys
+import urllib.request
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import urllib.request
 from urllib.parse import parse_qs, urlparse
 
 if __name__ == "__main__" and __package__ is None:
@@ -51,8 +51,16 @@ if __name__ == "__main__" and __package__ is None:
 from scripts.build_dashboard import render as render_dashboard
 from scripts.daily import read_json, write_atomic
 from scripts.home import ServerLinks, build_view, render_home
+from scripts.review import REVIEW_CAP, build_queue, render_review
 from scripts.validate_syllabus import load_syllabus
-from srs.scheduler import apply_rating, load_config, load_deck
+from srs.scheduler import (
+    apply_rating,
+    due_cards,
+    engram_banner,
+    engram_ready,
+    load_config,
+    load_deck,
+)
 
 BIND = "127.0.0.1"
 DEFAULT_PORT = 8787
@@ -82,7 +90,7 @@ class Context:
 
     def __init__(self, token, port, units, load_plan, load_progress, load_heartbeat,
                  read_lesson, start_unit, rate_card, build_dashboard,
-                 home_page=None):
+                 home_page=None, review_page=None):
         self.token = token
         self.port = port
         self.units = units
@@ -94,6 +102,7 @@ class Context:
         self.rate_card = rate_card
         self.build_dashboard = build_dashboard
         self.home_page = home_page or (lambda: b"")
+        self.review_page = review_page or (lambda: b"")
 
 
 def valid_host(host_header, port):
@@ -195,25 +204,9 @@ def route(method, path, query, body, ctx):
         return Response(200, ctx.home_page())
 
     if path == "/review":
-        return Response(200, _placeholder(path, ctx))   # Phase 4 fills this in
+        return Response(200, ctx.review_page())
 
     return _json(404, {"error": "not found"})
-
-
-def _placeholder(path, ctx):
-    plan = ctx.load_plan() or {}
-    lectures = plan.get("lectures", [])
-    hook = lectures[0]["hook"] if lectures else "No plan built for today."
-    items = "".join(
-        '<li><a href="/open/%s?t=%s">%s — %s</a></li>'
-        % (lec["id"], ctx.token, lec["id"], lec["title"]) for lec in lectures)
-    return ("<!DOCTYPE html><meta charset='utf-8'><title>Nexus College</title>"
-            "<body style='font-family:system-ui;background:#101418;color:#e8e8e8;"
-            "max-width:40rem;margin:3rem auto'>"
-            "<h1>Nexus College</h1><p><em>%s</em></p><ul>%s</ul>"
-            "<p>%d cards due · <a href='/dashboard' style='color:#8ab4f8'>dashboard</a></p>"
-            "<p style='color:#9aa5b1'>Placeholder for %s.</p></body>"
-            % (hook, items, plan.get("due_count", 0), path)).encode("utf-8")
 
 
 # --- real wiring ------------------------------------------------------------
@@ -267,6 +260,18 @@ def real_context(token, port):
                        date.today().isoformat()),
             ServerLinks(token)).encode("utf-8")
 
+    def review_page():
+        deck, cfg = load_deck(), load_config()
+        due = due_cards(deck, date.today().isoformat())
+        cap = (read_json("state/today.json") or {}).get("review_cap") or REVIEW_CAP
+        # The engram trip-wire fires on the CLI review path via stderr. Routing
+        # review through a page would have silently retired it; the review skill
+        # says relay one line, so one line is relayed.
+        notice = (engram_banner(deck, cfg).split(chr(10))[0]
+                  if engram_ready(deck, cfg) else None)
+        return render_review(build_queue(due, cap), token, len(due),
+                             notice).encode("utf-8")
+
     return Context(
         token=token, port=port, units=syllabus.get("units", []),
         # Loaded per request, not once at boot: this process is meant to stay
@@ -275,7 +280,8 @@ def real_context(token, port):
         load_progress=lambda: read_json("state/progress.json"),
         load_heartbeat=lambda: read_json("state/last-daily-run.json"),
         read_lesson=read_lesson, start_unit=start_unit, rate_card=rate_card,
-        build_dashboard=dashboard, home_page=home_page)
+        build_dashboard=dashboard, home_page=home_page,
+        review_page=review_page)
 
 
 class Handler(BaseHTTPRequestHandler):

@@ -39,6 +39,8 @@ def ctx(**over):
         start_unit=start_unit,
         rate_card=rate_card,
         build_dashboard=lambda: b"<html>dash</html>",
+        home_page=lambda: b"<html>home</html>",
+        review_page=lambda: b"<html>review</html>",
     )
     base.update(over)
     c = Context(**base)
@@ -295,3 +297,20 @@ def test_port_in_use_is_false_for_a_port_with_nothing_on_it():
     port = probe.getsockname()[1]
     probe.close()          # bound then released: nothing is listening
     assert port_in_use(port) is False
+
+# --- the two rendered pages are wired, not placeholders ---------------------
+
+def test_root_serves_the_home_page():
+    r = get("/")
+    assert r.status == 200 and b"home" in r.body
+
+
+def test_review_route_serves_the_review_page():
+    r = get("/review")
+    assert r.status == 200 and b"review" in r.body
+
+
+def test_neither_page_route_requires_a_token():
+    """Reading is not mutating; the token guards writes, not the front door."""
+    for path in ("/", "/review"):
+        assert get(path).status == 200

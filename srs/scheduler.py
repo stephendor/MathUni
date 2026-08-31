@@ -63,7 +63,7 @@ def load_deck(path=DECK):
 
 def save_deck(deck, path=DECK):
     tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
         json.dump(deck, f, indent=1, ensure_ascii=False)
     os.replace(tmp, path)
 
@@ -80,7 +80,7 @@ def load_config(path=CONFIG):
 
 def save_config(cfg, path=CONFIG):
     tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
         json.dump(cfg, f, indent=1, ensure_ascii=False)
     os.replace(tmp, path)
 
