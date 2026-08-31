@@ -105,6 +105,35 @@ def engram_banner(deck, cfg):
     )
 
 
+def apply_rating(deck, cfg, cid, rating, today):
+    """Rate one card through whichever engine is configured, and persist.
+
+    Extracted from main() so the local server writes back through the same
+    path the CLI uses. Two copies of the SM-2/FSRS branch would be two chances
+    to diverge, and the one in the server would be the one nobody reads.
+
+    Returns the updated card, or None when no card carries that id.
+    """
+    for i, c in enumerate(deck["cards"]):
+        if c["id"] != cid:
+            continue
+        if cfg.get("scheduler") == "fsrs":
+            from srs import fsrs
+            mem = deck.get("memory", {})
+            rec = fsrs.review_record(c, rating, today)
+            with open(fsrs.REVIEW_LOG, "a", encoding="utf-8") as f:
+                f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+            deck["cards"][i] = fsrs.rate_card(
+                c, rating, today,
+                retention=mem.get("desired_retention", fsrs.RETENTION_DEFAULT),
+                im=mem.get("interval_multiplier", 1.0))
+        else:
+            deck["cards"][i] = rate_card(c, rating, today)
+        save_deck(deck)
+        return deck["cards"][i]
+    return None
+
+
 def main(argv):
     today = date.today().isoformat()
     cmd = argv[0] if argv else "due"
@@ -120,24 +149,10 @@ def main(argv):
         print(json.dumps(due_cards(deck, today), ensure_ascii=False, indent=1))
     elif cmd == "rate":
         cid, rating = argv[1], int(argv[2])
-        for i, c in enumerate(deck["cards"]):
-            if c["id"] == cid:
-                if cfg.get("scheduler") == "fsrs":
-                    from srs import fsrs
-                    mem = deck.get("memory", {})
-                    rec = fsrs.review_record(c, rating, today)
-                    with open(fsrs.REVIEW_LOG, "a", encoding="utf-8") as f:
-                        f.write(json.dumps(rec, ensure_ascii=False) + "\n")
-                    deck["cards"][i] = fsrs.rate_card(
-                        c, rating, today,
-                        retention=mem.get("desired_retention", fsrs.RETENTION_DEFAULT),
-                        im=mem.get("interval_multiplier", 1.0))
-                else:
-                    deck["cards"][i] = rate_card(c, rating, today)
-                save_deck(deck)
-                print(json.dumps(deck["cards"][i], ensure_ascii=False))
-                return
-        print(f"ERROR: no card {cid}"); sys.exit(1)
+        card = apply_rating(deck, cfg, cid, rating, today)
+        if card is None:
+            print(f"ERROR: no card {cid}"); sys.exit(1)
+        print(json.dumps(card, ensure_ascii=False))
     elif cmd == "add":
         with open(argv[1], encoding="utf-8") as f:
             new = json.load(f)
