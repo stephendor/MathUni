@@ -211,7 +211,9 @@ def render_session_md(plan):
 def write_atomic(path, text):
     tmp = path + ".tmp"
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(tmp, "w", encoding="utf-8") as f:
+    # newline="\n" because the repo is eol=lf (.gitattributes); text mode
+    # on Windows would otherwise emit CRLF into machine-written state.
+    with open(tmp, "w", encoding="utf-8", newline="\n") as f:
         f.write(text)
     os.replace(tmp, path)
 
