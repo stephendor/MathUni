@@ -1,4 +1,6 @@
+import ast
 import json
+import pathlib
 
 from scripts.daily import (
     PLAN_HEADING,
@@ -186,22 +188,54 @@ def test_session_md_on_rest_day_says_so_without_inventing_work():
     assert "Lecture 1" not in md
 # --- the Tier-0 property, enforced rather than asserted ---------------------
 
-def _import_roots(source):
-    """Top-level module names imported by a Python source string."""
-    import ast
-    roots = set()
-    for node in ast.walk(ast.parse(source)):
-        if isinstance(node, ast.Import):
-            roots.update(a.name.split(".")[0] for a in node.names)
-        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
-            roots.add(node.module.split(".")[0])
-    return roots
-
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+REPO_PACKAGES = ("scripts", "srs")
 
 ALLOWED_IMPORTS = {"argparse", "json", "os", "sys", "datetime",  # stdlib
                    "scripts", "srs"}                             # repo
 BANNED_IMPORTS = {"urllib", "http", "socket", "requests", "httpx", "subprocess",
                   "anthropic", "openai", "ollama"}
+
+
+def _import_names(source):
+    """Full dotted module names imported by a Python source string."""
+    names = set()
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            names.update(a.name for a in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+            names.add(node.module)
+            if node.module in REPO_PACKAGES:
+                # `from srs import fsrs` names a module, not a symbol.
+                names.update(node.module + "." + a.name for a in node.names)
+    return names
+
+
+def _import_roots(source):
+    """Top-level module names only, which is what the ban is written against."""
+    return {n.split(".")[0] for n in _import_names(source)}
+
+
+def _import_closure(entry):
+    """Every repo file reachable from `entry` by import, `entry` included.
+
+    Checking daily.py alone would be a guard with a hole in it: daily.py
+    imports scripts.home, so a network call added to home.py would put the
+    day builder on the network while the direct check still passed. The
+    property is about what daily.py can reach, so the walk has to be too.
+    """
+    seen, queue, out = set(), [entry], []
+    while queue:
+        path = queue.pop()
+        if path in seen or not path.exists():
+            continue
+        seen.add(path)
+        out.append(path)
+        for name in _import_names(path.read_text(encoding="utf-8")):
+            parts = name.split(".")
+            if parts[0] in REPO_PACKAGES and len(parts) > 1:
+                queue.append(ROOT.joinpath(*parts).with_suffix(".py"))
+    return out
 
 
 def _tier0_violations(source):
@@ -212,20 +246,36 @@ def _tier0_violations(source):
 def test_daily_imports_nothing_that_could_call_a_model_or_a_network():
     """daily.py must stay Tier 0: stdlib + repo only.
 
-    The module docstring claims no model and no network. A claim in a docstring
-    is self-attestation; this is the check that makes it a property. If someone
-    later reaches for `requests`, `urllib`, or a subprocess to a provider CLI,
-    the day builder stops being the thing that still works when a provider is
-    down, and this is what says so.
+    The module docstring claims no model and no network. A claim in a
+    docstring is self-attestation; this is the check that makes it a
+    property. If someone later reaches for `requests`, `urllib`, or a
+    subprocess to a provider CLI, the day builder stops being the thing that
+    still works when a provider is down, and this is what says so.
     """
-    import pathlib
-
-    src = pathlib.Path(__file__).resolve().parents[1] / "scripts" / "daily.py"
+    src = ROOT / "scripts" / "daily.py"
     assert _tier0_violations(src.read_text(encoding="utf-8")) == set()
 
 
+def test_nothing_daily_imports_can_reach_a_model_or_the_network_either():
+    """The ban follows the import closure, not just the entry file."""
+    closure = _import_closure(ROOT / "scripts" / "daily.py")
+    offenders = {}
+    for path in closure:
+        bad = _import_roots(path.read_text(encoding="utf-8")) & BANNED_IMPORTS
+        if bad:
+            offenders[path.name] = sorted(bad)
+    assert offenders == {}, offenders
+
+
+def test_the_closure_walk_actually_reaches_the_modules_it_should():
+    """Negative control for the walk: a walk that finds nothing bans nothing."""
+    found = {p.name for p in _import_closure(ROOT / "scripts" / "daily.py")}
+    for expected in ("daily.py", "home.py", "validate_syllabus.py", "scheduler.py"):
+        assert expected in found, (expected, sorted(found))
+
+
 def test_tier0_import_guard_actually_fires():
-    """Negative control for the check above.
+    """Negative control for the check itself.
 
     A gate nobody has watched fail is a gate nobody knows is wired. These are
     the three shapes the real regression would take: a provider SDK, a hand-

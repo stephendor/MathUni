@@ -6,7 +6,7 @@ deterministic local artifacts. A model is only ever invoked by something Stephen
 deliberately started, so a usage limit or a provider outage can no longer cause a
 silently missing study day.
 
-**Status:** Phase 1 in progress. Phases 2–5 specified, not started.
+**Status:** Phases 1–3 complete. Phases 4–5 specified, not started.
 
 ---
 
@@ -101,7 +101,7 @@ Task Scheduler XML for the trigger, pytest for tests.
 
 ---
 
-## Phase 1 — `scripts/daily.py`, the Tier-0 day builder
+## Phase 1 — `scripts/daily.py`, the Tier-0 day builder *(done)*
 
 **Files:** create `scripts/daily.py`, `tests/test_daily.py`.
 
@@ -135,12 +135,12 @@ Task Scheduler XML for the trigger, pytest for tests.
   job when a lesson is actually opened).
 - No network, no subprocess to any model, no imports outside stdlib + repo modules.
 
-- [ ] Step 1: failing tests for `pick_units`, `is_study_day`, idempotency, and the
+- [x] Step 1: failing tests for `pick_units`, `is_study_day`, idempotency, and the
       rest-day heartbeat
-- [ ] Step 2: implement `scripts/daily.py`
-- [ ] Step 3: full suite green, run against real repo state, inspect artifacts
+- [x] Step 2: implement `scripts/daily.py`
+- [x] Step 3: full suite green, run against real repo state, inspect artifacts
 
-## Phase 2 — `scripts/serve.py`, the persistent local server
+## Phase 2 — `scripts/serve.py`, the persistent local server *(done)*
 
 **Files:** create `scripts/serve.py`, `tests/test_serve.py`.
 
@@ -161,7 +161,7 @@ can POST to it.
 Runs persistently under its own logon-triggered task (Phase 5), so the toast always
 has a live target.
 
-## Phase 3 — the home surface
+## Phase 3 — the home surface *(done)*
 
 `GET /` is the real front door, not a stub: today's hook as the headline, the two
 lecture buttons, due-card count, problem-set candidates, streak, units sitting

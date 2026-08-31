@@ -39,15 +39,18 @@ import argparse
 import json
 import os
 import secrets
+import socket
 import sys
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import urllib.request
 from urllib.parse import parse_qs, urlparse
 
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.build_dashboard import render as render_dashboard
 from scripts.daily import read_json, write_atomic
+from scripts.home import ServerLinks, build_view, render_home
 from scripts.validate_syllabus import load_syllabus
 from srs.scheduler import apply_rating, load_config, load_deck
 
@@ -78,7 +81,8 @@ class Context:
     """Everything a route needs, injected so routing is testable without sockets."""
 
     def __init__(self, token, port, units, load_plan, load_progress, load_heartbeat,
-                 read_lesson, start_unit, rate_card, build_dashboard):
+                 read_lesson, start_unit, rate_card, build_dashboard,
+                 home_page=None):
         self.token = token
         self.port = port
         self.units = units
@@ -89,6 +93,7 @@ class Context:
         self.start_unit = start_unit
         self.rate_card = rate_card
         self.build_dashboard = build_dashboard
+        self.home_page = home_page or (lambda: b"")
 
 
 def valid_host(host_header, port):
@@ -186,9 +191,11 @@ def route(method, path, query, body, ctx):
     if path == "/dashboard":
         return Response(200, ctx.build_dashboard())
 
-    if path in ("/", "/review"):
-        # Phase 3 replaces / with the real home surface; Phase 4 fills /review.
-        return Response(200, _placeholder(path, ctx))
+    if path == "/":
+        return Response(200, ctx.home_page())
+
+    if path == "/review":
+        return Response(200, _placeholder(path, ctx))   # Phase 4 fills this in
 
     return _json(404, {"error": "not found"})
 
@@ -251,6 +258,15 @@ def real_context(token, port):
         return render_dashboard(syllabus, read_json("state/progress.json"),
                                 read_json("state/streaks.json")).encode("utf-8")
 
+    def home_page():
+        return render_home(
+            build_view(read_json("state/today.json"),
+                       read_json("state/progress.json"), syllabus,
+                       read_json("state/streaks.json"),
+                       read_json("state/last-daily-run.json"),
+                       date.today().isoformat()),
+            ServerLinks(token)).encode("utf-8")
+
     return Context(
         token=token, port=port, units=syllabus.get("units", []),
         # Loaded per request, not once at boot: this process is meant to stay
@@ -259,7 +275,7 @@ def real_context(token, port):
         load_progress=lambda: read_json("state/progress.json"),
         load_heartbeat=lambda: read_json("state/last-daily-run.json"),
         read_lesson=read_lesson, start_unit=start_unit, rate_card=rate_card,
-        build_dashboard=dashboard)
+        build_dashboard=dashboard, home_page=home_page)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -300,16 +316,54 @@ class Handler(BaseHTTPRequestHandler):
         sys.stderr.write("%s %s\n" % (self.log_date_time_string(), fmt % args))
 
 
+def port_in_use(port, host=BIND, timeout=0.35):
+    """True when something is already accepting connections on `port`.
+
+    Binding is not a reliable occupancy test on Windows. HTTPServer sets
+    allow_reuse_address, which maps to SO_REUSEADDR, and Windows lets a SECOND
+    process bind a port another process is already listening on -- the bind
+    succeeds, and connections are then delivered to whichever socket the stack
+    picks. Two servers on one port, the newer one silently serving stale code
+    from the older, is a state this was observed in during Phase 3.
+
+    Connecting says what binding cannot: is anyone actually there.
+    """
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            return True
+    except OSError:
+        return False
+
+
 def bind_server(port):
-    """First free port from `port` upward, so a stale process is not fatal."""
+    """First genuinely free port from `port` upward."""
     last = None
     for candidate in range(port, port + PORT_SCAN):
+        if port_in_use(candidate):
+            last = "port %d already has a listener" % candidate
+            continue
         try:
             return ThreadingHTTPServer((BIND, candidate), Handler)
         except OSError as exc:
             last = exc
     raise SystemExit("serve.py: no free port in %d-%d (%s)"
                      % (port, port + PORT_SCAN - 1, last))
+
+
+def _is_our_server(port, host=BIND):
+    """Distinguish our own server from an unrelated process on the same port.
+
+    The Server header is set from Handler.server_version, so this asks the
+    listener who it is rather than assuming the port implies the program.
+    """
+    try:
+        url = "http://%s:%d/healthz" % (host, port)
+        with urllib.request.urlopen(url, timeout=0.5) as resp:
+            return "NexusCollege" in resp.headers.get("Server", "")
+    except OSError:
+        # urllib.error.HTTPError subclasses OSError, so a live-but-unhappy
+        # server lands here too, and is correctly treated as not ours.
+        return False
 
 
 def main(argv=None):
@@ -322,6 +376,12 @@ def main(argv=None):
     if not os.path.exists("curriculum/syllabus.yaml"):
         print("serve.py: run from the repo root", file=sys.stderr)
         return 2
+
+    # A logon-triggered service can fire more than once; starting a second
+    # college on top of the first is worse than doing nothing.
+    if port_in_use(args.port) and _is_our_server(args.port):
+        print("already running on http://%s:%d/" % (BIND, args.port))
+        return 0
 
     httpd = bind_server(args.port)
     port = httpd.server_address[1]

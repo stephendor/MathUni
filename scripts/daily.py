@@ -39,6 +39,7 @@ from datetime import date, datetime
 
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from scripts.home import StaticLinks, build_view, render_home
 from scripts.validate_syllabus import load_syllabus
 from srs.scheduler import due_cards, load_deck
 
@@ -272,18 +273,30 @@ def main(argv=None):
     else:
         outcome = "built"
 
-    if outcome in ("built", "rest"):
-        write_atomic(plan_path, render_session_md(plan))
-        write_atomic("state/today.json", json.dumps(plan, indent=2) + "\n")
-
-    write_atomic("state/last-daily-run.json", json.dumps({
+    heartbeat = {
         "date": today,
         "outcome": outcome,
         "generated": plan["generated"],
         "plan_path": plan_path,
         "units": [lec["id"] for lec in plan["lectures"]],
         "due_count": plan["due_count"],
-    }, indent=2) + "\n")
+    }
+
+    if outcome in ("built", "rest"):
+        write_atomic(plan_path, render_session_md(plan))
+        write_atomic("state/today.json", json.dumps(plan, indent=2) + "\n")
+
+    # The static front door. Written every run, including "already-built", so
+    # that a machine whose server is down still has a current page to open:
+    # the plan's rule is that the page is the contract, and a contract that
+    # only holds while a process is up is not one. Rendered against the
+    # heartbeat this run is about to write, so it never reports itself stale.
+    write_atomic("dashboard/today.html", render_home(
+        build_view(plan, progress, syllabus, streaks, heartbeat, today),
+        StaticLinks()))
+
+    write_atomic("state/last-daily-run.json",
+                 json.dumps(heartbeat, indent=2) + "\n")
 
     print(json.dumps({"outcome": outcome, "date": today,
                       "units": [lec["id"] for lec in plan["lectures"]],

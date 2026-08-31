@@ -260,3 +260,38 @@ def test_other_units_survive_the_write():
     out = _run_start_unit("pw-02", {"pw-02": {"status": "unlocked"},
                                     "la-02": {"status": "unlocked"}})
     assert out["la-02"] == {"status": "unlocked"}
+
+# --- port occupancy, which binding does not reliably report on Windows ------
+
+def test_port_in_use_sees_a_real_listener():
+    """HTTPServer sets SO_REUSEADDR, and on Windows that lets a second process
+    bind a port another process is already listening on. Two servers on one
+    port -- the newer silently serving stale code from the older -- was an
+    observed state, not a hypothetical. Connecting is the test that works.
+    """
+    import socket
+
+    from scripts.serve import port_in_use
+
+    srv = socket.socket()
+    srv.bind(("127.0.0.1", 0))
+    srv.listen(1)
+    port = srv.getsockname()[1]
+    try:
+        assert port_in_use(port) is True
+    finally:
+        srv.close()
+    # Once closed, the same port must read as free again.
+    assert port_in_use(port) is False
+
+
+def test_port_in_use_is_false_for_a_port_with_nothing_on_it():
+    import socket
+
+    from scripts.serve import port_in_use
+
+    probe = socket.socket()
+    probe.bind(("127.0.0.1", 0))
+    port = probe.getsockname()[1]
+    probe.close()          # bound then released: nothing is listening
+    assert port_in_use(port) is False
