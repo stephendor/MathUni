@@ -235,7 +235,7 @@ def available_problem_sets(root="problems/sets"):
     return {n[:-3] for n in os.listdir(root) if n.endswith(".md")}
 
 
-def main(argv=None):
+def _build(argv=None):
     ap = argparse.ArgumentParser(description="Build today's study day (no model).")
     ap.add_argument("--force", action="store_true",
                     help="rebuild even if today's plan already exists")
@@ -303,6 +303,36 @@ def main(argv=None):
                       "due": plan["due_count"]}))
     return 0
 
+
+
+
+def main(argv=None):
+    """Run the build, and make a crash visible instead of silent.
+
+    The scheduled task runs this under pythonw.exe, which has no console and
+    discards stderr, so an unhandled exception would leave no trace anywhere
+    -- the exact silent-death shape that hid the previous automation's
+    failure for seven weeks. The heartbeat is the one channel guaranteed to
+    be read, so a crash writes its own heartbeat with outcome "failed", and
+    check_daily_liveness.py treats any outcome outside HEALTHY_OUTCOMES as
+    stale. A heartbeat dated today is not on its own evidence of health.
+    """
+    try:
+        return _build(argv)
+    except Exception as exc:  # noqa: BLE001 - the point is to catch everything
+        try:
+            write_atomic("state/last-daily-run.json", json.dumps({
+                "date": date.today().isoformat(),
+                "outcome": "failed",
+                "generated": datetime.now().isoformat(timespec="seconds"),
+                "error": "%s: %s" % (type(exc).__name__, exc),
+                "units": [],
+                "due_count": 0,
+            }, indent=2) + "\n")
+        except OSError:
+            pass    # nothing left to do; the missing heartbeat still reads stale
+        print("daily.py: build failed - %s" % exc, file=sys.stderr)
+        return 2
 
 if __name__ == "__main__":
     sys.exit(main())

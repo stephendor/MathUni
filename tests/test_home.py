@@ -179,3 +179,18 @@ def test_a_small_queue_is_shown_whole():
     out = html(v)
     assert "Warm up · 4 cards" in out
     assert "of 4 due" not in out, "no 'x of y' framing when there is no backlog"
+
+def test_a_crashed_build_shows_the_banner_even_though_it_is_dated_today():
+    """The page and scripts/check_daily_liveness.py must agree; the rule is
+    imported from one place rather than restated in two."""
+    v = view(beat={"date": TODAY, "outcome": "failed", "error": "boom"})
+    assert v["liveness"]["stale"] is True
+    out = html(v)
+    assert "has not run today" in out
+    assert "did not finish" in out
+
+
+def test_a_rest_day_heartbeat_is_not_a_stale_banner():
+    v = view(beat={"date": TODAY, "outcome": "rest"})
+    assert v["liveness"]["stale"] is False
+    assert "has not run today" not in html(v)

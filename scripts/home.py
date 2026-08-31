@@ -23,6 +23,8 @@ reads as a different application.
 from datetime import date
 from html import escape
 
+from scripts.check_daily_liveness import HEALTHY_OUTCOMES
+
 STALE_DAYS = 7          # an in-progress unit older than this gets a gentle offer
 
 # The one place the college's colours are written down. review.py imports it
@@ -165,9 +167,14 @@ def build_view(plan, progress, syllabus, streaks, heartbeat, today):
     problems = [{"id": uid, "title": units.get(uid, {}).get("title", uid)}
                 for uid in plan.get("problem_candidates", [])]
 
-    hb_date = (heartbeat or {}).get("date")
-    liveness = {"stale": hb_date != today,
+    # Same rule the liveness script applies, imported rather than restated: a
+    # heartbeat dated today whose outcome is "failed" is not a healthy day.
+    beat = heartbeat or {}
+    hb_date = beat.get("date")
+    liveness = {"stale": hb_date != today
+                         or beat.get("outcome") not in HEALTHY_OUTCOMES,
                 "last": hb_date,
+                "outcome": beat.get("outcome"),
                 "days": _days_since(hb_date, today)}
 
     return {
@@ -208,6 +215,9 @@ def _liveness_banner(view):
         return ""
     if not live["last"]:
         detail = "No day has ever been built."
+    elif live["days"] == 0:
+        detail = ("It ran today and did not finish (outcome: %s)."
+                  % escape(str(live.get("outcome"))))
     else:
         detail = "Last built %s (%d days ago)." % (escape(live["last"]), live["days"])
     return ('<div class="banner"><b>The day builder has not run today.</b> %s '

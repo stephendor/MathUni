@@ -6,7 +6,10 @@ deterministic local artifacts. A model is only ever invoked by something Stephen
 deliberately started, so a usage limit or a provider outage can no longer cause a
 silently missing study day.
 
-**Status:** Phases 1–4 complete. Phase 5 specified, not started.
+**Status:** Phases 1–5 complete in the repo. The Windows install
+(`scripts/register_daily_task.ps1`) is written and dry-run verified but has
+NOT been run — it registers two scheduled tasks and an AUMID, and deletes the
+old `NexusCollege Morning` task, so it waits on Stephen.
 
 ---
 
@@ -181,7 +184,7 @@ loop with no model judging anything.
 15, oldest-due first, so the backlog drains across sessions instead of presenting as
 a wall. 15 matches the existing `/review` cap in the skill.
 
-## Phase 5 — trigger, toast, liveness, skill rewiring
+## Phase 5 — trigger, toast, liveness, skill rewiring *(repo side done)*
 
 - `scripts/notify.ps1` — WinRT toast, text = lecture-1's `hook` verbatim, buttons
   protocol-linked to the server.
