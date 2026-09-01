@@ -51,7 +51,12 @@ if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from scripts.build_dashboard import render as render_dashboard
 from scripts.daily import read_json, write_atomic
-from scripts.home import ServerLinks, build_view, render_home
+from scripts.home import (
+    ServerLinks,
+    build_view,
+    render_home,
+    render_problem_set,
+)
 from scripts.review import REVIEW_CAP, build_queue, render_review
 from scripts.validate_syllabus import load_syllabus
 from srs.scheduler import (
@@ -105,7 +110,7 @@ class Context:
 
     def __init__(self, token, port, units, load_plan, load_progress, load_heartbeat,
                  read_lesson, start_unit, rate_card, build_dashboard,
-                 home_page=None, review_page=None):
+                 home_page=None, review_page=None, problem_page=None):
         self.token = token
         self.port = port
         self.units = units
@@ -118,6 +123,7 @@ class Context:
         self.build_dashboard = build_dashboard
         self.home_page = home_page or (lambda: b"")
         self.review_page = review_page or (lambda: b"")
+        self.problem_page = problem_page or (lambda unit: None)
 
 
 def valid_host(host_header, port):
@@ -211,6 +217,17 @@ def route(method, path, query, body, ctx):
             return _json(404, {"error": "unknown unit"})
         ctx.start_unit(unit["id"], unit.get("module"))
         return Response(302, b"", headers={"Location": "/lesson/%s" % unit["id"]})
+
+    if path.startswith("/problems/"):
+        unit = _lookup_unit(path[len("/problems/"):], ctx)
+        if unit is None:
+            return _json(404, {"error": "unknown unit"})
+        page = ctx.problem_page(unit)
+        if page is None:
+            # The unit is real but nobody has authored its set yet. Saying which
+            # is more use than a bare 404 on a link the home page offered.
+            return _json(404, {"error": "no problem set for %s yet" % unit["id"]})
+        return Response(200, page)
 
     if path == "/dashboard":
         return Response(200, ctx.build_dashboard())
@@ -364,6 +381,14 @@ def real_context(token, port):
         return render_review(build_queue(due, cap), token, len(due),
                              notice).encode("utf-8")
 
+    def problem_page(unit):
+        path = "problems/sets/%s.md" % unit["id"]
+        if not os.path.exists(path):
+            return None
+        with open(path, encoding="utf-8") as f:
+            return render_problem_set(unit["id"], unit.get("title", ""),
+                                      f.read()).encode("utf-8")
+
     return Context(
         token=token, port=port, units=syllabus.get("units", []),
         # Loaded per request, not once at boot: this process is meant to stay
@@ -373,7 +398,7 @@ def real_context(token, port):
         load_heartbeat=lambda: read_json("state/last-daily-run.json"),
         read_lesson=read_lesson, start_unit=start_unit, rate_card=rate_card,
         build_dashboard=dashboard, home_page=home_page,
-        review_page=review_page)
+        review_page=review_page, problem_page=problem_page)
 
 
 class Handler(BaseHTTPRequestHandler):

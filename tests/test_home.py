@@ -224,3 +224,49 @@ def test_streaks_file_wins_over_the_plans_copy():
 def test_plan_streak_is_the_fallback_when_there_is_no_streaks_file():
     v = build_view(PLAN, PROGRESS, SYL, {}, BEAT, TODAY)
     assert v["streak"] == {"current": 3, "best": 5}
+
+
+# --- the problem chips were spans wired to nothing ---------------------------
+
+def test_problem_chips_are_links_not_inert_spans():
+    """They were <span class="chip">: styled like links, doing nothing. A
+    control that reads as clickable and is not is worse than no control."""
+    out = html()
+    assert '<a class="chip" href="/problems/pw-02"' in out
+    assert '<span class="chip"' not in out
+
+
+def test_problem_chips_carry_the_unit_title_as_a_tooltip():
+    assert 'title="Induction"' in html()
+
+
+def test_static_page_chips_point_at_the_markdown_on_disk():
+    out = html(links=StaticLinks())
+    assert '../problems/sets/pw-02.md' in out
+    assert "/problems/pw-02" not in out
+
+
+def test_problem_set_page_shows_the_source_verbatim():
+    from scripts.home import render_problem_set
+
+    body = "# pw-03" + chr(10) + "Let $f: A " + chr(92) + "to B$ be given."
+    out = render_problem_set("pw-03", "Sets and functions", body)
+    assert out.startswith("<!DOCTYPE html>")
+    assert "$f: A" in out, "LaTeX is shown as written; nothing renders it"
+    assert "Sets and functions" in out
+
+
+def test_problem_set_page_escapes_the_markdown():
+    from scripts.home import render_problem_set
+
+    out = render_problem_set("x-01", "t", "<script>alert(1)</script> & co")
+    assert "<script>alert(1)</script>" not in out
+    assert "&lt;script&gt;" in out and "&amp; co" in out
+
+
+def test_problem_set_page_makes_no_external_requests():
+    from scripts.home import render_problem_set
+
+    out = render_problem_set("x-01", "t", "body")
+    for probe in ("http://", "https://", "//cdn", "@import", "<link"):
+        assert probe not in out, probe

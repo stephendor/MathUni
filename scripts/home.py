@@ -103,6 +103,9 @@ class ServerLinks:
     def review(self):
         return "/review"
 
+    def problems(self, unit_id):
+        return "/problems/%s" % unit_id
+
     def dashboard(self):
         return "/dashboard"
 
@@ -121,6 +124,12 @@ class StaticLinks:
 
     def review(self):
         return None
+
+    def problems(self, unit_id):
+        # The raw markdown, straight off disk. Browsers show it as plain text;
+        # that is what a problem set is, and the server-rendered view is only a
+        # nicer frame around the same file.
+        return "../problems/sets/%s.md" % unit_id
 
     def dashboard(self):
         return "index.html"
@@ -291,8 +300,12 @@ def _segment_cards(view, links):
             % (n, escape(lec.get("module_title", "")), escape(lec["title"]),
                escape(lec.get("hook", "")), _go(links.lesson(lec), "Open " + lec["id"])))
     if view["problems"]:
-        chips = "".join('<span class="chip">%s</span>' % escape(p["id"])
-                        for p in view["problems"][:6])
+        # These were <span>s: they looked clickable and did nothing. A control
+        # that reads as a link and is inert is worse than no control at all.
+        chips = "".join(
+            '<a class="chip" href="%s" title="%s">%s</a>'
+            % (links.problems(p["id"]), escape(p["title"]), escape(p["id"]))
+            for p in view["problems"][:6])
         cards.append(
             '<div class="card problems"><div class="kind">Problems · ~25 min</div>'
             '<div class="title">Pick one</div>'
@@ -345,3 +358,48 @@ def render_home(view, links):
            _liveness_banner(view), _hero(view, links),
            _segment_cards(view, links), _stale_block(view),
            _modules_block(view), links.dashboard()))
+
+
+PROBLEM_CSS = PALETTE + """
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);margin:0;padding:2rem 1.2rem 4rem}
+main{max-width:52rem;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:.8rem;
+border-bottom:1px solid var(--line);padding-bottom:.8rem;margin-bottom:1.4rem;
+font-family:Segoe UI,system-ui,sans-serif}
+header h1{font-size:1.1rem;margin:0;font-weight:600}
+header a{margin-left:auto;color:var(--acc);font-size:.9rem}
+.note{background:var(--panel);border-left:4px solid var(--warm);border-radius:10px;
+padding:.8rem 1rem;margin-bottom:1.4rem;font-size:.9rem;color:var(--dim);
+font-family:Segoe UI,system-ui,sans-serif}
+pre{background:var(--panel);border-radius:12px;padding:1.4rem;overflow-x:auto;
+white-space:pre-wrap;word-wrap:break-word;font-size:.95rem;line-height:1.65;
+font-family:Consolas,"DejaVu Sans Mono",monospace;color:#dce3ea}
+"""
+
+
+def render_problem_set(unit_id, title, markdown):
+    """A problem set as a readable page: the file, framed, not transformed.
+
+    The sets are markdown carrying LaTeX, and nothing here renders either --
+    the lessons are offline-only by rule (gate.py forbids external requests, so
+    no MathJax), and inventing a half-renderer for $...$ would make the source
+    harder to read rather than easier. So the text is shown verbatim in a
+    wrapping <pre>, which is how /today and /problems have always presented it.
+
+    Server-only: the static page links chips straight at the .md on disk, since
+    a page written to disk cannot frame a file it does not own.
+    """
+    heading = escape("%s%s" % (unit_id, (" — " + title) if title else ""))
+    return (
+        "<!DOCTYPE html>\n<html lang='en'><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        "<title>Problem set — %s</title><style>%s</style></head><body><main>"
+        "<header><h1>%s</h1><a href='/'>Back to today</a></header>"
+        "<div class='note'>The set as written. Work it with "
+        "<code>/problems %s</code> for the hint ladder, or submit written "
+        "solutions with <code>/grade %s</code> — both need a model, so both are "
+        "things you start rather than things that happen to you.</div>"
+        "<pre>%s</pre></main></body></html>\n"
+        % (escape(unit_id), PROBLEM_CSS, heading, escape(unit_id),
+           escape(unit_id), escape(markdown)))

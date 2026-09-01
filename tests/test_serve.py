@@ -41,6 +41,8 @@ def ctx(**over):
         build_dashboard=lambda: b"<html>dash</html>",
         home_page=lambda: b"<html>home</html>",
         review_page=lambda: b"<html>review</html>",
+        problem_page=lambda unit: b"<html>set for %s</html>"
+        % unit["id"].encode(),
     )
     base.update(over)
     c = Context(**base)
@@ -481,3 +483,35 @@ def test_missing_artifacts_names_exactly_what_is_absent(tmp_path, monkeypatch):
     (tmp_path / "lessons" / "pw" / "pw-03.html").write_text("x", encoding="utf-8")
     gaps = srv.missing_artifacts("pw-03", "pw")
     assert gaps == ["problems/sets/pw-03.md", "problems/solutions/pw-03.md"]
+
+
+# --- /problems/<unit>, which the home page's chips now point at -------------
+
+def test_a_known_units_problem_set_is_served():
+    r = get("/problems/pw-02")
+    assert r.status == 200 and b"set for pw-02" in r.body
+
+
+def test_an_unknown_unit_is_404_on_the_problems_route():
+    assert get("/problems/nope-99").status == 404
+
+
+def test_problems_route_is_not_a_path_traversal():
+    reads = []
+    c = ctx(problem_page=lambda unit: reads.append(unit) or b"x")
+    for evil in ("../../etc/passwd", "..%2f..%2fsecrets", "pw-02/../../x"):
+        assert get("/problems/" + evil, c=c).status == 404, evil
+    assert reads == []
+
+
+def test_a_unit_with_no_authored_set_says_so_rather_than_bare_404():
+    c = ctx(problem_page=lambda unit: None)
+    r = get("/problems/pw-02", c=c)
+    assert r.status == 404
+    assert b"no problem set for pw-02 yet" in r.body
+
+
+def test_serving_a_problem_set_changes_no_state():
+    c = ctx()
+    get("/problems/pw-02", c=c)
+    assert c.calls["started"] == [] and c.calls["rated"] == []
