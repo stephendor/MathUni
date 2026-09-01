@@ -334,9 +334,13 @@ $dailyXml = @"
       <Arguments>scripts\daily.py</Arguments>
       <WorkingDirectory>$RepoRoot</WorkingDirectory>
     </Exec>
+    <!-- wscript.exe, not powershell.exe: -WindowStyle Hidden is applied by
+         PowerShell after the console host already exists, so a window
+         flashes on screen every time the task fires. wscript is a
+         windowless host, so there is nothing to hide. -->
     <Exec>
-      <Command>powershell.exe</Command>
-      <Arguments>-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -File "$RepoRoot\scripts\notify.ps1" -AppId "$AppId"</Arguments>
+      <Command>wscript.exe</Command>
+      <Arguments>"$RepoRoot\scripts\notify_hidden.vbs" "$AppId"</Arguments>
       <WorkingDirectory>$RepoRoot</WorkingDirectory>
     </Exec>
   </Actions>

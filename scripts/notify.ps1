@@ -40,6 +40,41 @@ param(
 # so the repo root is resolved here instead of in the signature.
 if (-not $RepoRoot) { $RepoRoot = Split-Path -Parent $PSScriptRoot }
 
+function Resolve-ToastAppId {
+    <#
+      Windows draws a banner only for a toast whose AUMID it can resolve to an
+      installed app. An unresolvable AUMID still DELIVERS -- the notification
+      lands in the Action Center and the settings key updates -- so every
+      surface says it worked while nothing appears on screen.
+
+      Registering a bespoke AUMID was attempted five ways on 2026-09-01 and
+      none of them made Windows resolve it: registry key alone; a Start Menu
+      shortcut carrying the id via System.AppUserModel.ID targeting the HTML
+      page, then explorer.exe, then pythonw.exe; and a never-before-used AUMID
+      string in case the first attempts had poisoned a cache. The AUMID reads
+      back correctly off the shortcut every time, and still does not resolve.
+
+      So this prefers the bespoke id and falls back to one Windows already
+      trusts. The toast is then labelled with that app's name rather than
+      "Nexus College", which is worse-looking and entirely functional: the hook
+      text, the buttons and the links are unaffected. If the bespoke id ever
+      starts resolving -- a Windows update, a proper installer -- this upgrades
+      to it on its own with no change here.
+    #>
+    param([string]$Preferred)
+    if (Get-StartApps | Where-Object { $_.AppID -eq $Preferred }) { return $Preferred }
+    foreach ($name in 'Windows PowerShell', 'Terminal', 'Windows Terminal') {
+        $app = Get-StartApps | Where-Object { $_.Name -eq $name } | Select-Object -First 1
+        if ($app) {
+            Write-Verbose "AUMID '$Preferred' does not resolve; using $($app.AppID)"
+            return $app.AppID
+        }
+    }
+    return $Preferred
+}
+
+$AppId = Resolve-ToastAppId -Preferred $AppId
+
 function Read-JsonFile($Path) {
     if (-not (Test-Path $Path)) { return $null }
     try { return (Get-Content -Raw -Encoding UTF8 $Path | ConvertFrom-Json) }
