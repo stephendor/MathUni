@@ -43,6 +43,7 @@ def ctx(**over):
         review_page=lambda: b"<html>review</html>",
         problem_page=lambda unit: b"<html>set for %s</html>"
         % unit["id"].encode(),
+        read_asset=lambda rel: (b"asset:" + rel.encode(), "text/css"),
     )
     base.update(over)
     c = Context(**base)
@@ -515,3 +516,68 @@ def test_serving_a_problem_set_changes_no_state():
     c = ctx()
     get("/problems/pw-02", c=c)
     assert c.calls["started"] == [] and c.calls["rated"] == []
+
+
+# --- /katex/, which serves vendored assets and nothing else -----------------
+
+def test_a_vendored_asset_is_served():
+    r = get("/katex/katex.min.css")
+    assert r.status == 200 and b"asset:katex.min.css" in r.body
+
+
+def test_assets_are_cacheable_unlike_state():
+    r = get("/katex/katex.min.css")
+    assert "max-age" in r.headers.get("Cache-Control", "")
+
+
+def test_a_missing_asset_is_404():
+    c = ctx(read_asset=lambda rel: None)
+    assert get("/katex/nope.css", c=c).status == 404
+
+
+def test_read_asset_refuses_to_escape_the_vendor_directory(tmp_path, monkeypatch):
+    """This route serves fonts and executable JS off disk, so containment is
+    checked against the RESOLVED path rather than assumed from the URL."""
+    from scripts.serve import read_asset
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "vendor" / "katex").mkdir(parents=True)
+    (tmp_path / "vendor" / "katex" / "katex.min.css").write_text("ok", encoding="utf-8")
+    (tmp_path / "secret.css").write_text("nope", encoding="utf-8")
+
+    assert read_asset("katex.min.css")[0] == b"ok"
+    for evil in ("../secret.css", "../../secret.css", "..%s secret.css" % chr(92),
+                 "fonts/../../secret.css"):
+        assert read_asset(evil) is None, evil
+
+
+def test_read_asset_refuses_a_file_type_not_on_the_whitelist(tmp_path, monkeypatch):
+    from scripts.serve import read_asset
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "vendor" / "katex").mkdir(parents=True)
+    (tmp_path / "vendor" / "katex" / "notes.md").write_text("x", encoding="utf-8")
+    (tmp_path / "vendor" / "katex" / "evil.py").write_text("x", encoding="utf-8")
+    assert read_asset("notes.md") is None
+    assert read_asset("evil.py") is None
+
+
+def test_read_asset_serves_the_real_vendored_katex():
+    """Against the actual repo, not a fixture: the files must really be there."""
+    from scripts.serve import read_asset
+
+    css = read_asset("katex.min.css")
+    assert css is not None and css[1].startswith("text/css")
+    assert b"katex" in css[0][:2000].lower()
+    assert read_asset("katex.min.js")[1].startswith("application/javascript")
+    assert read_asset("contrib/auto-render.min.js") is not None
+    assert read_asset("fonts/KaTeX_Main-Regular.woff2")[1] == "font/woff2"
+
+
+def test_only_whitelisted_extensions_are_servable():
+    """The route can serve executable JS, so it must never reach state/."""
+    import scripts.serve as srv
+
+    assert set(srv._ASSET_TYPES) == {".css", ".js", ".woff2", ".woff", ".ttf"}
+    for bad in (".json", ".md", ".html", ".py", ".yaml"):
+        assert bad not in srv._ASSET_TYPES

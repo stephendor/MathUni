@@ -73,6 +73,19 @@ DEFAULT_PORT = 8787
 PORT_SCAN = 20
 SERVER_STATE = "state/server.json"
 SERVER_LOG = "state/server.log"
+VENDOR_KATEX = "vendor/katex"
+
+# Only these leave the vendor directory, and only by extension. KaTeX is
+# vendored rather than loaded from a CDN because the college is offline by rule
+# (scripts/gate.py forbids external requests in lessons), and a problem set that
+# needs the internet to be legible would be the worse artifact.
+_ASSET_TYPES = {
+    ".css": "text/css; charset=utf-8",
+    ".js": "application/javascript; charset=utf-8",
+    ".woff2": "font/woff2",
+    ".woff": "font/woff",
+    ".ttf": "font/ttf",
+}
 
 # progress.json is a whole-file read-modify-write and this server is
 # threaded. Two /open requests could load the same snapshot and both save
@@ -110,7 +123,8 @@ class Context:
 
     def __init__(self, token, port, units, load_plan, load_progress, load_heartbeat,
                  read_lesson, start_unit, rate_card, build_dashboard,
-                 home_page=None, review_page=None, problem_page=None):
+                 home_page=None, review_page=None, problem_page=None,
+                 read_asset=None):
         self.token = token
         self.port = port
         self.units = units
@@ -124,6 +138,7 @@ class Context:
         self.home_page = home_page or (lambda: b"")
         self.review_page = review_page or (lambda: b"")
         self.problem_page = problem_page or (lambda unit: None)
+        self.read_asset = read_asset or (lambda rel: None)
 
 
 def valid_host(host_header, port):
@@ -218,6 +233,16 @@ def route(method, path, query, body, ctx):
         ctx.start_unit(unit["id"], unit.get("module"))
         return Response(302, b"", headers={"Location": "/lesson/%s" % unit["id"]})
 
+    if path.startswith("/katex/"):
+        asset = ctx.read_asset(path[len("/katex/"):])
+        if asset is None:
+            return _json(404, {"error": "no such asset"})
+        body, content_type = asset
+        return Response(200, body, content_type,
+                        # Vendored and versioned by the repo, so it may be
+                        # cached hard; SECURITY_HEADERS' no-store is for state.
+                        headers={"Cache-Control": "public, max-age=31536000"})
+
     if path.startswith("/problems/"):
         unit = _lookup_unit(path[len("/problems/"):], ctx)
         if unit is None:
@@ -289,6 +314,29 @@ def ensure_learning_record(uid, title=""):
         "",
     ]))
     return path
+
+
+def read_asset(rel, root=VENDOR_KATEX):
+    """A vendored asset, or None. Containment is checked, not assumed.
+
+    The request path is never trusted to stay inside the vendor directory: the
+    RESOLVED real path must sit under the resolved real root, which also
+    defeats a symlink pointing out of the tree. The extension whitelist is the
+    second gate -- this route serves fonts and executable JS, so it must never
+    be able to reach state/, a lesson, or a .py file.
+    """
+    base = os.path.realpath(root)
+    target = os.path.realpath(os.path.join(base, rel))
+    try:
+        if os.path.commonpath([base, target]) != base:
+            return None
+    except ValueError:          # different drives on Windows
+        return None
+    content_type = _ASSET_TYPES.get(os.path.splitext(target)[1].lower())
+    if content_type is None or not os.path.isfile(target):
+        return None
+    with open(target, "rb") as f:
+        return f.read(), content_type
 
 
 def start_unit(uid, module=None):
@@ -398,7 +446,8 @@ def real_context(token, port):
         load_heartbeat=lambda: read_json("state/last-daily-run.json"),
         read_lesson=read_lesson, start_unit=start_unit, rate_card=rate_card,
         build_dashboard=dashboard, home_page=home_page,
-        review_page=review_page, problem_page=problem_page)
+        review_page=review_page, problem_page=problem_page,
+        read_asset=read_asset)
 
 
 class Handler(BaseHTTPRequestHandler):

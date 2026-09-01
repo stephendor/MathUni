@@ -23,6 +23,8 @@ reads as a different application.
 from datetime import date
 from html import escape
 
+from scripts import mathdoc
+
 from scripts.check_daily_liveness import HEALTHY_OUTCOMES
 
 STALE_DAYS = 7          # an in-progress unit older than this gets a gentle offer
@@ -362,44 +364,68 @@ def render_home(view, links):
 
 PROBLEM_CSS = PALETTE + """
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--ink);margin:0;padding:2rem 1.2rem 4rem}
+body{background:var(--bg);color:var(--ink);margin:0;padding:2rem 1.2rem 4rem;
+font-family:Georgia,serif;line-height:1.7}
 main{max-width:52rem;margin:0 auto}
 header{display:flex;flex-wrap:wrap;align-items:baseline;gap:.8rem;
 border-bottom:1px solid var(--line);padding-bottom:.8rem;margin-bottom:1.4rem;
 font-family:Segoe UI,system-ui,sans-serif}
 header h1{font-size:1.1rem;margin:0;font-weight:600}
 header a{margin-left:auto;color:var(--acc);font-size:.9rem}
+h1,h2,h3,h4{font-family:Segoe UI,system-ui,sans-serif;line-height:1.3}
+main h1{font-size:1.35rem;margin:2rem 0 .6rem}
+main h2{font-size:1.05rem;margin:2.2rem 0 .5rem;color:var(--acc)}
+main h3{font-size:.95rem;margin:1.6rem 0 .4rem}
+hr{border:0;border-top:1px solid var(--line);margin:2rem 0}
+code{background:#26313c;border-radius:5px;padding:.1rem .35rem;font-size:.9em;
+font-family:Consolas,"DejaVu Sans Mono",monospace}
+blockquote{border-left:3px solid var(--warm);margin:1.2rem 0;padding:.2rem 0 .2rem 1rem;
+color:var(--dim)}
+li{margin:.3rem 0}
 .note{background:var(--panel);border-left:4px solid var(--warm);border-radius:10px;
-padding:.8rem 1rem;margin-bottom:1.4rem;font-size:.9rem;color:var(--dim);
-font-family:Segoe UI,system-ui,sans-serif}
-pre{background:var(--panel);border-radius:12px;padding:1.4rem;overflow-x:auto;
-white-space:pre-wrap;word-wrap:break-word;font-size:.95rem;line-height:1.65;
-font-family:Consolas,"DejaVu Sans Mono",monospace;color:#dce3ea}
+padding:.8rem 1rem;margin-bottom:1.6rem;font-size:.9rem;color:var(--dim);
+font-family:Segoe UI,system-ui,sans-serif;line-height:1.55}
+/* KaTeX renders into spans; keep long display maths scrollable rather than
+   letting it push the page sideways. */
+.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
 """
 
 
 def render_problem_set(unit_id, title, markdown):
-    """A problem set as a readable page: the file, framed, not transformed.
+    """A problem set as a readable page, with its LaTeX actually rendered.
 
-    The sets are markdown carrying LaTeX, and nothing here renders either --
-    the lessons are offline-only by rule (gate.py forbids external requests, so
-    no MathJax), and inventing a half-renderer for $...$ would make the source
-    harder to read rather than easier. So the text is shown verbatim in a
-    wrapping <pre>, which is how /today and /problems have always presented it.
+    KaTeX is vendored under vendor/katex and served by this server from
+    /katex/. It is NOT loaded from a CDN: the college works offline by rule
+    (scripts/gate.py forbids external requests in lessons, and a problem set
+    that needs the internet to be legible would be a worse artifact than one
+    that does not). Everything here is same-origin.
 
-    Server-only: the static page links chips straight at the .md on disk, since
-    a page written to disk cannot frame a file it does not own.
+    Server-only: the static dashboard/today.html links chips straight at the
+    .md on disk, because a page written to disk cannot serve fonts.
     """
-    heading = escape("%s%s" % (unit_id, (" — " + title) if title else ""))
+    # The header is a breadcrumb, not a title: every set opens with its own
+    # `# unit — title` heading, and printing the same words twice, three lines
+    # apart, just looks like a bug.
+    heading = "Problem set · " + escape(unit_id)
     return (
-        "<!DOCTYPE html>\n<html lang='en'><head><meta charset='utf-8'>"
+        "<!DOCTYPE html>" + chr(10) +
+        "<html lang='en'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-        "<title>Problem set — %s</title><style>%s</style></head><body><main>"
-        "<header><h1>%s</h1><a href='/'>Back to today</a></header>"
-        "<div class='note'>The set as written. Work it with "
-        "<code>/problems %s</code> for the hint ladder, or submit written "
-        "solutions with <code>/grade %s</code> — both need a model, so both are "
-        "things you start rather than things that happen to you.</div>"
-        "<pre>%s</pre></main></body></html>\n"
-        % (escape(unit_id), PROBLEM_CSS, heading, escape(unit_id),
-           escape(unit_id), escape(markdown)))
+        "<title>Problem set " + escape(unit_id) + "</title>"
+        "<link rel='stylesheet' href='/katex/katex.min.css'>"
+        "<style>" + PROBLEM_CSS + "</style></head><body><main>"
+        "<header><h1>" + heading + "</h1>"
+        "<a href='/'>Back to today</a></header>"
+        "<div class='note'>Work it with <code>/problems " + escape(unit_id) +
+        "</code> for the hint ladder, or submit written solutions with "
+        "<code>/grade " + escape(unit_id) + "</code> — both need a model, "
+        "so both are things you start rather than things that happen to you."
+        "</div>" + mathdoc.to_html(markdown) + "</main>"
+        "<script src='/katex/katex.min.js'></script>"
+        "<script src='/katex/contrib/auto-render.min.js'></script>"
+        "<script>renderMathInElement(document.querySelector('main'),{"
+        "delimiters:["
+        "{left:'$$',right:'$$',display:true},"
+        "{left:'$',right:'$',display:false}"
+        "],throwOnError:false});</script>"
+        "</body></html>" + chr(10))

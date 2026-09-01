@@ -252,8 +252,8 @@ def test_problem_set_page_shows_the_source_verbatim():
     body = "# pw-03" + chr(10) + "Let $f: A " + chr(92) + "to B$ be given."
     out = render_problem_set("pw-03", "Sets and functions", body)
     assert out.startswith("<!DOCTYPE html>")
-    assert "$f: A" in out, "LaTeX is shown as written; nothing renders it"
-    assert "Sets and functions" in out
+    assert "$f: A" in out, "the LaTeX reaches the page for KaTeX to render"
+    assert "Problem set · pw-03" in out
 
 
 def test_problem_set_page_escapes_the_markdown():
@@ -265,8 +265,50 @@ def test_problem_set_page_escapes_the_markdown():
 
 
 def test_problem_set_page_makes_no_external_requests():
+    """It DOES load stylesheets, scripts and fonts -- all same-origin, from the
+    vendored KaTeX. The rule was never "no requests"; it is "nothing off this
+    machine", which is what keeps the college working offline.
+    """
+    import re
+
     from scripts.home import render_problem_set
 
     out = render_problem_set("x-01", "t", "body")
-    for probe in ("http://", "https://", "//cdn", "@import", "<link"):
+    for probe in ("http://", "https://", "//cdn", "@import"):
         assert probe not in out, probe
+    pattern = (r'(?:src|href)=' + '[' + "'" + '"' + ']'
+               + r'([^' + "'" + '"' + r']+)'
+               + '[' + "'" + '"' + ']')
+    refs = re.findall(pattern, out)
+    assert refs, "the page should reference the vendored assets"
+    for ref in refs:
+        assert ref.startswith("/"), "off-origin reference: %s" % ref
+        assert not ref.startswith("//"), "protocol-relative: %s" % ref
+
+
+def test_problem_set_page_loads_katex_from_the_vendored_copy():
+    from scripts.home import render_problem_set
+
+    out = render_problem_set("x-01", "t", "$x$")
+    assert "/katex/katex.min.css" in out
+    assert "/katex/katex.min.js" in out
+    assert "/katex/contrib/auto-render.min.js" in out
+    assert "renderMathInElement" in out
+
+
+def test_problem_set_page_renders_markdown_structure():
+    from scripts.home import render_problem_set
+
+    out = render_problem_set("x-01", "t", "## Problem 1" + chr(10) * 2 + "**Bold** text")
+    assert "<h2>Problem 1</h2>" in out
+    assert "<strong>Bold</strong>" in out
+
+
+def test_the_header_does_not_repeat_the_documents_own_title():
+    """Every set opens with `# unit — title`; printing it again three lines
+    above just reads as a bug."""
+    from scripts.home import render_problem_set
+
+    out = render_problem_set("pw-03", "Sets and functions",
+                             "# pw-03 - Sets and functions")
+    assert out.count("Sets and functions") == 1
