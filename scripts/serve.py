@@ -67,6 +67,7 @@ DEFAULT_PORT = 8787
 PORT_SCAN = 20
 SERVER_STATE = "state/server.json"
 SERVER_LOG = "state/server.log"
+NEWLINE = "\n"
 
 LOOPBACK_NAMES = ("127.0.0.1", "localhost", "::1")
 
@@ -216,6 +217,34 @@ def route(method, path, query, body, ctx):
 
 # --- real wiring ------------------------------------------------------------
 
+def ensure_learning_record(uid, title=""):
+    """Every in-progress unit must have one; scripts/check_id_consistency.py
+    enforces it, and CI caught this server violating it.
+
+    /lecture creates the record when it takes the minute paper. Opening a lesson
+    through the server marks the unit in-progress without any of that live
+    layer, so the record has to be created here or the repo goes inconsistent
+    the moment a toast button is clicked. The stub says plainly that the minute
+    paper has not happened yet rather than fabricating one.
+    """
+    path = "learning-records/%s.md" % uid
+    if os.path.exists(path):
+        return path
+    heading = "# Learning Record — %s%s" % (uid, (": " + title) if title else "")
+    write_atomic(path, (NEWLINE).join([
+        heading,
+        "",
+        "## Session: %s (lesson opened)" % date.today().isoformat(),
+        "",
+        "Opened from the local server. No minute paper yet: that is the live",
+        "layer of /lecture, which a page cannot do on its own. Run",
+        "`/lecture %s` when you want the Socratic pass and the minute paper," % uid,
+        "and append below rather than replacing this.",
+        "",
+    ]))
+    return path
+
+
 def start_unit(uid):
     """Mark a unit in-progress when its lesson is actually opened.
 
@@ -234,6 +263,8 @@ def start_unit(uid):
         # as though it were.
         rec["last_studied"] = date.today().isoformat()
     progress[uid] = rec
+    if rec.get("status") == "in-progress":
+        ensure_learning_record(uid)
     write_atomic("state/progress.json", json.dumps(progress, indent=2) + "\n")
     return rec
 

@@ -219,9 +219,16 @@ def _run_start_unit(uid, progress):
     import scripts.serve as srv
 
     written = {}
+
+    def capture(path, text):
+        # start_unit also writes learning-records/<unit>.md, which is markdown.
+        # Only progress.json is JSON, so only that one is parsed.
+        if path.endswith("progress.json"):
+            written.update(json.loads(text))
+
     real_read, real_write = srv.read_json, srv.write_atomic
     srv.read_json = lambda path, default=None: dict(progress)
-    srv.write_atomic = lambda path, text: written.update(json.loads(text))
+    srv.write_atomic = capture
     try:
         srv.start_unit(uid)
     finally:
@@ -368,3 +375,54 @@ def test_attach_stdio_gives_a_windowless_run_somewhere_to_write(tmp_path):
             pass
         sys.stdout, sys.stderr = real_out, real_err
     assert "hello from pythonw" in target.read_text(encoding="utf-8")
+
+
+# --- the repo invariant CI caught this server breaking ----------------------
+
+def test_marking_in_progress_creates_the_learning_record(tmp_path, monkeypatch):
+    """check_id_consistency.py requires learning-records/<unit>.md for every
+    in-progress unit. /lecture created it; the server did not, so one toast
+    click put the repo in a state its own CI rejects."""
+    import scripts.serve as srv
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "learning-records").mkdir()
+    written = {}
+    monkeypatch.setattr(srv, "read_json",
+                        lambda path, default=None: {"pw-02": {"status": "unlocked"}})
+    real_write = srv.write_atomic
+    monkeypatch.setattr(srv, "write_atomic",
+                        lambda path, text: written.__setitem__(path, text))
+    srv.start_unit("pw-02")
+    assert "learning-records/pw-02.md" in written
+    assert "No minute paper yet" in written["learning-records/pw-02.md"]
+    srv.write_atomic = real_write
+
+
+def test_no_learning_record_is_created_for_a_locked_unit(tmp_path, monkeypatch):
+    """Opening a locked lesson does not make it in-progress, so it must not
+    manufacture a record either."""
+    import scripts.serve as srv
+
+    monkeypatch.chdir(tmp_path)
+    written = {}
+    monkeypatch.setattr(srv, "read_json",
+                        lambda path, default=None: {"top-99": {"status": "locked"}})
+    monkeypatch.setattr(srv, "write_atomic",
+                        lambda path, text: written.__setitem__(path, text))
+    srv.start_unit("top-99")
+    assert not any(k.startswith("learning-records/") for k in written)
+
+
+def test_an_existing_learning_record_is_never_overwritten(tmp_path, monkeypatch):
+    import scripts.serve as srv
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "learning-records").mkdir()
+    existing = tmp_path / "learning-records" / "pw-02.md"
+    existing.write_text("# real minute paper", encoding="utf-8")
+    written = {}
+    monkeypatch.setattr(srv, "write_atomic",
+                        lambda path, text: written.__setitem__(path, text))
+    srv.ensure_learning_record("pw-02")
+    assert written == {}, "a real record must survive"
