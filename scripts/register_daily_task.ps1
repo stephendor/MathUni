@@ -142,8 +142,9 @@ if ($PSCmdlet.ShouldProcess($AumidKey, 'register AppUserModelID for toasts')) {
     New-Item -Path $AumidKey -Force | Out-Null
     New-ItemProperty -Path $AumidKey -Name 'DisplayName' -Value 'Nexus College' `
         -PropertyType String -Force | Out-Null
-    New-ItemProperty -Path $AumidKey -Name 'ShowInSettings' -Value 0 `
-        -PropertyType DWord -Force | Out-Null
+    # Deliberately NOT setting ShowInSettings=0: hiding the app from the
+    # notifications UI was a tidiness choice made unasked, and it takes away
+    # the one place the toast behaviour can be inspected or turned off.
     Write-Output "registered AUMID: $AppId"
 }
 
@@ -257,11 +258,19 @@ if ($PSCmdlet.ShouldProcess($shortcut, 'create Start Menu shortcut carrying the 
     # recorded, and invisible: the notification arrived and nobody saw it.
     # explorer.exe is an executable and forwards its argument to the default
     # browser, so the shortcut both indexes and does something worth clicking.
-    $lnk.TargetPath       = (Join-Path $env:WINDIR 'explorer.exe')
-    $lnk.Arguments        = ([uri](Join-Path $RepoRoot 'dashboard' |
-                             Join-Path -ChildPath 'today.html')).AbsoluteUri
+    # The target must be an ORDINARY executable. Two earlier attempts failed
+    # for the same underlying reason -- Windows would not index the shortcut,
+    # so the AUMID never resolved, so toasts were filed into the Action Center
+    # with no banner: delivered, recorded, invisible.
+    #   * dashboard/today.html -- a document is not an app.
+    #   * explorer.exe         -- Windows excludes its own shell binaries.
+    # pythonw.exe running open_today.py is a real executable AND does the
+    # right thing when clicked, so the shortcut is honest rather than a decoy.
+    $lnk.TargetPath       = $pythonw
+    $lnk.Arguments        = 'scripts\open_today.py'
     $lnk.WorkingDirectory = $RepoRoot
-    $lnk.Description      = "Today's study day"
+    $lnk.IconLocation     = "$pythonw,0"
+    $lnk.Description      = "Open today's study day"
     $lnk.Save()
     [NexusToast.Aumid]::Set($shortcut, $AppId)
     $readback = [NexusToast.Aumid]::Get($shortcut)
