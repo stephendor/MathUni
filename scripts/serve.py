@@ -44,6 +44,7 @@ import sys
 import threading
 import urllib.request
 from datetime import date
+from http.client import HTTPException
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
@@ -544,10 +545,49 @@ def _is_our_server(port, host=BIND):
         url = "http://%s:%d/healthz" % (host, port)
         with urllib.request.urlopen(url, timeout=0.5) as resp:
             return "NexusCollege" in resp.headers.get("Server", "")
-    except OSError:
+    except (OSError, HTTPException):
         # urllib.error.HTTPError subclasses OSError, so a live-but-unhappy
         # server lands here too, and is correctly treated as not ours.
+        #
+        # HTTPException does NOT subclass OSError. A port occupied by something
+        # that is not an HTTP server at all raises BadStatusLine, and without
+        # this the exception escapes main() before bind_server ever gets to try
+        # 8788 -- so an unrelated listener on 8787 would stop the college from
+        # starting rather than move it one port along.
         return False
+
+
+def find_running_server(default_port=DEFAULT_PORT, state_path=SERVER_STATE):
+    """The port an existing college is already answering on, or None.
+
+    Checking only `default_port` is not enough. Once an unrelated process holds
+    8787 the college lives at 8788, and a second invocation finds 8787
+    unfamiliar, concludes nothing of ours is running, and starts a THIRD
+    college at 8789 -- which then overwrites state/server.json while the
+    working instance is still alive. Every client follows the file to the
+    newest process, and the one holding the real state becomes unreachable.
+
+    The recorded port is consulted first because it is the cheap answer, then
+    the scan range, because the record can be missing or wrong.
+    """
+    recorded = None
+    try:
+        with open(state_path, encoding="utf-8-sig") as f:
+            record = json.load(f)
+        if isinstance(record, dict) and isinstance(record.get("port"), int):
+            recorded = record["port"]
+    except (OSError, ValueError):
+        pass
+
+    seen = set()
+    for candidate in ([recorded] if recorded else []) + list(
+            range(default_port, default_port + PORT_SCAN)):
+        if candidate in seen or not 1 <= candidate <= 65535:
+            continue
+        seen.add(candidate)
+        if port_in_use(candidate) and _is_our_server(candidate):
+            return candidate
+    return None
 
 
 def _attach_stdio(path=SERVER_LOG):
@@ -584,9 +624,12 @@ def main(argv=None):
         return 2
 
     # A logon-triggered service can fire more than once; starting a second
-    # college on top of the first is worse than doing nothing.
-    if port_in_use(args.port) and _is_our_server(args.port):
-        print("already running on http://%s:%d/" % (BIND, args.port))
+    # college on top of the first is worse than doing nothing. Scan, rather
+    # than checking one port: the first instance may itself have been pushed
+    # off 8787 by something unrelated.
+    running = find_running_server(args.port)
+    if running is not None:
+        print("already running on http://%s:%d/" % (BIND, running))
         return 0
 
     _attach_stdio()

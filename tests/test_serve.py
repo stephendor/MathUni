@@ -583,3 +583,82 @@ def test_only_whitelisted_extensions_are_servable():
     assert set(srv._ASSET_TYPES) == {".css", ".js", ".woff2", ".woff", ".ttf"}
     for bad in (".json", ".md", ".html", ".py", ".yaml"):
         assert bad not in srv._ASSET_TYPES
+
+
+# --- finding an instance that is already running ----------------------------
+
+def test_a_college_on_a_fallback_port_is_found(tmp_path, monkeypatch):
+    """Checking only 8787 was the bug. Once something unrelated holds it, the
+    college lives at 8788; a second invocation found 8787 unfamiliar, decided
+    nothing of ours was running, and started a THIRD at 8789 -- which then
+    overwrote state/server.json while the working instance was still alive."""
+    import scripts.serve as s
+
+    monkeypatch.setattr(s, "port_in_use", lambda p, host=s.BIND, timeout=0.35:
+                        p in (8787, 8788))
+    monkeypatch.setattr(s, "_is_our_server", lambda p, host=s.BIND: p == 8788)
+    assert s.find_running_server(8787, str(tmp_path / "absent.json")) == 8788
+
+
+def test_the_recorded_port_is_consulted_first(tmp_path, monkeypatch):
+    import json as j
+
+    import scripts.serve as s
+
+    rec = tmp_path / "server.json"
+    rec.write_text(j.dumps({"port": 9101}), encoding="utf-8")
+    asked = []
+
+    def seen(p, host=s.BIND, timeout=0.35):
+        asked.append(p)
+        return True
+
+    monkeypatch.setattr(s, "port_in_use", seen)
+    monkeypatch.setattr(s, "_is_our_server", lambda p, host=s.BIND: p == 9101)
+    assert s.find_running_server(8787, str(rec)) == 9101
+    assert asked[0] == 9101, "the cheap answer is asked for first"
+
+
+def test_an_unrelated_listener_does_not_count_as_ours(tmp_path, monkeypatch):
+    import scripts.serve as s
+
+    monkeypatch.setattr(s, "port_in_use", lambda p, host=s.BIND, timeout=0.35: True)
+    monkeypatch.setattr(s, "_is_our_server", lambda p, host=s.BIND: False)
+    assert s.find_running_server(8787, str(tmp_path / "absent.json")) is None
+
+
+def test_a_corrupt_server_record_does_not_stop_the_scan(tmp_path, monkeypatch):
+    import scripts.serve as s
+
+    rec = tmp_path / "server.json"
+    rec.write_text("[not an object]", encoding="utf-8")
+    monkeypatch.setattr(s, "port_in_use", lambda p, host=s.BIND, timeout=0.35: True)
+    monkeypatch.setattr(s, "_is_our_server", lambda p, host=s.BIND: p == 8790)
+    assert s.find_running_server(8787, str(rec)) == 8790
+
+
+def test_a_recorded_port_outside_the_valid_range_is_ignored(tmp_path, monkeypatch):
+    import json as j
+
+    import scripts.serve as s
+
+    rec = tmp_path / "server.json"
+    rec.write_text(j.dumps({"port": 999999}), encoding="utf-8")
+    monkeypatch.setattr(s, "port_in_use", lambda p, host=s.BIND, timeout=0.35: False)
+    monkeypatch.setattr(s, "_is_our_server", lambda p, host=s.BIND: True)
+    assert s.find_running_server(8787, str(rec)) is None
+
+
+def test_a_malformed_http_responder_is_not_ours_rather_than_fatal(monkeypatch):
+    """HTTPException does NOT subclass OSError. A port held by something that
+    is not an HTTP server raises BadStatusLine, and letting that escape stopped
+    the college from starting at all instead of moving it one port along."""
+    from http.client import BadStatusLine
+
+    import scripts.serve as s
+
+    def boom(url, timeout=0.5):
+        raise BadStatusLine("garbage")
+
+    monkeypatch.setattr(s.urllib.request, "urlopen", boom)
+    assert s._is_our_server(8787) is False

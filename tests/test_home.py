@@ -333,3 +333,109 @@ def test_the_header_does_not_repeat_the_documents_own_title():
     out = render_problem_set("pw-03", "Sets and functions",
                              "# pw-03 - Sets and functions")
     assert out.count("Sets and functions") == 1
+
+
+# --- a plan from another day is worse than no plan --------------------------
+
+def test_yesterdays_plan_is_not_rendered_under_todays_date():
+    """state/today.json is only rewritten by a successful build, so a failed
+    build leaves yesterday's object on disk and the server hands it straight
+    to build_view. Rendering it puts yesterday's lectures under today's date,
+    as live links, with the banner above them warning about nothing useful."""
+    stale = dict(PLAN, date="2020-01-01")
+    v = build_view(stale, PROGRESS, SYL, STREAKS,
+                   {"date": "2020-01-01", "outcome": "built"}, TODAY)
+    assert v["stale_plan"] is True
+    assert v["lectures"] == []
+    assert v["problems"] == []
+    assert v["hook"] == ""
+
+
+def test_todays_plan_is_not_flagged_stale():
+    assert view()["stale_plan"] is False
+
+
+def test_an_absent_plan_is_not_a_stale_one():
+    """No plan at all is a different condition, and says so differently."""
+    v = build_view({}, PROGRESS, SYL, STREAKS, BEAT, TODAY)
+    assert v["stale_plan"] is False and v["has_plan"] is False
+
+
+def test_the_banner_explains_why_the_page_is_thin():
+    stale = dict(PLAN, date="2020-01-01")
+    html = render_home(build_view(stale, PROGRESS, SYL, STREAKS,
+                                  {"date": "2020-01-01", "outcome": "built"},
+                                  TODAY), StaticLinks())
+    assert "set aside" in html
+    assert "Dominoes, infinitely." not in html, "no stale hook may survive"
+
+
+def test_a_healthy_heartbeat_with_a_stale_plan_still_says_something():
+    """Should not happen -- daily.py writes both -- but silence is the wrong
+    response to two files disagreeing about what day it is."""
+    stale = dict(PLAN, date="2020-01-01")
+    html = render_home(build_view(stale, PROGRESS, SYL, STREAKS, BEAT, TODAY),
+                       StaticLinks())
+    assert "Today's plan is missing" in html
+
+
+# --- the liveness banner is the page's last line of defence -----------------
+
+def test_an_unparseable_heartbeat_date_does_not_take_the_page_down():
+    """_days_since returns None for a date it cannot read, deliberately. That
+    branch formatted it with %d and raised, turning the one surface whose job
+    is to survive bad state into an HTTP 500."""
+    html = render_home(view(beat={"date": "not-a-date", "outcome": "built"}),
+                       StaticLinks())
+    assert "not a date" in html
+    assert "scripts/daily.py" in html
+
+
+def test_a_heartbeat_that_is_not_a_record_is_survivable():
+    for beat in ({}, None):
+        html = render_home(view(beat=beat), StaticLinks())
+        assert "day builder has not run" in html
+
+
+# --- the rendered vocabulary the problem pages now need ---------------------
+
+def test_problem_css_styles_the_blocks_mathdoc_emits():
+    from scripts.home import PROBLEM_CSS
+
+    assert "pre{" in PROBLEM_CSS, "fenced code needs a scroll box"
+    assert "table{" in PROBLEM_CSS and "th,td{" in PROBLEM_CSS
+    assert "overflow-x:auto" in PROBLEM_CSS
+
+
+# --- the page written when there is no day to show --------------------------
+
+def test_the_unbuilt_page_says_what_to_run():
+    from scripts.home import render_unbuilt_page
+
+    page = render_unbuilt_page(TODAY, "The last recorded run was 2020-01-01.")
+    assert "No day has been built" in page and TODAY in page
+    assert "2020-01-01" in page
+    assert "python scripts/daily.py" in page
+    assert "check_daily_liveness" in page
+
+
+def test_the_unbuilt_page_escapes_what_it_is_told():
+    from scripts.home import render_unbuilt_page
+
+    page = render_unbuilt_page(TODAY, "<script>alert(1)</script>")
+    assert "<script>alert(1)" not in page and "&lt;script&gt;" in page
+
+
+def test_the_unbuilt_page_needs_no_state_to_render():
+    """It is written from a crash handler and from a Start Menu shortcut, and
+    both must work when the thing that failed is the state it would read."""
+    import ast
+    import pathlib
+
+    src = (pathlib.Path(__file__).resolve().parents[1]
+           / "scripts" / "home.py").read_text(encoding="utf-8")
+    fn = next(n for n in ast.walk(ast.parse(src))
+              if isinstance(n, ast.FunctionDef) and n.name == "render_unbuilt_page")
+    called = {n.func.id for n in ast.walk(fn)
+              if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
+    assert called <= {"escape"}, called

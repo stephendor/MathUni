@@ -25,10 +25,15 @@ is exactly the dependency this loop was rebuilt to remove.
    resume it at the recorded step rather than starting over.
 4. **Run the day** as `state/sessions/<today>.md` lays it out:
    - **Warm-up (~10 min)** — the SRS session. Prefer the page:
-     `<base>/review` — base from `state/server.json`, since the port is not
-     always 8787 — runs the whole loop offline and writes each rating straight
-     to the deck, at zero token cost. Fall back to the /review
-     skill's conversational mode when Stephen wants reteaching on misses.
+     `<base>/review` runs the whole loop offline and writes each rating
+     straight to the deck, at zero token cost. Resolve `<base>` with
+     `python scripts/open_today.py --print`, which asks the server who it is
+     before believing it. Do NOT read the port out of `state/server.json` and
+     use it: a dead process leaves that file behind, the port may since have
+     been taken by something else, and posting ratings at a stranger is worse
+     than not reviewing. If nothing answers, start `python scripts/serve.py`,
+     or fall back to the /review skill's conversational mode — which is also
+     the right choice when Stephen wants reteaching on misses.
      The queue is capped at 15, oldest-due first; the backlog drains across
      sessions and is not a debt to clear in one sitting.
    - **Lecture 1 and Lecture 2** — the two units named in the plan. Follow

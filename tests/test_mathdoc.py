@@ -216,6 +216,97 @@ def test_anything_outside_the_whitelist_stays_escaped():
             assert "&lt;" in out, attack
 
 
+# --- fenced code, which is the whole of the lab sets ------------------------
+
+F = "`" * 3
+
+
+def test_fenced_code_keeps_its_lines_and_indentation():
+    """261 fences across the nine lab sets. Through the ordinary rules they
+    lose indentation, join into one paragraph, and `#` comments become <h1>."""
+    out = to_html(F + "python\nfor i in x:\n    # step\n    f(i)\n" + F)
+    assert "<pre><code" in out and "</code></pre>" in out
+    assert "    # step" in out
+    assert "<h1>" not in out
+
+
+def test_fence_info_string_yields_only_the_language():
+    """The labs write ```python id=env; the id is not part of the language."""
+    out = to_html(F + "python id=env\nx = 1\n" + F)
+    assert 'class="lang-python"' in out
+
+
+def test_fence_body_is_escaped_not_interpreted():
+    out = to_html(F + "\n<script>alert(1)</script>\n" + F)
+    assert "&lt;script&gt;" in out and "<script>alert(1)" not in out
+
+
+def test_an_unclosed_fence_does_not_lose_the_rest_of_the_file():
+    out = to_html(F + "python\nx = 1\nstill here")
+    assert "still here" in out
+
+
+def test_markdown_inside_a_fence_is_left_alone():
+    out = to_html(F + "\n**not bold** and *not italic*\n" + F)
+    assert "<strong>" not in out and "<em>" not in out
+
+
+# --- tables -----------------------------------------------------------------
+
+def test_a_table_becomes_a_table():
+    out = to_html("| a | b |\n|---|---|\n| 1 | 2 |")
+    assert "<table>" in out and out.count("<th>") == 2
+    assert out.count("<tr>") == 2 and out.count("<td>") == 2
+
+
+def test_empty_cells_survive_because_the_grids_are_fill_in():
+    out = to_html("| Equation | unique? |\n|---|---|\n| x | |")
+    assert "<td></td>" in out
+
+
+def test_maths_in_a_cell_is_not_split_on_its_own_pipes():
+    """Cells carry `$\\|x\\|$` and `$\\{x \\mid P\\}$`; splitting the raw line
+    would cut the formula in half. Extraction happens first for this reason."""
+    out = to_html("| n | v |\n|---|---|\n| %s\\|x\\|%s | %s\\{a \\mid b\\}%s |"
+                  % (D, D, D, D))
+    assert out.count("<td>") == 2
+    assert "\\|x\\|" in out and "\\mid" in out
+
+
+def test_a_leading_pipe_line_is_not_a_table_without_a_separator():
+    """an2-07 line 122 opens with `|-1|\\,\\|...` -- a display formula broken
+    across lines, so the inline rule never extracted it. A one-line shape test
+    would render it as a table."""
+    out = to_html("some text\n|-1|\\,\\|v-u\\| = 1\nmore text")
+    assert "<table>" not in out
+
+
+def test_the_separator_row_is_not_emitted_as_content():
+    out = to_html("| a |\n|---|\n| 1 |")
+    assert "---" not in out
+
+
+def test_a_table_closes_before_the_following_paragraph():
+    out = to_html("| a |\n|---|\n| 1 |\n\nafter")
+    assert out.index("</table>") < out.index("<p>after</p>")
+
+
+def test_every_lab_and_table_set_renders_its_structure():
+    """The corpus check counts dollars; this one checks the blocks arrived."""
+    import pathlib as pl
+
+    root = pl.Path(__file__).resolve().parents[1]
+    for name in ("lab-01", "lab-05", "lab-09"):
+        out = to_html((root / "problems" / "sets" / ("%s.md" % name))
+                      .read_text(encoding="utf-8"))
+        assert "<pre><code" in out, name
+    for name in ("an2-04", "an2-05", "cap-01"):
+        out = to_html((root / "problems" / "sets" / ("%s.md" % name))
+                      .read_text(encoding="utf-8"))
+        assert "<table>" in out, name
+        assert "|---|" not in out, name
+
+
 def test_the_whitelist_carries_no_attribute_parsing():
     """It is a tuple of literal strings; nothing is built from the source."""
     from scripts.mathdoc import _ALLOWED_HTML

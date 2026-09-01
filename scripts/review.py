@@ -181,6 +181,10 @@ _SCRIPT = """
         return resp.json();
       })
       .then(function(){
+        // A retry that succeeds must retract the earlier failure. Leaving the
+        // notice up while the queue advances says the rating did not save when
+        // it did, which invites a reload and a duplicate review.
+        err.style.display = 'none';
         tally[r]++; i++; revealed = false; busy = false; draw();
       })
       .catch(function(e){

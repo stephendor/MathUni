@@ -25,7 +25,11 @@ text, and only the content it contains is escaped. The markup produced here is
 a fixed vocabulary of tags; nothing from the file becomes markup by accident.
 
 The markdown subset is deliberately small — headings, rules, emphasis, inline
-code, blockquotes, lists, paragraphs. That is what the sets actually use. A
+code, blockquotes, lists, paragraphs, fenced code and tables. That is what the
+sets actually use, and the last two are not decoration: the nine lab sets are
+261 fences of Python and pinned environments, and six sets use tables as
+fill-in grids whose empty cells are the exercise. Both need to survive as
+structure, because both are unreadable joined into a paragraph. A
 fuller implementation would be more code to be wrong in, and pulling in a real
 markdown library for this would add the project's first runtime dependency.
 """
@@ -42,6 +46,18 @@ _INLINE = re.compile(r"(?<!\$)\$([^$\n]+?)\$(?!\$)")
 # cannot collide with anything an author wrote.
 _MARK = "\x00m%d\x00"
 _MARK_RE = re.compile("\x00m(\\d+)\x00")
+
+# A fence opens with any info string -- the lab sets write ```python id=env --
+# and closes with a bare one. Only the first word is a language.
+_FENCE_OPEN = re.compile(r"^\s*```(.*)$")
+_FENCE_CLOSE = re.compile(r"^\s*```\s*$")
+
+# A row is a table row only when the NEXT line is a separator. That guard is
+# load-bearing: an2-07 line 122 begins `|-1|\,\|\mathbf{v}...` -- a display
+# formula broken across two lines, so the inline rule never extracted it -- and
+# a shape test on one line alone would render it as a one-cell table.
+_TABLE_ROW = re.compile(r"^\s*\|(.+)\|\s*$")
+_TABLE_SEP = re.compile(r"^\s*\|[\s:|-]+\|\s*$")
 
 _HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
 _HR = re.compile(r"^\s*(?:---+|\*\*\*+|___+)\s*$")
@@ -122,6 +138,27 @@ def _close(out, stack):
         out.append("</%s>" % stack.pop())
 
 
+def _cells(line):
+    """Split a table row on `|`.
+
+    Safe only because maths came out first. Cells routinely contain `|` --
+    `$\\|x\\|$`, `$\\{x \\mid P\\}$` -- and splitting the raw line would cut
+    formulae in half. By here every span is an opaque placeholder.
+    """
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def _table(header, rows):
+    parts = ["<table><thead><tr>"]
+    parts += ["<th>%s</th>" % _text(c) for c in header]
+    parts.append("</tr></thead><tbody>")
+    for row in rows:
+        parts.append("<tr>%s</tr>"
+                     % "".join("<td>%s</td>" % _text(c) for c in row))
+    parts.append("</tbody></table>")
+    return "".join(parts)
+
+
 def to_html(markdown):
     """The markdown subset the problem sets actually use."""
     protected, spans = extract_math(markdown)
@@ -132,12 +169,49 @@ def to_html(markdown):
             out.append("<p>%s</p>" % _text(" ".join(para)))
             para.clear()
 
-    for raw in protected.split(chr(10)):
-        line = raw.rstrip()
+    # An index, not `for`: fences and tables consume more than one line.
+    lines = protected.split(chr(10))
+    idx = -1
+    while idx + 1 < len(lines):
+        idx += 1
+        line = lines[idx].rstrip()
 
         if not line.strip():
             flush()
             _close(out, stack)
+            continue
+
+        # Fenced code, verbatim. The nine lab sets are 261 fences of Python,
+        # pinned environments and expected output; run through the ordinary
+        # rules they lose their indentation, join into one paragraph, and every
+        # `#` comment becomes an <h1>. KaTeX ignores <pre>/<code> by default,
+        # so a `$` inside a fence stays a dollar sign.
+        fence = _FENCE_OPEN.match(line)
+        if fence:
+            flush()
+            _close(out, stack)
+            body = []
+            idx += 1
+            while idx < len(lines) and not _FENCE_CLOSE.match(lines[idx].rstrip()):
+                body.append(lines[idx])
+                idx += 1
+            lang = fence.group(1).strip().split(" ")[0]
+            out.append("<pre><code%s>%s</code></pre>"
+                       % (' class="lang-%s"' % escape(lang) if lang else "",
+                          escape(chr(10).join(body))))
+            continue
+
+        if (_TABLE_ROW.match(line) and idx + 1 < len(lines)
+                and _TABLE_SEP.match(lines[idx + 1].rstrip())):
+            flush()
+            _close(out, stack)
+            header = _cells(line)
+            idx += 1                                    # the separator row
+            rows = []
+            while idx + 1 < len(lines) and _TABLE_ROW.match(lines[idx + 1].rstrip()):
+                idx += 1
+                rows.append(_cells(lines[idx].rstrip()))
+            out.append(_table(header, rows))
             continue
 
         if _RAW_BLOCK.match(line):

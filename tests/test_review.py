@@ -134,3 +134,15 @@ def test_card_text_reaches_the_page_only_through_the_json_block():
     out = render_review([card("x", "2026-08-01", front="<img onerror=alert(1)>")],
                         "TOK", 1)
     assert "<img onerror" not in out
+
+
+def test_a_successful_retry_retracts_the_failure_notice():
+    """Without this the queue advances while the page still says the rating did
+    not save, which invites a reload and a second review of the same card."""
+    from scripts.review import render_review
+
+    html = render_review(build_queue(DECK[:2]), "TOK", 2)
+    success = html[html.index(".then(function(){"):]
+    hide = success.index("err.style.display = 'none'")
+    advance = success.index("tally[r]++")
+    assert hide < advance, "retract before advancing, not after"

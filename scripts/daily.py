@@ -39,9 +39,21 @@ from datetime import date, datetime
 
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from scripts.home import StaticLinks, build_view, render_home
-from scripts.validate_syllabus import load_syllabus
+from scripts.home import (StaticLinks, build_view, render_home,
+                          render_unbuilt_page)
 from srs.scheduler import due_cards, load_deck
+
+# scripts.validate_syllabus is NOT imported here, and the omission is the point.
+# It is the only thing in this file's reach that needs PyYAML, so it is the only
+# import that can fail because an interpreter's environment changed underneath
+# it -- which is what happened during install, when a conda python without
+# pyyaml was registered and this script died at import, before main() had a
+# handler to write a "failed" heartbeat with. The task then reported success,
+# because the notification action that runs afterwards exits 0 by design.
+#
+# The installer proves the interpreter can import this module, but it proves it
+# once, at registration. Importing inside the guarded path means a dependency
+# that breaks later still produces a heartbeat that says so.
 
 PLAN_HEADING = "## Plan (pre-built)"
 
@@ -231,6 +243,60 @@ def read_json(path, default=None):
         return json.load(f)
 
 
+def read_required_json(path):
+    """Like read_json, but absence is an error rather than an empty default."""
+    if not os.path.exists(path):
+        raise OSError("%s is missing; run scripts/init_state.py" % path)
+    with open(path, encoding="utf-8") as f:
+        loaded = json.load(f)
+    if not isinstance(loaded, dict):
+        raise ValueError("%s does not contain an object" % path)
+    return loaded
+
+
+def plan_is_usable(obj, today):
+    """True when a persisted plan can stand in for a rebuild.
+
+    The date alone is not enough. `already-built` publishes the persisted
+    object verbatim -- to the heartbeat, the static page and the server -- so
+    `{"date": today}` and nothing else would suppress the rebuild and then
+    publish an empty day through all three, permanently: the next run finds the
+    same date and does the same thing. A plan that cannot be published is the
+    strongest possible argument for building a new one.
+
+    Deliberately a shape check, not a schema: it asks for what the page and the
+    heartbeat actually read, so a plan gaining a field does not fail here.
+    """
+    if not isinstance(obj, dict) or obj.get("date") != today:
+        return False
+    if not isinstance(obj.get("lectures"), list):
+        return False
+    if not all(isinstance(lec, dict) and lec.get("id") for lec in obj["lectures"]):
+        return False
+    if not isinstance(obj.get("problem_candidates"), list):
+        return False
+    if not isinstance(obj.get("rest_day"), bool):
+        return False
+    # A study day with no lectures is not a plan, it is an empty file with
+    # today's date on it. A rest day with none is exactly right.
+    return bool(obj["lectures"]) or obj["rest_day"]
+
+
+def _clean_mastery(raw):
+    """mastery.json reduced to the shape problem_candidates can read.
+
+    It is hand-edited and model-written, so `["x"]` or `{"aa-01": []}` are both
+    reachable, and `.get` on either raises AttributeError deep inside the
+    build. That crash is caught and turns into a "failed" heartbeat, but it
+    takes the whole day with it -- over a file that only decides the ORDER of
+    the problem candidates. Unreadable entries are treated as unattempted,
+    which is what they were before anyone recorded a score.
+    """
+    if not isinstance(raw, dict):
+        return {}
+    return {uid: rec for uid, rec in raw.items() if isinstance(rec, dict)}
+
+
 def available_problem_sets(root="problems/sets"):
     if not os.path.isdir(root):
         return set()
@@ -252,18 +318,34 @@ def _build(argv=None):
         return 2
 
     try:
+        from scripts.validate_syllabus import load_syllabus
+
         syllabus = load_syllabus("curriculum/syllabus.yaml")
-        schedule = read_json("state/schedule.json", {"study_days": []})
-        progress = read_json("state/progress.json")
+        # schedule.json and progress.json are tracked, load-bearing, and have
+        # no defensible default. An absent schedule made every date a rest day;
+        # an absent progress file produced a day with no lectures. Both wrote a
+        # healthy heartbeat, so the liveness check reported success while the
+        # learner was silently assigned nothing -- a plausible empty day is
+        # worse than a loud failure, and is the failure mode this loop exists
+        # to remove. Missing means broken, not empty.
+        schedule = read_required_json("state/schedule.json")
+        progress = read_required_json("state/progress.json")
+        # These two are genuinely optional: streaks are cosmetic, and mastery
+        # only orders the problem candidates.
         streaks = read_json("state/streaks.json")
-        mastery = read_json("state/mastery.json")
+        mastery = _clean_mastery(read_json("state/mastery.json"))
         deck = load_deck()
         stats = {"due_today": len(due_cards(deck, today)),
                  "total": len(deck.get("cards", []))}
     except (OSError, ValueError, KeyError) as exc:
-        # Exit 2, not 1: the plan was not built AND no verdict was reached.
-        print("daily.py: could not read state — %s" % exc, file=sys.stderr)
-        return 2
+        # Re-raised rather than returned. main() is the only place that writes
+        # a "failed" heartbeat and retracts the stale static page, and under
+        # pythonw.exe this message goes nowhere -- returning 2 here left the
+        # scheduled run with no trace at all, which is the shape of failure
+        # this whole loop exists to make impossible. Exit 2 still: main()
+        # returns 2, so a run that reached no verdict still cannot look like a
+        # run that had nothing to do.
+        raise RuntimeError("could not read state — %s" % exc) from exc
 
     plan_path = "state/sessions/%s.md" % today
     plan = build_plan(syllabus, progress, stats, today, streaks,
@@ -282,7 +364,7 @@ def _build(argv=None):
         persisted = read_json("state/today.json")
     except ValueError:
         persisted = {}
-    plan_current = isinstance(persisted, dict) and persisted.get("date") == today
+    plan_current = plan_is_usable(persisted, today)
     session_exists = os.path.exists(plan_path)
 
     if plan["rest_day"]:
@@ -363,6 +445,17 @@ def main(argv=None):
             }, indent=2) + "\n")
         except OSError:
             pass    # nothing left to do; the missing heartbeat still reads stale
+        try:
+            # Retract the static page too. Left alone it is yesterday's, and it
+            # carries yesterday's healthy banner, so the offline front door
+            # would keep offering yesterday's lectures as today's work while
+            # the heartbeat next to it said "failed".
+            write_atomic("dashboard/today.html", render_unbuilt_page(
+                date.today().isoformat(),
+                "The builder ran and failed: %s: %s."
+                % (type(exc).__name__, exc)))
+        except OSError:
+            pass
         print("daily.py: build failed - %s" % exc, file=sys.stderr)
         return 2
 

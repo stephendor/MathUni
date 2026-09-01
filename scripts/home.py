@@ -161,6 +161,16 @@ def build_view(plan, progress, syllabus, streaks, heartbeat, today,
     mod_titles = {m["id"]: m.get("title", m["id"]) for m in syllabus.get("modules", [])}
     plan = plan or {}
 
+    # A plan from another day is worse than no plan. state/today.json is only
+    # rewritten by a successful build, so when today's build fails yesterday's
+    # object is still on disk and the server hands it straight to this
+    # function. Rendering it puts yesterday's lectures under today's date, as
+    # live links: the liveness banner would warn while the page below it stayed
+    # confidently actionable. Discard it and let the page say it has nothing.
+    stale_plan = bool(plan) and plan.get("date") != today
+    if stale_plan:
+        plan = {}
+
     stale = []
     for uid, rec in sorted(progress.items()):
         if rec.get("status") != "in-progress":
@@ -219,6 +229,7 @@ def build_view(plan, progress, syllabus, streaks, heartbeat, today,
         "stale": stale,
         "modules": mods,
         "liveness": liveness,
+        "stale_plan": stale_plan,
         "mastered_total": sum(1 for r in progress.values()
                               if r.get("status") == "mastered"),
         "unit_total": len(units),
@@ -240,17 +251,34 @@ def _pretty_date(iso):
 def _liveness_banner(view):
     live = view["liveness"]
     if not live["stale"]:
+        # A healthy heartbeat with a plan from another day should not happen --
+        # daily.py writes both -- but silence is the wrong response if it does.
+        if view.get("stale_plan"):
+            return ('<div class="banner"><b>Today\'s plan is missing.</b> The '
+                    'heartbeat is healthy but the plan on disk is from an '
+                    'earlier day, so it has been set aside. Run '
+                    '<code>python scripts/daily.py --force</code>.</div>')
         return ""
     if not live["last"]:
         detail = "No day has ever been built."
     elif live["days"] == 0:
         detail = ("It ran today and did not finish (outcome: %s)."
                   % escape(str(live.get("outcome"))))
+    elif live["days"] is None:
+        # _days_since returns None for an unparseable date, deliberately. This
+        # branch used to format that with %d and raise, which took the whole
+        # page to a 500 -- the one surface whose job is to survive bad state.
+        detail = ("Its last run is dated %s, which is not a date."
+                  % escape(str(live["last"])))
     else:
         detail = "Last built %s (%d days ago)." % (escape(live["last"]), live["days"])
-    return ('<div class="banner"><b>The day builder has not run today.</b> %s '
+    extra = ""
+    if view.get("stale_plan"):
+        extra = (' The plan still on disk is from an earlier day and has been '
+                 'set aside rather than shown, so this page is thin on purpose.')
+    return ('<div class="banner"><b>The day builder has not run today.</b> %s%s '
             'Run <code>python scripts/daily.py</code>, or check the scheduled '
-            'task.</div>' % detail)
+            'task.</div>' % (detail, extra))
 
 
 def _hero(view, links):
@@ -342,6 +370,45 @@ def _modules_block(view):
     return '<h2>Module progress</h2><div class="mods">%s</div>' % bars
 
 
+def render_unbuilt_page(today, detail):
+    """The static page when there is no day to show, and saying so is the job.
+
+    dashboard/today.html is only rewritten by a run that got that far, so a
+    build that crashes -- or a scheduled task that never fires -- leaves
+    yesterday's page in place, complete with the healthy banner it rendered
+    yesterday. Clicking the shortcut then produces a confident page offering
+    yesterday's lectures under no date at all. That is the precise failure this
+    whole loop exists to remove, reintroduced by an artifact nobody rewrote.
+
+    Deliberately self-contained: no syllabus, no plan, no PyYAML. It is written
+    from a crash handler and from a Start Menu shortcut, and both must work
+    when the thing that failed is exactly the state this would otherwise read.
+    """
+    return (
+        "<!DOCTYPE html>\n<html lang='en'><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        "<title>Nexus College — no day built</title><style>%s"
+        "body{font-family:Georgia,serif;background:var(--bg);color:var(--ink);"
+        "max-width:44rem;margin:0 auto;padding:3rem 1.2rem;line-height:1.7}"
+        "h1{font-family:Segoe UI,system-ui,sans-serif;font-size:1.3rem}"
+        "code{background:#26313c;border-radius:5px;padding:.1rem .35rem;"
+        "font-family:Consolas,monospace;font-size:.9em}"
+        ".banner{background:#2a1f1f;border-left:4px solid var(--bad);"
+        "border-radius:10px;padding:1rem 1.2rem;margin:1.5rem 0}"
+        "</style></head><body>"
+        "<h1>Nexus College</h1>"
+        "<div class='banner'><b>No day has been built for %s.</b> %s</div>"
+        "<p>Nothing here is lost — the plan is rebuilt from state, so running "
+        "the builder again is the whole recovery:</p>"
+        "<p><code>python scripts/daily.py</code></p>"
+        "<p>If that succeeds and this page persists, the scheduled task is not "
+        "firing; <code>python scripts/check_daily_liveness.py</code> says which "
+        "of the two it is.</p>"
+        "<p>The previous day's page was deliberately not shown. It would have "
+        "offered yesterday's units as though they were today's.</p>"
+        "</body></html>\n" % (PALETTE, escape(today), escape(detail)))
+
+
 def render_home(view, links):
     streak = view["streak"]
     return (
@@ -382,6 +449,17 @@ font-family:Consolas,"DejaVu Sans Mono",monospace}
 blockquote{border-left:3px solid var(--warm);margin:1.2rem 0;padding:.2rem 0 .2rem 1rem;
 color:var(--dim)}
 li{margin:.3rem 0}
+pre{background:#0c1116;border:1px solid var(--line);border-radius:8px;
+padding:.9rem 1rem;overflow-x:auto;line-height:1.45;margin:1.1rem 0}
+pre code{background:none;padding:0;font-size:.86rem;white-space:pre}
+/* The six sets with tables use them for fill-in grids, so an empty cell has to
+   keep its box: collapsed borders and a min-height rather than nothing. */
+table{border-collapse:collapse;width:100%;margin:1.2rem 0;font-size:.92rem;
+display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:.45rem .6rem;text-align:left;
+vertical-align:top;min-width:4.5rem;height:1.9rem}
+th{background:var(--panel);font-family:Segoe UI,system-ui,sans-serif;
+font-size:.85rem;color:var(--acc)}
 .note{background:var(--panel);border-left:4px solid var(--warm);border-radius:10px;
 padding:.8rem 1rem;margin-bottom:1.6rem;font-size:.9rem;color:var(--dim);
 font-family:Segoe UI,system-ui,sans-serif;line-height:1.55}

@@ -329,13 +329,17 @@ def test_a_session_file_without_a_plan_is_rebuilt_not_reported_already_built(tmp
     (tmp_path / "state" / "sessions").mkdir(parents=True)
     (tmp_path / "state" / "sessions" / "2026-08-31.md").write_text("old", encoding="utf-8")
 
-    monkeypatch.setattr(d, "load_syllabus", lambda p: SYL)
+    # load_syllabus is imported inside _build, not at module scope, so that a
+    # broken PyYAML produces a "failed" heartbeat instead of dying at import.
+    # That means it is patched where it is defined.
+    monkeypatch.setattr("scripts.validate_syllabus.load_syllabus", lambda p: SYL)
     monkeypatch.setattr(d, "load_deck", lambda: {"cards": []})
     monkeypatch.setattr(d, "due_cards", lambda deck, today: [])
-    monkeypatch.setattr(d, "read_json", lambda path, default=None: {
+    monkeypatch.setattr(d, "read_required_json", lambda path: {
         "state/schedule.json": SCHEDULE,
         "state/progress.json": PROGRESS,
-    }.get(path, {}))
+    }[path])
+    monkeypatch.setattr(d, "read_json", lambda path, default=None: {})
     monkeypatch.setattr(d, "render_home", lambda view, links: "<html></html>")
 
     assert d._build(["--date", MONDAY]) == 0
@@ -369,12 +373,14 @@ def test_an_already_built_day_publishes_the_plan_on_disk_not_a_recomputation(
 
     # pw-02 is now in-progress, so a fresh pick would prefer the unlocked la-02.
     progress = dict(PROGRESS, **{"pw-02": {"status": "in-progress"}})
-    monkeypatch.setattr(d, "load_syllabus", lambda p: SYL)
+    monkeypatch.setattr("scripts.validate_syllabus.load_syllabus", lambda p: SYL)
     monkeypatch.setattr(d, "load_deck", lambda: {"cards": []})
     monkeypatch.setattr(d, "due_cards", lambda deck, today: [])
-    monkeypatch.setattr(d, "read_json", lambda path, default=None: {
+    monkeypatch.setattr(d, "read_required_json", lambda path: {
         "state/schedule.json": SCHEDULE,
         "state/progress.json": progress,
+    }[path])
+    monkeypatch.setattr(d, "read_json", lambda path, default=None: {
         "state/today.json": persisted,
     }.get(path, {}))
     monkeypatch.setattr(d, "render_home", lambda view, links: "<html></html>")
@@ -387,3 +393,138 @@ def test_an_already_built_day_publishes_the_plan_on_disk_not_a_recomputation(
     assert beat["due_count"] == 7, "not the recomputed count"
     assert (tmp_path / "state" / "sessions" / ("%s.md" % MONDAY)).read_text(
         encoding="utf-8") == "kept"
+
+
+# --- state that is missing, not empty ---------------------------------------
+
+def test_a_missing_schedule_is_an_error_not_a_rest_day(tmp_path, monkeypatch):
+    """The default made every date a rest day and still wrote a healthy
+    heartbeat, so the liveness check reported success while the learner was
+    assigned nothing. A plausible empty day is worse than a loud failure."""
+    import scripts.daily as d
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "curriculum").mkdir()
+    (tmp_path / "curriculum" / "syllabus.yaml").write_text("x", encoding="utf-8")
+    monkeypatch.setattr("scripts.validate_syllabus.load_syllabus", lambda p: SYL)
+    monkeypatch.setattr(d, "load_deck", lambda: {"cards": []})
+    monkeypatch.setattr(d, "due_cards", lambda deck, today: [])
+
+    assert d.main(["--date", MONDAY]) == 2
+    beat = json.loads((tmp_path / "state" / "last-daily-run.json").read_text(
+        encoding="utf-8"))
+    assert beat["outcome"] == "failed"
+    assert "schedule.json" in beat["error"]
+
+
+def test_a_failed_build_retracts_yesterdays_static_page(tmp_path, monkeypatch):
+    """dashboard/today.html is only rewritten by a run that got that far, so a
+    crash leaves yesterday's page complete and carrying yesterday's healthy
+    banner. The offline front door would keep offering yesterday's lectures."""
+    import scripts.daily as d
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "curriculum").mkdir()
+    (tmp_path / "curriculum" / "syllabus.yaml").write_text("x", encoding="utf-8")
+    (tmp_path / "dashboard").mkdir()
+    (tmp_path / "dashboard" / "today.html").write_text(
+        "<h1>Yesterday, and it looks fine</h1>", encoding="utf-8")
+    monkeypatch.setattr("scripts.validate_syllabus.load_syllabus", lambda p: SYL)
+    monkeypatch.setattr(d, "load_deck", lambda: {"cards": []})
+    monkeypatch.setattr(d, "due_cards", lambda deck, today: [])
+
+    assert d.main(["--date", MONDAY]) == 2
+    page = (tmp_path / "dashboard" / "today.html").read_text(encoding="utf-8")
+    assert "Yesterday" not in page
+    assert "No day has been built" in page
+
+
+def test_a_non_object_progress_file_is_an_error(tmp_path, monkeypatch):
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state" / "progress.json").write_text("[]", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    import scripts.daily as d
+
+    try:
+        d.read_required_json("state/progress.json")
+    except ValueError as exc:
+        assert "object" in str(exc)
+    else:
+        raise AssertionError("a list is not a progress file")
+
+
+# --- mastery.json is hand-edited, so it can be any shape --------------------
+
+def test_malformed_mastery_does_not_take_the_day_with_it():
+    """It only decides the ORDER of the problem candidates; losing the whole
+    build over it trades a cosmetic defect for a failed day."""
+    from scripts.daily import _clean_mastery
+
+    assert _clean_mastery(["x"]) == {}
+    assert _clean_mastery(None) == {}
+    assert _clean_mastery({"aa-01": []}) == {}
+    assert _clean_mastery({"aa-01": {"score": 0.9}, "aa-02": 3}) == {
+        "aa-01": {"score": 0.9}}
+
+
+def test_a_unit_with_an_unreadable_record_sorts_as_unattempted():
+    from scripts.daily import _clean_mastery
+
+    plan = build_plan(SYL, PROGRESS, STATS, MONDAY, STREAKS,
+                      available_sets={"pw-02", "la-02"},
+                      mastery=_clean_mastery({"pw-02": [], "la-02": {"score": 0.99}}))
+    assert plan["problem_candidates"][0] == "pw-02", "unattempted comes first"
+
+
+# --- a persisted plan has to be publishable, not merely dated ---------------
+
+def test_a_date_only_plan_is_not_treated_as_already_built():
+    """already-built publishes the persisted object verbatim to the heartbeat,
+    the static page and the server. `{"date": today}` would suppress the
+    rebuild and then publish an empty day through all three, for ever."""
+    from scripts.daily import plan_is_usable
+
+    assert plan_is_usable({"date": MONDAY}, MONDAY) is False
+
+
+def test_a_plan_for_another_day_is_not_current():
+    from scripts.daily import plan_is_usable
+
+    assert plan_is_usable({"date": "2020-01-01", "rest_day": False,
+                           "lectures": [{"id": "pw-02"}],
+                           "problem_candidates": []}, MONDAY) is False
+
+
+def test_a_study_day_with_no_lectures_is_not_a_plan():
+    from scripts.daily import plan_is_usable
+
+    assert plan_is_usable({"date": MONDAY, "rest_day": False, "lectures": [],
+                           "problem_candidates": []}, MONDAY) is False
+
+
+def test_a_rest_day_with_no_lectures_is_exactly_right():
+    from scripts.daily import plan_is_usable
+
+    assert plan_is_usable({"date": MONDAY, "rest_day": True, "lectures": [],
+                           "problem_candidates": []}, MONDAY) is True
+
+
+def test_lectures_must_carry_ids_because_the_heartbeat_reads_them():
+    from scripts.daily import plan_is_usable
+
+    assert plan_is_usable({"date": MONDAY, "rest_day": False,
+                           "lectures": [{"title": "no id"}],
+                           "problem_candidates": []}, MONDAY) is False
+    assert plan_is_usable({"date": MONDAY, "rest_day": False,
+                           "lectures": ["pw-02"],
+                           "problem_candidates": []}, MONDAY) is False
+
+
+def test_a_plan_gaining_a_field_still_passes():
+    """A shape check, not a schema: new fields must not fail the old check."""
+    from scripts.daily import plan_is_usable
+
+    assert plan_is_usable({"date": MONDAY, "rest_day": False,
+                           "lectures": [{"id": "pw-02"}],
+                           "problem_candidates": [], "something_new": 1},
+                          MONDAY) is True
