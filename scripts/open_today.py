@@ -6,15 +6,17 @@ The obvious one: clicking "Nexus College" in the Start Menu should open today,
 and "today" is the live server when it is up and the static page when it is not.
 That decision needs three lines of logic, which a shortcut cannot carry.
 
-The non-obvious one: the Start Menu shortcut is what registers the toast
-AppUserModelID with Windows, and Windows only indexes a shortcut as an app when
-it points at an ordinary executable. Pointing it at the HTML page failed (a
-document is not an app). Pointing it at explorer.exe failed too — Windows
-excludes its own shell binaries from the app list. Both times the AUMID never
-resolved, and a toast from an unresolved AUMID is filed into the Action Center
-WITHOUT a banner: delivered, recorded, and invisible. So the shortcut needs a
-real executable to name, and this script is what makes pythonw.exe the honest
-answer rather than a decoy.
+The second one: the Start Menu shortcut carries the toast AppUserModelID, and
+a shortcut wants a real executable to point at. This script is what makes
+pythonw.exe an honest target rather than a decoy chosen only to satisfy the
+registration.
+
+That shortcut was, for several rounds, blamed for missing toast banners. It was
+not the cause — Do Not Disturb was — and the banners work now. What remains
+true, and unexplained, is that this shortcut does not appear in Get-StartApps
+and the Start Menu cannot find it by name, while sitting in the same folder as
+shortcuts that do. That costs nothing but the convenience of the shortcut
+itself.
 
   python scripts/open_today.py [--print]
 """

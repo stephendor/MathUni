@@ -148,13 +148,21 @@ if ($PSCmdlet.ShouldProcess($AumidKey, 'register AppUserModelID for toasts')) {
     Write-Output "registered AUMID: $AppId"
 }
 
-# --- 1b. the Start Menu shortcut that makes the AUMID real ----------------
-# The registry key above is necessary but NOT sufficient, and this was measured
-# rather than assumed: with only the key, ToastNotifier.Show() returned without
-# error and produced zero notifications, while the identical toast under an
-# already-registered AUMID produced two. Windows will not surface a toast whose
-# AUMID has no Start Menu shortcut carrying it as a shell property, so setting
-# System.AppUserModel.ID on a .lnk is the step that turns the AUMID on.
+# --- 1b. the Start Menu shortcut carrying the AUMID -----------------------
+# Microsoft's documented requirement for a desktop app to raise toasts is a
+# Start Menu shortcut carrying System.AppUserModel.ID, so both that and the
+# registry key above are installed.
+#
+# An earlier version of this comment claimed to have MEASURED that the registry
+# key alone produced no notifications. That measurement was taken while Do Not
+# Disturb was on, which suppressed every banner regardless of AUMID, so it
+# proved nothing. Which of the two registrations is strictly required has not
+# been isolated; both are cheap and both stay.
+#
+# What is known: with both in place, toasts display correctly titled "Nexus
+# College" -- even though this AUMID never appears in Get-StartApps or in
+# Settings > Notifications, and the Start Menu cannot find the shortcut by
+# name. Absence from those surfaces is not evidence the AUMID is unusable.
 if (-not ('NexusToast.Aumid' -as [type])) {
 Add-Type -TypeDefinition @'
 using System;

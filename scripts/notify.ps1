@@ -22,9 +22,20 @@
   Nothing is posted on a rest day. Nothing is owed on a rest day.
 
 .PARAMETER AppId
-  A registered AppUserModelID. Toasts from an unregistered AUMID are silently
-  dropped by Windows, which is why scripts/register_daily_task.ps1 creates a
-  Start Menu shortcut carrying this id.
+  The AppUserModelID the toast is posted under; it names the app in the banner
+  and in the Action Center. scripts/register_daily_task.ps1 registers it, both
+  as an HKCU key and as a System.AppUserModel.ID property on a Start Menu
+  shortcut. Which of those two is strictly required was never isolated, so
+  both stay.
+
+  Note for anyone debugging a missing notification: this AUMID does NOT appear
+  in Get-StartApps or in Settings > Notifications, and the Start Menu cannot
+  find the shortcut by name -- and none of that stops the banner. Toasts under
+  it display correctly with the title "Nexus College". A previous version of
+  this script inferred from Get-StartApps that the id was unusable and fell
+  back to Windows PowerShell's AUMID; that inference was wrong, the label was
+  worse for it, and the fallback is gone. The actual cause of the missing
+  banners was Do Not Disturb being on.
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File scripts\notify.ps1
@@ -39,41 +50,6 @@ param(
 # $PSScriptRoot is empty inside a param() default under Windows PowerShell 5.1,
 # so the repo root is resolved here instead of in the signature.
 if (-not $RepoRoot) { $RepoRoot = Split-Path -Parent $PSScriptRoot }
-
-function Resolve-ToastAppId {
-    <#
-      Windows draws a banner only for a toast whose AUMID it can resolve to an
-      installed app. An unresolvable AUMID still DELIVERS -- the notification
-      lands in the Action Center and the settings key updates -- so every
-      surface says it worked while nothing appears on screen.
-
-      Registering a bespoke AUMID was attempted five ways on 2026-09-01 and
-      none of them made Windows resolve it: registry key alone; a Start Menu
-      shortcut carrying the id via System.AppUserModel.ID targeting the HTML
-      page, then explorer.exe, then pythonw.exe; and a never-before-used AUMID
-      string in case the first attempts had poisoned a cache. The AUMID reads
-      back correctly off the shortcut every time, and still does not resolve.
-
-      So this prefers the bespoke id and falls back to one Windows already
-      trusts. The toast is then labelled with that app's name rather than
-      "Nexus College", which is worse-looking and entirely functional: the hook
-      text, the buttons and the links are unaffected. If the bespoke id ever
-      starts resolving -- a Windows update, a proper installer -- this upgrades
-      to it on its own with no change here.
-    #>
-    param([string]$Preferred)
-    if (Get-StartApps | Where-Object { $_.AppID -eq $Preferred }) { return $Preferred }
-    foreach ($name in 'Windows PowerShell', 'Terminal', 'Windows Terminal') {
-        $app = Get-StartApps | Where-Object { $_.Name -eq $name } | Select-Object -First 1
-        if ($app) {
-            Write-Verbose "AUMID '$Preferred' does not resolve; using $($app.AppID)"
-            return $app.AppID
-        }
-    }
-    return $Preferred
-}
-
-$AppId = Resolve-ToastAppId -Preferred $AppId
 
 function Read-JsonFile($Path) {
     if (-not (Test-Path $Path)) { return $null }
