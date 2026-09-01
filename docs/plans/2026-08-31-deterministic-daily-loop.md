@@ -1,15 +1,33 @@
-# Deterministic Daily Loop — replacing the LLM-triggered morning routine
+**Status:** Complete and installed, verified end to end on 2026-09-01. Both
+scheduled tasks fire on their triggers, the day builder writes its plan and
+heartbeat, the liveness check reports on it, the server serves the home and
+review pages, ratings write back to the deck, and the toast displays a banner
+titled "Nexus College".
 
-**Goal:** Make the daily study loop run without a model in the path. The trigger,
-the day plan, the notification, the flashcards, and the home surface all become
-deterministic local artifacts. A model is only ever invoked by something Stephen
-deliberately started, so a usage limit or a provider outage can no longer cause a
-silently missing study day.
+**Known cosmetic issue:** the Start Menu cannot find `Nexus College.lnk` by
+name and the AUMID does not appear in `Get-StartApps` or Settings >
+Notifications, though the shortcut sits in the same folder as shortcuts that
+are found. This affects nothing but the convenience of the shortcut, which can
+be pinned by hand.
 
-**Status:** Phases 1–5 complete in the repo. The Windows install
-(`scripts/register_daily_task.ps1`) is written and dry-run verified but has
-NOT been run — it registers two scheduled tasks and an AUMID, and deletes the
-old `NexusCollege Morning` task, so it waits on Stephen.
+**The install-day lesson, recorded because it cost several hours.** Every
+"missing banner" report was Do Not Disturb, which was on throughout. Five
+rounds were spent rebuilding the Start Menu shortcut's target against a symptom
+that had nothing to do with it, because of two compounding mistakes:
+
+1. **No baseline.** It was never established that *any* toast could draw a
+   banner on the machine. "Appears in the Action Center" was repeatedly read as
+   "the toast works".
+2. **A broken instrument.** `AppInfo.DisplayInfo.DisplayName` from
+   `UserNotificationListener` returns empty for non-packaged apps regardless of
+   whether the AUMID is fine. It was used as the success signal for five
+   rounds. The same toast that reports an empty name draws a correctly titled
+   banner.
+
+This is the failure this whole plan exists to prevent, inverted: the old
+automation reported success while doing nothing; the debugging reported failure
+while everything worked. A signal that cannot distinguish the states you care
+about is worse than no signal, because it reads as evidence.
 
 ---
 
