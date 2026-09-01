@@ -290,10 +290,31 @@ def test_problem_set_page_loads_katex_from_the_vendored_copy():
     from scripts.home import render_problem_set
 
     out = render_problem_set("x-01", "t", "$x$")
-    assert "/katex/katex.min.css" in out
     assert "/katex/katex.min.js" in out
     assert "/katex/contrib/auto-render.min.js" in out
     assert "renderMathInElement" in out
+
+
+def test_katex_runs_in_mathml_only_mode():
+    """The default htmlAndMathml emits a visual rendering AND a hidden MathML
+    copy. Beside a Native MathML browser extension the two fight and every
+    formula goes blank -- observed, not hypothetical. One representation only.
+    """
+    from scripts.home import render_problem_set
+
+    out = render_problem_set("x-01", "t", "$x$")
+    assert "output:'mathml'" in out
+
+
+def test_no_stylesheet_or_font_is_loaded():
+    """MathML is laid out by the browser, so the KaTeX CSS and its 20 web fonts
+    are not vendored at all. A <link> here would 404."""
+    from scripts.home import render_problem_set
+
+    out = render_problem_set("x-01", "t", "$x$")
+    assert "katex.min.css" not in out
+    assert "<link" not in out
+    assert ".woff" not in out
 
 
 def test_problem_set_page_renders_markdown_structure():

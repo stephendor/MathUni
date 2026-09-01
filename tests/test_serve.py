@@ -566,12 +566,14 @@ def test_read_asset_serves_the_real_vendored_katex():
     """Against the actual repo, not a fixture: the files must really be there."""
     from scripts.serve import read_asset
 
-    css = read_asset("katex.min.css")
-    assert css is not None and css[1].startswith("text/css")
-    assert b"katex" in css[0][:2000].lower()
-    assert read_asset("katex.min.js")[1].startswith("application/javascript")
+    js = read_asset("katex.min.js")
+    assert js is not None and js[1].startswith("application/javascript")
+    assert b"katex" in js[0][:4000].lower()
     assert read_asset("contrib/auto-render.min.js") is not None
-    assert read_asset("fonts/KaTeX_Main-Regular.woff2")[1] == "font/woff2"
+    # Not vendored: MathML-only output needs neither, and shipping them would
+    # be 21 files and 275 KB of dead weight.
+    assert read_asset("katex.min.css") is None
+    assert read_asset("fonts/KaTeX_Main-Regular.woff2") is None
 
 
 def test_only_whitelisted_extensions_are_servable():

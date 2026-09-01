@@ -385,9 +385,13 @@ li{margin:.3rem 0}
 .note{background:var(--panel);border-left:4px solid var(--warm);border-radius:10px;
 padding:.8rem 1rem;margin-bottom:1.6rem;font-size:.9rem;color:var(--dim);
 font-family:Segoe UI,system-ui,sans-serif;line-height:1.55}
-/* KaTeX renders into spans; keep long display maths scrollable rather than
-   letting it push the page sideways. */
-.katex-display{overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
+/* KaTeX is used in MathML-only mode, so these two rules replace everything the
+   KaTeX stylesheet used to provide: its own sizing, and keeping a long display
+   formula scrollable instead of letting it push the page sideways. */
+.katex{font-size:1.12em}
+.katex-display{display:block;text-align:center;margin:1.1rem 0;
+overflow-x:auto;overflow-y:hidden;padding:.2rem 0}
+math{font-size:1.05em}
 """
 
 
@@ -399,6 +403,17 @@ def render_problem_set(unit_id, title, markdown):
     (scripts/gate.py forbids external requests in lessons, and a problem set
     that needs the internet to be legible would be a worse artifact than one
     that does not). Everything here is same-origin.
+
+    It runs in `output: 'mathml'` mode, which is why no stylesheet and no fonts
+    are loaded: the browser's own maths engine does the layout. KaTeX's default
+    htmlAndMathml emits BOTH a visual HTML rendering and a hidden MathML copy,
+    which is fine alone and breaks badly next to anything that also acts on
+    maths -- a Native MathML extension unhides the MathML while KaTeX's CSS is
+    still clipping it, and every formula on the page goes blank. MathML-only
+    emits one thing, so there is nothing to disagree about.
+
+    The <annotation encoding="application/x-tex"> KaTeX embeds carries the
+    original source, so copy-the-LaTeX tooling keeps working.
 
     Server-only: the static dashboard/today.html links chips straight at the
     .md on disk, because a page written to disk cannot serve fonts.
@@ -412,7 +427,6 @@ def render_problem_set(unit_id, title, markdown):
         "<html lang='en'><head><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
         "<title>Problem set " + escape(unit_id) + "</title>"
-        "<link rel='stylesheet' href='/katex/katex.min.css'>"
         "<style>" + PROBLEM_CSS + "</style></head><body><main>"
         "<header><h1>" + heading + "</h1>"
         "<a href='/'>Back to today</a></header>"
@@ -427,5 +441,5 @@ def render_problem_set(unit_id, title, markdown):
         "delimiters:["
         "{left:'$$',right:'$$',display:true},"
         "{left:'$',right:'$',display:false}"
-        "],throwOnError:false});</script>"
+        "],output:'mathml',throwOnError:false});</script>"
         "</body></html>" + chr(10))
