@@ -369,7 +369,7 @@ $dailyXml = @"
          windowless host, so there is nothing to hide. -->
     <Exec>
       <Command>wscript.exe</Command>
-      <Arguments>"$RepoRoot\scripts\notify_hidden.vbs" "$AppId"</Arguments>
+      <Arguments>"$(XmlEsc $RepoRoot)\scripts\notify_hidden.vbs" "$(XmlEsc $AppId)"</Arguments>
       <WorkingDirectory>$(XmlEsc $RepoRoot)</WorkingDirectory>
     </Exec>
   </Actions>

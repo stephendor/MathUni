@@ -22,7 +22,7 @@ PLAN = {"date": "2026-08-31", "rest_day": False, "due_count": 12,
 def ctx(**over):
     calls = {"started": [], "rated": []}
 
-    def start_unit(uid):
+    def start_unit(uid, module=None):
         calls["started"].append(uid)
         return True
 
@@ -426,3 +426,58 @@ def test_an_existing_learning_record_is_never_overwritten(tmp_path, monkeypatch)
                         lambda path, text: written.__setitem__(path, text))
     srv.ensure_learning_record("pw-02")
     assert written == {}, "a real record must survive"
+
+# --- the server promotes only what it can keep CI-valid ---------------------
+
+def test_a_unit_without_authored_solutions_is_not_promoted(tmp_path, monkeypatch):
+    """check_id_consistency.py requires a lesson, problem set, solutions file AND
+    learning record for every in-progress unit. Only 9 of 145 units have the
+    first three; the server cannot author solutions and must not invent them, so
+    it must not create the state that demands them.
+    """
+    import scripts.serve as srv
+
+    monkeypatch.chdir(tmp_path)
+    written = {}
+    monkeypatch.setattr(srv, "read_json",
+                        lambda path, default=None: {"pw-03": {"status": "unlocked"}})
+    monkeypatch.setattr(srv, "write_atomic",
+                        lambda path, text: written.__setitem__(path, text))
+    rec = srv.start_unit("pw-03", "pw")
+    assert rec["status"] == "unlocked", "must not claim a unit is under way"
+    assert written == {}, "and must not write anything at all"
+
+
+def test_a_fully_authored_unit_is_promoted(tmp_path, monkeypatch):
+    import scripts.serve as srv
+
+    monkeypatch.chdir(tmp_path)
+    for rel in ("lessons/pw", "problems/sets", "problems/solutions",
+                "learning-records"):
+        (tmp_path / rel).mkdir(parents=True, exist_ok=True)
+    (tmp_path / "lessons" / "pw" / "pw-03.html").write_text("x", encoding="utf-8")
+    (tmp_path / "problems" / "sets" / "pw-03.md").write_text("x", encoding="utf-8")
+    (tmp_path / "problems" / "solutions" / "pw-03.md").write_text("x", encoding="utf-8")
+
+    written = {}
+
+    def capture(path, text):
+        if path.endswith("progress.json"):
+            written.update(json.loads(text))
+
+    monkeypatch.setattr(srv, "read_json",
+                        lambda path, default=None: {"pw-03": {"status": "unlocked"}})
+    monkeypatch.setattr(srv, "write_atomic", capture)
+    rec = srv.start_unit("pw-03", "pw")
+    assert rec["status"] == "in-progress"
+    assert written["pw-03"]["status"] == "in-progress"
+
+
+def test_missing_artifacts_names_exactly_what_is_absent(tmp_path, monkeypatch):
+    import scripts.serve as srv
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "lessons" / "pw").mkdir(parents=True)
+    (tmp_path / "lessons" / "pw" / "pw-03.html").write_text("x", encoding="utf-8")
+    gaps = srv.missing_artifacts("pw-03", "pw")
+    assert gaps == ["problems/sets/pw-03.md", "problems/solutions/pw-03.md"]

@@ -30,8 +30,11 @@ Both are gone. See `docs/plans/2026-08-31-deterministic-daily-loop.md`.
    `powershell -ExecutionPolicy Bypass -File scripts\notify.ps1`
    It exits 0 even when it fails — the toast is best-effort, the page is the
    contract.
-4. If Stephen wants to look at it, the home surface is `http://127.0.0.1:8787/`
-   when the server is up, and `dashboard/today.html` on disk when it is not.
+4. If Stephen wants to look at it, the home surface is
+   `python scripts/open_today.py`, which opens the live server when it is
+   answering and `dashboard/today.html` when it is not. Never hard-code the
+   port: `serve.py` scans upward from 8787 when that one is taken and records
+   the port it actually got in `state/server.json`.
 
 Never hand-write `state/today.json`, `state/sessions/<date>.md`, or
 `state/last-daily-run.json`. They are machine-written, and a hand-written

@@ -9,10 +9,14 @@ There are two ways to run this, and the page is the default.
 
 ## The page (zero tokens, works during a usage limit)
 
-If the local server is up, send Stephen to `http://127.0.0.1:8787/review`. It
-shows one front at a time, reveals the back, takes 1-4 on click or keypress, and
-POSTs each rating straight into `srs.scheduler.apply_rating` — the same function
-the CLI uses. The queue is capped at 15, oldest-due first, and the page states
+If the local server is up, send Stephen to `<base>/review`, where `<base>` is
+`http://127.0.0.1:<port>` and `<port>` comes from `state/server.json` — NOT a
+hard-coded 8787, which `serve.py` abandons for the next free port when 8787 is
+already taken. `python scripts/open_today.py --print` prints the resolved base
+URL. It shows one front at a time, reveals the back, takes 1-4 on click or keypress, and
+POSTs each rating into `srs.scheduler.rate_and_save`, which wraps the same
+`apply_rating` the CLI uses in a lock, so two open review tabs cannot lose
+each other's ratings. The queue is capped at 15, oldest-due first, and the page states
 what it is holding back. A rating that fails to save stops the session and says
 so rather than advancing.
 

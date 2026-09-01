@@ -25,8 +25,9 @@ is exactly the dependency this loop was rebuilt to remove.
    resume it at the recorded step rather than starting over.
 4. **Run the day** as `state/sessions/<today>.md` lays it out:
    - **Warm-up (~10 min)** — the SRS session. Prefer the page:
-     `http://127.0.0.1:8787/review` runs the whole loop offline and writes each
-     rating straight to the deck, at zero token cost. Fall back to the /review
+     `<base>/review` — base from `state/server.json`, since the port is not
+     always 8787 — runs the whole loop offline and writes each rating straight
+     to the deck, at zero token cost. Fall back to the /review
      skill's conversational mode when Stephen wants reteaching on misses.
      The queue is capped at 15, oldest-due first; the backlog drains across
      sessions and is not a debt to clear in one sitting.

@@ -113,3 +113,12 @@ def test_our_own_server_is_accepted(monkeypatch, tmp_path):
     (tmp_path / "state" / "server.json").write_text('{"port": 8787}', encoding="utf-8")
     monkeypatch.setattr(open_today, "urlopen", lambda *a, **k: FakeResp())
     assert open_today.server_url(str(tmp_path)) == "http://127.0.0.1:8787/"
+
+
+def test_a_non_object_server_json_returns_none_rather_than_raising(tmp_path):
+    """`[]`, `null` and `1` are valid JSON; subscripting them raises TypeError,
+    which was not in the caught tuple, so the fallback never ran."""
+    (tmp_path / "state").mkdir()
+    for content in ("[]", "null", "1", '"a string"', "{}"):
+        (tmp_path / "state" / "server.json").write_text(content, encoding="utf-8")
+        assert open_today.server_url(str(tmp_path), timeout=0.05) is None, content

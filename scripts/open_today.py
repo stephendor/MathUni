@@ -46,9 +46,15 @@ def server_url(repo_root, timeout=1.0):
         return None
     try:
         with open(path, encoding="utf-8-sig") as f:
-            port = json.load(f)["port"]
-    except (OSError, ValueError, KeyError):
+            record = json.load(f)
+    except (OSError, ValueError):
         return None
+    # `[]`, `null` and `1` are all valid JSON. Indexing them raises TypeError,
+    # which is not in the tuple above, so the record's shape is checked before
+    # it is subscripted rather than after.
+    if not isinstance(record, dict):
+        return None
+    port = record.get("port")
     # A string port would raise TypeError on the %d below, which is outside the
     # try above, so a corrupt file would crash rather than fall back to the page.
     if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535:

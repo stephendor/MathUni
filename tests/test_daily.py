@@ -343,3 +343,47 @@ def test_a_session_file_without_a_plan_is_rebuilt_not_reported_already_built(tmp
         encoding="utf-8"))
     assert beat["outcome"] == "built", "a missing plan must be rebuilt"
     assert os.path.exists(tmp_path / "state" / "today.json")
+
+
+def test_an_already_built_day_publishes_the_plan_on_disk_not_a_recomputation(
+        tmp_path, monkeypatch):
+    """Opening lecture 1 moves it unlocked -> in-progress, so a same-day rerun
+    picks DIFFERENT units. Publishing that recomputation would leave the static
+    page and the heartbeat disagreeing with the session file and today.json.
+    """
+    import scripts.daily as d
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "curriculum").mkdir()
+    (tmp_path / "curriculum" / "syllabus.yaml").write_text("x", encoding="utf-8")
+    (tmp_path / "state" / "sessions").mkdir(parents=True)
+    (tmp_path / "state" / "sessions" / ("%s.md" % MONDAY)).write_text("kept",
+                                                                     encoding="utf-8")
+    persisted = {"date": MONDAY, "rest_day": False, "due_count": 7,
+                 "review_target": 7, "streak": {"current": 1, "best": 1},
+                 "lectures": [{"id": "pw-02", "module": "pw",
+                               "module_title": "Proof", "title": "Induction",
+                               "hook": "h", "status": "in-progress",
+                               "lesson_path": "lessons/pw/pw-02.html"}],
+                 "problem_candidates": []}
+
+    # pw-02 is now in-progress, so a fresh pick would prefer the unlocked la-02.
+    progress = dict(PROGRESS, **{"pw-02": {"status": "in-progress"}})
+    monkeypatch.setattr(d, "load_syllabus", lambda p: SYL)
+    monkeypatch.setattr(d, "load_deck", lambda: {"cards": []})
+    monkeypatch.setattr(d, "due_cards", lambda deck, today: [])
+    monkeypatch.setattr(d, "read_json", lambda path, default=None: {
+        "state/schedule.json": SCHEDULE,
+        "state/progress.json": progress,
+        "state/today.json": persisted,
+    }.get(path, {}))
+    monkeypatch.setattr(d, "render_home", lambda view, links: "<html></html>")
+
+    assert d._build(["--date", MONDAY]) == 0
+    beat = json.loads((tmp_path / "state" / "last-daily-run.json").read_text(
+        encoding="utf-8"))
+    assert beat["outcome"] == "already-built"
+    assert beat["units"] == ["pw-02"], "the heartbeat must match what is on disk"
+    assert beat["due_count"] == 7, "not the recomputed count"
+    assert (tmp_path / "state" / "sessions" / ("%s.md" % MONDAY)).read_text(
+        encoding="utf-8") == "kept"

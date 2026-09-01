@@ -41,6 +41,7 @@ import os
 import secrets
 import socket
 import sys
+import threading
 import urllib.request
 from datetime import date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -67,6 +68,14 @@ DEFAULT_PORT = 8787
 PORT_SCAN = 20
 SERVER_STATE = "state/server.json"
 SERVER_LOG = "state/server.log"
+
+# progress.json is a whole-file read-modify-write and this server is
+# threaded. Two /open requests could load the same snapshot and both save
+# it, losing one unit's transition -- and because write_atomic uses one
+# fixed .tmp name per path, overlapping saves can also make one of them
+# fail inside os.replace. The deck has the same shape and is guarded in
+# srs.scheduler; this is the other shared file.
+_PROGRESS_LOCK = threading.Lock()
 NEWLINE = "\n"
 
 LOOPBACK_NAMES = ("127.0.0.1", "localhost", "::1")
@@ -200,7 +209,7 @@ def route(method, path, query, body, ctx):
         unit = _lookup_unit(path[len("/open/"):], ctx)
         if unit is None:
             return _json(404, {"error": "unknown unit"})
-        ctx.start_unit(unit["id"])
+        ctx.start_unit(unit["id"], unit.get("module"))
         return Response(302, b"", headers={"Location": "/lesson/%s" % unit["id"]})
 
     if path == "/dashboard":
@@ -216,6 +225,26 @@ def route(method, path, query, body, ctx):
 
 
 # --- real wiring ------------------------------------------------------------
+
+def missing_artifacts(uid, module):
+    """Authored files scripts/check_id_consistency.py requires of an in-progress
+    unit, minus the one this server can legitimately create.
+
+    The gate wants a lesson, a problem set, a solutions file AND a learning
+    record for every in-progress unit. Only 9 of 145 units currently have the
+    first three: authoring them is /lecture's job (step 6 generates the set and
+    solutions), and it needs a model. This server has no business inventing
+    solutions to a problem set -- a fabricated solutions file is worse than a
+    missing one, because a learner might read it.
+
+    So the server does not promote what it cannot make compliant.
+    """
+    return [path for path in (
+        "lessons/%s/%s.html" % (module, uid),
+        "problems/sets/%s.md" % uid,
+        "problems/solutions/%s.md" % uid,
+    ) if not os.path.exists(path)]
+
 
 def ensure_learning_record(uid, title=""):
     """Every in-progress unit must have one; scripts/check_id_consistency.py
@@ -245,27 +274,44 @@ def ensure_learning_record(uid, title=""):
     return path
 
 
-def start_unit(uid):
+def start_unit(uid, module=None):
     """Mark a unit in-progress when its lesson is actually opened.
 
     Only unlocked -> in-progress, mirroring .claude/skills/lecture/SKILL.md.
     Never demotes, and never writes `mastered`: scripts/update_unlocks.py is
     the only path to that, and a second writer would be a second opinion.
+
+    And only when the unit's authored artifacts already exist. Promoting a unit
+    whose solutions file has not been written yet puts the repository into a
+    state its own CI rejects, which is what happened to pw-02 and then pw-03.
+    Reading the lesson is always allowed; claiming the unit is under way is not.
     """
-    progress = read_json("state/progress.json")
-    rec = dict(progress.get(uid, {"status": "locked"}))
-    status = rec.get("status")
-    if status == "unlocked":
-        rec["status"] = "in-progress"
-    if status in ("unlocked", "in-progress", "mastered"):
-        # A locked unit can still be opened (the lecture skill warns rather than
-        # blocks), but peeking at one is not studying it and must not be recorded
-        # as though it were.
-        rec["last_studied"] = date.today().isoformat()
-    progress[uid] = rec
-    if rec.get("status") == "in-progress":
-        ensure_learning_record(uid)
-    write_atomic("state/progress.json", json.dumps(progress, indent=2) + "\n")
+    # The read, the edit, the learning record and the write are one
+    # transaction. Re-reading inside the lock is the point: a snapshot taken
+    # outside it is exactly the stale copy this guards against.
+    with _PROGRESS_LOCK:
+        progress = read_json("state/progress.json")
+        rec = dict(progress.get(uid, {"status": "locked"}))
+        status = rec.get("status")
+        gaps = missing_artifacts(uid, module) if module else []
+        if status == "unlocked" and not gaps:
+            rec["status"] = "in-progress"
+        elif status == "unlocked" and gaps:
+            # Serve the lesson, record nothing. Saying so is the point: a silent
+            # non-promotion would be its own small lie about what happened.
+            sys.stderr.write(
+                "start_unit: %s stays unlocked; /lecture must author %s"
+                % (uid, ", ".join(gaps)) + NEWLINE)
+            return rec
+        if status in ("unlocked", "in-progress", "mastered"):
+            # A locked unit can still be opened (the lecture skill warns rather than
+            # blocks), but peeking at one is not studying it and must not be recorded
+            # as though it were.
+            rec["last_studied"] = date.today().isoformat()
+        progress[uid] = rec
+        if rec.get("status") == "in-progress":
+            ensure_learning_record(uid)
+        write_atomic("state/progress.json", json.dumps(progress, indent=2) + "\n")
     return rec
 
 

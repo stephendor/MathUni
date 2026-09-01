@@ -9,8 +9,11 @@ description: Refresh and show the visual dashboard — kanban, streaks, module p
    a progress display that looks healthy while the automation is dead is the
    exact failure this college spent seven weeks inside.
 2. Open the surface Stephen actually uses:
-   - Server up (`state/server.json` and `http://127.0.0.1:8787/healthz` answers)
-     → `Start-Process "http://127.0.0.1:8787/"`. The home page carries today's
+   - Server up — read the port from `state/server.json` (serve.py scans
+     upward from 8787 and records the one it got) and confirm `<base>/healthz`
+     answers with a `NexusCollege` Server header
+     → `Start-Process "<base>/"`, or just `python scripts/open_today.py`,
+     which resolves all of that. The home page carries today's
      hook, the lecture and review buttons, stale units and module bars.
    - Server down → `python scripts/daily.py` (refreshes `dashboard/today.html`)
      then `Start-Process "C:\Users\steph\MathUni\dashboard\today.html"`.

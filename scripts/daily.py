@@ -256,6 +256,7 @@ def _build(argv=None):
         schedule = read_json("state/schedule.json", {"study_days": []})
         progress = read_json("state/progress.json")
         streaks = read_json("state/streaks.json")
+        mastery = read_json("state/mastery.json")
         deck = load_deck()
         stats = {"due_today": len(due_cards(deck, today)),
                  "total": len(deck.get("cards", []))}
@@ -267,14 +268,21 @@ def _build(argv=None):
     plan_path = "state/sessions/%s.md" % today
     plan = build_plan(syllabus, progress, stats, today, streaks,
                       available_problem_sets(), schedule=schedule,
-                      mastery=read_json("state/mastery.json"))
+                      mastery=mastery)
 
     # A session file on disk is not proof the plan is on disk. state/today.json
     # is gitignored while state/sessions/ is tracked, so a fresh checkout has
     # the markdown and not the JSON; a crash between the two writes leaves the
     # same split. Reporting "already-built" then leaves the server and /today
     # reading an empty plan forever, because nothing ever rebuilds it.
-    plan_current = read_json("state/today.json").get("date") == today
+    # A malformed today.json is "not current", not a crash: the whole point of
+    # this check is to decide whether to rebuild, and an unreadable plan is the
+    # strongest possible reason to.
+    try:
+        persisted = read_json("state/today.json")
+    except ValueError:
+        persisted = {}
+    plan_current = isinstance(persisted, dict) and persisted.get("date") == today
     session_exists = os.path.exists(plan_path)
 
     if plan["rest_day"]:
@@ -288,13 +296,24 @@ def _build(argv=None):
     else:
         outcome = "built"
 
+    # When the run happened, which is not when the plan it publishes was made.
+    ran_at = plan["generated"]
+
+    if outcome == "already-built":
+        # Publish what is ON DISK, not the recomputation that was just discarded.
+        # Opening lecture 1 moves it unlocked -> in-progress, so a same-day rerun
+        # (the logon trigger after a reboot) recomputes DIFFERENT units; rendering
+        # those into the static page and the heartbeat would leave three files
+        # disagreeing about what today is.
+        plan = persisted
+
     heartbeat = {
         "date": today,
         "outcome": outcome,
-        "generated": plan["generated"],
+        "generated": ran_at,
         "plan_path": plan_path,
-        "units": [lec["id"] for lec in plan["lectures"]],
-        "due_count": plan["due_count"],
+        "units": [lec["id"] for lec in plan.get("lectures", [])],
+        "due_count": plan.get("due_count", 0),
     }
 
     if outcome in ("built", "rest"):
@@ -314,8 +333,8 @@ def _build(argv=None):
                  json.dumps(heartbeat, indent=2) + "\n")
 
     print(json.dumps({"outcome": outcome, "date": today,
-                      "units": [lec["id"] for lec in plan["lectures"]],
-                      "due": plan["due_count"]}))
+                      "units": [lec["id"] for lec in plan.get("lectures", [])],
+                      "due": plan.get("due_count", 0)}))
     return 0
 
 
