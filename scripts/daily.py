@@ -129,13 +129,15 @@ def problem_candidates(units, progress, mastery, available_sets):
 
 
 def build_plan(syllabus, progress, stats, today, streaks, available_sets,
-               schedule=None):
+               schedule=None, mastery=None):
     """Assemble the machine-readable day plan.
 
     `schedule` is optional: pass it to have the rest-day decision made here,
     or omit it when the caller has already established that today is a study
     day. `stats` carries at least `due_today`; `available_sets` is the set of
-    unit ids with a file under problems/sets/.
+    unit ids with a file under problems/sets/; `mastery` is state/mastery.json,
+    without which problem_candidates cannot tell a passed set from an
+    unattempted one and the "unmastered first" promise is vacuous.
     """
     rest = schedule is not None and not is_study_day(schedule, today)
     units = syllabus.get("units", [])
@@ -169,7 +171,7 @@ def build_plan(syllabus, progress, stats, today, streaks, available_sets,
                    "best": streaks.get("best", 0)},
         "lectures": lectures,
         "problem_candidates": [] if rest else problem_candidates(
-            units, progress, {}, available_sets),
+            units, progress, mastery or {}, available_sets),
     }
 
 
@@ -264,11 +266,24 @@ def _build(argv=None):
 
     plan_path = "state/sessions/%s.md" % today
     plan = build_plan(syllabus, progress, stats, today, streaks,
-                      available_problem_sets(), schedule=schedule)
+                      available_problem_sets(), schedule=schedule,
+                      mastery=read_json("state/mastery.json"))
+
+    # A session file on disk is not proof the plan is on disk. state/today.json
+    # is gitignored while state/sessions/ is tracked, so a fresh checkout has
+    # the markdown and not the JSON; a crash between the two writes leaves the
+    # same split. Reporting "already-built" then leaves the server and /today
+    # reading an empty plan forever, because nothing ever rebuilds it.
+    plan_current = read_json("state/today.json").get("date") == today
+    session_exists = os.path.exists(plan_path)
 
     if plan["rest_day"]:
-        outcome = "rest"
-    elif os.path.exists(plan_path) and not args.force:
+        # A rest day the learner studied anyway has a real session log. Do not
+        # overwrite it with the generic rest-day text just because the logon
+        # trigger fired again after a reboot.
+        outcome = "already-built" if (session_exists and plan_current
+                                      and not args.force) else "rest"
+    elif session_exists and plan_current and not args.force:
         outcome = "already-built"
     else:
         outcome = "built"
@@ -304,8 +319,6 @@ def _build(argv=None):
     return 0
 
 
-
-
 def main(argv=None):
     """Run the build, and make a crash visible instead of silent.
 
@@ -333,6 +346,7 @@ def main(argv=None):
             pass    # nothing left to do; the missing heartbeat still reads stale
         print("daily.py: build failed - %s" % exc, file=sys.stderr)
         return 2
+
 
 if __name__ == "__main__":
     sys.exit(main())

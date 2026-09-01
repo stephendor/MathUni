@@ -147,3 +147,15 @@ def test_a_plain_utf8_heartbeat_is_unaffected(tmp_path):
     path = tmp_path / "hb.json"
     path.write_text('{"date": "2026-09-01", "outcome": "rest"}', encoding="utf-8")
     assert load_heartbeat(str(path))["outcome"] == "rest"
+
+
+def test_a_non_object_heartbeat_is_unknown_not_a_traceback():
+    """Valid JSON that is not an object has no .get; without this the
+    check dies with an AttributeError instead of returning a verdict."""
+    for shape in ([1, 2], "a string", 42, True):
+        assert code(shape) == UNKNOWN, shape
+
+
+def test_the_non_object_message_names_the_shape():
+    assert "list" in message([1, 2])
+

@@ -19,8 +19,13 @@ Both are gone. See `docs/plans/2026-08-31-deterministic-daily-loop.md`.
 
 1. Verify cwd is `C:\Users\steph\MathUni`.
 2. `python scripts/daily.py --force`
-   It prints one JSON line: outcome, date, units, due count. Relay it.
-   Outcomes are `built`, `already-built`, or `rest`.
+   On success it prints one JSON line — outcome, date, units, due count —
+   and exits 0. Relay it. With `--force` the outcome is `built` on a study
+   day and `rest` otherwise; `already-built` only appears on an unforced run
+   that found today's plan already on disk.
+   On failure it prints nothing on stdout, writes the reason to stderr, and
+   exits 2, having recorded a heartbeat with outcome `failed`. Report that
+   rather than treating a silent run as success.
 3. Optionally post the toast:
    `powershell -ExecutionPolicy Bypass -File scripts\notify.ps1`
    It exits 0 even when it fails — the toast is best-effort, the page is the

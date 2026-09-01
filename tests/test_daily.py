@@ -286,3 +286,60 @@ def test_tier0_import_guard_actually_fires():
     assert _tier0_violations("import subprocess") == {"subprocess"}
     clean = "import json" + chr(10) + "import os" + chr(10)
     assert _tier0_violations(clean) == set()
+
+# --- review findings: the plan must survive a half-written state dir --------
+
+def test_mastery_reaches_problem_ordering_through_build_plan():
+    """build_plan passed {} for mastery, so a passed set could never be
+    recognised and "unmastered first" was vacuous in production."""
+    plan = build_plan(SYL, PROGRESS, STATS, MONDAY, STREAKS,
+                      available_sets={"pw-02", "la-02", "an-02"},
+                      mastery={"pw-02": {"score": 0.95}})
+    got = plan["problem_candidates"]
+    assert got.index("la-02") < got.index("pw-02")
+    assert got.index("an-02") < got.index("pw-02")
+
+
+def test_without_mastery_the_ordering_is_syllabus_order():
+    plan = build_plan(SYL, PROGRESS, STATS, MONDAY, STREAKS,
+                      available_sets={"pw-02", "la-02"})
+    assert plan["problem_candidates"] == ["pw-02", "la-02"]
+
+
+def test_rest_day_plan_still_has_no_lectures_with_mastery_supplied():
+    plan = build_plan(SYL, PROGRESS, STATS, WEDNESDAY, STREAKS,
+                      available_sets={"pw-02"}, schedule=SCHEDULE,
+                      mastery={"pw-02": {"score": 0.95}})
+    assert plan["rest_day"] is True and plan["problem_candidates"] == []
+
+
+def test_a_session_file_without_a_plan_is_rebuilt_not_reported_already_built(tmp_path,
+                                                                            monkeypatch):
+    """state/sessions/ is tracked and state/today.json is gitignored, so a fresh
+    checkout has one and not the other. Reporting "already-built" there left the
+    server and /today reading an empty plan with nothing ever rebuilding it.
+    """
+    import os
+
+    import scripts.daily as d
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "curriculum").mkdir()
+    (tmp_path / "curriculum" / "syllabus.yaml").write_text("x", encoding="utf-8")
+    (tmp_path / "state" / "sessions").mkdir(parents=True)
+    (tmp_path / "state" / "sessions" / "2026-08-31.md").write_text("old", encoding="utf-8")
+
+    monkeypatch.setattr(d, "load_syllabus", lambda p: SYL)
+    monkeypatch.setattr(d, "load_deck", lambda: {"cards": []})
+    monkeypatch.setattr(d, "due_cards", lambda deck, today: [])
+    monkeypatch.setattr(d, "read_json", lambda path, default=None: {
+        "state/schedule.json": SCHEDULE,
+        "state/progress.json": PROGRESS,
+    }.get(path, {}))
+    monkeypatch.setattr(d, "render_home", lambda view, links: "<html></html>")
+
+    assert d._build(["--date", MONDAY]) == 0
+    beat = json.loads((tmp_path / "state" / "last-daily-run.json").read_text(
+        encoding="utf-8"))
+    assert beat["outcome"] == "built", "a missing plan must be rebuilt"
+    assert os.path.exists(tmp_path / "state" / "today.json")

@@ -31,7 +31,7 @@ is exactly the dependency this loop was rebuilt to remove.
      The queue is capped at 15, oldest-due first; the backlog drains across
      sessions and is not a debt to clear in one sitting.
    - **Lecture 1 and Lecture 2** — the two units named in the plan. Follow
-     .Codex/skills/lecture/SKILL.md for each, including its state updates.
+     .agents/skills/lecture/SKILL.md for each, including its state updates.
      Offer Stephen the order (ADHD: choice within structure).
    - **Problem segment (~25 min)** — from the plan's `problem_candidates`,
      which are already ordered unmastered-first across every unlocked and

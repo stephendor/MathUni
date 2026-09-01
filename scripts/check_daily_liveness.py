@@ -54,6 +54,13 @@ def verdict(heartbeat, today, max_age_days=0):
         return (STALE, "no heartbeat at all — the day builder has never run "
                        "here, or state/last-daily-run.json was removed", None)
 
+    if not isinstance(heartbeat, dict):
+        # A list or a bare string parses as valid JSON and then has no .get.
+        # That is a broken check, not a broken builder, so it is UNKNOWN --
+        # and it must not reach the caller as a traceback.
+        return (UNKNOWN, "heartbeat is %s, not an object"
+                % type(heartbeat).__name__, None)
+
     stamped = heartbeat.get("date")
     if not stamped:
         return (STALE, "heartbeat has no date field; treating as never run", None)

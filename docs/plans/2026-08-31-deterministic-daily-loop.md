@@ -128,10 +128,11 @@ Task Scheduler XML for the trigger, pytest for tests.
 
 **Interfaces**
 
-- `pick_units(units, progress, today) -> list[dict]` — two candidates, different
+- `pick_units(units, progress, limit=2) -> list[dict]` — `limit` candidates, different
   modules, `unlocked` before `in-progress`, DAG-respecting, deterministic tie-break
   by syllabus order.
-- `build_plan(syllabus, progress, stats, today) -> dict` — the `today.json` payload.
+- `build_plan(syllabus, progress, stats, today, streaks, available_sets,
+  schedule=None, mastery=None) -> dict` — the `today.json` payload.
 - `is_study_day(schedule, today) -> bool`
 - `render_session_md(plan) -> str` — the `state/sessions/YYYY-MM-DD.md` shape that
   `/today` step 2 already resumes from.

@@ -194,3 +194,33 @@ def test_a_rest_day_heartbeat_is_not_a_stale_banner():
     v = view(beat={"date": TODAY, "outcome": "rest"})
     assert v["liveness"]["stale"] is False
     assert "has not run today" not in html(v)
+
+# --- review findings: the served page must not contradict the live state ----
+
+def test_live_due_overrides_the_morning_snapshot():
+    """After a review session the plan still says 66; the page must not."""
+    v = build_view(PLAN, PROGRESS, SYL, STREAKS, BEAT, TODAY, live_due=51)
+    assert v["review"]["due"] == 51
+    assert v["review"]["target"] == 15, "still capped"
+
+
+def test_live_due_below_the_cap_is_shown_whole():
+    v = build_view(PLAN, PROGRESS, SYL, STREAKS, BEAT, TODAY, live_due=4)
+    assert v["review"] == {"due": 4, "target": 4}
+
+
+def test_no_live_due_keeps_the_snapshot_for_the_static_page():
+    """dashboard/today.html cannot know the live count and must not invent one."""
+    v = build_view(PLAN, PROGRESS, SYL, STREAKS, BEAT, TODAY)
+    assert v["review"] == {"due": 66, "target": 15}
+
+
+def test_streaks_file_wins_over_the_plans_copy():
+    """Closing a day rewrites streaks.json but not the plan."""
+    v = build_view(PLAN, PROGRESS, SYL, {"current": 9, "best": 12}, BEAT, TODAY)
+    assert v["streak"] == {"current": 9, "best": 12}
+
+
+def test_plan_streak_is_the_fallback_when_there_is_no_streaks_file():
+    v = build_view(PLAN, PROGRESS, SYL, {}, BEAT, TODAY)
+    assert v["streak"] == {"current": 3, "best": 5}

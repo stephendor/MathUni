@@ -8,6 +8,7 @@ the engram trip-wire prompts once ~50 reviews are logged. See docs/engram-fsrs-s
 import json
 import os
 import sys
+import threading
 from datetime import date, timedelta
 
 if __name__ == "__main__" and __package__ is None:
@@ -25,6 +26,13 @@ EASE_FLOOR = 1.3
 DECK = "srs/deck.json"
 CONFIG = "srs/config.json"
 DEFAULT_CONFIG = {"scheduler": "sm2", "engram_threshold": 50}
+
+# The deck is a whole-file read-modify-write. scripts/serve.py is threaded, so
+# two /api/rate requests -- two review tabs, or a double-click -- could load
+# the same snapshot and both save it, silently dropping one rating while both
+# clients were told it succeeded. os.replace makes each write atomic; it does
+# nothing about a lost update. This serialises the whole transaction.
+_DECK_LOCK = threading.Lock()
 
 
 def rate_card(card, rating, today):
@@ -105,12 +113,27 @@ def engram_banner(deck, cfg):
     )
 
 
-def apply_rating(deck, cfg, cid, rating, today):
+def rate_and_save(cfg, cid, rating, today, path=DECK):
+    """Load, rate and save under one lock. The safe entry point for callers
+    that may run concurrently (the server); returns the updated card or None.
+
+    Re-reads the deck INSIDE the lock deliberately: a snapshot taken before
+    acquiring it is exactly the stale copy this is here to prevent.
+    """
+    with _DECK_LOCK:
+        deck = load_deck(path)
+        return apply_rating(deck, cfg, cid, rating, today, path=path)
+
+
+def apply_rating(deck, cfg, cid, rating, today, path=DECK):
     """Rate one card through whichever engine is configured, and persist.
 
     Extracted from main() so the local server writes back through the same
     path the CLI uses. Two copies of the SM-2/FSRS branch would be two chances
     to diverge, and the one in the server would be the one nobody reads.
+
+    Callers that can overlap must use rate_and_save() instead: this operates on
+    a deck the caller already loaded, and cannot protect a read it did not do.
 
     Returns the updated card, or None when no card carries that id.
     """
@@ -129,7 +152,7 @@ def apply_rating(deck, cfg, cid, rating, today):
                 im=mem.get("interval_multiplier", 1.0))
         else:
             deck["cards"][i] = rate_card(c, rating, today)
-        save_deck(deck)
+        save_deck(deck, path)
         return deck["cards"][i]
     return None
 

@@ -54,12 +54,12 @@ from scripts.home import ServerLinks, build_view, render_home
 from scripts.review import REVIEW_CAP, build_queue, render_review
 from scripts.validate_syllabus import load_syllabus
 from srs.scheduler import (
-    apply_rating,
     due_cards,
     engram_banner,
     engram_ready,
     load_config,
     load_deck,
+    rate_and_save,
 )
 
 BIND = "127.0.0.1"
@@ -74,6 +74,10 @@ SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "no-referrer",
     "Cache-Control": "no-store",
+    # The review page carries the write token in its own markup, so a page that
+    # can frame it can read it. Nothing here is ever meant to be embedded.
+    "Content-Security-Policy": "frame-ancestors 'none'",
+    "X-Frame-Options": "DENY",
 }
 
 
@@ -235,8 +239,10 @@ def start_unit(uid):
 
 
 def rate_card(cid, rating):
-    deck, cfg = load_deck(), load_config()
-    return apply_rating(deck, cfg, cid, rating, date.today().isoformat())
+    # rate_and_save, not load_deck + apply_rating: this server is threaded, and
+    # two overlapping ratings on separately-loaded snapshots lose one of them
+    # while telling both clients it worked.
+    return rate_and_save(load_config(), cid, rating, date.today().isoformat())
 
 
 def read_lesson(path):
@@ -253,12 +259,20 @@ def real_context(token, port):
                                 read_json("state/streaks.json")).encode("utf-8")
 
     def home_page():
+        # live_due comes from the deck, not the morning snapshot: after a review
+        # session the plan still says every card is due, and a front door that
+        # contradicts the page you just used is worse than no counter.
+        today = date.today().isoformat()
+        try:
+            live_due = len(due_cards(load_deck(), today))
+        except (OSError, ValueError, KeyError):
+            live_due = None     # unreadable deck: fall back to the snapshot
         return render_home(
             build_view(read_json("state/today.json"),
                        read_json("state/progress.json"), syllabus,
                        read_json("state/streaks.json"),
                        read_json("state/last-daily-run.json"),
-                       date.today().isoformat()),
+                       today, live_due=live_due),
             ServerLinks(token)).encode("utf-8")
 
     def review_page():

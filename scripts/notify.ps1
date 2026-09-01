@@ -73,6 +73,25 @@ if (-not $plan.lectures -or $plan.lectures.Count -eq 0) {
     exit 0
 }
 
+# The task's two actions run independently: if the builder fails, this one still
+# fires, and yesterday's state/today.json is still on disk. Announcing it would
+# put a plausible-looking toast over a failed build -- a notification that lies
+# about the state of the system is worse than no notification at all, which is
+# the whole reason this loop was rebuilt.
+$todayIso = (Get-Date).ToString('yyyy-MM-dd')
+if ($plan.date -ne $todayIso) {
+    Write-Error ("state/today.json is dated $($plan.date), not $todayIso; the " +
+                 "build did not run. Not announcing a stale plan.") -ErrorAction Continue
+    exit 0
+}
+$beat = Read-JsonFile (Join-Path $RepoRoot 'state\last-daily-run.json')
+if ($null -eq $beat -or $beat.date -ne $todayIso -or
+        $beat.outcome -notin @('built', 'already-built', 'rest')) {
+    Write-Error ("heartbeat is not healthy for $todayIso (outcome: " +
+                 "$($beat.outcome)); not announcing.") -ErrorAction Continue
+    exit 0
+}
+
 $first = $plan.lectures[0]
 $due = [int]$plan.review_target
 

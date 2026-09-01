@@ -64,3 +64,52 @@ def test_server_url_survives_a_corrupt_server_json(tmp_path):
     (tmp_path / "state").mkdir()
     (tmp_path / "state" / "server.json").write_text("not json", encoding="utf-8")
     assert open_today.server_url(str(tmp_path), timeout=0.05) is None
+
+
+# --- review findings --------------------------------------------------------
+
+def test_a_non_integer_port_returns_none_rather_than_raising(tmp_path):
+    """`%d` on a string raises TypeError outside the try, so a corrupt file
+    crashed instead of falling back to the static page."""
+    (tmp_path / "state").mkdir()
+    for bad in ('"x"', "null", "true", "0", "70000", "-1"):
+        (tmp_path / "state" / "server.json").write_text(
+            '{"port": %s}' % bad, encoding="utf-8")
+        assert open_today.server_url(str(tmp_path), timeout=0.05) is None, bad
+
+
+def test_a_foreign_responder_on_the_port_is_not_treated_as_the_college(monkeypatch,
+                                                                      tmp_path):
+    """A stale server.json plus a reused port would otherwise open an unrelated
+    local app. serve.py names itself in the Server header; require it."""
+    class FakeResp:
+        status = 200
+        headers = {"Server": "SomeOtherApp/1.0"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state" / "server.json").write_text('{"port": 8787}', encoding="utf-8")
+    monkeypatch.setattr(open_today, "urlopen", lambda *a, **k: FakeResp())
+    assert open_today.server_url(str(tmp_path)) is None
+
+
+def test_our_own_server_is_accepted(monkeypatch, tmp_path):
+    class FakeResp:
+        status = 200
+        headers = {"Server": "NexusCollege Python/3.13"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+    (tmp_path / "state").mkdir()
+    (tmp_path / "state" / "server.json").write_text('{"port": 8787}', encoding="utf-8")
+    monkeypatch.setattr(open_today, "urlopen", lambda *a, **k: FakeResp())
+    assert open_today.server_url(str(tmp_path)) == "http://127.0.0.1:8787/"

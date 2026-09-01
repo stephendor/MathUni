@@ -26,6 +26,7 @@ from html import escape
 from scripts.check_daily_liveness import HEALTHY_OUTCOMES
 
 STALE_DAYS = 7          # an in-progress unit older than this gets a gentle offer
+REVIEW_CAP = 15         # fallback when the plan predates the capped queue
 
 # The one place the college's colours are written down. review.py imports it
 # rather than restating it: two pages of the same application quietly drifting
@@ -134,8 +135,17 @@ def _days_since(iso, today):
         return None
 
 
-def build_view(plan, progress, syllabus, streaks, heartbeat, today):
-    """Everything the page states, decided here so it can be asserted on."""
+def build_view(plan, progress, syllabus, streaks, heartbeat, today,
+               live_due=None):
+    """Everything the page states, decided here so it can be asserted on.
+
+    `live_due` is the CURRENT number of due cards. The plan is a morning
+    snapshot: rating cards rewrites srs/deck.json and closing a day rewrites
+    state/streaks.json, but neither rewrites the plan, so a served page that
+    reads only the snapshot keeps insisting every card you just reviewed is
+    still due. The server passes the live count; the static fallback cannot
+    know it and passes None, which keeps the snapshot.
+    """
     units = {u["id"]: u for u in syllabus.get("units", [])}
     mod_titles = {m["id"]: m.get("title", m["id"]) for m in syllabus.get("modules", [])}
     plan = plan or {}
@@ -177,17 +187,24 @@ def build_view(plan, progress, syllabus, streaks, heartbeat, today):
                 "outcome": beat.get("outcome"),
                 "days": _days_since(hb_date, today)}
 
+    # streaks.json is live state, so it wins over the plan's copy of it. The
+    # plan's value is only the fallback for a caller that has no streaks file.
+    streak = ({"current": streaks.get("current", 0), "best": streaks.get("best", 0)}
+              if streaks else plan.get("streak") or {"current": 0, "best": 0})
+
+    due = plan.get("due_count", 0) if live_due is None else live_due
+    cap = plan.get("review_cap") or REVIEW_CAP
+    target = plan.get("review_target", 0) if live_due is None else min(due, cap)
+
     return {
         "date": today,
         "rest_day": bool(plan.get("rest_day")),
         "has_plan": bool(plan),
         "hook": (plan.get("lectures") or [{}])[0].get("hook", ""),
         "lectures": plan.get("lectures", []),
-        "review": {"due": plan.get("due_count", 0),
-                   "target": plan.get("review_target", 0)},
+        "review": {"due": due, "target": target},
         "problems": problems,
-        "streak": plan.get("streak") or {"current": streaks.get("current", 0),
-                                         "best": streaks.get("best", 0)},
+        "streak": streak,
         "stale": stale,
         "modules": mods,
         "liveness": liveness,

@@ -55,10 +55,58 @@ param(
 
 if (-not $RepoRoot) { $RepoRoot = Split-Path -Parent $PSScriptRoot }
 
+# Every value interpolated into the task XML below is escaped. A repo path as
+# ordinary as C:\Work\Math&Stats produces invalid XML otherwise, schtasks /Create
+# rejects it, and the automation simply is not installed.
+function XmlEsc($Text) { [System.Security.SecurityElement]::Escape([string]$Text) }
+
+if ($DailyTime -notmatch '^([01][0-9]|2[0-3]):[0-5][0-9]$') {
+    Write-Error "DailyTime must be HH:mm (24-hour); got '$DailyTime'."
+    exit 1
+}
+
 $DailyTask  = 'NexusCollege Daily'
 $ServerTask = 'NexusCollege Server'
 $OldTask    = 'NexusCollege Morning'
 $AumidKey   = "HKCU:\Software\Classes\AppUserModelId\$AppId"
+
+function Remove-TaskIfPresent($Name) {
+    $exists = schtasks /Query /TN $Name 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        if ($PSCmdlet.ShouldProcess($Name, 'delete scheduled task')) {
+            schtasks /Delete /TN $Name /F | Out-Null
+            Write-Output "removed task: $Name"
+        }
+    } else {
+        Write-Output "task not present (nothing to remove): $Name"
+    }
+}
+
+# Uninstall runs BEFORE the interpreter is resolved. Removing the tasks does
+# not need Python, and the moment you most want to uninstall is when the
+# environment is broken -- a preflight that exits first would leave both
+# tasks, the AUMID and the shortcut installed with no way to remove them.
+if ($Uninstall) {
+    Remove-TaskIfPresent $DailyTask
+    Remove-TaskIfPresent $ServerTask
+    if (Test-Path $AumidKey) {
+        if ($PSCmdlet.ShouldProcess($AumidKey, 'remove AUMID registration')) {
+            Remove-Item $AumidKey -Recurse -Force
+            Write-Output "removed AUMID: $AppId"
+        }
+    } else {
+        Write-Output "AUMID not present: $AppId"
+    }
+    $lnk = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Nexus College.lnk'
+    if (Test-Path $lnk) {
+        if ($PSCmdlet.ShouldProcess($lnk, 'remove Start Menu shortcut')) {
+            Remove-Item $lnk -Force
+            Write-Output 'removed Start Menu shortcut'
+        }
+    }
+    Write-Output 'uninstalled. scripts/daily.py still works when run by hand.'
+    exit 0
+}
 
 # Choosing the interpreter by name is not safe here, and this was not
 # hypothetical: the first install of this task registered miniconda's
@@ -82,9 +130,16 @@ function Resolve-Python {
         if ($LASTEXITCODE -eq 0 -and $viaPy) { $seen.Add($viaPy.Trim()) }
     }
     foreach ($cand in ($seen | Select-Object -Unique)) {
-        # Import the real entry point, not a proxy for it: this is the exact
-        # chain the scheduled task will execute.
-        & $cand -c "import sys; sys.path.insert(0, r'$Root'); import scripts.daily" 2>$null
+        # RepoRoot travels through the environment, not interpolated into the
+        # Python source: a path containing an apostrophe, or ending in a
+        # backslash that escapes the closing quote, would make this snippet a
+        # syntax error and every candidate interpreter would be rejected.
+        $env:NEXUS_REPO_ROOT = $Root
+        try {
+            & $cand -c "import os, sys; sys.path.insert(0, os.environ['NEXUS_REPO_ROOT']); import scripts.daily" 2>$null
+        } finally {
+            Remove-Item Env:\NEXUS_REPO_ROOT -ErrorAction SilentlyContinue
+        }
         if ($LASTEXITCODE -eq 0) { return $cand }
         Write-Verbose "rejected (cannot import scripts.daily): $cand"
     }
@@ -102,40 +157,6 @@ if (-not $python) {
 $pythonw = Join-Path (Split-Path -Parent $python) 'pythonw.exe'
 if (-not (Test-Path $pythonw)) { $pythonw = $python }
 Write-Output "interpreter: $pythonw"
-
-function Remove-TaskIfPresent($Name) {
-    $exists = schtasks /Query /TN $Name 2>$null
-    if ($LASTEXITCODE -eq 0) {
-        if ($PSCmdlet.ShouldProcess($Name, 'delete scheduled task')) {
-            schtasks /Delete /TN $Name /F | Out-Null
-            Write-Output "removed task: $Name"
-        }
-    } else {
-        Write-Output "task not present (nothing to remove): $Name"
-    }
-}
-
-if ($Uninstall) {
-    Remove-TaskIfPresent $DailyTask
-    Remove-TaskIfPresent $ServerTask
-    if (Test-Path $AumidKey) {
-        if ($PSCmdlet.ShouldProcess($AumidKey, 'remove AUMID registration')) {
-            Remove-Item $AumidKey -Recurse -Force
-            Write-Output "removed AUMID: $AppId"
-        }
-    } else {
-        Write-Output "AUMID not present: $AppId"
-    }
-    $lnk = Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Nexus College.lnk'
-    if (Test-Path $lnk) {
-        if ($PSCmdlet.ShouldProcess($lnk, 'remove Start Menu shortcut')) {
-            Remove-Item $lnk -Force
-            Write-Output 'removed Start Menu shortcut'
-        }
-    }
-    Write-Output 'uninstalled. scripts/daily.py still works when run by hand.'
-    exit 0
-}
 
 # --- 1. AUMID -------------------------------------------------------------
 if ($PSCmdlet.ShouldProcess($AumidKey, 'register AppUserModelID for toasts')) {
@@ -300,16 +321,16 @@ $dailyXml = @"
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
     <Description>Nexus College: build today's study day (no model in the path), then post the hook.</Description>
-    <URI>\$DailyTask</URI>
+    <URI>\$(XmlEsc $DailyTask)</URI>
   </RegistrationInfo>
   <Triggers>
     <LogonTrigger>
       <Enabled>true</Enabled>
       <Delay>PT2M</Delay>
-      <UserId>$env:USERNAME</UserId>
+      <UserId>$(XmlEsc $env:USERNAME)</UserId>
     </LogonTrigger>
     <CalendarTrigger>
-      <StartBoundary>2026-01-01T${DailyTime}:00</StartBoundary>
+      <StartBoundary>2026-01-01T$(XmlEsc $DailyTime):00</StartBoundary>
       <Enabled>true</Enabled>
       <ScheduleByDay><DaysInterval>1</DaysInterval></ScheduleByDay>
     </CalendarTrigger>
@@ -338,9 +359,9 @@ $dailyXml = @"
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>$pythonw</Command>
+      <Command>$(XmlEsc $pythonw)</Command>
       <Arguments>scripts\daily.py</Arguments>
-      <WorkingDirectory>$RepoRoot</WorkingDirectory>
+      <WorkingDirectory>$(XmlEsc $RepoRoot)</WorkingDirectory>
     </Exec>
     <!-- wscript.exe, not powershell.exe: -WindowStyle Hidden is applied by
          PowerShell after the console host already exists, so a window
@@ -349,7 +370,7 @@ $dailyXml = @"
     <Exec>
       <Command>wscript.exe</Command>
       <Arguments>"$RepoRoot\scripts\notify_hidden.vbs" "$AppId"</Arguments>
-      <WorkingDirectory>$RepoRoot</WorkingDirectory>
+      <WorkingDirectory>$(XmlEsc $RepoRoot)</WorkingDirectory>
     </Exec>
   </Actions>
 </Task>
@@ -361,13 +382,13 @@ $serverXml = @"
 <Task version="1.4" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
     <Description>Nexus College: the persistent local surface on 127.0.0.1.</Description>
-    <URI>\$ServerTask</URI>
+    <URI>\$(XmlEsc $ServerTask)</URI>
   </RegistrationInfo>
   <Triggers>
     <LogonTrigger>
       <Enabled>true</Enabled>
       <Delay>PT1M</Delay>
-      <UserId>$env:USERNAME</UserId>
+      <UserId>$(XmlEsc $env:USERNAME)</UserId>
     </LogonTrigger>
   </Triggers>
   <Principals>
@@ -393,32 +414,50 @@ $serverXml = @"
   </Settings>
   <Actions Context="Author">
     <Exec>
-      <Command>$pythonw</Command>
+      <Command>$(XmlEsc $pythonw)</Command>
       <Arguments>scripts\serve.py</Arguments>
-      <WorkingDirectory>$RepoRoot</WorkingDirectory>
+      <WorkingDirectory>$(XmlEsc $RepoRoot)</WorkingDirectory>
     </Exec>
   </Actions>
 </Task>
 "@
 
 function Register-FromXml($Name, $Xml) {
-    if (-not $PSCmdlet.ShouldProcess($Name, 'register scheduled task')) { return }
+    if (-not $PSCmdlet.ShouldProcess($Name, 'register scheduled task')) { return $true }
     $tmp = Join-Path $env:TEMP ("nexus-" + [guid]::NewGuid().ToString('N') + ".xml")
     # schtasks /XML requires UTF-16 (the declaration above says so, and it must
     # be true of the bytes, not only of the text).
     [System.IO.File]::WriteAllText($tmp, $Xml, [System.Text.Encoding]::Unicode)
     try {
         schtasks /Create /TN $Name /XML $tmp /F | Out-Null
-        if ($LASTEXITCODE -eq 0) { Write-Output "registered task: $Name" }
-        else { Write-Error "schtasks failed for $Name (exit $LASTEXITCODE)" }
+        if ($LASTEXITCODE -eq 0) {
+            Write-Output "registered task: $Name"
+            return $true
+        }
+        # Write-Error is NON-TERMINATING under the default error policy, so a
+        # bare Write-Error here let the script carry on and delete the task this
+        # one was meant to replace -- installing nothing and removing the old
+        # automation, which is the precise silent outage this work exists to
+        # prevent. The caller must see the failure.
+        Write-Error "schtasks failed for $Name (exit $LASTEXITCODE)"
+        return $false
     } finally { Remove-Item $tmp -Force -ErrorAction SilentlyContinue }
 }
 
-Register-FromXml $DailyTask  $dailyXml
-Register-FromXml $ServerTask $serverXml
+$dailyOk  = Register-FromXml $DailyTask  $dailyXml
+$serverOk = Register-FromXml $ServerTask $serverXml
 
 # --- 4. retire the task this replaces -------------------------------------
-Remove-TaskIfPresent $OldTask
+# Only once the replacements are actually registered. Removing the old task
+# after a failed registration would leave the machine with no daily automation
+# at all, reported as a successful install.
+if ($dailyOk -and $serverOk) {
+    Remove-TaskIfPresent $OldTask
+} else {
+    Write-Error ("Registration failed, so '$OldTask' has been LEFT IN PLACE. " +
+                 "Fix the error above and re-run; nothing has been removed.")
+    exit 1
+}
 
 Write-Output ''
 Write-Output 'Installed. Verify with:'

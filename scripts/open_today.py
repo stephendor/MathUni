@@ -49,10 +49,18 @@ def server_url(repo_root, timeout=1.0):
             port = json.load(f)["port"]
     except (OSError, ValueError, KeyError):
         return None
+    # A string port would raise TypeError on the %d below, which is outside the
+    # try above, so a corrupt file would crash rather than fall back to the page.
+    if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535:
+        return None
     base = "http://127.0.0.1:%d" % port
     try:
         with urlopen(base + "/healthz", timeout=timeout) as resp:
-            if resp.status == 200:
+            # 200 alone is not enough. The port may have been reused by an
+            # unrelated local process since this file was written, and opening
+            # someone else's app is worse than falling back to the page.
+            # serve.py names itself in the Server header; ask for that.
+            if resp.status == 200 and "NexusCollege" in resp.headers.get("Server", ""):
                 return base + "/"
     except (URLError, OSError):
         pass

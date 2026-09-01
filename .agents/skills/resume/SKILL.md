@@ -9,9 +9,13 @@ Trust files, not memory. From repo root (verify cwd):
 
 1. **Ask whether the automation is alive** — before anything else:
    `python scripts/check_daily_liveness.py`
-   Exit 0 is fresh; **exit 1 means the day builder has not run** and must be
-   surfaced to Stephen in the first line, not buried. Exit 2 means the check
-   itself could not run, which is a different problem and says so.
+   Exit 0 is fresh — which includes `rest` and `already-built`, so it means
+   "a day was accounted for today", not "the builder is running right now".
+   **Exit 1 is STALE** — a date older than today, or an outcome of `failed` —
+   and must be surfaced in the first line, not buried. Exit 2 is `unknown`:
+   an unparseable or future date, a heartbeat that is not an object, or an
+   unreadable file. That is a broken check, not a broken builder, and should
+   be reported as such rather than as a missed day.
    This step exists because the previous automation failed silently for seven
    weeks while every surface reported healthy. A stale heartbeat is news.
 2. Read `state/SESSION-HANDOFF.md` → last session date, day plan, current step.
