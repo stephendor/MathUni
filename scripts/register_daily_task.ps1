@@ -250,9 +250,16 @@ $shortcut  = Join-Path $startMenu 'Nexus College.lnk'
 if ($PSCmdlet.ShouldProcess($shortcut, 'create Start Menu shortcut carrying the AUMID')) {
     $wsh = New-Object -ComObject WScript.Shell
     $lnk = $wsh.CreateShortcut($shortcut)
-    # Targets the static page, which always exists and always shows today; it
-    # links onward to the server when the server is up.
-    $lnk.TargetPath       = (Join-Path $RepoRoot 'dashboard\today.html')
+    # The target must be an EXECUTABLE. This pointed at dashboard/today.html
+    # first, and a shortcut to a DOCUMENT is not indexed as an app -- so the
+    # AUMID never resolved, and Windows files toasts from an unresolvable
+    # AUMID into the Action Center WITHOUT showing a banner. Delivered,
+    # recorded, and invisible: the notification arrived and nobody saw it.
+    # explorer.exe is an executable and forwards its argument to the default
+    # browser, so the shortcut both indexes and does something worth clicking.
+    $lnk.TargetPath       = (Join-Path $env:WINDIR 'explorer.exe')
+    $lnk.Arguments        = ([uri](Join-Path $RepoRoot 'dashboard' |
+                             Join-Path -ChildPath 'today.html')).AbsoluteUri
     $lnk.WorkingDirectory = $RepoRoot
     $lnk.Description      = "Today's study day"
     $lnk.Save()
