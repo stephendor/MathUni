@@ -249,7 +249,11 @@ def render_reference(index, links, titles=None):
             if current is not None:
                 out.append("</div>")
             current = entry["unit"]
-            href = links.lesson({"id": entry["unit"], "module": entry["module"]})
+            # read_lesson, never lesson(): on the live server the latter is an
+            # authenticated /open link that marks the unit in-progress, stamps
+            # last_studied and writes a learning record. Consulting a reference
+            # is not starting a unit, and must not tell the planner it was.
+            href = links.read_lesson(entry["unit"], entry["module"])
             title = titles.get(entry["unit"], "")
             out.append('<div class="g"><div class="unit">'
                        '<a href="%s">%s</a>%s</div>'

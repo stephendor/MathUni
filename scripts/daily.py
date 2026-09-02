@@ -33,6 +33,7 @@ could not reach a verdict must not look like a run that had nothing to do.
 """
 import argparse
 import json
+import math
 import os
 import sys
 from datetime import date, datetime
@@ -279,7 +280,13 @@ def plan_is_usable(obj, today):
         return False
     if not isinstance(obj.get("lectures"), list):
         return False
-    if not all(isinstance(lec, dict) and lec.get("id") for lec in obj["lectures"]):
+    # The fields BOTH renderers index, not just `id`. StaticLinks.lesson reads
+    # lec["module"] and the segment card reads lec["title"], so a partial
+    # lecture like {"id": "pw-02"} passed this check, selected "already-built",
+    # and then raised KeyError inside render_home -- turning a day that only
+    # needed rebuilding into a failed one with its static page retracted.
+    if not all(isinstance(lec, dict) and lec.get("id") and lec.get("module")
+               and lec.get("title") for lec in obj["lectures"]):
         return False
     if not isinstance(obj.get("problem_candidates"), list):
         return False
@@ -313,7 +320,21 @@ def _clean_mastery(raw):
     """
     if not isinstance(raw, dict):
         return {}
-    return {uid: rec for uid, rec in raw.items() if isinstance(rec, dict)}
+    cleaned = {}
+    for uid, rec in raw.items():
+        if not isinstance(rec, dict):
+            continue
+        # The score is normalised, not merely present. Keeping the record but
+        # leaving `"0.9"` or None in it moved the failure one line along:
+        # problem_candidates compares it with MASTERY_GATE, `str >= float`
+        # raises TypeError, and the whole day is marked failed over a value
+        # that only decides the ORDER of the problem candidates.
+        score = rec.get("score", 0)
+        if (isinstance(score, bool) or not isinstance(score, (int, float))
+                or not math.isfinite(score)):
+            score = 0
+        cleaned[uid] = dict(rec, score=score)
+    return cleaned
 
 
 def available_problem_sets(root="problems/sets"):

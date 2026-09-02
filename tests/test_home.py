@@ -507,3 +507,65 @@ def test_a_non_object_heartbeat_reads_as_never_run():
     v = build_view(PLAN, PROGRESS, SYL, STREAKS, ["nonsense"], TODAY)
     assert v["liveness"]["stale"] is True
     assert "day builder has not run" in render_home(v, StaticLinks())
+
+
+def test_a_progress_record_that_is_not_a_record_is_dropped():
+    """Checking the container and then indexing its contents moves the crash
+    one line along: rec.get on a list raises just as readily."""
+    progress = dict(PROGRESS, **{"aa-01": ["not", "a", "record"]})
+    html = render_home(view(progress=progress), StaticLinks())
+    assert "</html>" in html
+
+
+def test_a_lectures_list_containing_none_is_survivable():
+    html = render_home(view(plan=dict(PLAN, lectures=[None, "pw-02"])),
+                       StaticLinks())
+    assert "</html>" in html
+    assert "No units are waiting" in html, "nothing usable is left in it"
+
+
+def test_a_partial_lecture_is_dropped_rather_than_rendered():
+    v = view(plan=dict(PLAN, lectures=[{"title": "no id"}]))
+    assert v["lectures"] == []
+
+
+def test_a_heartbeat_date_that_is_not_a_string_is_survivable():
+    """date.fromisoformat raises TypeError for a list, which _days_since did
+    not catch -- it only expected ValueError -- so it escaped to a 500."""
+    for bad in ([2026, 9, 2], 20260902, {"y": 2026}):
+        html = render_home(view(beat={"date": bad, "outcome": "built"}),
+                           StaticLinks())
+        assert "</html>" in html
+
+
+def test_days_since_rejects_a_non_string():
+    from scripts.home import _days_since
+
+    for bad in ([2026], 7, {}, None):
+        assert _days_since(bad, TODAY) is None
+
+
+# --- a reference lookup is not a lecture ------------------------------------
+
+def test_the_read_only_lesson_link_does_not_go_through_open():
+    """/open marks the unit in-progress, stamps last_studied and writes a
+    learning record. Consulting a reference must not tell the planner the unit
+    was started."""
+    from scripts.home import ServerLinks
+
+    links = ServerLinks("TOK")
+    assert links.read_lesson("aa-01", "aa") == "/lesson/aa-01"
+    assert "TOK" not in links.read_lesson("aa-01", "aa")
+    assert "/open/" not in links.read_lesson("aa-01", "aa")
+
+
+def test_the_lecture_link_still_goes_through_open():
+    """Clicking Start IS starting; only the reference route changes."""
+    from scripts.home import ServerLinks
+
+    href = ServerLinks("TOK").lesson({"id": "aa-01", "module": "aa"})
+    assert href.startswith("/open/aa-01") and "TOK" in href
+
+
+def test_the_static_read_only_link_points_at_the_file():
+    assert StaticLinks().read_lesson("aa-01", "aa") == "../lessons/aa/aa-01.html"

@@ -104,6 +104,18 @@ class ServerLinks:
     def lesson(self, lec):
         return "/open/%s?t=%s" % (lec["id"], self.token)
 
+    def read_lesson(self, unit_id, module=""):
+        """The lesson WITHOUT recording that it was started.
+
+        `lesson()` goes through /open, which marks a unit in-progress, stamps
+        last_studied and creates a learning record. That is right for the two
+        lecture cards -- clicking Start IS starting -- and wrong for anything
+        that merely refers to a lesson. The reference index used `lesson()`,
+        so looking up a definition silently promoted its unit and changed what
+        the next morning's plan would choose.
+        """
+        return "/lesson/%s" % unit_id
+
     def review(self):
         return "/review"
 
@@ -137,6 +149,11 @@ class StaticLinks:
 
     def lesson(self, lec):
         return "../lessons/%s/%s.html" % (lec["module"], lec["id"])
+
+    def read_lesson(self, unit_id, module=""):
+        # Already read-only: a file:// link records nothing either way. Defined
+        # so both link modes answer the same question.
+        return "../lessons/%s/%s.html" % (module, unit_id)
 
     def review(self):
         return None
@@ -179,11 +196,17 @@ def _nav(links):
 
 
 def _days_since(iso, today):
-    if not iso:
+    """Whole days between two ISO dates, or None if either is not one.
+
+    TypeError as well as ValueError: date.fromisoformat raises TypeError for a
+    list or a number, and a heartbeat is a JSON file that can hold either.
+    Catching only ValueError let that escape all the way to a 500.
+    """
+    if not isinstance(iso, str) or not iso:
         return None
     try:
         return (date.fromisoformat(today) - date.fromisoformat(iso)).days
-    except ValueError:
+    except (TypeError, ValueError):
         return None
 
 
@@ -205,8 +228,14 @@ def build_view(plan, progress, syllabus, streaks, heartbeat, today,
     # malformed today.json took down the page whose entire job is to still be
     # standing when the state underneath it is wrong.
     plan = plan if isinstance(plan, dict) else {}
-    progress = progress if isinstance(progress, dict) else {}
     streaks = streaks if isinstance(streaks, dict) else {}
+    # Nested, not just top-level. Checking the container and then indexing its
+    # contents moves the crash one line along: a progress record that is a list
+    # raises on rec.get, a lectures entry of None raises on lec.get, and a
+    # heartbeat date that is a list raises TypeError inside date.fromisoformat
+    # -- which _days_since does not catch, because it only expects ValueError.
+    progress = {uid: rec for uid, rec in progress.items()
+                if isinstance(rec, dict)} if isinstance(progress, dict) else {}
 
     # A plan from another day is worse than no plan. state/today.json is only
     # rewritten by a successful build, so when today's build fails yesterday's
@@ -217,6 +246,16 @@ def build_view(plan, progress, syllabus, streaks, heartbeat, today,
     stale_plan = bool(plan) and plan.get("date") != today
     if stale_plan:
         plan = {}
+    # A lectures list is only as good as its entries: `[None]` passes the
+    # isinstance check on the list and raises on the first .get.
+    #
+    # Guarded by `if plan`, because dict({}, lectures=[]) is truthy and would
+    # make "no plan at all" indistinguishable from "a plan with no lectures".
+    if plan:
+        usable = ([lec for lec in plan["lectures"]
+                   if isinstance(lec, dict) and lec.get("id")]
+                  if isinstance(plan.get("lectures"), list) else [])
+        plan = dict(plan, lectures=usable)
 
     stale = []
     for uid, rec in sorted(progress.items()):

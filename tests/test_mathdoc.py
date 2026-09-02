@@ -450,3 +450,99 @@ def test_a_rejected_closer_can_still_open_its_own_span():
     the second dollar may be the real opening delimiter."""
     out = to_html("cost $5" + chr(10) * 2 + "then %sx = 1%s done" % (D, D))
     assert "$x = 1$" in out
+
+
+# --- fenced code is opaque to the math scanner ------------------------------
+
+F3 = "`" * 3
+
+
+def test_a_dollar_inside_a_fence_does_not_pair_with_math_after_it():
+    """Math is paired before block structure is known. Without a fence guard
+    the `$` in the code pairs with the opening `$` of the formula below, the
+    captured span CONTAINS the closing fence line, the fence loop never finds
+    its terminator, and the rest of the document renders as code."""
+    src = (F3 + "bash" + chr(10) + "echo $HOME" + chr(10) + F3 + chr(10)
+           + "then %sx = 1%s follows." % (D, D))
+    out = to_html(src)
+    assert "<pre><code" in out and "</code></pre>" in out
+    assert "$x = 1$" in out
+    assert "echo $HOME" in out
+    assert out.count("<pre>") == 1
+
+
+def test_the_document_after_a_fence_is_not_swallowed():
+    src = (F3 + chr(10) + "cost $5" + chr(10) + F3 + chr(10)
+           + "# A heading" + chr(10) + chr(10) + "a paragraph")
+    out = to_html(src)
+    assert "<h1>A heading</h1>" in out
+    assert "<p>a paragraph</p>" in out
+
+
+def test_math_inside_a_fence_stays_literal():
+    src = F3 + "python" + chr(10) + "s = %sa + b%s" % (D, D) + chr(10) + F3
+    out = to_html(src)
+    assert "<pre><code" in out
+    assert chr(0) not in out
+
+
+def test_fenced_ranges_covers_the_fence_lines_themselves():
+    from scripts.mathdoc import fenced_ranges
+
+    src = "before" + chr(10) + F3 + chr(10) + "code" + chr(10) + F3 + chr(10) + "after"
+    ranges = fenced_ranges(src)
+    assert len(ranges) == 1
+    start, stop = ranges[0]
+    assert src[start:stop].startswith(F3) and src[start:stop].endswith(F3)
+    assert "before" not in src[start:stop] and "after" not in src[start:stop]
+
+
+def test_an_unterminated_fence_runs_to_the_end():
+    """Matching what to_html does with one, so the two cannot disagree about
+    where the code stops."""
+    from scripts.mathdoc import fenced_ranges
+
+    src = "before" + chr(10) + F3 + chr(10) + "code"
+    assert fenced_ranges(src)[0][1] == len(src)
+
+
+# --- quoted passages are paragraphs, not stacks of lines --------------------
+
+def test_a_wrapped_quote_is_one_paragraph():
+    """aa-00 lines 8-12 are a five-line note; a <p> per physical line showed it
+    as a stack of sentence fragments with margins between arbitrary wraps."""
+    out = to_html("> first line of the note" + chr(10)
+                  + "> second line of it" + chr(10)
+                  + "> and the third")
+    assert out.count("<p>") == 1
+    assert "first line of the note second line of it and the third" in out
+
+
+def test_a_bare_quote_marker_separates_quoted_paragraphs():
+    """lab-07 lines 492-498 use exactly this to hold two definitions."""
+    out = to_html("> Definition one." + chr(10) + ">" + chr(10)
+                  + "> Theorem two.")
+    assert out.count("<blockquote>") == 1
+    assert out.count("<p>") == 2
+
+
+def test_a_quote_still_closes_before_following_prose():
+    out = to_html("> quoted" + chr(10) + chr(10) + "after")
+    assert out.index("</blockquote>") < out.index("<p>after</p>")
+
+
+def test_bold_wrapped_across_quoted_lines_pairs():
+    out = to_html("> **Definition 13.10 (Fréchet function)," + chr(10)
+                  + "> printed 406.** Given a distribution.")
+    assert "<strong>" in out and "**" not in out
+
+
+def test_the_corpus_quotes_render_as_paragraphs():
+    import pathlib as pl
+    import re
+
+    root = pl.Path(__file__).resolve().parents[1]
+    out = to_html((root / "problems" / "sets" / "aa-00.md")
+                  .read_text(encoding="utf-8"))
+    block = re.search(r"<blockquote>.*?</blockquote>", out, re.S).group(0)
+    assert block.count("<p>") == 1, block[:200]

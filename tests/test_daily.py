@@ -102,8 +102,12 @@ def test_returns_empty_when_nothing_studiable():
 
 
 def test_selection_is_deterministic():
-    assert [u["id"] for u in pick_units(UNITS, PROGRESS)] == \
-           [u["id"] for u in pick_units(UNITS, PROGRESS)]
+    """Both halves: the same call twice agrees, AND agrees with a named order.
+    Comparing a call only against itself passes when a regression changes the
+    selection in both calls."""
+    first = [u["id"] for u in pick_units(UNITS, PROGRESS)]
+    assert first == [u["id"] for u in pick_units(UNITS, PROGRESS)]
+    assert first == ["pw-02", "la-02"]
 
 
 def test_pick_units_does_not_mutate_progress():
@@ -191,8 +195,8 @@ def test_session_md_on_rest_day_says_so_without_inventing_work():
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REPO_PACKAGES = ("scripts", "srs")
 
-ALLOWED_IMPORTS = {"argparse", "json", "os", "sys", "datetime",  # stdlib
-                   "scripts", "srs"}                             # repo
+ALLOWED_IMPORTS = {"argparse", "json", "math", "os", "sys", "datetime",  # stdlib
+                   "scripts", "srs"}                                    # repo
 BANNED_IMPORTS = {"urllib", "http", "socket", "requests", "httpx", "subprocess",
                   "anthropic", "openai", "ollama"}
 
@@ -491,7 +495,8 @@ def test_a_plan_for_another_day_is_not_current():
     from scripts.daily import plan_is_usable
 
     assert plan_is_usable({"date": "2020-01-01", "rest_day": False,
-                           "lectures": [{"id": "pw-02"}],
+                           "lectures": [{"id": "pw-02", "module": "pw",
+                                         "title": "Induction"}],
                            "problem_candidates": []}, MONDAY) is False
 
 
@@ -529,7 +534,8 @@ def test_a_plan_gaining_a_field_still_passes():
     from scripts.daily import plan_is_usable
 
     assert plan_is_usable({"date": MONDAY, "rest_day": False,
-                           "lectures": [{"id": "pw-02"}],
+                           "lectures": [{"id": "pw-02", "module": "pw",
+                                         "title": "Induction"}],
                            "problem_candidates": [], "something_new": 1},
                           MONDAY) is True
 
@@ -577,5 +583,60 @@ def test_an_opened_unlocked_unit_still_outranks_a_stalled_one():
 
 
 def test_last_opened_does_not_disturb_the_ordinary_ranking():
-    assert [u["id"] for u in pick_units(UNITS, PROGRESS)] == \
-           [u["id"] for u in pick_units(UNITS, PROGRESS)]
+    """Named ids, not a call compared against itself: that form passes even
+    when a regression changes the order in both calls."""
+    assert [u["id"] for u in pick_units(UNITS, PROGRESS)] == ["pw-02", "la-02"]
+
+
+def test_a_partial_lecture_record_is_not_a_usable_plan():
+    """StaticLinks.lesson reads lec["module"] and the segment card reads
+    lec["title"], so {"id": "pw-02"} selected "already-built" and then raised
+    KeyError inside render_home -- turning a rebuildable day into a failed one
+    with its static page retracted."""
+    from scripts.daily import plan_is_usable
+
+    for lectures in ([{"id": "pw-02"}],
+                     [{"id": "pw-02", "module": "pw"}],
+                     [{"id": "pw-02", "title": "Induction"}],
+                     [None],
+                     ["pw-02"]):
+        assert plan_is_usable({"date": MONDAY, "rest_day": False,
+                               "lectures": lectures,
+                               "problem_candidates": []}, MONDAY) is False, lectures
+
+
+def test_a_complete_lecture_record_is_usable():
+    from scripts.daily import plan_is_usable
+
+    assert plan_is_usable(
+        {"date": MONDAY, "rest_day": False,
+         "lectures": [{"id": "pw-02", "module": "pw", "title": "Induction"}],
+         "problem_candidates": []}, MONDAY) is True
+
+
+def test_a_non_numeric_mastery_score_is_normalised_not_kept():
+    """_clean_mastery kept the record and left "0.9" in it, which moved the
+    failure one line along: problem_candidates compares it with MASTERY_GATE
+    and `str >= float` raises TypeError, failing the whole day over a value
+    that only decides the ORDER of the problem candidates."""
+    from scripts.daily import _clean_mastery
+
+    for bad in ("0.9", None, [], True, float("nan"), float("inf")):
+        cleaned = _clean_mastery({"pw-02": {"score": bad}})
+        assert cleaned["pw-02"]["score"] == 0, bad
+
+
+def test_a_valid_score_survives_normalisation():
+    from scripts.daily import _clean_mastery
+
+    cleaned = _clean_mastery({"pw-02": {"score": 0.86, "attempts": 1}})
+    assert cleaned["pw-02"] == {"score": 0.86, "attempts": 1}
+
+
+def test_the_plan_builds_with_a_string_score_on_disk():
+    """The end-to-end version of the above: this raised TypeError before."""
+    plan = build_plan(SYL, PROGRESS, STATS, MONDAY, STREAKS,
+                      available_sets={"pw-02", "la-02"},
+                      mastery=__import__("scripts.daily", fromlist=["x"])
+                      ._clean_mastery({"pw-02": {"score": "0.9"}}))
+    assert plan["problem_candidates"], "the day survives a malformed score"

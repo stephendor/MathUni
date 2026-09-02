@@ -220,3 +220,17 @@ def test_the_footer_says_where_this_came_from():
     html = render_reference(view(), StaticLinks())
     assert "no model" in html
     assert "scripts/reference.py" in html
+
+
+def test_reference_links_never_promote_a_unit():
+    """On the live server `links.lesson()` is an authenticated /open link that
+    marks the unit in-progress, stamps last_studied and creates a learning
+    record. Browsing the index would have advanced progress for every unit
+    whose definition was looked up."""
+    from scripts.home import ServerLinks
+
+    html = render_reference(parse_lesson(LESSON, "aa-01", "aa"),
+                            ServerLinks("SECRET"), {"aa-01": "Integers"})
+    assert "/open/" not in html
+    assert "SECRET" not in html
+    assert "/lesson/aa-01" in html

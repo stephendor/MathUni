@@ -89,6 +89,11 @@ function Remove-TaskIfPresent($Name) {
 if ($Uninstall) {
     Remove-TaskIfPresent $DailyTask
     Remove-TaskIfPresent $ServerTask
+    # The retired model-driven task too. Install removes it, but uninstall did
+    # not, so a partial or older installation would go on firing the 06:30
+    # headless Claude Code run this whole loop exists to replace -- after the
+    # user had been told everything was removed.
+    Remove-TaskIfPresent $OldTask
     if (Test-Path $AumidKey) {
         if ($PSCmdlet.ShouldProcess($AumidKey, 'remove AUMID registration')) {
             Remove-Item $AumidKey -Recurse -Force

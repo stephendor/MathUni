@@ -109,6 +109,33 @@ def _plausible_span(body):
             and body.count(chr(10)) <= _WRAP_LIMIT)
 
 
+def fenced_ranges(text):
+    """Character ranges covered by fenced code blocks, fences included.
+
+    Math is paired before block structure is known, so without this a `$` in a
+    Python fence can pair with the opening `$` of a formula after the closing
+    fence. The captured span then CONTAINS the closing ``` line, the fence loop
+    in to_html never finds its terminator, and the rest of the document renders
+    as code.
+
+    An unterminated fence runs to the end of the document, matching what
+    to_html does with one.
+    """
+    ranges, pos, open_at = [], 0, None
+    for line in text.split(chr(10)):
+        end = pos + len(line)
+        if _FENCE_OPEN.match(line):
+            if open_at is None:
+                open_at = pos
+            elif _FENCE_CLOSE.match(line):
+                ranges.append((open_at, end))
+                open_at = None
+        pos = end + 1
+    if open_at is not None:
+        ranges.append((open_at, len(text)))
+    return ranges
+
+
 def extract_math(text):
     """(text with placeholders, [math spans]). Display spans keep their $$.
 
@@ -127,10 +154,15 @@ def extract_math(text):
     a placeholder written by an earlier pass.
     """
     spans, out, i, n = [], [], 0, len(text)
+    fences = fenced_ranges(text)
 
     def take(raw):
         spans.append(raw)
         return _MARK % (len(spans) - 1)
+
+    def usable(at, end):
+        """A span may not start inside fenced code, nor reach into any."""
+        return not any(start < end and stop > at for start, stop in fences)
 
     while i < n:
         at = text.find("$", i)
@@ -139,9 +171,15 @@ def extract_math(text):
             break
         out.append(text[i:at])
 
+        if not usable(at, at + 1):
+            # A dollar sign inside a code fence is a dollar sign.
+            out.append("$")
+            i = at + 1
+            continue
+
         if text.startswith("$$", at):
             end = text.find("$$", at + 2)
-            if end != -1:
+            if end != -1 and usable(at, end + 2):
                 out.append(take(text[at:end + 2]))
                 i = end + 2
                 continue
@@ -151,7 +189,7 @@ def extract_math(text):
             continue
 
         end = text.find("$", at + 1)
-        if end != -1 and _plausible_span(text[at + 1:end]):
+        if end != -1 and usable(at, end + 1) and _plausible_span(text[at + 1:end]):
             out.append(take(text[at:end + 1]))
             i = end + 1
             continue
@@ -223,7 +261,7 @@ def _table(header, rows):
 def to_html(markdown):
     """The markdown subset the problem sets actually use."""
     protected, spans = extract_math(markdown)
-    out, stack, para, item = [], [], [], []
+    out, stack, para, item, quoted = [], [], [], [], []
 
     def flush():
         if para:
@@ -244,10 +282,26 @@ def to_html(markdown):
             out.append("<li>%s</li>" % _text(" ".join(item)))
             item.clear()
 
+    def flush_quote():
+        """Emit the quoted paragraph being accumulated, if any.
+
+        Buffered for the same reason list items are: a quoted paragraph is one
+        paragraph. aa-00 lines 8-12 are a five-line note and lab-07 lines
+        492-498 two multi-line definitions; a <p> per physical line displayed
+        them as a stack of sentence fragments with margins between arbitrary
+        wraps. A bare `>` is the blank line INSIDE a quote, so it separates
+        paragraphs rather than ending the block.
+        """
+        if quoted:
+            out.append("<p>%s</p>" % _text(" ".join(quoted)))
+            quoted.clear()
+
     def close_blocks():
-        """Finish the open item, then the open list. Order matters: closing
-        </ul> around an unflushed item drops it entirely."""
+        """Finish whatever is being accumulated, then close the block holding
+        it. Order matters: closing </ul> or </blockquote> around an unflushed
+        buffer drops its contents entirely."""
         flush_item()
+        flush_quote()
         _close(out, stack)
 
     # An index, not `for`: fences and tables consume more than one line.
@@ -323,7 +377,11 @@ def to_html(markdown):
                 close_blocks()
                 out.append("<blockquote>")
                 stack.append("blockquote")
-            out.append("<p>%s</p>" % _text(quote.group(1)))
+            body = quote.group(1).strip()
+            if body:
+                quoted.append(body)
+            else:
+                flush_quote()
             continue
 
         bullet = _ULI.match(line)
