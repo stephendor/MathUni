@@ -1,22 +1,41 @@
 ---
 name: morning
-description: Pre-build today's study day and post the hook notification. Run by the scheduled routine on study days; also manually via /morning.
+description: Rebuild today's study day by hand. The scheduled task already does this every day without a model; use this when it has not run, or to force a fresh plan.
 ---
 
-# /morning — the 06:30 routine (cheap, Sonnet-class)
+# /morning — rebuild today (no model in the path)
 
-1. From C:\Users\steph\MathUni (verify cwd). Read state/schedule.json —
-   if today is not a study day, exit silently (no output, no files).
-2. Build the day plan exactly as /today step 3 would (SRS due count via
-   `python srs/scheduler.py stats`, two lecture candidates from different
-   modules, problem segment) and write it to state/sessions/YYYY-MM-DD.md
-   under a "## Plan (pre-built 06:30)" heading. /today step 2's resume
-   check picks this up so nothing is rebuilt.
-3. Run `python scripts/build_dashboard.py`.
-4. Send ONE notification whose text IS the hook: "<hook of lecture-1 unit>
-   — that's lecture 1. <n> cards waiting. /today when ready." Use the push
-   notification tool if available in the session; else write the line to
-   state/NUDGE.txt (the interactive session surfaces it).
-5. Missed-day rule: if yesterday was a study day with no session log, add
-   ONE line to the notification re-hooking yesterday's lecture-1 unit.
-   Never more than one line, never guilt.
+The 06:30 routine is no longer a model call. `scripts/daily.py` builds the day
+from `syllabus.yaml`, `progress.json` and the SRS deck with stdlib only, and the
+`NexusCollege Daily` scheduled task runs it at logon and again at 06:30. This
+skill is the manual handle on that same script — it is not a second
+implementation, and you must not rebuild the plan yourself.
+
+The old version of this skill called a model at 06:30 and wrote a hook line to
+`state/NUDGE.txt` for "the interactive session" to surface. No reader for that
+file ever existed, and the model call 404'd on a retired model id every study
+morning from 2026-07-11 to 2026-08-31 while the task reported `Status: Ready`.
+Both are gone. See `docs/plans/2026-08-31-deterministic-daily-loop.md`.
+
+1. Verify cwd is `C:\Users\steph\MathUni`.
+2. `python scripts/daily.py --force`
+   On success it prints one JSON line — outcome, date, units, due count —
+   and exits 0. Relay it. With `--force` the outcome is `built` on a study
+   day and `rest` otherwise; `already-built` only appears on an unforced run
+   that found today's plan already on disk.
+   On failure it prints nothing on stdout, writes the reason to stderr, and
+   exits 2, having recorded a heartbeat with outcome `failed`. Report that
+   rather than treating a silent run as success.
+3. Optionally post the toast:
+   `powershell -ExecutionPolicy Bypass -File scripts\notify.ps1`
+   It exits 0 even when it fails — the toast is best-effort, the page is the
+   contract.
+4. If Stephen wants to look at it, the home surface is
+   `python scripts/open_today.py`, which opens the live server when it is
+   answering and `dashboard/today.html` when it is not. Never hard-code the
+   port: `serve.py` scans upward from 8787 when that one is taken and records
+   the port it actually got in `state/server.json`.
+
+Never hand-write `state/today.json`, `state/sessions/<date>.md`, or
+`state/last-daily-run.json`. They are machine-written, and a hand-written
+heartbeat is a lie about whether the automation is alive.

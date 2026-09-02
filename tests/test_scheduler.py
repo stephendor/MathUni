@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from srs.scheduler import rate_card, due_cards
+from srs.scheduler import due_cards, rate_card, save_config, save_deck
 
 def card(**kw):
     c = {"id": "x", "unit": "la-01", "type": "definition", "front": "f",
@@ -64,3 +64,26 @@ def test_stdout_commands_emit_utf8_json_when_parent_requests_cp1252(tmp_path):
         )
         assert result.returncode == 0, result.stderr.decode("utf-8", errors="replace")
         json.loads(result.stdout.decode("utf-8"))
+
+
+def test_save_deck_writes_lf_not_the_platform_default(tmp_path):
+    """The repo is eol=lf (.gitattributes) and the server now saves the deck
+    on every single rating. In text mode on Windows that rewrote deck.json
+    with CRLF each time, so one study session produced a whole-file diff of
+    nothing at all.
+    """
+    path = tmp_path / "deck.json"
+    save_deck({"cards": [{"id": "x", "front": "a", "back": "b"}]}, str(path))
+    # read_bytes, not read_text: text mode translates CRLF to LF on the
+    # way in, so the text form of this assertion passes against a CRLF
+    # file and checks nothing at all.
+    assert chr(13).encode() not in path.read_bytes()
+
+
+def test_save_config_writes_lf_too(tmp_path):
+    path = tmp_path / "config.json"
+    save_config({"scheduler": "sm2", "engram_threshold": 50}, str(path))
+    # read_bytes, not read_text: text mode translates CRLF to LF on the
+    # way in, so the text form of this assertion passes against a CRLF
+    # file and checks nothing at all.
+    assert chr(13).encode() not in path.read_bytes()

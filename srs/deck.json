@@ -426,11 +426,11 @@
    "type": "definition",
    "front": "State Abbott's definition of supremum (Definition 1.3.2).",
    "back": "A real number s is the least upper bound (supremum, sup A) for A ⊆ ℝ if: (i) s is an upper bound for A, and (ii) if b is any upper bound for A, then s ≤ b. Infimum is defined the same way for lower bounds. — Abbott §1.3, Definition 1.3.2, p. 14",
-   "ease": 2.5,
+   "ease": 2.3,
    "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
-   "lapses": 0
+   "due": "2026-09-01",
+   "reps": 1,
+   "lapses": 1
   },
   {
    "id": "an-01-c03",
@@ -438,10 +438,10 @@
    "type": "definition",
    "front": "State Theorem 1.1.1 and note what makes it historically significant.",
    "back": "There is no rational number whose square is 2. Significant because it broke the Pythagorean assumption that any two lengths share a common rational sub-unit — showing \"number\" (as rational) is strictly weaker than geometric length. — Abbott §1.1, Theorem 1.1.1, p. 2; discussion p. 3",
-   "ease": 2.5,
-   "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
+   "ease": 2.6,
+   "interval": 3,
+   "due": "2026-09-04",
+   "reps": 1,
    "lapses": 0
   },
   {
@@ -618,10 +618,10 @@
    "type": "definition",
    "front": "State Carter's four informal Rules (1.5–1.8) that define \"a system of actions\" before the formal group axioms appear.",
    "back": "Rule 1.5: a fixed list of moves that never changes. Rule 1.6: every action is reversible. Rule 1.7: every action is deterministic (no randomness). Rule 1.8: any sequence of consecutive actions is also an action. — Carter §1.4, pp. 6–7",
-   "ease": 2.5,
-   "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
+   "ease": 2.6,
+   "interval": 3,
+   "due": "2026-09-04",
+   "reps": 1,
    "lapses": 0
   },
   {
@@ -642,10 +642,10 @@
    "type": "theorem",
    "front": "How many distinct configurations does the rectangle puzzle (two flips: horizontal, vertical) have in total, and why exactly that many?",
    "back": "Four: solved, horizontal-flipped, vertical-flipped, and both together (the half-turn). Flipping twice in either direction returns to an already-visited state; combining both flips gives one genuinely new fourth state, and nothing beyond that appears. — Carter §2.3, pp. 15–18",
-   "ease": 2.5,
-   "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
+   "ease": 2.6,
+   "interval": 3,
+   "due": "2026-09-04",
+   "reps": 1,
    "lapses": 0
   },
   {
@@ -666,10 +666,10 @@
    "type": "theorem",
    "front": "Which of Carter's rules guarantees that a combination not on the original generator list (e.g. flip-horizontal-then-flip-vertical) still counts as a legitimate group move?",
    "back": "Rule 1.8 — any sequence of consecutive actions is also an action. The generators are a starting point for building the whole group, not a ceiling on what counts as a move. — Carter §1.4, Rule 1.8, p. 6",
-   "ease": 2.5,
-   "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
+   "ease": 2.6,
+   "interval": 3,
+   "due": "2026-09-04",
+   "reps": 1,
    "lapses": 0
   },
   {
@@ -678,10 +678,10 @@
    "type": "proof-sketch",
    "front": "Outline how Carter informally establishes that the rectangle puzzle's \"do-nothing\" move is a legitimate action on par with the two flips.",
    "back": "- Note every rectangle configuration count must include the case where corners haven't moved (\"reset\")\n- Observe Rule 1.8 lets \"flip horizontal, then flip horizontal again\" be treated as one combined action\n- That combined action changes nothing, so it counts as a valid action by the rules already stated\n- This \"changes-nothing\" action is later formalised as the identity — Carter §2.3, discovered fact 1, p. 15 (formalised aa-23, Aluffi Definition 11.1)",
-   "ease": 2.5,
-   "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
+   "ease": 2.6,
+   "interval": 3,
+   "due": "2026-09-04",
+   "reps": 1,
    "lapses": 0
   },
   {
@@ -690,10 +690,10 @@
    "type": "proof-sketch",
    "front": "Outline the reasoning that establishes every rectangle-puzzle move has an \"undo\" (inverse), informally, before any axioms are stated.",
    "back": "- For each of the four configurations, exhibit another move (possibly the same one) that returns to solved\n- Horizontal flip undoes itself (flip again); vertical flip undoes itself likewise\n- The 180° rotation (horizontal-then-vertical) is undone by repeating the same combination\n- Note that in this particular group, every move happens to be its own undo — not true of every group — Carter §2.3, discovered fact 2, p. 15 (formalised aa-23 as inverses)",
-   "ease": 2.5,
-   "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
+   "ease": 2.6,
+   "interval": 3,
+   "due": "2026-09-04",
+   "reps": 1,
    "lapses": 0
   },
   {
@@ -702,11 +702,11 @@
    "type": "definition",
    "front": "State Aluffi's formal group definition (Definition 11.1).",
    "back": "A group (G,·) is a set G with a binary operation · such that: (i) associativity (g·h)·k = g·(h·k); (ii) identity ∃eG ∈G ∀g: g·eG=eG·g=g; (iii) inverse ∀g ∃h: g·h=h·g=eG. Closure is built into \"a binary operation on G\". — Aluffi, Definition 11.1, pp. 229–230",
-   "ease": 2.5,
+   "ease": 2.3,
    "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
-   "lapses": 0
+   "due": "2026-09-01",
+   "reps": 1,
+   "lapses": 1
   },
   {
    "id": "aa-23-c02",
@@ -714,11 +714,11 @@
    "type": "definition",
    "front": "State Aluffi's definition of the order of an element (Definition 10.12).",
    "back": "The order of g ∈ G, written |g|, is the cardinality of the cyclic group ⟨g⟩ = {gⁱ : i ∈ ℤ} generated by g. — Aluffi, Definition 10.12, p. 261",
-   "ease": 2.5,
+   "ease": 2.3,
    "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
-   "lapses": 0
+   "due": "2026-09-01",
+   "reps": 1,
+   "lapses": 1
   },
   {
    "id": "aa-23-c03",
@@ -726,11 +726,11 @@
    "type": "definition",
    "front": "What does it mean to say a group is abelian, and give an example from aa-23.",
    "back": "A group is abelian if its operation is commutative: a·b = b·a for all a, b. Example: (ℤ, +) is abelian, since ordinary addition of integers commutes. — Aluffi §11.1, p. 231",
-   "ease": 2.5,
+   "ease": 2.3,
    "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
-   "lapses": 0
+   "due": "2026-09-01",
+   "reps": 1,
+   "lapses": 1
   },
   {
    "id": "aa-23-c04",
@@ -738,11 +738,11 @@
    "type": "theorem",
    "front": "Which single phrase in Definition 11.1 does the job that Carter's Rule 1.8 (combinations are also actions) did informally in aa-00?",
    "back": "The phrase \"a binary operation on G\" — this is closure: g·h always lands back inside G, symbolically encoding what Rule 1.8 stated informally. — Aluffi, Definition 11.1, p. 229",
-   "ease": 2.5,
+   "ease": 2.3,
    "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
-   "lapses": 0
+   "due": "2026-09-01",
+   "reps": 1,
+   "lapses": 1
   },
   {
    "id": "aa-23-c05",
@@ -750,11 +750,11 @@
    "type": "theorem",
    "front": "Which axiom of Definition 11.1 forces every row and column of a Cayley table to contain each group element exactly once, and why?",
    "back": "Axiom (iii), existence of inverses. If element x appeared twice in row g (g·h₁=g·h₂=x, h₁≠h₂), multiplying both sides on the left by g⁻¹ forces h₁=h₂ — a contradiction. So no repeats occur (the Latin square property). — Aluffi §11.1, discussion following Definition 11.1, p. 230",
-   "ease": 2.5,
+   "ease": 2.3,
    "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
-   "lapses": 0
+   "due": "2026-09-01",
+   "reps": 1,
+   "lapses": 1
   },
   {
    "id": "aa-23-c06",
@@ -762,11 +762,11 @@
    "type": "theorem",
    "front": "What structural fact distinguishes ℤ/4ℤ from the Klein four-group V₄, even though both have four elements?",
    "back": "ℤ/4ℤ has an element of order 4 (e.g. [1]), while every non-identity element of V₄ has order 2 (each is its own inverse). Same size, different internal clockwork — the groups are not relabellings of each other. — Aluffi §11.1, Definition 10.12 and Cayley table comparison, pp. 230, 261",
-   "ease": 2.5,
+   "ease": 2.3,
    "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
-   "lapses": 0
+   "due": "2026-09-01",
+   "reps": 1,
+   "lapses": 1
   },
   {
    "id": "aa-23-c07",
@@ -774,10 +774,10 @@
    "type": "proof-sketch",
    "front": "Outline the proof strategy for uniqueness of the identity element in a group.",
    "back": "- Suppose e₁ and e₂ both satisfy axiom (ii) for the same G\n- Combine e₁ with e₂ using e₁'s identity property: e₁·e₂ = e₂\n- Combine e₁ with e₂ using e₂'s identity property: e₁·e₂ = e₁\n- Both compute the same expression e₁·e₂, so e₁ = e₂ — Aluffi §11.1, p. 230 (proof expanded from bullet observation)",
-   "ease": 2.5,
-   "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
+   "ease": 2.6,
+   "interval": 3,
+   "due": "2026-09-04",
+   "reps": 1,
    "lapses": 0
   },
   {
@@ -786,10 +786,10 @@
    "type": "proof-sketch",
    "front": "Outline the proof strategy for uniqueness of inverses in a group (the \"sandwich\" strategy).",
    "back": "- Suppose h₁ and h₂ both satisfy axiom (iii) as inverses of the same g\n- Bracket h₁·g·h₂ on the left: (h₁·g)·h₂ = eG·h₂ = h₂\n- Bracket the same expression on the right: h₁·(g·h₂) = h₁·eG = h₁\n- By associativity these two bracketings compute the same element, so h₁ = h₂ — Aluffi §11.1, p. 230 (faded proof, standard sandwich strategy)",
-   "ease": 2.5,
-   "interval": 0,
-   "due": "2026-07-07",
-   "reps": 0,
+   "ease": 2.6,
+   "interval": 3,
+   "due": "2026-09-04",
+   "reps": 1,
    "lapses": 0
   }
  ]
