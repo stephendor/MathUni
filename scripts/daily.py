@@ -411,6 +411,30 @@ def _build(argv=None):
         build_view(plan, progress, syllabus, streaks, heartbeat, today),
         StaticLinks()))
 
+    # The two boards, written on the same terms as the page above. They are
+    # imported here rather than at module scope because problem_board imports
+    # this module for the mastery gate, and the offline contract has to cover
+    # all three surfaces or none: the whole reason the boards exist is that
+    # material should not become unreachable on a day the plan is empty.
+    #
+    # Failure here does NOT fail the day. A missing board is a missing
+    # convenience; a missing plan is a missing day, and it has already been
+    # written by this point.
+    try:
+        from scripts.problem_board import build_board, render_board
+        from scripts.reference import build_index, render_reference
+
+        units = syllabus.get("units", [])
+        mod_titles = {m["id"]: m.get("title", m["id"])
+                      for m in syllabus.get("modules", [])}
+        write_atomic("dashboard/problems.html", render_board(
+            build_board(units, progress, mastery, mod_titles), StaticLinks()))
+        write_atomic("dashboard/reference.html", render_reference(
+            build_index(units), StaticLinks(),
+            {u["id"]: u.get("title", "") for u in units}))
+    except (OSError, ValueError, KeyError) as exc:
+        print("daily.py: boards not rebuilt — %s" % exc, file=sys.stderr)
+
     write_atomic("state/last-daily-run.json",
                  json.dumps(heartbeat, indent=2) + "\n")
 

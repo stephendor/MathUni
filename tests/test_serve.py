@@ -662,3 +662,43 @@ def test_a_malformed_http_responder_is_not_ours_rather_than_fatal(monkeypatch):
 
     monkeypatch.setattr(s.urllib.request, "urlopen", boom)
     assert s._is_our_server(8787) is False
+
+
+# --- the two boards ---------------------------------------------------------
+
+def test_the_board_is_served_at_the_bare_problems_path():
+    c = ctx(board_page=lambda: b"<html>board</html>")
+    r = get("/problems", c=c)
+    assert r.status == 200 and b"board" in r.body
+
+
+def test_the_board_path_does_not_shadow_a_single_set():
+    """/problems is the index and /problems/<unit> is a page; the prefix route
+    must not swallow the exact one, nor the exact one the prefix."""
+    c = ctx(board_page=lambda: b"<html>board</html>")
+    assert b"board" in get("/problems", c=c).body
+    assert b"set for pw-02" in get("/problems/pw-02", c=c).body
+
+
+def test_the_reference_is_served():
+    c = ctx(reference_page=lambda: b"<html>reference</html>")
+    r = get("/reference", c=c)
+    assert r.status == 200 and b"reference" in r.body
+
+
+def test_neither_board_requires_a_token():
+    """Both are read-only. A token on a read route would only put it in
+    browser history for nothing."""
+    for path in ("/problems", "/reference"):
+        assert get(path).status == 200, path
+
+
+def test_a_board_route_changes_no_state():
+    c = ctx(board_page=lambda: b"x", reference_page=lambda: b"y")
+    get("/problems", c=c)
+    get("/reference", c=c)
+    assert c.calls["started"] == [] and c.calls["rated"] == []
+
+
+def test_an_unknown_path_under_reference_is_still_a_404():
+    assert get("/reference/aa-01").status == 404

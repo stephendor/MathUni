@@ -439,3 +439,45 @@ def test_the_unbuilt_page_needs_no_state_to_render():
     called = {n.func.id for n in ast.walk(fn)
               if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)}
     assert called <= {"escape"}, called
+
+
+# --- nothing disappears because the day is empty ----------------------------
+
+def test_a_rest_day_still_names_both_boards():
+    """The complaint that started this: on a rest day build_plan empties
+    problem_candidates -- correctly, a rest day owes no work -- and the sets
+    vanished from the only surface that listed them."""
+    html = render_home(view(plan=dict(PLAN, rest_day=True, lectures=[],
+                                      problem_candidates=[])), StaticLinks())
+    assert "Rest day" in html
+    assert "problems.html" in html, "the board must be reachable"
+    assert "reference.html" in html
+
+
+def test_a_day_with_nothing_unlocked_still_offers_the_board():
+    html = render_home(view(plan=dict(PLAN, lectures=[],
+                                      problem_candidates=[])), StaticLinks())
+    assert "No units are waiting" in html and "problems.html" in html
+
+
+def test_every_page_carries_the_same_footer_nav():
+    html = render_home(view(), StaticLinks())
+    for href in ("today.html", "problems.html", "reference.html", "index.html"):
+        assert href in html, href
+
+
+def test_the_static_nav_omits_review_because_it_cannot_work():
+    """StaticLinks.review() is None by design: a writeback link opened from a
+    file:// page would silently do nothing."""
+    from scripts.home import ServerLinks
+
+    assert "review" not in StaticLinks().nav().lower()
+    assert "/review" in ServerLinks("tok").nav()
+
+
+def test_the_server_nav_reaches_every_surface():
+    from scripts.home import ServerLinks
+
+    nav = ServerLinks("tok").nav()
+    for href in ("/", "/problems", "/reference", "/review", "/dashboard"):
+        assert 'href="%s"' % href in nav, href

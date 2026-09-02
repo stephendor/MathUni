@@ -58,6 +58,8 @@ from scripts.home import (
     render_home,
     render_problem_set,
 )
+from scripts.problem_board import build_board, render_board
+from scripts.reference import build_index, render_reference
 from scripts.review import REVIEW_CAP, build_queue, render_review
 from scripts.validate_syllabus import load_syllabus
 from srs.scheduler import (
@@ -125,7 +127,7 @@ class Context:
     def __init__(self, token, port, units, load_plan, load_progress, load_heartbeat,
                  read_lesson, start_unit, rate_card, build_dashboard,
                  home_page=None, review_page=None, problem_page=None,
-                 read_asset=None):
+                 read_asset=None, board_page=None, reference_page=None):
         self.token = token
         self.port = port
         self.units = units
@@ -140,6 +142,8 @@ class Context:
         self.review_page = review_page or (lambda: b"")
         self.problem_page = problem_page or (lambda unit: None)
         self.read_asset = read_asset or (lambda rel: None)
+        self.board_page = board_page or (lambda: b"")
+        self.reference_page = reference_page or (lambda: b"")
 
 
 def valid_host(host_header, port):
@@ -263,6 +267,14 @@ def route(method, path, query, body, ctx):
 
     if path == "/review":
         return Response(200, ctx.review_page())
+
+    # Exact, and distinct from the /problems/<unit> prefix above: the board is
+    # the index, a set is a page. Both are read-only, so neither needs a token.
+    if path == "/problems":
+        return Response(200, ctx.board_page())
+
+    if path == "/reference":
+        return Response(200, ctx.reference_page())
 
     return _json(404, {"error": "not found"})
 
@@ -395,6 +407,8 @@ def read_lesson(path):
 
 def real_context(token, port):
     syllabus = load_syllabus("curriculum/syllabus.yaml")
+    mod_titles = {m["id"]: m.get("title", m["id"])
+                  for m in syllabus.get("modules", [])}
 
     def dashboard():
         # The same renderer /status uses, so the two cannot drift.
@@ -438,6 +452,22 @@ def real_context(token, port):
             return render_problem_set(unit["id"], unit.get("title", ""),
                                       f.read()).encode("utf-8")
 
+    def board_page():
+        return render_board(
+            build_board(syllabus.get("units", []),
+                        read_json("state/progress.json"),
+                        read_json("state/mastery.json"), mod_titles),
+            ServerLinks(token)).encode("utf-8")
+
+    def reference_page():
+        # Rebuilt per request rather than cached: 48 ms over the whole corpus,
+        # and a cache would be one more thing that can be stale after /lecture
+        # rewrites a lesson. Cheap enough that correctness is free.
+        units = syllabus.get("units", [])
+        return render_reference(
+            build_index(units), ServerLinks(token),
+            {u["id"]: u.get("title", "") for u in units}).encode("utf-8")
+
     return Context(
         token=token, port=port, units=syllabus.get("units", []),
         # Loaded per request, not once at boot: this process is meant to stay
@@ -448,7 +478,8 @@ def real_context(token, port):
         read_lesson=read_lesson, start_unit=start_unit, rate_card=rate_card,
         build_dashboard=dashboard, home_page=home_page,
         review_page=review_page, problem_page=problem_page,
-        read_asset=read_asset)
+        read_asset=read_asset, board_page=board_page,
+        reference_page=reference_page)
 
 
 class Handler(BaseHTTPRequestHandler):

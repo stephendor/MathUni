@@ -84,6 +84,8 @@ padding:.9rem 1.1rem;font-size:.93rem}
 .fill{background:var(--good);height:100%}
 footer{margin-top:3rem;border-top:1px solid var(--line);padding-top:1rem;
 color:var(--dim);font-size:.85rem;font-family:Segoe UI,system-ui,sans-serif}
+footer .nav{margin-top:.5rem}
+footer .nav a{margin-right:1.1rem}
 .rest{background:var(--panel);border-radius:12px;padding:1.3rem 1.4rem;color:var(--dim)}
 .rest b{color:var(--ink);font-family:Segoe UI,system-ui,sans-serif}
 """
@@ -111,6 +113,18 @@ class ServerLinks:
     def dashboard(self):
         return "/dashboard"
 
+    def home(self):
+        return "/"
+
+    def board(self):
+        return "/problems"
+
+    def reference(self):
+        return "/reference"
+
+    def nav(self):
+        return _nav(self)
+
 
 class StaticLinks:
     """Links for dashboard/today.html, written to disk and opened as a file.
@@ -135,6 +149,33 @@ class StaticLinks:
 
     def dashboard(self):
         return "index.html"
+
+    def home(self):
+        return "today.html"
+
+    def board(self):
+        return "problems.html"
+
+    def reference(self):
+        return "reference.html"
+
+    def nav(self):
+        return _nav(self)
+
+
+def _nav(links):
+    """The footer that makes every surface reachable from every other.
+
+    Written once and shared, because the boards exist precisely so that nothing
+    disappears when the day's plan happens to be empty. A rest day owes no work;
+    it should not also hide the material.
+    """
+    items = [("Today", links.home()), ("Problems", links.board()),
+             ("Reference", links.reference()), ("Full board", links.dashboard())]
+    if links.review():
+        items.insert(3, ("Review", links.review()))
+    return "".join('<a href="%s">%s</a>' % (escape(href), label)
+                   for label, href in items if href)
 
 
 def _days_since(iso, today):
@@ -283,13 +324,21 @@ def _liveness_banner(view):
 
 def _hero(view, links):
     if view["rest_day"]:
+        # A rest day owes no work, so problem_candidates is empty and the
+        # segment cards below are gone. That is right about the day and wrong
+        # about the material: nothing should become unreachable because today
+        # happens to be a Wednesday. The boards are named here explicitly.
         return ('<div class="rest"><b>Rest day.</b> Nothing is scheduled, and '
-                'nothing is owed. If you want a few cards anyway, they are '
-                'there: %s</div>' % _review_link(links, "review the deck"))
+                'nothing is owed. If you want something anyway, it is all still '
+                'there: %s, the <a href="%s">problem board</a>, or the '
+                '<a href="%s">definitions and theorems</a>.</div>'
+                % (_review_link(links, "a few cards"),
+                   escape(links.board()), escape(links.reference())))
     if not view["lectures"]:
         return ('<div class="rest"><b>No units are waiting.</b> Everything '
                 'unlocked has been studied — grade what is in progress to open '
-                'the next layer of the DAG.</div>')
+                'the next layer of the DAG. The <a href="%s">problem board</a> '
+                'lists every set either way.</div>' % escape(links.board()))
     first = view["lectures"][0]
     return ('<div class="hook"><div class="lead">Today opens with</div>%s'
             '<div><a class="btn" href="%s">Start %s</a>%s</div></div>'
@@ -420,13 +469,13 @@ def render_home(view, links):
         "<span class='streak'>%d day streak · best %d · %d/%d units mastered</span>"
         "</header>%s%s<h2>Today</h2>%s%s%s"
         "<footer>Built by <code>scripts/daily.py</code> — no model involved. "
-        "<a href='%s'>Full board</a>.</footer></body></html>\n"
+        "<div class='nav'>%s</div></footer></body></html>\n"
         % (escape(view["date"]), CSS, escape(_pretty_date(view["date"])),
            streak.get("current", 0), streak.get("best", 0),
            view["mastered_total"], view["unit_total"],
            _liveness_banner(view), _hero(view, links),
            _segment_cards(view, links), _stale_block(view),
-           _modules_block(view), links.dashboard()))
+           _modules_block(view), links.nav()))
 
 
 PROBLEM_CSS = PALETTE + """

@@ -18,3 +18,11 @@ state/last-daily-run.json
 state/server.json
 # Written only when the server runs windowless (pythonw has no console).
 state/server.log
+
+# Derived boards, rewritten by scripts/daily.py on every run. Both are pure
+# functions of things already tracked -- problems.html of progress + mastery,
+# reference.html of the 145 lessons -- so committing them would track a 950 KB
+# artifact that changes whenever either source does, and can be rebuilt with
+# `python scripts/problem_board.py` and `python scripts/reference.py`.
+dashboard/problems.html
+dashboard/reference.html
