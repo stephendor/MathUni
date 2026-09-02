@@ -31,9 +31,15 @@ is exactly the dependency this loop was rebuilt to remove.
      before believing it. Do NOT read the port out of `state/server.json` and
      use it: a dead process leaves that file behind, the port may since have
      been taken by something else, and posting ratings at a stranger is worse
-     than not reviewing. If nothing answers, start `python scripts/serve.py`,
-     or fall back to the /review skill's conversational mode — which is also
-     the right choice when Stephen wants reteaching on misses.
+     than not reviewing.
+
+     If nothing answers, the server is down. `python scripts/serve.py` blocks
+     in serve_forever and picks its own port when 8787 is taken, so start it
+     in the background and then re-run `open_today.py --print` to learn where
+     it actually landed — do not assume it came up, and do not assume 8787.
+     If it still does not answer, fall back to the /review skill's
+     conversational mode, which is also the right choice when Stephen wants
+     reteaching on misses.
      The queue is capped at 15, oldest-due first; the backlog drains across
      sessions and is not a debt to clear in one sitting.
    - **Lecture 1 and Lecture 2** — the two units named in the plan. Follow

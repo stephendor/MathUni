@@ -216,3 +216,52 @@ def test_the_real_corpus_produces_a_board():
     s = summarise(rows)
     assert s["total"] > 140
     assert s["pending"] + s["passed"] + s["locked"] == s["total"]
+
+
+# --- state that is valid JSON but the wrong shape ---------------------------
+
+def test_a_non_object_mastery_file_does_not_500_the_board(tmp_path):
+    """/problems returned HTTP 500 over a file that decides nothing but which
+    lane a row lands in. daily.py already normalises the same input.
+
+    build_board directly, not the helper: the helper reads None as "use the
+    default fixture", which is exactly the value under test here."""
+    fake_repo(tmp_path)
+    for bad in (None, [], "x", 3):
+        rows = build_board(UNITS, PROGRESS, bad, TITLES, root=str(tmp_path))
+        assert len(rows) == 4, bad
+        assert all(r["score"] is None for r in rows), bad
+        assert "</html>" in render_board(rows, StaticLinks()), bad
+
+
+def test_a_non_object_progress_file_is_survivable(tmp_path):
+    fake_repo(tmp_path)
+    for bad in (None, [], "x", 3):
+        rows = build_board(UNITS, bad, {}, TITLES, root=str(tmp_path))
+        assert all(r["status"] == "locked" for r in rows), bad
+        assert all(lane(r) == "locked" for r in rows), bad
+
+
+def test_a_non_numeric_attempt_count_never_reaches_the_formatter(tmp_path):
+    """_tags formats attempts with %d, and {"attempts": "one"} is a thing a
+    hand-edited file can say."""
+    for bad in ("one", [], {}, -1, True, None):
+        rows = board(tmp_path,
+                     mastery={"la-02": {"score": 0.5, "attempts": bad}})
+        html = render_board(rows, StaticLinks())
+        assert "</html>" in html
+        assert "attempt" not in html or "1 attempt" not in html
+
+
+def test_a_real_attempt_count_is_shown(tmp_path):
+    rows = board(tmp_path, mastery={"la-02": {"score": 0.5, "attempts": 3}})
+    assert "3 attempts" in render_board(rows, StaticLinks())
+
+
+def test_a_non_finite_score_is_not_a_score(tmp_path):
+    """round(nan * 100) raises in _tags, and inf would silently pass the gate
+    for every unit it touched."""
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        rows = {r["id"]: r for r in board(tmp_path, mastery={"la-02": {"score": bad}})}
+        assert rows["la-02"]["score"] is None, bad
+        assert lane(rows["la-02"]) == "pending", bad

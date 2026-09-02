@@ -97,13 +97,21 @@ def pick_units(units, progress, limit=2):
     """
     ranked = []
     for order, unit in enumerate(units):
-        status = progress.get(unit["id"], {}).get("status", "locked")
-        if status in STUDIABLE:
-            ranked.append((STUDIABLE.index(status), order, unit))
-    ranked.sort(key=lambda row: (row[0], row[1]))
+        rec = progress.get(unit["id"], {})
+        status = rec.get("status", "locked")
+        if status not in STUDIABLE:
+            continue
+        # An unlocked unit the server could not promote -- its solutions file
+        # is unwritten, so marking it in-progress would break the consistency
+        # gate -- records `last_opened` instead. Without this it stays
+        # indistinguishable from a unit nobody has touched, and being first in
+        # syllabus order it is chosen again tomorrow, and the day after.
+        opened = 1 if (status == "unlocked" and rec.get("last_opened")) else 0
+        ranked.append((STUDIABLE.index(status), opened, order, unit))
+    ranked.sort(key=lambda row: (row[0], row[1], row[2]))
 
     picked, modules = [], set()
-    for _, _, unit in ranked:
+    for _, _, _, unit in ranked:
         if len(picked) >= limit:
             break
         if unit["module"] not in modules:
@@ -111,7 +119,7 @@ def pick_units(units, progress, limit=2):
             modules.add(unit["module"])
     if len(picked) < limit:  # top up from what is left, module repeats allowed
         chosen = {u["id"] for u in picked}
-        for _, _, unit in ranked:
+        for _, _, _, unit in ranked:
             if len(picked) >= limit:
                 break
             if unit["id"] not in chosen:
@@ -275,11 +283,22 @@ def plan_is_usable(obj, today):
         return False
     if not isinstance(obj.get("problem_candidates"), list):
         return False
-    if not isinstance(obj.get("rest_day"), bool):
-        return False
-    # A study day with no lectures is not a plan, it is an empty file with
-    # today's date on it. A rest day with none is exactly right.
-    return bool(obj["lectures"]) or obj["rest_day"]
+    return isinstance(obj.get("rest_day"), bool)
+    # No "must have lectures" rule, deliberately. It was tempting -- an empty
+    # study day looks like a truncated file -- but it is also the correct plan
+    # once everything studiable has been mastered, which home.py already has a
+    # "No units are waiting" state for. Rejecting it meant every rerun that day
+    # reported "built" again and rewrote state/sessions/<today>.md, discarding
+    # any review or voluntary problem-work notes appended earlier.
+    #
+    # The shape checks above are what catch a truncated file: `{"date": today}`
+    # has no lectures list, no problem_candidates list and no rest_day bool,
+    # and fails on all three.
+
+
+def _as_mapping(raw):
+    """`raw` if it is a dict, else {}. For optional state read with .get()."""
+    return raw if isinstance(raw, dict) else {}
 
 
 def _clean_mastery(raw):
@@ -331,8 +350,11 @@ def _build(argv=None):
         schedule = read_required_json("state/schedule.json")
         progress = read_required_json("state/progress.json")
         # These two are genuinely optional: streaks are cosmetic, and mastery
-        # only orders the problem candidates.
-        streaks = read_json("state/streaks.json")
+        # only orders the problem candidates. Both are normalised rather than
+        # trusted -- `null` or `[]` is valid JSON, and letting a display
+        # counter's shape decide whether the day gets built at all inverts
+        # every priority this file has.
+        streaks = _as_mapping(read_json("state/streaks.json"))
         mastery = _clean_mastery(read_json("state/mastery.json"))
         deck = load_deck()
         stats = {"due_today": len(due_cards(deck, today)),

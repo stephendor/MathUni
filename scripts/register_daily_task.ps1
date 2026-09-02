@@ -136,21 +136,31 @@ function Resolve-Python {
         # syntax error and every candidate interpreter would be rejected.
         $env:NEXUS_REPO_ROOT = $Root
         try {
-            & $cand -c "import os, sys; sys.path.insert(0, os.environ['NEXUS_REPO_ROOT']); import scripts.daily" 2>$null
+            # Both modules, not just scripts.daily. daily.py defers its
+            # `import scripts.validate_syllabus` into _build() so that a
+            # dependency breaking AFTER install still writes a "failed"
+            # heartbeat instead of dying before main() has a handler. The cost
+            # is that importing scripts.daily no longer touches PyYAML, so this
+            # probe would accept the very interpreter it exists to reject --
+            # the conda python without pyyaml that was registered on install
+            # day. serve.py imports validate_syllabus at module scope and would
+            # not start at all.
+            & $cand -c "import os, sys; sys.path.insert(0, os.environ['NEXUS_REPO_ROOT']); import scripts.daily, scripts.validate_syllabus, scripts.serve" 2>$null
         } finally {
             Remove-Item Env:\NEXUS_REPO_ROOT -ErrorAction SilentlyContinue
         }
         if ($LASTEXITCODE -eq 0) { return $cand }
-        Write-Verbose "rejected (cannot import scripts.daily): $cand"
+        Write-Verbose "rejected (cannot import the college modules): $cand"
     }
     return $null
 }
 
 $python = Resolve-Python -Root $RepoRoot
 if (-not $python) {
-    Write-Error ("No Python on this machine can import scripts.daily. Tried every " +
-                 "python/python3 on PATH plus the py launcher. Install pyyaml " +
-                 "(pip install -r requirements-dev.txt) and re-run.")
+    Write-Error ("No Python on this machine can import the college modules " +
+                 "(scripts.daily, scripts.validate_syllabus, scripts.serve). " +
+                 "Tried every python/python3 on PATH plus the py launcher. " +
+                 "Install pyyaml (pip install -r requirements-dev.txt) and re-run.")
     exit 1
 }
 # pythonw from the SAME installation, never resolved separately by name.

@@ -200,7 +200,13 @@ def build_view(plan, progress, syllabus, streaks, heartbeat, today,
     """
     units = {u["id"]: u for u in syllabus.get("units", [])}
     mod_titles = {m["id"]: m.get("title", m["id"]) for m in syllabus.get("modules", [])}
-    plan = plan or {}
+    # `plan or {}` kept a truthy list or string, and the very next line calls
+    # .get on it. The server turns that AttributeError into a 500, so a
+    # malformed today.json took down the page whose entire job is to still be
+    # standing when the state underneath it is wrong.
+    plan = plan if isinstance(plan, dict) else {}
+    progress = progress if isinstance(progress, dict) else {}
+    streaks = streaks if isinstance(streaks, dict) else {}
 
     # A plan from another day is worse than no plan. state/today.json is only
     # rewritten by a successful build, so when today's build fails yesterday's
@@ -241,7 +247,7 @@ def build_view(plan, progress, syllabus, streaks, heartbeat, today,
 
     # Same rule the liveness script applies, imported rather than restated: a
     # heartbeat dated today whose outcome is "failed" is not a healthy day.
-    beat = heartbeat or {}
+    beat = heartbeat if isinstance(heartbeat, dict) else {}
     hb_date = beat.get("date")
     liveness = {"stale": hb_date != today
                          or beat.get("outcome") not in HEALTHY_OUTCOMES,

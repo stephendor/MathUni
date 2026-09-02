@@ -36,11 +36,15 @@ markdown library for this would add the project's first runtime dependency.
 import re
 from html import escape
 
-# Display first: a lone-$ pattern would otherwise split `$$x$$` down the middle.
-# The [^$] guard on inline math keeps it from spanning across a display block,
-# and \n keeps an unclosed `$` from swallowing the rest of the document.
-_DISPLAY = re.compile(r"\$\$(.+?)\$\$", re.S)
-_INLINE = re.compile(r"(?<!\$)\$([^$\n]+?)\$(?!\$)")
+# Delimiters are paired by extract_math's scan, not by a pattern. The regex
+# form is genuinely unable to do this job: `$...$` is not a regular language
+# once a span may wrap, because deciding where one ends requires knowing which
+# `$` opened it, and a pattern applied to the whole document has no such
+# memory. See extract_math for what that cost in practice.
+#
+# What is left here are the two rules that bound a candidate span.
+_BLANK_LINE = re.compile(chr(10) + r"[ \t]*" + chr(10))
+_WRAP_LIMIT = 4         # formulas wrap once or twice; 4 is slack, not licence
 
 # U+0000 cannot appear in the source files, so a placeholder built from it
 # cannot collide with anything an author wrote.
@@ -91,15 +95,72 @@ _UNESCAPE = tuple((escape(tag), tag) for tag in _ALLOWED_HTML)
 _RAW_BLOCK = re.compile(r"^\s*<\/?(?:details|summary)\b")
 
 
-def extract_math(text):
-    """(text with placeholders, [math spans]). Display spans keep their $$."""
-    spans = []
+def _plausible_span(body):
+    """True when the text between two `$` is a formula rather than an accident.
 
-    def take(match):
-        spans.append(match.group(0))
+    Two guards, and both matter. A blank line ends a paragraph, so a span
+    crossing one is a stray `$` that found a later `$`. And a span running over
+    more lines than a formula plausibly needs is the same mistake in slower
+    motion: "costs $5 today", six lines down "$7", must not become one span
+    that eats the text between them.
+    """
+    return (body
+            and not _BLANK_LINE.search(body)
+            and body.count(chr(10)) <= _WRAP_LIMIT)
+
+
+def extract_math(text):
+    """(text with placeholders, [math spans]). Display spans keep their $$.
+
+    One left-to-right scan, not a sequence of regex passes, because delimiters
+    have to be paired in the order they were written. Two passes -- single-line
+    first, then wrapped -- looks equivalent and is not: at1-08's Partial block
+    opens a formula on one line and closes it on the next, so the single-line
+    rule reached the continuation line first, paired the closing `$` of the
+    wrapped formula with the opening `$` of the NEXT one, and took `$, using $`
+    as a span. Both real formulas were then left with one delimiter each, the
+    `+ ` that began the continuation became a bullet, and the page showed a
+    paragraph, a one-item list and half a formula.
+
+    Pairing left to right also removes a subtler hazard for free: this reads
+    the source once and never rescans its own output, so a span cannot swallow
+    a placeholder written by an earlier pass.
+    """
+    spans, out, i, n = [], [], 0, len(text)
+
+    def take(raw):
+        spans.append(raw)
         return _MARK % (len(spans) - 1)
 
-    return _INLINE.sub(take, _DISPLAY.sub(take, text)), spans
+    while i < n:
+        at = text.find("$", i)
+        if at == -1:
+            out.append(text[i:])
+            break
+        out.append(text[i:at])
+
+        if text.startswith("$$", at):
+            end = text.find("$$", at + 2)
+            if end != -1:
+                out.append(take(text[at:end + 2]))
+                i = end + 2
+                continue
+            # An unclosed `$$` is a typo, not a licence to eat the document.
+            out.append("$")
+            i = at + 1
+            continue
+
+        end = text.find("$", at + 1)
+        if end != -1 and _plausible_span(text[at + 1:end]):
+            out.append(take(text[at:end + 1]))
+            i = end + 1
+            continue
+        # No partner, or an implausible one: a literal dollar sign. Resume
+        # AFTER it so the rejected closer can still open a span of its own.
+        out.append("$")
+        i = at + 1
+
+    return "".join(out), spans
 
 
 def restore_math(html_text, spans):
@@ -162,12 +223,32 @@ def _table(header, rows):
 def to_html(markdown):
     """The markdown subset the problem sets actually use."""
     protected, spans = extract_math(markdown)
-    out, stack, para = [], [], []
+    out, stack, para, item = [], [], [], []
 
     def flush():
         if para:
             out.append("<p>%s</p>" % _text(" ".join(para)))
             para.clear()
+
+    def flush_item():
+        """Emit the list item being accumulated, if any.
+
+        Items are buffered rather than written per physical line because a
+        wrapped item is one item. lab-07's numbered source notes each run to
+        three or four lines; emitting each line as a complete <li> restarted
+        the <ol> at every real item, so the page showed a column of lists all
+        numbered 1, and `**bold**` split across two lines lost its pairing and
+        printed its own asterisks.
+        """
+        if item:
+            out.append("<li>%s</li>" % _text(" ".join(item)))
+            item.clear()
+
+    def close_blocks():
+        """Finish the open item, then the open list. Order matters: closing
+        </ul> around an unflushed item drops it entirely."""
+        flush_item()
+        _close(out, stack)
 
     # An index, not `for`: fences and tables consume more than one line.
     lines = protected.split(chr(10))
@@ -178,7 +259,7 @@ def to_html(markdown):
 
         if not line.strip():
             flush()
-            _close(out, stack)
+            close_blocks()
             continue
 
         # Fenced code, verbatim. The nine lab sets are 261 fences of Python,
@@ -189,7 +270,7 @@ def to_html(markdown):
         fence = _FENCE_OPEN.match(line)
         if fence:
             flush()
-            _close(out, stack)
+            close_blocks()
             body = []
             idx += 1
             while idx < len(lines) and not _FENCE_CLOSE.match(lines[idx].rstrip()):
@@ -204,7 +285,7 @@ def to_html(markdown):
         if (_TABLE_ROW.match(line) and idx + 1 < len(lines)
                 and _TABLE_SEP.match(lines[idx + 1].rstrip())):
             flush()
-            _close(out, stack)
+            close_blocks()
             header = _cells(line)
             idx += 1                                    # the separator row
             rows = []
@@ -217,20 +298,20 @@ def to_html(markdown):
         if _RAW_BLOCK.match(line):
             # A whitelisted block tag: emit it as markup, unwrapped.
             flush()
-            _close(out, stack)
+            close_blocks()
             out.append(_text(line.strip()))
             continue
 
         if _HR.match(line):
             flush()
-            _close(out, stack)
+            close_blocks()
             out.append("<hr>")
             continue
 
         heading = _HEADING.match(line)
         if heading:
             flush()
-            _close(out, stack)
+            close_blocks()
             level = len(heading.group(1))
             out.append("<h%d>%s</h%d>" % (level, _text(heading.group(2)), level))
             continue
@@ -239,29 +320,37 @@ def to_html(markdown):
         if quote:
             flush()
             if stack[-1:] != ["blockquote"]:
-                _close(out, stack)
+                close_blocks()
                 out.append("<blockquote>")
                 stack.append("blockquote")
             out.append("<p>%s</p>" % _text(quote.group(1)))
             continue
 
-        item = _ULI.match(line)
-        ordered = None if item else _OLI.match(line)
-        if item or ordered:
+        bullet = _ULI.match(line)
+        ordered = None if bullet else _OLI.match(line)
+        if bullet or ordered:
             flush()
-            tag = "ul" if item else "ol"
+            tag = "ul" if bullet else "ol"
             if stack[-1:] != [tag]:
-                _close(out, stack)
+                close_blocks()
                 out.append("<%s>" % tag)
                 stack.append(tag)
-            body = item.group(1) if item else ordered.group(2)
-            out.append("<li>%s</li>" % _text(body))
+            else:
+                flush_item()        # the previous item ends where this begins
+            item.append((bullet.group(1) if bullet else ordered.group(2)).strip())
+            continue
+
+        # An indented line under an open list continues the item above it
+        # rather than ending the list. Indentation is the signal markdown
+        # itself uses, and it is what the authored sets wrote.
+        if item and stack[-1:] in (["ul"], ["ol"]) and lines[idx][:1] in (" ", "	"):
+            item.append(line.strip())
             continue
 
         if stack:
-            _close(out, stack)
+            close_blocks()
         para.append(line.strip())
 
     flush()
-    _close(out, stack)
+    close_blocks()
     return restore_math("\n".join(out), spans)

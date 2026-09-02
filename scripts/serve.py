@@ -375,8 +375,24 @@ def start_unit(uid, module=None):
         if status == "unlocked" and not gaps:
             rec["status"] = "in-progress"
         elif status == "unlocked" and gaps:
-            # Serve the lesson, record nothing. Saying so is the point: a silent
-            # non-promotion would be its own small lie about what happened.
+            # Serve the lesson, but do not claim the unit is under way.
+            #
+            # Record that it was OPENED, though, which the first version did
+            # not: it returned here having written nothing at all. pick_units
+            # ranks unlocked units first in syllabus order, so the next
+            # morning's build chose the same unit again, and the morning after
+            # that -- pw-03 is in this state right now for want of a solutions
+            # file. The learner is sent round the same lesson indefinitely and
+            # the only explanation goes to a windowless server's log.
+            #
+            # last_opened, not last_studied or a status: it is a field the
+            # consistency gate does not police, so it can be written for a unit
+            # whose artifacts are incomplete without putting the repo into a
+            # state its own CI rejects.
+            rec["last_opened"] = date.today().isoformat()
+            progress[uid] = rec
+            write_atomic("state/progress.json",
+                         json.dumps(progress, indent=2) + "\n")
             sys.stderr.write(
                 "start_unit: %s stays unlocked; /lecture must author %s"
                 % (uid, ", ".join(gaps)) + NEWLINE)

@@ -19,6 +19,7 @@ The status vocabulary here is the repo's, not a new one. "Passed" means a
 mastery score at or above the gate scripts/daily.py already uses; it is not a
 second opinion about what mastery means, it is the same number read twice.
 """
+import math
 import os
 import sys
 from html import escape
@@ -33,6 +34,14 @@ SOLUTIONS = "problems/solutions"
 RECORDS = "learning-records"
 
 
+def _count(value):
+    """A non-negative integer, or None. bool is excluded: it is an int
+    subclass, so True would otherwise render as "1 attempt"."""
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return None
+    return value
+
+
 def build_board(units, progress, mastery, mod_titles=None, root="."):
     """One row per authored set, in syllabus order, grouped by module.
 
@@ -40,7 +49,13 @@ def build_board(units, progress, mastery, mod_titles=None, root="."):
     the 146 rows here are real files, and a board padded with things that do
     not exist teaches you to distrust it.
     """
-    mod_titles = mod_titles or {}
+    mod_titles = mod_titles if isinstance(mod_titles, dict) else {}
+    # `null` and `[]` are valid JSON. Calling .get on either raises, and the
+    # /problems route turns that into a 500 -- over a file that decides nothing
+    # but which lane a row lands in. daily.py already normalises the same
+    # input; the board must not be the one place that trusts it.
+    progress = progress if isinstance(progress, dict) else {}
+    mastery = mastery if isinstance(mastery, dict) else {}
     rows = []
     for unit in units:
         uid = unit["id"]
@@ -49,7 +64,11 @@ def build_board(units, progress, mastery, mod_titles=None, root="."):
         status = progress.get(uid, {}).get("status", "locked")
         record = mastery.get(uid) if isinstance(mastery.get(uid), dict) else {}
         score = record.get("score")
-        scored = isinstance(score, (int, float)) and not isinstance(score, bool)
+        # Finite, because round(float("nan") * 100) raises in _tags and NaN
+        # compares False against the gate, so an infinity would silently pass
+        # every unit it touched.
+        scored = (isinstance(score, (int, float)) and not isinstance(score, bool)
+                  and math.isfinite(score))
         rows.append({
             "id": uid,
             "title": unit.get("title", uid),
@@ -57,7 +76,9 @@ def build_board(units, progress, mastery, mod_titles=None, root="."):
             "module_title": mod_titles.get(unit["module"], unit["module"]),
             "status": status,
             "score": score if scored else None,
-            "attempts": record.get("attempts"),
+            # Coerced, not carried through: _tags formats this with %d, and
+            # {"attempts": "one"} is a thing a hand-edited file can say.
+            "attempts": _count(record.get("attempts")),
             "last": record.get("last"),
             # Two ways to be done with a set, and both count. A unit reaches
             # "mastered" through scripts/update_unlocks.py, which is the repo's

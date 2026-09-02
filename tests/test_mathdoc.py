@@ -314,3 +314,139 @@ def test_the_whitelist_carries_no_attribute_parsing():
     assert all(isinstance(t, str) for t in _ALLOWED_HTML)
     attributed = [t for t in _ALLOWED_HTML if " " in t]
     assert attributed == ['<span class="cite">'], attributed
+
+
+# --- formulas that wrap, which the block rules would otherwise cut in half ---
+
+def test_a_formula_wrapping_onto_a_plus_line_stays_one_span():
+    """at1-08 lines 102-103 and at1-07 lines 68-69 both break an inline span
+    with the continuation starting `+ `, which _ULI reads as a bullet. KaTeX
+    was handed two halves with unmatched delimiters."""
+    src = (r"(a) %s|f_t(x)|^2 = \cos^2 t\,|x|^2" % D + chr(10)
+           + r"+ \sin^2 t\,|v(x)|^2 = 1%s, using the norm." % D)
+    out = to_html(src)
+    assert "<ul>" not in out and "<li>" not in out
+    assert out.count("$") == 2, out
+
+
+def test_a_wrapped_formula_does_not_cross_a_blank_line():
+    """A blank line ends a paragraph, so a span crossing one is a stray `$`
+    finding a later `$`, not a formula."""
+    out = to_html("costs %s5 today" % D + chr(10) * 2 + "and %s7 tomorrow" % D)
+    assert "and " in out and "today" in out
+    assert out.count("<p>") == 2
+
+
+def test_a_wrapped_span_is_bounded_in_length():
+    """Two lone dollars far apart must not become one span that eats the text
+    between them."""
+    body = chr(10).join("line %d" % i for i in range(8))
+    out = to_html("costs %s5" % D + chr(10) + body + chr(10) + "or %s7" % D)
+    for i in range(8):
+        assert "line %d" % i in out
+
+
+def test_a_wrapped_span_never_swallows_an_existing_placeholder():
+    """Both passes run on text that already holds placeholders. A span that
+    swallowed one would be stored WITH it, and restore_math substitutes in a
+    single pass -- so the buried placeholder reappears as a NUL in the page."""
+    src = ("%s%sx=1%s%s and %sa" % (D, D, D, D, D) + chr(10)
+           + "+ b%s tail" % D)
+    out = to_html(src)
+    assert chr(0) not in out
+    assert out.count("$") == src.count("$")
+
+
+def test_the_whole_corpus_still_balances_after_the_wrapped_pass():
+    import glob
+    import pathlib as pl
+
+    root = pl.Path(__file__).resolve().parents[1]
+    for path in sorted(glob.glob(str(root / "problems" / "sets" / "*.md"))):
+        src = pl.Path(path).read_text(encoding="utf-8")
+        out = to_html(src)
+        assert chr(0) not in out, pl.Path(path).name
+        assert src.count("$") == out.count("$"), pl.Path(path).name
+
+
+# --- list items that wrap ---------------------------------------------------
+
+def test_a_wrapped_list_item_stays_one_item():
+    """lab-07's numbered source notes run to three or four lines each. Emitting
+    each physical line as a complete <li> restarted the <ol> at every real
+    item, so the page showed a column of lists all numbered 1."""
+    out = to_html("1. first line" + chr(10) + "   continued here" + chr(10)
+                  + "2. second item")
+    assert out.count("<ol>") == 1
+    assert out.count("<li>") == 2
+    assert "first line continued here" in out
+
+
+def test_bold_split_across_a_wrapped_item_still_pairs():
+    out = to_html("1. **This unit was drafted" + chr(10)
+                  + "   against a broken environment.** Rest.")
+    assert "<strong>" in out and "**" not in out
+
+
+def test_an_unindented_line_after_a_list_still_ends_it():
+    out = to_html("- item" + chr(10) + "not indented")
+    assert out.index("</ul>") < out.index("not indented")
+
+
+def test_a_wrapped_bullet_item_works_too():
+    out = to_html("- first" + chr(10) + "  more" + chr(10) + "- second")
+    assert out.count("<li>") == 2 and "first more" in out
+
+
+def test_lab_07_renders_one_list_not_a_column_of_them():
+    import pathlib as pl
+
+    root = pl.Path(__file__).resolve().parents[1]
+    out = to_html((root / "problems" / "sets" / "lab-07.md")
+                  .read_text(encoding="utf-8"))
+    assert out.count("<ol>") == 1, "one list, not one per line"
+
+
+def test_a_wrapped_formula_is_not_mispaired_by_a_later_one():
+    r"""The two-pass version's actual failure, and it is not obvious.
+
+    at1-08's Partial block opens `$|f_t(x)|^2 = ...` on one line and closes it
+    on the next, and that next line ALSO opens a second formula. A single-line
+    pass reaching the continuation line first sees `$, using $` -- the closing
+    delimiter of the wrapped formula and the opening delimiter of the next one
+    -- and takes that as a span. Both real formulas are then left holding one
+    delimiter each. Pairing left to right is what prevents it.
+    """
+    src = ("(a) %s|f|^2 = a" % D + chr(10)
+           + "+ b = 1%s, using %s|x| = 1%s and more." % (D, D, D))
+    out = to_html(src)
+    assert "<li>" not in out and "<ul>" not in out
+    assert "$|f|^2 = a" + chr(10) + "+ b = 1$" in out, out
+    assert "$|x| = 1$" in out, out
+
+
+def test_at1_08_and_at1_07_render_their_wrapped_formulas_whole():
+    import pathlib as pl
+    import re
+
+    root = pl.Path(__file__).resolve().parents[1]
+    for name, key in (("at1-08", r"\cos^2 t\,|x|^2"),
+                      ("at1-07", r"\partial_{n-1}\partial_n(\sigma)")):
+        out = to_html((root / "problems" / "sets" / ("%s.md" % name))
+                      .read_text(encoding="utf-8"))
+        block = re.search(r"<p>[^<]*" + re.escape(key) + r".*?</p>", out, re.S)
+        assert block, name
+        assert "<li>" not in block.group(0), name
+        assert block.group(0).count("$") % 2 == 0, name
+
+
+def test_an_unclosed_display_delimiter_is_not_a_licence():
+    out = to_html("%sx = 1" % (D * 2) + chr(10) + "still here")
+    assert "still here" in out
+
+
+def test_a_rejected_closer_can_still_open_its_own_span():
+    """Resuming after the rejected `$` rather than after the whole candidate:
+    the second dollar may be the real opening delimiter."""
+    out = to_html("cost $5" + chr(10) * 2 + "then %sx = 1%s done" % (D, D))
+    assert "$x = 1$" in out

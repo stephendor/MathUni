@@ -107,11 +107,12 @@
     "status": "locked"
   },
   "aa-00": {
-    "status": "in-progress",
+    "status": "unlocked",
     "last_studied": "2026-07-08"
   },
   "aa-01": {
-    "status": "unlocked"
+    "status": "in-progress",
+    "last_studied": "2026-09-02"
   },
   "aa-02": {
     "status": "locked"

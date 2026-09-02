@@ -481,3 +481,29 @@ def test_the_server_nav_reaches_every_surface():
     nav = ServerLinks("tok").nav()
     for href in ("/", "/problems", "/reference", "/review", "/dashboard"):
         assert 'href="%s"' % href in nav, href
+
+
+# --- state that is valid JSON but the wrong shape ---------------------------
+
+def test_a_non_object_plan_does_not_take_the_page_down():
+    """`plan or {}` kept a truthy list, and the next line called .get on it.
+    The server turns that AttributeError into a 500, so a malformed today.json
+    took down the page whose whole job is to survive bad state."""
+    for bad in ([1, 2], "text", 7):
+        v = build_view(bad, PROGRESS, SYL, STREAKS, BEAT, TODAY)
+        assert v["has_plan"] is False
+        assert "Nexus College" in render_home(v, StaticLinks())
+
+
+def test_non_object_progress_and_streaks_are_survivable():
+    for bad in ([], "x", None):
+        html = render_home(
+            build_view(PLAN, bad if bad is not None else {}, SYL, bad, BEAT, TODAY),
+            StaticLinks())
+        assert "</html>" in html
+
+
+def test_a_non_object_heartbeat_reads_as_never_run():
+    v = build_view(PLAN, PROGRESS, SYL, STREAKS, ["nonsense"], TODAY)
+    assert v["liveness"]["stale"] is True
+    assert "day builder has not run" in render_home(v, StaticLinks())

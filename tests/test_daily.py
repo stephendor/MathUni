@@ -495,11 +495,15 @@ def test_a_plan_for_another_day_is_not_current():
                            "problem_candidates": []}, MONDAY) is False
 
 
-def test_a_study_day_with_no_lectures_is_not_a_plan():
+def test_a_study_day_with_no_lectures_is_still_a_plan():
+    """Once everything studiable is mastered this is the CORRECT plan, and
+    home.py has a "No units are waiting" state for it. Rejecting it made every
+    rerun that day report "built" again and rewrite state/sessions/<today>.md,
+    discarding review notes appended earlier in the day."""
     from scripts.daily import plan_is_usable
 
     assert plan_is_usable({"date": MONDAY, "rest_day": False, "lectures": [],
-                           "problem_candidates": []}, MONDAY) is False
+                           "problem_candidates": []}, MONDAY) is True
 
 
 def test_a_rest_day_with_no_lectures_is_exactly_right():
@@ -528,3 +532,50 @@ def test_a_plan_gaining_a_field_still_passes():
                            "lectures": [{"id": "pw-02"}],
                            "problem_candidates": [], "something_new": 1},
                           MONDAY) is True
+
+
+def test_malformed_streak_state_does_not_prevent_the_day(tmp_path, monkeypatch):
+    """streaks.json is a cosmetic display counter. Letting its shape decide
+    whether lectures, review and the fallback page get built at all inverts
+    every priority this file has."""
+    from scripts.daily import _as_mapping
+
+    for bad in (None, [], "x", 3):
+        assert _as_mapping(bad) == {}
+    assert _as_mapping({"current": 3}) == {"current": 3}
+
+
+def test_a_plan_builds_with_unreadable_streaks():
+    plan = build_plan(SYL, PROGRESS, STATS, MONDAY, {}, available_sets={"pw-02"})
+    assert plan["lectures"], "the day survives a missing display counter"
+    assert plan["streak"] == {"current": 0, "best": 0}
+
+
+def test_an_opened_but_unpromotable_unit_yields_to_an_untouched_one():
+    """The server records `last_opened` on a unit it cannot mark in-progress
+    (its solutions file is unwritten). Without reading it here, that unit is
+    indistinguishable from one nobody has touched and, being first in syllabus
+    order, is chosen again tomorrow and the day after."""
+    units = [{"id": "pw-03", "module": "pw", "title": "a"},
+             {"id": "la-02", "module": "la", "title": "b"}]
+    fresh = {"pw-03": {"status": "unlocked"}, "la-02": {"status": "unlocked"}}
+    assert pick_units(units, fresh, limit=1)[0]["id"] == "pw-03"
+
+    opened = {"pw-03": {"status": "unlocked", "last_opened": "2026-09-02"},
+              "la-02": {"status": "unlocked"}}
+    assert pick_units(units, opened, limit=1)[0]["id"] == "la-02"
+
+
+def test_an_opened_unlocked_unit_still_outranks_a_stalled_one():
+    """It has been read, not worked. That is still fresher than a unit sitting
+    half-finished, so the unlocked-before-in-progress rule holds."""
+    units = [{"id": "pw-03", "module": "pw", "title": "a"},
+             {"id": "la-02", "module": "la", "title": "b"}]
+    progress = {"pw-03": {"status": "unlocked", "last_opened": "2026-09-02"},
+                "la-02": {"status": "in-progress"}}
+    assert pick_units(units, progress, limit=1)[0]["id"] == "pw-03"
+
+
+def test_last_opened_does_not_disturb_the_ordinary_ranking():
+    assert [u["id"] for u in pick_units(UNITS, PROGRESS)] == \
+           [u["id"] for u in pick_units(UNITS, PROGRESS)]

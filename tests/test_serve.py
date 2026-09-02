@@ -448,7 +448,35 @@ def test_a_unit_without_authored_solutions_is_not_promoted(tmp_path, monkeypatch
                         lambda path, text: written.__setitem__(path, text))
     rec = srv.start_unit("pw-03", "pw")
     assert rec["status"] == "unlocked", "must not claim a unit is under way"
-    assert written == {}, "and must not write anything at all"
+    assert "state/progress.json" in written, "but must record that it opened"
+    assert "last_opened" in written["state/progress.json"]
+    assert "in-progress" not in written["state/progress.json"]
+
+
+def test_an_unpromotable_unit_is_not_offered_again_the_next_morning(tmp_path,
+                                                                   monkeypatch):
+    """The first version wrote nothing here, so pick_units -- which ranks
+    unlocked units first, in syllabus order -- chose pw-03 again the next
+    morning and the morning after. The learner was sent round the same lesson
+    indefinitely, and the only explanation went to a windowless server's log.
+    """
+    import scripts.serve as srv
+    from scripts.daily import pick_units
+
+    monkeypatch.chdir(tmp_path)
+    progress = {"pw-03": {"status": "unlocked"}, "la-02": {"status": "unlocked"}}
+    monkeypatch.setattr(srv, "read_json", lambda path, default=None: progress)
+    monkeypatch.setattr(srv, "write_atomic", lambda path, text: None)
+
+    units = [{"id": "pw-03", "module": "pw", "title": "a"},
+             {"id": "la-02", "module": "la", "title": "b"}]
+    assert pick_units(units, progress, limit=1)[0]["id"] == "pw-03"
+
+    progress["pw-03"] = srv.start_unit("pw-03", "pw")
+
+    assert progress["pw-03"]["status"] == "unlocked"
+    assert pick_units(units, progress, limit=1)[0]["id"] == "la-02", \
+        "an opened-but-unpromotable unit must yield to an untouched one"
 
 
 def test_a_fully_authored_unit_is_promoted(tmp_path, monkeypatch):
