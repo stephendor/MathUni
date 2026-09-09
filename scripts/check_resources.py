@@ -136,6 +136,48 @@ def section_present(blob, sec):
     return re.search(r"(?<![\w.])%s(?![\d])" % re.escape(sec), blob) is not None
 
 
+def stale_non_book_classes(units, books):
+    """NON_BOOK entries that excused nothing on this corpus.
+
+    NON_BOOK is an allowlist: a module listed here has a class of resource that
+    resolves to no book and is nonetheless legitimate. An allowlist with no
+    stale-entry detection is a suppression list with a comment -- "the exempted
+    state is repaired but the exemption is still listed" emits no signal, which
+    is how an allowlist becomes permanent. So the same ratchet rule
+    `mission.py --known-failing` uses applies here: an entry that no longer
+    excuses anything fails the run until it is struck out.
+
+    Two ways an entry goes stale, both resolved against the syllabus rather
+    than against the caller's arguments (check() always reads the whole
+    syllabus, so there is no partial-run false accusation to guard against):
+
+      * the module has no unit at all -- the entry outlives the thing it
+        excused, exactly as a mission-drift id whose lesson is gone does;
+      * the module has units, but not one resource in them needed the
+        exemption -- either the resources were repaired to name real books, or
+        the class was never real. Either way the entry is now silence with no
+        subject.
+
+    Returns [(module, why_it_is_stale)].
+    """
+    names = sorted(books)
+    modules = {u.get("module", "") for u in units}
+    stale = []
+    for mod in sorted(NON_BOOK):
+        pattern = NON_BOOK[mod][0]
+        if mod not in modules:
+            stale.append((mod, "no unit in the syllabus is in module %r" % mod))
+            continue
+        used = any(book_named_in(r, names) is None and pattern.search(r)
+                   for u in units if u.get("module", "") == mod
+                   for r in u.get("resources", []))
+        if not used:
+            stale.append((mod, "every %s resource now names a book in "
+                               "bookmap.json, so the exemption excuses nothing"
+                          % mod))
+    return stale
+
+
 def check(units, books, deep=True):
     """Returns (failures, checked, skipped_books). Prints a row per failure."""
     names = sorted(books)
@@ -242,6 +284,37 @@ def selftest():
     f, _, _ = check(capsoft, books, deep=False)
     check_one("...but cap does not inherit lab's software class", len(f) == 1)
 
+    # -- the NON_BOOK ratchet -------------------------------------------
+    # G8: the claim is "the list may only shrink", so a control violates it in
+    # the forbidden direction -- an entry that excuses nothing must FAIL, not
+    # sit quiet.
+    syll_ok = [{"id": "lab-01", "module": "lab", "resources": ["GUDHI docs"]},
+               {"id": "cap-01", "module": "cap", "resources": ["self-directed"]}]
+    check_one("a NON_BOOK class that is still doing work is not stale",
+              stale_non_book_classes(syll_ok, books) == [])
+
+    syll_repaired = [{"id": "lab-01", "module": "lab",
+                      "resources": ["Carter ch. 1"]},
+                     {"id": "cap-01", "module": "cap",
+                      "resources": ["self-directed"]}]
+    stale = stale_non_book_classes(syll_repaired, books)
+    check_one("...and one whose resources were all repaired IS stale",
+              [m for m, _ in stale] == ["lab"])
+
+    syll_gone = [{"id": "cap-01", "module": "cap",
+                  "resources": ["self-directed"]}]
+    stale = stale_non_book_classes(syll_gone, books)
+    check_one("an entry for a module with no units is stale too",
+              [m for m, _ in stale] == ["lab"]
+              and "no unit in the syllabus" in stale[0][1])
+
+    check_one("a resource that resolves to a book does not exercise the class",
+              stale_non_book_classes(
+                  [{"id": "lab-01", "module": "lab",
+                    "resources": ["Carter GUDHI ch. 1"]},
+                   {"id": "cap-01", "module": "cap",
+                    "resources": ["self-directed"]}], books)[0][0] == "lab")
+
     check_one("a chapter that is absent is reported",
               not chapter_present("Chapter 1\nChapter 2\n", 7))
     check_one("...and one that is present is not",
@@ -268,6 +341,12 @@ def main(argv=None):
     units = load_syllabus()
     books = load_books()
     failures, checked, skipped = check(units, books, deep=not a.shallow)
+    # Resolved against the whole syllabus, which main() has just loaded, so
+    # running the gate over a slice can never accuse an entry of being stale.
+    for mod, why in stale_non_book_classes(units, books):
+        failures.append("STALE non-book class %r in check_resources.NON_BOOK: "
+                        "%s. The list is a ratchet and may only shrink --"
+                        " strike the entry." % (mod, why))
     for f in failures:
         print("FAIL %s" % f)
     if skipped:

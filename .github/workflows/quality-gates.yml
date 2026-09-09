@@ -49,6 +49,12 @@ jobs:
       - run: python scripts/validate_syllabus.py --selftest
       - run: python scripts/check_id_consistency.py
       - run: python scripts/check_resources.py --selftest
+      # The two skill trees are one file with one declared difference. The
+      # selftest runs first and in its own step: it is this gate's negative
+      # control, and a gate that has never been watched to fail is not
+      # evidence of anything.
+      - run: python scripts/check_skill_mirror.py --selftest
+      - run: python scripts/check_skill_mirror.py
       - run: python scripts/check_source_modality.py
       - name: Every unit's resources name something that can be read
         # --shallow because the runner has no page trees. Check 1 (does the
@@ -64,6 +70,16 @@ jobs:
         # resolves to nothing, so the citation gate could not run on them at
         # all and 156 citations were never checked by anything.
         run: python scripts/check_resources.py --shallow
+      - name: Retired-module allowlist ratchet
+        # RETIRED_MODULES keeps a dead module's ids recognisable so references
+        # to them are held to the missing-artifact check instead of being read
+        # as prose. It is an allowlist, so it ratchets: an entry that has come
+        # back as a live module, or that nothing in the governed corpus names
+        # any more, fails until it is struck. The per-unit gate cannot see
+        # this — "nothing references it" is a corpus fact — so the audit
+        # derives its own population from the syllabus and reports the
+        # denominator with the verdict.
+        run: python scripts/check_unit_references.py --audit-retired
       - run: python scripts/lesson_lint.py --selftest
       - run: python scripts/gate.py --selftest
       - run: python scripts/mission.py --selftest
