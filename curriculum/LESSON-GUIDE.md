@@ -70,6 +70,56 @@ Only then remove the marker. The marker exists so that a
 generation run can report the hole instead of inventing a filler, which is
 exactly what the drift test measures.
 
+## Source read-back: what the gate does, and what only you can do
+
+The per-unit procedure's step 5 is a manual read-back of the lesson against the
+extract. It used to be described as "where the real defects are", and that
+description is now wrong in a way worth being precise about, because a manual
+check named as the one that finds the real defects **will be trusted to have
+found them**.
+
+What happened: the manual read-back was performed on `pw-01`, closely, and
+found six wrong citations. The mechanised citation gate then found a **seventh
+in the same file** — a lesson-side "Exercise 2.1, p. 43" — on a file that had
+just been read back twice. The same gate's first sweep over the corpus found
+**17 more wrong-page citations across ten units** that no manual read-back had
+ever looked at.
+
+So the step is split, and the split is not a division of labour but a division
+of *capability*:
+
+**Mechanised — do not spend attention here.** Does the cited page carry the
+numbered result it is cited for? `scripts/citations.py --unit <u>` answers that
+against the extracted page text for every citation in the unit, which is a
+population no reader gets through twice. Re-reading citations to check page
+numbers is now a way of finding six of seven.
+
+**Manual — nothing else can do this.**
+
+- **Modality.** Does the page *prove* the result, *state* it, *set it as an
+  exercise*, *disclaim* it, or *apply* it? The lesson's verb ("Munkres proves",
+  "Lindström sets") is a claim about the text's stance, and page presence
+  establishes location, never attribution. Recorded in
+  `curriculum/source-modality.json` and checked for internal consistency by
+  `check_source_modality.py` — but the *value* is a reading, and a wrong value
+  is consistent with itself.
+- **Support.** Does the cited page support the sentence's actual claim? A
+  citation can be on the right page, in the right modality, and attached to a
+  claim the page does not make. This is the residue no gate reaches.
+- **Hypotheses.** Does the lesson carry the hypotheses the source states? A
+  dropped hypothesis (`m, n > 1`; "K is compact") reads as a cleaner sentence
+  and is a false one. Where the source carries the hypothesis on the cited
+  page, dropping it is a read-back failure, not a judgement call.
+- **Uncited explanatory prose.** The sentences doing the teaching cite nothing,
+  so no citation gate has a denominator for them. Run
+  `scripts/prose_universals.py <lesson>` for an advisory list of universal
+  quantifiers to check against degenerate cases, and read what it flags — it
+  ranks sentences, it does not judge them.
+
+Do not re-credit the manual step for work the gate now does. Attention is the
+scarce resource and the whole point of mechanising a check is to move it off
+the reader's list, not to add a machine that agrees with them.
+
 ## Register
 - Definitions verbatim-faithful to the primary text (cite); narration in
   your own voice: vivid, precise, never breathless. Aluffi/Stillwell is the
