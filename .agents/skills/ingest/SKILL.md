@@ -4,7 +4,7 @@ Builds `resources/inventory.json`: a module-mapped catalogue of Stephen's
 existing PDF collection, so lesson/problem/SRS generation for Semesters 2-4
 can cite what he already owns instead of guessing.
 
-**Model: run this under Sonnet (Codex-sonnet-5), default effort.** The work
+**Model: run this under Sonnet (claude-sonnet-5), default effort.** The work
 is classification-by-name at folder level — it needs enough maths literacy to
 map "M6 Constructive Mathematics" or "Ramsey Theory" onto (or off) the
 syllabus, which is beyond Haiku, but there is nothing here worth Opus/Fable
