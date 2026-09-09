@@ -1,0 +1,35 @@
+# Units whose canvas script paints a decimal number that appears in no
+# aria-label. Consumed by `lesson_lint.py --known-failing`.
+#
+# This is a RATCHET, not a suppression list, and obeys the same two rules as
+# curriculum/mission-drift.txt:
+#
+#   * a listed unit that describes every painted number now FAILS the run
+#     until it is struck off — "repaired but still listed" is the one state a
+#     plain allowlist is silent about, and the one that makes it permanent;
+#   * a listed unit whose lesson no longer exists FAILS the run.
+#
+# Every unit NOT listed here is held from day one, so no new figure can ship a
+# number its description does not carry.
+#
+# Introduced 2026-09-09 with the check. First run over the corpus: 134 lessons
+# with a canvas, 124 already clean, 10 not. lab-09 — the figure that prompted
+# the check, whose canvas footer asserted something the numbers had made false
+# — was repaired in the same commit and is deliberately absent from this list.
+# The nine below are a real backlog, not a design allowance: each needs its
+# aria-label read against its drawing code, which is authoring work on nine
+# figures this branch is not otherwise touching.
+#
+# Repairing one means: open the drawing script, decide whether the painted
+# number or the description is the true one (they can disagree — that is the
+# defect class), fix the wrong one, and strike the id from this file.
+
+an-01
+an-03
+an2-04
+an2-06
+an2-09
+lab-01
+lab-05
+lab-06
+lab-07

@@ -140,4 +140,16 @@ jobs:
         run: python scripts/check_unit.py --all --ci
       - name: Render every lesson canvas headlessly
         run: python scripts/check_canvas_render.py lessons/*/*.html
+      - name: Canvas read-back against the committed fixtures
+        # Gate 7's canvas read-back is a human opening the figure and checking
+        # that the bars end where the numbers say. On lab-09 it confirmed every
+        # positional claim to within a pixel and left no evidence it had run.
+        # The fixture is that evidence: per structural ink colour, how much
+        # there is and where it extends, so a figure whose numbers move without
+        # its drawing fails here instead of waiting for the next reader.
+        #
+        # Scoped to lab-09, the figure that prompted this. Extending it is
+        # `--record-fixture <lesson>` per figure, and a deliberate decision
+        # about 133 more rather than a silent default.
+        run: python scripts/check_canvas_render.py --check-fixture lessons/lab/lab-09.html
       - run: python -m pytest -q
