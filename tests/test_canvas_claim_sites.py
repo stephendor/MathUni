@@ -204,60 +204,80 @@ def test_the_manifest_runs_the_lint_against_the_ratchet():
 # --- the read-back fixture -------------------------------------------------
 
 FIXTURE = ROOT / "curriculum" / "canvas-fixtures" / "lab-09.json"
+STATES = {"fig@initial", "fig@after-canvas-left", "fig@after-canvas-centre",
+          "fig@after-canvas-right"}
 
 
-def test_the_lab_09_fixture_is_committed_and_records_real_structure():
+def _fixture():
+    return json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+
+def test_the_lab_09_fixture_is_committed_and_records_geometry_only():
     """Gate 7's execution signal. Four canvas states, each with the figure's
-    structural ink: the green bar colour, the grey bar and label colour, the
-    near-black axis colour, the amber annotation, the light-grey footer."""
-    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    assert set(data) == {"fig@initial", "fig@after-canvas-left",
-                         "fig@after-canvas-centre", "fig@after-canvas-right"}
+    structural GEOMETRY: the green bars, the grey bars, the axis and threshold
+    strokes, the amber gap arrow. The `_text` marker records that it was taken
+    with text suppressed."""
+    data = _fixture()
+    assert data["_text"] == "suppressed"
+    assert set(data) - {"_text"} == STATES
     initial = data["fig@initial"]
-    assert initial["painted"] > 20000
-    assert len(initial["ink"]) == 5
     colours = {row["colour"] for row in initial["ink"]}
-    assert "64,160,128" in colours, "the green the gap rule keeps"
-    assert "224,160,96" in colours, "the amber annotation"
+    assert "64,160,128" in colours, "the green bars the gap rule keeps"
+    assert "64,64,64" in colours, "the grey bars"
     for row in initial["ink"]:
         assert len(row["bbox"]) == 4 and row["n"] > 0
 
 
+def test_the_fixture_records_no_glyph_ink():
+    """The first fixture recorded text, passed on the Windows machine that took
+    it, and failed every Linux CI run with identical numbers: the footer text
+    colour and the amber annotation colour vanished and dark anti-aliasing rose
+    218 px, while both bar colours matched. `sans-serif` is a different font
+    there. The footer text colour is painted by nothing but text, so its
+    absence -- and every bbox stopping above the footer's text row -- is the
+    evidence text was excluded."""
+    for key in STATES:
+        ink = _fixture()[key]["ink"]
+        assert "224,224,224" not in {row["colour"] for row in ink}
+        assert all(row["bbox"][3] < 291 for row in ink), key
+
+
 def test_the_fixture_holds_no_anti_aliasing_fringe_rows():
-    """The floor exists so the fixture pins structure, not the rasteriser: a
-    blend colour that appears on the next Chrome release must not be able to
-    fail the gate."""
-    data = json.loads(FIXTURE.read_text(encoding="utf-8"))
-    for state in data.values():
+    """The floor exists so the fixture pins structure, not the rasteriser."""
+    for key in STATES:
+        state = _fixture()[key]
         floor = max(24, round(state["painted"] * 0.02))
         for row in state["ink"]:
             assert row["n"] >= floor
 
 
 def test_a_moved_bar_end_is_caught_by_the_comparison():
-    """The watched failure, replayed against the committed fixture without a
-    browser: lab-09's last bar was moved from 0.4950 to 0.7950 — past the null
-    threshold, changing what the figure claims — and the read-back reported the
-    footer's light grey gone and the grey coverage up by 1005 px. Preserved as
-    stored numbers so the negative control survives without Chrome, which the
-    live check needs and CI may not always have."""
+    """The watched failure, replayed without a browser. Run for real against
+    the text-suppressed fixture: lab-09's last bar moved from 0.4950 to 0.7950,
+    past the null threshold, and the read-back reported the grey bar ink
+    EXTENDING from x=290 to x=345, grey coverage up to 8340 px from 7320, and
+    the amber gap arrow gone. The text-bearing fixture had only ever reported
+    coverage; this one sees the bar end itself. Stored numbers keep the negative
+    control alive where CI has no Chrome."""
     from scripts.check_canvas_render import _compare_ink
-    fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))["fig@initial"]
+    fixture = _fixture()["fig@initial"]
     perturbed = [dict(row) for row in fixture["ink"]
-                 if row["colour"] != "224,224,224"]
+                 if row["colour"] != "224,160,96"]
     for row in perturbed:
         if row["colour"] == "64,64,64":
-            row["n"] = 8698
+            row["n"] = 8340
+            row["bbox"] = [120, 142, 345, 237]
     errors = _compare_ink("fig@initial", fixture["ink"], perturbed)
-    assert any("224,224,224 is gone" in e for e in errors)
-    assert any("64,64,64 covers 8698" in e for e in errors)
+    assert any("64,64,64 extends to [120, 142, 345, 237]" in e for e in errors)
+    assert any("64,64,64 covers 8340" in e for e in errors)
+    assert any("224,160,96 is gone" in e for e in errors)
 
 
 def test_the_comparison_is_quiet_on_the_fixture_itself():
     """Positive control: a check that reported differences for every input
     would pass the negative above."""
     from scripts.check_canvas_render import _compare_ink
-    fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))["fig@initial"]
+    fixture = _fixture()["fig@initial"]
     assert _compare_ink("fig@initial", fixture["ink"], fixture["ink"]) == []
 
 
@@ -265,7 +285,7 @@ def test_a_within_tolerance_wobble_does_not_fail():
     """Anti-aliasing moves a boundary by a pixel between Chrome builds. A gate
     that fires on that is a gate nobody keeps."""
     from scripts.check_canvas_render import _compare_ink
-    fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))["fig@initial"]
+    fixture = _fixture()["fig@initial"]
     wobbled = []
     for row in fixture["ink"]:
         moved = dict(row)
@@ -274,6 +294,59 @@ def test_a_within_tolerance_wobble_does_not_fail():
         moved["n"] = row["n"] + max(4, int(row["n"] * 0.03))
         wobbled.append(moved)
     assert _compare_ink("fig@initial", fixture["ink"], wobbled) == []
+
+
+def test_the_harness_suppresses_text_only_when_asked():
+    from scripts.check_canvas_render import harness
+    lesson = [str(ROOT / "lessons" / "lab" / "lab-09.html")]
+    assert "const suppressText=true;" in harness(lesson, suppress_text=True)
+    assert "const suppressText=false;" in harness(lesson)
+
+
+def test_fixtures_are_recorded_and_checked_with_text_suppressed(monkeypatch):
+    import scripts.check_canvas_render as R
+    seen = {}
+
+    def fake(paths, browser=None, suppress_text=False):
+        seen["suppress_text"] = suppress_text
+        return []
+    monkeypatch.setattr(R, "render_results", fake)
+    assert R.fixture_for(["x.html"]) == {"_text": "suppressed"}
+    assert seen["suppress_text"] is True
+
+
+def test_the_blank_and_clipped_render_check_still_renders_text(monkeypatch,
+                                                                tmp_path):
+    """Suppression is for fixtures only. A figure whose only ink is text must
+    still count as painted for the blank-canvas gate."""
+    import scripts.check_canvas_render as R
+    seen = {}
+
+    def fake(paths, browser=None, suppress_text=False):
+        seen["suppress_text"] = suppress_text
+        return []
+    monkeypatch.setattr(R, "render_results", fake)
+    exceptions = tmp_path / "exceptions.json"
+    exceptions.write_text("{}", encoding="utf-8")
+    R.render_errors(["x.html"], exceptions_path=str(exceptions))
+    assert seen["suppress_text"] is False
+
+
+def test_a_fixture_recorded_with_text_is_refused_not_compared(monkeypatch,
+                                                              tmp_path):
+    """G13: a text-bearing fixture differs by platform, so comparing it would
+    report the platform as a defect. It gets an explicit outcome instead."""
+    import scripts.check_canvas_render as R
+    (tmp_path / "lab-09.json").write_text(
+        json.dumps({"fig@initial": {"painted": 1, "bbox": [0, 0, 1, 1],
+                                    "ink": []}}), encoding="utf-8")
+    monkeypatch.setattr(R, "FIXTURES", str(tmp_path))
+    monkeypatch.setattr(R, "fixture_for", lambda *a, **k: pytest.fail(
+        "an unmarked fixture must be refused before any render"))
+    errors, checked = R.fixture_errors([str(ROOT / "lessons" / "lab" /
+                                            "lab-09.html")])
+    assert checked == 0
+    assert len(errors) == 1 and "not recorded with text suppressed" in errors[0]
 
 
 def test_a_missing_fixture_is_reported_not_skipped():

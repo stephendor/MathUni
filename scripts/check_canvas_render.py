@@ -28,11 +28,15 @@ def chrome_path():
                  if path and os.path.isfile(path)), None)
 
 
-def harness(paths):
+def harness(paths, suppress_text=False):
+    """The headless page. `suppress_text` no-ops fillText/strokeText in every
+    lesson frame before its own script runs -- used ONLY for read-back
+    fixtures; the blank/clipped render check always renders text."""
     urls = [Path(path).resolve().as_uri() for path in paths]
     return r"""<!doctype html><meta charset=utf-8><body><pre id=result>pending</pre>
 <script>
 const urls=%s;
+const suppressText=%s;
 function pixels(c){
   const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
   const counts=new Map();
@@ -70,9 +74,10 @@ function pixels(c){
 // ANTI-ALIASING out of the fixture: every stroke in this figure generates a
 // dozen blend colours at a few hundred pixels each, spanning nearly the whole
 // canvas, and they are precisely the rows that would differ on the next
-// Chrome release. What survives is the figure's structural ink — the bar
-// colours, the axis and label colour, the annotation colour — which is what
-// the read-back is about.
+// Chrome release. What survives is the figure's structural ink — bar fills,
+// axis and threshold strokes, arrows — which is what the read-back is about.
+// For fixtures, text is suppressed before the lesson draws (see fixture_for):
+// glyph ink depends on the platform's fonts, not on the figure.
 function ink(c,background,painted){
   const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
   const q=v=>Math.round(v/32)*32;
@@ -114,6 +119,7 @@ const __recordCanvasError=e=>window.__canvasRuntimeErrors.push(
   String(e.reason||e.error||e.message||e));
 window.addEventListener('error',__recordCanvasError);
 window.addEventListener('unhandledrejection',__recordCanvasError);
+${suppressText?"CanvasRenderingContext2D.prototype.fillText=function(){};CanvasRenderingContext2D.prototype.strokeText=function(){};":""}
 <\/script><base href="${url.replaceAll('&','&amp;').replaceAll('"','&quot;')}">`;
     await new Promise((ok,bad)=>{f.onload=ok;f.onerror=bad;f.srcdoc=bootstrap+source});
     await new Promise(ok=>setTimeout(ok,80));
@@ -162,17 +168,17 @@ window.addEventListener('unhandledrejection',__recordCanvasError);
   document.getElementById('result').textContent=JSON.stringify(out);
 }
 run().catch(e=>document.getElementById('result').textContent=JSON.stringify({error:String(e)}));
-</script>""" % json.dumps(urls)
+</script>""" % (json.dumps(urls), "true" if suppress_text else "false")
 
 
-def render_results(paths, browser=None):
+def render_results(paths, browser=None, suppress_text=False):
     browser = browser or chrome_path()
     if not browser:
         raise RuntimeError("Chrome/Chromium not found; set CHROME_PATH")
     with tempfile.TemporaryDirectory(prefix="mathuni-canvas-") as tmp:
         page = os.path.join(tmp, "harness.html")
         with open(page, "w", encoding="utf-8") as handle:
-            handle.write(harness(paths))
+            handle.write(harness(paths, suppress_text=suppress_text))
         # Each lesson may now exercise button, range, and three canvas-click
         # states. Scale the virtual-time allowance with that expanded surface.
         budget = max(8000, len(paths) * 650)
@@ -254,10 +260,24 @@ def fixture_path(path):
     return os.path.join(FIXTURES, unit + ".json")
 
 
+# A fixture records GEOMETRY, never glyphs. The first lab-09 fixture recorded
+# text ink too, passed on the Windows machine that recorded it, and failed on
+# every Linux CI run with identical numbers: `sans-serif` is a different font
+# there, so the footer text colour vanished, the amber annotation colour
+# vanished, and dark anti-aliasing coverage rose 218 px -- while both bar
+# colours matched exactly. A fixture that pins the font rasteriser measures the
+# platform, not the figure. Text is suppressed while recording AND checking, so
+# the fixture pins bar ends, threshold lines and strokes; what painted text
+# SAYS is already checked, platform-free, by lesson_lint's aria-label rule.
+FIXTURE_TEXT = "suppressed"
+
+
 def fixture_for(paths, browser=None):
-    """{canvas key: read-back} for the given lessons, from a real render."""
-    out = {}
-    for item in render_results(paths, browser=browser):
+    """{canvas key: read-back} for the given lessons, from a real render with
+    text suppressed. Carries a `_text` marker so a fixture recorded the old
+    way is refused rather than compared."""
+    out = {"_text": FIXTURE_TEXT}
+    for item in render_results(paths, browser=browser, suppress_text=True):
         if item.get("runtimeError") or not item.get("visible"):
             continue
         key = "%s@%s" % (item.get("id", ""), item.get("state") or "initial")
@@ -308,8 +328,15 @@ def fixture_errors(paths, browser=None):
             continue
         with open(stored, encoding="utf-8") as handle:
             expected = json.load(handle)
+        if expected.get("_text") != FIXTURE_TEXT:
+            # G13: an explicit outcome, not a silent comparison against glyph
+            # ink that differs by platform.
+            errors.append("%s: fixture %s was not recorded with text suppressed"
+                          " -- re-record it with --record-fixture"
+                          % (path, os.path.relpath(stored, REPO)))
+            continue
         actual = fixture_for([path], browser=browser)
-        for key in sorted(set(expected) | set(actual)):
+        for key in sorted((set(expected) | set(actual)) - {"_text"}):
             if key not in actual:
                 errors.append("%s: canvas state %r no longer renders"
                               % (path, key))
@@ -342,8 +369,11 @@ def main(argv=None):
                       newline="\n") as handle:
                 json.dump(data, handle, indent=2, sort_keys=True)
                 handle.write("\n")
+            # The `_text` marker is not a canvas state; counting it made the
+            # positive signal report one state more than was recorded.
             print("recorded %s (%d canvas state(s))"
-                  % (os.path.relpath(fixture_path(path), REPO), len(data)))
+                  % (os.path.relpath(fixture_path(path), REPO),
+                     len(set(data) - {"_text"})))
         return 0
     if args.check_fixture:
         try:
