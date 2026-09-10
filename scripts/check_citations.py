@@ -38,9 +38,16 @@ import os
 import re
 import sys
 
-from scripts import citations as C
-
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# `python scripts/check_citations.py` puts scripts/ on sys.path, not the repo
+# root, so `from scripts import ...` died with ImportError before a single
+# citation was read: the documented entry point could not run at all, and the
+# test suite never noticed because pytest imports from the root. (Codex review
+# of PR #32.)
+if REPO not in sys.path:
+    sys.path.insert(0, REPO)
+
+from scripts import citations as C  # noqa: E402
 
 RESOLVED = "RESOLVED"
 LOOSE = "RESOLVED-LOOSE"
@@ -54,8 +61,13 @@ NOVERDICT = "NOVERDICT"
 ORDER = (NOT_IN_BOOK, NOT_FOUND, UNPARSEABLE, NO_RESULT, LOOSE, RESOLVED,
          NOVERDICT)
 
-#: statuses that mean "a page was actually read and compared"
-COMPARED = (RESOLVED, LOOSE, NOT_FOUND, NOT_IN_BOOK)
+#: statuses that mean "a page was actually read and compared".
+#: PAGE-NOT-IN-BOOK is deliberately absent: it is assigned exactly when the
+#: folio maps to no PDF page, so nothing was read. Counting it here made the
+#: summary say those citations were "compared against a page" -- inflating the
+#: one denominator this reporter exists to make trustworthy. It is still
+#: reported, on its own line, and still fails --strict. (Codex review of PR #32.)
+COMPARED = (RESOLVED, LOOSE, NOT_FOUND)
 
 
 class Citation:
@@ -95,12 +107,24 @@ def classify_file(path, primary, books, all_names, titles):
     out = []
     try:
         attributed = C.attribute(text, primary, all_names, titles)
+    except C.Unreadable as e:
+        return [Citation(path, 0, primary, "-", set(), UNPARSEABLE, str(e))]
+    try:
         attributed.extend(C.unspanned_citations(text, attributed, primary,
                                                 all_names, titles))
     except C.Unreadable as e:
         # The ambiguous result/page binding check. That is precisely an
-        # unparseable citation, and it is a finding, not a crash.
-        return [Citation(path, 0, primary, "-", set(), UNPARSEABLE, str(e))]
+        # unparseable citation, and it is a finding, not a crash -- but it is
+        # ONE finding. Returning early here replaced every explicitly marked
+        # citation in the file with a single UNPARSEABLE row, shrinking the
+        # per-status totals and the corpus denominator for the sake of one
+        # prose sentence. The explicit spans are kept and classified below;
+        # the ambiguity is recorded beside them. (Codex review of PR #32.)
+        #
+        # Stated limit: unspanned_citations raises mid-walk, so unmarked prose
+        # references it had already collected before the ambiguous sentence are
+        # not recorded. They were not recorded before this change either.
+        out.append(Citation(path, 0, primary, "-", set(), UNPARSEABLE, str(e)))
 
     for span, pages, line, name in attributed:
         results = C.results_in(span)
@@ -235,7 +259,8 @@ def main(argv=None):
     ap.add_argument("--only", default=",".join(ORDER),
                     help="comma-separated statuses to list (default: all)")
     ap.add_argument("--strict", action="store_true",
-                    help="exit 1 if any citation failed to resolve on its page")
+                    help="exit 1 if any citation failed to resolve on its "
+                         "page, or could not be parsed into one")
     a = ap.parse_args(argv)
 
     show = {s.strip().upper() for s in a.only.split(",") if s.strip()}
@@ -287,7 +312,12 @@ def main(argv=None):
     if unreadable:
         print("ERROR %d file(s) could not be read" % unreadable)
         return 2
-    if a.strict and (counts[NOT_FOUND] or counts[NOT_IN_BOOK]):
+    # UNPARSEABLE fails strict mode too. `Theorem 2.3 and Lemma 2.4, pp. 10-11`
+    # cannot be bound to pages, so it was never checked -- and strict is the
+    # opt-in gate contract, under which "could not be parsed" passing is
+    # exactly the silent state a gate must not have. (Codex review of PR #32.)
+    if a.strict and (counts[NOT_FOUND] or counts[NOT_IN_BOOK]
+                     or counts[UNPARSEABLE]):
         return 1
     return 0
 

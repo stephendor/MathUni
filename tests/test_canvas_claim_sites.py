@@ -298,3 +298,95 @@ def test_the_workflow_runs_the_read_back():
     workflow = (ROOT / ".github" / "workflows" / "quality-gates.yml").read_text(
         encoding="utf-8")
     assert "--check-fixture" in workflow
+
+
+# --- Codex review of PR #32 -------------------------------------------------
+
+def test_a_label_value_that_merely_contains_the_numeral_does_not_vouch():
+    """A substring test let 0.25 or 10.2 in the label excuse a painted 0.2."""
+    for label in ("The ratio is 0.25.", "The mean is 10.2.", "Version 1.0.2."):
+        page = canvas_page(label, "g.fillText('short by 0.2%', 0, 0);")
+        assert [n for n, _l in undescribed_canvas_numbers(page)] == ["0.2"], label
+
+
+def test_a_sentence_final_decimal_in_the_label_still_counts():
+    page = canvas_page("The bar ends short by 0.2.",
+                       "g.fillText('short by 0.2%', 0, 0);")
+    assert undescribed_canvas_numbers(page) == []
+
+
+def test_the_corpus_backlog_is_unchanged_by_token_matching():
+    """The stricter match found no new undescribed number in any lesson: the
+    same nine are listed and lab-09 still passes."""
+    import glob
+    from scripts.mission import load_known_failing
+    failing = set()
+    for path in glob.glob(str(ROOT / "lessons" / "*" / "*.html")):
+        if undescribed_canvas_numbers(Path(path).read_text(encoding="utf-8")):
+            failing.add(unit_id_for(path))
+    assert failing == load_known_failing(str(DRIFT))
+
+
+def _lists(tmp_path, base_ids, current_ids):
+    base = tmp_path / "base.txt"
+    current = tmp_path / "current.txt"
+    if base_ids is not None:
+        base.write_text("\n".join(base_ids) + "\n", encoding="utf-8")
+    if current_ids is not None:
+        current.write_text("\n".join(current_ids) + "\n", encoding="utf-8")
+    return str(base), str(current)
+
+
+def test_a_drift_list_that_grew_fails_the_run(tmp_path, capsys):
+    """The forbidden direction. Listing a freshly undescribed figure used to
+    make it a known failure and leave CI green."""
+    from scripts.lesson_lint import main
+    base, current = _lists(tmp_path, ["an-01"], ["an-01", "an-03"])
+    assert main(["--known-failing", current, "--baseline", base]) == 1
+    assert "GREW an-03" in capsys.readouterr().out
+
+
+def test_a_swap_that_keeps_the_count_is_still_caught(tmp_path):
+    from scripts.lesson_lint import main
+    base, current = _lists(tmp_path, ["an-01"], ["an-03"])
+    assert main(["--known-failing", current, "--baseline", base]) == 1
+
+
+def test_a_drift_list_that_shrank_or_held_passes(tmp_path, capsys):
+    """Positive control for the growth check."""
+    from scripts.lesson_lint import main
+    base, current = _lists(tmp_path, ["an-01", "an-03"], ["an-01"])
+    assert main(["--known-failing", current, "--baseline", base]) == 0
+    assert "no additions" in capsys.readouterr().out
+
+
+def test_deleting_the_drift_list_fails_rather_than_reopening_it(tmp_path):
+    from scripts.lesson_lint import main
+    base, current = _lists(tmp_path, ["an-01"], None)
+    assert main(["--known-failing", current, "--baseline", base]) == 1
+
+
+def test_no_baseline_is_reported_as_the_introducing_commit(tmp_path, capsys):
+    from scripts.lesson_lint import main
+    base, current = _lists(tmp_path, None, ["an-01"])
+    assert main(["--known-failing", current, "--baseline", base]) == 0
+    assert "introduces the list" in capsys.readouterr().out
+
+
+def test_baseline_without_a_list_is_a_usage_error(tmp_path):
+    from scripts.lesson_lint import main
+    base, _current = _lists(tmp_path, ["an-01"], None)
+    assert main(["--baseline", base]) == 2
+
+
+def test_an_unreadable_baseline_is_verdict_2(tmp_path):
+    from scripts.lesson_lint import main
+    _base, current = _lists(tmp_path, None, ["an-01"])
+    assert main(["--known-failing", current, "--baseline", str(tmp_path)]) == 2
+
+
+def test_the_workflow_runs_the_canvas_drift_growth_check():
+    workflow = (ROOT / ".github" / "workflows" / "quality-gates.yml").read_text(
+        encoding="utf-8")
+    assert "--baseline /tmp/canvas-drift-baseline.txt" in workflow
+    assert "canvas-label-drift.txt" in workflow

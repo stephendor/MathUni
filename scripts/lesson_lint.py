@@ -69,7 +69,9 @@ _SCRIPT_BODY = re.compile(r"<script\b[^>]*>(.*?)</script>", re.I | re.S)
 # `'H1 #' + (i+1)` and `t.toFixed(1)` are computed at draw time and this check
 # says nothing about them (stated limitation, not silent omission).
 _FILLTEXT = re.compile(r"""fillText\(\s*(['"])((?:\\.|(?!\1)[^\\])*)\1\s*[,)]""")
-_DECIMAL = re.compile(r"\d+\.\d+")
+# A whole decimal TOKEN: not preceded by a digit or dot, and not continued by
+# more digits (a sentence-final "0.2." still counts as 0.2).
+_DECIMAL = re.compile(r"(?<![\d.])\d+\.\d+(?!\.?\d)")
 _SELF_CHECK_DATA_OK = re.compile(r"\bdata-ok\b")
 _SELF_CHECK_CLASS = re.compile(r'class="[^"]*\bselfcheck\b[^"]*"', re.I)
 _SELF_CHECK_PROSE = re.compile(r"Self-check\s*\d")
@@ -223,7 +225,11 @@ def undescribed_canvas_numbers(html):
 
     Returns them in the order painted, one row per numeral, first painter kept.
     """
-    labels = canvas_labels(html)
+    # Compared as whole decimal tokens, never as substrings. A substring test
+    # let an aria-label saying 0.25 or 10.2 vouch for a painted 0.2 -- exactly
+    # the mismatched figure value this check exists to catch. (Codex review of
+    # PR #32.)
+    described = set(_DECIMAL.findall(canvas_labels(html)))
     missing, seen = [], set()
     for literal in painted_literals(html):
         excluded = _result_number_spans(literal)
@@ -232,7 +238,7 @@ def undescribed_canvas_numbers(html):
                    for start, end in excluded):
                 continue
             numeral = match.group(0)
-            if numeral in labels or numeral in seen:
+            if numeral in described or numeral in seen:
                 continue
             seen.add(numeral)
             missing.append((numeral, literal))
@@ -424,33 +430,71 @@ def selftest():
 def main(argv):
     if argv and argv[0] == "--selftest":
         return selftest()
-    excused, listfile = frozenset(), None
-    if len(argv) >= 2 and argv[0] == "--known-failing":
-        if REPO not in sys.path:        # run as a script, not as a package
-            sys.path.insert(0, REPO)
-        # One reader for both drift lists: same file format, same "an
-        # unreadable list is verdict 2, not 1" rule, one place to fix.
-        from scripts.mission import Unreadable, load_known_failing
-        listfile = argv[1]
-        try:
-            excused = frozenset(load_known_failing(listfile))
-        except Unreadable as exc:
-            # Exit 2, never 1: a ratchet input that could not be read is an
-            # absence of analysis, and must not look like a lint failure.
-            print("ERROR could not read %s — no verdict about the canvas"
-                  " label list" % exc)
-            return 2
-        argv = argv[2:]
-    if len(argv) != 1:
-        print("usage: lesson_lint.py [--known-failing <file>]"
-              " <lesson_html_path> | --selftest")
+    if REPO not in sys.path:            # run as a script, not as a package
+        sys.path.insert(0, REPO)
+    # One reader for both drift lists, and one growth rule: same file format,
+    # same "an unreadable list is verdict 2, not 1", one place to fix.
+    from scripts.mission import (Unreadable, additions_against,
+                                 load_known_failing)
+    excused, listfile, baseline = frozenset(), None, None
+    rc = 0
+    try:
+        while len(argv) >= 2 and argv[0] in ("--known-failing", "--baseline"):
+            if argv[0] == "--known-failing":
+                listfile = argv[1]
+                excused = frozenset(load_known_failing(listfile))
+            else:
+                baseline = argv[1]
+            argv = argv[2:]
+        if baseline is not None:
+            # Without this the ratchet only ever caught the list SHRINKING
+            # (a stale entry, a vanished lesson). Adding a freshly undescribed
+            # figure to the list made it an active known failure and CI went
+            # green, so "the list may only shrink" was a claim about author
+            # discipline, not a property of the gate -- the same hole Codex
+            # found in mission.py's list on PR #20, found again here on PR #32.
+            if listfile is None:
+                print("ERROR --baseline needs --known-failing")
+                return 2
+            added, existed = additions_against(baseline, set(excused))
+            if existed and not os.path.exists(listfile):
+                print("DELETED %s existed at the baseline and is gone here. The"
+                      " drift list is permanent -- empty it, do not delete it,"
+                      " or the growth check can never tell a reintroduction"
+                      " from the original rollout." % listfile)
+                return 1
+            if not existed:
+                print("NOTE no baseline at %s -- this is the commit that"
+                      " introduces the list, so there is nothing it could have"
+                      " grown from" % baseline)
+            elif added:
+                for uid in sorted(added):
+                    print("GREW %s was added to %s; the canvas label drift list"
+                          " is a ratchet and may only shrink. Describe the"
+                          " figure's numbers in its aria-label instead."
+                          % (uid, listfile))
+                rc = 1
+            else:
+                print("PASS canvas label drift list has no additions against %s"
+                      % baseline)
+            if not argv:
+                return rc               # a list-level growth check only
+    except Unreadable as exc:
+        # Exit 2, never 1: a ratchet input that could not be read is an
+        # absence of analysis, and must not look like a lint failure.
+        print("ERROR could not read %s -- no verdict about the canvas"
+              " label list" % exc)
         return 2
-    rc = run(argv[0], excused=excused, listfile=listfile)
+    if len(argv) != 1:
+        print("usage: lesson_lint.py [--known-failing <file> [--baseline"
+              " <file>]] [<lesson_html_path>] | --selftest")
+        return 2
+    if run(argv[0], excused=excused, listfile=listfile):
+        rc = 1
     for error in canvas_ratchet_errors(excused, listfile):
         print(error)
         rc = 1
     return rc
-
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

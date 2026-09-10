@@ -107,6 +107,7 @@ def compare(root_a, root_b, tree_a=TREES[0], tree_b=TREES[1],
         if text_a == text_b:
             continue
         lines_a, lines_b = text_a.splitlines(), text_b.splitlines()
+        before = len(errors)
         shown = 0
         for num, (line_a, line_b) in enumerate(zip(lines_a, lines_b), start=1):
             if line_a == line_b:
@@ -122,6 +123,15 @@ def compare(root_a, root_b, tree_a=TREES[0], tree_b=TREES[1],
         if len(lines_a) != len(lines_b):
             errors.append("%s: %s has %d lines, %s has %d"
                           % (rel, tree_a, len(lines_a), tree_b, len(lines_b)))
+        if len(errors) == before:
+            # The texts differ but every line compares equal: splitlines()
+            # drops terminators, so a missing final newline or a CRLF/LF
+            # difference produced NO diagnostic and the gate reported the trees
+            # identical -- against its own byte-identical contract. Unequal
+            # texts must never yield zero errors. (Codex review of PR #32.)
+            errors.append("%s: differs only in line endings or a final newline"
+                          " (%s ends %r, %s ends %r)"
+                          % (rel, tree_a, text_a[-2:], tree_b, text_b[-2:]))
     return errors, compared
 
 
@@ -204,6 +214,14 @@ def selftest():
         errors, _ = run(same, {"x/SKILL.md": "# x\n\nRun under Sonnet (claude-sonnet-5).\nextra\n"})
         check_one("a trailing added line fires the gate",
                   any("has 3 lines" in e and "has 4" in e for e in errors))
+
+        errors, _ = run(same, {"x/SKILL.md": same["x/SKILL.md"].rstrip("\n")})
+        check_one("a file differing only by its final newline fires the gate",
+                  len(errors) == 1 and "final newline" in errors[0])
+
+        errors, _ = run(same, {"x/SKILL.md": same["x/SKILL.md"].replace("\n", "\r\n")})
+        check_one("a file differing only in CRLF line endings fires the gate",
+                  len(errors) == 1 and "line endings" in errors[0])
 
     print("\n%d/%d self-checks passed" % (total[0] - len(fails), total[0]))
     return 1 if fails else 0

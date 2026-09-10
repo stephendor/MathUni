@@ -146,3 +146,64 @@ def test_the_reporter_does_not_fail_the_build_by_default(tmp_path, monkeypatch,
 def test_an_unknown_status_filter_is_rejected(tmp_path):
     with pytest.raises(SystemExit):
         S.main(["--only", "PROBABLY-FINE"])
+
+
+# --- Codex review of PR #32 -------------------------------------------------
+
+def _main_env(monkeypatch):
+    monkeypatch.setattr(S, "load_books", lambda: ({"Fake": FakeBook()}, []))
+    monkeypatch.setattr(S.C, "load_bookmap",
+                        lambda: {"Fake": {"title": "Fake Book"}})
+    monkeypatch.setattr(S, "primary_for", lambda *a: "Fake")
+
+
+def test_strict_mode_fails_on_an_unparseable_citation(tmp_path, monkeypatch):
+    """The reviewer's example. Two results and one page phrase cannot be bound
+    honestly, so nothing was checked -- and under the opt-in gate contract that
+    must not exit 0."""
+    _main_env(monkeypatch)
+    src = _write(tmp_path, "Theorem 2.3 and Lemma 2.4, pp. 10-11.\n")
+    assert S.main([str(src)]) == 0, "report mode still never fails the build"
+    assert S.main([str(src), "--strict"]) == 1
+
+
+def test_one_ambiguous_claim_does_not_discard_the_files_explicit_citations(
+        tmp_path):
+    """An early return replaced every marked citation in the file with one
+    UNPARSEABLE row, shrinking the totals and the denominator."""
+    got = sweep(tmp_path, "*(Fake §2, Theorem 2.3, p. 10)*\n\n"
+                          "Theorem 2.3 and Lemma 2.4, pp. 10-11.\n")
+    assert ("Theorem 2.3", S.RESOLVED) in statuses(got)
+    assert [c.status for c in got].count(S.UNPARSEABLE) == 1
+
+
+def test_page_not_in_book_is_not_counted_as_compared(tmp_path, capsys):
+    """No page was read for it, so it cannot be in the "compared against a
+    page" figure -- but it is still reported on its own line."""
+    assert S.NOT_IN_BOOK not in S.COMPARED
+    cites = sweep(tmp_path, "*(Fake §9, Theorem 2.3, p. 900)*\n")
+    S.report(cites, set(S.ORDER))
+    out = capsys.readouterr().out
+    assert "0 citation(s) compared against a page" in out
+    import re
+    assert re.search(r"^PAGE-NOT-IN-BOOK +1$", out, re.M)
+
+
+def test_page_not_in_book_still_fails_strict(tmp_path, monkeypatch):
+    _main_env(monkeypatch)
+    src = _write(tmp_path, "*(Fake §9, Theorem 2.3, p. 900)*\n")
+    assert S.main([str(src), "--strict"]) == 1
+
+
+def test_the_reporter_runs_as_a_script_from_the_repo_root():
+    """The documented entry point died with ImportError before reading
+    anything; pytest never saw it because it imports from the root."""
+    import subprocess
+    import sys
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run([sys.executable, "scripts/check_citations.py",
+                             "--help"], cwd=root, capture_output=True,
+                            text=True, encoding="utf-8", errors="replace")
+    assert result.returncode == 0, result.stderr
+    assert "--strict" in result.stdout

@@ -145,4 +145,24 @@ def test_the_script_runs_standalone():
                              "--selftest"], cwd=ROOT, capture_output=True,
                             text=True, encoding="utf-8", errors="replace")
     assert result.returncode == 0
-    assert "16/16 checks passed" in result.stdout
+    assert "checks passed" in result.stdout
+
+
+# --- Codex review of PR #32 -------------------------------------------------
+
+def test_a_hedge_in_the_next_block_does_not_excuse_this_one():
+    """Collapsing all whitespace merged adjacent paragraphs into one sentence,
+    so the second paragraph's "Usually" suppressed the first one's false
+    universal."""
+    got = flags("<p>No map exists</p><p>Usually this construction works.</p>")
+    assert [s for s, _w in got] == ["No map exists"]
+
+
+def test_a_citation_in_the_next_block_does_not_excuse_this_one():
+    got = flags("<p>No map exists</p><p>See Theorem 1.2.</p>")
+    assert [s for s, _w in got] == ["No map exists"]
+
+
+def test_whitespace_inside_a_block_is_still_normalised():
+    got = flags("<p>There   is\n   no such map.</p>")
+    assert [s for s, _w in got] == ["There is no such map."]

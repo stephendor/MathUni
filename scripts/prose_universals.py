@@ -151,15 +151,23 @@ def flags(html):
     on the missing BOUNDARY pattern above for the two negative controls that
     ruled it out.
     """
-    text = re.sub(r"\s+", " ", rendered_text(html))
     out = []
-    for sentence in sentences(text):
-        words = UNIVERSAL.findall(sentence)
-        if not words:
-            continue
-        if CITED.search(sentence) or HEDGE.search(sentence):
-            continue
-        out.append((sentence, sorted({w.lower() for w in words})))
+    # rendered_text() marks block boundaries (</p>, </div>, </li>, ...) with a
+    # blank line. Collapsing ALL whitespace first merged adjacent blocks into
+    # one "sentence", so `<p>No map exists</p><p>Usually this works.</p>` had
+    # its false universal suppressed by the NEXT paragraph's hedge -- and a
+    # following cited block suppressed it through CITED the same way. A block
+    # boundary is a sentence boundary; only whitespace INSIDE a block is
+    # normalised. (Codex review of PR #32.)
+    for block in re.split(r"\n\s*\n", rendered_text(html)):
+        block = re.sub(r"\s+", " ", block).strip()
+        for sentence in sentences(block):
+            words = UNIVERSAL.findall(sentence)
+            if not words:
+                continue
+            if CITED.search(sentence) or HEDGE.search(sentence):
+                continue
+            out.append((sentence, sorted({w.lower() for w in words})))
     return out
 
 
@@ -241,6 +249,11 @@ def selftest():
     check_one("the quantifiers found are reported, deduplicated and sorted",
               flags("<p>No space is never both, and no map is.</p>")[0][1]
               == ["never", "no"])
+    check_one("a hedge in the NEXT paragraph does not excuse this one",
+              flags("<p>No map exists</p><p>Usually this construction"
+                    " works.</p>") != [])
+    check_one("...nor does a citation in the next paragraph",
+              flags("<p>No map exists</p><p>See Theorem 1.2.</p>") != [])
     check_one("script contents are not prose",
               not flags("<script>var s = 'every point is fixed.';</script>"))
     check_one("a sentence is not split at 'p. 43'",

@@ -132,6 +132,38 @@ jobs:
             --known-failing curriculum/mission-drift.txt \
             --baseline /tmp/drift-baseline.txt \
             lessons/*/*.html
+      - name: Canvas label drift list may only shrink
+        # check_unit.py runs lesson_lint per lesson against
+        # curriculum/canvas-label-drift.txt, which catches a listed figure that
+        # is now described and a listed lesson that is gone -- both of which
+        # SHRINK the list. Nothing stopped it GROWING: listing a freshly
+        # undescribed figure made it a known failure and CI went green. This
+        # compares the list against the base commit's copy, with the same
+        # resolution rules as gate 8's step above. (Codex review of PR #32.)
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          base="${PR_BASE_SHA:-${PUSH_BEFORE_SHA:-}}"
+          rm -f /tmp/canvas-drift-baseline.txt
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            echo "No base commit for this event (first push or force-push);"
+            echo "the canvas drift growth check cannot run and is not being skipped quietly."
+            exit 1
+          fi
+          git cat-file -e "$base^{commit}" || {
+            echo "Base commit $base is not in this checkout -- fetch-depth is wrong."
+            exit 1
+          }
+          if git cat-file -e "$base:curriculum/canvas-label-drift.txt" 2>/dev/null; then
+            git show "$base:curriculum/canvas-label-drift.txt" > /tmp/canvas-drift-baseline.txt
+          else
+            echo "Base commit $base has no canvas drift list; this is the commit that adds it."
+          fi
+          python scripts/lesson_lint.py \
+            --known-failing curriculum/canvas-label-drift.txt \
+            --baseline /tmp/canvas-drift-baseline.txt
       - name: Manifest-owned per-unit gate parity
         # One manifest now owns the corpus-level lint, executable-content,
         # mission, citation-coverage, indexed-section, and lab-structure

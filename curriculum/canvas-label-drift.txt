@@ -1,13 +1,17 @@
 # Units whose canvas script paints a decimal number that appears in no
 # aria-label. Consumed by `lesson_lint.py --known-failing`.
 #
-# This is a RATCHET, not a suppression list, and obeys the same two rules as
+# This is a RATCHET, not a suppression list, and obeys the same three rules as
 # curriculum/mission-drift.txt:
 #
 #   * a listed unit that describes every painted number now FAILS the run
 #     until it is struck off — "repaired but still listed" is the one state a
 #     plain allowlist is silent about, and the one that makes it permanent;
-#   * a listed unit whose lesson no longer exists FAILS the run.
+#   * a listed unit whose lesson no longer exists FAILS the run;
+#   * and, with --baseline, a unit ADDED since the base commit FAILS the run.
+#     Without that third rule the first two only ever let the list shrink while
+#     nothing stopped it growing (Codex review of PR #32). This file is
+#     permanent: empty it, do not delete it.
 #
 # Every unit NOT listed here is held from day one, so no new figure can ship a
 # number its description does not carry.
