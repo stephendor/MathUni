@@ -16,11 +16,14 @@ Complements check_lesson_coverage.py. Both run in the drift-test pre-filter
 
 Exit 0 if clean, 1 if any check fails (prints them), 2 on usage error.
 """
+import os
 import re
 import sys
 from collections import Counter
 from html.entities import html5
 from html.parser import HTMLParser
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console (cf. srs/scheduler.py)
     try:
@@ -38,6 +41,37 @@ _MARKDOWN = re.compile(
     r"|`[^`\n]+`"        # `code`     no parse/console error (Obs 151; la-01
 )                        #            shipped `**R**` inside an <h2>).
 _GAP = re.compile(r"NOT IN SOURCE:\s*([^<\n]*)")   # LESSON-GUIDE 'Source discipline'
+
+# --- the canvas says it in four places -------------------------------------
+# A canvas figure asserts the same fact in the drawing script, the aria-label,
+# the HTML caption, and any text the script paints. lab-09's caption was
+# corrected in two of the four; a footer string inside the drawing code kept
+# claiming "every bar clears both thresholds" under numbers that made it false,
+# and it was found only by opening the script. That string is invisible to a
+# text search of the prose, to a reviewer reading the caption's diff, and to a
+# screen reader.
+#
+# So: the aria-label is named CANONICAL, and every DECIMAL numeral the script
+# paints must appear in it. Cheap, no rendering, and it fails loudly when a
+# figure's numbers move without its description. Two deliberate limits:
+#
+#   * decimals only. Integers get spelled out in a good aria-label ("five bars
+#     extend past the null line"), so requiring "5" verbatim would be noisy
+#     against correct prose. A decimal is data and is never spelled out.
+#   * result numbers are not figure data. "Theorem 11.1" painted on a canvas
+#     is a citation, checked by citations.py against the book; demanding it in
+#     the aria-label would be this gate reaching outside its claim. The kind
+#     words come from citations.KINDS rather than a second list here.
+_CANVAS_TAG = re.compile(r"<canvas\b[^>]*>", re.I)
+_ARIA = re.compile(r'aria-label="([^"]*)"', re.I)
+_SCRIPT_BODY = re.compile(r"<script\b[^>]*>(.*?)</script>", re.I | re.S)
+# First argument of fillText, and only when it is a PURE string literal:
+# `'H1 #' + (i+1)` and `t.toFixed(1)` are computed at draw time and this check
+# says nothing about them (stated limitation, not silent omission).
+_FILLTEXT = re.compile(r"""fillText\(\s*(['"])((?:\\.|(?!\1)[^\\])*)\1\s*[,)]""")
+# A whole decimal TOKEN: not preceded by a digit or dot, and not continued by
+# more digits (a sentence-final "0.2." still counts as 0.2).
+_DECIMAL = re.compile(r"(?<![\d.])\d+\.\d+(?!\.?\d)")
 _SELF_CHECK_DATA_OK = re.compile(r"\bdata-ok\b")
 _SELF_CHECK_CLASS = re.compile(r'class="[^"]*\bselfcheck\b[^"]*"', re.I)
 _SELF_CHECK_PROSE = re.compile(r"Self-check\s*\d")
@@ -152,6 +186,66 @@ def gap_markers(html):
     return _GAP.findall(_strip_code(html))
 
 
+def _result_number_spans(text):
+    """Character spans of numerals that are RESULT numbers, not figure data."""
+    if REPO not in sys.path:            # run as a script, not as a package
+        sys.path.insert(0, REPO)
+    from scripts.citations import KINDS
+    kinds = "|".join(KINDS) + "|Section|Chapter|Ch|Fig|Figure|Eq|Equation"
+    pattern = re.compile(r"(?:%s)s?\.?\s*(\d+(?:\.\d+)+)" % kinds, re.I)
+    spans = [m.span(1) for m in pattern.finditer(text)]
+    spans += [m.span(1) for m in re.finditer(r"§\s*(\d+(?:\.\d+)+)", text)]
+    return spans
+
+
+def painted_literals(html):
+    """Pure string literals a lesson's canvas scripts paint via fillText."""
+    out = []
+    for body in _SCRIPT_BODY.findall(html):
+        out += [m.group(2) for m in _FILLTEXT.finditer(body)]
+    return out
+
+
+def canvas_labels(html):
+    """Every aria-label on a <canvas> in this lesson, joined.
+
+    Pooled across the lesson's canvases rather than matched to one canvas each.
+    A lesson has one figure in all but one case (lab-01 has two), and pairing a
+    script with a canvas needs the id the script queries, which is a heavier
+    parse than this check earns. The cost is stated: a numeral painted on
+    figure A and described only in figure B's label passes. It still catches
+    the defect this exists for, which is a numeral described in NO label.
+    """
+    return " ".join(label for tag in _CANVAS_TAG.findall(html)
+                    for label in _ARIA.findall(tag))
+
+
+def undescribed_canvas_numbers(html):
+    """[(numeral, painted_literal)] painted by a script but in no aria-label.
+
+    Returns them in the order painted, one row per numeral, first painter kept.
+    """
+    # Compared as whole decimal tokens, never as substrings. A substring test
+    # let an aria-label saying 0.25 or 10.2 vouch for a painted 0.2 -- exactly
+    # the mismatched figure value this check exists to catch. (Codex review of
+    # PR #32.)
+    described = set(_DECIMAL.findall(canvas_labels(html)))
+    missing, seen = [], set()
+    for literal in painted_literals(html):
+        excluded = _result_number_spans(literal)
+        for match in _DECIMAL.finditer(literal):
+            if any(start <= match.start() and match.end() <= end
+                   for start, end in excluded):
+                continue
+            numeral = match.group(0)
+            if numeral in described or numeral in seen:
+                continue
+            seen.add(numeral)
+            missing.append((numeral, literal))
+    return missing
+
+
+CANVAS_CHECK = "canvas: painted numbers are in the aria-label"
 GAP_CHECK = "source: no unresolved gap markers"
 
 
@@ -177,6 +271,12 @@ def lint(html):
     md_leaks = markdown_leaks(html)
     out.append(("render: no Markdown leak", not md_leaks,
                 "" if not md_leaks else ", ".join("%s x%d" % (k, v) for k, v in md_leaks.most_common(6))))
+    undescribed = undescribed_canvas_numbers(html)
+    out.append((CANVAS_CHECK, not undescribed,
+                "" if not undescribed else "%d not in any aria-label: %s" % (
+                    len(undescribed),
+                    "; ".join("%s (painted in %r)" % (n, lit[:48])
+                              for n, lit in undescribed[:4]))))
     imbalances = tag_imbalances(html)
     out.append(("render: tags balanced", not imbalances,
                 "" if not imbalances else ", ".join(
@@ -198,14 +298,60 @@ def lint(html):
     return out
 
 
-def run(path):
+def unit_id_for(path):
+    """The unit id a lesson path names, or None. Anchored to the WHOLE
+    basename, for the reason mission.py gives: end-anchoring alone let
+    `draft-aa-01.html` be treated as unit aa-01."""
+    base = os.path.basename(path)
+    match = re.fullmatch(r"([a-z][a-z0-9]*-\d+)\.html", base)
+    return match.group(1) if match else None
+
+
+def run(path, excused=frozenset(), listfile=None):
+    """Lint one lesson. `excused` names units whose CANVAS_CHECK row is a
+    known failure — see canvas_ratchet_errors for why that is a ratchet."""
     with open(path, encoding="utf-8") as f:
         results = lint(f.read())
-    fails = [r for r in results if not r[1]]
+    uid = unit_id_for(path)
+    fails = []
     for name, ok, detail in results:
-        print("%s %s%s" % ("PASS" if ok else "FAIL", name, (": " + detail) if detail else ""))
+        if not ok and name == CANVAS_CHECK and uid in excused:
+            print("KNOWN-FAIL %s (%s listed in %s)" % (name, uid, listfile))
+            continue
+        if not ok:
+            fails.append((name, ok, detail))
+        print("%s %s%s" % ("PASS" if ok else "FAIL", name,
+                           (": " + detail) if detail else ""))
     print("\n%d/%d checks passed" % (len(results) - len(fails), len(results)))
     return 1 if fails else 0
+
+
+def canvas_ratchet_errors(excused, listfile, repo=None):
+    """The two stale states of the canvas-label drift list.
+
+    Copied in shape, deliberately, from `mission.py --known-failing`: a listed
+    unit that PASSES now fails the run until it is struck off, and a listed
+    unit whose lesson is gone fails too. Without the first rule this list would
+    be silent in exactly the state that matters — the figure was described and
+    the excuse was left behind — which is how an allowlist becomes permanent.
+
+    Resolved against disk, not against the paths this invocation named, so
+    linting one lesson does not accuse every other entry of being stale.
+    """
+    repo = repo or REPO
+    errors = []
+    for uid in sorted(excused):
+        module = uid.rsplit("-", 1)[0]
+        lesson = os.path.join(repo, "lessons", module, uid + ".html")
+        if not os.path.isfile(lesson):
+            errors.append("STALE %s is listed in %s but has no lesson at %s"
+                          % (uid, listfile, lesson))
+            continue
+        with open(lesson, encoding="utf-8") as f:
+            if not undescribed_canvas_numbers(f.read()):
+                errors.append("STALE %s describes every painted number now —"
+                              " strike it from %s" % (uid, listfile))
+    return errors
 
 
 def selftest():
@@ -282,13 +428,74 @@ def selftest():
 
 
 def main(argv):
+    """Run the lesson linter, drift ratchet, or built-in self-test."""
     if argv and argv[0] == "--selftest":
         return selftest()
-    if len(argv) != 1:
-        print("usage: lesson_lint.py <lesson_html_path> | --selftest")
+    if REPO not in sys.path:            # run as a script, not as a package
+        sys.path.insert(0, REPO)
+    # One reader for both drift lists, and one growth rule: same file format,
+    # same "an unreadable list is verdict 2, not 1", one place to fix.
+    from scripts.mission import (Unreadable, additions_against,
+                                 load_known_failing)
+    excused, listfile, baseline = frozenset(), None, None
+    rc = 0
+    try:
+        while len(argv) >= 2 and argv[0] in ("--known-failing", "--baseline"):
+            if argv[0] == "--known-failing":
+                listfile = argv[1]
+                excused = frozenset(load_known_failing(listfile))
+            else:
+                baseline = argv[1]
+            argv = argv[2:]
+        if baseline is not None:
+            # Without this the ratchet only ever caught the list SHRINKING
+            # (a stale entry, a vanished lesson). Adding a freshly undescribed
+            # figure to the list made it an active known failure and CI went
+            # green, so "the list may only shrink" was a claim about author
+            # discipline, not a property of the gate -- the same hole Codex
+            # found in mission.py's list on PR #20, found again here on PR #32.
+            if listfile is None:
+                print("ERROR --baseline needs --known-failing")
+                return 2
+            added, existed = additions_against(baseline, set(excused))
+            if existed and not os.path.exists(listfile):
+                print("DELETED %s existed at the baseline and is gone here. The"
+                      " drift list is permanent -- empty it, do not delete it,"
+                      " or the growth check can never tell a reintroduction"
+                      " from the original rollout." % listfile)
+                return 1
+            if not existed:
+                print("NOTE no baseline at %s -- this is the commit that"
+                      " introduces the list, so there is nothing it could have"
+                      " grown from" % baseline)
+            elif added:
+                for uid in sorted(added):
+                    print("GREW %s was added to %s; the canvas label drift list"
+                          " is a ratchet and may only shrink. Describe the"
+                          " figure's numbers in its aria-label instead."
+                          % (uid, listfile))
+                rc = 1
+            else:
+                print("PASS canvas label drift list has no additions against %s"
+                      % baseline)
+            if not argv:
+                return rc               # a list-level growth check only
+    except Unreadable as exc:
+        # Exit 2, never 1: a ratchet input that could not be read is an
+        # absence of analysis, and must not look like a lint failure.
+        print("ERROR could not read %s -- no verdict about the canvas"
+              " label list" % exc)
         return 2
-    return run(argv[0])
-
+    if len(argv) != 1:
+        print("usage: lesson_lint.py [--known-failing <file> [--baseline"
+              " <file>]] [<lesson_html_path>] | --selftest")
+        return 2
+    if run(argv[0], excused=excused, listfile=listfile):
+        rc = 1
+    for error in canvas_ratchet_errors(excused, listfile):
+        print(error)
+        rc = 1
+    return rc
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

@@ -42,6 +42,48 @@ def commands_for_unit(uid, ci=False, manifest_path=MANIFEST,
     return commands
 
 
+def stale_zero_refs(manifest, zero_refs, units):
+    """coverage-zero-refs entries that can no longer excuse anything.
+
+    `coverage-zero-refs.json` names units whose sources carry no NUMBERED
+    results, so the coverage gate is run with `--expect-zero-refs <reason>`
+    instead of a minimum. That is an allowlist, and an allowlist without
+    stale-entry detection is a suppression list with a comment: "the unit was
+    rewritten to cite numbered results, but the exemption is still listed"
+    emits no signal at all, which is how such a list becomes permanent.
+
+    Half the ratchet is already built and lives in the gate itself:
+    `check_lesson_coverage.py --expect-zero-refs` FAILS when refs are in fact
+    found, so a listed unit that starts passing on its own merits cannot stay
+    listed silently. This is the other half -- the entry that outlives the
+    thing it excused:
+
+      * a listed unit that the syllabus no longer governs;
+      * a listed unit whose manifest gates include no coverage gate, so the
+        exemption is never read and could never fire either way.
+
+    Both are resolved against the syllabus and the manifest, never against the
+    units this invocation happens to name, so `check_unit.py one-unit` cannot
+    accuse the other entries of being stale.
+
+    Returns [(uid, why)].
+    """
+    stale = []
+    for uid in sorted(zero_refs):
+        if uid not in units:
+            stale.append((uid, "no unit %s in the syllabus" % uid))
+            continue
+        module = uid.rsplit("-", 1)[0]
+        has_coverage = any(
+            gate.get("kind") == "coverage"
+            and (not gate.get("modules") or module in gate["modules"])
+            for gate in manifest["gates"])
+        if not has_coverage:
+            stale.append((uid, "no coverage gate applies to %s, so the"
+                               " exemption is never read" % uid))
+    return stale
+
+
 def load_syllabus_units(path=SYLLABUS):
     with open(path, encoding="utf-8") as handle:
         return {row["id"] for row in yaml.safe_load(handle)["units"]}
@@ -71,6 +113,7 @@ def run_unit(uid, ci=False):
 
 
 def main(argv=None):
+    """Run unit gates for one requested unit or the complete syllabus."""
     parser = argparse.ArgumentParser()
     parser.add_argument("unit", nargs="?")
     parser.add_argument("--all", action="store_true")
@@ -80,9 +123,17 @@ def main(argv=None):
         parser.error("give exactly one UNIT or --all")
     units = discovered_units() if args.all else [args.unit]
     failed = [uid for uid in units if run_unit(uid, ci=args.ci)]
-    print("%s %d unit(s) checked, %d failed"
-          % ("FAIL" if failed else "PASS", len(units), len(failed)))
-    return 1 if failed else 0
+    stale = stale_zero_refs(load_json(MANIFEST), load_json(ZERO_REFS),
+                            load_syllabus_units())
+    for uid, why in stale:
+        print("STALE %s is listed in curriculum/coverage-zero-refs.json but %s."
+              " The list is a ratchet and may only shrink -- strike the entry."
+              % (uid, why))
+    print("%s %d unit(s) checked, %d failed, %d stale coverage-zero-refs"
+          " entr%s"
+          % ("FAIL" if failed or stale else "PASS", len(units), len(failed),
+             len(stale), "y" if len(stale) == 1 else "ies"))
+    return 1 if failed or stale else 0
 
 
 if __name__ == "__main__":

@@ -28,11 +28,15 @@ def chrome_path():
                  if path and os.path.isfile(path)), None)
 
 
-def harness(paths):
+def harness(paths, suppress_text=False):
+    """The headless page. `suppress_text` no-ops fillText/strokeText in every
+    lesson frame before its own script runs -- used ONLY for read-back
+    fixtures; the blank/clipped render check always renders text."""
     urls = [Path(path).resolve().as_uri() for path in paths]
     return r"""<!doctype html><meta charset=utf-8><body><pre id=result>pending</pre>
 <script>
 const urls=%s;
+const suppressText=%s;
 function pixels(c){
   const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
   const counts=new Map();
@@ -53,7 +57,47 @@ function pixels(c){
   }
   const edge=minX<=1||minY<=1||maxX>=c.width-2||maxY>=c.height-2;
   const interiorGap=[...rows.slice(2,-2)].includes(0)||[...cols.slice(2,-2)].includes(0);
-  return {painted:n,bbox:[minX,minY,maxX,maxY],clipped:!!(n&&edge&&interiorGap)};
+  return {painted:n,bbox:[minX,minY,maxX,maxY],clipped:!!(n&&edge&&interiorGap),
+          ink:ink(c,background,n)};
+}
+// Read-back fixture. Gate 7's canvas read-back is a human opening the figure
+// and checking that the bars end where the numbers say; it found every
+// positional claim in lab-09 correct to within a pixel, and had no way to
+// leave behind evidence that it ran. This is that evidence: per INK COLOUR,
+// how much of it there is and where it extends. Bar ends, threshold-line
+// positions and annotation-colour counts all fall out of it, so a figure
+// whose numbers move without its drawing fails loudly instead of waiting for
+// the next reader.
+//
+// Channels are quantised to 32 levels, and a colour is kept only if it covers
+// at least a fiftieth of the figure's ink. Both thresholds are there to keep
+// ANTI-ALIASING out of the fixture: every stroke in this figure generates a
+// dozen blend colours at a few hundred pixels each, spanning nearly the whole
+// canvas, and they are precisely the rows that would differ on the next
+// Chrome release. What survives is the figure's structural ink — bar fills,
+// axis and threshold strokes, arrows — which is what the read-back is about.
+// For fixtures, text is suppressed before the lesson draws (see fixture_for):
+// glyph ink depends on the platform's fonts, not on the figure.
+function ink(c,background,painted){
+  const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;
+  const q=v=>Math.round(v/32)*32;
+  const seen=new Map();
+  for(let y=0;y<c.height;y++)for(let x=0;x<c.width;x++){
+    const i=(y*c.width+x)*4;
+    if(d[i+3]===0)continue;
+    const key=d[i]+','+d[i+1]+','+d[i+2]+','+d[i+3];
+    if(key===background)continue;
+    const k=q(d[i])+','+q(d[i+1])+','+q(d[i+2]);
+    let e=seen.get(k);
+    if(!e){e={colour:k,n:0,minX:c.width,minY:c.height,maxX:-1,maxY:-1};seen.set(k,e);}
+    e.n++;
+    if(x<e.minX)e.minX=x; if(x>e.maxX)e.maxX=x;
+    if(y<e.minY)e.minY=y; if(y>e.maxY)e.maxY=y;
+  }
+  const floor=Math.max(24,Math.round(painted*0.02));
+  return [...seen.values()].filter(e=>e.n>=floor)
+    .sort((a,b)=>b.n-a.n||(a.colour<b.colour?-1:1))
+    .map(e=>({colour:e.colour,n:e.n,bbox:[e.minX,e.minY,e.maxX,e.maxY]}));
 }
 function visible(c){
   for(let e=c;e;e=e.parentElement){
@@ -75,6 +119,7 @@ const __recordCanvasError=e=>window.__canvasRuntimeErrors.push(
   String(e.reason||e.error||e.message||e));
 window.addEventListener('error',__recordCanvasError);
 window.addEventListener('unhandledrejection',__recordCanvasError);
+${suppressText?"CanvasRenderingContext2D.prototype.fillText=function(){};CanvasRenderingContext2D.prototype.strokeText=function(){};":""}
 <\/script><base href="${url.replaceAll('&','&amp;').replaceAll('"','&quot;')}">`;
     await new Promise((ok,bad)=>{f.onload=ok;f.onerror=bad;f.srcdoc=bootstrap+source});
     await new Promise(ok=>setTimeout(ok,80));
@@ -123,17 +168,18 @@ window.addEventListener('unhandledrejection',__recordCanvasError);
   document.getElementById('result').textContent=JSON.stringify(out);
 }
 run().catch(e=>document.getElementById('result').textContent=JSON.stringify({error:String(e)}));
-</script>""" % json.dumps(urls)
+</script>""" % (json.dumps(urls), "true" if suppress_text else "false")
 
 
-def render_results(paths, browser=None):
+def render_results(paths, browser=None, suppress_text=False):
+    """Render lesson canvases in a headless browser and return their snapshots."""
     browser = browser or chrome_path()
     if not browser:
         raise RuntimeError("Chrome/Chromium not found; set CHROME_PATH")
     with tempfile.TemporaryDirectory(prefix="mathuni-canvas-") as tmp:
         page = os.path.join(tmp, "harness.html")
         with open(page, "w", encoding="utf-8") as handle:
-            handle.write(harness(paths))
+            handle.write(harness(paths, suppress_text=suppress_text))
         # Each lesson may now exercise button, range, and three canvas-click
         # states. Scale the virtual-time allowance with that expanded surface.
         budget = max(8000, len(paths) * 650)
@@ -199,10 +245,152 @@ def render_errors(paths, browser=None, exceptions_path=EXCEPTIONS):
     return errors
 
 
+FIXTURES = os.path.join(REPO, "curriculum", "canvas-fixtures")
+# Anti-aliasing and Chrome's own rasteriser move a boundary by a pixel and a
+# colour's coverage by a fraction of a percent between versions. These are the
+# loosest tolerances that still fail the thing the fixture exists to catch — a
+# bar that ends somewhere else, a threshold line that moved, an annotation
+# that was recoloured or deleted. A bar in this figure is 13 px tall and the
+# two threshold lines sit 7 px apart, so 2 px cannot hide a moved line.
+BBOX_TOLERANCE = 2
+COUNT_TOLERANCE = 0.08
+
+
+def fixture_path(path):
+    """Return the committed read-back fixture path for a lesson path."""
+    unit = os.path.splitext(os.path.basename(path))[0]
+    return os.path.join(FIXTURES, unit + ".json")
+
+
+# A fixture records GEOMETRY, never glyphs. The first lab-09 fixture recorded
+# text ink too, passed on the Windows machine that recorded it, and failed on
+# every Linux CI run with identical numbers: `sans-serif` is a different font
+# there, so the footer text colour vanished, the amber annotation colour
+# vanished, and dark anti-aliasing coverage rose 218 px -- while both bar
+# colours matched exactly. A fixture that pins the font rasteriser measures the
+# platform, not the figure. Text is suppressed while recording AND checking, so
+# the fixture pins bar ends, threshold lines and strokes; what painted text
+# SAYS is already checked, platform-free, by lesson_lint's aria-label rule.
+FIXTURE_TEXT = "suppressed"
+
+
+def fixture_for(paths, browser=None):
+    """{canvas key: read-back} for the given lessons, from a real render with
+    text suppressed. Carries a `_text` marker so a fixture recorded the old
+    way is refused rather than compared."""
+    out = {"_text": FIXTURE_TEXT}
+    for item in render_results(paths, browser=browser, suppress_text=True):
+        if item.get("runtimeError") or not item.get("visible"):
+            continue
+        key = "%s@%s" % (item.get("id", ""), item.get("state") or "initial")
+        out[key] = {"painted": item["painted"], "bbox": item["bbox"],
+                    "ink": item.get("ink", [])}
+    return out
+
+
+def _compare_ink(key, expected, actual):
+    """Return geometry differences between expected and rendered ink rows."""
+    errors = []
+    want = {row["colour"]: row for row in expected}
+    got = {row["colour"]: row for row in actual}
+    for colour in sorted(set(want) | set(got)):
+        if colour not in got:
+            errors.append("%s: colour %s is gone (was %d px at %s)"
+                          % (key, colour, want[colour]["n"],
+                             want[colour]["bbox"]))
+            continue
+        if colour not in want:
+            errors.append("%s: colour %s is new (%d px at %s)"
+                          % (key, colour, got[colour]["n"], got[colour]["bbox"]))
+            continue
+        a, b = want[colour], got[colour]
+        allowed = max(8, int(a["n"] * COUNT_TOLERANCE))
+        if abs(a["n"] - b["n"]) > allowed:
+            errors.append("%s: colour %s covers %d px, fixture records %d"
+                          % (key, colour, b["n"], a["n"]))
+        moved = [i for i in range(4)
+                 if abs(a["bbox"][i] - b["bbox"][i]) > BBOX_TOLERANCE]
+        if moved:
+            errors.append("%s: colour %s extends to %s, fixture records %s"
+                          % (key, colour, b["bbox"], a["bbox"]))
+    return errors
+
+
+def fixture_errors(paths, browser=None):
+    """Compare a live render against the committed read-back fixtures.
+
+    A lesson with no fixture is NOT silently skipped: it is reported, so the
+    set of figures under read-back is visible rather than inferred.
+    """
+    errors, checked = [], 0
+    for path in paths:
+        stored = fixture_path(path)
+        if not os.path.isfile(stored):
+            errors.append("no read-back fixture for %s (expected %s)"
+                          % (path, os.path.relpath(stored, REPO)))
+            continue
+        with open(stored, encoding="utf-8") as handle:
+            expected = json.load(handle)
+        if expected.get("_text") != FIXTURE_TEXT:
+            # G13: an explicit outcome, not a silent comparison against glyph
+            # ink that differs by platform.
+            errors.append("%s: fixture %s was not recorded with text suppressed"
+                          " -- re-record it with --record-fixture"
+                          % (path, os.path.relpath(stored, REPO)))
+            continue
+        actual = fixture_for([path], browser=browser)
+        for key in sorted((set(expected) | set(actual)) - {"_text"}):
+            if key not in actual:
+                errors.append("%s: canvas state %r no longer renders"
+                              % (path, key))
+                continue
+            if key not in expected:
+                errors.append("%s: canvas state %r is new and unrecorded"
+                              % (path, key))
+                continue
+            checked += 1
+            errors += ["%s: %s" % (path, e) for e in
+                       _compare_ink(key, expected[key]["ink"], actual[key]["ink"])]
+    return errors, checked
+
+
 def main(argv=None):
+    """Run canvas rendering, fixture recording, or fixture verification."""
     parser = argparse.ArgumentParser()
     parser.add_argument("paths", nargs="+")
+    parser.add_argument("--record-fixture", action="store_true",
+                        help="write the read-back fixture for these lessons")
+    parser.add_argument("--check-fixture", action="store_true",
+                        help="compare a live render against the fixtures")
     args = parser.parse_args(argv)
+    if args.record_fixture and args.check_fixture:
+        parser.error("--record-fixture and --check-fixture are exclusive")
+    if args.record_fixture:
+        os.makedirs(FIXTURES, exist_ok=True)
+        for path in args.paths:
+            data = fixture_for([path])
+            with open(fixture_path(path), "w", encoding="utf-8",
+                      newline="\n") as handle:
+                json.dump(data, handle, indent=2, sort_keys=True)
+                handle.write("\n")
+            # The `_text` marker is not a canvas state; counting it made the
+            # positive signal report one state more than was recorded.
+            print("recorded %s (%d canvas state(s))"
+                  % (os.path.relpath(fixture_path(path), REPO),
+                     len(set(data) - {"_text"})))
+        return 0
+    if args.check_fixture:
+        try:
+            errors, checked = fixture_errors(args.paths)
+        except (RuntimeError, subprocess.TimeoutExpired) as exc:
+            print("FAIL " + str(exc))
+            return 1
+        for error in errors:
+            print("FAIL " + error)
+        print("%s canvas read-back: %d state(s) compared across %d lesson(s),"
+              " %d difference(s)" % ("FAIL" if errors else "PASS", checked,
+                                     len(args.paths), len(errors)))
+        return 1 if errors else 0
     try:
         errors = render_errors(args.paths)
     except (RuntimeError, subprocess.TimeoutExpired) as exc:

@@ -49,6 +49,12 @@ jobs:
       - run: python scripts/validate_syllabus.py --selftest
       - run: python scripts/check_id_consistency.py
       - run: python scripts/check_resources.py --selftest
+      # The two skill trees are one file with one declared difference. The
+      # selftest runs first and in its own step: it is this gate's negative
+      # control, and a gate that has never been watched to fail is not
+      # evidence of anything.
+      - run: python scripts/check_skill_mirror.py --selftest
+      - run: python scripts/check_skill_mirror.py
       - run: python scripts/check_source_modality.py
       - name: Every unit's resources name something that can be read
         # --shallow because the runner has no page trees. Check 1 (does the
@@ -64,6 +70,16 @@ jobs:
         # resolves to nothing, so the citation gate could not run on them at
         # all and 156 citations were never checked by anything.
         run: python scripts/check_resources.py --shallow
+      - name: Retired-module allowlist ratchet
+        # RETIRED_MODULES keeps a dead module's ids recognisable so references
+        # to them are held to the missing-artifact check instead of being read
+        # as prose. It is an allowlist, so it ratchets: an entry that has come
+        # back as a live module, or that nothing in the governed corpus names
+        # any more, fails until it is struck. The per-unit gate cannot see
+        # this — "nothing references it" is a corpus fact — so the audit
+        # derives its own population from the syllabus and reports the
+        # denominator with the verdict.
+        run: python scripts/check_unit_references.py --audit-retired
       - run: python scripts/lesson_lint.py --selftest
       - run: python scripts/gate.py --selftest
       - run: python scripts/mission.py --selftest
@@ -116,6 +132,38 @@ jobs:
             --known-failing curriculum/mission-drift.txt \
             --baseline /tmp/drift-baseline.txt \
             lessons/*/*.html
+      - name: Canvas label drift list may only shrink
+        # check_unit.py runs lesson_lint per lesson against
+        # curriculum/canvas-label-drift.txt, which catches a listed figure that
+        # is now described and a listed lesson that is gone -- both of which
+        # SHRINK the list. Nothing stopped it GROWING: listing a freshly
+        # undescribed figure made it a known failure and CI went green. This
+        # compares the list against the base commit's copy, with the same
+        # resolution rules as gate 8's step above. (Codex review of PR #32.)
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          base="${PR_BASE_SHA:-${PUSH_BEFORE_SHA:-}}"
+          rm -f /tmp/canvas-drift-baseline.txt
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            echo "No base commit for this event (first push or force-push);"
+            echo "the canvas drift growth check cannot run and is not being skipped quietly."
+            exit 1
+          fi
+          git cat-file -e "$base^{commit}" || {
+            echo "Base commit $base is not in this checkout -- fetch-depth is wrong."
+            exit 1
+          }
+          if git cat-file -e "$base:curriculum/canvas-label-drift.txt" 2>/dev/null; then
+            git show "$base:curriculum/canvas-label-drift.txt" > /tmp/canvas-drift-baseline.txt
+          else
+            echo "Base commit $base has no canvas drift list; this is the commit that adds it."
+          fi
+          python scripts/lesson_lint.py \
+            --known-failing curriculum/canvas-label-drift.txt \
+            --baseline /tmp/canvas-drift-baseline.txt
       - name: Manifest-owned per-unit gate parity
         # One manifest now owns the corpus-level lint, executable-content,
         # mission, citation-coverage, indexed-section, and lab-structure
@@ -124,4 +172,16 @@ jobs:
         run: python scripts/check_unit.py --all --ci
       - name: Render every lesson canvas headlessly
         run: python scripts/check_canvas_render.py lessons/*/*.html
+      - name: Canvas read-back against the committed fixtures
+        # Gate 7's canvas read-back is a human opening the figure and checking
+        # that the bars end where the numbers say. On lab-09 it confirmed every
+        # positional claim to within a pixel and left no evidence it had run.
+        # The fixture is that evidence: per structural ink colour, how much
+        # there is and where it extends, so a figure whose numbers move without
+        # its drawing fails here instead of waiting for the next reader.
+        #
+        # Scoped to lab-09, the figure that prompted this. Extending it is
+        # `--record-fixture <lesson>` per figure, and a deliberate decision
+        # about 133 more rather than a silent default.
+        run: python scripts/check_canvas_render.py --check-fixture lessons/lab/lab-09.html
       - run: python -m pytest -q

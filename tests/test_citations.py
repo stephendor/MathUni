@@ -1011,3 +1011,75 @@ def test_a_unit_run_whose_primary_is_absent_still_checks_the_rest(tmp_path,
     assert C.main(["--unit", "u4"]) == 1
     out = capsys.readouterr().out
     assert "Theorem 1.1" in out and "p. 99" in out
+
+
+# --- guard audit (Observation 2026-08-23) -----------------------------------
+#
+# That observation's defect was a restriction narrowed on the strength of a
+# hazard asserted in a comment and never tested; the untested guard then
+# produced a live false rejection. Auditing every other restriction in this
+# module for the same shape found four whose comment or docstring asserts a
+# hazard with no control behind it. Each control below was written FIRST and
+# confirmed to FAIL with the restriction loosened, which is the evidence the
+# original guard lacked — a control that passes either way would have meant the
+# restriction was unnecessary and should come out.
+#
+# All four hazards turned out to be real, so nothing was removed. The finding
+# is that the evidence now exists.
+
+
+def test_book_label_for_will_not_read_a_page_footer_as_a_label():
+    """`book_label_for`'s bare-item branch requires the text after the number
+    to START WITH A WORD: "a page number or a stray figure caption does not
+    qualify". Loosen that class to `(.[^\n]*)` and "1 234" promotes to the
+    label "234" — a page footer read as an exercise heading, which turns a
+    citation of a page the result is NOT on into `number-only`, the status this
+    gate promises never to give a wrong page."""
+    from scripts.citations import book_label_for
+    assert book_label_for("1", "1 234") is None
+    assert book_label_for("5", "5 6.2") is None
+    # and the form the requirement exists to admit still passes
+    assert book_label_for("1", "1 Prove that the sum is zero.") \
+        == "Prove that the sum is zero."
+
+
+def test_book_label_for_will_not_read_a_displayed_formula_as_a_label():
+    """The item marker is admitted only in BRACKETED ITEM form —
+    `(a)`, `(iv)`, `(12)` — "so a displayed formula opening `5 (x + y)` is not
+    promoted to a header". Widen it to any short parenthetical and
+    "5 (x + y) is zero" promotes to "is zero"."""
+    from scripts.citations import book_label_for
+    assert book_label_for("5", "5 (x + y) is zero") is None
+    assert book_label_for("5", "1. 5 (x + y) is zero") is None
+    # Axler's 2.A.5 opens with a real item marker and must still be a label.
+    assert book_label_for("5", "5 (a) Show that if we think of C") \
+        == "Show that if we think of C"
+
+
+def test_a_leading_marker_is_a_marker_not_a_folio():
+    """The converter's list marker is bounded at three digits. Without the
+    bound a printed folio at the head of a page — "1234. 3 Suppose T" — is
+    consumed as a marker and the page's first line becomes exercise 3's
+    label."""
+    from scripts.citations import book_label_for
+    assert book_label_for("3", "1234. 3 Suppose T in L(V)") is None
+    # the real converter marker, which need not agree with the book's number
+    assert book_label_for("3", "4. 3 Suppose T in L(V)") == "Suppose T in L(V)"
+
+
+def test_an_absurd_plural_range_degrades_to_its_written_members():
+    """`expand_members` expands a range only when the two numbers are
+    commensurable, ascending, and no more than MAX_RANGE apart, "so a
+    malformed or absurd range degrades to the two numbers actually there
+    rather than to hundreds of invented ones". Each of the three conditions is
+    load-bearing: without the cap, `Exercises 1-500` cites 500 results the
+    author never named, every one of them entering the denominator and all but
+    two of them certain to be reported wrong."""
+    from scripts.citations import _between, expand_members
+    assert expand_members("1-500") == ["1", "500"]
+    assert expand_members("9-3") == ["3", "9"]
+    assert expand_members("1.2-2.7") == ["1.2", "2.7"]
+    # the cap is what stops it, not one of the other two conditions
+    assert len(_between("1", "500", 10 ** 9)) == 498
+    # and a real range still expands
+    assert expand_members("6.6-6.9") == ["6.6", "6.7", "6.8", "6.9"]
