@@ -29,17 +29,21 @@ class FakeBook:
     }
 
     def pdf_pages_for(self, printed):
+        """Map a synthetic printed folio to its available PDF page."""
         n = printed + 100
         return [n] if n in self.PAGES else []
 
     def text_of(self, pdf_page):
+        """Return synthetic text for a PDF page."""
         return self.PAGES.get(pdf_page)
 
     def find_result(self, result):
+        """Return whether any synthetic page contains a result label."""
         return any(result in t for t in self.PAGES.values())
 
 
 def sweep(tmp_path, body, name="unit.md"):
+    """Classify citations in one synthetic source file."""
     src = tmp_path / name
     src.write_text(body, encoding="utf-8")
     return S.classify_file(str(src), "Fake", {"Fake": FakeBook()}, ["Fake"],
@@ -47,12 +51,14 @@ def sweep(tmp_path, body, name="unit.md"):
 
 
 def statuses(cites):
+    """Reduce citation records to result and status pairs for assertions."""
     return [(c.result, c.status) for c in cites]
 
 
 # --- the positive signal ----------------------------------------------------
 
 def test_a_correct_citation_resolves(tmp_path):
+    """An exact result on the named page resolves successfully."""
     got = sweep(tmp_path, "*(Fake §2, Theorem 2.3, p. 10)*\n")
     assert statuses(got) == [("Theorem 2.3", S.RESOLVED)]
 
@@ -102,6 +108,7 @@ def test_a_bare_page_pointer_is_unverifiable_not_resolved(tmp_path):
 
 
 def test_noverdict_is_never_counted_as_resolved_or_as_wrong(tmp_path):
+    """An unavailable book remains outside both compared outcome buckets."""
     got = S.classify_file(
         str(_write(tmp_path, "*(Absent §2, Theorem 2.3, p. 10)*\n")),
         "Fake", {"Fake": FakeBook()}, ["Fake", "Absent"],
@@ -111,6 +118,7 @@ def test_noverdict_is_never_counted_as_resolved_or_as_wrong(tmp_path):
 
 
 def _write(tmp_path, body):
+    """Write and return a synthetic citation source path."""
     src = tmp_path / "unit.md"
     src.write_text(body, encoding="utf-8")
     return src
@@ -144,6 +152,7 @@ def test_the_reporter_does_not_fail_the_build_by_default(tmp_path, monkeypatch,
 
 
 def test_an_unknown_status_filter_is_rejected(tmp_path):
+    """The CLI rejects status filters outside its declared vocabulary."""
     with pytest.raises(SystemExit):
         S.main(["--only", "PROBABLY-FINE"])
 
@@ -151,6 +160,7 @@ def test_an_unknown_status_filter_is_rejected(tmp_path):
 # --- Codex review of PR #32 -------------------------------------------------
 
 def _main_env(monkeypatch):
+    """Configure the reporter entry point to use the synthetic book."""
     monkeypatch.setattr(S, "load_books", lambda: ({"Fake": FakeBook()}, []))
     monkeypatch.setattr(S.C, "load_bookmap",
                         lambda: {"Fake": {"title": "Fake Book"}})
@@ -190,6 +200,7 @@ def test_page_not_in_book_is_not_counted_as_compared(tmp_path, capsys):
 
 
 def test_page_not_in_book_still_fails_strict(tmp_path, monkeypatch):
+    """Strict mode rejects a folio that maps to no book page."""
     _main_env(monkeypatch)
     src = _write(tmp_path, "*(Fake §9, Theorem 2.3, p. 900)*\n")
     assert S.main([str(src), "--strict"]) == 1

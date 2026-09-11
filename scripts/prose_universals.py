@@ -172,6 +172,7 @@ def flags(html):
 
 
 def report(path):
+    """Print advisory universal-claim findings for one lesson file."""
     with open(path, encoding="utf-8") as handle:
         found = flags(handle.read())
     print("%s — %d unhedged universal(s) in uncited prose" % (path, len(found)))
@@ -188,15 +189,18 @@ def report(path):
 
 
 def selftest():
+    """Exercise the advisory's controls, boundaries, and documented limits."""
     total, fails = [0], []
 
     def check_one(name, cond):
+        """Record and print one self-test assertion."""
         total[0] += 1
         print("%s %s" % ("PASS" if cond else "FAIL", name))
         if not cond:
             fails.append(name)
 
     def flagged(sentence):
+        """Return whether a sentence produces any advisory finding."""
         return bool(flags("<p>%s</p>" % sentence))
 
     # --- the negative-control corpus ------------------------------------
@@ -274,6 +278,7 @@ def selftest():
 
 
 def main(argv):
+    """Run the advisory over lesson paths or execute its self-test."""
     if argv and argv[0] == "--selftest":
         return selftest()
     if not argv:

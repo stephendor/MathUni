@@ -49,6 +49,7 @@ def strip_noise(text):
 
 
 def unit_refs(text, repo=REPO):
+    """Return sorted unit identifiers referenced by visible source text."""
     text = strip_noise(text)
     modules = governed_modules(repo)
     refs = set()
@@ -141,6 +142,7 @@ def stale_retired_modules(repo=REPO):
 
 
 def audit_retired(repo=REPO):
+    """Report stale retired-module entries and return the audit status."""
     stale, scanned, missing = stale_retired_modules(repo)
     for mod, why in stale:
         print("STALE %r is listed in check_unit_references.RETIRED_MODULES but"
@@ -157,6 +159,7 @@ def audit_retired(repo=REPO):
 
 
 def main(argv=None):
+    """Check requested files or run the corpus-wide retired-module audit."""
     parser = argparse.ArgumentParser()
     parser.add_argument("paths", nargs="*")
     parser.add_argument("--audit-retired", action="store_true",

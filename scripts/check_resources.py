@@ -219,6 +219,7 @@ def check(units, books, deep=True):
 
 
 def selftest():
+    """Exercise resource matching and ratchet behavior with synthetic inputs."""
     total, fails = [0], []
 
     def check_one(name, cond):
@@ -329,6 +330,7 @@ def selftest():
 
 
 def main(argv=None):
+    """Validate syllabus resources and report unresolved or stale entries."""
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--shallow", action="store_true",

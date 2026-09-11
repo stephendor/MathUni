@@ -77,6 +77,7 @@ def walk(root):
 
 
 def read(path):
+    """Read a skill file while preserving its original line endings."""
     with open(path, encoding="utf-8", newline="") as handle:
         return handle.read()
 
@@ -136,6 +137,7 @@ def compare(root_a, root_b, tree_a=TREES[0], tree_b=TREES[1],
 
 
 def _write(root, rel, text):
+    """Write a synthetic skill-tree file for the self-test."""
     path = os.path.join(root, rel.replace("/", os.sep))
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8", newline="") as handle:
@@ -151,6 +153,7 @@ def selftest():
     total, fails = [0], []
 
     def check_one(name, cond):
+        """Record and print one self-test assertion."""
         total[0] += 1
         print("%s %s" % ("PASS" if cond else "FAIL", name))
         if not cond:
@@ -162,6 +165,7 @@ def selftest():
         empty = {TREES[0]: set(), TREES[1]: set()}
 
         def run(files_a, files_b, allowed=empty):
+            """Populate two temporary trees and compare their contents."""
             for root in (a, b):
                 for dirpath, _d, names in os.walk(root, topdown=False):
                     for name in names:
@@ -228,6 +232,7 @@ def selftest():
 
 
 def main(argv=None):
+    """Compare the repository's Claude and Codex skill trees."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--selftest", action="store_true",
                         help="prove the gate can fire, without touching the repo")

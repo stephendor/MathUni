@@ -113,6 +113,7 @@ def run_unit(uid, ci=False):
 
 
 def main(argv=None):
+    """Run unit gates for one requested unit or the complete syllabus."""
     parser = argparse.ArgumentParser()
     parser.add_argument("unit", nargs="?")
     parser.add_argument("--all", action="store_true")

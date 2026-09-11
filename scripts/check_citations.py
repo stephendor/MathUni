@@ -74,11 +74,13 @@ class Citation:
     """One (book, result, printed page(s)) claim and what became of it."""
 
     def __init__(self, path, line, book, result, pages, status, detail=""):
+        """Store one citation claim and its resolution outcome."""
         self.path, self.line, self.book = path, line, book
         self.result, self.pages = result, pages
         self.status, self.detail = status, detail
 
     def row(self):
+        """Format this citation as one human-readable report row."""
         where = ",".join(str(p) for p in sorted(self.pages)) or "-"
         try:
             shown = os.path.relpath(self.path, REPO).replace("\\", "/")
@@ -90,6 +92,7 @@ class Citation:
 
 
 def _has_page_marker(span):
+    """Return whether a citation span contains an explicit page marker."""
     return C.PAGES.search(span) is not None
 
 
@@ -215,6 +218,7 @@ def primary_for(path, all_names, titles):
 
 
 def load_books():
+    """Load available book page trees and list the books absent locally."""
     books, absent = {}, []
     for name in sorted(C.load_bookmap()):
         try:
@@ -225,6 +229,7 @@ def load_books():
 
 
 def report(cites, show):
+    """Print selected citation rows and return counts for every status."""
     counts = {s: 0 for s in ORDER}
     for c in cites:
         counts[c.status] = counts.get(c.status, 0) + 1
@@ -253,6 +258,7 @@ def report(cites, show):
 
 
 def main(argv=None):
+    """Sweep requested files or the corpus and report citation outcomes."""
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("paths", nargs="*", help="files to sweep (default: corpus)")
     ap.add_argument("--book", help="override the primary book for every path")

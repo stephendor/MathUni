@@ -78,6 +78,7 @@ def test_the_live_syllabus_has_no_stale_non_book_classes():
 # --- curriculum/coverage-zero-refs.json ------------------------------------
 
 def test_a_zero_ref_entry_for_a_unit_the_syllabus_dropped_is_stale():
+    """A zero-reference exemption must not outlive its syllabus unit."""
     manifest, zero_refs = load_json(MANIFEST), load_json(ZERO_REFS)
     stale = stale_zero_refs(manifest, dict(zero_refs, **{"zz-99": "why"}),
                             load_syllabus_units())
@@ -115,6 +116,7 @@ def test_the_other_half_of_the_zero_ref_ratchet_is_the_gate_itself():
 # --- check_unit_references.RETIRED_MODULES ---------------------------------
 
 def test_a_retired_module_that_came_back_is_stale(tmp_path, monkeypatch):
+    """A retired-module exemption becomes stale when the module returns."""
     import scripts.check_unit_references as mod
     (tmp_path / "curriculum" / "modules").mkdir(parents=True)
     (tmp_path / "curriculum" / "modules" / "gt.md").write_text("live again")
@@ -127,6 +129,7 @@ def test_a_retired_module_that_came_back_is_stale(tmp_path, monkeypatch):
 
 
 def test_a_retired_module_nothing_references_any_more_is_stale(tmp_path, monkeypatch):
+    """A retired-module exemption is stale after its final reference is removed."""
     import scripts.check_unit_references as mod
     (tmp_path / "curriculum").mkdir(parents=True)
     (tmp_path / "curriculum" / "syllabus.yaml").write_text(
@@ -197,6 +200,7 @@ def test_the_gt_entry_the_ratchet_found_is_struck():
 
 
 def test_the_live_corpus_passes_the_retired_module_audit(capsys):
+    """The corpus-wide audit reports its live denominator and passes."""
     assert audit_retired() == 0
     out = capsys.readouterr().out
     assert "PASS retired-module audit" in out

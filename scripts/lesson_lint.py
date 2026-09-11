@@ -428,6 +428,7 @@ def selftest():
 
 
 def main(argv):
+    """Run the lesson linter, drift ratchet, or built-in self-test."""
     if argv and argv[0] == "--selftest":
         return selftest()
     if REPO not in sys.path:            # run as a script, not as a package

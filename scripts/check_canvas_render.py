@@ -172,6 +172,7 @@ run().catch(e=>document.getElementById('result').textContent=JSON.stringify({err
 
 
 def render_results(paths, browser=None, suppress_text=False):
+    """Render lesson canvases in a headless browser and return their snapshots."""
     browser = browser or chrome_path()
     if not browser:
         raise RuntimeError("Chrome/Chromium not found; set CHROME_PATH")
@@ -256,6 +257,7 @@ COUNT_TOLERANCE = 0.08
 
 
 def fixture_path(path):
+    """Return the committed read-back fixture path for a lesson path."""
     unit = os.path.splitext(os.path.basename(path))[0]
     return os.path.join(FIXTURES, unit + ".json")
 
@@ -287,6 +289,7 @@ def fixture_for(paths, browser=None):
 
 
 def _compare_ink(key, expected, actual):
+    """Return geometry differences between expected and rendered ink rows."""
     errors = []
     want = {row["colour"]: row for row in expected}
     got = {row["colour"]: row for row in actual}
@@ -352,6 +355,7 @@ def fixture_errors(paths, browser=None):
 
 
 def main(argv=None):
+    """Run canvas rendering, fixture recording, or fixture verification."""
     parser = argparse.ArgumentParser()
     parser.add_argument("paths", nargs="+")
     parser.add_argument("--record-fixture", action="store_true",

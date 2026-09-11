@@ -47,6 +47,7 @@ KNOWN_FALSE = [
                          ids=["chain-group", "fundamental-group",
                               "torus-knot", "f2-torsion"])
 def test_every_known_false_universal_is_surfaced(sentence, why_false):
+    """Every confirmed false universal remains in the advisory population."""
     assert flags("<p>%s</p>" % sentence), why_false
 
 
@@ -86,6 +87,7 @@ def test_there_is_no_boundary_filter_and_that_is_deliberate():
 
 
 def test_script_contents_are_not_prose():
+    """Universal words in script bodies do not produce prose findings."""
     assert flags("<script>var s = 'every point is fixed.';</script>") == []
 
 
@@ -95,6 +97,7 @@ def test_sentences_are_not_split_at_a_page_abbreviation():
 
 
 def test_quantifiers_are_reported_deduplicated_and_sorted():
+    """A finding reports each quantifier once in deterministic order."""
     assert flags("<p>No space is never both, and no map is.</p>")[0][1] == [
         "never", "no"]
 
@@ -111,6 +114,7 @@ def test_a_run_over_a_flagged_lesson_still_exits_zero():
 
 
 def test_it_is_absent_from_the_gate_manifest():
+    """The advisory is not promoted into the unit gate manifest."""
     import json
     manifest = json.loads((ROOT / "curriculum" / "unit-gates.json").read_text(
         encoding="utf-8"))
@@ -119,6 +123,7 @@ def test_it_is_absent_from_the_gate_manifest():
 
 
 def test_it_is_absent_from_ci():
+    """The noisy advisory remains absent from blocking CI."""
     workflow = (ROOT / ".github" / "workflows" / "quality-gates.yml").read_text(
         encoding="utf-8")
     assert "prose_universals" not in workflow
@@ -131,6 +136,7 @@ def test_the_authoring_guide_points_at_it():
 
 
 def test_the_selftest_passes():
+    """The advisory's built-in negative and positive controls pass."""
     assert selftest() == 0
 
 
@@ -141,6 +147,7 @@ def test_usage_error_is_exit_2_not_0():
 
 
 def test_the_script_runs_standalone():
+    """The documented script entry point executes outside package import mode."""
     result = subprocess.run([sys.executable, "scripts/prose_universals.py",
                              "--selftest"], cwd=ROOT, capture_output=True,
                             text=True, encoding="utf-8", errors="replace")
@@ -159,10 +166,12 @@ def test_a_hedge_in_the_next_block_does_not_excuse_this_one():
 
 
 def test_a_citation_in_the_next_block_does_not_excuse_this_one():
+    """A citation in a later block cannot suppress an earlier universal."""
     got = flags("<p>No map exists</p><p>See Theorem 1.2.</p>")
     assert [s for s, _w in got] == ["No map exists"]
 
 
 def test_whitespace_inside_a_block_is_still_normalised():
+    """Intra-block whitespace collapses without merging neighboring blocks."""
     got = flags("<p>There   is\n   no such map.</p>")
     assert [s for s, _w in got] == ["There is no such map."]
