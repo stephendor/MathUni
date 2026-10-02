@@ -326,31 +326,37 @@ def run(path, excused=frozenset(), listfile=None):
     return 1 if fails else 0
 
 
-def canvas_ratchet_errors(excused, listfile, repo=None):
-    """The two stale states of the canvas-label drift list.
+def canvas_ratchet_errors(excused, listfile, repo=None, baseline=None):
+    """Every ratchet finding for the canvas-label drift list, as strings.
 
-    Copied in shape, deliberately, from `mission.py --known-failing`: a listed
-    unit that PASSES now fails the run until it is struck off, and a listed
-    unit whose lesson is gone fails too. Without the first rule this list would
-    be silent in exactly the state that matters — the figure was described and
-    the excuse was left behind — which is how an allowlist becomes permanent.
+    One mechanism, shared with `mission.py` through `scripts/ratchet.py`: a
+    listed unit that PASSES now fails the run until it is struck off, a listed
+    unit whose lesson is gone fails too, and with a baseline a unit ADDED since
+    the base ref fails. This list once copied "mission.py's shape" and dropped
+    the third rule; it now has no shape of its own to drop it from.
 
     Resolved against disk, not against the paths this invocation named, so
     linting one lesson does not accuse every other entry of being stale.
     """
     repo = repo or REPO
+    if REPO not in sys.path:            # run as a script, not as a package
+        sys.path.insert(0, REPO)
+    from scripts.ratchet import Ratchet
+
+    def lesson_of(uid):
+        return os.path.join(repo, "lessons", uid.rsplit("-", 1)[0], uid + ".html")
+
+    verdicts = {}
+    for uid in excused:
+        if os.path.isfile(lesson_of(uid)):
+            with open(lesson_of(uid), encoding="utf-8") as f:
+                verdicts[uid] = 1 if undescribed_canvas_numbers(f.read()) else 0
     errors = []
-    for uid in sorted(excused):
-        module = uid.rsplit("-", 1)[0]
-        lesson = os.path.join(repo, "lessons", module, uid + ".html")
-        if not os.path.isfile(lesson):
-            errors.append("STALE %s is listed in %s but has no lesson at %s"
-                          % (uid, listfile, lesson))
-            continue
-        with open(lesson, encoding="utf-8") as f:
-            if not undescribed_canvas_numbers(f.read()):
-                errors.append("STALE %s describes every painted number now —"
-                              " strike it from %s" % (uid, listfile))
+    Ratchet(listfile, excused, baseline, "canvas label drift list",
+            "Describe the figure's numbers in its aria-label instead.",
+            subject="lesson").check(
+        verdicts, exists=lambda uid: os.path.isfile(lesson_of(uid)),
+        out=errors.append)
     return errors
 
 
@@ -433,69 +439,46 @@ def main(argv):
         return selftest()
     if REPO not in sys.path:            # run as a script, not as a package
         sys.path.insert(0, REPO)
-    # One reader for both drift lists, and one growth rule: same file format,
-    # same "an unreadable list is verdict 2, not 1", one place to fix.
-    from scripts.mission import (Unreadable, additions_against,
-                                 load_known_failing)
-    excused, listfile, baseline = frozenset(), None, None
-    rc = 0
+    from scripts.ratchet import Ratchet, Unreadable, Usage
     try:
-        while len(argv) >= 2 and argv[0] in ("--known-failing", "--baseline"):
-            if argv[0] == "--known-failing":
-                listfile = argv[1]
-                excused = frozenset(load_known_failing(listfile))
-            else:
-                baseline = argv[1]
-            argv = argv[2:]
-        if baseline is not None:
-            # Without this the ratchet only ever caught the list SHRINKING
-            # (a stale entry, a vanished lesson). Adding a freshly undescribed
-            # figure to the list made it an active known failure and CI went
-            # green, so "the list may only shrink" was a claim about author
-            # discipline, not a property of the gate -- the same hole Codex
-            # found in mission.py's list on PR #20, found again here on PR #32.
-            if listfile is None:
-                print("ERROR --baseline needs --known-failing")
-                return 2
-            added, existed = additions_against(baseline, set(excused))
-            if existed and not os.path.exists(listfile):
-                print("DELETED %s existed at the baseline and is gone here. The"
-                      " drift list is permanent -- empty it, do not delete it,"
-                      " or the growth check can never tell a reintroduction"
-                      " from the original rollout." % listfile)
-                return 1
-            if not existed:
-                print("NOTE no baseline at %s -- this is the commit that"
-                      " introduces the list, so there is nothing it could have"
-                      " grown from" % baseline)
-            elif added:
-                for uid in sorted(added):
-                    print("GREW %s was added to %s; the canvas label drift list"
-                          " is a ratchet and may only shrink. Describe the"
-                          " figure's numbers in its aria-label instead."
-                          % (uid, listfile))
-                rc = 1
-            else:
-                print("PASS canvas label drift list has no additions against %s"
-                      % baseline)
-            if not argv:
-                return rc               # a list-level growth check only
+        ratchet, argv = Ratchet.from_argv(
+            argv, label="canvas label drift list",
+            remedy="Describe the figure's numbers in its aria-label instead.",
+            subject="lesson")
+        if len(argv) > 1 or (not argv and ratchet.baseline is None):
+            print("usage: lesson_lint.py [--known-failing <file> [--baseline"
+                  " <file>]] [<lesson_html_path>] | --selftest")
+            return 2
+        rc = 0
+        if argv:
+            # Growth AND both stale rules, over every listed entry.
+            errors = canvas_ratchet_errors(ratchet.entries, ratchet.listfile,
+                                           baseline=ratchet.baseline)
+        else:
+            # A list-level growth check with no lesson named: nothing is judged
+            # here, so every entry is declared still-failing and still-present.
+            # The stale rules run on every per-lesson invocation (the manifest
+            # runs one per unit); this call adds only the growth rule.
+            errors = []
+            ratchet.check({uid: 1 for uid in ratchet.entries},
+                          exists=lambda uid: True, out=errors.append)
+        for error in errors:
+            print(error)
+            rc = 1
+        if argv and run(argv[0], excused=ratchet.entries,
+                        listfile=ratchet.listfile):
+            rc = 1
+        return rc
     except Unreadable as exc:
         # Exit 2, never 1: a ratchet input that could not be read is an
         # absence of analysis, and must not look like a lint failure.
         print("ERROR could not read %s -- no verdict about the canvas"
               " label list" % exc)
         return 2
-    if len(argv) != 1:
-        print("usage: lesson_lint.py [--known-failing <file> [--baseline"
-              " <file>]] [<lesson_html_path>] | --selftest")
+    except Usage as exc:
+        print("ERROR %s" % exc)
         return 2
-    if run(argv[0], excused=excused, listfile=listfile):
-        rc = 1
-    for error in canvas_ratchet_errors(excused, listfile):
-        print(error)
-        rc = 1
-    return rc
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

@@ -155,7 +155,7 @@ def test_a_listed_unit_that_still_fails_is_quiet():
 
 
 def test_the_committed_drift_list_has_no_stale_entries():
-    from scripts.mission import load_known_failing
+    from scripts.ratchet import load_known_failing
     listed = load_known_failing(str(DRIFT))
     assert listed, "an empty list would make the ratchet test vacuous"
     assert canvas_ratchet_errors(listed, str(DRIFT)) == []
@@ -165,7 +165,7 @@ def test_the_drift_list_is_the_measured_backlog_not_a_guess():
     """G15: the known gap ships with its magnitude. 134 lessons carry a canvas
     and 10 painted a number no label described; lab-09 was repaired, so nine
     are listed."""
-    from scripts.mission import load_known_failing
+    from scripts.ratchet import load_known_failing
     assert len(load_known_failing(str(DRIFT))) == 9
 
 
@@ -392,7 +392,7 @@ def test_the_corpus_backlog_is_unchanged_by_token_matching():
     """The stricter match found no new undescribed number in any lesson: the
     same nine are listed and lab-09 still passes."""
     import glob
-    from scripts.mission import load_known_failing
+    from scripts.ratchet import load_known_failing
     failing = set()
     for path in glob.glob(str(ROOT / "lessons" / "*" / "*.html")):
         if undescribed_canvas_numbers(Path(path).read_text(encoding="utf-8")):

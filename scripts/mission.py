@@ -46,13 +46,20 @@ import sys
 
 import yaml
 
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if REPO not in sys.path:            # run as a script, not as a package
+    sys.path.insert(0, REPO)
+# The ratchet rules (stale, vanished, growth) are one shared mechanism; the
+# names are re-exported because tests and lesson_lint.py import them from here.
+from scripts.ratchet import (Ratchet, Unreadable, Usage,  # noqa: E402,F401
+                             additions_against, load_known_failing)
+
 for _stream in (sys.stdout, sys.stderr):  # cp1252-safe console (cf. srs/scheduler.py)
     try:
         _stream.reconfigure(encoding="utf-8")
     except (AttributeError, ValueError):
         pass
 
-REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SYLLABUS = os.path.join(REPO, "curriculum", "syllabus.yaml")
 
 # Anchored to the WHOLE basename. End-anchoring alone let `draft-aa-01.html`
@@ -312,69 +319,6 @@ def selftest():
     return 1 if fails else 0
 
 
-class Unreadable(Exception):
-    """A ratchet input exists but could not be read. Verdict 2, not 1."""
-
-
-def load_known_failing(path):
-    """Unit ids excused from failing, one per line; '#' starts a comment.
-
-    A missing file is an EMPTY list, not an error, so the finished state can be
-    reached at all — an earlier version raised FileNotFoundError before a single
-    lesson was compared, which made the ratchet's own success state impossible
-    to pass CI. A list that is absent excuses nothing, so the gate gets strictly
-    stricter, and deleting the file cannot be used to escape it.
-
-    But the file is nonetheless PERMANENT: the zero state is an empty list, not
-    a deleted one. Deleting it would make the base ref lack the path, and
-    "base has no list" is the one condition under which the growth check stands
-    down — so a later branch could reintroduce the file alongside fresh
-    mismatches and have them excused. main() refuses a deletion for exactly
-    that reason. (Codex review of PR #20, rounds two and four.)
-
-    An ABSENT list is empty; an UNREADABLE one is neither empty nor a verdict.
-    A directory, a permission-denied file, or a file unlinked between the
-    exists() and the open() raised OSError out of main(), and the process died
-    with a traceback and exit 1 — the code this script reserves for a real
-    mission mismatch. Exit 1 must never mean "the gate could not read its own
-    inputs". (Codex review of PR #20, sixth round.)
-    """
-    ids = set()
-    if not os.path.exists(path):
-        return ids
-    try:
-        f = open(path, encoding="utf-8")
-    except OSError as e:
-        raise Unreadable("%s: %s" % (path, e)) from e
-    with f:
-        for line in f:
-            line = line.split("#", 1)[0].strip()
-            if line:
-                ids.add(line)
-    return ids
-
-
-def additions_against(baseline_path, current):
-    """Ids in the current drift list that the baseline did not have.
-
-    Without this the ratchet was a claim, not a mechanism. The stale checks
-    catch a listed unit that starts passing and one whose lesson is gone — both
-    of which make the list SHRINK — but nothing stopped a branch from adding a
-    freshly-drifted unit to the list and going green. Verified: a lesson broken
-    on purpose, then listed, exited 0. "The list can only shrink" was asserted
-    in the commit message, the plan and the CI comment, and enforced nowhere.
-    (Codex review of PR #20.)
-
-    Returns (additions, baseline_existed). A baseline that does not exist is
-    reported as such rather than silently treated as empty — on the commit that
-    introduces the list there is nothing to compare against, and that must be
-    visible instead of looking like a clean comparison.
-    """
-    if not os.path.exists(baseline_path):
-        return set(), False
-    return current - load_known_failing(baseline_path), True
-
-
 def main(argv):
     try:
         return _main(argv)
@@ -389,82 +333,44 @@ def _main(argv):
     if argv and argv[0] == "--selftest":
         return selftest()
 
-    known, listfile, baseline = set(), None, None
-    while len(argv) >= 2 and argv[0] in ("--known-failing", "--baseline"):
-        if argv[0] == "--known-failing":
-            listfile = argv[1]
-            known = load_known_failing(listfile)
-        else:
-            baseline = argv[1]
-        argv = argv[2:]
+    try:
+        ratchet, argv = Ratchet.from_argv(
+            argv, label="drift list", remedy="Repair the lesson instead.",
+            subject="lesson")
+    except Usage as e:
+        print("ERROR %s" % e)
+        return 2
 
-    if baseline is not None:
-        if listfile is None:
-            print("ERROR --baseline needs --known-failing")
-            return 2
-        added, existed = additions_against(baseline, known)
-        if existed and not os.path.exists(listfile):
-            # The base ref has a list and this ref does not. Deleting it is the
-            # one move that reopens the ratchet: with the path gone, every
-            # later base also lacks it, "base has no list" stops meaning "the
-            # introducing commit", and a branch can reintroduce the file with
-            # fresh mismatches and have them excused.
-            print("DELETED %s existed at the baseline and is gone here. The"
-                  " drift list is permanent — empty it, do not delete it, or"
-                  " the growth check can never distinguish a reintroduction"
-                  " from the original rollout." % listfile)
-            return 1
-        if not existed:
-            print("NOTE no baseline at %s — this is the commit that introduces"
-                  " the list, so there is nothing it could have grown from"
-                  % baseline)
-        elif added:
-            for uid in sorted(added):
-                print("GREW %s was added to %s; the drift list is a ratchet and"
-                      " may only shrink. Repair the lesson instead."
-                      % (uid, listfile))
-            return 1
-        else:
-            print("PASS drift list has no additions against %s" % baseline)
+    def exists(uid):
+        return os.path.exists(lesson_path(uid))
 
     if not argv:
+        ratchet.check({}, exists=exists)
         print("usage: mission.py [--known-failing <file>] [--baseline <file>]"
               " <lesson_html_path> [...] | --selftest")
         return 2
 
     units = load_units()
     rc = 0
-    seen = set()
+    verdicts = {}
     for path in argv:
         uid = unit_id_for(path)
-        if uid in known:
-            # Suppress the verdict row's effect on rc, but still run it, so the
-            # stale case below is decided by a real comparison.
-            r = check(path, units)
-            seen.add(uid)
-            if r == 0:
-                print("STALE %s passes now — strike it from %s" % (uid, listfile))
-                rc = 1
-            elif r == 2:
-                return 2
-            else:
-                print("KNOWN-FAIL %s (listed in %s)" % (uid, listfile))
-            continue
         r = check(path, units)
         if r == 2:
             return 2
+        if ratchet.excused(uid):
+            # Still run the comparison, so the stale case is decided by a real
+            # one; a listed unit that still fails is excused, not passed.
+            verdicts[uid] = r
+            if r == 1:
+                print("KNOWN-FAIL %s (listed in %s)" % (uid, ratchet.listfile))
+            continue
         rc = rc or r
-
-    # A listed unit whose lesson no longer exists is the same rot in another
-    # form: the entry outlives the thing it excused. Resolved against disk
-    # rather than against this invocation's arguments, so running the gate on
-    # one lesson does not accuse every other entry of being stale.
-    for uid in sorted(known - seen):
-        if not os.path.exists(lesson_path(uid)):
-            print("STALE %s is listed in %s but has no lesson at %s"
-                  % (uid, listfile, lesson_path(uid)))
-            rc = 1
-    return rc
+    # Growth, stale-because-passing and stale-because-gone, in one call. The
+    # vanished check is resolved against disk rather than this invocation's
+    # arguments, so running the gate on one lesson does not accuse every other
+    # entry of being stale.
+    return ratchet.check(verdicts, exists=exists) or rc
 
 
 if __name__ == "__main__":
