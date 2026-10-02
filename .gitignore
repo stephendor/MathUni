@@ -26,3 +26,7 @@ state/server.log
 # `python scripts/problem_board.py` and `python scripts/reference.py`.
 dashboard/problems.html
 dashboard/reference.html
+
+# One execution receipt per harness-hook invocation (.claude/hooks/_receipt-wrap.sh).
+# Local evidence that a hook ran; never tracked.
+.claude/hooks/hook-receipts.log
