@@ -218,3 +218,119 @@ def test_the_reporter_runs_as_a_script_from_the_repo_root():
                             text=True, encoding="utf-8", errors="replace")
     assert result.returncode == 0, result.stderr
     assert "--strict" in result.stdout
+
+
+# --- Gate 1.12: a page pointer names a result or quotes a phrase -------------
+#
+# Owner decision 2026-10-02 (observation 2026-09-09-1980-page-pointers-name-
+# no-result). New or edited pointers must carry a result id or a quoted phrase
+# of three or more words; the existing bare ones are on a shrink-only list.
+
+BARE = "*(Fake §2, the widget construction, pp. 10-11)*\n"
+ANCHORED_BODY = '*(Fake §2, "the widget construction proof", pp. 10-11)*\n'
+WITH_RESULT = "*(Fake §9, Theorem 2.3, p. 10)*\n"
+
+
+def _pointer_run(tmp_path, monkeypatch, body, listed, base=None, name="unit.md"):
+    """Run the pointer gate over one fixture file against a fixture list."""
+    from scripts.ratchet import Ratchet
+    monkeypatch.setattr(S, "REPO", str(tmp_path))
+    (tmp_path / name).write_text(body, encoding="utf-8")
+    listfile = tmp_path / "list.txt"
+    listfile.write_text("\n".join(listed) + ("\n" if listed else ""),
+                        encoding="utf-8")
+    argv = ["--known-failing", str(listfile)]
+    if base is not None:
+        baseline = tmp_path / "base.txt"
+        baseline.write_text("\n".join(base) + "\n", encoding="utf-8")
+        argv += ["--baseline", str(baseline)]
+    ratchet, _ = Ratchet.from_argv(argv, label="pointer list", remedy="Anchor it.")
+    return S.pointer_gate([str(tmp_path / name)], ratchet, lambda p: "Fake",
+                          ["Fake"], {"Fake": "Fake Book"})
+
+
+def _id(monkeypatch, tmp_path, body):
+    monkeypatch.setattr(S, "REPO", str(tmp_path))
+    (tmp_path / "unit.md").write_text(body, encoding="utf-8")
+    found = S.bare_pointers([str(tmp_path / "unit.md")], lambda p: "Fake",
+                            ["Fake"], {"Fake": "Fake Book"})
+    return [i for i, _ in found]
+
+
+def test_a_new_bare_pointer_fails(tmp_path, monkeypatch, capsys):
+    assert _pointer_run(tmp_path, monkeypatch, BARE, []) == 1
+    assert "NEW-BARE-POINTER" in capsys.readouterr().out
+
+
+def test_a_pointer_with_a_quoted_phrase_of_three_words_passes(tmp_path, monkeypatch):
+    assert _pointer_run(tmp_path, monkeypatch, ANCHORED_BODY, []) == 0
+
+
+def test_a_pointer_that_names_a_result_passes(tmp_path, monkeypatch):
+    assert _pointer_run(tmp_path, monkeypatch, WITH_RESULT, []) == 0
+
+
+def test_a_two_word_quotation_is_not_an_anchor(tmp_path, monkeypatch):
+    body = '*(Fake §2, "widget construction", pp. 10-11)*\n'
+    assert _pointer_run(tmp_path, monkeypatch, body, []) == 1
+
+
+def test_a_listed_bare_pointer_is_excused(tmp_path, monkeypatch):
+    listed = _id(monkeypatch, tmp_path, BARE)
+    assert len(listed) == 1
+    assert _pointer_run(tmp_path, monkeypatch, BARE, listed) == 0
+
+
+def test_an_edited_pointer_is_held_to_the_new_convention(tmp_path, monkeypatch):
+    """Editing a listed pointer's pages makes a different id, which is not listed."""
+    listed = _id(monkeypatch, tmp_path, BARE)
+    edited = BARE.replace("10-11", "12-13")
+    assert _pointer_run(tmp_path, monkeypatch, edited, listed) == 1
+
+
+def test_a_listed_pointer_removed_from_its_lesson_is_stale(tmp_path, monkeypatch, capsys):
+    listed = _id(monkeypatch, tmp_path, BARE)
+    assert _pointer_run(tmp_path, monkeypatch, "no pointers here\n", listed) == 1
+    assert "STALE" in capsys.readouterr().out
+
+
+def test_a_listed_pointer_that_was_anchored_is_stale(tmp_path, monkeypatch, capsys):
+    listed = _id(monkeypatch, tmp_path, BARE)
+    assert _pointer_run(tmp_path, monkeypatch, ANCHORED_BODY, listed) == 1
+    assert "STALE" in capsys.readouterr().out
+
+
+def test_a_listed_pointer_whose_file_is_gone_is_stale(tmp_path, monkeypatch, capsys):
+    from scripts.ratchet import Ratchet
+    monkeypatch.setattr(S, "REPO", str(tmp_path))
+    (tmp_path / "unit.md").write_text("x\n", encoding="utf-8")
+    ratchet = Ratchet("l.txt", {"gone.md|Fake|p.10,11|1"}, None, "pointer list",
+                      "Anchor it.", "file")
+    assert S.pointer_gate([str(tmp_path / "unit.md")], ratchet, lambda p: "Fake",
+                          ["Fake"], {}) == 1
+    assert "STALE" in capsys.readouterr().out
+
+
+def test_a_pointer_list_that_grew_fails(tmp_path, monkeypatch, capsys):
+    listed = _id(monkeypatch, tmp_path, BARE)
+    assert _pointer_run(tmp_path, monkeypatch, BARE, listed, base=[]) == 1
+    assert "GREW" in capsys.readouterr().out
+
+
+def test_the_second_identical_pointer_is_a_separate_entry(tmp_path, monkeypatch):
+    """A repeated pointer cannot hide behind the first one's entry."""
+    ids = _id(monkeypatch, tmp_path, BARE + "\n" + BARE)
+    assert len(ids) == 2 and len(set(ids)) == 2
+
+
+def test_the_committed_pointer_list_is_a_ratchet_the_ci_workflow_runs():
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    listing = (root / "curriculum" / "page-pointer-drift.txt").read_text(encoding="utf-8")
+    entries = [l for l in listing.splitlines() if l and not l.startswith("#")]
+    assert len(entries) == len(set(entries)) > 1000
+    workflow = (root / ".github" / "workflows" / "quality-gates.yml").read_text(encoding="utf-8")
+    assert "check_citations.py --pointers" in workflow
+    assert "--baseline /tmp/pointer-baseline.txt" in workflow
+    rubric = (root / "curriculum" / "LESSON-RUBRIC.md").read_text(encoding="utf-8")
+    assert "quote a phrase of three or more words" in rubric

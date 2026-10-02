@@ -20,6 +20,9 @@ when the corpus is clean enough to hold the line):
   PAGE-NOT-IN-BOOK   the printed folio maps to no PDF page - tda2-10's defect
   NO-RESULT-CITED    a page pointer naming no numbered result, so there is
                      nothing to look for on it - unverifiable, not wrong
+  ANCHORED-POINTER   a page pointer that names no numbered result but quotes a
+                     phrase of three or more words from the page, so a reader
+                     can find what it points at (LESSON-RUBRIC Gate 1.12)
   UNPARSEABLE        a citation-shaped span this parser could not turn into a
                      (book, result, page) triple
   NOVERDICT          the book's page tree is not on this machine
@@ -34,6 +37,7 @@ second, silently diverging opinion about what a citation resolves to.
 """
 import argparse
 import glob
+import html
 import os
 import re
 import sys
@@ -48,6 +52,7 @@ if REPO not in sys.path:
     sys.path.insert(0, REPO)
 
 from scripts import citations as C  # noqa: E402
+from scripts.ratchet import Ratchet, Unreadable, Usage  # noqa: E402
 
 RESOLVED = "RESOLVED"
 LOOSE = "RESOLVED-LOOSE"
@@ -56,10 +61,11 @@ NOT_IN_BOOK = "PAGE-NOT-IN-BOOK"
 NO_RESULT = "NO-RESULT-CITED"
 UNPARSEABLE = "UNPARSEABLE"
 NOVERDICT = "NOVERDICT"
+ANCHORED = "ANCHORED-POINTER"
 
 # Report order: worst first, so a long sweep's tail is the interesting end.
 ORDER = (NOT_IN_BOOK, NOT_FOUND, UNPARSEABLE, NO_RESULT, LOOSE, RESOLVED,
-         NOVERDICT)
+         ANCHORED, NOVERDICT)
 
 #: statuses that mean "a page was actually read and compared".
 #: PAGE-NOT-IN-BOOK is deliberately absent: it is assigned exactly when the
@@ -89,6 +95,23 @@ class Citation:
         return "%-17s %s:%d  %s, %s p. %s%s" % (
             self.status, shown, self.line, self.book, self.result, where,
             "  (%s)" % self.detail if self.detail else "")
+
+
+QUOTED = re.compile(r"[“\"]([^”\"]+)[”\"]")
+ANCHOR_WORDS = 3
+
+
+def has_anchor_phrase(span):
+    """Whether a span quotes a phrase of at least ANCHOR_WORDS words.
+
+    A page number alone names a place, not a thing: 1,980 pointers in the
+    corpus pointed at pages and said nothing about what is on them, which is
+    why nothing could ever check them. Gate 1.12 now requires a result id or a
+    quoted phrase of three or more words, so that a reader (or a script with
+    the page text) has something to look for.
+    """
+    return any(len(re.findall(r"\w+", m)) >= ANCHOR_WORDS
+               for m in QUOTED.findall(html.unescape(span)))
 
 
 def _has_page_marker(span):
@@ -137,8 +160,14 @@ def classify_file(path, primary, books, all_names, titles):
             # enclosing clause, so a bare fragment carrying a sibling's folio
             # is not a citation this file made.
             if pages and _has_page_marker(span):
-                out.append(Citation(path, line, name, "-", pages, NO_RESULT,
-                                    "page cited with no result identifier"))
+                if has_anchor_phrase(span):
+                    out.append(Citation(path, line, name, "-", pages, ANCHORED,
+                                        "page cited with a quoted phrase"))
+                else:
+                    out.append(Citation(path, line, name, "-", pages,
+                                        NO_RESULT,
+                                        "page cited with no result "
+                                        "identifier"))
             continue
         if not pages:
             # Pageless references are name-checked by the gate, not located.
@@ -257,6 +286,76 @@ def report(cites, show):
     return counts
 
 
+def pointer_id(cite, occurrence, repo=None):
+    """A stable id for one bare pointer: file, book, pages, and which occurrence.
+
+    Not the line number: editing prose above a pointer must not turn it into a
+    "new" one. Editing the pointer itself (its book or pages) does, which is
+    the point: an edited citation is held to the new convention.
+    """
+    rel = os.path.relpath(cite.path, repo or REPO).replace("\\", "/")
+    pages = ",".join(str(n) for n in sorted(cite.pages))
+    return "%s|%s|p.%s|%d" % (rel, cite.book, pages, occurrence)
+
+
+def bare_pointers(paths, primary_of, all_names, titles):
+    """Every NO-RESULT-CITED pointer in `paths`, as (id, Citation), in file order.
+
+    Classified with no page trees: whether a pointer names a result or quotes a
+    phrase is a fact about the source text, so this gate runs identically on a
+    machine with the books and in CI without them. Raises OSError on an
+    unreadable file; a file with no attributable book makes no pointer claim.
+    """
+    found = []
+    for path in paths:
+        primary = primary_of(path)
+        if primary is None:
+            continue
+        seen = {}
+        for c in classify_file(path, primary, {}, all_names, titles):
+            if c.status != NO_RESULT:
+                continue
+            key = (c.book, tuple(sorted(c.pages)))
+            seen[key] = seen.get(key, 0) + 1
+            found.append((pointer_id(c, seen[key]), c))
+    return found
+
+
+def pointer_gate(paths, ratchet, primary_of, all_names, titles):
+    """The page-pointer convention as a shrink-only ratchet. Exit 0, 1 or 2.
+
+    A bare pointer not on the baseline list fails (NEW). A listed pointer that
+    is gone from its file, or now carries a result or a quoted phrase, is stale
+    and fails until struck off; a list that grew since the base ref fails. The
+    last two come from `scripts/ratchet.py`, with the same rules as every other
+    drift list.
+    """
+    try:
+        found = bare_pointers(paths, primary_of, all_names, titles)
+    except OSError as e:
+        print("ERROR could not read a lesson: %s" % e)
+        return 2
+    current = dict(found)
+    rc = 0
+    for uid in sorted(set(current) - ratchet.entries):
+        c = current[uid]
+        print("NEW-BARE-POINTER %s  (%s) -- name a result id or quote a phrase "
+              "of three or more words from the page" % (c.row(), uid))
+        rc = 1
+    swept = {os.path.relpath(p, REPO).replace("\\", "/") for p in paths}
+    verdicts = {}
+    for uid in ratchet.entries:
+        if uid.split("|", 1)[0] in swept and os.path.exists(
+                os.path.join(REPO, uid.split("|", 1)[0])):
+            verdicts[uid] = 1 if uid in current else 0
+    rc = ratchet.check(verdicts, exists=lambda uid: os.path.exists(
+        os.path.join(REPO, uid.split("|", 1)[0]))) or rc
+    print("%d bare page pointer(s) in %d file(s); %d on the baseline list; "
+          "%d new" % (len(current), len(swept), len(ratchet.entries),
+                      len(set(current) - ratchet.entries)))
+    return rc
+
+
 def main(argv=None):
     """Sweep requested files or the corpus and report citation outcomes."""
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -267,12 +366,49 @@ def main(argv=None):
     ap.add_argument("--strict", action="store_true",
                     help="exit 1 if any citation failed to resolve on its "
                          "page, or could not be parsed into one")
+    ap.add_argument("--pointers", action="store_true",
+                    help="gate bare page pointers (no result id, no quoted "
+                         "phrase) against --known-failing as a shrink-only "
+                         "ratchet; needs no page trees")
+    ap.add_argument("--known-failing", metavar="LIST",
+                    help="with --pointers: the baseline list of existing "
+                         "bare pointers")
+    ap.add_argument("--baseline", metavar="LIST",
+                    help="with --pointers: the base ref's copy of the list; "
+                         "fails if the list has grown")
     a = ap.parse_args(argv)
 
     show = {s.strip().upper() for s in a.only.split(",") if s.strip()}
     unknown = show - set(ORDER)
     if unknown:
         ap.error("unknown status(es): %s" % ", ".join(sorted(unknown)))
+
+    if a.pointers:
+        if not a.known_failing:
+            ap.error("--pointers needs --known-failing")
+        flags = ["--known-failing", a.known_failing]
+        if a.baseline:
+            flags += ["--baseline", a.baseline]
+        try:
+            ratchet, _ = Ratchet.from_argv(
+                flags, label="page-pointer baseline list",
+                remedy="Name a result id or quote a phrase of three or more "
+                       "words instead.", subject="pointer's file")
+            bm = C.load_bookmap()
+            names = sorted(bm)
+            titles = {k: v.get("title") for k, v in bm.items()}
+            paths = [os.path.abspath(p) for p in a.paths] or corpus_paths()
+            return pointer_gate(
+                paths, ratchet,
+                lambda path: a.book or primary_for(path, names, titles),
+                names, titles)
+        except Unreadable as e:
+            print("ERROR could not read %s -- no verdict about the pointer "
+                  "list" % e)
+            return 2
+        except Usage as e:
+            print("ERROR %s" % e)
+            return 2
 
     books, absent = load_books()
     if not books:
