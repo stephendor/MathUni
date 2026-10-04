@@ -243,3 +243,84 @@ def test_every_allowlist_in_the_repo_is_accounted_for():
     assert json.loads(
         (ROOT / "curriculum" / "canvas-render-exceptions.json").read_text(
             encoding="utf-8"))
+
+
+# --- the rule the hand list above could not see: growth ----------------------
+#
+# The test above enumerates by hand and checks stale-entry detection only, so it
+# passed `canvas-label-drift.txt` -- which its own `known` set does not even
+# name -- while that list lacked --baseline growth detection entirely. The
+# drift lists below are DERIVED from the repository (scripts/ratchet.py), and
+# the property checked is the one that was dropped: a CI step passes each list
+# with --baseline.
+
+from scripts.ratchet import (committed_drift_lists, lists_without_baseline_step,  # noqa: E402
+                             scripts_parsing_lists_without_the_helper)
+
+WORKFLOW_WITH = """\
+jobs:
+  j:
+    steps:
+      - run: |
+          python scripts/mission.py \\
+            --known-failing curriculum/{name} \\
+            {baseline} lessons/*/*.html
+"""
+
+
+def _fixture_repo(tmp_path, baseline):
+    (tmp_path / "curriculum").mkdir()
+    (tmp_path / "curriculum" / "new-drift.txt").write_text("a-01\n", encoding="utf-8")
+    (tmp_path / ".github" / "workflows").mkdir(parents=True)
+    (tmp_path / ".github" / "workflows" / "ci.yml").write_text(
+        WORKFLOW_WITH.format(name="new-drift.txt",
+                             baseline="--baseline /tmp/base.txt" if baseline else ""),
+        encoding="utf-8")
+    return tmp_path
+
+
+def test_a_drift_list_with_no_baseline_ci_step_is_caught(tmp_path):
+    """The watched failure: the shape that shipped twice, a list whose CI step
+    passes --known-failing and no --baseline."""
+    root = _fixture_repo(tmp_path, baseline=False)
+    assert lists_without_baseline_step(str(root)) == ["curriculum/new-drift.txt"]
+
+
+def test_a_drift_list_with_a_baseline_ci_step_passes(tmp_path):
+    root = _fixture_repo(tmp_path, baseline=True)
+    assert lists_without_baseline_step(str(root)) == []
+
+
+def test_a_drift_list_no_workflow_mentions_is_caught(tmp_path):
+    (tmp_path / "curriculum").mkdir()
+    (tmp_path / "curriculum" / "orphan-drift.txt").write_text("", encoding="utf-8")
+    assert lists_without_baseline_step(str(tmp_path)) == ["curriculum/orphan-drift.txt"]
+
+
+def test_a_list_wired_in_the_unit_manifest_is_discovered(tmp_path):
+    (tmp_path / "curriculum").mkdir()
+    (tmp_path / "curriculum" / "unit-gates.json").write_text(json.dumps({"gates": [
+        {"id": "g", "argv": ["scripts/x.py", "--known-failing", "curriculum/odd.txt"]}]}),
+        encoding="utf-8")
+    assert committed_drift_lists(str(tmp_path)) == {"curriculum/odd.txt"}
+
+
+def test_a_script_that_reimplements_the_flag_without_the_helper_is_caught(tmp_path):
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "scripts" / "copy.py").write_text(
+        'if argv[0] == "--known-failing":\n    pass\n', encoding="utf-8")
+    (tmp_path / "scripts" / "good.py").write_text(
+        'from scripts.ratchet import Ratchet\nx = "--known-failing"\n', encoding="utf-8")
+    assert scripts_parsing_lists_without_the_helper(str(tmp_path)) == ["scripts/copy.py"]
+
+
+def test_every_committed_drift_list_has_a_baseline_ci_step():
+    """The live repository. The population is derived and its size asserted, so
+    an empty discovery cannot make this pass."""
+    lists = committed_drift_lists(str(ROOT))
+    assert {"curriculum/mission-drift.txt", "curriculum/canvas-label-drift.txt"} <= lists
+    assert lists_without_baseline_step(str(ROOT)) == []
+
+
+def test_no_script_in_the_repo_parses_known_failing_without_the_helper():
+    assert scripts_parsing_lists_without_the_helper(str(ROOT)) == []
