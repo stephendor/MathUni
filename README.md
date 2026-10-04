@@ -27,3 +27,4 @@ Lessons live in `lessons/`, open in any browser, work offline.
 - `state/` is machine-written; never hand-edit.
 - `curriculum/syllabus.yaml` must pass `python scripts/validate_syllabus.py` before commit.
 - Sessions resume from files alone: see `state/SESSION-HANDOFF.md`.
+- `.claude/hooks/commit-state-guard.sh` (wired in `.claude/settings.json`) refuses a piped `git commit`, a commit on a branch that moved since the session last looked, and any skipping of git hooks. Its receipts are in `.claude/hooks/hook-receipts.log` (untracked).
