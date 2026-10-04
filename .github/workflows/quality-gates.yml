@@ -164,6 +164,36 @@ jobs:
           python scripts/lesson_lint.py \
             --known-failing curriculum/canvas-label-drift.txt \
             --baseline /tmp/canvas-drift-baseline.txt
+      - name: Page pointers name a result or quote a phrase; the bare ones may only shrink
+        # LESSON-RUBRIC Gate 1.12. 1,814 existing pointers name a page and
+        # nothing on it; they are on curriculum/page-pointer-drift.txt and any
+        # new or edited bare pointer fails. Classified from the source text
+        # alone, so it needs no book page trees and runs here. Baseline
+        # resolution is the same as the two drift steps above, and a missing
+        # base is a hard failure.
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          base="${PR_BASE_SHA:-${PUSH_BEFORE_SHA:-}}"
+          rm -f /tmp/pointer-baseline.txt
+          if [ -z "$base" ] || [ "$base" = "0000000000000000000000000000000000000000" ]; then
+            echo "No base commit for this event; the pointer growth check cannot run and is not being skipped quietly."
+            exit 1
+          fi
+          git cat-file -e "$base^{commit}" || {
+            echo "Base commit $base is not in this checkout -- fetch-depth is wrong."
+            exit 1
+          }
+          if git cat-file -e "$base:curriculum/page-pointer-drift.txt" 2>/dev/null; then
+            git show "$base:curriculum/page-pointer-drift.txt" > /tmp/pointer-baseline.txt
+          else
+            echo "Base commit $base has no pointer list; this is the commit that adds it."
+          fi
+          python scripts/check_citations.py --pointers \
+            --known-failing curriculum/page-pointer-drift.txt \
+            --baseline /tmp/pointer-baseline.txt
       - name: Manifest-owned per-unit gate parity
         # One manifest now owns the corpus-level lint, executable-content,
         # mission, citation-coverage, indexed-section, and lab-structure

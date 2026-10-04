@@ -59,7 +59,7 @@ Straight from LESSON-GUIDE §Structure — "non-negotiable". Any FAIL ⇒ revise
 | 1.9 | **Guided proof** — a free-response prompt (not multiple choice), distinct from self-checks, with a revealed model answer | ☐ |
 | 1.10 | **Visual** — ≥1 `<canvas>` (≤60 lines inline JS) or inline SVG; geometry, not decoration | ☐ |
 | 1.11 | **Blank-page ending** — reconstruct the 2–3 load-bearing claims from nothing, with a collapsed `<details>` reveal | ☐ |
-| 1.12 | **Footer citations** — every def/theorem cites book + section + PDF page(s), paths resolved via `resources/bookmap.json` | ☐ |
+| 1.12 | **Footer citations** — every def/theorem cites book + section + PDF page(s), paths resolved via `resources/bookmap.json`. A page pointer must also name a result id (`Theorem 2.3`) **or quote a phrase of three or more words from that page**; a bare page number is not a citation. The 1,814 existing bare pointers are on the shrink-only `curriculum/page-pointer-drift.txt` and may only be removed, never added to (`python scripts/check_citations.py --pointers --known-failing curriculum/page-pointer-drift.txt`; owner decision, 2026-10-02) | ☐ |
 
 ---
 

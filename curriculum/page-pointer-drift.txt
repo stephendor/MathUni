@@ -1,0 +1,1828 @@
+# Existing page pointers that name no result id and quote no phrase of three or
+# more words (LESSON-RUBRIC Gate 1.12). Consumed by
+# `check_citations.py --pointers --known-failing`.
+#
+# A ratchet, not a suppression list, through scripts/ratchet.py:
+#   * an entry whose pointer is gone from its file, or now carries a result id
+#     or a quoted phrase, FAILS the run until it is struck off;
+#   * a bare pointer NOT listed here fails the run: new and edited citations
+#     are held to the convention;
+#   * with --baseline, an entry ADDED since the base ref fails the run, so the
+#     count can only fall.
+# One entry per pointer: file|book|pages|nth occurrence of that book and pages
+# in the file. Not line numbers, so editing prose above a pointer is not an edit.
+#
+lessons/aa/aa-00.html|Carter|p.14|1
+lessons/aa/aa-00.html|Carter|p.14|2
+lessons/aa/aa-00.html|Carter|p.15,16,17,18|1
+lessons/aa/aa-00.html|Carter|p.15,16,17,18|2
+lessons/aa/aa-00.html|Carter|p.18|1
+lessons/aa/aa-00.html|Carter|p.18|2
+lessons/aa/aa-00.html|Carter|p.19,20|1
+lessons/aa/aa-00.html|Carter|p.19,20|2
+lessons/aa/aa-00.html|Carter|p.20|1
+lessons/aa/aa-00.html|Carter|p.4,5,6,7|1
+lessons/aa/aa-00.html|Carter|p.6|1
+lessons/aa/aa-00.html|Carter|p.6|2
+lessons/aa/aa-00.html|Carter|p.6|3
+lessons/aa/aa-00.html|Carter|p.6|4
+lessons/aa/aa-00.html|Carter|p.6|5
+lessons/aa/aa-00.html|Carter|p.6|6
+lessons/aa/aa-00.html|Carter|p.6|7
+lessons/aa/aa-01.html|Aluffi Underground|p.5,6|1
+lessons/aa/aa-01.html|Aluffi Underground|p.5|1
+lessons/aa/aa-01.html|Aluffi Underground|p.5|2
+lessons/aa/aa-01.html|Aluffi Underground|p.5|3
+lessons/aa/aa-01.html|Aluffi Underground|p.6|1
+lessons/aa/aa-01.html|Aluffi Underground|p.6|2
+lessons/aa/aa-01.html|Aluffi Underground|p.7|1
+lessons/aa/aa-02.html|Aluffi Underground|p.12|1
+lessons/aa/aa-02.html|Aluffi Underground|p.14|1
+lessons/aa/aa-02.html|Aluffi Underground|p.15|1
+lessons/aa/aa-02.html|Aluffi Underground|p.16,17|1
+lessons/aa/aa-02.html|Aluffi Underground|p.17|1
+lessons/aa/aa-02.html|Aluffi Underground|p.18|1
+lessons/aa/aa-02.html|Aluffi Underground|p.8|1
+lessons/aa/aa-03.html|Aluffi Underground|p.22|1
+lessons/aa/aa-03.html|Aluffi Underground|p.22|2
+lessons/aa/aa-03.html|Aluffi Underground|p.22|3
+lessons/aa/aa-03.html|Aluffi Underground|p.23|1
+lessons/aa/aa-03.html|Aluffi Underground|p.23|2
+lessons/aa/aa-03.html|Aluffi Underground|p.23|3
+lessons/aa/aa-03.html|Aluffi Underground|p.24|1
+lessons/aa/aa-03.html|Aluffi Underground|p.24|2
+lessons/aa/aa-03.html|Aluffi Underground|p.25|1
+lessons/aa/aa-03.html|Aluffi Underground|p.25|2
+lessons/aa/aa-03.html|Aluffi Underground|p.25|3
+lessons/aa/aa-03.html|Aluffi Underground|p.25|4
+lessons/aa/aa-03.html|Aluffi Underground|p.26|1
+lessons/aa/aa-03.html|Aluffi Underground|p.26|2
+lessons/aa/aa-03.html|Aluffi Underground|p.26|3
+lessons/aa/aa-04.html|Aluffi Underground|p.26,27,28|1
+lessons/aa/aa-04.html|Aluffi Underground|p.27|1
+lessons/aa/aa-04.html|Aluffi Underground|p.28|1
+lessons/aa/aa-04.html|Aluffi Underground|p.28|2
+lessons/aa/aa-04.html|Aluffi Underground|p.29,30,31|1
+lessons/aa/aa-04.html|Aluffi Underground|p.29|1
+lessons/aa/aa-04.html|Aluffi Underground|p.30|1
+lessons/aa/aa-04.html|Aluffi Underground|p.31|1
+lessons/aa/aa-04.html|Aluffi Underground|p.31|2
+lessons/aa/aa-04.html|Aluffi Underground|p.32|1
+lessons/aa/aa-04.html|Aluffi Underground|p.33|1
+lessons/aa/aa-04.html|Aluffi Underground|p.34|1
+lessons/aa/aa-04.html|Aluffi Underground|p.35,36|1
+lessons/aa/aa-04.html|Aluffi Underground|p.35|1
+lessons/aa/aa-04.html|Aluffi Underground|p.36|1
+lessons/aa/aa-04.html|Aluffi Underground|p.36|2
+lessons/aa/aa-04.html|Aluffi Underground|p.36|3
+lessons/aa/aa-04.html|Aluffi Underground|p.38,39|1
+lessons/aa/aa-04.html|Aluffi Underground|p.38,39|2
+lessons/aa/aa-04.html|Aluffi Underground|p.39|1
+lessons/aa/aa-04.html|Aluffi Underground|p.39|2
+lessons/aa/aa-05.html|Aluffi Underground|p.41|1
+lessons/aa/aa-05.html|Aluffi Underground|p.42|1
+lessons/aa/aa-05.html|Aluffi Underground|p.42|2
+lessons/aa/aa-05.html|Aluffi Underground|p.42|3
+lessons/aa/aa-05.html|Aluffi Underground|p.43|1
+lessons/aa/aa-05.html|Aluffi Underground|p.46,47|1
+lessons/aa/aa-05.html|Aluffi Underground|p.46,47|2
+lessons/aa/aa-05.html|Aluffi Underground|p.47,48|1
+lessons/aa/aa-05.html|Aluffi Underground|p.48|1
+lessons/aa/aa-05.html|Aluffi Underground|p.48|2
+lessons/aa/aa-05.html|Aluffi Underground|p.49|1
+lessons/aa/aa-05.html|Aluffi Underground|p.49|2
+lessons/aa/aa-05.html|Aluffi Underground|p.50|1
+lessons/aa/aa-05.html|Aluffi Underground|p.51|1
+lessons/aa/aa-05.html|Aluffi Underground|p.51|2
+lessons/aa/aa-05.html|Aluffi Underground|p.51|3
+lessons/aa/aa-06.html|Aluffi Underground|p.52,53|1
+lessons/aa/aa-06.html|Aluffi Underground|p.53|1
+lessons/aa/aa-06.html|Aluffi Underground|p.53|2
+lessons/aa/aa-06.html|Aluffi Underground|p.54|1
+lessons/aa/aa-06.html|Aluffi Underground|p.54|2
+lessons/aa/aa-06.html|Aluffi Underground|p.55|1
+lessons/aa/aa-06.html|Aluffi Underground|p.55|2
+lessons/aa/aa-06.html|Aluffi Underground|p.55|3
+lessons/aa/aa-06.html|Aluffi Underground|p.56|1
+lessons/aa/aa-06.html|Aluffi Underground|p.56|2
+lessons/aa/aa-06.html|Aluffi Underground|p.56|3
+lessons/aa/aa-07.html|Aluffi Underground|p.59,60,61|1
+lessons/aa/aa-07.html|Aluffi Underground|p.59|1
+lessons/aa/aa-07.html|Aluffi Underground|p.60|1
+lessons/aa/aa-07.html|Aluffi Underground|p.60|2
+lessons/aa/aa-07.html|Aluffi Underground|p.61,62,63,64|1
+lessons/aa/aa-07.html|Aluffi Underground|p.61|1
+lessons/aa/aa-07.html|Aluffi Underground|p.61|2
+lessons/aa/aa-07.html|Aluffi Underground|p.64|1
+lessons/aa/aa-07.html|Aluffi Underground|p.64|2
+lessons/aa/aa-08.html|Aluffi Underground|p.64|1
+lessons/aa/aa-08.html|Aluffi Underground|p.68|1
+lessons/aa/aa-08.html|Aluffi Underground|p.69|1
+lessons/aa/aa-08.html|Aluffi Underground|p.70|1
+lessons/aa/aa-08.html|Aluffi Underground|p.71|1
+lessons/aa/aa-08.html|Aluffi Underground|p.71|2
+lessons/aa/aa-08.html|Aluffi Underground|p.72|1
+lessons/aa/aa-08.html|Aluffi Underground|p.74|1
+lessons/aa/aa-09.html|Aluffi Underground|p.78|1
+lessons/aa/aa-09.html|Aluffi Underground|p.79|1
+lessons/aa/aa-09.html|Aluffi Underground|p.79|2
+lessons/aa/aa-09.html|Aluffi Underground|p.80,81|1
+lessons/aa/aa-09.html|Aluffi Underground|p.80|1
+lessons/aa/aa-09.html|Aluffi Underground|p.80|2
+lessons/aa/aa-09.html|Aluffi Underground|p.81|1
+lessons/aa/aa-09.html|Aluffi Underground|p.82|1
+lessons/aa/aa-09.html|Aluffi Underground|p.83|1
+lessons/aa/aa-09.html|Aluffi Underground|p.85|1
+lessons/aa/aa-09.html|Aluffi Underground|p.85|2
+lessons/aa/aa-10.html|Aluffi Underground|p.100,101|1
+lessons/aa/aa-10.html|Aluffi Underground|p.100|1
+lessons/aa/aa-10.html|Aluffi Underground|p.100|2
+lessons/aa/aa-10.html|Aluffi Underground|p.102|1
+lessons/aa/aa-10.html|Aluffi Underground|p.102|2
+lessons/aa/aa-10.html|Aluffi Underground|p.89|1
+lessons/aa/aa-10.html|Aluffi Underground|p.90|1
+lessons/aa/aa-10.html|Aluffi Underground|p.90|2
+lessons/aa/aa-10.html|Aluffi Underground|p.90|3
+lessons/aa/aa-10.html|Aluffi Underground|p.91,92|1
+lessons/aa/aa-10.html|Aluffi Underground|p.91|1
+lessons/aa/aa-10.html|Aluffi Underground|p.92|1
+lessons/aa/aa-10.html|Aluffi Underground|p.94|1
+lessons/aa/aa-10.html|Aluffi Underground|p.94|2
+lessons/aa/aa-10.html|Aluffi Underground|p.94|3
+lessons/aa/aa-10.html|Aluffi Underground|p.94|4
+lessons/aa/aa-10.html|Aluffi Underground|p.95|1
+lessons/aa/aa-10.html|Aluffi Underground|p.96|1
+lessons/aa/aa-10.html|Aluffi Underground|p.96|2
+lessons/aa/aa-10.html|Aluffi Underground|p.96|3
+lessons/aa/aa-10.html|Aluffi Underground|p.97|1
+lessons/aa/aa-10.html|Aluffi Underground|p.98|1
+lessons/aa/aa-11.html|Aluffi Underground|p.106|1
+lessons/aa/aa-11.html|Aluffi Underground|p.106|2
+lessons/aa/aa-11.html|Aluffi Underground|p.107|1
+lessons/aa/aa-11.html|Aluffi Underground|p.108|1
+lessons/aa/aa-11.html|Aluffi Underground|p.109|1
+lessons/aa/aa-11.html|Aluffi Underground|p.110|1
+lessons/aa/aa-11.html|Aluffi Underground|p.110|2
+lessons/aa/aa-11.html|Aluffi Underground|p.111|1
+lessons/aa/aa-11.html|Aluffi Underground|p.111|2
+lessons/aa/aa-11.html|Aluffi Underground|p.112|1
+lessons/aa/aa-12.html|Aluffi Underground|p.113,114|1
+lessons/aa/aa-12.html|Aluffi Underground|p.113|1
+lessons/aa/aa-12.html|Aluffi Underground|p.114|1
+lessons/aa/aa-12.html|Aluffi Underground|p.115|1
+lessons/aa/aa-12.html|Aluffi Underground|p.116|1
+lessons/aa/aa-12.html|Aluffi Underground|p.116|2
+lessons/aa/aa-12.html|Aluffi Underground|p.116|3
+lessons/aa/aa-12.html|Aluffi Underground|p.117,118,119|1
+lessons/aa/aa-12.html|Aluffi Underground|p.117,118,119|2
+lessons/aa/aa-12.html|Aluffi Underground|p.117|1
+lessons/aa/aa-12.html|Aluffi Underground|p.121|1
+lessons/aa/aa-12.html|Aluffi Underground|p.122,123|1
+lessons/aa/aa-12.html|Aluffi Underground|p.123,124|1
+lessons/aa/aa-12.html|Aluffi Underground|p.123|1
+lessons/aa/aa-12.html|Aluffi Underground|p.124|1
+lessons/aa/aa-12.html|Aluffi Underground|p.124|2
+lessons/aa/aa-12.html|Aluffi Underground|p.125,126|1
+lessons/aa/aa-12.html|Aluffi Underground|p.125|1
+lessons/aa/aa-13.html|Aluffi Underground|p.129,130,131|1
+lessons/aa/aa-13.html|Aluffi Underground|p.129,130|1
+lessons/aa/aa-13.html|Aluffi Underground|p.129|1
+lessons/aa/aa-13.html|Aluffi Underground|p.130,131|1
+lessons/aa/aa-13.html|Aluffi Underground|p.130|1
+lessons/aa/aa-13.html|Aluffi Underground|p.130|2
+lessons/aa/aa-13.html|Aluffi Underground|p.130|3
+lessons/aa/aa-13.html|Aluffi Underground|p.130|4
+lessons/aa/aa-13.html|Aluffi Underground|p.131,132|1
+lessons/aa/aa-13.html|Aluffi Underground|p.131|1
+lessons/aa/aa-13.html|Aluffi Underground|p.131|2
+lessons/aa/aa-13.html|Aluffi Underground|p.132|1
+lessons/aa/aa-13.html|Aluffi Underground|p.133|1
+lessons/aa/aa-13.html|Aluffi Underground|p.134|1
+lessons/aa/aa-13.html|Aluffi Underground|p.134|2
+lessons/aa/aa-13.html|Aluffi Underground|p.135|1
+lessons/aa/aa-13.html|Aluffi Underground|p.135|2
+lessons/aa/aa-13.html|Aluffi Underground|p.135|3
+lessons/aa/aa-14.html|Aluffi Underground|p.136|1
+lessons/aa/aa-14.html|Aluffi Underground|p.137|1
+lessons/aa/aa-14.html|Aluffi Underground|p.137|2
+lessons/aa/aa-14.html|Aluffi Underground|p.138,139|1
+lessons/aa/aa-14.html|Aluffi Underground|p.138|1
+lessons/aa/aa-14.html|Aluffi Underground|p.139,140,141,142,143|1
+lessons/aa/aa-14.html|Aluffi Underground|p.139,140|1
+lessons/aa/aa-14.html|Aluffi Underground|p.140|1
+lessons/aa/aa-14.html|Aluffi Underground|p.140|2
+lessons/aa/aa-14.html|Aluffi Underground|p.140|3
+lessons/aa/aa-14.html|Aluffi Underground|p.141|1
+lessons/aa/aa-14.html|Aluffi Underground|p.141|2
+lessons/aa/aa-14.html|Aluffi Underground|p.142,143|1
+lessons/aa/aa-14.html|Aluffi Underground|p.142|1
+lessons/aa/aa-14.html|Aluffi Underground|p.143|1
+lessons/aa/aa-14.html|Aluffi Underground|p.145|1
+lessons/aa/aa-14.html|Aluffi Underground|p.145|2
+lessons/aa/aa-14.html|Aluffi Underground|p.145|3
+lessons/aa/aa-14.html|Aluffi Underground|p.146|1
+lessons/aa/aa-14.html|Aluffi Underground|p.146|2
+lessons/aa/aa-15.html|Aluffi Underground|p.153,154,155,156,157,158|1
+lessons/aa/aa-15.html|Aluffi Underground|p.153,154|1
+lessons/aa/aa-15.html|Aluffi Underground|p.153|1
+lessons/aa/aa-15.html|Aluffi Underground|p.154|1
+lessons/aa/aa-15.html|Aluffi Underground|p.154|2
+lessons/aa/aa-15.html|Aluffi Underground|p.156|1
+lessons/aa/aa-15.html|Aluffi Underground|p.156|2
+lessons/aa/aa-15.html|Aluffi Underground|p.156|3
+lessons/aa/aa-15.html|Aluffi Underground|p.157|1
+lessons/aa/aa-15.html|Aluffi Underground|p.158,159,160,161|1
+lessons/aa/aa-15.html|Aluffi Underground|p.158|1
+lessons/aa/aa-15.html|Aluffi Underground|p.158|2
+lessons/aa/aa-15.html|Aluffi Underground|p.159,160|1
+lessons/aa/aa-15.html|Aluffi Underground|p.160,161|1
+lessons/aa/aa-15.html|Aluffi Underground|p.160,161|2
+lessons/aa/aa-15.html|Aluffi Underground|p.160|1
+lessons/aa/aa-16.html|Aluffi Underground|p.161,162,163,164|1
+lessons/aa/aa-16.html|Aluffi Underground|p.161|1
+lessons/aa/aa-16.html|Aluffi Underground|p.163|1
+lessons/aa/aa-16.html|Aluffi Underground|p.164|1
+lessons/aa/aa-16.html|Aluffi Underground|p.164|2
+lessons/aa/aa-16.html|Aluffi Underground|p.164|3
+lessons/aa/aa-16.html|Aluffi Underground|p.165,166|1
+lessons/aa/aa-16.html|Aluffi Underground|p.165|1
+lessons/aa/aa-16.html|Aluffi Underground|p.166|1
+lessons/aa/aa-16.html|Aluffi Underground|p.166|2
+lessons/aa/aa-16.html|Aluffi Underground|p.166|3
+lessons/aa/aa-16.html|Aluffi Underground|p.167|1
+lessons/aa/aa-17.html|Aluffi Underground|p.168,169,170,171,172,173|1
+lessons/aa/aa-17.html|Aluffi Underground|p.168|1
+lessons/aa/aa-17.html|Aluffi Underground|p.168|2
+lessons/aa/aa-17.html|Aluffi Underground|p.168|3
+lessons/aa/aa-17.html|Aluffi Underground|p.169,170|1
+lessons/aa/aa-17.html|Aluffi Underground|p.169|1
+lessons/aa/aa-17.html|Aluffi Underground|p.169|2
+lessons/aa/aa-17.html|Aluffi Underground|p.170|1
+lessons/aa/aa-17.html|Aluffi Underground|p.170|2
+lessons/aa/aa-17.html|Aluffi Underground|p.170|3
+lessons/aa/aa-17.html|Aluffi Underground|p.170|4
+lessons/aa/aa-17.html|Aluffi Underground|p.170|5
+lessons/aa/aa-17.html|Aluffi Underground|p.170|6
+lessons/aa/aa-17.html|Aluffi Underground|p.171|1
+lessons/aa/aa-17.html|Aluffi Underground|p.171|2
+lessons/aa/aa-18.html|Aluffi Underground|p.174,175,176,177,178,179,180,181|1
+lessons/aa/aa-18.html|Aluffi Underground|p.174|1
+lessons/aa/aa-18.html|Aluffi Underground|p.175|1
+lessons/aa/aa-18.html|Aluffi Underground|p.175|2
+lessons/aa/aa-18.html|Aluffi Underground|p.181|1
+lessons/aa/aa-18.html|Aluffi Underground|p.183,184|1
+lessons/aa/aa-18.html|Aluffi Underground|p.183|1
+lessons/aa/aa-18.html|Aluffi Underground|p.184,185|1
+lessons/aa/aa-18.html|Aluffi Underground|p.184,185|2
+lessons/aa/aa-18.html|Aluffi Underground|p.184|1
+lessons/aa/aa-19.html|Aluffi Underground|p.187|1
+lessons/aa/aa-19.html|Aluffi Underground|p.187|2
+lessons/aa/aa-19.html|Aluffi Underground|p.187|3
+lessons/aa/aa-19.html|Aluffi Underground|p.188|1
+lessons/aa/aa-19.html|Aluffi Underground|p.188|2
+lessons/aa/aa-19.html|Aluffi Underground|p.188|3
+lessons/aa/aa-19.html|Aluffi Underground|p.189|1
+lessons/aa/aa-19.html|Aluffi Underground|p.189|2
+lessons/aa/aa-19.html|Aluffi Underground|p.190|1
+lessons/aa/aa-19.html|Aluffi Underground|p.191,192|1
+lessons/aa/aa-19.html|Aluffi Underground|p.191|1
+lessons/aa/aa-19.html|Aluffi Underground|p.191|2
+lessons/aa/aa-19.html|Aluffi Underground|p.191|3
+lessons/aa/aa-20.html|Aluffi Underground|p.193,194|1
+lessons/aa/aa-20.html|Aluffi Underground|p.194|1
+lessons/aa/aa-20.html|Aluffi Underground|p.194|2
+lessons/aa/aa-20.html|Aluffi Underground|p.194|3
+lessons/aa/aa-20.html|Aluffi Underground|p.195|1
+lessons/aa/aa-20.html|Aluffi Underground|p.196|1
+lessons/aa/aa-20.html|Aluffi Underground|p.197,198,199,200|1
+lessons/aa/aa-20.html|Aluffi Underground|p.197,198|1
+lessons/aa/aa-20.html|Aluffi Underground|p.197|1
+lessons/aa/aa-20.html|Aluffi Underground|p.197|2
+lessons/aa/aa-20.html|Aluffi Underground|p.198|1
+lessons/aa/aa-20.html|Aluffi Underground|p.198|2
+lessons/aa/aa-20.html|Aluffi Underground|p.198|3
+lessons/aa/aa-20.html|Aluffi Underground|p.198|4
+lessons/aa/aa-20.html|Aluffi Underground|p.198|5
+lessons/aa/aa-20.html|Aluffi Underground|p.199|1
+lessons/aa/aa-21.html|Aluffi Underground|p.202|1
+lessons/aa/aa-21.html|Aluffi Underground|p.203|1
+lessons/aa/aa-21.html|Aluffi Underground|p.204|1
+lessons/aa/aa-21.html|Aluffi Underground|p.205|1
+lessons/aa/aa-21.html|Aluffi Underground|p.205|2
+lessons/aa/aa-21.html|Aluffi Underground|p.206,207|1
+lessons/aa/aa-21.html|Aluffi Underground|p.206|1
+lessons/aa/aa-21.html|Aluffi Underground|p.207|1
+lessons/aa/aa-21.html|Aluffi Underground|p.207|2
+lessons/aa/aa-21.html|Aluffi Underground|p.208,209|1
+lessons/aa/aa-21.html|Aluffi Underground|p.208|1
+lessons/aa/aa-21.html|Aluffi Underground|p.210,211|1
+lessons/aa/aa-21.html|Aluffi Underground|p.210|1
+lessons/aa/aa-21.html|Aluffi Underground|p.210|2
+lessons/aa/aa-21.html|Aluffi Underground|p.212|1
+lessons/aa/aa-22.html|Aluffi Underground|p.213|1
+lessons/aa/aa-22.html|Aluffi Underground|p.213|2
+lessons/aa/aa-22.html|Aluffi Underground|p.214|1
+lessons/aa/aa-22.html|Aluffi Underground|p.215,216|1
+lessons/aa/aa-22.html|Aluffi Underground|p.215|1
+lessons/aa/aa-22.html|Aluffi Underground|p.215|2
+lessons/aa/aa-22.html|Aluffi Underground|p.217|1
+lessons/aa/aa-22.html|Aluffi Underground|p.217|2
+lessons/aa/aa-23.html|Aluffi Underground|p.229,230|1
+lessons/aa/aa-23.html|Aluffi Underground|p.230|1
+lessons/aa/aa-23.html|Aluffi Underground|p.230|2
+lessons/aa/aa-23.html|Aluffi Underground|p.230|3
+lessons/aa/aa-23.html|Aluffi Underground|p.230|4
+lessons/aa/aa-23.html|Aluffi Underground|p.231|1
+lessons/aa/aa-23.html|Aluffi Underground|p.231|2
+lessons/aa/aa-23.html|Aluffi Underground|p.232|1
+lessons/aa/aa-23.html|Carter|p.101|1
+lessons/aa/aa-23.html|Carter|p.101|2
+lessons/aa/aa-23.html|Carter|p.157|1
+lessons/aa/aa-23.html|Carter|p.157|2
+lessons/aa/aa-23.html|Carter|p.157|3
+lessons/aa/aa-23.html|Carter|p.99,100|1
+lessons/aa/aa-24.html|Aluffi Underground|p.236|1
+lessons/aa/aa-24.html|Aluffi Underground|p.236|2
+lessons/aa/aa-24.html|Aluffi Underground|p.237|1
+lessons/aa/aa-24.html|Aluffi Underground|p.239|1
+lessons/aa/aa-24.html|Aluffi Underground|p.240|1
+lessons/aa/aa-24.html|Aluffi Underground|p.240|2
+lessons/aa/aa-24.html|Aluffi Underground|p.241|1
+lessons/aa/aa-24.html|Aluffi Underground|p.241|2
+lessons/aa/aa-24.html|Carter|p.195|1
+lessons/aa/aa-24.html|Carter|p.195|2
+lessons/aa/aa-24.html|Carter|p.196|1
+lessons/aa/aa-24.html|Carter|p.196|2
+lessons/aa/aa-25.html|Aluffi Underground|p.229,230,231,232,235,236,237,238,239,240|1
+lessons/aa/aa-25.html|Aluffi Underground|p.241,242,243,244,245,246,247,248,249,250,251,252|1
+lessons/aa/aa-25.html|Aluffi Underground|p.245|1
+lessons/aa/aa-25.html|Aluffi Underground|p.247|1
+lessons/aa/aa-25.html|Aluffi Underground|p.247|2
+lessons/aa/aa-25.html|Aluffi Underground|p.248|1
+lessons/aa/aa-25.html|Aluffi Underground|p.248|2
+lessons/aa/aa-25.html|Aluffi Underground|p.250|1
+lessons/aa/aa-25.html|Aluffi Underground|p.252|1
+lessons/aa/aa-25.html|Aluffi Underground|p.252|2
+lessons/aa/aa-25.html|Aluffi Underground|p.253|1
+lessons/aa/aa-25.html|Carter|p.64|1
+lessons/aa/aa-25.html|Carter|p.64|2
+lessons/aa/aa-25.html|Carter|p.65|1
+lessons/aa/aa-25.html|Carter|p.65|2
+lessons/aa/aa-25.html|Carter|p.74|1
+lessons/aa/aa-25.html|Carter|p.74|2
+lessons/aa/aa-25.html|Carter|p.74|3
+lessons/aa/aa-25.html|Carter|p.75|1
+lessons/aa/aa-25.html|Carter|p.75|2
+lessons/aa/aa-25.html|Carter|p.75|3
+lessons/aa/aa-25.html|Carter|p.78|1
+lessons/aa/aa-25.html|Carter|p.79|1
+lessons/aa/aa-25.html|Carter|p.80|1
+lessons/aa/aa-25.html|Carter|p.80|2
+lessons/aa/aa-25.html|Carter|p.80|3
+lessons/aa/aa-25.html|Carter|p.80|4
+lessons/aa/aa-25.html|Carter|p.81|1
+lessons/aa/aa-25.html|Carter|p.81|2
+lessons/aa/aa-26.html|Aluffi Underground|p.229,230,231,232|1
+lessons/aa/aa-26.html|Aluffi Underground|p.254|1
+lessons/aa/aa-26.html|Aluffi Underground|p.254|2
+lessons/aa/aa-26.html|Aluffi Underground|p.255|1
+lessons/aa/aa-26.html|Aluffi Underground|p.255|2
+lessons/aa/aa-26.html|Aluffi Underground|p.255|3
+lessons/aa/aa-26.html|Aluffi Underground|p.256|1
+lessons/aa/aa-26.html|Aluffi Underground|p.256|2
+lessons/aa/aa-26.html|Aluffi Underground|p.256|3
+lessons/aa/aa-26.html|Aluffi Underground|p.257|1
+lessons/aa/aa-26.html|Aluffi Underground|p.257|2
+lessons/aa/aa-26.html|Aluffi Underground|p.257|3
+lessons/aa/aa-26.html|Aluffi Underground|p.258|1
+lessons/aa/aa-26.html|Aluffi Underground|p.259|1
+lessons/aa/aa-26.html|Aluffi Underground|p.259|2
+lessons/aa/aa-26.html|Aluffi Underground|p.259|3
+lessons/aa/aa-26.html|Aluffi Underground|p.259|4
+lessons/aa/aa-26.html|Aluffi Underground|p.259|5
+lessons/aa/aa-27.html|Aluffi Underground|p.229,230,231,232|1
+lessons/aa/aa-27.html|Aluffi Underground|p.241,242,243,244,245,246,247,248,249,250,251,252|1
+lessons/aa/aa-27.html|Aluffi Underground|p.260|1
+lessons/aa/aa-27.html|Aluffi Underground|p.260|2
+lessons/aa/aa-27.html|Aluffi Underground|p.261|1
+lessons/aa/aa-27.html|Aluffi Underground|p.261|2
+lessons/aa/aa-27.html|Aluffi Underground|p.262|1
+lessons/aa/aa-27.html|Aluffi Underground|p.262|2
+lessons/aa/aa-27.html|Aluffi Underground|p.262|3
+lessons/aa/aa-27.html|Aluffi Underground|p.262|4
+lessons/aa/aa-27.html|Aluffi Underground|p.263|1
+lessons/aa/aa-27.html|Aluffi Underground|p.263|2
+lessons/aa/aa-27.html|Aluffi Underground|p.263|3
+lessons/aa/aa-27.html|Aluffi Underground|p.263|4
+lessons/aa/aa-28.html|Aluffi Underground|p.229,230,231,232|1
+lessons/aa/aa-28.html|Aluffi Underground|p.267|1
+lessons/aa/aa-28.html|Aluffi Underground|p.267|2
+lessons/aa/aa-28.html|Aluffi Underground|p.268|1
+lessons/aa/aa-28.html|Aluffi Underground|p.268|2
+lessons/aa/aa-28.html|Aluffi Underground|p.268|3
+lessons/aa/aa-28.html|Aluffi Underground|p.268|4
+lessons/aa/aa-28.html|Aluffi Underground|p.268|5
+lessons/aa/aa-28.html|Aluffi Underground|p.270|1
+lessons/aa/aa-28.html|Aluffi Underground|p.270|2
+lessons/aa/aa-28.html|Aluffi Underground|p.271|1
+lessons/aa/aa-28.html|Aluffi Underground|p.272|1
+lessons/aa/aa-28.html|Aluffi Underground|p.272|2
+lessons/aa/aa-28.html|Aluffi Underground|p.273|1
+lessons/aa/aa-28.html|Aluffi Underground|p.273|2
+lessons/aa/aa-28.html|Aluffi Underground|p.273|3
+lessons/aa/aa-28.html|Aluffi Underground|p.273|4
+lessons/aa/aa-29.html|Aluffi Underground|p.274|1
+lessons/aa/aa-29.html|Aluffi Underground|p.274|2
+lessons/aa/aa-29.html|Aluffi Underground|p.275|1
+lessons/aa/aa-29.html|Aluffi Underground|p.275|2
+lessons/aa/aa-29.html|Aluffi Underground|p.275|3
+lessons/aa/aa-29.html|Aluffi Underground|p.276|1
+lessons/aa/aa-29.html|Aluffi Underground|p.276|2
+lessons/aa/aa-29.html|Aluffi Underground|p.278|1
+lessons/aa/aa-29.html|Aluffi Underground|p.278|2
+lessons/aa/aa-29.html|Aluffi Underground|p.278|3
+lessons/aa/aa-29.html|Aluffi Underground|p.279|1
+lessons/aa/aa-29.html|Aluffi Underground|p.279|2
+lessons/aa/aa-29.html|Aluffi Underground|p.279|3
+lessons/aa/aa-29.html|Aluffi Underground|p.280,281|1
+lessons/aa/aa-29.html|Aluffi Underground|p.280|1
+lessons/aa/aa-29.html|Aluffi Underground|p.280|2
+lessons/aa/aa-29.html|Aluffi Underground|p.280|3
+lessons/aa/aa-29.html|Aluffi Underground|p.281|1
+lessons/aa/aa-30.html|Aluffi Underground|p.276,277,278,279|1
+lessons/aa/aa-30.html|Aluffi Underground|p.282|1
+lessons/aa/aa-30.html|Aluffi Underground|p.282|2
+lessons/aa/aa-30.html|Aluffi Underground|p.283|1
+lessons/aa/aa-30.html|Aluffi Underground|p.283|2
+lessons/aa/aa-30.html|Aluffi Underground|p.283|3
+lessons/aa/aa-30.html|Aluffi Underground|p.284|1
+lessons/aa/aa-30.html|Aluffi Underground|p.284|2
+lessons/aa/aa-30.html|Aluffi Underground|p.284|3
+lessons/aa/aa-30.html|Aluffi Underground|p.285|1
+lessons/aa/aa-30.html|Aluffi Underground|p.285|2
+lessons/aa/aa-30.html|Aluffi Underground|p.287|1
+lessons/aa/aa-30.html|Aluffi Underground|p.288|1
+lessons/aa/aa-30.html|Aluffi Underground|p.289|1
+lessons/aa/aa-30.html|Aluffi Underground|p.289|2
+lessons/aa/aa-30.html|Aluffi Underground|p.289|3
+lessons/an/an-01.html|Abbott|p.14|1
+lessons/an/an-01.html|Abbott|p.14|2
+lessons/an/an-01.html|Abbott|p.14|3
+lessons/an/an-01.html|Abbott|p.17|1
+lessons/an/an-01.html|Abbott|p.17|2
+lessons/an/an-01.html|Abbott|p.1|1
+lessons/an/an-01.html|Abbott|p.2|1
+lessons/an/an-01.html|Abbott|p.3,4|1
+lessons/an/an-01.html|Abbott|p.3|1
+lessons/an/an-01.html|Abbott|p.3|2
+lessons/an/an-01.html|Abbott|p.4|1
+lessons/an/an-01.html|Abbott|p.4|2
+lessons/an/an-02.html|Abbott|p.22,23,24,25,26|1
+lessons/an/an-02.html|Abbott|p.22|1
+lessons/an/an-02.html|Abbott|p.23|1
+lessons/an/an-02.html|Abbott|p.23|2
+lessons/an/an-02.html|Abbott|p.23|3
+lessons/an/an-02.html|Abbott|p.24|1
+lessons/an/an-02.html|Abbott|p.24|2
+lessons/an/an-02.html|Abbott|p.29|1
+lessons/an/an-02.html|Abbott|p.29|2
+lessons/an/an-02.html|Abbott|p.30|1
+lessons/an/an-02.html|Abbott|p.32|1
+lessons/an/an-02.html|Abbott|p.32|2
+lessons/an/an-02.html|Abbott|p.33,34|1
+lessons/an/an-02.html|Abbott|p.33,34|2
+lessons/an/an-03.html|Abbott|p.38|1
+lessons/an/an-03.html|Abbott|p.39|1
+lessons/an/an-03.html|Abbott|p.39|2
+lessons/an/an-03.html|Abbott|p.39|3
+lessons/an/an-03.html|Abbott|p.41|1
+lessons/an/an-03.html|Abbott|p.43|1
+lessons/an/an-03.html|Abbott|p.44|1
+lessons/an/an-03.html|Abbott|p.44|2
+lessons/an/an-03.html|Abbott|p.45,46,47,48|1
+lessons/an/an-03.html|Abbott|p.46|1
+lessons/an/an-03.html|Abbott|p.48,49|1
+lessons/an/an-04.html|Abbott|p.13,16|1
+lessons/an/an-04.html|Abbott|p.44,45,48|1
+lessons/an/an-04.html|Abbott|p.51|1
+lessons/an/an-04.html|Abbott|p.53|1
+lessons/an/an-04.html|Abbott|p.54|1
+lessons/an/an-04.html|Abbott|p.54|2
+lessons/an/an-04.html|Abbott|p.57|1
+lessons/an/an-05.html|Abbott|p.18|1
+lessons/an/an-05.html|Abbott|p.39,44,48|1
+lessons/an/an-05.html|Abbott|p.51,56|1
+lessons/an/an-05.html|Abbott|p.58|1
+lessons/an/an-05.html|Abbott|p.59|1
+lessons/an/an-05.html|Abbott|p.60|1
+lessons/an/an-05.html|Abbott|p.60|2
+lessons/an/an-05.html|Abbott|p.61|1
+lessons/an/an-06.html|Abbott|p.44,45|1
+lessons/an/an-06.html|Abbott|p.51,52,53,54|1
+lessons/an/an-06.html|Abbott|p.59|1
+lessons/an/an-06.html|Abbott|p.63|1
+lessons/an/an-06.html|Abbott|p.64|1
+lessons/an/an-06.html|Abbott|p.65|1
+lessons/an/an-06.html|Abbott|p.66|1
+lessons/an/an-06.html|Abbott|p.67|1
+lessons/an/an-06.html|Abbott|p.67|2
+lessons/an/an-07.html|Abbott|p.20|1
+lessons/an/an-07.html|Abbott|p.39|1
+lessons/an/an-07.html|Abbott|p.51,54|1
+lessons/an/an-07.html|Abbott|p.59|1
+lessons/an/an-07.html|Abbott|p.78|1
+lessons/an/an-07.html|Abbott|p.79|1
+lessons/an/an-07.html|Abbott|p.81|1
+lessons/an/an-08.html|Abbott|p.44|1
+lessons/an/an-08.html|Abbott|p.55,56|1
+lessons/an/an-08.html|Abbott|p.80,81,82|1
+lessons/an/an-08.html|Abbott|p.85|1
+lessons/an/an-08.html|Abbott|p.85|2
+lessons/an/an-08.html|Abbott|p.87|1
+lessons/an/an-08.html|Abbott|p.87|2
+lessons/an/an-09.html|Abbott|p.30|1
+lessons/an/an-09.html|Abbott|p.75|1
+lessons/an/an-09.html|Abbott|p.77|1
+lessons/an/an-09.html|Abbott|p.77|2
+lessons/an/an-09.html|Abbott|p.79,81,82|1
+lessons/an/an-09.html|Abbott|p.84,85|1
+lessons/an/an-09.html|Abbott|p.90|1
+lessons/an/an-09.html|Abbott|p.91|1
+lessons/an/an-09.html|Abbott|p.91|2
+lessons/an/an-09.html|Abbott|p.92|1
+lessons/an/an-09.html|Abbott|p.92|2
+lessons/an/an-10.html|Abbott|p.104|1
+lessons/an/an-10.html|Abbott|p.109|1
+lessons/an/an-10.html|Abbott|p.110|1
+lessons/an/an-10.html|Abbott|p.111|1
+lessons/an/an-10.html|Abbott|p.112|1
+lessons/an/an-10.html|Abbott|p.1|1
+lessons/an/an-10.html|Abbott|p.39,45,48|1
+lessons/an/an-10.html|Abbott|p.78,79|1
+lessons/an/an-10.html|Abbott|p.80|1
+lessons/an/an-11.html|Abbott|p.109|1
+lessons/an/an-11.html|Abbott|p.110|1
+lessons/an/an-11.html|Abbott|p.115|1
+lessons/an/an-11.html|Abbott|p.117|1
+lessons/an/an-11.html|Abbott|p.118|1
+lessons/an/an-11.html|Abbott|p.118|2
+lessons/an/an-11.html|Abbott|p.124|1
+lessons/an/an-11.html|Abbott|p.59,80|1
+lessons/an/an-11.html|Abbott|p.84|1
+lessons/an/an-11.html|Abbott|p.92|1
+lessons/an/an-12.html|Abbott|p.104|1
+lessons/an/an-12.html|Abbott|p.106,110|1
+lessons/an/an-12.html|Abbott|p.115,124|1
+lessons/an/an-12.html|Abbott|p.132|1
+lessons/an/an-12.html|Abbott|p.132|2
+lessons/an/an-12.html|Abbott|p.135|1
+lessons/an/an-12.html|Abbott|p.45,48|1
+lessons/an/an-12.html|Abbott|p.92|1
+lessons/an/an-13.html|Abbott|p.109|1
+lessons/an/an-13.html|Abbott|p.116,118|1
+lessons/an/an-13.html|Abbott|p.135|1
+lessons/an/an-13.html|Abbott|p.157|1
+lessons/an/an-13.html|Abbott|p.157|2
+lessons/an/an-13.html|Abbott|p.157|3
+lessons/an/an-13.html|Abbott|p.158|1
+lessons/an/an-13.html|Abbott|p.158|2
+lessons/an/an-13.html|Abbott|p.48|1
+lessons/an/an-13.html|Abbott|p.59,110|1
+lessons/an/an-13.html|Abbott|p.59|1
+lessons/an/an-13.html|Abbott|p.79|1
+lessons/an/an-13.html|Abbott|p.84,85|1
+lessons/an/an-14.html|Abbott|p.157|1
+lessons/an/an-14.html|Abbott|p.160|1
+lessons/an/an-14.html|Abbott|p.224|1
+lessons/an/an-14.html|Abbott|p.59|1
+lessons/an/an-14.html|Abbott|p.78,87|1
+lessons/an/an-14.html|Abbott|p.79|1
+lessons/an/an-14.html|Abbott|p.82|1
+lessons/an2/an2-01.html|Abbott|p.224|1
+lessons/an2/an2-01.html|Lindstrom|p.43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59|1
+lessons/an2/an2-01.html|Lindstrom|p.43|1
+lessons/an2/an2-01.html|Lindstrom|p.44|1
+lessons/an2/an2-01.html|Lindstrom|p.48|1
+lessons/an2/an2-01.html|Lindstrom|p.54|1
+lessons/an2/an2-01.html|Lindstrom|p.57|1
+lessons/an2/an2-01.html|Lindstrom|p.58|1
+lessons/an2/an2-02.html|Lindstrom|p.107|1
+lessons/an2/an2-02.html|Lindstrom|p.57|1
+lessons/an2/an2-02.html|Lindstrom|p.62|1
+lessons/an2/an2-02.html|Lindstrom|p.71,72|1
+lessons/an2/an2-02.html|Lindstrom|p.76|1
+lessons/an2/an2-02.html|Lindstrom|p.76|2
+lessons/an2/an2-03.html|Lindstrom|p.63,64,65,66,67,68|1
+lessons/an2/an2-03.html|Lindstrom|p.66|1
+lessons/an2/an2-03.html|Lindstrom|p.67|1
+lessons/an2/an2-03.html|Lindstrom|p.68,69|1
+lessons/an2/an2-03.html|Lindstrom|p.68|1
+lessons/an2/an2-04.html|Lindstrom|p.102|1
+lessons/an2/an2-04.html|Lindstrom|p.103|1
+lessons/an2/an2-04.html|Lindstrom|p.103|2
+lessons/an2/an2-04.html|Lindstrom|p.104|1
+lessons/an2/an2-04.html|Lindstrom|p.105|1
+lessons/an2/an2-04.html|Lindstrom|p.106|1
+lessons/an2/an2-04.html|Lindstrom|p.106|2
+lessons/an2/an2-04.html|Lindstrom|p.106|3
+lessons/an2/an2-04.html|Lindstrom|p.112,113|1
+lessons/an2/an2-04.html|Lindstrom|p.114,115|1
+lessons/an2/an2-04.html|Lindstrom|p.115,116|1
+lessons/an2/an2-04.html|Lindstrom|p.115,116|2
+lessons/an2/an2-04.html|Lindstrom|p.115|1
+lessons/an2/an2-04.html|Lindstrom|p.61,62,63|1
+lessons/an2/an2-04.html|Lindstrom|p.61|1
+lessons/an2/an2-04.html|Lindstrom|p.62|1
+lessons/an2/an2-04.html|Lindstrom|p.62|2
+lessons/an2/an2-05.html|Abbott|p.154,157|1
+lessons/an2/an2-05.html|Abbott|p.156,157|1
+lessons/an2/an2-05.html|Abbott|p.156|1
+lessons/an2/an2-05.html|Abbott|p.164|1
+lessons/an2/an2-05.html|Abbott|p.165|1
+lessons/an2/an2-05.html|Abbott|p.86|1
+lessons/an2/an2-05.html|Abbott|p.88|1
+lessons/an2/an2-05.html|Abbott|p.89|1
+lessons/an2/an2-05.html|Lindstrom|p.81|1
+lessons/an2/an2-05.html|Lindstrom|p.90|1
+lessons/an2/an2-06.html|Abbott|p.117,118,119,120,121|1
+lessons/an2/an2-06.html|Abbott|p.118,119|1
+lessons/an2/an2-06.html|Abbott|p.122|1
+lessons/an2/an2-06.html|Abbott|p.167|1
+lessons/an2/an2-06.html|Abbott|p.168|1
+lessons/an2/an2-06.html|Abbott|p.169,170,171,172,173,174,175|1
+lessons/an2/an2-06.html|Abbott|p.176,177,178,179,180|1
+lessons/an2/an2-06.html|Abbott|p.176|1
+lessons/an2/an2-06.html|Abbott|p.181,182|1
+lessons/an2/an2-06.html|Abbott|p.181|1
+lessons/an2/an2-06.html|Lindstrom|p.116|1
+lessons/an2/an2-06.html|Lindstrom|p.117|1
+lessons/an2/an2-06.html|Lindstrom|p.119|1
+lessons/an2/an2-06.html|Lindstrom|p.121|1
+lessons/an2/an2-06.html|Lindstrom|p.89|1
+lessons/an2/an2-06.html|Lindstrom|p.89|2
+lessons/an2/an2-06.html|Lindstrom|p.90|1
+lessons/an2/an2-07.html|Lindstrom|p.133,134,135,136,137,138,139|1
+lessons/an2/an2-07.html|Lindstrom|p.133|1
+lessons/an2/an2-07.html|Lindstrom|p.141|1
+lessons/an2/an2-07.html|Lindstrom|p.141|2
+lessons/an2/an2-07.html|Lindstrom|p.150,151,152,153,154,155|1
+lessons/an2/an2-08.html|Munkres|p.267,268|1
+lessons/an2/an2-08.html|Munkres|p.282|1
+lessons/an2/an2-09.html|Lindstrom|p.173|1
+lessons/an2/an2-09.html|Lindstrom|p.173|2
+lessons/an2/an2-09.html|Lindstrom|p.173|3
+lessons/an2/an2-09.html|Lindstrom|p.174,175,176,177,178,179,180,181|1
+lessons/an2/an2-09.html|Lindstrom|p.182,183,184,185,186|1
+lessons/an2/an2-09.html|Lindstrom|p.182|1
+lessons/an2/an2-09.html|Lindstrom|p.184|1
+lessons/an2/an2-09.html|Lindstrom|p.201,202,203,204,205|1
+lessons/an2/an2-09.html|Lindstrom|p.201|1
+lessons/an2/an2-09.html|Lindstrom|p.206,207,208|1
+lessons/at1/at1-01.html|Hatcher|p.10|1
+lessons/at1/at1-01.html|Hatcher|p.14,15|1
+lessons/at1/at1-01.html|Hatcher|p.14|1
+lessons/at1/at1-01.html|Hatcher|p.15|1
+lessons/at1/at1-01.html|Hatcher|p.15|2
+lessons/at1/at1-01.html|Hatcher|p.16|1
+lessons/at1/at1-01.html|Hatcher|p.16|2
+lessons/at1/at1-01.html|Hatcher|p.17|1
+lessons/at1/at1-01.html|Hatcher|p.2|1
+lessons/at1/at1-01.html|Hatcher|p.2|2
+lessons/at1/at1-01.html|Hatcher|p.2|3
+lessons/at1/at1-01.html|Hatcher|p.3,4|1
+lessons/at1/at1-01.html|Hatcher|p.3|1
+lessons/at1/at1-01.html|Hatcher|p.3|2
+lessons/at1/at1-01.html|Hatcher|p.3|3
+lessons/at1/at1-01.html|Hatcher|p.3|4
+lessons/at1/at1-01.html|Hatcher|p.4|1
+lessons/at1/at1-01.html|Hatcher|p.4|2
+lessons/at1/at1-01.html|Hatcher|p.4|3
+lessons/at1/at1-01.html|Hatcher|p.6|1
+lessons/at1/at1-02.html|Hatcher|p.10|1
+lessons/at1/at1-02.html|Hatcher|p.10|2
+lessons/at1/at1-02.html|Hatcher|p.11|1
+lessons/at1/at1-02.html|Hatcher|p.13|1
+lessons/at1/at1-02.html|Hatcher|p.13|2
+lessons/at1/at1-02.html|Hatcher|p.5|1
+lessons/at1/at1-02.html|Hatcher|p.5|2
+lessons/at1/at1-02.html|Hatcher|p.6|1
+lessons/at1/at1-02.html|Hatcher|p.6|2
+lessons/at1/at1-02.html|Hatcher|p.6|3
+lessons/at1/at1-02.html|Hatcher|p.7,8|1
+lessons/at1/at1-02.html|Hatcher|p.7|1
+lessons/at1/at1-02.html|Hatcher|p.7|2
+lessons/at1/at1-02.html|Hatcher|p.8,9|1
+lessons/at1/at1-02.html|Hatcher|p.8|1
+lessons/at1/at1-02.html|Hatcher|p.8|2
+lessons/at1/at1-02.html|Hatcher|p.8|3
+lessons/at1/at1-02.html|Hatcher|p.9,10|1
+lessons/at1/at1-03.html|Hatcher|p.25|1
+lessons/at1/at1-03.html|Hatcher|p.26|1
+lessons/at1/at1-03.html|Hatcher|p.26|2
+lessons/at1/at1-03.html|Hatcher|p.26|3
+lessons/at1/at1-03.html|Hatcher|p.27|1
+lessons/at1/at1-03.html|Hatcher|p.28|1
+lessons/at1/at1-03.html|Hatcher|p.28|2
+lessons/at1/at1-03.html|Hatcher|p.28|3
+lessons/at1/at1-03.html|Hatcher|p.28|4
+lessons/at1/at1-04.html|Hatcher|p.29|1
+lessons/at1/at1-04.html|Hatcher|p.29|2
+lessons/at1/at1-04.html|Hatcher|p.29|3
+lessons/at1/at1-04.html|Hatcher|p.29|4
+lessons/at1/at1-04.html|Hatcher|p.30|1
+lessons/at1/at1-04.html|Hatcher|p.30|2
+lessons/at1/at1-04.html|Hatcher|p.31|1
+lessons/at1/at1-04.html|Hatcher|p.31|2
+lessons/at1/at1-04.html|Hatcher|p.32|1
+lessons/at1/at1-04.html|Hatcher|p.33|1
+lessons/at1/at1-05.html|Hatcher|p.35|1
+lessons/at1/at1-05.html|Hatcher|p.40|1
+lessons/at1/at1-05.html|Hatcher|p.41|1
+lessons/at1/at1-05.html|Hatcher|p.42|1
+lessons/at1/at1-05.html|Hatcher|p.42|2
+lessons/at1/at1-05.html|Hatcher|p.43|1
+lessons/at1/at1-05.html|Hatcher|p.44,45,46|1
+lessons/at1/at1-05.html|Hatcher|p.50,51|1
+lessons/at1/at1-05.html|Hatcher|p.50|1
+lessons/at1/at1-05.html|Hatcher|p.51,52|1
+lessons/at1/at1-05.html|Hatcher|p.51|1
+lessons/at1/at1-05.html|Hatcher|p.52|1
+lessons/at1/at1-06.html|Hatcher|p.56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79|1
+lessons/at1/at1-06.html|Hatcher|p.56|1
+lessons/at1/at1-06.html|Hatcher|p.56|2
+lessons/at1/at1-06.html|Hatcher|p.57|1
+lessons/at1/at1-06.html|Hatcher|p.60|1
+lessons/at1/at1-06.html|Hatcher|p.60|2
+lessons/at1/at1-06.html|Hatcher|p.61|1
+lessons/at1/at1-06.html|Hatcher|p.61|2
+lessons/at1/at1-06.html|Hatcher|p.62|1
+lessons/at1/at1-06.html|Hatcher|p.63,64,65|1
+lessons/at1/at1-06.html|Hatcher|p.63|1
+lessons/at1/at1-06.html|Hatcher|p.66|1
+lessons/at1/at1-06.html|Hatcher|p.67|1
+lessons/at1/at1-06.html|Hatcher|p.67|2
+lessons/at1/at1-06.html|Hatcher|p.70|1
+lessons/at1/at1-06.html|Hatcher|p.71,72|1
+lessons/at1/at1-06.html|Hatcher|p.71|1
+lessons/at1/at1-06.html|Hatcher|p.72|1
+lessons/at1/at1-06.html|Hatcher|p.73|1
+lessons/at1/at1-07.html|Hatcher|p.105|1
+lessons/at1/at1-07.html|Hatcher|p.105|2
+lessons/at1/at1-07.html|Hatcher|p.106|1
+lessons/at1/at1-07.html|Hatcher|p.108|1
+lessons/at1/at1-07.html|Hatcher|p.109|1
+lessons/at1/at1-07.html|Hatcher|p.111|1
+lessons/at1/at1-07.html|Hatcher|p.111|2
+lessons/at1/at1-07.html|Hatcher|p.111|3
+lessons/at1/at1-07.html|Hatcher|p.128|1
+lessons/at1/at1-08.html|Hatcher|p.106|1
+lessons/at1/at1-08.html|Hatcher|p.130|1
+lessons/at1/at1-08.html|Hatcher|p.134,135|1
+lessons/at1/at1-08.html|Hatcher|p.134,135|2
+lessons/at1/at1-08.html|Hatcher|p.134|1
+lessons/at1/at1-08.html|Hatcher|p.135|1
+lessons/at1/at1-08.html|Hatcher|p.136|1
+lessons/at1/at1-08.html|Hatcher|p.137|1
+lessons/at1/at1-08.html|Hatcher|p.137|2
+lessons/at1/at1-08.html|Hatcher|p.137|3
+lessons/at1/at1-08.html|Hatcher|p.138,139,140,141|1
+lessons/at1/at1-08.html|Hatcher|p.139,140|1
+lessons/at1/at1-08.html|Hatcher|p.140|1
+lessons/at1/at1-08.html|Hatcher|p.140|2
+lessons/at1/at1-08.html|Hatcher|p.140|3
+lessons/at1/at1-08.html|Hatcher|p.140|4
+lessons/at1/at1-08.html|Hatcher|p.146|1
+lessons/at1/at1-09.html|Hatcher|p.149,150|1
+lessons/at1/at1-09.html|Hatcher|p.149|1
+lessons/at1/at1-09.html|Hatcher|p.149|2
+lessons/at1/at1-09.html|Hatcher|p.150|1
+lessons/at1/at1-09.html|Hatcher|p.153|1
+lessons/at1/at1-09.html|Hatcher|p.153|2
+lessons/at1/at1-09.html|Hatcher|p.154|1
+lessons/at1/at1-09.html|Hatcher|p.154|2
+lessons/at1/at1-10.html|Hatcher|p.160|1
+lessons/at1/at1-10.html|Hatcher|p.162|1
+lessons/at1/at1-10.html|Hatcher|p.163,164|1
+lessons/at1/at1-10.html|Hatcher|p.163|1
+lessons/at1/at1-10.html|Hatcher|p.163|2
+lessons/at1/at1-10.html|Hatcher|p.163|3
+lessons/at1/at1-10.html|Hatcher|p.164|1
+lessons/at1/at1-10.html|Hatcher|p.165|1
+lessons/at2/at2-01.html|Hatcher|p.186,187,188,189|1
+lessons/at2/at2-01.html|Hatcher|p.187|1
+lessons/at2/at2-01.html|Hatcher|p.187|2
+lessons/at2/at2-01.html|Hatcher|p.190,191,192,193|1
+lessons/at2/at2-01.html|Hatcher|p.191|1
+lessons/at2/at2-01.html|Hatcher|p.191|2
+lessons/at2/at2-01.html|Hatcher|p.191|3
+lessons/at2/at2-01.html|Hatcher|p.191|4
+lessons/at2/at2-01.html|Hatcher|p.193,194,195,196|1
+lessons/at2/at2-01.html|Hatcher|p.197|1
+lessons/at2/at2-02.html|Hatcher|p.191,192,193|1
+lessons/at2/at2-02.html|Hatcher|p.193|1
+lessons/at2/at2-02.html|Hatcher|p.193|2
+lessons/at2/at2-02.html|Hatcher|p.194|1
+lessons/at2/at2-02.html|Hatcher|p.195|1
+lessons/at2/at2-02.html|Hatcher|p.195|2
+lessons/at2/at2-02.html|Hatcher|p.197|1
+lessons/at2/at2-03.html|Hatcher|p.195,196|1
+lessons/at2/at2-03.html|Hatcher|p.197,198|1
+lessons/at2/at2-03.html|Hatcher|p.197|1
+lessons/at2/at2-03.html|Hatcher|p.198,199|1
+lessons/at2/at2-03.html|Hatcher|p.198|1
+lessons/at2/at2-03.html|Hatcher|p.199,200|1
+lessons/at2/at2-03.html|Hatcher|p.201,202,203,204|1
+lessons/at2/at2-03.html|Hatcher|p.201,202|1
+lessons/at2/at2-04.html|Hatcher|p.206|1
+lessons/at2/at2-04.html|Hatcher|p.207|1
+lessons/at2/at2-04.html|Hatcher|p.209,210|1
+lessons/at2/at2-04.html|Hatcher|p.212,213|1
+lessons/at2/at2-04.html|Hatcher|p.212,213|2
+lessons/at2/at2-04.html|Hatcher|p.214,215,216,217,218,219|1
+lessons/at2/at2-04.html|Hatcher|p.220|1
+lessons/at2/at2-05.html|Hatcher|p.214|1
+lessons/at2/at2-05.html|Hatcher|p.215,216|1
+lessons/at2/at2-05.html|Hatcher|p.215|1
+lessons/at2/at2-05.html|Hatcher|p.216,217|1
+lessons/at2/at2-05.html|Hatcher|p.216|1
+lessons/at2/at2-05.html|Hatcher|p.216|2
+lessons/at2/at2-06.html|Hatcher|p.233,234|1
+lessons/at2/at2-06.html|Hatcher|p.234|1
+lessons/at2/at2-06.html|Hatcher|p.235|1
+lessons/at2/at2-06.html|Hatcher|p.235|2
+lessons/at2/at2-06.html|Hatcher|p.235|3
+lessons/at2/at2-06.html|Hatcher|p.236|1
+lessons/at2/at2-06.html|Hatcher|p.239,240,241|1
+lessons/at2/at2-07.html|Hatcher|p.232,233|1
+lessons/at2/at2-07.html|Hatcher|p.239|1
+lessons/at2/at2-07.html|Hatcher|p.240,241|1
+lessons/at2/at2-07.html|Hatcher|p.240|1
+lessons/at2/at2-07.html|Hatcher|p.241,242|1
+lessons/at2/at2-07.html|Hatcher|p.242,243,244,245,246,247,248,249,250,251,252,253,254,255,256|1
+lessons/at2/at2-08.html|Dey|p.55|1
+lessons/at2/at2-08.html|Dey|p.55|2
+lessons/at2/at2-08.html|Dey|p.55|3
+lessons/at2/at2-08.html|Dey|p.56|1
+lessons/at2/at2-08.html|Ghrist|p.131,132|1
+lessons/at2/at2-08.html|Ghrist|p.131|1
+lessons/at2/at2-08.html|Ghrist|p.131|2
+lessons/at2/at2-08.html|Ghrist|p.132|1
+lessons/at2/at2-08.html|Hatcher|p.198|1
+lessons/cap/cap-02.html|Dey|p.182|1
+lessons/cap/cap-02.html|Dey|p.186|1
+lessons/cap/cap-02.html|Dey|p.394|1
+lessons/cap/cap-02.html|Dey|p.395|1
+lessons/cap/cap-03.html|Dey|p.259|1
+lessons/cap/cap-03.html|Dey|p.259|2
+lessons/cap/cap-04.html|Dey|p.182|1
+lessons/cat/cat-01.html|Aluffi Chapter 0|p.18,27,30|1
+lessons/cat/cat-01.html|Aluffi Chapter 0|p.18|1
+lessons/cat/cat-01.html|Aluffi Chapter 0|p.19|1
+lessons/cat/cat-01.html|Aluffi Chapter 0|p.20,21|1
+lessons/cat/cat-01.html|Aluffi Chapter 0|p.21|1
+lessons/cat/cat-01.html|Aluffi Chapter 0|p.22|1
+lessons/cat/cat-01.html|Aluffi Chapter 0|p.27|1
+lessons/cat/cat-01.html|Aluffi Chapter 0|p.28|1
+lessons/cat/cat-01.html|Aluffi Chapter 0|p.29|1
+lessons/cat/cat-02.html|Aluffi Chapter 0|p.31,32|1
+lessons/cat/cat-02.html|Aluffi Chapter 0|p.31|1
+lessons/cat/cat-02.html|Aluffi Chapter 0|p.32|1
+lessons/cat/cat-02.html|Aluffi Chapter 0|p.33,34|1
+lessons/cat/cat-02.html|Aluffi Chapter 0|p.33|1
+lessons/cat/cat-02.html|Aluffi Chapter 0|p.33|2
+lessons/cat/cat-02.html|Aluffi Chapter 0|p.35,36|1
+lessons/cat/cat-02.html|Aluffi Chapter 0|p.36|1
+lessons/cat/cat-02.html|Aluffi Chapter 0|p.37|1
+lessons/cat/cat-03.html|Aluffi Chapter 0|p.484|1
+lessons/cat/cat-03.html|Aluffi Chapter 0|p.486|1
+lessons/cat/cat-03.html|Spivak|p.101|1
+lessons/cat/cat-03.html|Spivak|p.91|1
+lessons/cat/cat-03.html|Spivak|p.93|1
+lessons/cat/cat-04.html|Aluffi Chapter 0|p.492|1
+lessons/cat/cat-04.html|Aluffi Chapter 0|p.497|1
+lessons/cat/cat-04.html|Spivak|p.18,20|1
+lessons/cat/cat-04.html|Spivak|p.95|1
+lessons/cat/cat-05.html|Aluffi Chapter 0|p.33,34|1
+lessons/cat/cat-05.html|Aluffi Chapter 0|p.35,36|1
+lessons/cat/cat-05.html|Spivak|p.107|1
+lessons/cat/cat-05.html|Spivak|p.108,109|1
+lessons/cat/cat-05.html|Spivak|p.108|1
+lessons/cat/cat-05.html|Spivak|p.108|2
+lessons/cat/cat-05.html|Spivak|p.111|1
+lessons/cat/cat-05.html|Spivak|p.113|1
+lessons/cat/cat-06.html|Aluffi Chapter 0|p.492,493|1
+lessons/cat/cat-06.html|Aluffi Chapter 0|p.492|1
+lessons/cat/cat-06.html|Aluffi Chapter 0|p.493|1
+lessons/cat/cat-06.html|Spivak|p.102,103,104|1
+lessons/cat/cat-06.html|Spivak|p.102|1
+lessons/cat/cat-07.html|Oudot|p.19|1
+lessons/cat/cat-07.html|Oudot|p.20,21|1
+lessons/cat/cat-07.html|Oudot|p.20|1
+lessons/cat/cat-07.html|Oudot|p.20|2
+lessons/cat/cat-07.html|Oudot|p.29|1
+lessons/cat/cat-07.html|Oudot|p.49|1
+lessons/la/la-01.html|Axler|p.13|1
+lessons/la/la-01.html|Axler|p.14|1
+lessons/la/la-01.html|Axler|p.6|1
+lessons/la/la-02.html|Axler|p.18|1
+lessons/la/la-02.html|Axler|p.19|1
+lessons/la/la-02.html|Axler|p.20|1
+lessons/la/la-02.html|Axler|p.22|1
+lessons/la/la-03.html|Axler|p.29|1
+lessons/la/la-03.html|Axler|p.32|1
+lessons/la/la-03.html|Axler|p.34|1
+lessons/la/la-03.html|Axler|p.34|2
+lessons/la/la-03.html|Axler|p.35|1
+lessons/la/la-03.html|Axler|p.36|1
+lessons/la/la-04.html|Axler|p.35|1
+lessons/la/la-04.html|Axler|p.40,41|1
+lessons/la/la-04.html|Axler|p.40|1
+lessons/la/la-04.html|Axler|p.42|1
+lessons/la/la-04.html|Axler|p.44|1
+lessons/la/la-04.html|Axler|p.45,46|1
+lessons/la/la-04.html|Axler|p.45|1
+lessons/la/la-04.html|Axler|p.45|2
+lessons/la/la-04.html|Axler|p.46|1
+lessons/la/la-04.html|Axler|p.47|1
+lessons/la/la-05.html|Axler|p.39|1
+lessons/la/la-05.html|Axler|p.54|1
+lessons/la/la-05.html|Axler|p.55|1
+lessons/la/la-05.html|Axler|p.57|1
+lessons/la/la-06.html|Axler|p.57|1
+lessons/la/la-06.html|Axler|p.59|1
+lessons/la/la-06.html|Axler|p.60|1
+lessons/la/la-06.html|Axler|p.61|1
+lessons/la/la-06.html|Axler|p.62|1
+lessons/la/la-06.html|Axler|p.63,64|1
+lessons/la/la-06.html|Axler|p.64|1
+lessons/la/la-06.html|Axler|p.66|1
+lessons/la/la-07.html|Axler|p.54|1
+lessons/la/la-07.html|Axler|p.70,71,72|1
+lessons/la/la-07.html|Axler|p.71|1
+lessons/la/la-07.html|Axler|p.74|1
+lessons/la/la-07.html|Axler|p.74|2
+lessons/la/la-07.html|Axler|p.75|1
+lessons/la/la-08.html|Axler|p.61,63|1
+lessons/la/la-08.html|Axler|p.80|1
+lessons/la/la-08.html|Axler|p.81|1
+lessons/la/la-08.html|Axler|p.82|1
+lessons/la/la-08.html|Axler|p.82|2
+lessons/la/la-08.html|Axler|p.83|1
+lessons/la/la-08.html|Axler|p.83|2
+lessons/la/la-08.html|Axler|p.86|1
+lessons/la/la-08.html|Axler|p.87|1
+lessons/la/la-09.html|Axler|p.61,63|1
+lessons/la/la-09.html|Axler|p.92|1
+lessons/la/la-09.html|Axler|p.93|1
+lessons/la/la-09.html|Axler|p.93|2
+lessons/la/la-09.html|Axler|p.95|1
+lessons/la/la-09.html|Axler|p.96|1
+lessons/la/la-09.html|Axler|p.97|1
+lessons/la/la-09.html|Axler|p.98|1
+lessons/la/la-10.html|Axler|p.101|1
+lessons/la/la-10.html|Axler|p.102|1
+lessons/la/la-10.html|Axler|p.102|2
+lessons/la/la-10.html|Axler|p.104|1
+lessons/la/la-10.html|Axler|p.106|1
+lessons/la/la-10.html|Axler|p.107|1
+lessons/la/la-10.html|Axler|p.111|1
+lessons/la/la-10.html|Axler|p.112|1
+lessons/la/la-10.html|Axler|p.83|1
+lessons/la/la-11.html|Axler|p.132|1
+lessons/la/la-11.html|Axler|p.133|1
+lessons/la/la-11.html|Axler|p.133|2
+lessons/la/la-11.html|Axler|p.134,135|1
+lessons/la/la-11.html|Axler|p.134|1
+lessons/la/la-11.html|Axler|p.136|1
+lessons/la/la-11.html|Axler|p.137|1
+lessons/la/la-11.html|Axler|p.87|1
+lessons/la/la-12.html|Axler|p.134,136|1
+lessons/la/la-12.html|Axler|p.143|1
+lessons/la/la-12.html|Axler|p.144|1
+lessons/la/la-12.html|Axler|p.145|1
+lessons/la/la-12.html|Axler|p.148|1
+lessons/la/la-12.html|Axler|p.150|1
+lessons/la/la-12.html|Axler|p.151|1
+lessons/la/la-12.html|Axler|p.155|1
+lessons/la/la-12.html|Axler|p.156|1
+lessons/la/la-12.html|Axler|p.160|1
+lessons/la/la-13.html|Axler|p.166|1
+lessons/la/la-13.html|Axler|p.167,168|1
+lessons/la/la-13.html|Axler|p.169|1
+lessons/la/la-13.html|Axler|p.169|2
+lessons/la/la-13.html|Axler|p.170|1
+lessons/la/la-13.html|Axler|p.171|1
+lessons/la/la-13.html|Axler|p.172|1
+lessons/la/la-13.html|Axler|p.173|1
+lessons/la/la-14.html|Axler|p.181|1
+lessons/la/la-14.html|Axler|p.182|1
+lessons/la/la-14.html|Axler|p.183|1
+lessons/la/la-14.html|Axler|p.185,186|1
+lessons/la/la-14.html|Axler|p.188|1
+lessons/la/la-15.html|Axler|p.204|1
+lessons/la/la-15.html|Axler|p.206|1
+lessons/la/la-15.html|Axler|p.209|1
+lessons/la/la-15.html|Axler|p.210|1
+lessons/la/la-15.html|Axler|p.219|1
+lessons/la/la-15.html|Axler|p.220|1
+lessons/la/la-15.html|Axler|p.221|1
+lessons/la/la-15.html|Axler|p.222|1
+lessons/lab/lab-02.html|Edelsbrunner|p.71|1
+lessons/lab/lab-02.html|Edelsbrunner|p.71|2
+lessons/lab/lab-02.html|Edelsbrunner|p.72|1
+lessons/lab/lab-02.html|Edelsbrunner|p.74,75|1
+lessons/lab/lab-02.html|Edelsbrunner|p.74,75|2
+lessons/lab/lab-02.html|Edelsbrunner|p.74|1
+lessons/lab/lab-03.html|Edelsbrunner|p.101,102,103,104,105,106|1
+lessons/lab/lab-03.html|Edelsbrunner|p.181|1
+lessons/lab/lab-03.html|Edelsbrunner|p.181|2
+lessons/lab/lab-03.html|Edelsbrunner|p.181|3
+lessons/lab/lab-03.html|Edelsbrunner|p.181|4
+lessons/lab/lab-03.html|Edelsbrunner|p.182|1
+lessons/lab/lab-03.html|Edelsbrunner|p.182|2
+lessons/lab/lab-03.html|Edelsbrunner|p.183|1
+lessons/lab/lab-03.html|Edelsbrunner|p.183|2
+lessons/lab/lab-04.html|Edelsbrunner|p.181|1
+lessons/lab/lab-04.html|Oudot|p.18|1
+lessons/lab/lab-05.html|Edelsbrunner|p.181|1
+lessons/lab/lab-05.html|Oudot|p.61|1
+lessons/lab/lab-06.html|Dey|p.390|1
+lessons/lab/lab-06.html|Dey|p.391|1
+lessons/lab/lab-06.html|Dey|p.391|2
+lessons/lab/lab-06.html|Dey|p.392|1
+lessons/lab/lab-06.html|Dey|p.392|2
+lessons/lab/lab-06.html|Dey|p.392|3
+lessons/lab/lab-06.html|Dey|p.395|1
+lessons/lab/lab-08.html|Dey|p.268,269|1
+lessons/lab/lab-08.html|Dey|p.269|1
+lessons/lab/lab-08.html|Dey|p.273|1
+lessons/lab/lab-09.html|Dey|p.393|1
+lessons/lab/lab-09.html|Oudot|p.61|1
+lessons/pw/pw-01.html|Cummings|p.202,203,213,214,215|1
+lessons/pw/pw-01.html|Cummings|p.203|1
+lessons/pw/pw-01.html|Cummings|p.203|2
+lessons/pw/pw-01.html|Cummings|p.215|1
+lessons/pw/pw-01.html|Cummings|p.224|1
+lessons/pw/pw-01.html|Cummings|p.37|1
+lessons/pw/pw-02.html|Cummings|p.108|1
+lessons/pw/pw-02.html|Cummings|p.108|2
+lessons/pw/pw-02.html|Cummings|p.111|1
+lessons/pw/pw-02.html|Cummings|p.111|2
+lessons/pw/pw-02.html|Cummings|p.115|1
+lessons/pw/pw-02.html|Cummings|p.124|1
+lessons/pw/pw-02.html|Cummings|p.126|1
+lessons/pw/pw-02.html|Cummings|p.126|2
+lessons/pw/pw-02.html|Cummings|p.129|1
+lessons/pw/pw-02.html|Cummings|p.233|1
+lessons/pw/pw-02.html|Cummings|p.233|2
+lessons/pw/pw-03.html|Cummings|p.251,252,253|1
+lessons/pw/pw-03.html|Cummings|p.280|1
+lessons/pw/pw-03.html|Cummings|p.280|2
+lessons/pw/pw-05.html|Cummings|p.237,238|1
+lessons/pw/pw-05.html|Cummings|p.237,238|2
+lessons/pw/pw-05.html|Cummings|p.27,65,98,145,186,208,237,275,309|1
+lessons/pw/pw-05.html|Cummings|p.27|1
+lessons/pw/pw-05.html|Cummings|p.27|2
+lessons/pw/pw-05.html|Cummings|p.65,66|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.29|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.30,31|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.30|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.30|2
+lessons/tda1/tda1-01.html|Edelsbrunner|p.31|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.33,34|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.34|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.62|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.62|2
+lessons/tda1/tda1-01.html|Edelsbrunner|p.62|3
+lessons/tda1/tda1-01.html|Edelsbrunner|p.63|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.63|2
+lessons/tda1/tda1-01.html|Edelsbrunner|p.63|3
+lessons/tda1/tda1-01.html|Edelsbrunner|p.64,65|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.64,65|2
+lessons/tda1/tda1-01.html|Edelsbrunner|p.64|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.64|2
+lessons/tda1/tda1-01.html|Edelsbrunner|p.64|3
+lessons/tda1/tda1-01.html|Edelsbrunner|p.65,66|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.65,66|2
+lessons/tda1/tda1-01.html|Edelsbrunner|p.65|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.66|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.67,68|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.67|1
+lessons/tda1/tda1-01.html|Edelsbrunner|p.67|2
+lessons/tda1/tda1-01.html|Oudot|p.29|1
+lessons/tda1/tda1-01.html|Oudot|p.29|2
+lessons/tda1/tda1-01.html|Oudot|p.29|3
+lessons/tda1/tda1-01.html|Oudot|p.31|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.101|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.101|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.101|3
+lessons/tda1/tda1-02.html|Edelsbrunner|p.102,103|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.102,103|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.102|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.103|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.103|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.104,105|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.104|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.105,106|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.105,106|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.105|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.106|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.93|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.93|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.94,95|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.94,95|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.94|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.95,96|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.95|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.95|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.96|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.97,98|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.97|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.97|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.98|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.98|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.99,100|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.99,100|2
+lessons/tda1/tda1-02.html|Edelsbrunner|p.99|1
+lessons/tda1/tda1-02.html|Edelsbrunner|p.99|2
+lessons/tda1/tda1-03.html|Edelsbrunner|p.177|1
+lessons/tda1/tda1-03.html|Edelsbrunner|p.178|1
+lessons/tda1/tda1-03.html|Edelsbrunner|p.178|2
+lessons/tda1/tda1-03.html|Edelsbrunner|p.179|1
+lessons/tda1/tda1-03.html|Edelsbrunner|p.179|2
+lessons/tda1/tda1-03.html|Edelsbrunner|p.179|3
+lessons/tda1/tda1-03.html|Edelsbrunner|p.179|4
+lessons/tda1/tda1-03.html|Edelsbrunner|p.180|1
+lessons/tda1/tda1-03.html|Edelsbrunner|p.180|2
+lessons/tda1/tda1-03.html|Edelsbrunner|p.180|3
+lessons/tda1/tda1-03.html|Edelsbrunner|p.181,182|1
+lessons/tda1/tda1-03.html|Edelsbrunner|p.181,182|2
+lessons/tda1/tda1-03.html|Edelsbrunner|p.181|1
+lessons/tda1/tda1-03.html|Edelsbrunner|p.181|2
+lessons/tda1/tda1-03.html|Edelsbrunner|p.181|3
+lessons/tda1/tda1-03.html|Edelsbrunner|p.182|1
+lessons/tda1/tda1-03.html|Edelsbrunner|p.182|2
+lessons/tda1/tda1-03.html|Edelsbrunner|p.183,184|1
+lessons/tda1/tda1-03.html|Edelsbrunner|p.184,185|1
+lessons/tda1/tda1-03.html|Edelsbrunner|p.184,185|2
+lessons/tda1/tda1-03.html|Oudot|p.19|1
+lessons/tda1/tda1-03.html|Oudot|p.20|1
+lessons/tda1/tda1-03.html|Oudot|p.20|2
+lessons/tda1/tda1-03.html|Oudot|p.21|1
+lessons/tda1/tda1-04.html|Oudot|p.16|1
+lessons/tda1/tda1-04.html|Oudot|p.17|1
+lessons/tda1/tda1-04.html|Oudot|p.17|2
+lessons/tda1/tda1-04.html|Oudot|p.18,19|1
+lessons/tda1/tda1-04.html|Oudot|p.18|1
+lessons/tda1/tda1-04.html|Oudot|p.18|2
+lessons/tda1/tda1-04.html|Oudot|p.20|1
+lessons/tda1/tda1-04.html|Oudot|p.21,22|1
+lessons/tda1/tda1-04.html|Oudot|p.21,22|2
+lessons/tda1/tda1-04.html|Oudot|p.21|1
+lessons/tda1/tda1-04.html|Oudot|p.21|2
+lessons/tda1/tda1-04.html|Oudot|p.22,23|1
+lessons/tda1/tda1-04.html|Oudot|p.22,23|2
+lessons/tda1/tda1-04.html|Oudot|p.23|1
+lessons/tda1/tda1-05.html|Edelsbrunner|p.190,191|1
+lessons/tda1/tda1-05.html|Edelsbrunner|p.190|1
+lessons/tda1/tda1-05.html|Edelsbrunner|p.192,193,194,195|1
+lessons/tda1/tda1-05.html|Edelsbrunner|p.195|1
+lessons/tda1/tda1-05.html|Oudot|p.192,193|1
+lessons/tda1/tda1-05.html|Oudot|p.193,194|1
+lessons/tda1/tda1-05.html|Oudot|p.194,195|1
+lessons/tda1/tda1-05.html|Oudot|p.195|1
+lessons/tda1/tda1-05.html|Oudot|p.22,23,24|1
+lessons/tda1/tda1-05.html|Oudot|p.24|1
+lessons/tda1/tda1-05.html|Oudot|p.24|2
+lessons/tda1/tda1-05.html|Oudot|p.25|1
+lessons/tda1/tda1-05.html|Oudot|p.25|2
+lessons/tda1/tda1-05.html|Oudot|p.25|3
+lessons/tda1/tda1-05.html|Oudot|p.25|4
+lessons/tda1/tda1-05.html|Oudot|p.26|1
+lessons/tda1/tda1-05.html|Oudot|p.28|1
+lessons/tda1/tda1-05.html|Oudot|p.32|1
+lessons/tda1/tda1-06.html|Edelsbrunner|p.216|1
+lessons/tda1/tda1-06.html|Edelsbrunner|p.217,218,219|1
+lessons/tda1/tda1-06.html|Edelsbrunner|p.217,218|1
+lessons/tda1/tda1-06.html|Edelsbrunner|p.218,219|1
+lessons/tda1/tda1-06.html|Edelsbrunner|p.219|1
+lessons/tda1/tda1-06.html|Oudot|p.217,218|1
+lessons/tda1/tda1-06.html|Oudot|p.49|1
+lessons/tda1/tda1-06.html|Oudot|p.50,51|1
+lessons/tda1/tda1-06.html|Oudot|p.50|1
+lessons/tda1/tda1-06.html|Oudot|p.50|2
+lessons/tda1/tda1-06.html|Oudot|p.51|1
+lessons/tda1/tda1-06.html|Oudot|p.52|1
+lessons/tda1/tda1-06.html|Oudot|p.52|2
+lessons/tda1/tda1-06.html|Oudot|p.53|1
+lessons/tda1/tda1-06.html|Oudot|p.53|2
+lessons/tda1/tda1-06.html|Oudot|p.53|3
+lessons/tda1/tda1-07.html|Edelsbrunner|p.216,217,218,219|1
+lessons/tda1/tda1-07.html|Edelsbrunner|p.217,218,219|1
+lessons/tda1/tda1-07.html|Oudot|p.49|1
+lessons/tda1/tda1-07.html|Oudot|p.54|1
+lessons/tda1/tda1-07.html|Oudot|p.54|2
+lessons/tda1/tda1-07.html|Oudot|p.55,56|1
+lessons/tda1/tda1-07.html|Oudot|p.55|1
+lessons/tda1/tda1-07.html|Oudot|p.57|1
+lessons/tda1/tda1-07.html|Oudot|p.57|2
+lessons/tda1/tda1-07.html|Oudot|p.57|3
+lessons/tda1/tda1-07.html|Oudot|p.59|1
+lessons/tda1/tda1-07.html|Oudot|p.60,61|1
+lessons/tda1/tda1-07.html|Oudot|p.60,61|2
+lessons/tda1/tda1-07.html|Oudot|p.60|1
+lessons/tda1/tda1-07.html|Oudot|p.61|1
+lessons/tda1/tda1-07.html|Oudot|p.62|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.151|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.151|2
+lessons/tda1/tda1-08.html|Edelsbrunner|p.151|3
+lessons/tda1/tda1-08.html|Edelsbrunner|p.152,153|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.152|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.152|2
+lessons/tda1/tda1-08.html|Edelsbrunner|p.152|3
+lessons/tda1/tda1-08.html|Edelsbrunner|p.152|4
+lessons/tda1/tda1-08.html|Edelsbrunner|p.153,154|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.154|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.159|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.159|2
+lessons/tda1/tda1-08.html|Edelsbrunner|p.162,163|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.162|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.162|2
+lessons/tda1/tda1-08.html|Edelsbrunner|p.163,164|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.163,164|2
+lessons/tda1/tda1-08.html|Edelsbrunner|p.163|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.164|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.166|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.166|2
+lessons/tda1/tda1-08.html|Edelsbrunner|p.179,180|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.179|1
+lessons/tda1/tda1-08.html|Edelsbrunner|p.179|2
+lessons/tda1/tda1-09.html|Edelsbrunner|p.114|1
+lessons/tda1/tda1-09.html|Edelsbrunner|p.114|2
+lessons/tda1/tda1-09.html|Edelsbrunner|p.114|3
+lessons/tda1/tda1-09.html|Edelsbrunner|p.115,116,117|1
+lessons/tda1/tda1-09.html|Edelsbrunner|p.115|1
+lessons/tda1/tda1-09.html|Edelsbrunner|p.115|2
+lessons/tda1/tda1-09.html|Edelsbrunner|p.117|1
+lessons/tda1/tda1-09.html|Edelsbrunner|p.117|2
+lessons/tda1/tda1-09.html|Edelsbrunner|p.186|1
+lessons/tda1/tda1-09.html|Edelsbrunner|p.186|2
+lessons/tda1/tda1-09.html|Edelsbrunner|p.187|1
+lessons/tda1/tda1-09.html|Edelsbrunner|p.187|2
+lessons/tda1/tda1-09.html|Edelsbrunner|p.188|1
+lessons/tda1/tda1-09.html|Edelsbrunner|p.188|2
+lessons/tda1/tda1-09.html|Edelsbrunner|p.189|1
+lessons/tda1/tda1-09.html|Edelsbrunner|p.189|2
+lessons/tda1/tda1-09.html|Edelsbrunner|p.189|3
+lessons/tda1/tda1-09.html|Edelsbrunner|p.189|4
+lessons/tda1/tda1-09.html|Edelsbrunner|p.189|5
+lessons/tda1/tda1-09.html|Edelsbrunner|p.190,191|1
+lessons/tda1/tda1-09.html|Edelsbrunner|p.190,191|2
+lessons/tda1/tda1-09.html|Edelsbrunner|p.191|1
+lessons/tda2/tda2-01.html|Dey|p.125|1
+lessons/tda2/tda2-01.html|Ghrist|p.108,109|1
+lessons/tda2/tda2-02.html|Dey|p.321,322,323,324|1
+lessons/tda2/tda2-02.html|Dey|p.321,322|1
+lessons/tda2/tda2-02.html|Dey|p.326|1
+lessons/tda2/tda2-03.html|Dey|p.337,338,339,340,341,342,343,344,345,346,347,348,349|1
+lessons/tda2/tda2-03.html|Dey|p.356,357|1
+lessons/tda2/tda2-04.html|Dey|p.370,371|1
+lessons/tda2/tda2-05.html|Dey|p.313,314,315,316|1
+lessons/tda2/tda2-06.html|Dey|p.207|1
+lessons/tda2/tda2-06.html|Dey|p.210|1
+lessons/tda2/tda2-06.html|Dey|p.212,213|1
+lessons/tda2/tda2-06.html|Dey|p.214,215,216|1
+lessons/tda2/tda2-06.html|Dey|p.217,218,219|1
+lessons/tda2/tda2-06.html|Dey|p.220,221|1
+lessons/tda2/tda2-06.html|Dey|p.222|1
+lessons/tda2/tda2-06.html|Dey|p.228|1
+lessons/tda2/tda2-07.html|Dey|p.257|1
+lessons/tda2/tda2-07.html|Dey|p.259,260,261|1
+lessons/tda2/tda2-07.html|Dey|p.259|1
+lessons/tda2/tda2-07.html|Dey|p.259|2
+lessons/tda2/tda2-07.html|Dey|p.263|1
+lessons/tda2/tda2-07.html|Dey|p.270|1
+lessons/tda2/tda2-08.html|Dey|p.183|1
+lessons/tda2/tda2-08.html|Dey|p.184,185|1
+lessons/tda2/tda2-08.html|Dey|p.184|1
+lessons/tda2/tda2-08.html|Dey|p.190,191|1
+lessons/tda2/tda2-08.html|Dey|p.190|1
+lessons/tda2/tda2-08.html|Dey|p.33|1
+lessons/tda2/tda2-08.html|Dey|p.35,36|1
+lessons/tda2/tda2-08.html|Dey|p.41,42|1
+lessons/tda2/tda2-09.html|Dey|p.389,390|1
+lessons/tda2/tda2-09.html|Dey|p.392|1
+lessons/tda2/tda2-09.html|Dey|p.392|2
+lessons/tda2/tda2-09.html|Dey|p.397|1
+lessons/tda2/tda2-09.html|Dey|p.398|1
+lessons/tda2/tda2-09.html|Dey|p.403|1
+lessons/tda2/tda2-10.html|Ghrist|p.180,181|1
+lessons/tda2/tda2-10.html|Ghrist|p.180,181|2
+lessons/tda2/tda2-10.html|Ghrist|p.185,186|1
+lessons/tda2/tda2-10.html|Ghrist|p.187|1
+lessons/tda2/tda2-10.html|Ghrist|p.188|1
+lessons/tda2/tda2-10.html|Ghrist|p.188|2
+lessons/tda2/tda2-11.html|Ghrist|p.198|1
+lessons/tda2/tda2-11.html|Ghrist|p.198|2
+lessons/tda2/tda2-11.html|Ghrist|p.199|1
+lessons/tda2/tda2-11.html|Ghrist|p.208|1
+lessons/tda2/tda2-11.html|Ghrist|p.208|2
+lessons/tda2/tda2-11.html|Ghrist|p.217|1
+lessons/tda2/tda2-11.html|Ghrist|p.219|1
+lessons/tda2/tda2-11.html|Ghrist|p.220|1
+lessons/top/top-01.html|Munkres|p.102|1
+lessons/top/top-01.html|Munkres|p.454|1
+lessons/top/top-01.html|Munkres|p.75,76,77,78|1
+lessons/top/top-01.html|Munkres|p.75,76|1
+lessons/top/top-01.html|Munkres|p.75,76|2
+lessons/top/top-01.html|Munkres|p.76|1
+lessons/top/top-01.html|Munkres|p.76|2
+lessons/top/top-01.html|Munkres|p.77|1
+lessons/top/top-01.html|Munkres|p.77|2
+lessons/top/top-01.html|Munkres|p.77|3
+lessons/top/top-01.html|Munkres|p.77|4
+lessons/top/top-01.html|Munkres|p.78|1
+lessons/top/top-02.html|Munkres|p.78|1
+lessons/top/top-02.html|Munkres|p.79|1
+lessons/top/top-02.html|Munkres|p.81,82|1
+lessons/top/top-02.html|Munkres|p.81,82|2
+lessons/top/top-02.html|Munkres|p.81|1
+lessons/top/top-02.html|Munkres|p.82,83|1
+lessons/top/top-02.html|Munkres|p.82|1
+lessons/top/top-02.html|Munkres|p.84|1
+lessons/top/top-02.html|Munkres|p.84|2
+lessons/top/top-02.html|Munkres|p.85,86|1
+lessons/top/top-02.html|Munkres|p.85,86|2
+lessons/top/top-02.html|Munkres|p.85|1
+lessons/top/top-02.html|Munkres|p.86|1
+lessons/top/top-02.html|Munkres|p.88|1
+lessons/top/top-02.html|Munkres|p.89|1
+lessons/top/top-02.html|Munkres|p.89|2
+lessons/top/top-03.html|Munkres|p.100|1
+lessons/top/top-03.html|Munkres|p.148|1
+lessons/top/top-03.html|Munkres|p.163|1
+lessons/top/top-03.html|Munkres|p.76|1
+lessons/top/top-03.html|Munkres|p.93|1
+lessons/top/top-03.html|Munkres|p.95|1
+lessons/top/top-03.html|Munkres|p.97|1
+lessons/top/top-03.html|Munkres|p.98|1
+lessons/top/top-04.html|Munkres|p.102,103,104,105,106,107,108,109,110,111|1
+lessons/top/top-04.html|Munkres|p.102|1
+lessons/top/top-04.html|Munkres|p.102|2
+lessons/top/top-04.html|Munkres|p.103|1
+lessons/top/top-04.html|Munkres|p.104|1
+lessons/top/top-04.html|Munkres|p.105|1
+lessons/top/top-04.html|Munkres|p.105|2
+lessons/top/top-04.html|Munkres|p.110,111|1
+lessons/top/top-04.html|Munkres|p.112|1
+lessons/top/top-05.html|Munkres|p.103|1
+lessons/top/top-05.html|Munkres|p.114|1
+lessons/top/top-05.html|Munkres|p.114|2
+lessons/top/top-05.html|Munkres|p.115|1
+lessons/top/top-05.html|Munkres|p.115|2
+lessons/top/top-05.html|Munkres|p.86|1
+lessons/top/top-05.html|Munkres|p.86|2
+lessons/top/top-06.html|Munkres|p.104|1
+lessons/top/top-06.html|Munkres|p.119,120|1
+lessons/top/top-06.html|Munkres|p.119|1
+lessons/top/top-06.html|Munkres|p.120,121|1
+lessons/top/top-06.html|Munkres|p.121|1
+lessons/top/top-06.html|Munkres|p.124|1
+lessons/top/top-06.html|Munkres|p.124|2
+lessons/top/top-06.html|Munkres|p.125|1
+lessons/top/top-06.html|Munkres|p.130,131|1
+lessons/top/top-06.html|Munkres|p.131|1
+lessons/top/top-07.html|Munkres|p.148|1
+lessons/top/top-07.html|Munkres|p.155|1
+lessons/top/top-07.html|Munkres|p.155|2
+lessons/top/top-07.html|Munkres|p.159,160,161|1
+lessons/top/top-07.html|Munkres|p.161|1
+lessons/top/top-08.html|Munkres|p.105|1
+lessons/top/top-08.html|Munkres|p.164|1
+lessons/top/top-08.html|Munkres|p.169|1
+lessons/top/top-08.html|Munkres|p.175,176|1
+lessons/top/top-08.html|Munkres|p.176|1
+lessons/top/top-09.html|Munkres|p.178,179|1
+lessons/top/top-09.html|Munkres|p.179,180|1
+lessons/top/top-09.html|Munkres|p.182|1
+lessons/top/top-09.html|Munkres|p.185|1
+lessons/top/top-10.html|Munkres|p.130|1
+lessons/top/top-10.html|Munkres|p.181|1
+lessons/top/top-10.html|Munkres|p.189|1
+lessons/top/top-10.html|Munkres|p.190,191|1
+lessons/top/top-10.html|Munkres|p.190|1
+lessons/top/top-11.html|Munkres|p.195|1
+lessons/top/top-11.html|Munkres|p.200,201|1
+lessons/top/top-11.html|Munkres|p.99|1
+lessons/top/top-12.html|Munkres|p.137|1
+lessons/top/top-12.html|Munkres|p.138,139|1
+lessons/top/top-12.html|Munkres|p.138|1
+lessons/top/top-12.html|Munkres|p.138|2
+lessons/top/top-12.html|Munkres|p.139|1
+lessons/top/top-12.html|Munkres|p.139|2
+lessons/top/top-12.html|Munkres|p.139|3
+lessons/top/top-13.html|Hatcher|p.10|1
+lessons/top/top-13.html|Hatcher|p.5|1
+lessons/top/top-13.html|Hatcher|p.5|2
+lessons/top/top-13.html|Hatcher|p.8|1
+lessons/top/top-13.html|Hatcher|p.8|2
+lessons/top/top-13.html|Hatcher|p.9|1
+lessons/top/top-13.html|Munkres|p.142|1
+lessons/top/top-13.html|Munkres|p.5,6,7,8,9,10|1
+problems/sets/aa-00.md|Carter|p.14,15,16,17,18,19,20|1
+problems/sets/aa-00.md|Carter|p.19,20|1
+problems/sets/aa-03.md|Aluffi Underground|p.22|1
+problems/sets/aa-03.md|Aluffi Underground|p.22|2
+problems/sets/aa-03.md|Aluffi Underground|p.24|1
+problems/sets/aa-04.md|Aluffi Underground|p.28|1
+problems/sets/aa-12.md|Aluffi Underground|p.122|1
+problems/sets/aa-21.md|Aluffi Underground|p.208|1
+problems/sets/aa-21.md|Aluffi Underground|p.208|2
+problems/sets/aa-21.md|Aluffi Underground|p.208|3
+problems/sets/aa-23.md|Aluffi Underground|p.101|1
+problems/sets/aa-23.md|Carter|p.101|1
+problems/sets/aa-23.md|Carter|p.101|2
+problems/sets/aa-23.md|Carter|p.99,100|1
+problems/sets/aa-23.md|Carter|p.99,100|2
+problems/sets/aa-24.md|Carter|p.194,195,196,197,198|1
+problems/sets/aa-25.md|Carter|p.64,65,66,67|1
+problems/sets/aa-25.md|Carter|p.64,65,66,67|2
+problems/sets/aa-25.md|Carter|p.74,75,76,77|1
+problems/sets/an-09.md|Abbott|p.75|1
+problems/sets/an-09.md|Abbott|p.77|1
+problems/sets/an2-01.md|Lindstrom|p.47|1
+problems/sets/an2-01.md|Lindstrom|p.48|1
+problems/sets/an2-01.md|Lindstrom|p.58|1
+problems/sets/an2-01.md|Oudot|p.51|1
+problems/sets/an2-02.md|Abbott|p.223|1
+problems/sets/an2-02.md|Lindstrom|p.62,63|1
+problems/sets/an2-03.md|Lindstrom|p.67,68|1
+problems/sets/an2-03.md|Lindstrom|p.67,68|2
+problems/sets/an2-03.md|Lindstrom|p.68|1
+problems/sets/an2-03.md|Lindstrom|p.68|2
+problems/sets/an2-04.md|Lindstrom|p.103|1
+problems/sets/an2-04.md|Lindstrom|p.104|1
+problems/sets/an2-04.md|Lindstrom|p.106|1
+problems/sets/an2-04.md|Lindstrom|p.112,113|1
+problems/sets/an2-04.md|Lindstrom|p.114|1
+problems/sets/an2-04.md|Lindstrom|p.115,116|1
+problems/sets/an2-04.md|Lindstrom|p.115|1
+problems/sets/an2-04.md|Lindstrom|p.115|2
+problems/sets/an2-04.md|Lindstrom|p.115|3
+problems/sets/an2-04.md|Lindstrom|p.62|1
+problems/sets/an2-05.md|Abbott|p.157|1
+problems/sets/an2-05.md|Abbott|p.165|1
+problems/sets/an2-05.md|Lindstrom|p.85|1
+problems/sets/an2-05.md|Lindstrom|p.92|1
+problems/sets/an2-06.md|Abbott|p.168|1
+problems/sets/an2-06.md|Abbott|p.174,175|1
+problems/sets/an2-06.md|Abbott|p.181|1
+problems/sets/an2-06.md|Abbott|p.181|2
+problems/sets/an2-06.md|Lindstrom|p.116|1
+problems/sets/an2-06.md|Lindstrom|p.116|2
+problems/sets/an2-06.md|Lindstrom|p.117,118|1
+problems/sets/an2-06.md|Lindstrom|p.119|1
+problems/sets/an2-06.md|Lindstrom|p.121|1
+problems/sets/an2-06.md|Lindstrom|p.122|1
+problems/sets/an2-06.md|Lindstrom|p.89|1
+problems/sets/an2-06.md|Lindstrom|p.89|2
+problems/sets/an2-06.md|Lindstrom|p.89|3
+problems/sets/an2-07.md|Lindstrom|p.154|1
+problems/sets/an2-08.md|Lindstrom|p.288|1
+problems/sets/an2-08.md|Munkres|p.268|1
+problems/sets/an2-08.md|Munkres|p.281|1
+problems/sets/an2-08.md|Munkres|p.288,289|1
+problems/sets/an2-08.md|Munkres|p.288,289|2
+problems/sets/an2-09.md|Lindstrom|p.173|1
+problems/sets/an2-09.md|Lindstrom|p.182|1
+problems/sets/an2-09.md|Lindstrom|p.183|1
+problems/sets/an2-09.md|Lindstrom|p.201|1
+problems/sets/an2-09.md|Lindstrom|p.62|1
+problems/sets/at1-01.md|Hatcher|p.17|1
+problems/sets/at1-01.md|Hatcher|p.2|1
+problems/sets/at1-01.md|Hatcher|p.2|2
+problems/sets/at1-01.md|Hatcher|p.3|1
+problems/sets/at1-01.md|Hatcher|p.3|2
+problems/sets/at1-01.md|Hatcher|p.4|1
+problems/sets/at1-02.md|Hatcher|p.5,6|1
+problems/sets/at1-02.md|Hatcher|p.7,8|1
+problems/sets/at1-02.md|Hatcher|p.7|1
+problems/sets/at1-02.md|Hatcher|p.8,9,10|1
+problems/sets/at1-03.md|Hatcher|p.27|1
+problems/sets/at1-04.md|Hatcher|p.29|1
+problems/sets/at1-05.md|Hatcher|p.40,41,42|1
+problems/sets/at1-05.md|Hatcher|p.44,45,46|1
+problems/sets/at1-05.md|Hatcher|p.44|1
+problems/sets/at1-05.md|Hatcher|p.51,52|1
+problems/sets/at1-06.md|Hatcher|p.56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79|1
+problems/sets/at1-06.md|Hatcher|p.56,57|1
+problems/sets/at1-06.md|Hatcher|p.57,58|1
+problems/sets/at1-06.md|Hatcher|p.63,64,65|1
+problems/sets/at1-06.md|Hatcher|p.63|1
+problems/sets/at1-06.md|Hatcher|p.70,71|1
+problems/sets/at1-06.md|Hatcher|p.73|1
+problems/sets/at1-07.md|Hatcher|p.105,106|1
+problems/sets/at1-07.md|Hatcher|p.107|1
+problems/sets/at1-07.md|Hatcher|p.108|1
+problems/sets/at1-07.md|Hatcher|p.108|2
+problems/sets/at1-07.md|Hatcher|p.109|1
+problems/sets/at1-07.md|Hatcher|p.110|1
+problems/sets/at1-07.md|Hatcher|p.111|1
+problems/sets/at1-07.md|Hatcher|p.128|1
+problems/sets/at1-08.md|Hatcher|p.130|1
+problems/sets/at1-08.md|Hatcher|p.139,140|1
+problems/sets/at1-08.md|Hatcher|p.140,141|1
+problems/sets/at1-09.md|Hatcher|p.149,150,151,152,153,154,155|1
+problems/sets/at1-09.md|Hatcher|p.153|1
+problems/sets/at1-10.md|Hatcher|p.161,162|1
+problems/sets/at1-10.md|Hatcher|p.162,163|1
+problems/sets/at1-10.md|Hatcher|p.163,164,165|1
+problems/sets/at1-10.md|Hatcher|p.163|1
+problems/sets/at1-10.md|Hatcher|p.163|2
+problems/sets/at2-01.md|Hatcher|p.190|1
+problems/sets/at2-01.md|Hatcher|p.191,192,193|1
+problems/sets/at2-01.md|Hatcher|p.191|1
+problems/sets/at2-02.md|Hatcher|p.194,195,196|1
+problems/sets/at2-02.md|Hatcher|p.195,196|1
+problems/sets/at2-02.md|Hatcher|p.196|1
+problems/sets/at2-03.md|Hatcher|p.197,198,199|1
+problems/sets/at2-03.md|Hatcher|p.197,198|1
+problems/sets/at2-03.md|Hatcher|p.198,199|1
+problems/sets/at2-03.md|Hatcher|p.199,200,201|1
+problems/sets/at2-03.md|Hatcher|p.199,200|1
+problems/sets/at2-03.md|Hatcher|p.201,202|1
+problems/sets/at2-03.md|Hatcher|p.201,202|2
+problems/sets/at2-03.md|Hatcher|p.202|1
+problems/sets/at2-05.md|Hatcher|p.214,215,216|1
+problems/sets/at2-05.md|Hatcher|p.215,216|1
+problems/sets/at2-05.md|Hatcher|p.215|1
+problems/sets/at2-05.md|Hatcher|p.216|1
+problems/sets/at2-06.md|Hatcher|p.233,234|1
+problems/sets/at2-06.md|Hatcher|p.235|1
+problems/sets/at2-06.md|Hatcher|p.235|2
+problems/sets/at2-08.md|Dey|p.55,56|1
+problems/sets/at2-08.md|Dey|p.55,57|1
+problems/sets/at2-08.md|Ghrist|p.131,132|1
+problems/sets/at2-08.md|Ghrist|p.131,132|2
+problems/sets/at2-08.md|Hatcher|p.198|1
+problems/sets/at2-08.md|Hatcher|p.198|2
+problems/sets/cap-02.md|Dey|p.131,132|1
+problems/sets/cap-02.md|Dey|p.180|1
+problems/sets/cap-02.md|Dey|p.395|1
+problems/sets/cap-03.md|Dey|p.187|1
+problems/sets/cap-03.md|Dey|p.376|1
+problems/sets/cap-03.md|Dey|p.394|1
+problems/sets/cat-01.md|Aluffi Chapter 0|p.18,19,20,21,22,23,24,25,26|1
+problems/sets/cat-01.md|Aluffi Chapter 0|p.27,28,29,30|1
+problems/sets/cat-02.md|Aluffi Chapter 0|p.31,32,33,34,35,36,37,38|1
+problems/sets/cat-02.md|Aluffi Chapter 0|p.33,34|1
+problems/sets/cat-02.md|Aluffi Chapter 0|p.33|1
+problems/sets/cat-02.md|Aluffi Chapter 0|p.35,36|1
+problems/sets/cat-03.md|Spivak|p.101|1
+problems/sets/cat-04.md|Aluffi Chapter 0|p.497|1
+problems/sets/cat-06.md|Spivak|p.102,103,104|1
+problems/sets/cat-07.md|Oudot|p.21,22,23,24,25,26,27|1
+problems/sets/cat-07.md|Oudot|p.29|1
+problems/sets/cat-07.md|Oudot|p.49|1
+problems/sets/lab-02.md|Edelsbrunner|p.69|1
+problems/sets/lab-02.md|Edelsbrunner|p.71|1
+problems/sets/lab-02.md|Edelsbrunner|p.71|2
+problems/sets/lab-02.md|Edelsbrunner|p.72|1
+problems/sets/lab-02.md|Edelsbrunner|p.74|1
+problems/sets/lab-03.md|Edelsbrunner|p.101,102,103,104,105,106|1
+problems/sets/lab-03.md|Edelsbrunner|p.179,180,181,182,183,184,185,186|1
+problems/sets/lab-03.md|Edelsbrunner|p.181|1
+problems/sets/lab-03.md|Edelsbrunner|p.181|2
+problems/sets/lab-03.md|Edelsbrunner|p.181|3
+problems/sets/lab-04.md|Edelsbrunner|p.181|1
+problems/sets/lab-04.md|Edelsbrunner|p.181|2
+problems/sets/lab-04.md|Oudot|p.13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28|1
+problems/sets/lab-04.md|Oudot|p.17|1
+problems/sets/lab-04.md|Oudot|p.19|1
+problems/sets/lab-05.md|Edelsbrunner|p.181|1
+problems/sets/lab-05.md|Oudot|p.49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66|1
+problems/sets/lab-05.md|Oudot|p.51|1
+problems/sets/lab-05.md|Oudot|p.51|2
+problems/sets/lab-05.md|Oudot|p.61|1
+problems/sets/lab-06.md|Dey|p.390|1
+problems/sets/lab-06.md|Dey|p.392|1
+problems/sets/lab-06.md|Dey|p.392|2
+problems/sets/lab-07.md|Dey|p.392|1
+problems/sets/lab-09.md|Dey|p.393|1
+problems/sets/pw-01.md|Cummings|p.217|1
+problems/sets/pw-01.md|Cummings|p.225|1
+problems/sets/pw-02.md|Cummings|p.233|1
+problems/sets/pw-03.md|Cummings|p.280,281|1
+problems/sets/pw-05.md|Cummings|p.237,238|1
+problems/sets/pw-05.md|Cummings|p.27,65,66,237,238|1
+problems/sets/pw-05.md|Cummings|p.27|1
+problems/sets/pw-05.md|Cummings|p.65,66|1
+problems/sets/tda1-01.md|Edelsbrunner|p.62,63,64,65,66,67,68|1
+problems/sets/tda1-01.md|Edelsbrunner|p.63|1
+problems/sets/tda1-01.md|Edelsbrunner|p.64,65|1
+problems/sets/tda1-01.md|Edelsbrunner|p.64|1
+problems/sets/tda1-01.md|Edelsbrunner|p.65,66|1
+problems/sets/tda1-01.md|Edelsbrunner|p.67,68|1
+problems/sets/tda1-01.md|Oudot|p.29,30|1
+problems/sets/tda1-01.md|Oudot|p.31|1
+problems/sets/tda1-02.md|Edelsbrunner|p.101,102,103,104,105,106|1
+problems/sets/tda1-02.md|Edelsbrunner|p.102,103|1
+problems/sets/tda1-02.md|Edelsbrunner|p.102|1
+problems/sets/tda1-02.md|Edelsbrunner|p.103|1
+problems/sets/tda1-02.md|Edelsbrunner|p.104,105|1
+problems/sets/tda1-02.md|Edelsbrunner|p.105,106|1
+problems/sets/tda1-02.md|Edelsbrunner|p.93|1
+problems/sets/tda1-02.md|Edelsbrunner|p.94,95,96,97,98,99,100|1
+problems/sets/tda1-02.md|Edelsbrunner|p.95|1
+problems/sets/tda1-02.md|Edelsbrunner|p.96|1
+problems/sets/tda1-02.md|Edelsbrunner|p.97,98|1
+problems/sets/tda1-02.md|Edelsbrunner|p.97|1
+problems/sets/tda1-02.md|Edelsbrunner|p.98|1
+problems/sets/tda1-02.md|Edelsbrunner|p.99,100|1
+problems/sets/tda1-02.md|Edelsbrunner|p.99|1
+problems/sets/tda1-03.md|Edelsbrunner|p.178,179,180,181,182,183,184,185|1
+problems/sets/tda1-03.md|Edelsbrunner|p.179|1
+problems/sets/tda1-03.md|Edelsbrunner|p.180|1
+problems/sets/tda1-03.md|Edelsbrunner|p.181,182|1
+problems/sets/tda1-03.md|Edelsbrunner|p.181|1
+problems/sets/tda1-03.md|Edelsbrunner|p.183,184|1
+problems/sets/tda1-03.md|Edelsbrunner|p.184,185|1
+problems/sets/tda1-03.md|Oudot|p.21|1
+problems/sets/tda1-04.md|Oudot|p.13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28|1
+problems/sets/tda1-05.md|Edelsbrunner|p.190,191|1
+problems/sets/tda1-05.md|Edelsbrunner|p.192,193,194,195|1
+problems/sets/tda1-05.md|Oudot|p.17|1
+problems/sets/tda1-05.md|Oudot|p.22,23,24|1
+problems/sets/tda1-05.md|Oudot|p.24|1
+problems/sets/tda1-05.md|Oudot|p.26,27,28|1
+problems/sets/tda1-06.md|Edelsbrunner|p.217,218|1
+problems/sets/tda1-06.md|Edelsbrunner|p.218,219|1
+problems/sets/tda1-06.md|Edelsbrunner|p.219|1
+problems/sets/tda1-07.md|Edelsbrunner|p.216,217,218,219|1
+problems/sets/tda1-07.md|Oudot|p.54|1
+problems/sets/tda1-07.md|Oudot|p.60,61|1
+problems/sets/tda1-07.md|Oudot|p.62|1
+problems/sets/tda1-08.md|Edelsbrunner|p.151,152|1
+problems/sets/tda1-08.md|Edelsbrunner|p.152|1
+problems/sets/tda1-08.md|Edelsbrunner|p.153,154|1
+problems/sets/tda1-08.md|Edelsbrunner|p.159|1
+problems/sets/tda1-08.md|Edelsbrunner|p.162,163|1
+problems/sets/tda1-08.md|Edelsbrunner|p.163,164|1
+problems/sets/tda1-08.md|Edelsbrunner|p.166|1
+problems/sets/tda1-09.md|Edelsbrunner|p.114,115,116,117,118|1
+problems/sets/tda1-09.md|Edelsbrunner|p.115,116,117|1
+problems/sets/tda1-09.md|Edelsbrunner|p.117|1
+problems/sets/tda1-09.md|Edelsbrunner|p.186,187,188,189,190,191|1
+problems/sets/tda1-09.md|Edelsbrunner|p.187|1
+problems/sets/tda1-09.md|Edelsbrunner|p.188,189|1
+problems/sets/tda1-09.md|Edelsbrunner|p.189|1
+problems/sets/tda1-09.md|Edelsbrunner|p.190,191|1
+problems/sets/tda1-09.md|Edelsbrunner|p.190|1
+problems/sets/tda2-01.md|Dey|p.125,126|1
+problems/sets/tda2-01.md|Dey|p.126|1
+problems/sets/tda2-01.md|Ghrist|p.108,109|1
+problems/sets/tda2-01.md|Ghrist|p.108,109|2
+problems/sets/tda2-02.md|Dey|p.321,322|1
+problems/sets/tda2-03.md|Dey|p.356,357|1
+problems/sets/tda2-07.md|Dey|p.256|1
+problems/sets/tda2-07.md|Dey|p.281,282|1
+problems/sets/tda2-08.md|Dey|p.182|1
+problems/sets/tda2-08.md|Dey|p.190|1
+problems/sets/tda2-09.md|Dey|p.390,391|1
+problems/sets/tda2-09.md|Dey|p.401,402,403|1
+problems/sets/tda2-10.md|Ghrist|p.181,182|1
+problems/sets/tda2-10.md|Ghrist|p.184|1
+problems/sets/tda2-11.md|Ghrist|p.198|1
+problems/sets/tda2-11.md|Ghrist|p.199|1
+problems/sets/tda2-11.md|Ghrist|p.208|1
+problems/sets/tda2-11.md|Ghrist|p.209|1
+problems/sets/tda2-11.md|Ghrist|p.219|1
+problems/sets/top-01.md|Munkres|p.76|1
+problems/sets/top-01.md|Munkres|p.77|1
+problems/sets/top-01.md|Munkres|p.77|2
+problems/sets/top-01.md|Munkres|p.77|3
+problems/sets/top-01.md|Munkres|p.77|4
+problems/sets/top-02.md|Munkres|p.78|1
+problems/sets/top-02.md|Munkres|p.78|2
+problems/sets/top-02.md|Munkres|p.81,82|1
+problems/sets/top-02.md|Munkres|p.82|1
+problems/sets/top-02.md|Munkres|p.82|2
+problems/sets/top-02.md|Munkres|p.82|3
+problems/sets/top-02.md|Munkres|p.82|4
+problems/sets/top-02.md|Munkres|p.83,84|1
+problems/sets/top-02.md|Munkres|p.84|1
+problems/sets/top-02.md|Munkres|p.84|2
+problems/sets/top-02.md|Munkres|p.84|3
+problems/sets/top-02.md|Munkres|p.84|4
+problems/sets/top-02.md|Munkres|p.85|1
+problems/sets/top-02.md|Munkres|p.86|1
+problems/sets/top-02.md|Munkres|p.88|1
+problems/sets/top-02.md|Munkres|p.88|2
+problems/sets/top-02.md|Munkres|p.89|1
+problems/sets/top-02.md|Munkres|p.90|1
+problems/sets/top-02.md|Munkres|p.90|2
+problems/sets/top-03.md|Munkres|p.100|1
+problems/sets/top-03.md|Munkres|p.100|2
+problems/sets/top-03.md|Munkres|p.102|1
+problems/sets/top-03.md|Munkres|p.76|1
+problems/sets/top-03.md|Munkres|p.84|1
+problems/sets/top-03.md|Munkres|p.84|2
+problems/sets/top-03.md|Munkres|p.93|1
+problems/sets/top-03.md|Munkres|p.95|1
+problems/sets/top-03.md|Munkres|p.95|2
+problems/sets/top-03.md|Munkres|p.95|3
+problems/sets/top-03.md|Munkres|p.95|4
+problems/sets/top-03.md|Munkres|p.97|1
+problems/sets/top-03.md|Munkres|p.98|1
+problems/sets/top-03.md|Munkres|p.98|2
+problems/sets/top-03.md|Munkres|p.98|3
+problems/sets/top-03.md|Munkres|p.98|4
+problems/sets/top-03.md|Munkres|p.99|1
+problems/sets/top-03.md|Munkres|p.99|2
+problems/sets/top-04.md|Munkres|p.102,103,104,105,106,107,108,109,110,111|1
+problems/sets/top-04.md|Munkres|p.102|1
+problems/sets/top-04.md|Munkres|p.102|2
+problems/sets/top-04.md|Munkres|p.102|3
+problems/sets/top-04.md|Munkres|p.103|1
+problems/sets/top-04.md|Munkres|p.103|2
+problems/sets/top-04.md|Munkres|p.104|1
+problems/sets/top-04.md|Munkres|p.104|2
+problems/sets/top-04.md|Munkres|p.105|1
+problems/sets/top-04.md|Munkres|p.105|2
+problems/sets/top-05.md|Munkres|p.103|1
+problems/sets/top-05.md|Munkres|p.113|1
+problems/sets/top-05.md|Munkres|p.114|1
+problems/sets/top-05.md|Munkres|p.114|2
+problems/sets/top-05.md|Munkres|p.114|3
+problems/sets/top-05.md|Munkres|p.115,116,117|1
+problems/sets/top-05.md|Munkres|p.115|1
+problems/sets/top-05.md|Munkres|p.115|2
+problems/sets/top-05.md|Munkres|p.115|3
+problems/sets/top-05.md|Munkres|p.115|4
+problems/sets/top-05.md|Munkres|p.116|1
+problems/sets/top-05.md|Munkres|p.116|2
+problems/sets/top-05.md|Munkres|p.116|3
+problems/sets/top-05.md|Munkres|p.86|1
+problems/sets/top-05.md|Munkres|p.86|2
+problems/sets/top-06.md|Munkres|p.119,120|1
+problems/sets/top-06.md|Munkres|p.119|1
+problems/sets/top-06.md|Munkres|p.119|2
+problems/sets/top-06.md|Munkres|p.119|3
+problems/sets/top-06.md|Munkres|p.121|1
+problems/sets/top-06.md|Munkres|p.124|1
+problems/sets/top-06.md|Munkres|p.124|2
+problems/sets/top-06.md|Munkres|p.125|1
+problems/sets/top-06.md|Munkres|p.130,131|1
+problems/sets/top-06.md|Munkres|p.130,131|2
+problems/sets/top-06.md|Munkres|p.131|1
+problems/sets/top-06.md|Munkres|p.131|2
+problems/sets/top-07.md|Munkres|p.148|1
+problems/sets/top-07.md|Munkres|p.153|1
+problems/sets/top-07.md|Munkres|p.155|1
+problems/sets/top-07.md|Munkres|p.161|1
+problems/sets/top-08.md|Munkres|p.105|1
+problems/sets/top-08.md|Munkres|p.105|2
+problems/sets/top-08.md|Munkres|p.106|1
+problems/sets/top-08.md|Munkres|p.164|1
+problems/sets/top-08.md|Munkres|p.176|1
+problems/sets/top-09.md|Munkres|p.105|1
+problems/sets/top-09.md|Munkres|p.178|1
+problems/sets/top-09.md|Munkres|p.179,180|1
+problems/sets/top-09.md|Munkres|p.179|1
+problems/sets/top-09.md|Munkres|p.182|1
+problems/sets/top-09.md|Munkres|p.185|1
+problems/sets/top-09.md|Munkres|p.189,224|1
+problems/sets/top-10.md|Munkres|p.130,131|1
+problems/sets/top-10.md|Munkres|p.130|1
+problems/sets/top-10.md|Munkres|p.181|1
+problems/sets/top-10.md|Munkres|p.189|1
+problems/sets/top-10.md|Munkres|p.189|2
+problems/sets/top-10.md|Munkres|p.190,191|1
+problems/sets/top-10.md|Munkres|p.190|1
+problems/sets/top-10.md|Munkres|p.192|1
+problems/sets/top-11.md|Munkres|p.195|1
+problems/sets/top-11.md|Munkres|p.195|2
+problems/sets/top-11.md|Munkres|p.200,201|1
+problems/sets/top-11.md|Munkres|p.200|1
+problems/sets/top-11.md|Munkres|p.200|2
+problems/sets/top-12.md|Munkres|p.137|1
+problems/sets/top-12.md|Munkres|p.138|1
+problems/sets/top-12.md|Munkres|p.138|2
+problems/sets/top-12.md|Munkres|p.139|1
+problems/sets/top-12.md|Munkres|p.143|1
+problems/sets/top-12.md|Munkres|p.167|1
+problems/sets/top-13.md|Hatcher|p.10|1
+problems/sets/top-13.md|Hatcher|p.5,6,7,8,9,10|1
+problems/sets/top-13.md|Hatcher|p.5|1
+problems/sets/top-13.md|Hatcher|p.5|2
+problems/sets/top-13.md|Hatcher|p.8|1
+problems/sets/top-13.md|Hatcher|p.8|2
+problems/sets/top-13.md|Hatcher|p.8|3
+problems/sets/top-13.md|Hatcher|p.8|4
+problems/sets/top-13.md|Hatcher|p.8|5
+problems/sets/top-13.md|Hatcher|p.9|1
+problems/sets/top-13.md|Munkres|p.136,137,138,139,140,141,142,143,144,145,146,147|1
+problems/sets/top-13.md|Munkres|p.139|1
+problems/sets/top-13.md|Munkres|p.139|2
+problems/sets/top-13.md|Munkres|p.167|1
+problems/sets/top-13.md|Munkres|p.5|1
